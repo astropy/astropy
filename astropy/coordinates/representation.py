@@ -18,13 +18,14 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
-from ..utils import ShapedLikeNDArray, classproperty
+from ..utils import ShapedLikeNDArray, classproperty, sharedmethod
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
-           "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
+           "PhysicsSphericalRepresentation", "CylindricalRepresentation",
+           "SphericalOffset"]
 
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
@@ -67,13 +68,14 @@ class MetaBaseRepresentation(abc.ABCMeta):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
+        # Register representation name (except for BaseRepresentation)
+        if (cls.__name__ == 'BaseRepresentation' or
+                cls.__name__.endswith('Offset')):
+            return
+
         if name != 'BaseRepresentation' and 'attr_classes' not in dct:
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
-
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == 'BaseRepresentation':
-            return
 
         repr_name = cls.get_name()
 
@@ -274,8 +276,7 @@ class BaseRepresentation(ShapedLikeNDArray):
 
     # Follow numpy convention and make an independent copy.
     def __pos__(self):
-        return self.__class__(*(getattr(self, component)
-                                for component in self.components), copy=True)
+        return self.copy()
 
     def _combine_operation(self, op, other, reverse=False):
         result = self.to_cartesian()._combine_operation(op, other, reverse)
@@ -1378,3 +1379,166 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+
+class BaseOffset(BaseRepresentation):
+    """Offsets from points on a base representation.
+
+    Parameters
+    ----------
+    d_* : `~astropy.units.Quantity`
+        The offsets in terms of the components of the base representation.
+        They can either be given in order in ``args`` or by name in ``kwargs``,
+        where the names are the base representation names prefixed by 'd_'.
+        The units should be consistent with those of the components, but not
+        necessarily equivalent (e.g., for a spherical representation, they can
+        be rotation rates (angular per time) for longitude and latitude, and
+        velocity for distance.
+    copy : bool, optional
+        If True arrays will be copied rather than referenced.
+    """
+
+    base_representation = None
+    attr_classes = OrderedDict()
+
+    def __init__(self, *args, **kwargs):
+        self.attr_classes = OrderedDict()
+        attrs = []
+        names = []
+        regular_units = []
+        angular_units = []
+        base_attr_classes = self.base_representation.attr_classes
+        args = list(args)
+        for component, base_attr_cls in base_attr_classes.items():
+            name = 'd_' + component
+            attr = args.pop(0) if args else kwargs.pop(name)
+            attrs.append(attr)
+            names.append(name)
+            try:
+                unit = attr.unit
+            except AttributeError:
+                raise TypeError('attributes should have units.')
+            if issubclass(base_attr_cls, Angle):
+                angular_units.append(unit)
+            else:
+                regular_units.append(unit)
+
+        copy = args.pop(0) if args else kwargs.pop('copy', True)
+        if args:
+            raise TypeError('unexpected arguments: {0}'.format(args))
+
+        if kwargs:
+            for name in names:
+                if name in kwargs:
+                    raise TypeError("__init__() got multiple values for "
+                                    "argument {0!r}".format(name))
+
+            raise TypeError('unexpected keyword arguments: {0}'.format(kwargs))
+
+        for units in regular_units, angular_units:
+            for unit in units[1:]:
+                if not unit.is_equivalent(units[0]):
+                    raise u.UnitsError('inconsistent units: {0}.'
+                                       .format(units))
+
+        attrs = [u.Quantity(a, copy=copy, subok=True) for a in attrs]
+        try:
+            attrs = broadcast_arrays(*attrs, subok=True)
+        except ValueError:
+            raise ValueError("Input parameters cannot be broadcast")
+
+        for name, attr in zip(names, attrs):
+            self.attr_classes[name] = type(attr)
+            setattr(self, '_' + name, attr)
+
+    @sharedmethod
+    def _check_base(self, base):
+        if not isinstance(base, self.base_representation):
+            raise TypeError('need a base of the correct representation type, '
+                            '{0}, not {1}.'.format(self.base_representation,
+                                                   type(base)))
+
+    def to_cartesian(self, base):
+        """Convert the offset to 3D rectangular cartesian coordinates.
+
+        Parameters
+        ----------
+        base : instance of ``self.base_representation``
+             The points for which the offsets are to converted: each of the
+             components is multiplied by its unit vectors and scale factors.
+        """
+        self._check_base(base)
+        base_e = base.unit_vectors()
+        base_sf = base.scale_factors()
+        return functools.reduce(
+            operator.add, (getattr(self, 'd_' + component) *
+                           base_sf[component] * e
+                           for component, e in six.iteritems(base_e)))
+
+    @sharedmethod
+    def from_cartesian(self, other, base):
+        """Interpret 3D rectangular cartesian coordinates as offsets.
+
+        Parameters
+        ----------
+        base : instance of ``self.base_representation``
+            Base relative to which the offsets are defined.
+        """
+        cls = self if isinstance(self, type) else type(self)
+        self._check_base(base)
+        base_e = base.unit_vectors()
+        base_sf = base.scale_factors()
+        return cls(*(other.dot(e / base_sf[component])
+                     for component, e in six.iteritems(base_e)))
+
+    def _scale_operation(self, op, *args):
+        scaled_attrs = [op(getattr(self, c), *args) for c in self.components]
+        return self.__class__(*scaled_attrs, copy=False)
+
+    def _combine_operation(self, op, other, reverse=False):
+        try:
+            self_cartesian = self.to_cartesian(other)
+        except TypeError:
+            return NotImplemented
+
+        return other._combine_operation(op, self_cartesian, not reverse)
+
+    def norm(self, base=None):
+        """Vector norm.
+
+        The norm is the standard Frobenius norm, i.e., the square root of the
+        sum of the squares of all components with non-angular units.
+
+        Parameters
+        ----------
+        base : instance of ``self.base_representation``
+            Base relative to which the offsets are defined, which is required
+            to calculate the physical size of the offset.
+
+        Returns
+        -------
+        norm : `astropy.units.Quantity`
+            Vector norm, with the same shape as the representation.
+        """
+        return self.to_cartesian(base).norm()
+
+    # ensure components behave as if they were properties.
+    def __getattr__(self, attr):
+        if attr in self.attr_classes:
+            return getattr(self, '_' + attr)
+
+        return self.__getattribute__(attr)
+
+    def __setattr__(self, attr, value):
+        if attr in self.attr_classes:
+            raise AttributeError("can't set attribute.")
+        return super(BaseOffset, self).__setattr__(attr, value)
+
+    def __delattr__(self, attr):
+        if attr in self.attr_classes:
+            raise AttributeError("can't delete attribute.")
+        return super(BaseOffset, self).__delattr__(attr)
+
+
+class SphericalOffset(BaseOffset):
+    base_representation = SphericalRepresentation
