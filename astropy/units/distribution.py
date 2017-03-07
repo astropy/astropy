@@ -12,7 +12,7 @@ import numpy as np
 
 from . import Quantity
 
-__all__ = ['Distribution']
+__all__ = ['Distribution', 'NormalDistribution']
 
 
 class Distribution(Quantity):
@@ -124,3 +124,30 @@ class Distribution(Quantity):
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
         return self.stat_view(perc, unit=self.unit, copy=False)
+
+
+class NormalDistribution(Distribution):
+    def __new__(cls, center, std=None, var=None, ivar=None, n_samples=1000, **kwargs):
+        if var is not None:
+            if std is None:
+                std = var**0.5
+            else:
+                raise ValueError('NormalDistribution cannot take both std and var')
+        if ivar is not None:
+            if std is None:
+                std = ivar**-0.5
+            else:
+                raise ValueError('NormalDistribution cannot take both ivar and '
+                                 'and std or var')
+        if std is None:
+            raise ValueError('NormalDistribution requires one of std, var, or ivar')
+
+        randshape = [n_samples] + list(np.broadcast(std, center).shape)
+        distr = np.random.randn(*randshape)*std + center
+        if distr.unit != center.unit:
+            distr = distr.to(center.unit)
+
+        self = super(NormalDistribution, cls).__new__(cls, distr, unit=None, **kwargs)
+        self.distr_std = std
+        self.distr_center = center
+        return self
