@@ -22,10 +22,10 @@ from ..utils import ShapedLikeNDArray, classproperty, sharedmethod
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
+# Note: Offset classes gets added to this at the end.
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
-           "PhysicsSphericalRepresentation", "CylindricalRepresentation",
-           "SphericalOffset"]
+           "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
@@ -60,67 +60,13 @@ def _array2string(values, prefix=''):
     return np.array2string(values, formatter=formatter, style=fmt,
                            separator=', ', prefix=prefix)
 
-# Need to subclass ABCMeta rather than type, so that this meta class can be
-# combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
-# "TypeError: metaclass conflict: the metaclass of a derived class must be a
-#  (non-strict) subclass of the metaclasses of all its bases"
-class MetaBaseRepresentation(abc.ABCMeta):
-    def __init__(cls, name, bases, dct):
-        super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
-        # Register representation name (except for BaseRepresentation)
-        if (cls.__name__ == 'BaseRepresentation' or
-                cls.__name__.endswith('Offset')):
-            return
-
-        if name != 'BaseRepresentation' and 'attr_classes' not in dct:
-            raise NotImplementedError('Representations must have an '
-                                      '"attr_classes" class attribute.')
-
-        repr_name = cls.get_name()
-
-        if repr_name in REPRESENTATION_CLASSES:
-            raise ValueError("Representation class {0} already defined".format(repr_name))
-
-        REPRESENTATION_CLASSES[repr_name] = cls
-
-
-@six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(ShapedLikeNDArray):
-    """
-    Base Representation object, for representing a point in a 3D coordinate
-    system.
-
-    Notes
-    -----
-    All representation classes should subclass this base representation
-    class. All subclasses should then define a ``to_cartesian`` method and a
-    ``from_cartesian`` class method. By default, transformations are done via
-    the cartesian system, but classes that want to define a smarter
-    transformation path can overload the ``represent_as`` method.
-    Furthermore, all classes must define an ``attr_classes`` attribute, an
-    `~collections.OrderedDict` which maps component names to the class that
-    creates them.  They can also define a `recommended_units` dictionary, which
-    maps component names to the units they are best presented to users in.  Note
-    that frame classes may override this with their own preferred units.
-    """
-
-    recommended_units = {}  # subclasses can override
+class RepresentationBase(ShapedLikeNDArray):
+    """Base for 3D coordinate representations and their offsets."""
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
     __array_priority__ = 50000
-
-    def represent_as(self, other_class):
-        if other_class == self.__class__:
-            return self
-        else:
-            # The default is to convert via cartesian coordinates
-            return other_class.from_cartesian(self.to_cartesian())
-
-    @classmethod
-    def from_representation(cls, representation):
-        return representation.represent_as(cls)
 
     # Should be replaced by abstractclassmethod once we support only Python 3
     @abc.abstractmethod
@@ -135,13 +81,6 @@ class BaseRepresentation(ShapedLikeNDArray):
     def components(self):
         """A tuple with the in-order names of the coordinate components"""
         return tuple(self.attr_classes)
-
-    @classmethod
-    def get_name(cls):
-        name = cls.__name__.lower()
-        if name.endswith('representation'):
-            name = name[:-14]
-        return name
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation with ``method`` applied to the arrays.
@@ -212,6 +151,45 @@ class BaseRepresentation(ShapedLikeNDArray):
                 else:
                     reshaped.append(val)
 
+    @abc.abstractmethod
+    def _scale_operation(self, op, *args):
+        raise NotImplementedError
+
+    def __mul__(self, other):
+        return self._scale_operation(operator.mul, other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        return self._scale_operation(operator.truediv, other)
+
+    def __div__(self, other):
+        return self._scale_operation(operator.truediv, other)
+
+    def __neg__(self):
+        return self._scale_operation(operator.neg)
+
+    # Follow numpy convention and make an independent copy.
+    def __pos__(self):
+        return self.copy()
+
+    @abc.abstractmethod
+    def _combine_operation(self, op, other, reverse=False):
+        raise NotImplementedError
+
+    def __add__(self, other):
+        return self._combine_operation(operator.add, other)
+
+    def __radd__(self, other):
+        return self._combine_operation(operator.add, other, reverse=True)
+
+    def __sub__(self, other):
+        return self._combine_operation(operator.sub, other)
+
+    def __rsub__(self, other):
+        return self._combine_operation(operator.sub, other, reverse=True)
+
     @property
     def _values(self):
         """Turn the coordinates into a record array with the coordinate values.
@@ -242,6 +220,82 @@ class BaseRepresentation(ShapedLikeNDArray):
                            for component in self.components]))
         return unitstr
 
+    def __str__(self):
+        return '{0} {1:s}'.format(_array2string(self._values), self._unitstr)
+
+    def __repr__(self):
+        prefixstr = '    '
+        arrstr = _array2string(self._values, prefix=prefixstr)
+
+
+        unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
+        return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
+            self.__class__.__name__, ', '.join(self.components),
+            unitstr, prefixstr, arrstr)
+
+
+# Need to subclass ABCMeta rather than type, so that this meta class can be
+# combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
+# "TypeError: metaclass conflict: the metaclass of a derived class must be a
+#  (non-strict) subclass of the metaclasses of all its bases"
+class MetaBaseRepresentation(abc.ABCMeta):
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
+
+        # Register representation name (except for BaseRepresentation)
+        if cls.__name__ == 'BaseRepresentation':
+            return
+
+        if name != 'BaseRepresentation' and 'attr_classes' not in dct:
+            raise NotImplementedError('Representations must have an '
+                                      '"attr_classes" class attribute.')
+
+        repr_name = cls.get_name()
+
+        if repr_name in REPRESENTATION_CLASSES:
+            raise ValueError("Representation class {0} already defined".format(repr_name))
+
+        REPRESENTATION_CLASSES[repr_name] = cls
+
+
+@six.add_metaclass(MetaBaseRepresentation)
+class BaseRepresentation(RepresentationBase):
+    """Base for representing a point in a 3D coordinate system.
+
+    Notes
+    -----
+    All representation classes should subclass this base representation
+    class. All subclasses should then define a ``to_cartesian`` method and a
+    ``from_cartesian`` class method. By default, transformations are done via
+    the cartesian system, but classes that want to define a smarter
+    transformation path can overload the ``represent_as`` method.
+    Furthermore, all classes must define an ``attr_classes`` attribute, an
+    `~collections.OrderedDict` which maps component names to the class that
+    creates them.  They can also define a `recommended_units` dictionary, which
+    maps component names to the units they are best presented to users in.  Note
+    that frame classes may override this with their own preferred units.
+    """
+
+    recommended_units = {}  # subclasses can override
+
+    def represent_as(self, other_class):
+        if other_class == self.__class__:
+            return self
+        else:
+            # The default is to convert via cartesian coordinates
+            return other_class.from_cartesian(self.to_cartesian())
+
+    @classmethod
+    def from_representation(cls, representation):
+        return representation.represent_as(cls)
+
+    @classmethod
+    def get_name(cls):
+        name = cls.__name__.lower()
+        if name.endswith('representation'):
+            name = name[:-14]
+        return name
+
     def _scale_operation(self, op, *args):
         results = []
         for component, cls in self.attr_classes.items():
@@ -259,43 +313,12 @@ class BaseRepresentation(ShapedLikeNDArray):
         except Exception:
             return NotImplemented
 
-    def __mul__(self, other):
-        return self._scale_operation(operator.mul, other)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __truediv__(self, other):
-        return self._scale_operation(operator.truediv, other)
-
-    def __div__(self, other):
-        return self._scale_operation(operator.truediv, other)
-
-    def __neg__(self):
-        return self._scale_operation(operator.neg)
-
-    # Follow numpy convention and make an independent copy.
-    def __pos__(self):
-        return self.copy()
-
     def _combine_operation(self, op, other, reverse=False):
         result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
             return NotImplemented
         else:
             return self.from_cartesian(result)
-
-    def __add__(self, other):
-        return self._combine_operation(operator.add, other)
-
-    def __radd__(self, other):
-        return self._combine_operation(operator.add, other, reverse=True)
-
-    def __sub__(self, other):
-        return self._combine_operation(operator.sub, other)
-
-    def __rsub__(self, other):
-        return self._combine_operation(operator.sub, other, reverse=True)
 
     def norm(self):
         """Vector norm.
@@ -387,19 +410,6 @@ class BaseRepresentation(ShapedLikeNDArray):
             same type of representation as ``self``.
         """
         return self.from_cartesian(self.to_cartesian().cross(other))
-
-    def __str__(self):
-        return '{0} {1:s}'.format(_array2string(self._values), self._unitstr)
-
-    def __repr__(self):
-        prefixstr = '    '
-        arrstr = _array2string(self._values, prefix=prefixstr)
-
-
-        unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
-        return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
-            self.__class__.__name__, ', '.join(self.components),
-            unitstr, prefixstr, arrstr)
 
 
 class CartesianRepresentation(BaseRepresentation):
@@ -1381,7 +1391,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class BaseOffset(BaseRepresentation):
+class BaseOffset(RepresentationBase):
     """Offsets from points on a base representation.
 
     Parameters
@@ -1540,5 +1550,19 @@ class BaseOffset(BaseRepresentation):
         return super(BaseOffset, self).__delattr__(attr)
 
 
-class SphericalOffset(BaseOffset):
-    base_representation = SphericalRepresentation
+class CartesianOffset(BaseOffset):
+    def to_cartesian(self, base=None):
+        return CartesianRepresentation(*[getattr(self, c) for c
+                                         in self.components])
+
+    @classmethod
+    def from_cartesian(cls, other, base=None):
+        return cls(*[getattr(other, c) for c in other.components])
+
+
+for r, r_cls in REPRESENTATION_CLASSES.items():
+    name = r_cls.__name__.replace('Representation', 'Offset')
+    if name not in locals():
+        locals()[name] = type(name, (BaseOffset,),
+                              {'base_representation': r_cls})
+        __all__.append(name)
