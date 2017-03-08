@@ -153,7 +153,7 @@ class RepresentationBase(ShapedLikeNDArray):
 
     @abc.abstractmethod
     def _scale_operation(self, op, *args):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def __mul__(self, other):
         return self._scale_operation(operator.mul, other)
@@ -176,7 +176,7 @@ class RepresentationBase(ShapedLikeNDArray):
 
     @abc.abstractmethod
     def _combine_operation(self, op, other, reverse=False):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def __add__(self, other):
         return self._combine_operation(operator.add, other)
@@ -1461,11 +1461,11 @@ class BaseOffset(RepresentationBase):
             self.attr_classes[name] = type(attr)
             setattr(self, '_' + name, attr)
 
-    @sharedmethod
-    def _check_base(self, base):
-        if not isinstance(base, self.base_representation):
+    @classmethod
+    def _check_base(cls, base):
+        if not isinstance(base, cls.base_representation):
             raise TypeError('need a base of the correct representation type, '
-                            '{0}, not {1}.'.format(self.base_representation,
+                            '{0}, not {1}.'.format(cls.base_representation,
                                                    type(base)))
 
     def to_cartesian(self, base):
@@ -1485,8 +1485,8 @@ class BaseOffset(RepresentationBase):
                            base_sf[component] * e
                            for component, e in six.iteritems(base_e)))
 
-    @sharedmethod
-    def from_cartesian(self, other, base):
+    @classmethod
+    def from_cartesian(cls, other, base):
         """Interpret 3D rectangular cartesian coordinates as offsets.
 
         Parameters
@@ -1494,8 +1494,7 @@ class BaseOffset(RepresentationBase):
         base : instance of ``self.base_representation``
             Base relative to which the offsets are defined.
         """
-        cls = self if isinstance(self, type) else type(self)
-        self._check_base(base)
+        cls._check_base(base)
         base_e = base.unit_vectors()
         base_sf = base.scale_factors()
         return cls(*(other.dot(e / base_sf[component])
@@ -1506,12 +1505,17 @@ class BaseOffset(RepresentationBase):
         return self.__class__(*scaled_attrs, copy=False)
 
     def _combine_operation(self, op, other, reverse=False):
-        try:
-            self_cartesian = self.to_cartesian(other)
-        except TypeError:
-            return NotImplemented
+        if isinstance(self, type(other)):
+            first, second = (self, other) if not reverse else (other, self)
+            return self.__class__(*[op(getattr(first, c), getattr(second, c))
+                                    for c in self.components])
+        else:
+            try:
+                self_cartesian = self.to_cartesian(other)
+            except TypeError:
+                return NotImplemented
 
-        return other._combine_operation(op, self_cartesian, not reverse)
+            return other._combine_operation(op, self_cartesian, not reverse)
 
     def norm(self, base=None):
         """Vector norm.
@@ -1565,4 +1569,5 @@ for r, r_cls in REPRESENTATION_CLASSES.items():
     if name not in locals():
         locals()[name] = type(name, (BaseOffset,),
                               {'base_representation': r_cls})
+    if name not in __all__:
         __all__.append(name)

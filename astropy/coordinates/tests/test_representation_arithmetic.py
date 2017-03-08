@@ -10,7 +10,8 @@ from ... import units as u
 from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CylindricalRepresentation, SphericalRepresentation,
                 UnitSphericalRepresentation, SphericalOffset,
-                Longitude, Latitude)
+                CartesianOffset, UnitSphericalOffset, CylindricalOffset,
+                PhysicsSphericalOffset, Longitude, Latitude)
 from ..angle_utilities import angular_separation
 from ...utils.compat.numpy import broadcast_arrays
 from ...tests.helper import assert_quantity_allclose
@@ -525,7 +526,6 @@ class TestUnitVectorsAndScales():
 
 
 class TestSphericalOffset():
-
     def setup(self):
         s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
                                     lat=[0., -30., 85.] * u.deg,
@@ -549,24 +549,27 @@ class TestSphericalOffset():
                                  [0., np.pi/180./3600., 0.]*u.kpc)
         # check all using unit vectors and scale factors.
         s_lon = s + 1.*u.arcsec * sf['lon'] * e['lon']
-        assert_representation_allclose(o_lonc, s_lon - s, atol=1e-10*u.kpc)
+        assert_representation_allclose(o_lonc, s_lon - s, atol=1*u.npc)
+        s_lon2 = s + o_lon
+        assert_representation_allclose(s_lon2, s_lon, atol=1*u.npc)
 
         o_lat = SphericalOffset(0.*u.arcsec, 1.*u.arcsec, 0.*u.kpc)
         o_latc = o_lat.to_cartesian(base=s)
         assert_quantity_allclose(o_latc[0].xyz,
-                                 [0., 0., np.pi/180./3600.]*u.kpc)
+                                 [0., 0., np.pi/180./3600.]*u.kpc,
+                                 atol=1.*u.npc)
         s_lat = s + 1.*u.arcsec * sf['lat'] * e['lat']
-        assert_representation_allclose(o_latc, s_lat - s, atol=1e-10*u.kpc)
+        assert_representation_allclose(o_latc, s_lat - s, atol=1*u.npc)
         s_lat2 = s + o_lat
-        assert_representation_allclose(s_lat2, s_lat, atol=1e-10*u.kpc)
+        assert_representation_allclose(s_lat2, s_lat, atol=1*u.npc)
 
         o_distance = SphericalOffset(0.*u.arcsec, 0.*u.arcsec, 1.*u.mpc)
         o_distancec = o_distance.to_cartesian(base=s)
         assert_quantity_allclose(o_distancec[0].xyz,
-                                 [1e-6, 0., 0.]*u.kpc)
+                                 [1e-6, 0., 0.]*u.kpc, atol=1.*u.npc)
         s_distance = s + 1.*u.mpc * sf['distance'] * e['distance']
         assert_representation_allclose(o_distancec, s_distance - s,
-                                       atol=1e-10*u.kpc)
+                                       atol=1*u.npc)
         s_distance2 = s + o_distance
         assert_representation_allclose(s_distance2, s_distance)
 
@@ -579,6 +582,12 @@ class TestSphericalOffset():
                                        o_lon.to_cartesian(s), atol=1e-10*u.kpc)
         assert_representation_allclose(s + o_lon, s + 2 * o_lon_by_2,
                                        atol=1e-10*u.kpc)
+        o_lon_rec = o_lon_by_2 + o_lon_by_2
+        assert_representation_allclose(s + o_lon, s + o_lon_rec,
+                                       atol=1e-10*u.kpc)
+        o_lon_0 = o_lon - o_lon
+        for c in o_lon_0.components:
+            assert np.all(getattr(o_lon_0, c) == 0.)
         o_lon2 = SphericalOffset(1.*u.mas/u.yr, 0.*u.mas/u.yr, 0.*u.km/u.s)
         assert_quantity_allclose(o_lon2.norm(s)[0], 4.74*u.km/u.s,
                                  atol=0.01*u.km/u.s)
@@ -643,3 +652,184 @@ class TestSphericalOffset():
             SphericalOffset.from_cartesian(c, SphericalRepresentation)
         with pytest.raises(TypeError):
             SphericalOffset.from_cartesian(c, c)
+
+
+class TestUnitSphericalOffset():
+    def setup(self):
+        s = UnitSphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                        lat=[0., -30., 85.] * u.deg)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_offsets(self):
+        s, e, sf = self.s, self.e, self.sf
+
+        o_lon = UnitSphericalOffset(1.*u.arcsec, 0.*u.arcsec)
+        o_lonc = o_lon.to_cartesian(base=s)
+        o_lon2 = UnitSphericalOffset.from_cartesian(o_lonc, base=s)
+        assert_quantity_allclose(o_lon.d_lon, o_lon2.d_lon, atol=1.*u.narcsec)
+        assert_quantity_allclose(o_lon.d_lat, o_lon2.d_lat, atol=1.*u.narcsec)
+        # simple check by hand for first element.
+        assert_quantity_allclose(o_lonc[0].xyz,
+                                 [0., np.pi/180./3600., 0.]*u.one)
+        # check all using unit vectors and scale factors.
+        s_lon = s + 1.*u.arcsec * sf['lon'] * e['lon']
+        assert type(s_lon) is SphericalRepresentation
+        assert_representation_allclose(o_lonc, s_lon - s, atol=1e-10*u.one)
+        s_lon2 = s + o_lon
+        assert_representation_allclose(s_lon2, s_lon, atol=1e-10*u.one)
+
+        o_lat = UnitSphericalOffset(0.*u.arcsec, 1.*u.arcsec)
+        o_latc = o_lat.to_cartesian(base=s)
+        assert_quantity_allclose(o_latc[0].xyz,
+                                 [0., 0., np.pi/180./3600.]*u.one,
+                                 atol=1e-10*u.one)
+        s_lat = s + 1.*u.arcsec * sf['lat'] * e['lat']
+        assert type(s_lat) is SphericalRepresentation
+        assert_representation_allclose(o_latc, s_lat - s, atol=1e-10*u.one)
+        s_lat2 = s + o_lat
+        assert_representation_allclose(s_lat2, s_lat, atol=1e-10*u.one)
+
+    def test_offset_arithmetic(self):
+        s = self.s
+
+        o_lon = UnitSphericalOffset(1.*u.arcsec, 0.*u.arcsec)
+        o_lon_by_2 = o_lon / 2.
+        assert type(o_lon_by_2) is UnitSphericalOffset
+        assert_representation_allclose(o_lon_by_2.to_cartesian(s) * 2.,
+                                       o_lon.to_cartesian(s), atol=1e-10*u.one)
+        s_lon = s + o_lon
+        s_lon2 = s + 2 * o_lon_by_2
+        assert type(s_lon) is SphericalRepresentation
+        assert_representation_allclose(s_lon, s_lon2, atol=1e-10*u.one)
+        o_lon_rec = o_lon_by_2 + o_lon_by_2
+        assert type(o_lon_rec) is UnitSphericalOffset
+        assert representation_equal(o_lon, o_lon_rec)
+        assert_representation_allclose(s + o_lon, s + o_lon_rec,
+                                       atol=1e-10*u.one)
+        o_lon_0 = o_lon - o_lon
+        assert type(o_lon_0) is UnitSphericalOffset
+        for c in o_lon_0.components:
+            assert np.all(getattr(o_lon_0, c) == 0.)
+
+        o_lon2 = UnitSphericalOffset(1.*u.mas/u.yr, 0.*u.mas/u.yr)
+        kks = u.km/u.kpc/u.s
+        assert_quantity_allclose(o_lon2.norm(s)[0], 4.74047*kks, atol=1e-4*kks)
+        assert_representation_allclose(o_lon2.to_cartesian(s) * 1000.*u.yr,
+                                       o_lon.to_cartesian(s), atol=1e-10*u.one)
+        s_off = s + o_lon
+        s_off2 = s + o_lon2 * 1000.*u.yr
+        assert_representation_allclose(s_off, s_off2, atol=1e-10*u.one)
+
+        s_off_big = s + o_lon * 1e5 * u.radian/u.arcsec
+
+        assert_representation_allclose(
+            s_off_big, SphericalRepresentation(s.lon + 90.*u.deg, 0.*u.deg,
+                                               1e5*np.cos(s.lat)),
+            atol=5.*u.one)
+
+        o_lon3c = CartesianRepresentation(0., 4.74047, 0., unit=kks)
+        # This looses information!!
+        o_lon3 = UnitSphericalOffset.from_cartesian(o_lon3c, base=s)
+        assert_quantity_allclose(o_lon3.d_lon[0], 1.*u.mas/u.yr,
+                                 atol=1.*u.uas/u.yr)
+        # Part of motion kept.
+        part_kept = s.cross(CartesianRepresentation(0,1,0, unit=u.one)).norm()
+        assert_quantity_allclose(o_lon3.norm(s), 4.74047*part_kept*kks,
+                                 atol=1e-10*kks)
+        s_off_big2 = s + o_lon3 * 1e5 * u.yr * u.radian/u.mas
+        expected0 = SphericalRepresentation(90.*u.deg, 0.*u.deg,
+                                            1e5*u.one)
+        assert_representation_allclose(s_off_big2[0], expected0, atol=5.*u.one)
+
+
+class TestPhysicsSphericalOffset():
+    """Test copied from SphericalOffset, so less extensive."""
+    def setup(self):
+        s = PhysicsSphericalRepresentation(phi=[0., 90., 315.] * u.deg,
+                                           theta=[90., 120., 5.] * u.deg,
+                                           r=[1, 2, 3] * u.kpc)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_offsets(self):
+        s, e, sf = self.s, self.e, self.sf
+
+        o_phi = PhysicsSphericalOffset(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
+        o_phic = o_phi.to_cartesian(base=s)
+        o_phi2 = PhysicsSphericalOffset.from_cartesian(o_phic, base=s)
+        assert_quantity_allclose(o_phi.d_phi, o_phi2.d_phi, atol=1.*u.narcsec)
+        assert_quantity_allclose(o_phi.d_theta, o_phi2.d_theta,
+                                 atol=1.*u.narcsec)
+        assert_quantity_allclose(o_phi.d_r, o_phi2.d_r, atol=1.*u.npc)
+        # simple check by hand for first element.
+        assert_quantity_allclose(o_phic[0].xyz,
+                                 [0., np.pi/180./3600., 0.]*u.kpc,
+                                 atol=1.*u.npc)
+        # check all using unit vectors and scale factors.
+        s_phi = s + 1.*u.arcsec * sf['phi'] * e['phi']
+        assert_representation_allclose(o_phic, s_phi - s, atol=1e-10*u.kpc)
+
+        o_theta = PhysicsSphericalOffset(0.*u.arcsec, 1.*u.arcsec, 0.*u.kpc)
+        o_thetac = o_theta.to_cartesian(base=s)
+        assert_quantity_allclose(o_thetac[0].xyz,
+                                 [0., 0., -np.pi/180./3600.]*u.kpc,
+                                 atol=1.*u.npc)
+        s_theta = s + 1.*u.arcsec * sf['theta'] * e['theta']
+        assert_representation_allclose(o_thetac, s_theta - s, atol=1e-10*u.kpc)
+        s_theta2 = s + o_theta
+        assert_representation_allclose(s_theta2, s_theta, atol=1e-10*u.kpc)
+
+        o_r = PhysicsSphericalOffset(0.*u.arcsec, 0.*u.arcsec, 1.*u.mpc)
+        o_rc = o_r.to_cartesian(base=s)
+        assert_quantity_allclose(o_rc[0].xyz, [1e-6, 0., 0.]*u.kpc,
+                                 atol=1.*u.npc)
+        s_r = s + 1.*u.mpc * sf['r'] * e['r']
+        assert_representation_allclose(o_rc, s_r - s, atol=1e-10*u.kpc)
+        s_r2 = s + o_r
+        assert_representation_allclose(s_r2, s_r)
+
+
+class TestCylindricalOffset():
+    """Test copied from SphericalOffset, so less extensive."""
+    def setup(self):
+        s = CylindricalRepresentation(rho=[1, 2, 3] * u.kpc,
+                                      phi=[0., 90., 315.] * u.deg,
+                                      z=[3, 2, 1] * u.kpc)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_offsets(self):
+        s, e, sf = self.s, self.e, self.sf
+
+        o_rho = CylindricalOffset(1.*u.mpc, 0.*u.arcsec, 0.*u.kpc)
+        o_rhoc = o_rho.to_cartesian(base=s)
+        assert_quantity_allclose(o_rhoc[0].xyz, [1.e-6, 0., 0.]*u.kpc)
+        s_rho = s + 1.*u.mpc * sf['rho'] * e['rho']
+        assert_representation_allclose(o_rhoc, s_rho - s, atol=1e-10*u.kpc)
+        s_rho2 = s + o_rho
+        assert_representation_allclose(s_rho2, s_rho)
+
+        o_phi = CylindricalOffset(0.*u.kpc, 1.*u.arcsec, 0.*u.kpc)
+        o_phic = o_phi.to_cartesian(base=s)
+        o_phi2 = CylindricalOffset.from_cartesian(o_phic, base=s)
+        assert_quantity_allclose(o_phi.d_rho, o_phi2.d_rho, atol=1.*u.npc)
+        assert_quantity_allclose(o_phi.d_phi, o_phi2.d_phi, atol=1.*u.narcsec)
+        assert_quantity_allclose(o_phi.d_z, o_phi2.d_z, atol=1.*u.npc)
+        # simple check by hand for first element.
+        assert_quantity_allclose(o_phic[0].xyz,
+                                 [0., np.pi/180./3600., 0.]*u.kpc)
+        # check all using unit vectors and scale factors.
+        s_phi = s + 1.*u.arcsec * sf['phi'] * e['phi']
+        assert_representation_allclose(o_phic, s_phi - s, atol=1e-10*u.kpc)
+
+        o_z = CylindricalOffset(0.*u.kpc, 0.*u.arcsec, 1.*u.mpc)
+        o_zc = o_z.to_cartesian(base=s)
+        assert_quantity_allclose(o_zc[0].xyz, [0., 0., 1.e-6]*u.kpc)
+        s_z = s + 1.*u.mpc * sf['z'] * e['z']
+        assert_representation_allclose(o_zc, s_z - s, atol=1e-10*u.kpc)
+        s_z2 = s + o_z
+        assert_representation_allclose(s_z2, s_z)
