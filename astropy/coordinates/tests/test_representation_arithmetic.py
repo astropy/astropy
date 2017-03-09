@@ -619,7 +619,7 @@ class TestSphericalDifferential():
 
     def test_differential_init_errors(self):
         s = self.s
-        with pytest.raises(TypeError):
+        with pytest.raises(u.UnitsError):
             SphericalDifferential(1.*u.arcsec, 0., 0.)
         with pytest.raises(TypeError):
             SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,

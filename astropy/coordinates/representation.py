@@ -19,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
-from ..utils.compat import NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12, override__dir__
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -70,6 +70,34 @@ class RepresentationBase(ShapedLikeNDArray):
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
     __array_priority__ = 50000
+
+    def __init__(self, *args, **kwargs):
+        args = list(args)
+        components = self.components
+        attrs = [args.pop(0) if args else kwargs.pop(component)
+                 for component in components]
+        copy = args.pop(0) if args else kwargs.pop('copy', True)
+
+        if args:
+            raise TypeError('unexpected arguments: {0}'.format(args))
+
+        if kwargs:
+            for component in components:
+                if component in kwargs:
+                    raise TypeError("__init__() got multiple values for "
+                                    "argument {0!r}".format(component))
+
+            raise TypeError('unexpected keyword arguments: {0}'.format(kwargs))
+
+        attrs = [self.attr_classes[component](attr, copy=copy)
+                 for component, attr in zip(components, attrs)]
+        try:
+            attrs = broadcast_arrays(*attrs, subok=True)
+        except ValueError:
+            raise ValueError("Input parameters cannot be broadcast")
+
+        for component, attr in zip(components, attrs):
+            setattr(self, '_' + component, attr)
 
     # Should be replaced by abstractclassmethod once we support only Python 3
     @abc.abstractmethod
@@ -249,7 +277,7 @@ class MetaBaseRepresentation(abc.ABCMeta):
         if cls.__name__ == 'BaseRepresentation':
             return
 
-        if name != 'BaseRepresentation' and 'attr_classes' not in dct:
+        if 'attr_classes' not in dct:
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
 
@@ -442,10 +470,6 @@ class CartesianRepresentation(BaseRepresentation):
 
     def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, copy=True):
 
-        if unit is None and not hasattr(x, 'unit'):
-            raise TypeError('x should have a unit unless an explicit unit '
-                            'is passed in.')
-
         if y is None and z is None:
             if xyz_axis is not None and xyz_axis != 0:
                 x = np.rollaxis(x, xyz_axis, 0)
@@ -458,33 +482,16 @@ class CartesianRepresentation(BaseRepresentation):
             raise ValueError("x, y, and z are required to instantiate {0}"
                              .format(self.__class__.__name__))
 
-        try:
-            x = self.attr_classes['x'](x, unit=unit, copy=copy)
-            y = self.attr_classes['y'](y, unit=unit, copy=copy)
-            z = self.attr_classes['z'](z, unit=unit, copy=copy)
-        except u.UnitsError:
-            raise u.UnitsError('x, y, and z should have a unit consistent with '
-                               '{0}'.format(unit))
-        except Exception:
-            raise TypeError('x, y, and z should be able to initialize ' +
-                            ('a {0}'.format(self.attr_classes['x'].__name__))
-                             if len(set(self.attr_classes.values)) == 1 else
-                            ('{0}, {1}, and {2}, resp.'.format(
-                                cls.__name__ for cls in
-                                self.attr_classes.values())))
+        if unit is not None:
+            x = u.Quantity(x, unit, copy=copy, subok=True)
+            y = u.Quantity(y, unit, copy=copy, subok=True)
+            z = u.Quantity(z, unit, copy=copy, subok=True)
+            copy = False
 
-        if not (x.unit.physical_type ==
-                y.unit.physical_type == z.unit.physical_type):
+        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy)
+        if not (self._x.unit.physical_type ==
+                self._y.unit.physical_type == self._z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
-
-        try:
-            x, y, z = broadcast_arrays(x, y, z, subok=True)
-        except ValueError:
-            raise ValueError("Input parameters x, y, and z cannot be broadcast")
-
-        self._x = x
-        self._y = y
-        self._z = z
 
     @property
     def x(self):
@@ -752,23 +759,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return SphericalRepresentation
 
     def __init__(self, lon, lat, copy=True):
-
-        if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
-            raise TypeError('lon should be a Quantity, Angle, or Longitude')
-
-        if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
-            raise TypeError('lat should be a Quantity, Angle, or Latitude')
-        # Let the Longitude and Latitude classes deal with e.g. parsing
-        lon = self.attr_classes['lon'](lon, copy=copy)
-        lat = self.attr_classes['lat'](lat, copy=copy)
-
-        try:
-            lon, lat = broadcast_arrays(lon, lat, subok=True)
-        except ValueError:
-            raise ValueError("Input parameters lon and lat cannot be broadcast")
-
-        self._lon = lon
-        self._lat = lat
+        super(UnitSphericalRepresentation,
+              self).__init__(lon, lat, copy=copy)
 
     @property
     def lon(self):
@@ -949,13 +941,7 @@ class RadialRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
     def __init__(self, distance, copy=True):
-
-        if not isinstance(distance, u.Quantity):
-            raise TypeError('distance should be a Quantity')
-
-        distance = self.attr_classes['distance'](distance, copy=copy)
-
-        self._distance = distance
+        super(RadialRepresentation, self).__init__(distance, copy=copy)
 
     @property
     def distance(self):
@@ -1040,30 +1026,10 @@ class SphericalRepresentation(BaseRepresentation):
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, copy=True):
-
-        if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
-            raise TypeError('lon should be a Quantity, Angle, or Longitude')
-
-        if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
-            raise TypeError('lat should be a Quantity, Angle, or Latitude')
-
-        # Let the Longitude and Latitude classes deal with e.g. parsing
-        lon = self.attr_classes['lon'](lon, copy=copy)
-        lat = self.attr_classes['lat'](lat, copy=copy)
-
-        distance = self.attr_classes['distance'](distance, copy=copy)
-        if distance.unit.physical_type == 'length':
-            distance = distance.view(Distance)
-
-        try:
-            lon, lat, distance = broadcast_arrays(lon, lat, distance,
-                                                  subok=True)
-        except ValueError:
-            raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
-
-        self._lon = lon
-        self._lat = lat
-        self._distance = distance
+        super(SphericalRepresentation,
+              self).__init__(lon, lat, distance, copy=copy)
+        if self._distance.unit.physical_type == 'length':
+            self._distance = self._distance.view(Distance)
 
     @property
     def lon(self):
@@ -1207,39 +1173,23 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, copy=True):
-
-        if not isinstance(phi, u.Quantity) or isinstance(phi, Latitude):
-            raise TypeError('phi should be a Quantity or Angle')
-
-        if not isinstance(theta, u.Quantity) or isinstance(theta, Longitude):
-            raise TypeError('phi should be a Quantity or Angle')
-
-        # Let the Longitude and Latitude classes deal with e.g. parsing
-        phi = self.attr_classes['phi'](phi, copy=copy)
-        theta = self.attr_classes['theta'](theta, copy=copy)
+        super(PhysicsSphericalRepresentation,
+              self).__init__(phi, theta, r, copy=copy)
 
         # Wrap/validate phi/theta
         if copy:
-            phi = phi.wrap_at(360 * u.deg)
+            self._phi = self._phi.wrap_at(360 * u.deg)
         else:
             # necessary because the above version of `wrap_at` has to be a copy
-            phi.wrap_at(360 * u.deg, inplace=True)
-        if np.any(theta.value < 0.) or np.any(theta.value > 180.):
-            raise ValueError('Inclination angle(s) must be within 0 deg <= angle <= 180 deg, '
+            self._phi.wrap_at(360 * u.deg, inplace=True)
+
+        if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
+            raise ValueError('Inclination angle(s) must be within '
+                             '0 deg <= angle <= 180 deg, '
                              'got {0}'.format(theta.to(u.degree)))
 
-        r = self.attr_classes['r'](r, copy=copy)
-        if r.unit.physical_type == 'length':
-            r = r.view(Distance)
-
-        try:
-            phi, theta, r = broadcast_arrays(phi, theta, r, subok=True)
-        except ValueError:
-            raise ValueError("Input parameters phi, theta, and r cannot be broadcast")
-
-        self._phi = phi
-        self._theta = theta
-        self._distance = r
+        if self._r.unit.physical_type == 'length':
+            self._r = self._r.view(Distance)
 
     @property
     def phi(self):
@@ -1260,7 +1210,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         """
         The distance from the origin to the point(s).
         """
-        return self._distance
+        return self._r
 
     def unit_vectors(self):
         """Cartesian unit vectors in the direction of each component.
@@ -1380,25 +1330,11 @@ class CylindricalRepresentation(BaseRepresentation):
     recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, copy=True):
+        super(CylindricalRepresentation,
+              self).__init__(rho, phi, z, copy=copy)
 
-        if not isinstance(phi, u.Quantity) or isinstance(phi, Latitude):
-            raise TypeError('phi should be a Quantity or Angle')
-
-        rho = self.attr_classes['rho'](rho, copy=copy)
-        phi = self.attr_classes['phi'](phi, copy=copy)
-        z = self.attr_classes['z'](z, copy=copy)
-
-        if not (rho.unit.physical_type == z.unit.physical_type):
+        if not self._rho.unit.is_equivalent(self._z.unit):
             raise u.UnitsError("rho and z should have matching physical types")
-
-        try:
-            rho, phi, z = broadcast_arrays(rho, phi, z, subok=True)
-        except ValueError:
-            raise ValueError("Input parameters rho, phi, and z cannot be broadcast")
-
-        self._rho = rho
-        self._phi = phi
-        self._z = z
 
     @property
     def rho(self):
@@ -1475,6 +1411,29 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
+class MetaBaseDifferential(abc.ABCMeta):
+    """Set default ``attr_classes`` and component getters on a Differential.
+
+    For these, the components are those of the base representation prefixed
+    by 'd_', and the class is `~astropy.units.Quantity`.
+    """
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseDifferential, cls).__init__(name, bases, dct)
+
+        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential'):
+            return
+
+        if 'base_representation' not in dct:
+            raise NotImplementedError('Differential representations must have a'
+                                      '"base_representation" class attribute.')
+
+        if not hasattr(cls, 'attr_classes'):
+            base_attr_classes = cls.base_representation.attr_classes
+            cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
+                                            for c in base_attr_classes])
+
+
+@six.add_metaclass(MetaBaseDifferential)
 class BaseDifferential(RepresentationBase):
     """Differentials from points on a base representation.
 
@@ -1484,66 +1443,11 @@ class BaseDifferential(RepresentationBase):
         The differentials in terms of the components of the base representation.
         They can either be given in order in ``args`` or by name in ``kwargs``,
         where the names are the base representation names prefixed by 'd_'.
-        The units should be consistent with those of the components, but not
-        necessarily equivalent (e.g., for a spherical representation, they can
-        be rotation rates (angular per time) for longitude and latitude, and
-        velocity for distance.
+        The units should be equivalent between different angular and different
+        physical components (e.g., between ``d_lon`` and ``d_theta``).
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
-
-    base_representation = None
-    attr_classes = OrderedDict()
-
-    def __init__(self, *args, **kwargs):
-        self.attr_classes = OrderedDict()
-        attrs = []
-        names = []
-        regular_units = []
-        angular_units = []
-        base_attr_classes = self.base_representation.attr_classes
-        args = list(args)
-        for component, base_attr_cls in base_attr_classes.items():
-            name = 'd_' + component
-            attr = args.pop(0) if args else kwargs.pop(name)
-            attrs.append(attr)
-            names.append(name)
-            try:
-                unit = attr.unit
-            except AttributeError:
-                raise TypeError('attributes should have units.')
-            if issubclass(base_attr_cls, Angle):
-                angular_units.append(unit)
-            else:
-                regular_units.append(unit)
-
-        copy = args.pop(0) if args else kwargs.pop('copy', True)
-        if args:
-            raise TypeError('unexpected arguments: {0}'.format(args))
-
-        if kwargs:
-            for name in names:
-                if name in kwargs:
-                    raise TypeError("__init__() got multiple values for "
-                                    "argument {0!r}".format(name))
-
-            raise TypeError('unexpected keyword arguments: {0}'.format(kwargs))
-
-        for units in regular_units, angular_units:
-            for unit in units[1:]:
-                if not unit.is_equivalent(units[0]):
-                    raise u.UnitsError('inconsistent units: {0}.'
-                                       .format(units))
-
-        attrs = [u.Quantity(a, copy=copy, subok=True) for a in attrs]
-        try:
-            attrs = broadcast_arrays(*attrs, subok=True)
-        except ValueError:
-            raise ValueError("Input parameters cannot be broadcast")
-
-        for name, attr in zip(names, attrs):
-            self.attr_classes[name] = type(attr)
-            setattr(self, '_' + name, attr)
 
     @classmethod
     def _check_base(cls, base):
@@ -1565,9 +1469,8 @@ class BaseDifferential(RepresentationBase):
         base_e = base.unit_vectors()
         base_sf = base.scale_factors()
         return functools.reduce(
-            operator.add, (getattr(self, 'd_' + component) *
-                           base_sf[component] * e
-                           for component, e in six.iteritems(base_e)))
+            operator.add, (getattr(self, d_c) * base_sf[c] * base_e[c]
+                           for d_c, c in zip(self.components, base.components)))
 
     @classmethod
     def from_cartesian(cls, other, base):
@@ -1650,6 +1553,10 @@ class BaseDifferential(RepresentationBase):
         return self.to_cartesian(base).norm()
 
     # ensure components behave as if they were properties.
+    @override__dir__
+    def __dir__(self):
+        return self.components
+
     def __getattr__(self, attr):
         if attr in self.attr_classes:
             return getattr(self, '_' + attr)
@@ -1669,6 +1576,33 @@ class BaseDifferential(RepresentationBase):
 
 class CartesianDifferential(BaseDifferential):
     base_representation = CartesianRepresentation
+    def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None,
+                 copy=True):
+
+        if d_y is None and d_z is None:
+            if xyz_axis is not None and xyz_axis != 0:
+                d_x = np.rollaxis(d_x, xyz_axis, 0)
+            d_x, d_y, d_z = d_x
+        elif xyz_axis is not None:
+            raise ValueError("xyz_axis should only be set if d_x, d_y, and d_z "
+                             "are in a single array passed in through d_x, "
+                             "i.e., d_y and d_z should not be not given.")
+        elif ((d_y is None and d_z is not None) or
+              (d_y is not None and d_z is None)):
+            raise ValueError("d_x, d_y, and d_z are required to instantiate {0}"
+                             .format(self.__class__.__name__))
+
+        if unit is not None:
+            d_x = u.Quantity(d_x, unit, copy=copy, subok=True)
+            d_y = u.Quantity(d_y, unit, copy=copy, subok=True)
+            d_z = u.Quantity(d_z, unit, copy=copy, subok=True)
+            copy = False
+
+        super(CartesianDifferential, self).__init__(d_x, d_y, d_z, copy=copy)
+        if not (self._d_x.unit.is_equivalent(self._d_y.unit) and
+                self._d_x.unit.is_equivalent(self._d_z.unit)):
+            raise u.UnitsError('d_x, d_y and d_z should have equivalent units.')
+
     def to_cartesian(self, base=None):
         return CartesianRepresentation(*[getattr(self, c) for c
                                          in self.components])
@@ -1698,6 +1632,12 @@ class BaseSphericalDifferential(BaseDifferential):
 class SphericalDifferential(BaseSphericalDifferential):
     base_representation = SphericalRepresentation
 
+    def __init__(self, d_lon, d_lat, d_distance, copy=True):
+        super(SphericalDifferential, self).__init__(d_lon, d_lat, d_distance,
+                                                    copy=copy)
+        if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon and d_lat should have equivalent units.')
+
     def represent_as(self, other_class, base=None):
         if issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_lon, self.d_lat)
@@ -1721,6 +1661,12 @@ class SphericalDifferential(BaseSphericalDifferential):
 
 class UnitSphericalDifferential(BaseSphericalDifferential):
     base_representation = UnitSphericalRepresentation
+
+    def __init__(self, d_lon, d_lat, copy=True):
+        super(UnitSphericalDifferential,
+              self).__init__(d_lon, d_lat, copy=copy)
+        if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon and d_lat should have equivalent units.')
 
     def to_cartesian(self, base):
         if isinstance(base, SphericalRepresentation):
@@ -1781,6 +1727,13 @@ class RadialDifferential(BaseSphericalDifferential):
 class PhysicsSphericalDifferential(BaseDifferential):
     base_representation = PhysicsSphericalRepresentation
 
+    def __init__(self, d_phi, d_theta, d_r, copy=True):
+        super(PhysicsSphericalDifferential,
+              self).__init__(d_phi, d_theta, d_r, copy=copy)
+        if not self._d_phi.unit.is_equivalent(self._d_theta.unit):
+            raise u.UnitsError('d_phi and d_theta should have equivalent '
+                               'units.')
+
     def represent_as(self, other_class, base=None):
         if issubclass(other_class, SphericalDifferential):
             return other_class(self.d_phi, -self.d_theta, self.d_r)
@@ -1804,3 +1757,9 @@ class PhysicsSphericalDifferential(BaseDifferential):
 
 class CylindricalDifferential(BaseDifferential):
     base_representation = CylindricalRepresentation
+
+    def __init__(self, d_rho, d_phi, d_z, copy=False):
+        super(CylindricalDifferential,
+              self).__init__(d_rho, d_phi, d_z, copy=copy)
+        if not self._d_rho.unit.is_equivalent(self._d_z.unit):
+            raise u.UnitsError("d_rho and d_z should have equivalent units.")
