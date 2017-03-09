@@ -833,3 +833,38 @@ class TestCylindricalOffset():
         assert_representation_allclose(o_zc, s_z - s, atol=1e-10*u.kpc)
         s_z2 = s + o_z
         assert_representation_allclose(s_z2, s_z)
+
+
+class TestOffsetConversion():
+    def setup(self):
+        s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                    lat=[0., -30., 85.] * u.deg,
+                                    distance=[1, 2, 3] * u.kpc)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_convert_physics(self):
+        so = SphericalOffset(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+        po = so.represent_as(PhysicsSphericalOffset)
+        so2 = SphericalOffset.from_representation(po)
+        assert representation_equal(so, so2)
+        po2 = PhysicsSphericalOffset.from_representation(so)
+        assert representation_equal(po, po2)
+        s = self.s
+        p = s.represent_as(PhysicsSphericalRepresentation)
+        assert_representation_allclose(s + so, p + po)
+
+    def test_convert_unit_spherical(self):
+        s = self.s
+        us = s.represent_as(UnitSphericalRepresentation)
+        uo = UnitSphericalOffset(2.*u.deg, 1.*u.deg)
+        so = uo.represent_as(SphericalOffset, base=s)
+        assert_quantity_allclose(so.d_distance, 0.*u.kpc, atol=1.*u.npc)
+        uo2 = so.represent_as(UnitSphericalOffset)
+        assert_representation_allclose(uo.to_cartesian(us),
+                                       uo2.to_cartesian(us))
+
+        s_off = s + so
+        u_off = us + uo
+        assert_representation_allclose(s_off, u_off * s.distance)
