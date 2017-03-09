@@ -835,6 +835,33 @@ class TestCylindricalOffset():
         assert_representation_allclose(s_z2, s_z)
 
 
+class TestCartesianOffset():
+    """Test copied from SphericalOffset, so less extensive."""
+    def setup(self):
+        s = CartesianRepresentation(x=[1, 2, 3] * u.kpc,
+                                    y=[2, 3, 1] * u.kpc,
+                                    z=[3, 1, 2] * u.kpc)
+        self.s = s
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_offsets(self):
+        s, e, sf = self.s, self.e, self.sf
+
+        for d, offset in (('x', CartesianOffset(1.*u.pc, 0.*u.pc, 0.*u.pc)),
+                          ('y', CartesianOffset(0.*u.pc, 1.*u.pc, 0.*u.pc)),
+                          ('z', CartesianOffset(0.*u.pc, 0.*u.pc, 1.*u.pc))):
+            o_c = offset.tocartesian(base=s)
+            o_c2 = offset.to_cartesian()
+            assert np.all(representation_equal(o_c, o_c2))
+            assert all(np.all(getattr(offset, 'd_'+c) == getattr(o_c, c))
+                       for c in ('x', 'y', 'z'))
+            s_off = s + 1.*u.pc * sf[d] * e[d]
+            assert_representation_allclose(o_c, s_off - s, atol=1e-10*u.kpc)
+            s_off2 = s + offset
+            assert_representation_allclose(s_off2, s_off)
+
+
 class TestOffsetConversion():
     def setup(self):
         s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
