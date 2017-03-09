@@ -25,9 +25,9 @@ from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation",
-           "BaseOffset", "CartesianOffset", "SphericalOffset",
-           "UnitSphericalOffset", "PhysicsSphericalOffset",
-           "CylindricalOffset"]
+           "BaseDifferential", "CartesianDifferential", "SphericalDifferential",
+           "UnitSphericalDifferential", "PhysicsSphericalDifferential",
+           "CylindricalDifferential"]
 
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
@@ -64,7 +64,7 @@ def _array2string(values, prefix=''):
 
 
 class RepresentationBase(ShapedLikeNDArray):
-    """Base for 3D coordinate representations and their offsets."""
+    """Base for 3D coordinate representations and their differentials."""
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
@@ -1393,13 +1393,13 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class BaseOffset(RepresentationBase):
-    """Offsets from points on a base representation.
+class BaseDifferential(RepresentationBase):
+    """Differentials from points on a base representation.
 
     Parameters
     ----------
     d_* : `~astropy.units.Quantity`
-        The offsets in terms of the components of the base representation.
+        The differentials in terms of the components of the base representation.
         They can either be given in order in ``args`` or by name in ``kwargs``,
         where the names are the base representation names prefixed by 'd_'.
         The units should be consistent with those of the components, but not
@@ -1471,13 +1471,13 @@ class BaseOffset(RepresentationBase):
                                                    type(base)))
 
     def to_cartesian(self, base):
-        """Convert the offset to 3D rectangular cartesian coordinates.
+        """Convert the differential to 3D rectangular cartesian coordinates.
 
         Parameters
         ----------
         base : instance of ``self.base_representation``
-             The points for which the offsets are to converted: each of the
-             components is multiplied by its unit vectors and scale factors.
+             The points for which the differentials are to converted: each of
+             the components is multiplied by its unit vectors and scale factors.
         """
         self._check_base(base)
         base_e = base.unit_vectors()
@@ -1489,12 +1489,12 @@ class BaseOffset(RepresentationBase):
 
     @classmethod
     def from_cartesian(cls, other, base):
-        """Interpret 3D rectangular cartesian coordinates as offsets.
+        """Interpret 3D rectangular cartesian coordinates as differentials.
 
         Parameters
         ----------
         base : instance of ``self.base_representation``
-            Base relative to which the offsets are defined.
+            Base relative to which the differentials are defined.
         """
         cls._check_base(base)
         base_e = base.unit_vectors()
@@ -1508,7 +1508,7 @@ class BaseOffset(RepresentationBase):
 
         # The default is to convert via cartesian coordinates.
         self_cartesian = self.to_cartesian(base)
-        if issubclass(other_class, BaseOffset):
+        if issubclass(other_class, BaseDifferential):
             base = base.represent_as(other_class.base_representation)
             return other_class.from_cartesian(self_cartesian, base)
         else:
@@ -1517,7 +1517,7 @@ class BaseOffset(RepresentationBase):
     @classmethod
     def from_representation(cls, representation, base):
         cls._check_base(base)
-        if isinstance(representation, BaseOffset):
+        if isinstance(representation, BaseDifferential):
             cartesian = representation.to_cartesian(
                 base.represent_as(representation.base_representation))
         else:
@@ -1551,8 +1551,9 @@ class BaseOffset(RepresentationBase):
         Parameters
         ----------
         base : instance of ``self.base_representation``
-            Base relative to which the offsets are defined, which is required
-            to calculate the physical size of the offset.
+            Base relative to which the differentials are defined. This is
+            required to calculate the physical size of the differential for
+            all but cartesian differentials.
 
         Returns
         -------
@@ -1571,15 +1572,16 @@ class BaseOffset(RepresentationBase):
     def __setattr__(self, attr, value):
         if attr in self.attr_classes:
             raise AttributeError("can't set attribute.")
-        return super(BaseOffset, self).__setattr__(attr, value)
+        return super(BaseDifferential, self).__setattr__(attr, value)
 
     def __delattr__(self, attr):
         if attr in self.attr_classes:
             raise AttributeError("can't delete attribute.")
-        return super(BaseOffset, self).__delattr__(attr)
+        return super(BaseDifferential, self).__delattr__(attr)
 
 
-class CartesianOffset(BaseOffset):
+class CartesianDifferential(BaseDifferential):
+    base_representation = CartesianRepresentation
     def to_cartesian(self, base=None):
         return CartesianRepresentation(*[getattr(self, c) for c
                                          in self.components])
@@ -1589,28 +1591,29 @@ class CartesianOffset(BaseOffset):
         return cls(*[getattr(other, c) for c in other.components])
 
 
-class SphericalOffset(BaseOffset):
+class SphericalDifferential(BaseDifferential):
     base_representation = SphericalRepresentation
 
     def represent_as(self, other_class, base=None):
-        if issubclass(other_class, UnitSphericalOffset):
+        if issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_lon, self.d_lat)
-        elif issubclass(other_class, PhysicsSphericalOffset):
+        elif issubclass(other_class, PhysicsSphericalDifferential):
             return other_class(self.d_lon, -self.d_lat, self.d_distance)
         else:
-            return super(SphericalOffset, self).represent_as(other_class, base)
+            return super(SphericalDifferential,
+                         self).represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        if isinstance(representation, PhysicsSphericalOffset):
+        if isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta,
                        representation.d_r)
         else:
-            return super(SphericalOffset,
+            return super(SphericalDifferential,
                          cls).from_representation(representation, base)
 
 
-class UnitSphericalOffset(BaseOffset):
+class UnitSphericalDifferential(BaseDifferential):
     base_representation = UnitSphericalRepresentation
 
     def to_cartesian(self, base):
@@ -1619,42 +1622,42 @@ class UnitSphericalOffset(BaseOffset):
         elif isinstance(base, PhysicsSphericalRepresentation):
             scale = base.r
         else:
-            return super(UnitSphericalOffset, self).to_cartesian(base)
+            return super(UnitSphericalDifferential, self).to_cartesian(base)
 
         base = base.represent_as(UnitSphericalRepresentation)
-        return scale * super(UnitSphericalOffset, self).to_cartesian(base)
+        return scale * super(UnitSphericalDifferential, self).to_cartesian(base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        if isinstance(representation, SphericalOffset):
+        if isinstance(representation, SphericalDifferential):
             return cls(representation.d_lon, representation.d_lat)
-        elif isinstance(representation, PhysicsSphericalOffset):
+        elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta)
         else:
-            return super(UnitSphericalOffset,
+            return super(UnitSphericalDifferential,
                          cls).from_representation(representation, base)
 
-class PhysicsSphericalOffset(BaseOffset):
+class PhysicsSphericalDifferential(BaseDifferential):
     base_representation = PhysicsSphericalRepresentation
 
     def represent_as(self, other_class, base=None):
-        if issubclass(other_class, SphericalOffset):
+        if issubclass(other_class, SphericalDifferential):
             return other_class(self.d_phi, -self.d_theta, self.d_r)
-        elif issubclass(other_class, UnitSphericalOffset):
+        elif issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_phi, -self.d_theta)
         else:
-            return super(PhysicsSphericalOffset,
+            return super(PhysicsSphericalDifferential,
                          self).represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        if isinstance(representation, SphericalOffset):
+        if isinstance(representation, SphericalDifferential):
             return cls(representation.d_lon, -representation.d_lat,
                        representation.d_distance)
         else:
-            return super(PhysicsSphericalOffset,
+            return super(PhysicsSphericalDifferential,
                          cls).from_representation(representation, base)
 
 
-class CylindricalOffset(BaseOffset):
+class CylindricalDifferential(BaseDifferential):
     base_representation = CylindricalRepresentation
