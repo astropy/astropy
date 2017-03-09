@@ -24,10 +24,11 @@ from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
+           "RadialRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation",
            "BaseDifferential", "CartesianDifferential", "SphericalDifferential",
            "UnitSphericalDifferential", "PhysicsSphericalDifferential",
-           "CylindricalDifferential"]
+           "CylindricalDifferential", "RadialDifferential"]
 
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
@@ -929,6 +930,87 @@ class UnitSphericalRepresentation(BaseRepresentation):
             self.to_cartesian().cross(other))
 
 
+class RadialRepresentation(BaseRepresentation):
+    """
+    Representation of the distance of points from the origin.
+
+    Note that this is mostly intended as an internal helper representation.
+    It can do little else but being used as a scale in multiplication.
+
+    Parameters
+    ----------
+    distance : `~astropy.units.Quantity`
+        The distance of the point(s) from the origin.
+
+    copy : bool, optional
+        If True arrays will be copied rather than referenced.
+    """
+
+    attr_classes = OrderedDict([('distance', u.Quantity)])
+
+    def __init__(self, distance, copy=True):
+
+        if not isinstance(distance, u.Quantity):
+            raise TypeError('distance should be a Quantity')
+
+        distance = self.attr_classes['distance'](distance, copy=copy)
+
+        self._distance = distance
+
+    @property
+    def distance(self):
+        """
+        The distance from the origin to the point(s).
+        """
+        return self._distance
+
+    def unit_vectors(self):
+        """Cartesian unit vectors are undefined for radial representation."""
+        raise NotImplementedError('Cartesian unit vectors are undefined for '
+                                  '{0} instances'.format(self.__class__))
+
+    def scale_factors(self):
+        """Scale factors for each component's direction.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('distance', l),))
+
+    def to_cartesian(self):
+        """Cannot convert radial representation to cartesian."""
+        raise NotImplementedError('cannot convert {0} instance to cartesian.'
+                                  .format(self.__class__))
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates to radial coordinate.
+        """
+        return cls(distance=cart.norm(), copy=False)
+
+    def _scale_operation(self, op, *args):
+        return op(self.distance, *args)
+
+    def norm(self):
+        """Vector norm.
+
+        Just the distance itself.
+
+        Returns
+        -------
+        norm : `~astropy.units.Quantity`
+            Dimensionless ones, with the same shape as the representation.
+        """
+        return self.distance
+
+    def _combine_operation(self, op, other, reverse=False):
+        return NotImplemented
+
+
 class SphericalRepresentation(BaseRepresentation):
     """
     Representation of points in 3D spherical coordinates.
@@ -1500,7 +1582,7 @@ class BaseDifferential(RepresentationBase):
         base_e = base.unit_vectors()
         base_sf = base.scale_factors()
         return cls(*(other.dot(e / base_sf[component])
-                     for component, e in six.iteritems(base_e)))
+                     for component, e in six.iteritems(base_e)), copy=False)
 
     def represent_as(self, other_class, base):
         if other_class is self.__class__:
@@ -1541,6 +1623,11 @@ class BaseDifferential(RepresentationBase):
                 return NotImplemented
 
             return other._combine_operation(op, self_cartesian, not reverse)
+
+    def __sub__(self, other):
+        if isinstance(other, BaseRepresentation):
+            return NotImplemented
+        return super(BaseDifferential, self).__sub__(other)
 
     def norm(self, base=None):
         """Vector norm.
@@ -1591,7 +1678,24 @@ class CartesianDifferential(BaseDifferential):
         return cls(*[getattr(other, c) for c in other.components])
 
 
-class SphericalDifferential(BaseDifferential):
+class BaseSphericalDifferential(BaseDifferential):
+    def _combine_operation(self, op, other, reverse=False):
+        # We allow combining, e.g., Spherical, UnitSpherical and Radial.
+        # Any combination of those yields Spherical; addings things to
+        # other differentials of the same class is left to the superclass.
+        if (isinstance(other, BaseSphericalDifferential) and
+                not isinstance(self, type(other))):
+            all_components = set(self.components) | set(other.components)
+            first, second = (self, other) if not reverse else (other, self)
+            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+                           for c in all_components}
+            return SphericalDifferential(**result_args)
+
+        return super(BaseSphericalDifferential,
+                     self)._combine_operation(op, other, reverse)
+
+
+class SphericalDifferential(BaseSphericalDifferential):
     base_representation = SphericalRepresentation
 
     def represent_as(self, other_class, base=None):
@@ -1599,6 +1703,8 @@ class SphericalDifferential(BaseDifferential):
             return other_class(self.d_lon, self.d_lat)
         elif issubclass(other_class, PhysicsSphericalDifferential):
             return other_class(self.d_lon, -self.d_lat, self.d_distance)
+        elif issubclass(other_class, RadialDifferential):
+            return other_class(self.d_distance)
         else:
             return super(SphericalDifferential,
                          self).represent_as(other_class, base)
@@ -1613,7 +1719,7 @@ class SphericalDifferential(BaseDifferential):
                          cls).from_representation(representation, base)
 
 
-class UnitSphericalDifferential(BaseDifferential):
+class UnitSphericalDifferential(BaseSphericalDifferential):
     base_representation = UnitSphericalRepresentation
 
     def to_cartesian(self, base):
@@ -1637,6 +1743,41 @@ class UnitSphericalDifferential(BaseDifferential):
             return super(UnitSphericalDifferential,
                          cls).from_representation(representation, base)
 
+
+class RadialDifferential(BaseSphericalDifferential):
+    base_representation = RadialRepresentation
+
+    def to_cartesian(self, base):
+        return self.d_distance * base.represent_as(
+            UnitSphericalRepresentation).to_cartesian()
+
+    @classmethod
+    def from_cartesian(cls, other, base):
+        return cls(other.dot(base.represent_as(UnitSphericalRepresentation)),
+                   copy=False)
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        if isinstance(representation, SphericalDifferential):
+            return cls(representation.d_lon, representation.d_lat)
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            return cls(representation.d_phi, -representation.d_theta)
+        else:
+            return super(UnitSphericalDifferential,
+                         cls).from_representation(representation, base)
+
+    def _combine_operation(self, op, other, reverse=False):
+        if isinstance(other, self.base_representation):
+            if reverse:
+                first, second = other.distance, self.d_distance
+            else:
+                first, second = self.d_distance, other.distance
+            return other.__class__(op(first, second), copy=False)
+        else:
+            return super(RadialDifferential,
+                         self)._combine_operation(op, other, reverse)
+
+
 class PhysicsSphericalDifferential(BaseDifferential):
     base_representation = PhysicsSphericalRepresentation
 
@@ -1645,6 +1786,8 @@ class PhysicsSphericalDifferential(BaseDifferential):
             return other_class(self.d_phi, -self.d_theta, self.d_r)
         elif issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_phi, -self.d_theta)
+        elif issubclass(other_class, RadialDifferential):
+            return other_class(self.d_r)
         else:
             return super(PhysicsSphericalDifferential,
                          self).represent_as(other_class, base)
