@@ -12,7 +12,7 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 UnitSphericalRepresentation, SphericalDifferential,
                 CartesianDifferential, UnitSphericalDifferential,
                 PhysicsSphericalDifferential, CylindricalDifferential,
-                Longitude, Latitude)
+                RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from ..angle_utilities import angular_separation
 from ...utils.compat.numpy import broadcast_arrays
 from ...tests.helper import assert_quantity_allclose
@@ -614,6 +614,9 @@ class TestSphericalDifferential():
             s_off_big2, SphericalRepresentation(90.*u.deg, 0.*u.deg,
                                                 1e5*u.kpc), atol=5.*u.kpc)
 
+        with pytest.raises(TypeError):
+            o_lon - s
+
     def test_differential_init_errors(self):
         s = self.s
         with pytest.raises(TypeError):
@@ -744,6 +747,35 @@ class TestUnitSphericalDifferential():
         expected0 = SphericalRepresentation(90.*u.deg, 0.*u.deg,
                                             1e5*u.one)
         assert_representation_allclose(s_off_big2[0], expected0, atol=5.*u.one)
+
+
+class TestRadialDifferential():
+    def setup(self):
+        s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                    lat=[0., -30., 85.] * u.deg,
+                                    distance=[1, 2, 3] * u.kpc)
+        self.s = s
+        self.r = s.represent_as(RadialRepresentation)
+        self.e = s.unit_vectors()
+        self.sf = s.scale_factors()
+
+    def test_simple_differentials(self):
+        r, s, e, sf = self.r, self.s, self.e, self.sf
+
+        o_distance = RadialDifferential(1.*u.mpc)
+        # Can be applied to RadialRepresentation, though not most useful.
+        r_distance = r + o_distance
+        assert_quantity_allclose(r_distance.distance,
+                                 r.distance + o_distance.d_distance)
+        # More sense to apply it relative to spherical representation.
+        o_distancec = o_distance.to_cartesian(base=s)
+        assert_quantity_allclose(o_distancec[0].xyz,
+                                 [1e-6, 0., 0.]*u.kpc, atol=1.*u.npc)
+        s_distance = s + 1.*u.mpc * sf['distance'] * e['distance']
+        assert_representation_allclose(o_distancec, s_distance - s,
+                                       atol=1*u.npc)
+        s_distance2 = s + o_distance
+        assert_representation_allclose(s_distance2, s_distance)
 
 
 class TestPhysicsSphericalDifferential():
@@ -898,3 +930,23 @@ class TestDifferentialConversion():
         s_off = s + so
         u_off = us + uo
         assert_representation_allclose(s_off, u_off * s.distance)
+
+    def test_combinations(self):
+        uo = UnitSphericalDifferential(2.*u.deg, 1.*u.deg)
+        ro = RadialDifferential(1.*u.mpc)
+        so1 = uo + ro
+        so1c = SphericalDifferential(uo.d_lon, uo.d_lat, ro.d_distance)
+        assert np.all(representation_equal(so1, so1c))
+        so2 = uo - ro
+        so2c = SphericalDifferential(uo.d_lon, uo.d_lat, -ro.d_distance)
+        assert np.all(representation_equal(so2, so2c))
+        so3 = so2 + ro
+        so3c = SphericalDifferential(uo.d_lon, uo.d_lat, 0.*u.kpc)
+        assert np.all(representation_equal(so3, so3c))
+        so4 = so1 + ro
+        so4c = SphericalDifferential(uo.d_lon, uo.d_lat, 2*ro.d_distance)
+        assert np.all(representation_equal(so4, so4c))
+        so5 = so1 - uo
+        so5c = SphericalDifferential(0*u.deg, 0.*u.deg, ro.d_distance)
+        assert np.all(representation_equal(so5, so5c))
+        assert_representation_allclose(self.s + (uo+ro), self.s+so1)
