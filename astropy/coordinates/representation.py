@@ -19,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
-from ..utils.compat import NUMPY_LT_1_12, override__dir__
+from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -265,6 +265,13 @@ class RepresentationBase(ShapedLikeNDArray):
             unitstr, prefixstr, arrstr)
 
 
+def _make_getter(component):
+    component = '_' + component
+    def get_component(self):
+        return getattr(self, component)
+    return get_component
+
+
 # Need to subclass ABCMeta rather than type, so that this meta class can be
 # combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
 # "TypeError: metaclass conflict: the metaclass of a derived class must be a
@@ -287,6 +294,14 @@ class MetaBaseRepresentation(abc.ABCMeta):
             raise ValueError("Representation class {0} already defined".format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
+
+        # define getters for any component that does not yet have one.
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=("The '{0}' component of the points(s)."
+                                      .format(component))))
 
 
 @six.add_metaclass(MetaBaseRepresentation)
@@ -492,27 +507,6 @@ class CartesianRepresentation(BaseRepresentation):
         if not (self._x.unit.physical_type ==
                 self._y.unit.physical_type == self._z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
-
-    @property
-    def x(self):
-        """
-        The x component of the point(s).
-        """
-        return self._x
-
-    @property
-    def y(self):
-        """
-        The y component of the point(s).
-        """
-        return self._y
-
-    @property
-    def z(self):
-        """
-        The z component of the point(s).
-        """
-        return self._z
 
     def unit_vectors(self):
         """Cartesian unit vectors in the direction of each component.
@@ -762,6 +756,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         super(UnitSphericalRepresentation,
               self).__init__(lon, lat, copy=copy)
 
+    # Could let the metaclass define these automatically, but good to have
+    # a bit clearer docstrings.
     @property
     def lon(self):
         """
@@ -1432,6 +1428,13 @@ class MetaBaseDifferential(abc.ABCMeta):
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
 
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=("Component '{0}' of the Differential."
+                                      .format(component))))
+
 
 @six.add_metaclass(MetaBaseDifferential)
 class BaseDifferential(RepresentationBase):
@@ -1551,27 +1554,6 @@ class BaseDifferential(RepresentationBase):
             Vector norm, with the same shape as the representation.
         """
         return self.to_cartesian(base).norm()
-
-    # ensure components behave as if they were properties.
-    @override__dir__
-    def __dir__(self):
-        return self.components
-
-    def __getattr__(self, attr):
-        if attr in self.attr_classes:
-            return getattr(self, '_' + attr)
-
-        return self.__getattribute__(attr)
-
-    def __setattr__(self, attr, value):
-        if attr in self.attr_classes:
-            raise AttributeError("can't set attribute.")
-        return super(BaseDifferential, self).__setattr__(attr, value)
-
-    def __delattr__(self, attr):
-        if attr in self.attr_classes:
-            raise AttributeError("can't delete attribute.")
-        return super(BaseDifferential, self).__delattr__(attr)
 
 
 class CartesianDifferential(BaseDifferential):
