@@ -139,26 +139,6 @@ class TestSphericalRepresentation(object):
                                          distance=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters lon, lat, and distance cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = SphericalRepresentation(lon='2h6m3.3s',
-                                         lat='0.1rad',
-                                         distance=1 * u.kpc)
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = SphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
-                                         lat=[5 * u.deg, (6 * np.pi / 180) * u.rad],
-                                         distance=1 * u.kpc)
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
     def test_readonly(self):
 
         s1 = SphericalRepresentation(lon=8 * u.hourangle,
@@ -275,23 +255,6 @@ class TestUnitSphericalRepresentation(object):
             s1 = UnitSphericalRepresentation(lon=[8, 9, 10] * u.hourangle,
                                              lat=[5, 6] * u.deg)
         assert exc.value.args[0] == "Input parameters lon and lat cannot be broadcast"
-
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = UnitSphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
-                                             lat=[5 * u.deg, (6 * np.pi / 180) * u.rad])
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
 
     def test_readonly(self):
 
@@ -411,24 +374,6 @@ class TestPhysicsSphericalRepresentation(object):
                                                 theta=[5, 6] * u.deg,
                                                 r=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters phi, theta, and r cannot be broadcast"
-
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', r=1 * u.kpc)
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = PhysicsSphericalRepresentation(phi=[8 * u.hourangle, 135 * u.deg],
-                                                theta=[5 * u.deg, (6 * np.pi / 180) * u.rad],
-                                                r=[1. * u.kpc, 500 * u.pc])
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_readonly(self):
 
@@ -608,18 +553,6 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
-                                         y=[3 * u.kpc, 4 * u.pc],
-                                         z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0].startswith("x should")
-
     def test_readonly(self):
 
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
@@ -782,18 +715,6 @@ class TestCylindricalRepresentation(object):
         with pytest.raises(ValueError) as exc:
             s1 = CylindricalRepresentation(rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters rho, phi, and z cannot be broadcast"
-
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = CylindricalRepresentation(rho=[1 * u.kpc, 2 * u.Mpc],
-                                           phi=[3 * u.deg, 4 * u.arcmin],
-                                           z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_readonly(self):
 

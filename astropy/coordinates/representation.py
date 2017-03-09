@@ -94,8 +94,12 @@ class RepresentationBase(ShapedLikeNDArray):
         try:
             attrs = broadcast_arrays(*attrs, subok=True)
         except ValueError:
-            raise ValueError("Input parameters cannot be broadcast")
-
+            if len(components) <= 2:
+                c_str = ' and '.join(components)
+            else:
+                c_str = ', '.join(components[:2]) + ', and ' + components[2]
+            raise ValueError("Input parameters {0} cannot be broadcast"
+                             .format(c_str))
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
 
