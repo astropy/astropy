@@ -223,10 +223,10 @@ To see how this works, consider the following::
 
   >>> from astropy.coordinates import SphericalRepresentation, SphericalDifferential
   >>> sph_coo = SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
-                                        distance=1.*u.kpc)
+  ...                                   distance=1.*u.kpc)
   >>> sph_derivative = SphericalDifferential(d_lon=1.*u.arcsec/u.yr,
-                                             d_lat=0.*u.arcsec/u.yr,
-					     d_distance=0.*u.km/u.s)
+  ...                                        d_lat=0.*u.arcsec/u.yr,
+  ...                                        d_distance=0.*u.km/u.s)
   >>> sph_derivative.to_cartesian(base=sph_coo)
   <CartesianRepresentation (x, y, z) in arcsec kpc / (rad yr)
       ( 0.,  1.,  0.)>
