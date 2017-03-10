@@ -86,6 +86,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Fixed problem where IrreducibleUnits could fail to unpickle. [#5868]
+
 - ``astropy.utils``
 
   - Avoid importing ``ipython`` in ``utils.console`` until it is necessary, to
