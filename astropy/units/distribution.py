@@ -207,43 +207,45 @@ class UniformDistribution(Distribution):
 
     Parameters
     ----------
-    centerq : `Quantity`
-        The center value of this `UniformDistribution`.
-    width : `Quantity`
-        The width of this `UniformDistribution`.  Must have the same shape and
-        compatible units with ``centerq``.
+    lower : `Quantity`
+        The lower edge of this distribution.
+    upper : `Quantity`
+        The upper edge of this distribution. Must match shape and be
+        compatible units with ``lower``.
     n_samples : int
         The number of Monte Carlo samples to use with this distribution
 
     Remaining keywords are passed into the `Quantity` constructor.
     """
-    def __new__(cls, centerq, width, n_samples=1000, **kwargs):
-        whalf = width/2
-        low = centerq - whalf
-        high = centerq + whalf
-        distr = np.random.uniform(low, high)
+    def __new__(cls, lower, upper, n_samples=1000, **kwargs):
+        if not hasattr(lower, 'unit'):
+            raise TypeError('Inputs must be Quantity')
+        if lower.unit != upper.unit:
+            upper = upper.to(lower.unit)
+
+        newshape = [n_samples] + list(lower.shape)
+        distr = np.random.uniform(lower, upper, newshape)
 
         self = super(UniformDistribution, cls).__new__(cls, distr,
-                                                       unit=low.unit,
+                                                       unit=lower.unit,
                                                        **kwargs)
         return self
 
     @classmethod
-    def from_lower_upper(cls, lower, upper, unit=None, **kwargs):
+    def from_center_width(cls, centerq, width, unit=None, **kwargs):
         """
         Create a `UniformDistribution` from lower/upper bounds (instead of center
         and width as the regular constructor uses).
 
         Parameters
         ----------
-        lower : `Quantity`
-            The lower edge of this distribution.
-        upper : `Quantity`
-            The upper edge of this distribution. Must match shape and be
-            compatible units with ``lower``.
+        centerq : `Quantity`
+            The center value of this `UniformDistribution`.
+        width : `Quantity`
+            The width of this `UniformDistribution`.  Must have the same shape and
+            compatible units with ``centerq``.
 
         Remaining keywords are passed into the `UniformDistribution` constructor.
         """
-        centerq = (lower + upper)/2
-        width = upper - lower
-        return UniformDistribution(centerq, width, **kwargs)
+        whalf = width/2
+        return UniformDistribution(centerq - whalf, centerq + whalf, **kwargs)

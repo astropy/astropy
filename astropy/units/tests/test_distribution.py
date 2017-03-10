@@ -179,7 +179,20 @@ def test_helper_poisson_samples():
         assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
 
 
-def test_helper_normal():
+def test_helper_uniform_samples():
+    udist = u.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
+    assert udist.shape == (1000, 2)
+    assert np.all(np.min(udist, axis=0) > [1, 2]*u.kpc)
+    assert np.all(np.max(udist, axis=0) < [3, 4]*u.kpc)
+
+    # try the alternative creator
+    udist = u.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
+    assert udist.shape == (1000, 3)
+    assert np.all(np.min(udist, axis=0) > [-1.5, 1, 0.5]*u.pc)
+    assert np.all(np.max(udist, axis=0) < [3.5, 5, 3.5]*u.pc)
+
+
+def test_helper_normal_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     centerq = [1, 5, 30, 400] * u.kpc
     u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc)
@@ -187,7 +200,7 @@ def test_helper_normal():
     u.NormalDistribution(centerq, ivar=[25, 0.44444444, 0.625, 1]*u.kpc**-2)
 
 
-def test_helper_poisson():
+def test_helper_poisson_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     # TODO: what does Poisson u.Distribution mean for a quantity in e.g. kpc?
     # Should we not restrict to dimensionless? Have updated the test to reflect
@@ -201,20 +214,8 @@ def test_helper_poisson():
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
 
-
-def test_helper_uniform():
-    pytest.skip('distribution stretch goal not yet implemented')
-    # TODO: I think we should define it using low/high instead of center/width,
-    # for consistency with Numpy, and because if we want to later do a
-    # LogUniformDistribution, it will be easier to express as a range.
-    u.UniformDistribution([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
-
-
-def test_arithmetic():
+def test_arithmetic_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     dist = (u.NormalDistribution(3 * u.kpc)
             * u.PoissonDistribution(5 * u.one)
             + u.UniformDistribution(3 * u.pc, 5 * u.pc))
-
-
-# TODO: add a test to check default number of samples and how to change it
