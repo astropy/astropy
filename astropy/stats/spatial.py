@@ -153,14 +153,16 @@ class RipleysKEstimator(object):
 
     def Lfunction(self, data, radii, mode='none'):
         """
-        Evaluates the L function at ``radii``.
+        Evaluates the L function at ``radii``. For parameter description
+        see ``evaluate`` method.
         """
 
         return np.sqrt(self.evaluate(data, radii, mode=mode) / np.pi)
 
     def Hfunction(self, data, radii, mode='none'):
         """
-        Evaluates the H function at ``radii``.
+        Evaluates the H function at ``radii``. For parameter description
+        see ``evaluate`` method.
         """
 
         return self.Lfunction(data, radii, mode=mode) - radii
