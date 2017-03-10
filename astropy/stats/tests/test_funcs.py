@@ -118,6 +118,12 @@ def test_median_absolute_deviation_nans():
     assert funcs.median_absolute_deviation(array) == 1
 
 
+def test_median_absolute_deviation_multidim_axis():
+    array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
+    assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
+                 np.zeros(5))
+
+
 def test_median_absolute_deviation_quantity():
     # Based on the changes introduces in #4658
 
