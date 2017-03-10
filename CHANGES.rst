@@ -172,6 +172,10 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Allow to choose which median function is used in ``mad_std`` and
+    ``median_absolute_deviation``. And allow to use these functions with
+    a multi-dimensional ``axis``. [#5835]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
