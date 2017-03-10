@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from copy import deepcopy
+from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -16,6 +17,7 @@ from ...utils import isiterable
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
+                              BaseRepresentation,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
                               CartesianRepresentation,
@@ -939,7 +941,6 @@ def test_representation_str_multi_d():
 
 
 def test_subclass_representation():
-    from collections import OrderedDict
     from ..builtin_frames import ICRS
 
     class Longitude180(Longitude):
@@ -965,3 +966,59 @@ def test_subclass_representation():
     assert c.ra.unit is u.deg
     assert c.dec.value == -2
     assert c.dec.unit is u.deg
+
+
+def test_minimal_subclass():
+    # Basically to check what we document works;
+    # see doc/coordinates/representations.rst
+    class LogDRepresentation(BaseRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude),
+                                    ('lat', Latitude),
+                                    ('logd', u.Dex)])
+
+        def to_cartesian(self):
+            d = self.logd.physical
+            x = d * np.cos(self.lat) * np.cos(self.lon)
+            y = d * np.cos(self.lat) * np.sin(self.lon)
+            z = d * np.sin(self.lat)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+        @classmethod
+        def from_cartesian(cls, cart):
+            s = np.hypot(cart.x, cart.y)
+            r = np.hypot(s, cart.z)
+            lon = np.arctan2(cart.y, cart.x)
+            lat = np.arctan2(cart.z, s)
+            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
+
+    ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
+    ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
+    assert np.all(ld1.lon==ld2.lon)
+    assert np.all(ld1.lat==ld2.lat)
+    assert np.all(ld1.logd==ld2.logd)
+    c = ld1.to_cartesian()
+    assert_allclose_quantity(c.xyz, [0., 10., 0.] * u.kpc, atol=1.*u.npc)
+    ld3 = LogDRepresentation.from_cartesian(c)
+    assert np.all(ld3.lon==ld2.lon)
+    assert np.all(ld3.lat==ld2.lat)
+    assert np.all(ld3.logd==ld2.logd)
+    s = ld1.represent_as(SphericalRepresentation)
+    assert_allclose_quantity(s.lon, ld1.lon)
+    assert_allclose_quantity(s.distance, 10.*u.kpc)
+    assert_allclose_quantity(s.lat, ld1.lat)
+
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), lon=1.*u.deg)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), True, False)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), foo='bar')
+
+    with pytest.raises(ValueError):
+        # check we cannot redefine an existing class.
+        class LogDRepresentation(BaseRepresentation):
+            attr_classes = OrderedDict([('lon', Longitude),
+                                        ('lat', Latitude),
+                                        ('logr', u.Dex)])
