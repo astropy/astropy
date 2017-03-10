@@ -118,7 +118,7 @@ class Distribution(Quantity):
 
         Returns
         -------
-        percs : Quantitiy of shape ``distr_shape``
+        percs : Quantity of shape ``distr_shape``
             The ``fracs`` percentiles of this distribution.
         """
         perc = np.percentile(self, perc, axis=0)
@@ -128,6 +128,29 @@ class Distribution(Quantity):
 
 
 class NormalDistribution(Distribution):
+    """
+    A Gaussian/normal Distribution
+
+    Parameters
+    ----------
+    center : `Quantity`
+        The center of this `NormalDistribution`
+    std : `Quantity` or None
+        The standard deviation/σ of this distribution. Shape must match and unit
+        must be compatible with ``center``, or be None (if ``var`` or ``ivar``
+        are set).
+    var : `Quantity` or None
+        The variance of this distribution. Shape must match and unit must be
+        compatible with ``center``, or be None (if ``std`` or ``ivar`` are set).
+    var : `Quantity` or None
+        The inversev ariance of this distribution. Shape must match and unit
+        must be compatible with ``center``, or be None (if ``std`` or ``var``
+        are set).
+    n_samples : int
+        The number of Monte Carlo samples to use with this distribution
+
+    Remaining keywords are passed into the `Quantity` constructor
+    """
     def __new__(cls, center, std=None, var=None, ivar=None, n_samples=1000, **kwargs):
         if var is not None:
             if std is None:
@@ -156,6 +179,18 @@ class NormalDistribution(Distribution):
 
 
 class PoissonDistribution(Distribution):
+    """
+    A Poisson Distribution
+
+    Parameters
+    ----------
+    poissonval : `Quantity`
+        The center value of this `PoissonDistribution` (i.e., λ).
+    n_samples : int
+        The number of Monte Carlo samples to use with this distribution
+
+    Remaining keywords are passed into the `Quantity` constructor
+    """
     def __new__(cls, poissonval, n_samples=1000, **kwargs):
         randshape = [n_samples] + list(poissonval.shape)
         distr = np.random.poisson(poissonval.value, randshape)
@@ -167,6 +202,21 @@ class PoissonDistribution(Distribution):
         return self
 
 class UniformDistribution(Distribution):
+    """
+    A Uniform Distribution.
+
+    Parameters
+    ----------
+    centerq : `Quantity`
+        The center value of this `UniformDistribution`.
+    width : `Quantity`
+        The width of this `UniformDistribution`.  Must have the same shape and
+        compatible units with ``centerq``.
+    n_samples : int
+        The number of Monte Carlo samples to use with this distribution
+
+    Remaining keywords are passed into the `Quantity` constructor.
+    """
     def __new__(cls, centerq, width, n_samples=1000, **kwargs):
         whalf = width/2
         low = centerq - whalf
