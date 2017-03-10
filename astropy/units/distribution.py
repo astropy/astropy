@@ -11,6 +11,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from . import Quantity
+from .. import visualization
 
 __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
            'UniformDistribution']
@@ -125,6 +126,41 @@ class Distribution(Quantity):
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
         return self.stat_view(perc, unit=self.unit, copy=False)
+
+    def hist(self, maxtoshow=10, **kwargs):
+        """
+        Use `astropy.visualization.hist` (which uses matplotlib's ``hist``
+        function) to visualize this distribution.  For N-D distributions, the array
+        is flattened following standard numpy rules, and the distributions are shown
+        as separate histograms for each element.
+
+        Parameters
+        ----------
+        maxtoshow : int or None
+            The maximum number of distribution elements to show.  If None, there
+            will be no limit, but this may overwhelm matplotlib if the distribution
+            is large.
+        Additional keywords are passed into `astropy.visualization.hist`
+        """
+        labelset = 'label' in kwargs
+        scalar_distr = len(self.shape) == 1
+        if scalar_distr:
+            reshaped = [self]
+        else:
+            reshaped = self.reshape(self.n_samples, self.size//self.n_samples).T
+
+        hists = []
+        for i, dat in enumerate(reshaped):
+            if i >= maxtoshow:
+                break
+            if (not scalar_distr) and (not labelset):
+                if len(self.shape) == 2:
+                    idxstr = str(i)
+                else:
+                    idxstr = str(np.unravel_index(i, self.shape[1:]))
+                kwargs['label'] = 'Distr ' + idxstr
+            hists.append(visualization.hist(dat, **kwargs))
+        return hists
 
 
 class NormalDistribution(Distribution):
