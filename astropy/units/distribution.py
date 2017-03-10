@@ -12,7 +12,8 @@ import numpy as np
 
 from . import Quantity
 
-__all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution']
+__all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
+           'UniformDistribution']
 
 
 class Distribution(Quantity):
@@ -147,7 +148,8 @@ class NormalDistribution(Distribution):
         if distr.unit != center.unit:
             distr = distr.to(center.unit)
 
-        self = super(NormalDistribution, cls).__new__(cls, distr, unit=None, **kwargs)
+        self = super(NormalDistribution, cls).__new__(cls, distr, unit=None,
+                                                      **kwargs)
         self.distr_std = std
         self.distr_center = center
         return self
@@ -158,6 +160,20 @@ class PoissonDistribution(Distribution):
         randshape = [n_samples] + list(poissonval.shape)
         distr = np.random.poisson(poissonval.value, randshape)
 
-        self = super(PoissonDistribution, cls).__new__(cls, distr, unit=poissonval.unit, **kwargs)
+        self = super(PoissonDistribution, cls).__new__(cls, distr,
+                                                       unit=poissonval.unit,
+                                                       **kwargs)
         self.distr_std = poissonval**0.5
+        return self
+
+class UniformDistribution(Distribution):
+    def __new__(cls, centerq, width, n_samples=1000, **kwargs):
+        whalf = width/2
+        low = centerq - whalf
+        high = centerq + whalf
+        distr = np.random.uniform(low, high)
+
+        self = super(UniformDistribution, cls).__new__(cls, distr,
+                                                       unit=low.unit,
+                                                       **kwargs)
         return self
