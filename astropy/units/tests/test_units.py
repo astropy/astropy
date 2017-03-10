@@ -503,12 +503,32 @@ def test_pickling():
     assert other is u.m
 
     new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
+    # This is local, so the unit should not be registered.
+    assert 'foo' not in u.get_current_unit_registry().registry
+
+    # Test pickling of this unregistered unit.
+    p = pickle.dumps(new_unit)
+    new_unit_copy = pickle.loads(p)
+    assert new_unit_copy.names == ['foo']
+    assert new_unit_copy.get_format_name('baz') == 'bar'
+    # It should still not be registered.
+    assert 'foo' not in u.get_current_unit_registry().registry
+
+    # Now try the same with a registered unit.
     with u.add_enabled_units([new_unit]):
         p = pickle.dumps(new_unit)
+        assert 'foo' in u.get_current_unit_registry().registry
+
+    # Check that a registered unit can be loaded and that it gets re-enabled.
+    with u.add_enabled_units([]):
+        assert 'foo' not in u.get_current_unit_registry().registry
         new_unit_copy = pickle.loads(p)
         assert new_unit_copy.names == ['foo']
         assert new_unit_copy.get_format_name('baz') == 'bar'
+        assert 'foo' in u.get_current_unit_registry().registry
 
+    # And just to be sure, that it gets removed outside of the context.
+    assert 'foo' not in u.get_current_unit_registry().registry
 
 def test_pickle_unrecognized_unit():
     """
