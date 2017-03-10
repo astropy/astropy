@@ -227,3 +227,23 @@ class UniformDistribution(Distribution):
                                                        unit=low.unit,
                                                        **kwargs)
         return self
+
+    @classmethod
+    def from_lower_upper(cls, lower, upper, unit=None, **kwargs):
+        """
+        Create a `UniformDistribution` from lower/upper bounds (instead of center
+        and width as the regular constructor uses).
+
+        Parameters
+        ----------
+        lower : `Quantity`
+            The lower edge of this distribution.
+        upper : `Quantity`
+            The upper edge of this distribution. Must match shape and be
+            compatible units with ``lower``.
+
+        Remaining keywords are passed into the `UniformDistribution` constructor.
+        """
+        centerq = (lower + upper)/2
+        width = upper - lower
+        return UniformDistribution(centerq, width, **kwargs)
