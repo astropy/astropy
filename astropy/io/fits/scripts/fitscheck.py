@@ -207,7 +207,7 @@ def process_file(filename):
             compliance_errors = 0
         if OPTIONS.write_file and checksum_errors == 0 or OPTIONS.force:
             if OPTIONS.force:
-                log.warn('WARNING {!r}.. Ignoring errors and updating CHECKSUM and DATASUM forcibly'.format(filename))
+                log.warning('WARNING {!r}.. Ignoring errors and updating CHECKSUM and DATASUM forcibly'.format(filename))
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:
