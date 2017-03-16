@@ -197,9 +197,9 @@ class CompImageHeader(Header):
         card = Card(remapped_keyword, card.value, card.comment)
 
         # Here we disable the use of blank cards, because the call above to
-        # `Header.append` may have already deleted a blank card in the table
-        # header, thanks to inheritance: `Header.append` calls `del self[-1]`
-        # to delete a blank card, which calls `CompImageHeader.__deltitem__`,
+        # Header.append may have already deleted a blank card in the table
+        # header, thanks to inheritance: Header.append calls 'del self[-1]'
+        # to delete a blank card, which calls CompImageHeader.__deltitem__,
         # which deletes the blank card both in the image and the table headers!
         self._table_header.append(card=card, useblanks=False,
                                   bottom=bottom, end=end)
@@ -245,9 +245,9 @@ class CompImageHeader(Header):
         card = Card(remapped_keyword, card.value, card.comment)
 
         # Here we disable the use of blank cards, because the call above to
-        # `Header.insert` may have already deleted a blank card in the table
-        # header, thanks to inheritance: `Header.insert` calls `del self[-1]`
-        # to delete a blank card, which calls `CompImageHeader.__deltitem__`,
+        # Header.insert may have already deleted a blank card in the table
+        # header, thanks to inheritance: Header.insert calls 'del self[-1]'
+        # to delete a blank card, which calls CompImageHeader.__delitem__,
         # which deletes the blank card both in the image and the table headers!
         self._table_header.insert(remapped_index, card, useblanks=False,
                                   after=after)
