@@ -227,6 +227,9 @@ Bug Fixes
   - Recognize PrimaryHDU when non boolean values are present for the
     'GROUPS' header keyword. [#5808]
 
+  - Fix the insertion of new keywords in compressed image headers
+    (``CompImageHeader``). [#5866]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

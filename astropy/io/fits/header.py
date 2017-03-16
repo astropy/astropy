@@ -1694,7 +1694,7 @@ class Header(object):
         """
 
         if idx < 0:
-            idx += len(self._cards) - 1
+            idx += len(self._cards)
 
         keyword = self._cards[idx].keyword
         keyword = Card.normalize_keyword(keyword)
