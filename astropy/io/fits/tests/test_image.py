@@ -1476,6 +1476,20 @@ class TestCompressedImage(FitsTestCase):
             assert 'ZHECKSUM' in tblhdr
             assert tblhdr['ZHECKSUM'] == 'abcd1234'
 
+    def test_compression_header_append2(self):
+        """
+        Regresion test for issue https://github.com/astropy/astropy/issues/5827
+        """
+        with fits.open(self.data('comp.fits')) as hdul:
+            header = hdul[1].header
+            while (len(header) < 1000):
+                header.append()    # pad with grow room
+
+            # Append stats to header:
+            header.append(("Q1_OSAVG", 1, "[adu] quadrant 1 overscan mean"))
+            header.append(("Q1_OSSTD", 1, "[adu] quadrant 1 overscan stddev"))
+            header.append(("Q1_OSMED", 1, "[adu] quadrant 1 overscan median"))
+
     def test_compression_header_insert(self):
         with fits.open(self.data('comp.fits')) as hdul:
             imghdr = hdul[1].header
