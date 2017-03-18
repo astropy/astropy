@@ -121,9 +121,9 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
         assert allclose(sc.ra, sc_rt.ra)
         assert allclose(sc.dec, sc_rt.dec)
     if equinox0:
-        assert Time(sc.equinox) == Time(sc_rt.equinox)
+        assert type(sc.equinox) is Time and sc.equinox == sc_rt.equinox
     if obstime0:
-        assert Time(sc.obstime) == Time(sc_rt.obstime)
+        assert type(sc.obstime) is Time and sc.obstime == sc_rt.obstime
 
 
 def test_coord_init_string():
@@ -1344,3 +1344,35 @@ def test_set_attribute_exceptions():
     sc.relative_humidity = 0.5
     assert sc.relative_humidity == 0.5
     assert not hasattr(sc.frame, 'relative_humidity')
+
+
+def test_extra_attributes():
+    """Ensure any extra attributes are dealt with correctly.
+
+    Regression test against #5743.
+    """
+    obstime_string = ['2017-01-01T00:00','2017-01-01T00:10']
+    obstime = Time(obstime_string)
+    sc = SkyCoord([5, 10], [20, 30], unit=u.deg, obstime=obstime_string)
+    assert not hasattr(sc.frame, 'obstime')
+    assert type(sc.obstime) is Time
+    assert sc.obstime.shape == (2,)
+    assert np.all(sc.obstime == obstime)
+    # ensure equivalency still works for more than one obstime.
+    assert sc.is_equivalent_frame(sc)
+    sc_1 = sc[1]
+    assert sc_1.obstime == obstime[1]
+    # Transforming to FK4 should use sc.obstime.
+    sc_fk4 = sc.transform_to('fk4')
+    assert np.all(sc_fk4.frame.obstime == obstime)
+    # And transforming back should not loose it.
+    sc2 = sc_fk4.transform_to('icrs')
+    assert not hasattr(sc2.frame, 'obstime')
+    assert np.all(sc2.obstime == obstime)
+    # Ensure obstime get taken from the SkyCoord if passed in directly.
+    # (regression test for #5749).
+    sc3 = SkyCoord([0., 1.], [2., 3.], unit='deg', frame=sc)
+    assert np.all(sc3.obstime == obstime)
+    # Finally, check that we can delete such attributes.
+    del sc3.obstime
+    assert sc3.obstime is None
