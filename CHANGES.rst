@@ -315,6 +315,9 @@ Other Changes and Additions
   in the ``io.fits`` write functions was changed to a "pending" deprecation
   (without displaying warnings) for now. [#5761]
 
+- Updated bundled astropy-helpers to v1.3.1. [#5880]
+
+
 1.3 (2016-12-22)
 ----------------
 
