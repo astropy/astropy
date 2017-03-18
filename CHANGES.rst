@@ -1,4 +1,4 @@
-1.3.1 (unreleased)
+1.3.1 (2017-03-18)
 ------------------
 
 New Features
@@ -12,12 +12,6 @@ New Features
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - Changed ``SkyCoord`` so that frame attributes which are not valid for the
@@ -27,10 +21,6 @@ Bug Fixes
 
   - Ensured that ``position_angle`` and ``separation`` give correct answers for
     frames with different equinox (see #5722). [#5762]
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -45,12 +35,6 @@ Bug Fixes
   - Fix the insertion of new keywords in compressed image headers
     (``CompImageHeader``). [#5866]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
@@ -61,8 +45,6 @@ Bug Fixes
   - Fixed a problem with passing kwargs to fitters, specifically ``verblevel``. [#5815]
 
   - Changed FittingWithOutlierRemoval to reject on the residual to the fit [#5831]
-
-- ``astropy.nddata``
 
 - ``astropy.stats``
 
@@ -75,8 +57,6 @@ Bug Fixes
   - Ensure that a masked array is returned when sigma clipping fully masked
     data. [#5711]
 
-- ``astropy.sphinx``
-
 - ``astropy.table``
 
   - Fix problem where key for caching column format function was not
@@ -88,7 +68,8 @@ Bug Fixes
     right-hand side if the type supports broadcasting. E.g., for an existing
     ``QTable``, ``t['q'] = 3*u.m`` will now add a column as expected. [#5820]
 
-- ``astropy.time``
+  - Fixes the bug of setting/getting values from rows/columns of a table using
+    numpy array scalars. [#5772]
 
 - ``astropy.units``
 
@@ -102,7 +83,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - Avoid importing matplotlib.pyplot when importing
-    astropy.visualization.wcsaxes. [#5680]
+    astropy.visualization.wcsaxes. [#5680, #5684]
 
   - Ignore Numpy warnings that happen in coordinate transforms in WCSAxes.
     [#5792]
@@ -111,10 +92,6 @@ Bug Fixes
 
   - Fix a bug that caused WCSAxes frame visual properties to not be copied
     over when resetting the WCS. [#5791]
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 - ``astropy.extern``
 
@@ -191,7 +168,7 @@ New Features
   - Check for self-consistency of ECSV header column names. [#5463]
 
   - Produce warnings when writing an IPAC table from an astropy table that
-    contains metadata not supported by the IPAC format [#4700]
+    contains metadata not supported by the IPAC format. [#4700]
 
 - ``astropy.io.fits``
 
@@ -446,9 +423,6 @@ Bug Fixes
     [#5605]
 
 - ``astropy.io.fits``
-
-  - Made TFORMx keyword check more flexible in test of compressed images to
-    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
 
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
@@ -1103,6 +1077,9 @@ Bug fixes
 
   - Ensure scaling keywords are removed from header when unsigned integer data
     is converted to signed type. [#4974, #5053]
+
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
 
 - ``astropy.io.misc``
 
