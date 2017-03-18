@@ -348,3 +348,9 @@ def test_regression_simple_5133():
     # az is more-or-less undefined for straight up or down
     assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-5)
     assert_quantity_allclose(aa.distance, [90, 10]*u.km)
+
+
+def test_regression_5743():
+    sc = SkyCoord([5, 10], [20, 30], unit=u.deg,
+                  obstime=['2017-01-01T00:00', '2017-01-01T00:10'])
+    assert sc[0].obstime.shape == tuple()
