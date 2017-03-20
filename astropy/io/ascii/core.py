@@ -891,7 +891,7 @@ def convert_numpy(numpy_type):
 
     def generic_converter(vals, fast):
     	if fast:
-    		return vals.astype(numpy_type, copy = False)
+    		return vals.astype(numpy_type, copy=False)
     	else:
         	return numpy.array(vals, numpy_type)
 
@@ -924,6 +924,7 @@ class BaseOutputter(object):
         except (ValueError, TypeError):
             raise ValueError('Error: invalid format for converters, see '
                              'documentation\n{}'.format(converters))
+
         return converters_out
 
     def _convert_vals(self, cols):

@@ -98,8 +98,7 @@ class FastBasic(object):
                                 break
                             
                         except (ValueError, TypeError):
-                            raise ValueError('Error: invalid format for converters, see documentation\n%s' %
-                             converters)
+                            raise ValueError('Error: invalid format for converters, see documentation\n {}'.format(converters))
                              
                     if modified_col != True:
                         converter_func , converter_type = converter_first
