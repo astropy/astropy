@@ -341,7 +341,6 @@ def test_invalid_parameters():
                       'quotechar': '##', # multi-char quote signifier
                       'data_start': -1, # negative data_start
                       'header_start': -1, # negative header_start
-                      'converters': converters, # passing converters
                       'Inputter': ascii.ContinuationLinesInputter, # passing Inputter
                       'header_Splitter': ascii.DefaultSplitter, # passing Splitter
                       'data_Splitter': ascii.DefaultSplitter

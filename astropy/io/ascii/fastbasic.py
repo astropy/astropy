@@ -17,7 +17,7 @@ class FastBasic(object):
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
     code and is therefore much faster. Unlike the other ASCII readers and
     writers, this class is not very extensible and is restricted
-    by optimization requirements.
+    by optimization requirements. 
     """
     _format_name = 'fast_basic'
     _description = 'Basic table with custom delimiter using the fast C engine'
@@ -58,6 +58,53 @@ class FastBasic(object):
         # can be overridden for specialized headers
         self.engine.read_header()
 
+    def _get_col_type(self, col_dtype):
+        # get the column type as Type classes defined in core
+        col_dtype = str(col_dtype)
+        if 'int' in col_dtype:
+            col_type = core.IntType
+        elif 'float' in col_dtype:
+            col_type = core.FloatType
+        elif 'bool' in col_dtype:
+            col_type = core.BoolType
+        elif 'str' in col_dtype:
+            col_type = core.StrType
+        else:
+            col_type = core.AllType
+        return col_type
+        
+    def _convert_vals(self, data):
+        converter_first = None
+        modified_col = False
+        
+        if self.converters is not None:
+            for col_name in data:
+                converters = self.converters.get(col_name, None) 
+                if converters is not None:
+                    col_dtype = data[col_name].dtype
+                    col_type = self._get_col_type(col_dtype)
+                    if len(converters) == 0:
+                        raise ValueError('Column {} failed to convert: no converters defined'.format(col_name))
+                    for converter in converters:
+                        try:
+                            converter_func , converter_type = converters
+                            if not issubclass(converter_type, core.NoType):
+                                raise ValueError()
+                            if converter_first is None:
+                                converter_first = (converter_func , converter_type)
+                            if issubclass(converter_type, col_type):
+                                data[col_name] = converter_func(data[col_name], True)
+                                modified_col = True
+                                break
+                            
+                        except (ValueError, TypeError):
+                            raise ValueError('Error: invalid format for converters, see documentation\n%s' %
+                             converters)
+                             
+                    if modified_col != True:
+                        converter_func , converter_type = converter_first
+                        data[col_name] = converter_func(data[col_name], True)
+
     def read(self, table):
         """
         Read input data (file-like object, filename, list of strings, or
@@ -77,16 +124,15 @@ class FastBasic(object):
             raise core.ParameterError("The C reader only supports 1-char delimiters")
         elif len(self.quotechar) != 1:
             raise core.ParameterError("The C reader only supports a length-1 quote character")
-        elif 'converters' in self.kwargs:
-            raise core.ParameterError("The C reader does not support passing "
-                                      "specialized converters")
         elif 'Outputter' in self.kwargs:
             raise core.ParameterError("The C reader does not use the Outputter parameter")
         elif 'Inputter' in self.kwargs:
             raise core.ParameterError("The C reader does not use the Inputter parameter")
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
-
+        
+        self.converters = self.kwargs.pop('converters', None)
+            
         self.strict_names = self.kwargs.pop('strict_names', False)
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
@@ -109,10 +155,12 @@ class FastBasic(object):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
-
-        meta = OrderedDict()
+        meta = OrderedDict()    
         if comments:
             meta['comments'] = comments
+        
+        self._convert_vals(data)     
+                    
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):

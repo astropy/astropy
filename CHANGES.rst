@@ -22,6 +22,7 @@ New Features
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+  - Added `converters` parameter to `FastBasic.read()`, to optimize memory usage. [#5845].
 
 - ``astropy.io.fits``
 

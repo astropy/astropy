@@ -58,7 +58,6 @@ These parameters are:
  * ``comment`` string not of length 1
  * ``delimiter`` string not of length 1
  * ``quotechar`` string not of length 1
- * ``converters``
  * ``Outputter``
  * ``Inputter``
  * ``data_Splitter``
@@ -91,6 +90,13 @@ from the default ``'e'`` for exponential formats in the input file.
 The special setting ``'fortran'`` enables auto-detection of any valid
 exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
+
+In order to optimize memory usage, specify the dtype of columns when reading in data using the fast readers.
+This can be done using the converters paramater which is consistent with the converters paramater used in basic read.
+   >>> import numpy as np
+   >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
+   ...               'col2': [ascii.convert_numpy(np.float32)]}
+   >>> ascii.read('file.dat', format = 'fast_basic', converters=converters)
 
 Writing
 ^^^^^^^
