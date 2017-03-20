@@ -1910,12 +1910,7 @@ class _CompoundModelMeta(_ModelMeta):
             # Save all this work in the cache
             cls._submodel_names = tuple(names)
 
-<<<<<<< HEAD
         return cls._submodel_names
-=======
-        cls._submodel_names = names
-        return names
->>>>>>> ae97dea758cf182d54f4abdc29346b333e88ca55
 
     @property
     def param_names(cls):
