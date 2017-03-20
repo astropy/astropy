@@ -93,12 +93,12 @@ class FastBasic(object):
                             if converter_first is None:
                                 converter_first = (converter_func , converter_type)
                             if issubclass(converter_type, col_type):
-                                data[col_name] = converter_func(data[col_name], True)
+                                data[col_name] = converter_func(data[col_name], fast = True)
                                 modified_col = True
                                 break
                             
                         except (ValueError, TypeError):
-                            raise ValueError('Error: invalid format for converters, see documentation\n {}'.format(converters))
+                            raise ValueError('Error: invalid format for converters, see documentation\n{}'.format(converters))
                              
                     if modified_col != True:
                         converter_func , converter_type = converter_first

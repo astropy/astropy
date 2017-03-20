@@ -889,7 +889,8 @@ def convert_numpy(numpy_type):
             raise ValueError('bool input strings must be only False or True')
         return trues
 
-    def generic_converter(vals, fast):
+    def generic_converter(vals, default_kwargs={}):
+        fast = default_kwargs.get('fast', 0)
     	if fast:
     		return vals.astype(numpy_type, copy=False)
     	else:
