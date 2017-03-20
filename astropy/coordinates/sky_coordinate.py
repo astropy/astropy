@@ -650,7 +650,7 @@ class SkyCoord(ShapedLikeNDArray):
                 return False
 
             for fattrnm in FRAME_ATTR_NAMES_SET():
-                if getattr(self, fattrnm) != getattr(other, fattrnm):
+                if np.any(getattr(self, fattrnm) != getattr(other, fattrnm)):
                     return False
             return True
         else:
