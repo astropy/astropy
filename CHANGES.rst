@@ -12,6 +12,13 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Frame attributes set on ``SkyCoord`` are now always validated, and any
+    ndarray-like operation (like slicing) will also be done on those. [#575
+
+  - Caching of  all possible frame attributes was implemented. This greatly
+    speeds up many ``SkyCoord`` operations. [#5703, #5751]
+
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -22,6 +29,10 @@ New Features
 
   - Change behavior to warn about units that are not FITS-compliant when
     writing a FITS file but not when reading. [#5675]
+
+  - Added absolute tolerance parameter when comparing FITS files. [#4729]
+
+  - New convenience function ``printdiff`` to print out diff reports. [#5759]
 
 - ``astropy.io.misc``
 
@@ -36,10 +47,12 @@ New Features
   - Add ``n_submodels`` shared method to single and compound models, which
     allows users to get the number of components of a given single (compound)
     model. [#5747]
+  - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
 - ``astropy.nddata``
 
 - ``astropy.stats``
+  - Added ``biweight_midcovariance`` method. [#5777]
 
 - ``astropy.sphinx``
 
@@ -134,6 +147,8 @@ Bug Fixes
 
 - ``astropy.cosmology``
 
+- ``astropy.extern``
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
@@ -146,18 +161,23 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Creating a compound model where one of the submodels is
+    a compound model whose parameters were changed now uses the
+    updated parameters and not the parameters of the original model. [#5741]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
-
-  - Ensure that a masked array is returned when sigma clipping fully masked
-    data. [#5711]
 
 - ``astropy.sphinx``
 
 - ``astropy.table``
 
   - Fix a problem with vstack for bytes columns in Python 3. [#5628]
+
+- ``astropy.table``
+
+- ``astropy.tests``
 
 - ``astropy.time``
 
@@ -179,7 +199,63 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
-1.3.1 (unreleased)
+1.3.2 (unreleased)
+-------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.extern``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
+1.3.1 (2017-03-18)
 ------------------
 
 New Features
@@ -193,60 +269,73 @@ New Features
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
-  - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
-    because of a typo in the input validation. [#5645]
+  - Changed ``SkyCoord`` so that frame attributes which are not valid for the
+    current ``frame`` (but are valid for other frames) are stored on the
+    ``SkyCoord`` instance instead of the underlying ``frame`` instance (e.g.,
+    setting ``relative_humidity`` on an ICRS ``SkyCoord`` instance.) [#5750]
 
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
+  - Ensured that ``position_angle`` and ``separation`` give correct answers for
+    frames with different equinox (see #5722). [#5762]
 
 - ``astropy.io.fits``
 
+  - Fix problem with padding bytes written for BinTable columns converted
+    from unicode [#5280, #5287, #5288, #5296].
+
   - Fix out-of-order TUNITn cards when writing tables to FITS. [#5720]
 
-  - Guard against extremely unlikely problems in compressed images, which
-    could lead to memory unmapping errors. [#5775]
+  - Recognize PrimaryHDU when non boolean values are present for the
+    'GROUPS' header keyword. [#5808]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-  - Fixed a bug where stdlib ``realloc()`` was used instead of
-    ``PyMem_Realloc()`` [#5696, #4739, #2100]
+  - Fix the insertion of new keywords in compressed image headers
+    (``CompImageHeader``). [#5866]
 
 - ``astropy.modeling``
 
   - Fixed a problem with setting ``bounding_box`` on 1D models. [#5718]
 
-- ``astropy.nddata``
+  - Fixed a broadcasting problem with weighted fitting of 2D models
+    with ``LevMarLSQFitter``. [#5788]
+
+  - Fixed a problem with passing kwargs to fitters, specifically ``verblevel``. [#5815]
+
+  - Changed FittingWithOutlierRemoval to reject on the residual to the fit [#5831]
 
 - ``astropy.stats``
 
   - Fix the psd normalization for Lomb-Scargle periodograms in the presence
-    of noise [#5713]
+    of noise. [#5713]
 
   - Fix bug in the autofrequency range when ``minimum_frequency`` is specified
-    but ``maximum_frequency`` is not [#5738]
+    but ``maximum_frequency`` is not. [#5738]
 
-- ``astropy.sphinx``
+  - Ensure that a masked array is returned when sigma clipping fully masked
+    data. [#5711]
 
 - ``astropy.table``
 
-- ``astropy.time``
+  - Fix problem where key for caching column format function was not
+    sufficiently unique. [#5803]
+
+  - Handle sorting NaNs and masked values in jsviewer. [#4052, #5572]
+
+  - Ensure mixin columns can be added to a table using a scalar value for the
+    right-hand side if the type supports broadcasting. E.g., for an existing
+    ``QTable``, ``t['q'] = 3*u.m`` will now add a column as expected. [#5820]
+
+  - Fixes the bug of setting/getting values from rows/columns of a table using
+    numpy array scalars. [#5772]
 
 - ``astropy.units``
 
+  - Fixed problem where IrreducibleUnits could fail to unpickle. [#5868]
+
 - ``astropy.utils``
+
+  - Avoid importing ``ipython`` in ``utils.console`` until it is necessary, to
+    prevent deprecation warnings when importing, e.g., ``Column``. [#5755]
 
 - ``astropy.visualization``
 
@@ -261,10 +350,6 @@ Bug Fixes
   - Fix a bug that caused WCSAxes frame visual properties to not be copied
     over when resetting the WCS. [#5791]
 
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 - ``astropy.extern``
 
   - Fixed a bug where PLY was overwriting its generated files. [#5728]
@@ -278,6 +363,12 @@ Other Changes and Additions
 - The deprecation of the ``clobber`` argument (originally deprecated in 1.3.0)
   in the ``io.fits`` write functions was changed to a "pending" deprecation
   (without displaying warnings) for now. [#5761]
+
+- Updated bundled astropy-helpers to v1.3.1. [#5880]
+
+- In the process of fixing frame attributes on ``SkyCoord``, caching of the
+  all possible frame attributes was implemented (following #5703). This greatly
+  speeds up many ``SkyCoord`` operations. [#5751]
 
 1.3 (2016-12-22)
 ----------------
@@ -398,6 +489,8 @@ New Features
     ./setup.py test command. These dependencies are specified by the
     install_requires and tests_require keywords via setuptools.
     [#5092, astropy-helpers #212]
+
+  - Enable easier subclassing of the TestRunner class. [#5505]
 
 - ``astropy.time``
 
@@ -543,6 +636,12 @@ API Changes
   - Allow ``collections.Mapping``-like ``data`` attribute when initializing a
     ``Table`` object (``dict``-like was already possible). [#5213]
 
+- ``astropy.tests``
+
+  - The inputs to the ``TestRunner.run_tests()`` method now must be
+    keyword arguments (no positional arguments).  This applies to the
+    ``astropy.test()`` function as well. [#5505]
+
 - ``astropy.utils``
 
   - Renamed ``ignored`` context manager in ``compat.misc`` to ``suppress``
@@ -584,9 +683,6 @@ Bug Fixes
     [#5605]
 
 - ``astropy.io.fits``
-
-  - Made TFORMx keyword check more flexible in test of compressed images to
-    enable compatibility of the test with cfitsio 3.380. [#4646]
 
   - Copying a ``fits.Header`` using ``copy`` or ``deepcopy`` from the ``copy``
     module will use ``Header.copy`` to ensure that modifying the copy will
@@ -1010,7 +1106,7 @@ API changes
 
 - ``astropy.cosmology``
 
-  - Improve documentation of z validity range of cosmology objects [#4882]
+  - Improve documentation of z validity range of cosmology objects [#4882, #4949]
 
 - ``astropy.io.ascii``
 
@@ -1242,6 +1338,9 @@ Bug fixes
   - Ensure scaling keywords are removed from header when unsigned integer data
     is converted to signed type. [#4974, #5053]
 
+  - Made TFORMx keyword check more flexible in test of compressed images to
+    enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
@@ -1320,7 +1419,7 @@ Bug fixes
     are written out, i.e. ``relax=True``. [#4814]
 
   - Made ``wcs.bounds_check`` call ``wcsprm_python2c``, which means it
-    works even if ``wcs.set`` has not been called yet. [#4957].
+    works even if ``wcs.set`` has not been called yet. [#4957, #4966].
   - WCS objects can no longer be reverse-indexed, which was technically
     permitted but incorrectly implemented previously [#4962]
 
@@ -2042,11 +2141,9 @@ Other Changes and Additions
   in Python 2.6 (this warning can be disabled through the usual Python warning
   filtering mechanisms). [#3779]
 
-1.0.12 (unreleased)
--------------------
 
-Bug Fixes
-^^^^^^^^^
+1.0.13 (unreleased)
+-------------------
 
 - ``astropy.config``
 
@@ -2057,6 +2154,8 @@ Bug Fixes
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
+
+- ``astropy.extern``
 
 - ``astropy.io.ascii``
 
@@ -2074,9 +2173,9 @@ Bug Fixes
 
 - ``astropy.stats``
 
-- ``astropy.sphinx``
-
 - ``astropy.table``
+
+- ``astropy.tests``
 
 - ``astropy.time``
 
@@ -2090,12 +2189,42 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-- ``astropy.extern``
-
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.12 (2017-03-05)
+-------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.convolution``
+
+  - Fixed bug in ``discretize_integrate_2D`` in which x and y coordinates
+    where swapped. [#5634]
+
+- ``astropy.coordinates``
+
+  - Fixed a bug where ``get_transform`` could sometimes produce confusing errors
+    because of a typo in the input validation. [#5645]
+
+- ``astropy.io.fits``
+
+  - Guard against extremely unlikely problems in compressed images, which
+    could lead to memory unmapping errors. [#5775]
+
+- ``astropy.io.votable``
+
+  - Fixed a bug where stdlib ``realloc()`` was used instead of
+    ``PyMem_Realloc()`` [#5696, #4739, #2100]
+
+- ``astropy.utils``
+
+  - Fixed ImportError with NumPy < 1.7 and Python 3.x in
+    ``_register_patched_dtype_reduce``. [#5848]
 
 
 1.0.11 (2016-12-22)
@@ -2117,11 +2246,11 @@ Bug Fixes
     an ``Angle``. [#5483]
 
   - Ensure that ``search_around_sky`` and ``search_around_3d`` return
-    integer type index arrays for empty (non) matches. [#4877]
+    integer type index arrays for empty (non) matches. [#4877, #5083]
 
   - Return an empty set of matches for ``search_around_sky`` and
     ``search_around_3d`` when one or both of the input coordinate
-    arrays is empty. [#4875]
+    arrays is empty. [#4875, #5083]
 
 - ``astropy.io.ascii``
 

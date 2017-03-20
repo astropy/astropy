@@ -60,8 +60,8 @@ def get_auto_format_func(
 
     Parameters
     ----------
-    col_name : str, optional
-        Column name (default=None)
+    col_name : object, optional
+        Hashable object to identify column like id or name (default=None).
 
     possible_string_format_functions : func, optional
         Function that yields possible string formatting functions
@@ -414,13 +414,13 @@ class TableFormatter(object):
         #    See Quantity for an example.
         #
         # - get_auto_format_func() returns a wrapped version of auto_format_func
-        #    with the column name and possible_string_format_functions as
+        #    with the column id and possible_string_format_functions as
         #    enclosed variables.
         col_format = col.info.format or getattr(col.info, 'default_format', None)
         pssf = (getattr(col.info, 'possible_string_format_functions', None) or
                 _possible_string_format_functions)
-        auto_format_func = get_auto_format_func(col.info.name, pssf)
-        format_key = (col_format, col.info.name)
+        auto_format_func = get_auto_format_func(id(col), pssf)
+        format_key = (col_format, id(col))
         format_func = _format_funcs.get(format_key, auto_format_func)
 
         if len(col) > max_lines:

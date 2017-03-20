@@ -17,7 +17,8 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity
-from ..utils import isiterable
+from ..utils import isiterable, ShapedLikeNDArray
+from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
@@ -109,6 +110,8 @@ class TableColumns(OrderedDict):
             return OrderedDict.__getitem__(self, item)
         elif isinstance(item, (int, np.integer)):
             return self.values()[item]
+        elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
+            return self.values()[item.item()]
         elif isinstance(item, tuple):
             return self.__class__([self[x] for x in item])
         elif isinstance(item, slice):
@@ -987,7 +990,10 @@ class Table(object):
                                          max_lines=-1, show_dtype=False,
                                          tableclass=table_class)
 
-        html += jsv.ipynb(tableid, css=css)
+        columns = display_table.columns.values()
+        sortable_columns = [i for i, col in enumerate(columns)
+                            if col.dtype.kind in 'iufc']
+        html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
     def show_in_browser(self, max_lines=5000, jsviewer=False,
@@ -1184,6 +1190,8 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, (int, np.integer)):
             return self.Row(self, item)
+        elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
+            return self.Row(self, item.item())
         elif (isinstance(item, (tuple, list)) and item and
               all(isinstance(x, six.string_types) for x in item)):
             bad_names = [x for x in item if x not in self.colnames]
@@ -1196,7 +1204,7 @@ class Table(object):
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
-        elif ((isinstance(item, np.ndarray) and len(item) == 0) or
+        elif ((isinstance(item, np.ndarray) and item.size == 0) or
               (isinstance(item, (tuple, list)) and not item)):
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
@@ -1237,17 +1245,29 @@ class Table(object):
             name = item
             # If this is a column-like object that could be added directly to table
             if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
+                # If we're setting a new column to a scalar, broadcast it.
+                # (things will fail in _init_from_cols if this doesn't work)
+                if (len(self) > 0 and (getattr(value, 'isscalar', False) or
+                                       getattr(value, 'shape', None) == () or
+                                       len(value) == 1)):
+                    new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
+                    if isinstance(value, np.ndarray):
+                        value = np_broadcast_to(value, shape=new_shape,
+                                                subok=True)
+                    elif isinstance(value, ShapedLikeNDArray):
+                        value = value._apply(np_broadcast_to, shape=new_shape,
+                                             subok=True)
+
                 new_column = col_copy(value)
                 new_column.info.name = name
+
             elif len(self) == 0:
                 new_column = NewColumn(value, name=name)
             else:
                 new_column = NewColumn(name=name, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:])
+                                       shape=value.shape[1:],
+                                       unit=getattr(value, 'unit', None))
                 new_column[:] = value
-
-                if isinstance(value, Quantity):
-                    new_column.unit = value.unit
 
             # Now add new column to the table
             self.add_columns([new_column], copy=False)

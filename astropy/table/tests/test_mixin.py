@@ -277,17 +277,37 @@ def test_add_column(mixin_cols):
     m.info.meta = {'a': 1}
     t = QTable([m])
 
-    # Add columns m2 and m3 by two different methods and test expected equality
+    # Add columns m2, m3, m4 by two different methods and test expected equality
     t['m2'] = m
     m.info.name = 'm3'
     t.add_columns([m], copy=True)
     m.info.name = 'm4'
     t.add_columns([m], copy=False)
     for name in ('m2', 'm3', 'm4'):
-        assert_table_name_col_equal(t, 'm', t[name])
+        assert_table_name_col_equal(t, name, m)
         for attr in attrs:
             if attr != 'name':
                 assert getattr(t['m'].info, attr) == getattr(t[name].info, attr)
+    # Also check that one can set using a scalar.
+    s = m[0]
+    if type(s) is type(m):
+        # We're not going to worry about testing classes for which scalars
+        # are a different class than the real array (and thus loose info, etc.)
+        t['s'] = m[0]
+        assert_table_name_col_equal(t, 's', m[0])
+        for attr in attrs:
+            if attr != 'name':
+                assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
+
+    # While we're add it, also check a length-1 table.
+    t = QTable([m[1:2]], names=['m'])
+    if type(s) is type(m):
+        t['s'] = m[0]
+        assert_table_name_col_equal(t, 's', m[0])
+        for attr in attrs:
+            if attr != 'name':
+                assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
+
 
 def test_vstack():
     """

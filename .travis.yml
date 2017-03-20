@@ -63,8 +63,8 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
-        # For the image tests, we also include Matplotlib 1.4 in the Numpy 1.9
-        # build.
+        # Numpy 1.10 is tested below in the image tests.
+
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
                SETUP_CMD='test --open-files'
@@ -75,7 +75,7 @@ matrix:
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
                SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
@@ -106,9 +106,9 @@ matrix:
           env: NUMPY_VERSION=prerelease SETUP_CMD='test'
                EVENT_TYPE='push pull_request cron'
 
-        # Do a PEP8 test with pycodestyle
+        # Do a PEP8/pyflakes test with flake8
         - os: linux
-          env: MAIN_CMD='pycodestyle astropy --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 astropy --count' SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially unstable, we
@@ -132,7 +132,7 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then
+    - if [[ $SETUP_CMD == *--coverage* ]]; then
         cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi
