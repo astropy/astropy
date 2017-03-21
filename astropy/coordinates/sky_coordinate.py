@@ -1370,21 +1370,21 @@ def _is_broadcasted_close(attr1, attr2):
 
     # EarthLocation
     try:
-        diff = self.get_itrs().cartesian - other.get_itrs().cartesian
+        diff = attr1.get_itrs().cartesian - attr2.get_itrs().cartesian
         return np.allclose(diff.xyz.value, 0)
     except:
         pass
 
     #CartesianRepresentation
     try:
-        diff = self-other
+        diff = attr1 - attr2
         return np.allclose(diff.xyz.value, 0)
     except:
         pass
 
     # CoordinateAttribute
     try:
-        diff = self.separation(other)
+        diff = attr1.separation(attr2)
         return np.allclose(diff.value, 0)
     except:
         pass
