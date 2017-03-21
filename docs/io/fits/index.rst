@@ -532,7 +532,7 @@ Creating a New Table File
 
 .. note::
 
-    If you want to create a simple binary FITS table with no other HDUs,
+    If you want to create a simple **binary** FITS table with no other HDUs,
     you can use :class:`~astropy.table.Table` instead and then write to FITS.
     This is less complicated than "lower-level" FITS interface:
 
@@ -540,7 +540,7 @@ Creating a New Table File
     >>> t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
     >>> t.write('table.fits', format='fits')
 
-    The equivalent codes using ``astropy.io.fits`` would look like this:
+    The equivalent code using ``astropy.io.fits`` would look like this:
 
     >>> from astropy.io import fits
     >>> import numpy as np
