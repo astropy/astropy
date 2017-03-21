@@ -122,6 +122,51 @@ typedef struct {
 } IterParser;
 
 /******************************************************************************
+ * Tuple queue
+ ******************************************************************************/
+
+/**
+ * Extend the tuple queue based on the new length of the textual XML input.
+ * This helps to cope with situations where the input is longer than
+ * requested (as occurs with transparent decompression of the input
+ * stream), and for the initial allocation to combine the logic in one place.
+ */
+static int
+queue_realloc(IterParser *self, Py_ssize_t req_size)
+{
+    PyObject** new_queue;
+    Py_ssize_t n = req_size / 2;
+
+    if (n <= self->queue_size)
+        return 0;
+
+    new_queue = realloc(self->queue, sizeof(PyObject*) * (size_t)n);
+
+    if (new_queue == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Out of memory for XML parsing queue.");
+        /*
+         * queue_realloc() is only called from IterParser_init() or
+         * IterParser_next() in situations where the queue is clear
+         * and empty.  If this function were to be used in other
+         * situations it would be wise to iterate over the queue and
+         * clear/decrement the individual references, to save work for
+         * the garbage collector (in an out-of-memory situation).
+         */
+        goto fail;
+    }
+
+    self->queue = new_queue;
+    self->queue_size = n;
+    return 0;
+
+fail:
+    free(self->queue);
+    self->queue = NULL;
+    self->queue_size = 0;
+    return -1;
+}
+
+/******************************************************************************
  * Text buffer
  ******************************************************************************/
 
@@ -673,6 +718,7 @@ IterParser_next(IterParser* self)
             }
 
             if (buflen < self->buffersize) {
+                /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
         /* Handle a real C file descriptor or handle -- this is faster
@@ -684,10 +730,16 @@ IterParser_next(IterParser* self)
                 PyErr_SetFromErrno(PyExc_IOError);
                 goto fail;
             } else if (buflen < self->buffersize) {
+                /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
 
             buf = self->buffer;
+        }
+
+        if(queue_realloc(self, buflen)) {
+            Py_XDECREF(data);
+            goto fail;
         }
 
         /* Feed the read buffer to expat, which will call the event handlers */
@@ -998,10 +1050,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
         goto fail;
     }
 
-    self->queue_size = buffersize / 2;
-    self->queue = malloc(sizeof(PyObject*) * (size_t)self->queue_size);
-    if (self->queue == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+    if (queue_realloc(self, buffersize)) {
         goto fail;
     }
 
