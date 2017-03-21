@@ -17,7 +17,7 @@ class FastBasic(object):
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
     code and is therefore much faster. Unlike the other ASCII readers and
     writers, this class is not very extensible and is restricted
-    by optimization requirements. 
+    by optimization requirements.
     """
     _format_name = 'fast_basic'
     _description = 'Basic table with custom delimiter using the fast C engine'
@@ -73,20 +73,20 @@ class FastBasic(object):
         else:
             col_type = core.AllType
         return col_type
-        
+
     def _convert_vals(self, data):
         converter_first = None
         modified_col = None
-        
+
         if self.converters is not None:
             for col_name in data:
-                converters = self.converters.get(col_name, None) 
+                converters = self.converters.get(col_name, None)
                 if converters is not None:
                     if len(converters) == 0:
                         raise ValueError('Column {} failed to convert: no converters defined'.format(col_name))
                     col_dtype = data[col_name].dtype
                     col_type = self._get_col_type(col_dtype)
-                    
+
                     try:
                         for converter in converters:
                             converter_func , converter_type = converter
@@ -98,19 +98,19 @@ class FastBasic(object):
                                 data[col_name] = converter_func(data[col_name], fast=True)
                                 modified_col = True
                                 break
-                            
+
                     except (ValueError, TypeError):
                         raise ValueError('Error: invalid format for converters, see documentation\n{}'.format(converters))
-                             
+
                     if modified_col is None:
                         converter_func , converter_type = converter_first
                         data[col_name] = converter_func(data[col_name], fast=True)
-                    
-                    modified_col = None    
+
+                    modified_col = None
                     converter_first = None
-                    
+
         return data
-        
+
     def read(self, table):
         """
         Read input data (file-like object, filename, list of strings, or
@@ -136,9 +136,9 @@ class FastBasic(object):
             raise core.ParameterError("The C reader does not use the Inputter parameter")
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
-        
+
         self.converters = self.kwargs.pop('converters', None)
-            
+
         self.strict_names = self.kwargs.pop('strict_names', False)
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
@@ -161,12 +161,12 @@ class FastBasic(object):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
-        meta = OrderedDict()    
+        meta = OrderedDict()
         if comments:
             meta['comments'] = comments
-        
+
         data = self._convert_vals(data)
-        
+
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):

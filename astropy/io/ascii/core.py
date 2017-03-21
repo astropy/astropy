@@ -891,10 +891,10 @@ def convert_numpy(numpy_type):
 
     def generic_converter(vals, **kwargs):
         fast = kwargs.get('fast', False)
-    	if fast:
-    		return vals.astype(numpy_type, copy=False)
-    	else:
-        	return numpy.array(vals, numpy_type)
+        if fast:
+            return vals.astype(numpy_type, copy=False)
+        else:
+            return numpy.array(vals, numpy_type)
 
     converter = bool_converter if converter_type is BoolType else generic_converter
 
