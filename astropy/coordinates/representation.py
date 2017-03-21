@@ -225,8 +225,13 @@ class BaseRepresentation(ShapedLikeNDArray):
         sh = self.shape + (1,)
         dtype = np.dtype([(str(c), coo.dtype)
                           for c, coo in zip(self.components, coordinates)])
-        return np.concatenate([coo.reshape(sh).value for coo in coordinates],
-                              axis=-1).view(dtype).squeeze()
+        # for complex shapes and structures, this may require a copy
+        try:
+            return np.concatenate([coo.reshape(sh).value for coo in coordinates],
+                                  axis=-1).view(dtype).squeeze()
+        except:
+            return np.concatenate([coo.reshape(sh).value for coo in coordinates],
+                                  axis=-1).astype(dtype).squeeze()
 
     @property
     def _units(self):
