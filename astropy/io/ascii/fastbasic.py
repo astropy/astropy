@@ -58,7 +58,8 @@ class FastBasic(object):
         # can be overridden for specialized headers
         self.engine.read_header()
 
-    def _get_col_type(self, col_dtype):
+    @staticmethod
+    def _get_col_type(col_dtype):
         # get the column type as Type classes defined in core
         col_dtype = str(col_dtype)
         if 'int' in col_dtype:
@@ -75,35 +76,42 @@ class FastBasic(object):
         
     def _convert_vals(self, data):
         converter_first = None
-        modified_col = False
+        modified_col = None
         
         if self.converters is not None:
             for col_name in data:
                 converters = self.converters.get(col_name, None) 
                 if converters is not None:
-                    col_dtype = data[col_name].dtype
-                    col_type = self._get_col_type(col_dtype)
                     if len(converters) == 0:
                         raise ValueError('Column {} failed to convert: no converters defined'.format(col_name))
-                    for converter in converters:
-                        try:
-                            converter_func , converter_type = converters
+                    col_dtype = data[col_name].dtype
+                    col_type = self._get_col_type(col_dtype)
+                    
+                    try:
+                        for converter in converters:
+                            converter_func , converter_type = converter
                             if not issubclass(converter_type, core.NoType):
                                 raise ValueError()
                             if converter_first is None:
                                 converter_first = (converter_func , converter_type)
                             if issubclass(converter_type, col_type):
-                                data[col_name] = converter_func(data[col_name], fast = True)
+                                data[col_name] = converter_func(data[col_name], fast=True)
+                                print data[col_name]
                                 modified_col = True
                                 break
                             
-                        except (ValueError, TypeError):
-                            raise ValueError('Error: invalid format for converters, see documentation\n{}'.format(converters))
+                    except (ValueError, TypeError):
+                        raise ValueError('Error: invalid format for converters, see documentation\n{}'.format(converters))
                              
-                    if modified_col != True:
+                    if modified_col is not None:
                         converter_func , converter_type = converter_first
-                        data[col_name] = converter_func(data[col_name], True)
-
+                        data[col_name] = converter_func(data[col_name], fast=True)
+                        modified_col = None
+                        
+                    converter_first = None
+                    
+        return data
+        
     def read(self, table):
         """
         Read input data (file-like object, filename, list of strings, or
@@ -158,8 +166,9 @@ class FastBasic(object):
         if comments:
             meta['comments'] = comments
         
-        self._convert_vals(data)     
-                    
+        data = self._convert_vals(data)     
+        print data
+        
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):
