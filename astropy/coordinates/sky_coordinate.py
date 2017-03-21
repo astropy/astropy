@@ -368,9 +368,12 @@ class SkyCoord(ShapedLikeNDArray):
                 if (attr in valid_kwargs
                         and valid_kwargs[attr] is not None
                         and np.any(valid_kwargs[attr] != coord_value)):
-                    raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
-                                     "keyword argument '{0}'={2!r}"
-                                     .format(attr, coord_value, valid_kwargs[attr]))
+                    # check if we have a broadcasted copy. If so, it's
+                    # alright to use the coord_value
+                    if not _is_broadcasted_close(valid_kwargs[attr], coord_value):
+                        raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
+                                         "keyword argument '{0}'={2!r}"
+                                         .format(attr, coord_value, valid_kwargs[attr]))
                 valid_kwargs[attr] = coord_value
 
         return valid_kwargs
@@ -1335,6 +1338,58 @@ class SkyCoord(ShapedLikeNDArray):
 
 
 # <----------------Private utility functions below here------------------------->
+
+def _is_broadcasted_close(attr1, attr2):
+    """
+    Check if one frame attribute is a broadcasted version of the same data in the other
+
+    Parameters
+    ----------
+    attr1, attr2 : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`,
+                   `~astropy.time.Time`, `~astropy.coordinates.EarthLocation`, or frame class
+        any valid FrameAttribute
+
+    Returns
+    -------
+    out : bool
+        True if one frame attribute is broadcastable against the other, and the result
+        of broadcasting is identical to the other attribute within machine precision
+    """
+    if not isinstance(attr1, attr2.__class__):
+        return False
+
+    # use duck-typing in turn to attempt to find a correct
+    # way to compare
+
+    # quantity or time
+    try:
+        diff = attr1 - attr2
+        return np.allclose(diff.value, 0)
+    except:
+        pass
+
+    # EarthLocation
+    try:
+        diff = self.get_itrs().cartesian - other.get_itrs().cartesian
+        return np.allclose(diff.xyz.value, 0)
+    except:
+        pass
+
+    #CartesianRepresentation
+    try:
+        diff = self-other
+        return np.allclose(diff.xyz.value, 0)
+    except:
+        pass
+
+    # CoordinateAttribute
+    try:
+        diff = self.separation(other)
+        return np.allclose(diff.value, 0)
+    except:
+        pass
+
+    return False
 
 
 def _get_frame_class(frame):
