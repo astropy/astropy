@@ -96,18 +96,17 @@ class FastBasic(object):
                                 converter_first = (converter_func , converter_type)
                             if issubclass(converter_type, col_type):
                                 data[col_name] = converter_func(data[col_name], fast=True)
-                                print data[col_name]
                                 modified_col = True
                                 break
                             
                     except (ValueError, TypeError):
                         raise ValueError('Error: invalid format for converters, see documentation\n{}'.format(converters))
                              
-                    if modified_col is not None:
+                    if modified_col is None:
                         converter_func , converter_type = converter_first
                         data[col_name] = converter_func(data[col_name], fast=True)
-                        modified_col = None
-                        
+                    
+                    modified_col = None    
                     converter_first = None
                     
         return data
@@ -166,8 +165,7 @@ class FastBasic(object):
         if comments:
             meta['comments'] = comments
         
-        data = self._convert_vals(data)     
-        print data
+        data = self._convert_vals(data)
         
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
