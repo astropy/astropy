@@ -13,11 +13,10 @@ New Features
 - ``astropy.coordinates``
 
   - Frame attributes set on ``SkyCoord`` are now always validated, and any
-    ndarray-like operation (like slicing) will also be done on those. [#575
+    ndarray-like operation (like slicing) will also be done on those. [#5751]
 
   - Caching of  all possible frame attributes was implemented. This greatly
     speeds up many ``SkyCoord`` operations. [#5703, #5751]
-
 
 - ``astropy.cosmology``
 
@@ -221,7 +220,7 @@ Bug Fixes
 - ``astropy.coordinates``
 
   - Ensure that checking equivalance of ``SkyCoord`` objects works with
-    non-scalar attributes [#5884]
+    non-scalar attributes [#5884, #5887]
 
   - Ensure that transformation to frames with multi-dimensional attributes
     works as expected [#5890, #5897]
@@ -387,9 +386,6 @@ Other Changes and Additions
 
 - Updated bundled astropy-helpers to v1.3.1. [#5880]
 
-- In the process of fixing frame attributes on ``SkyCoord``, caching of the
-  all possible frame attributes was implemented (following #5703). This greatly
-  speeds up many ``SkyCoord`` operations. [#5751]
 
 1.3 (2016-12-22)
 ----------------
@@ -508,8 +504,7 @@ New Features
 
   - Install both runtime and test dependencies when running the
     ./setup.py test command. These dependencies are specified by the
-    install_requires and tests_require keywords via setuptools.
-    [#5092, astropy-helpers #212]
+    install_requires and tests_require keywords via setuptools. [#5092]
 
   - Enable easier subclassing of the TestRunner class. [#5505]
 
