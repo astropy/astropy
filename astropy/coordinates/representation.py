@@ -216,9 +216,8 @@ class BaseRepresentation(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        # For PY2, convert possible unicode literal to string
-        coo_items = [(str(c) if six.PY2 else c, getattr(self, c))
-                     for c in self.components]
+        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
+        coo_items = [(str(c), getattr(self, c)) for c in self.components]
         result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
         for c, coo in coo_items:
             result[c] = coo.value
