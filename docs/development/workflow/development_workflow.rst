@@ -125,7 +125,7 @@ walks you through recovering from `git`_ mistakes is the
 Astropy Guidelines for `git`_
 *****************************
 
-* Don't use your ``master`` branch for anything.
+* Don't use your ``master`` branch for anything. Consider deleting it.
 * Make a new branch, called a *feature branch*, for each separable set of
   changes: "one task, one branch" (`ipython git workflow`_).
 * Start that new *feature branch* from the most current development version
@@ -173,6 +173,15 @@ A worked example that follows these steps for fixing an Astropy issue is at
 :ref:`astropy-fix-example`.
 
 Some additional topics related to `git`_ are in :ref:`additional-git`.
+
+.. _delete-master:
+
+Deleting your master branch
+===========================
+
+It may sound strange, but deleting your own ``master`` branch can help reduce
+confusion about which branch you are on.  See `deleting master on github`_ for
+details.
 
 .. _fetch-latest:
 
