@@ -215,7 +215,9 @@ packages that use the full bugfix/maintenance branch approach.)
    branch's ``CHANGES.rst`` into master.
 
 #. Create a github milestone for the next bugfix version, move any remaining
-   issues from the version you just released, and close the milestone.
+   issues from the version you just released, and close the milestone. When
+   releasing a major release, close the last milestone on the previous
+   maintanance branch, too.
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
