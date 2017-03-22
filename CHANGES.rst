@@ -45,6 +45,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
+    relloc() its buffers instead of overflowing them. [#5824, #5869]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
