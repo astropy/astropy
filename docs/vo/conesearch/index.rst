@@ -2,8 +2,16 @@
 
 .. _astropy_conesearch:
 
-VO Simple Cone Search
-=====================
+VO Simple Cone Search (deprecated)
+==================================
+
+.. warning::
+
+    Cone Search has been moved to Astroquery 0.3.5 and will be
+    removed from Astropy in a future version. The API here will
+    be preserved as "classic" API in Astroquery, however some
+    configuration behavior might change; See Astroquery documentation
+    for new usage details.
 
 Astropy offers Simple Cone Search Version 1.03 as defined in IVOA
 Recommendation (February 22, 2008). Cone Search queries an

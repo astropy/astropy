@@ -6,15 +6,26 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import shutil
 import tempfile
+import warnings
 
 # LOCAL
 from .. import inspect
 from ....vo import conf
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....extern.six.moves import zip
 
 
 __doctest_skip__ = ['*']
+
+
+def setup_module():
+    """Ignore all deprecation warnings here."""
+    warnings.simplefilter('ignore', AstropyDeprecationWarning)
+
+
+def teardown_module():
+    warnings.resetwarnings()
 
 
 class TestConeSearchResults(object):

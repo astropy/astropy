@@ -14,6 +14,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import shutil
 import tempfile
+import warnings
 
 # LOCAL
 from .. import vos_catalog
@@ -27,6 +28,15 @@ from ....utils.data import get_pkg_data_filename
 __doctest_skip__ = ['*']
 
 DB_FILE = get_pkg_data_filename(os.path.join('data', 'basic.json'))
+
+
+def setup_module():
+    """Ignore all deprecation warnings here."""
+    warnings.simplefilter('ignore', AstropyDeprecationWarning)
+
+
+def teardown_module():
+    warnings.resetwarnings()
 
 
 class TestCatalog(object):
