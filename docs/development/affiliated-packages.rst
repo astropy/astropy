@@ -514,10 +514,10 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the release is made from a fresh clone of the 
-remote "main" repository and not from a forked copy. We also assume that 
-the changelog file is named ``CHANGES.rst``, like for the astropy core 
-package. If instead you use Markdown, then you should replace ``CHANGES.rst`` 
+instructions, we assume that the release is made from a fresh clone of the
+remote "main" repository and not from a forked copy. We also assume that
+the changelog file is named ``CHANGES.rst``, like for the astropy core
+package. If instead you use Markdown, then you should replace ``CHANGES.rst``
 by ``CHANGES.md`` in the instructions.
 
 #. Make sure that Travis and any other continuous integration is passing.
@@ -660,3 +660,21 @@ by ``CHANGES.md`` in the instructions.
       document.body.innerHTML = document.body.innerHTML.replace(/&lt;packagename&gt;/g, packagename);
     }
     </script>
+
+
+Modifications for a beta/release candidate release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   For major releases we do beta and/or release candidates to have a chance to
+   catch significant bugs before the true release. If the release you are
+   performing is this kind of pre-release, some of the above steps need to be
+   modified.
+
+   The primary modifications to the release procedure are:
+
+   * When entering the new version number, instead of just removing the
+     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+     is ordered "before" the main release by various automated tools, and also
+     tells PyPI that this is a "pre-release".
+   * Do not do step #21 or later, as those are tasks for an actual release.
