@@ -23,6 +23,8 @@ _build
 _generated
 docs/api
 docs/generated
+docs/visualization/ngc6976.jpeg
+docs/visualization/ngc6976-default.jpeg
 
 # Packages/installer info
 *.egg
