@@ -636,6 +636,24 @@ by ``CHANGES.md`` in the instructions.
           we recommend that you read over the more complete astropy
           :doc:`releasing` and adapt these for your package.
 
+
+Modifications for a beta/release candidate release
+--------------------------------------------------
+
+   Before a new release of your package, you may wish do a "pre-release" of the
+   code, for example to allow collaborators to independently test the release.
+   If the release you are performing is this kind of pre-release,
+   some of the above steps need to be modified.
+
+   The primary modifications to the release procedure is:
+
+   * When entering the new version number, instead of just removing the
+     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+     is ordered "before" the main release by various automated tools, and also
+     tells PyPI that this is a "pre-release".
+
+
 .. _git: http://git-scm.com/
 .. _github: http://github.com
 .. _Cython: http://cython.org/
@@ -660,20 +678,3 @@ by ``CHANGES.md`` in the instructions.
       document.body.innerHTML = document.body.innerHTML.replace(/&lt;packagename&gt;/g, packagename);
     }
     </script>
-
-
-Modifications for a beta/release candidate release
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   Before a new release of your package, you may wish do a "pre-release" of the
-   code, for example to allow collaborators to independently test the release.
-   If the release you are performing is this kind of pre-release,
-   some of the above steps need to be modified.
-
-   The primary modifications to the release procedure is:
-
-   * When entering the new version number, instead of just removing the
-     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
-     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
-     is ordered "before" the main release by various automated tools, and also
-     tells PyPI that this is a "pre-release".
