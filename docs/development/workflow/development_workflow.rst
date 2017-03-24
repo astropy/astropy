@@ -499,7 +499,7 @@ you can rebase and squash within the existing branch using::
   git fetch upstream
   git rebase -i upstream/master
 
-The last command will open an editor with all your commits, allowing you to 
+The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
 editing has the instructions on what to do.
 
@@ -510,7 +510,7 @@ How to push
 
 After using ``git rebase`` or ``git merge --squash`` you will still need
 to push your changes to GitHub so that they are visible to others and
-the pull request can be updated.  Use of a simple `git push` will be
+the pull request can be updated.  Use of a simple ``git push`` will be
 prevented because of the changed history, and will need to be manually
 overridden using::
 
