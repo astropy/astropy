@@ -435,29 +435,29 @@ Rebase, but only if asked
 
 Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
 (``git rebase``) or *squashed* (``git merge --squash``) in the process of
-reviewing a Pull Request for merging into the main Astropy *master* repository.
+reviewing a pull request for merging into the main Astropy *master* repository.
 
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
-visible commits saved in the repository history, or because of code-changes
-in Astropy in the mean-time.  A rebase may be necessary to allow the Continious
-Integration tests to run.  Both involve rewriting the Git history, meaning
-that commit IDs will change, which is why you should do it only if asked.
+visible commits saved in the repository history, or because of code changes
+in Astropy in the meantime.  A rebase may be necessary to allow the Continious
+Integration tests to run.  Both involve rewriting the `git`_ history, meaning
+that commit hashes will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
 version of the development branch of the official Astropy as though that was the
 version you had originally branched from.  Each individual commit remains
-visible, but with new metadata/commit IDs.  A squashed merge changes the
-metadata/commit IDs, and also removes separate visibility of individual commits;
-a new commit and commit message will only contain a textual list of the earlier
-commits.
+visible, but with new metadata/commit hashes.  A squashed merge changes the
+metadata/commit hash, and also removes separate visibility of individual
+commits; a new commit and commit message will only contain a textual
+list of the earlier commits.
 
 It is easier to make mistakes rebasing than other areas of `git`_, so before you
 start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-After altering the history with ``git rebase`` or ``git merge --squash``
+After altering the history with ``git rebase`` or ``git merge --squash``,
 a normal ``git push`` is prevented, and for both a ``git push
 --force`` will be required.
 
@@ -491,7 +491,7 @@ repository) or if the number of commits in the history is disproportionate
 compared to the work being carried out (for example 30 commits gradually
 refining a final 10-line change).  Conceptually this is equivalent to
 exporting the final diff from a feature branch, then starting a new branch and
-applying only that patch:
+applying only that patch.
 
 The actual squashing is done on a new branch, using ``git merge --squash``::
 
@@ -511,7 +511,7 @@ How to push
 
 After using ``git rebase`` or ``git merge --squash`` you will still need
 to push your changes to GitHub so that they are visible to others and
-the Pull Request can be updated.  Use of a simple `git push` will be
+the pull request can be updated.  Use of a simple `git push` will be
 prevented because of the changed history, and will need to be manually
 overridden using::
 
