@@ -434,7 +434,7 @@ Rebase, but only if asked
 =========================
 
 Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
-(`git rebase`) or *squashed*/*squished* (`git merge --squash`) before
+(``git rebase``) or *squashed*/*squished* (``git merge --squash``) before
 changes in a Pull Request are merged into the main Astropy
 *master* repository.
 
@@ -457,8 +457,9 @@ start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-After altering the history with `git rebase` or `git merge --squash` a normal
-`git push` is prevented, and for both a `git push --force` will be required.
+After altering the history with ``git rebase`` or ``git merge --squash``
+a normal ``git push`` is prevented, and for both a ``git push
+--force`` will be required.
 
 ... _howto_rebase:
 
@@ -492,7 +493,7 @@ refining a final 10-line change).  Conceptually this is equivalent to
 exporting the final diff from a feature branch, then starting a new branch and
 applying only that patch:
 
-The actual squashing is done on a new branch, using `git merge --squash`::
+The actual squashing is done on a new branch, using ``git merge --squash``::
 
   git checkout master -b squashed-new-feature
   git merge --squash --no-commit my-new-feature
@@ -508,7 +509,7 @@ The new squashed branch can be checked and then renamed over the old one::
 How to push
 ===========
 
-After using `git rebase` or `git merge --squash` you will still need
+After using ``git rebase`` or ``git merge --squash`` you will still need
 to push your changes to GitHub so that they are visible to others and
 the Pull Request can be updated.  Use of a simple `git push` will be
 prevented because of the changed history, and will need to be manually
