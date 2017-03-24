@@ -498,9 +498,6 @@ A squash may also be performed staying within the existing branch using::
   git fetch upstream
   git rebase -i upstream/master
 
-Where ``n`` is the number of commits to per squashed.  This method
-does not keep any textual record of the earlier commits/commit hashes.
-
 .. _howto_push_force:
 
 How to push
