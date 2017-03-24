@@ -80,6 +80,8 @@ class FastBasic(object):
         elif 'converters' in self.kwargs:
             raise core.ParameterError("The C reader does not support passing "
                                       "specialized converters")
+        elif 'encoding' in self.kwargs:
+            raise core.ParameterError("The C reader does not use the encoding parameter")
         elif 'Outputter' in self.kwargs:
             raise core.ParameterError("The C reader does not use the Outputter parameter")
         elif 'Inputter' in self.kwargs:

@@ -164,8 +164,13 @@ def test_read_all_files_via_table(fast_reader):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
-def test_read_all_files_with_encoding(fast_reader, tmpdir):
+def test_read_all_files_with_encoding(tmpdir):
+
+    # Fast reader is not supported, make sure it raises an exception
+    with pytest.raises(ascii.ParameterError):
+        table = ascii.read('t/simple3.txt', guess=False, fast_reader='force',
+                           encoding='latin1', format='fast_csv')
+
     from ....table import Column
     formats = {v: k for k, v in core.FORMAT_CLASSES.items()}
 
@@ -173,6 +178,9 @@ def test_read_all_files_with_encoding(fast_reader, tmpdir):
         if testfile.get('skip'):
             print('\n\n******** SKIPPING %s' % testfile['name'])
             continue
+
+        if testfile['name'] == 't/nls1_stackinfo.dbout':
+            pass
 
         tmpfile = str(tmpdir.join(os.path.basename(testfile['name'])))
 
@@ -189,7 +197,11 @@ def test_read_all_files_with_encoding(fast_reader, tmpdir):
         format = formats.get(testfile['opts'].get('Reader'))
 
         with open(tmpfile, mode='w', encoding='latin1') as fout:
-            ascii.write(table, fout, fast_writer=False, format=format)
+            try:
+                ascii.write(table, fout, fast_writer=False, format=format)
+            except NotImplementedError:
+                # Skip formats which do not have a writer (Cds)
+                continue
 
         print('\n\n******** READING %s' % testfile['name'])
         for guess in (True, False):
@@ -197,11 +209,6 @@ def test_read_all_files_with_encoding(fast_reader, tmpdir):
             test_opts['encoding'] = 'latin1'
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            if 'Reader' in test_opts and \
-                    'fast_{0}'.format(test_opts['Reader']._format_name) \
-                    in core.FAST_CLASSES:  # has fast version
-                if 'Inputter' not in test_opts:  # fast reader doesn't allow this
-                    test_opts['fast_reader'] = fast_reader
             table = ascii.read(tmpfile, **test_opts)
             assert_equal(table.dtype.names, cols)
             for colname in table.dtype.names:

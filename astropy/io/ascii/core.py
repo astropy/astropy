@@ -1419,8 +1419,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'fill_exclude_names' in kwargs:
         reader.data.fill_exclude_names = kwargs['fill_exclude_names']
     if 'encoding' in kwargs:
-        reader.encoding = kwargs['encoding']
-        reader.inputter.encoding = kwargs['encoding']
+        if six.PY2:
+            raise ValueError("the encoding parameter is not supported on "
+                             "Python 2")
+        else:
+            reader.encoding = kwargs['encoding']
+            reader.inputter.encoding = kwargs['encoding']
 
     return reader
 
