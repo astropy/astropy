@@ -493,26 +493,10 @@ refining a final 10-line change).  Conceptually this is equivalent to
 exporting the final diff from a feature branch, then starting a new branch and
 applying only that patch.
 
-The actual squashing is done on a new branch, using ``git merge --squash``::
+A squash may also be performed staying within the existing branch using::
 
-  git checkout master -b squashed-new-feature
-  git merge --squash --no-commit my-new-feature
-  git commit -m "example of preferred squash message format"
-
-The new squashed branch can be checked and then renamed over the old one::
-
-  git branch -m my-new-feature tmp
-  git branch -m squashed-new-feature my-new-feature
-
-.. _howto_squash_rebase:
-
-How to squash using rebase
-==========================
-
-Instead ``git merge --squash`` as show in the example above,
-a squash may also be performed staying within the existing branch using::
-
-  git rebase -i HEAD~n
+  git fetch upstream
+  git rebase -i upstream/master
 
 Where ``n`` is the number of commits to per squashed.  This method
 does not keep any textual record of the earlier commits/commit hashes.
