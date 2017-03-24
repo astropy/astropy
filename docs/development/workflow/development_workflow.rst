@@ -439,13 +439,13 @@ changes in a Pull Request are merged into the main Astropy
 *master* repository.
 
 The decisions of when to request a *squash* or *rebase* are left to
-individual maintainers.  These may be requested done to reduce the number of
-visible commits saved in the repositary history, or becauses of code-changes
+individual maintainers.  These may be requested to reduce the number of
+visible commits saved in the repository history, or because of code-changes
 in Astropy in the mean-time.  Both involve rewriting the Git history, meaning
 that commit IDs will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
-version of the development branch of the official astropy as though that was the
+version of the development branch of the official Astropy as though that was the
 version you had originally branched from.  Each individual commit remains
 visible, but with new metadata/commit IDs.  A squashed merge changes the
 metadata/commit IDs, and also removes separate visibility of individual commits;
@@ -490,7 +490,7 @@ repository) or if the number of commits in the history is disproportionate
 compared to the work being carried out (for example 30 commits gradually
 refining a final 10-line change).  Conceptually this is equivalent to
 exporting the final diff from a feature branch, then starting a new branch and
-only applying only that patch:
+applying only that patch:
 
 The actual squashing is done on a new branch, using `git merge --squash`::
 
