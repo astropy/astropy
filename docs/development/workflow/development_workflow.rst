@@ -434,14 +434,14 @@ Rebase, but only if asked
 =========================
 
 Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
-(``git rebase``) or *squashed*/*squished* (``git merge --squash``) before
-changes in a Pull Request are merged into the main Astropy
-*master* repository.
+(``git rebase``) or *squashed* (``git merge --squash``) in the process of
+reviewing a Pull Request for merging into the main Astropy *master* repository.
 
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
 visible commits saved in the repository history, or because of code-changes
-in Astropy in the mean-time.  Both involve rewriting the Git history, meaning
+in Astropy in the mean-time.  A rebase may be necessary to allow the Continious
+Integration tests to run.  Both involve rewriting the Git history, meaning
 that commit IDs will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
@@ -461,7 +461,7 @@ After altering the history with ``git rebase`` or ``git merge --squash``
 a normal ``git push`` is prevented, and for both a ``git push
 --force`` will be required.
 
-... _howto_rebase:
+.. _howto_rebase:
 
 How to rebase
 =============
@@ -479,12 +479,12 @@ You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
-... _howto_squash:
+.. _howto_squash:
 
 How to squash
 =============
 
-Typically we ask to *squash*/*squish* when there was a fair amount of trial
+Typically we ask to *squash* when there was a fair amount of trial
 and error, but the final patch remains quite small, or when files were added
 and removed (especially binary files or files that should not remain in the
 repository) or if the number of commits in the history is disproportionate
@@ -504,7 +504,7 @@ The new squashed branch can be checked and then renamed over the old one::
   git branch -m my-new-feature tmp
   git branch -m squashed-new-feature my-new-feature
 
-... _howto_push_force:
+.. _howto_push_force:
 
 How to push
 ===========
