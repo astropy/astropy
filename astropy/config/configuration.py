@@ -12,7 +12,7 @@ configuration files for Astropy and affiliated packages.
 from contextlib import contextmanager
 import hashlib
 import io
-from os import path
+from os import path, environ
 import re
 from warnings import warn
 
@@ -516,7 +516,7 @@ def get_config(packageormod=None, reload=False):
     cobj = _cfgobjs.get(rootname, None)
 
     if cobj is None or reload:
-        if _ASTROPY_SETUP_:
+        if _ASTROPY_SETUP_ or "ASTROPY_SUPPRESS_CONFIG" in environ:
             # There's no reason to use anything but the default config
             cobj = configobj.ConfigObj(interpolation=False)
         else:

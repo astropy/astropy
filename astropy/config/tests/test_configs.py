@@ -353,3 +353,35 @@ def test_unedited_template():
     config_dir = os.path.join(os.path.dirname(__file__), '..', '..')
     configuration.update_default_config('astropy', config_dir)
     assert configuration.update_default_config('astropy', config_dir) is False
+
+
+class TestSuppressConfig(object):
+
+    def setup_class(self):
+        configuration._override_config_file = get_pkg_data_filename(
+            'data/suppress.cfg')
+
+    def test_suppress_config(self):
+        from astropy.utils.data import conf
+        from os import environ
+
+        environ["ASTROPY_SUPPRESS_CONFIG"] = "True"
+
+        conf.reload()
+        # dataurl should be http://example.org/astropy/suppress_config/
+        # if config was loaded. test for default value
+        assert conf.dataurl == "http://data.astropy.org/"
+
+        # Test that it reads the overridden config after removing the env var
+        del environ["ASTROPY_SUPPRESS_CONFIG"]
+        conf.reload()
+        assert conf.dataurl == "http://example.org/astropy/suppress_config/"
+
+    def teardown_class(self):
+        from astropy.utils.data import conf
+        from os import environ
+
+        configuration._override_config_file = None
+        if "ASTROPY_SUPPRESS_CONFIG" in environ:
+            del environ["ASTROPY_SUPPRESS_CONFIG"]
+        conf.reload()
