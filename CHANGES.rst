@@ -91,6 +91,9 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Fix bug where ``repr`` and ``str`` would give ``TypeError`` for
+    representations that had multiple dimensions and non-C order. [#5896]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
