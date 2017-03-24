@@ -216,17 +216,12 @@ class BaseRepresentation(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        coordinates = [getattr(self, c) for c in self.components]
-        if NUMPY_LT_1_8:
-            # numpy 1.7 has problems concatenating broadcasted arrays.
-            coordinates = [(coo.copy() if 0 in coo.strides else coo)
-                           for coo in coordinates]
-
-        sh = self.shape + (1,)
-        dtype = np.dtype([(str(c), coo.dtype)
-                          for c, coo in zip(self.components, coordinates)])
-        return np.concatenate([coo.reshape(sh).value for coo in coordinates],
-                              axis=-1).view(dtype).squeeze()
+        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
+        coo_items = [(str(c), getattr(self, c)) for c in self.components]
+        result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
+        for c, coo in coo_items:
+            result[c] = coo.value
+        return result
 
     @property
     def _units(self):

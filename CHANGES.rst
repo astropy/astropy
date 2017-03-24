@@ -213,6 +213,15 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that checking equivalance of ``SkyCoord`` objects works with
+    non-scalar attributes [#5884]
+
+  - Ensure that transformation to frames with multi-dimensional attributes
+    works as expected [#5890, #5897]
+
+  - Make sure all ``BaseRepresentation`` objects can be output as strings.
+    [#5889, #5897]
+
 - ``astropy.cosmology``
 
 - ``astropy.extern``
