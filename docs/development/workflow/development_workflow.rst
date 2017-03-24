@@ -493,10 +493,15 @@ refining a final 10-line change).  Conceptually this is equivalent to
 exporting the final diff from a feature branch, then starting a new branch and
 applying only that patch.
 
-A squash may also be performed staying within the existing branch using::
+Many of us find that is it actually easiest to squash using rebase. In particular,
+you can rebase and squash within the existing branch using::
 
   git fetch upstream
   git rebase -i upstream/master
+
+The last command will open an editor with all your commits, allowing you to 
+squash several commits together, rename them, etc. Helpfully, the file you are
+editing has the instructions on what to do.
 
 .. _howto_push_force:
 
