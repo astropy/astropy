@@ -10,7 +10,7 @@ from ... import fits
 
 from .... import units as u
 from ....extern.six.moves import range, zip
-from ....table import Table
+from ....table import Table, QTable
 from ....tests.helper import pytest, catch_warnings
 from ....units.format.fits import UnitScaleError
 
@@ -92,13 +92,14 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    def test_with_units(self, tmpdir):
+    @pytest.mark.parametrize('table_type', (Table, QTable))
+    def test_with_units(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_units.fits'))
-        t1 = Table(self.data)
+        t1 = table_type(self.data)
         t1['a'].unit = u.m
         t1['c'].unit = u.km / u.s
         t1.write(filename, overwrite=True)
-        t2 = Table.read(filename)
+        t2 = table_type.read(filename)
         assert equal_data(t1, t2)
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s

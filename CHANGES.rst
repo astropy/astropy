@@ -64,6 +64,9 @@ New Features
     arrays are fixed-width and silently drop characters which do not
     fit within the fixed width. [#5624]
 
+  - Added functionality to allow ``astropy.units.Quantity`` to be written 
+    as a normal column to FITS files. [#5910]
+
 - ``astropy.time``
 
 - ``astropy.units``
