@@ -950,7 +950,7 @@ class BaseOutputter(object):
                     converter_func, converter_type = col.converters[0]
                     if not issubclass(converter_type, col.type):
                         raise TypeError('converter type does not match column type')
-                    col.data = converter_func(col.str_vals, False)
+                    col.data = converter_func(col.str_vals)
                     col.type = converter_type
                 except (TypeError, ValueError) as err:
                     col.converters.pop(0)
