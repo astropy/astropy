@@ -869,7 +869,7 @@ def convert_numpy(numpy_type):
     else:
         converter_type = AllType
 
-    def bool_converter(vals, fast):
+    def bool_converter(vals):
         """
         Convert values "False" and "True" to bools.  Raise an exception
         for any other string values.
