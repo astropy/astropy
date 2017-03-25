@@ -94,7 +94,7 @@ For details see the section on :ref:`fortran_style_exponents`.
 In order to optimize memory usage, specify the dtype of columns when reading in data using the fast readers.
 This can be done using the converters paramater which is consistent with the converters paramater used in basic read.
    >>> import numpy as np
-   >>> from astropy.io import ascii 
+   >>> from astropy.io import ascii
    >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
    ...               'col2': [ascii.convert_numpy(np.float32)]}
    >>> ascii.read('file.dat', format = 'fast_basic', converters=converters)
