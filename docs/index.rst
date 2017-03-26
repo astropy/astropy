@@ -228,5 +228,5 @@ Indices and Tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _astropy mailing list: http://mail.scipy.org/mailman/listinfo/astropy
+.. _astropy mailing list: http://mail.python.org/mailman/listinfo/astropy
 .. _feedback@astropy.org: mailto:feedback@astropy.org
