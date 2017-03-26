@@ -94,7 +94,7 @@ rst_epilog += """
 
 .. Astropy
 .. _Astropy: http://astropy.org
-.. _`Astropy mailing list`: http://mail.scipy.org/mailman/listinfo/astropy
+.. _`Astropy mailing list`: http://mail.python.org/mailman/listinfo/astropy
 .. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
 """.format(astropy)
 
