@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""This package defines deprecated units.
+"""
+This package defines deprecated units.
 
 These units are not available in the top-level `astropy.units`
-namespace.  To use these units, you must import the `astropy.units.deprecated`
+namespace. To use these units, you must import the `astropy.units.deprecated`
 module::
 
     >>> from astropy.units import deprecated
@@ -48,15 +49,13 @@ def enable():
     """
     Enable deprecated units so they appear in results of
     `~astropy.units.UnitBase.find_equivalent_units` and
-    `~astropy.units.UnitBase.compose`.  This will disable
-    all of the "default" `astropy.units` units, since there
-    are some namespace clashes between the two.
+    `~astropy.units.UnitBase.compose`.
 
     This may be used with the ``with`` statement to enable deprecated
     units only temporarily.
     """
     # Local import to avoid cyclical import
-    from .core import set_enabled_units
+    from .core import add_enabled_units
     # Local import to avoid polluting namespace
     import inspect
-    return set_enabled_units(inspect.getmodule(enable))
+    return add_enabled_units(inspect.getmodule(enable))
