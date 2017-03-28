@@ -48,6 +48,13 @@ def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
 
 
 ###########################################################################
+# TIME
+
+def_unit(['kessel_run'], 11.999999 * _si.pc, namespace=_ns, prefixes=False,
+         doc="This is totally a time unit, Han Solo said so")
+
+
+###########################################################################
 # AREAS
 
 def_unit(['barn', 'barn'], 10 ** -28 * si.m ** 2, namespace=_ns, prefixes=True,
