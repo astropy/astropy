@@ -123,6 +123,8 @@ def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
                  np.zeros(5))
+    assert_equal(funcs.median_absolute_deviation(array, axis=np.array([1, 2])),
+                 np.zeros(5))
 
 
 def test_median_absolute_deviation_quantity():
