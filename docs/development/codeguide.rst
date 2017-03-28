@@ -15,9 +15,9 @@ both for the core package and for affiliated packages.
 Interface and Dependencies
 --------------------------
 
-* All code must be compatible with Python 2.6, 2.7, as well as 3.3 and
+* All code must be compatible with Python 2.7, as well as 3.3 and
   later.  The use of `six`_ for writing code that is portable between Python
-  2.x and 3.x is encouraged going forward.  However, much of our affiliate code
+  2.x and 3.x is encouraged going forward.  However, our affiliate code
   may still use `2to3`_ to process Python 2.x files to be compatible with
   Python 3.x.
 
@@ -46,16 +46,12 @@ Interface and Dependencies
   :ref:`dev-portable`.
 
 * The new Python 3 formatting style should be used (i.e.
-  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``), although
-  when using positional arguments, the position should always be
-  specified (i.e.  ``"{:s}"`` is not compatible with Python
-  2.6).
+  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``).
 
-* The core package and affiliated packages should be importable with
-  no dependencies other than components already in the Astropy core,
-  the `Python Standard Library
-  <http://docs.python.org/release/2.6/library/index.html>`_, and
-  NumPy_ |minimum_numpy_version| or later.
+* The core package and affiliated packages should be importable with no
+  dependencies other than components already in the Astropy core, the
+  `Python Standard Library <https://docs.python.org/library/index.html>`_,
+  and NumPy_ |minimum_numpy_version| or later.
 
 * The package should be importable from the source tree at build time. This
   means that, for example, if the package relies on C extensions that have
@@ -449,7 +445,7 @@ example::
    x = np.array([1.0, 2.0, 3.0], dtype=[(str('name'), '>f8')])
 
 The same is true of structure specifiers in the built-in `struct`
-module on Python 2.6.
+module on Python 2.7.
 
 ``pytest.mark.skipif`` also requires a "native" string, i.e.::
 
