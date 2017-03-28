@@ -124,6 +124,9 @@ API Changes
 
 - ``astropy.units``
 
+  - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
+    definition of "emu". [#4918, #5906]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
