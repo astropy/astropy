@@ -728,7 +728,7 @@ def median_absolute_deviation(a, axis=None, func=None):
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    axis : int, optional
+    axis : {int, sequence of int, None}, optional
         Axis along which the MADs are computed.  The default (`None`) is
         to compute the MAD of the flattened array.
     func : callable, optional
@@ -775,11 +775,11 @@ def median_absolute_deviation(a, axis=None, func=None):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        if isinstance(axis, (tuple, list)):
-            for ax in sorted(axis):
-                a_median = np.expand_dims(a_median, axis=ax)
-        else:
+        try:
             a_median = np.expand_dims(a_median, axis=axis)
+        except (ValueError, TypeError):
+            for ax in sorted(list(axis)):
+                a_median = np.expand_dims(a_median, axis=ax)
 
     return func(np.abs(a - a_median), axis=axis)
 
@@ -804,7 +804,7 @@ def mad_std(data, axis=None, func=None):
     ----------
     data : array-like
         Data array or object that can be converted to an array.
-    axis : int, optional
+    axis : {int, sequence of int, None}, optional
         Axis along which the robust standard deviations are computed.
         The default (`None`) is to compute the robust standard deviation
         of the flattened array.
