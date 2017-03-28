@@ -433,23 +433,41 @@ to GitHub. GitHub will automatically update your pull request.
 Rebase, but only if asked
 =========================
 
-Sometimes the maintainers of Astropy will ask you to *rebase* your changes
-before they are merged into the main Astropy repository.
+Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
+or *squashed* in the process of reviewing a pull request for merging into
+the main Astropy *master* repository.
+
+The decisions of when to request a *squash* or *rebase* are left to
+individual maintainers.  These may be requested to reduce the number of
+visible commits saved in the repository history, or because of code changes
+in Astropy in the meantime.  A rebase may be necessary to allow the Continious
+Integration tests to run.  Both involve rewriting the `git`_ history, meaning
+that commit hashes will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
-version of the development branch of the official astropy as though that was the
-version you had originally branched from.
-
-Behind the scenes, `git`_ is deleting the changes and branch you made, making the
-changes others made to the development branch of Astropy, then re-making your
-branch from the development branch and applying your changes to your branch.
-This results in re-writing the history of commits, which is why you should do it
-only if asked.
+version of the development branch of the official Astropy as though that was the
+version you had originally branched from. Each individual commit remains
+visible, but with new metadata/commit hashes. Squashing commits changes the
+metadata/commit hash, and also removes separate visibility of individual
+commits; a new commit and commit message will only contain a textual
+list of the earlier commits.
 
 It is easier to make mistakes rebasing than other areas of `git`_, so before you
 start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
+
+After altering the history, e.g. with ``git rebase``, a normal ``git push``
+is prevented, and a ``git push --force`` will be required.
+
+.. _howto_rebase:
+
+How to rebase
+=============
+
+Behind the scenes, `git`_ is deleting the changes and branch you made, making the
+changes others made to the development branch of Astropy, then re-making your
+branch from the development branch and applying your changes to your branch.
 
 The actual rebasing is usually easy::
 
@@ -460,17 +478,47 @@ You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
-After the rebase you need to push your changes to GitHub; you will need force
-the push because `git`_ objects to re-writing the history of the repository
-after you have pushed it somewhere::
+.. _howto_squash:
 
-    git push -f
+How to squash
+=============
+
+Typically we ask to *squash* when there was a fair amount of trial
+and error, but the final patch remains quite small, or when files were added
+and removed (especially binary files or files that should not remain in the
+repository) or if the number of commits in the history is disproportionate
+compared to the work being carried out (for example 30 commits gradually
+refining a final 10-line change).  Conceptually this is equivalent to
+exporting the final diff from a feature branch, then starting a new branch and
+applying only that patch.
+
+Many of us find that is it actually easiest to squash using rebase. In particular,
+you can rebase and squash within the existing branch using::
+
+  git fetch upstream
+  git rebase -i upstream/master
+
+The last command will open an editor with all your commits, allowing you to
+squash several commits together, rename them, etc. Helpfully, the file you are
+editing has the instructions on what to do.
+
+.. _howto_push_force:
+
+How to push
+===========
+
+After using ``git rebase`` you will still need to push your changes to
+GitHub so that they are visible to others and the pull request can be
+updated.  Use of a simple ``git push`` will be prevented because of the
+changed history, and will need to be manually overridden using::
+
+    git push --force
 
 If you run into any problems, do not hesitate to ask. A more detailed conceptual
 discussing of rebasing is at :ref:`rebase-on-trunk`.
 
-Once your rebase is successfully pushed to GitHub you can delete the backup
-branch you made::
+Once the modifications and new git history are successfully pushed to GitHub you
+can delete any backup branches that may have been created::
 
     git branch -D tmp
 
