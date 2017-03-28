@@ -434,8 +434,8 @@ Rebase, but only if asked
 =========================
 
 Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
-(``git rebase``) or *squashed* (``git merge --squash``) in the process of
-reviewing a pull request for merging into the main Astropy *master* repository.
+or *squashed* in the process of reviewing a pull request for merging into
+the main Astropy *master* repository.
 
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
@@ -446,8 +446,8 @@ that commit hashes will change, which is why you should do it only if asked.
 
 Conceptually, rebasing means taking your changes and applying them to the latest
 version of the development branch of the official Astropy as though that was the
-version you had originally branched from.  Each individual commit remains
-visible, but with new metadata/commit hashes.  A squashed merge changes the
+version you had originally branched from. Each individual commit remains
+visible, but with new metadata/commit hashes. Squashing commits changes the
 metadata/commit hash, and also removes separate visibility of individual
 commits; a new commit and commit message will only contain a textual
 list of the earlier commits.
@@ -457,9 +457,8 @@ start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-After altering the history with ``git rebase`` or ``git merge --squash``,
-a normal ``git push`` is prevented, and for both a ``git push
---force`` will be required.
+After altering the history, e.g. with ``git rebase``, a normal ``git push``
+is prevented, and a ``git push --force`` will be required.
 
 .. _howto_rebase:
 
@@ -508,11 +507,10 @@ editing has the instructions on what to do.
 How to push
 ===========
 
-After using ``git rebase`` or ``git merge --squash`` you will still need
-to push your changes to GitHub so that they are visible to others and
-the pull request can be updated.  Use of a simple ``git push`` will be
-prevented because of the changed history, and will need to be manually
-overridden using::
+After using ``git rebase`` you will still need to push your changes to
+GitHub so that they are visible to others and the pull request can be
+updated.  Use of a simple ``git push`` will be prevented because of the
+changed history, and will need to be manually overridden using::
 
     git push --force
 
