@@ -44,4 +44,4 @@ with the Astropy Project, see http://dashboard.astropy.org.
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
-``licenses/LICENSE.rst`` file.
+``LICENSE.rst`` file.
