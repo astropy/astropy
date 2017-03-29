@@ -15,6 +15,7 @@ import math
 
 import numpy as np
 
+from ..utils import isiterable
 from ..extern.six.moves import range
 
 
@@ -775,11 +776,11 @@ def median_absolute_deviation(a, axis=None, func=None):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        try:
-            a_median = np.expand_dims(a_median, axis=axis)
-        except (ValueError, TypeError):
+        if isiterable(axis):
             for ax in sorted(list(axis)):
                 a_median = np.expand_dims(a_median, axis=ax)
+        else:
+            a_median = np.expand_dims(a_median, axis=axis)
 
     return func(np.abs(a - a_median), axis=axis)
 
