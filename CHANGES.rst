@@ -1,51 +1,19 @@
-1.3.2 (unreleased)
--------------------
+1.3.2 (2017-03-30)
+------------------
 
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - Ensure that checking equivalance of ``SkyCoord`` objects works with
-    non-scalar attributes [#5884]
+    non-scalar attributes [#5884, #5887]
 
   - Ensure that transformation to frames with multi-dimensional attributes
     works as expected [#5890, #5897]
 
   - Make sure all ``BaseRepresentation`` objects can be output as strings.
     [#5889, #5897]
-
-- ``astropy.cosmology``
-
-- ``astropy.extern``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -56,16 +24,11 @@ Bug Fixes
   - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
     relloc() its buffers instead of overflowing them. [#5824, #5869]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- File permissions are revised in the released source distribution. [#5912]
 
 
 1.3.1 (2017-03-18)
@@ -297,8 +260,7 @@ New Features
 
   - Install both runtime and test dependencies when running the
     ./setup.py test command. These dependencies are specified by the
-    install_requires and tests_require keywords via setuptools.
-    [#5092, astropy-helpers #212]
+    install_requires and tests_require keywords via setuptools. [#5092]
 
   - Enable easier subclassing of the TestRunner class. [#5505]
 
