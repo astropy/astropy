@@ -15,6 +15,7 @@ import math
 
 import numpy as np
 
+from ..utils import isiterable
 from ..extern.six.moves import range
 
 
@@ -718,7 +719,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     return conf_interval
 
 
-def median_absolute_deviation(a, axis=None):
+def median_absolute_deviation(a, axis=None, func=None):
     """
     Calculate the median absolute deviation (MAD).
 
@@ -728,9 +729,12 @@ def median_absolute_deviation(a, axis=None):
     ----------
     a : array-like
         Input array or object that can be converted to an array.
-    axis : int, optional
+    axis : {int, sequence of int, None}, optional
         Axis along which the MADs are computed.  The default (`None`) is
         to compute the MAD of the flattened array.
+    func : callable, optional
+        The function used to compute the median. Defaults to `numpy.ma.median`
+        for masked arrays, otherwise to `numpy.median`.
 
     Returns
     -------
@@ -757,26 +761,31 @@ def median_absolute_deviation(a, axis=None):
     mad_std
     """
 
-    # Check if the array has a mask and if so use np.ma.median
-    # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
-    # for normal arrays should not be done (summary: np.ma.median always
-    # returns an masked array even if the result should be scalar). (#4658)
-    if isinstance(a, np.ma.MaskedArray):
-        func = np.ma.median
-    else:
-        func = np.median
+    if func is None:
+        # Check if the array has a mask and if so use np.ma.median
+        # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
+        # for normal arrays should not be done (summary: np.ma.median always
+        # returns an masked array even if the result should be scalar). (#4658)
+        if isinstance(a, np.ma.MaskedArray):
+            func = np.ma.median
+        else:
+            func = np.median
 
     a = np.asanyarray(a)
     a_median = func(a, axis=axis)
 
     # broadcast the median array before subtraction
     if axis is not None:
-        a_median = np.expand_dims(a_median, axis=axis)
+        if isiterable(axis):
+            for ax in sorted(list(axis)):
+                a_median = np.expand_dims(a_median, axis=ax)
+        else:
+            a_median = np.expand_dims(a_median, axis=axis)
 
     return func(np.abs(a - a_median), axis=axis)
 
 
-def mad_std(data, axis=None):
+def mad_std(data, axis=None, func=None):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -796,10 +805,13 @@ def mad_std(data, axis=None):
     ----------
     data : array-like
         Data array or object that can be converted to an array.
-    axis : int, optional
+    axis : {int, sequence of int, None}, optional
         Axis along which the robust standard deviations are computed.
         The default (`None`) is to compute the robust standard deviation
         of the flattened array.
+    func : callable, optional
+        The function used to compute the median. Defaults to `numpy.ma.median`
+        for masked arrays, otherwise to `numpy.median`.
 
     Returns
     -------
@@ -823,7 +835,7 @@ def mad_std(data, axis=None):
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    return median_absolute_deviation(data, axis=axis) * 1.482602218505602
+    return median_absolute_deviation(data, axis=axis, func=func) * 1.482602218505602
 
 
 def biweight_location(a, c=6.0, M=None, axis=None):
