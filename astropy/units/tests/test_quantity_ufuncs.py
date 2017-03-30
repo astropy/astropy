@@ -273,6 +273,22 @@ class TestQuantityMathFuncs(object):
                       == np.array([1., 0.5, 0.25]) / u.m)
 
     # cbrt only introduced in numpy 1.10
+    # heaviside only introduced in numpy 1.13
+    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
+    def test_heaviside_scalar(self):
+        assert np.heaviside(0. * u.m, 0.5) == 0.5 * u.dimensionless_unscaled
+        assert np.heaviside(0. * u.s,
+                            25 * u.percent) == 0.25 * u.dimensionless_unscaled
+        assert np.heaviside(2. * u.J, 0.25) == 1. * u.dimensionless_unscaled
+
+    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
+    def test_heaviside_array(self):
+        values = np.array([-1., 0., 0., +1.])
+        halfway = np.array([0.75, 0.25, 0.75, 0.25]) * u.dimensionless_unscaled
+        assert np.all(np.heaviside(values * u.m,
+                                   halfway * u.dimensionless_unscaled) ==
+                      [0, 0.25, 0.75, +1.] * u.dimensionless_unscaled)
+
     @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_scalar(self):
         assert np.cbrt(8. * u.m**3) == 2. * u.m

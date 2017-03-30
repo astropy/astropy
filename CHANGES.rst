@@ -49,6 +49,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Add support for ``heaviside`` ufunc (new in numpy 1.13). [#5920]
+
 - ``astropy.utils``
 
   - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
