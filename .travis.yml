@@ -111,18 +111,24 @@ matrix:
           env: MAIN_CMD='flake8 astropy --count' SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
-        # run all remote tests. Since both cases will be potentially unstable, we
-        # combine them into a single unstable build that we can mark as an
-        # allowed failure below.
+        # run all remote tests. Since both cases will be potentially
+        # unstable, we combine them into a single unstable build that we can
+        # mark as an allowed failure below.
         - os: linux
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               EVENT_TYPE='push pull_request cron'
+
+        # We check numpy-dev also in a job that only runs from cron, so that
+        # we can spot issues sooner. We do not use remote data here, since
+        # that gives too many false positives due to URL timeouts.
+        - os: linux
+          env: NUMPY_VERSION=dev
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+               EVENT_TYPE='cron'
 
     allow_failures:
       - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-             EVENT_TYPE='push pull_request cron'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
