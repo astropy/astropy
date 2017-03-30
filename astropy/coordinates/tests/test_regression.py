@@ -348,3 +348,17 @@ def test_regression_simple_5133():
     # az is more-or-less undefined for straight up or down
     assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-5)
     assert_quantity_allclose(aa.distance, [90, 10]*u.km)
+
+
+def test_regression_5884():
+    # ensure comparison of frames with non-scalar attributes works
+    times = Time(["2015-08-28 03:30", "2015-08-28 12:00", "2015-09-05 10:30", "2015-09-15 18:35"])
+    coo1 = SkyCoord(40*u.deg, 50*u.deg, obstime=times)
+    coo2 = SkyCoord(41*u.deg, 52*u.deg, obstime=times)
+    # check this does not raise a ValueError
+    coo1.is_equivalent_frame(coo2)
+    # let's do N-D whilst we're at it
+    times = times.reshape((2,2))
+    coo1 = SkyCoord(40*u.deg, 50*u.deg, obstime=times)
+    coo2 = SkyCoord(41*u.deg, 52*u.deg, obstime=times)
+    coo1.is_equivalent_frame(coo2)

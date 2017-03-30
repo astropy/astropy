@@ -12,6 +12,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that checking equivalance of ``SkyCoord`` objects works with
+    non-scalar attributes [#5884]
+
 - ``astropy.cosmology``
 
 - ``astropy.extern``
