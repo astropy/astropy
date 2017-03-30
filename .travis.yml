@@ -118,9 +118,9 @@ matrix:
           env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
-        # To check for regression due to upstream changes we also add a job
-        # that only runs from cron, and doesn't allow it to fail enabling
-        # maintainers to spot the issue sooner.
+        # We check numpy-dev also in a job that only runs from cron, so that
+        # we can spot issues sooner. We do not use remote data here, since
+        # that gives too many false positives due to URL timeouts.
         - os: linux
           env: NUMPY_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
