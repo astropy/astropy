@@ -207,15 +207,11 @@ Other Changes and Additions
 
 1.3.2 (unreleased)
 -------------------
+1.3.2 (2017-03-30)
+------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -228,32 +224,6 @@ Bug Fixes
   - Make sure all ``BaseRepresentation`` objects can be output as strings.
     [#5889, #5897]
 
-- ``astropy.cosmology``
-
-- ``astropy.extern``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
 - ``astropy.units``
 
   - Add support for ``heaviside`` ufunc (new in numpy 1.13). [#5920]
@@ -263,16 +233,11 @@ Bug Fixes
   - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
     relloc() its buffers instead of overflowing them. [#5824, #5869]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- File permissions are revised in the released source distribution. [#5912]
 
 
 1.3.1 (2017-03-18)
