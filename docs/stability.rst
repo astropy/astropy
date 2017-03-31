@@ -29,6 +29,10 @@ The classification is as follows:
               color: #03a913;
               content: "⬤";
          }
+         .deprecated:before {
+              color: #ff0000;
+              content: "⬤";
+         }
     </style>
 
     <table align='center'>
@@ -47,6 +51,10 @@ The classification is as follows:
       <tr>
         <td align='center'><span class="mature"></span></td>
         <td>Mature.  Additions/improvements possible, but no major changes planned. </td>
+      </tr>
+      <tr>
+        <td align='center'><span class="deprecated"></span></td>
+        <td>Deprecated.  Might be removed in a future version.</td>
       </tr>
     </table>
 
@@ -271,13 +279,25 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
-                astropy.vo
+                astropy.vo.samp
             </td>
             <td align='center'>
                 <span class="stable"></span>
             </td>
             <td>
-                Virtual Observatory service access and validation. Currently, only Simple Cone Search and SAMP are supported.
+                Virtual Observatory service access: SAMP.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.vo.client<br/>
+                astropy.vo.validator
+            </td>
+            <td align='center'>
+                <span class="deprecated"></span>
+            </td>
+            <td>
+                Virtual Observatory service access and validation: Simple Cone Search. This is deprecated in Astropy 2.0 and moved to Astroquery 0.3.5.
             </td>
         </tr>
         <tr>

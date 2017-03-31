@@ -4,11 +4,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 # LOCAL
 from ...utils.compat.futures import ThreadPoolExecutor
+from ...utils.decorators import deprecated
 
 
 __all__ = ['AsyncBase']
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.async.AsyncBase')
 class AsyncBase(object):
     """Base class for asynchronous VO service requests
     using :py:class:`concurrent.futures.ThreadPoolExecutor`.

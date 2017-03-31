@@ -7,6 +7,10 @@ __all__ = ['BaseVOError', 'VOSError', 'MissingCatalog', 'DuplicateCatalogName',
            'DuplicateCatalogURL', 'InvalidAccessURL', 'ConeSearchError']
 
 
+# NOTE: All the exceptions here are deprecated as well, along with all other
+#       Cone Search related stuff, but it seems weird for exception to issue
+#       deprecation warning.
+
 class BaseVOError(Exception):  # pragma: no cover
     """Base class for VO exceptions."""
     pass

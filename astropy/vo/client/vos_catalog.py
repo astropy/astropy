@@ -29,7 +29,7 @@ from ...utils.data import conf as data_conf
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
-from ...utils.decorators import deprecated_renamed_argument
+from ...utils.decorators import deprecated, deprecated_renamed_argument
 
 
 __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
@@ -38,6 +38,8 @@ __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
 __dbversion__ = 1
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.VOSBase')
 class VOSBase(object):
     """Base class for `VOSCatalog` and `VOSDatabase`.
 
@@ -78,6 +80,8 @@ class VOSBase(object):
                           indent=4)
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.VOSCatalog')
 class VOSCatalog(VOSBase):
     """A class to represent VO Service Catalog.
 
@@ -161,6 +165,8 @@ class VOSCatalog(VOSBase):
         return cls(tree)
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.VOSDatabase')
 class VOSDatabase(VOSBase):
     """A class to represent a collection of `VOSCatalog`.
 
@@ -613,6 +619,9 @@ class VOSDatabase(VOSBase):
         return db
 
 
+@deprecated(
+    '2.0',
+    alternative='astroquery.vo_conesearch.vos_catalog.get_remote_catalog_db')
 def get_remote_catalog_db(dbname, cache=True, verbose=True):
     """Get a database of VO services (which is a JSON file) from a remote
     location.
@@ -709,6 +718,8 @@ def _vo_service_request(url, pedantic, kwargs, cache=True, verbose=False):
     return vo_tab_parse(tab, url, kwargs)
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.vo_tab_parse')
 def vo_tab_parse(tab, url, kwargs):
     """In case of errors from the server, a complete and correct
     'stub' VOTable file may still be returned.  This is to
@@ -780,6 +791,8 @@ def vo_tab_parse(tab, url, kwargs):
     return out_tab
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.call_vo_service')
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
                     verbose=True, cache=True, kwargs={}):
     """Makes a generic VO service call.
@@ -881,6 +894,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     raise VOSError(err_msg)
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.vos_catalog.list_catalogs')
 def list_catalogs(service_type, cache=True, verbose=True, **kwargs):
     """List the catalogs available for the given service type.
 

@@ -6,6 +6,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __all__ = ['BaseVOValidationError', 'ValidationMultiprocessingError']
 
 
+# NOTE: All the exceptions here are deprecated as well, along with all other
+#       Cone Search related stuff, but it seems weird for exception to issue
+#       deprecation warning.
+
 class BaseVOValidationError(Exception):  # pragma: no cover
     """Base class for VO validation exceptions."""
     pass
