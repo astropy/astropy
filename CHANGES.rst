@@ -135,6 +135,10 @@ API Changes
 
 - ``astropy.vo``
 
+  - Cone Search now issues deprecation warning because it is moved to
+    Astroquery 0.3.5 and will be removed from Astropy in a future version.
+    [#5558, #5904]
+
 - ``astropy.wcs``
 
 - ``astropy.extern``

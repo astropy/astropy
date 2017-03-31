@@ -21,9 +21,12 @@ from collections import OrderedDict
 
 # LOCAL
 from ...utils.data import get_readable_fileobj
+from ...utils.decorators import deprecated
 from ...utils.exceptions import AstropyUserWarning
 
 
+@deprecated(
+    '2.0', alternative='astroquery.vo_conesearch.validator.tstquery.parse_cs')
 def parse_cs(id):
     """Return ``<testQuery>`` pars as dict for given Resource ID."""
     if isinstance(id, bytes):  # pragma: py3
