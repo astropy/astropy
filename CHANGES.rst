@@ -46,11 +46,13 @@ New Features
   - Add ``n_submodels`` shared method to single and compound models, which
     allows users to get the number of components of a given single (compound)
     model. [#5747]
+
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
   - Added ``biweight_midcovariance`` method. [#5777]
 
 - ``astropy.sphinx``
@@ -114,6 +116,7 @@ API Changes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
   - Removed the deprecated ``data`` property of Row. [#5729]
 
   - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
@@ -205,8 +208,62 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
-1.3.2 (unreleased)
--------------------
+1.3.3 (unreleased)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.extern``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
 1.3.2 (2017-03-30)
 ------------------
 
