@@ -13,11 +13,10 @@ New Features
 - ``astropy.coordinates``
 
   - Frame attributes set on ``SkyCoord`` are now always validated, and any
-    ndarray-like operation (like slicing) will also be done on those. [#575
+    ndarray-like operation (like slicing) will also be done on those. [#5751]
 
   - Caching of  all possible frame attributes was implemented. This greatly
     speeds up many ``SkyCoord`` operations. [#5703, #5751]
-
 
 - ``astropy.cosmology``
 
@@ -47,11 +46,13 @@ New Features
   - Add ``n_submodels`` shared method to single and compound models, which
     allows users to get the number of components of a given single (compound)
     model. [#5747]
+
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
   - Added ``biweight_midcovariance`` method. [#5777]
 
 - ``astropy.sphinx``
@@ -115,6 +116,7 @@ API Changes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
   - Removed the deprecated ``data`` property of Row. [#5729]
 
   - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
@@ -206,8 +208,8 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
-1.3.2 (unreleased)
--------------------
+1.3.3 (unreleased)
+------------------
 
 Bug Fixes
 ^^^^^^^^^
@@ -219,15 +221,6 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
-
-  - Ensure that checking equivalance of ``SkyCoord`` objects works with
-    non-scalar attributes [#5884]
-
-  - Ensure that transformation to frames with multi-dimensional attributes
-    works as expected [#5890, #5897]
-
-  - Make sure all ``BaseRepresentation`` objects can be output as strings.
-    [#5889, #5897]
 
 - ``astropy.cosmology``
 
@@ -257,12 +250,7 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Add support for ``heaviside`` ufunc (new in numpy 1.13). [#5920]
-
 - ``astropy.utils``
-
-  - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
-    relloc() its buffers instead of overflowing them. [#5824, #5869]
 
 - ``astropy.visualization``
 
@@ -274,6 +262,39 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.3.2 (2017-03-30)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Ensure that checking equivalance of ``SkyCoord`` objects works with
+    non-scalar attributes [#5884, #5887]
+
+  - Ensure that transformation to frames with multi-dimensional attributes
+    works as expected [#5890, #5897]
+
+  - Make sure all ``BaseRepresentation`` objects can be output as strings.
+    [#5889, #5897]
+
+- ``astropy.units``
+
+  - Add support for ``heaviside`` ufunc (new in numpy 1.13). [#5920]
+
+- ``astropy.utils``
+
+  - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
+    relloc() its buffers instead of overflowing them. [#5824, #5869]
+
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- File permissions are revised in the released source distribution. [#5912]
 
 
 1.3.1 (2017-03-18)
@@ -387,9 +408,6 @@ Other Changes and Additions
 
 - Updated bundled astropy-helpers to v1.3.1. [#5880]
 
-- In the process of fixing frame attributes on ``SkyCoord``, caching of the
-  all possible frame attributes was implemented (following #5703). This greatly
-  speeds up many ``SkyCoord`` operations. [#5751]
 
 1.3 (2016-12-22)
 ----------------
@@ -508,8 +526,7 @@ New Features
 
   - Install both runtime and test dependencies when running the
     ./setup.py test command. These dependencies are specified by the
-    install_requires and tests_require keywords via setuptools.
-    [#5092, astropy-helpers #212]
+    install_requires and tests_require keywords via setuptools. [#5092]
 
   - Enable easier subclassing of the TestRunner class. [#5505]
 
