@@ -120,7 +120,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
    Don't forget to remove any non-committed files with::
 
-      $  git clean -dfx
+      $ git clean -dfx
+
+#. Make sure the source distribution doesn't inherit limited permissions
+   following your default umask::
+
+     $ umask 0022
 
 #. Create the source distribution by doing::
 
