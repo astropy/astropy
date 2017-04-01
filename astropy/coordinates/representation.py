@@ -451,7 +451,7 @@ class CartesianRepresentation(BaseRepresentation):
         except u.UnitsError:
             raise u.UnitsError('x, y, and z should have a unit consistent with '
                                '{0}'.format(unit))
-        except:
+        except Exception:
             raise TypeError('x, y, and z should be able to initialize ' +
                             ('a {0}'.format(self.attr_classes['x'].__name__))
                              if len(set(self.attr_classes.values)) == 1 else
