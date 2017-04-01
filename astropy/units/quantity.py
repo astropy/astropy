@@ -195,7 +195,9 @@ class Quantity(np.ndarray):
 
     subok : bool, optional
         If `False` (default), the returned array will be forced to be a
-        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through.
+        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through,
+        or a subclass appropriate for the unit will be used (such as
+        `~astropy.units.Dex` for ``u.dex(u.AA)``).
 
     ndmin : int, optional
         Specifies the minimum number of dimensions that the resulting array
@@ -236,6 +238,11 @@ class Quantity(np.ndarray):
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
+            # if we allow subclasses, allow a class from the unit.
+            if subok:
+                qcls = getattr(unit, '_quantity_class', cls)
+                if issubclass(qcls, cls):
+                    cls = qcls
 
         # optimize speed for Quantity with no dtype given, copy=False
         if isinstance(value, Quantity):

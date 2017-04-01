@@ -1301,3 +1301,15 @@ class TestQuantityMatplotlib(object):
         x = u.Quantity([4, 5, 6], 'second')
         y = [1, 3, 4] * u.m
         plt.scatter(x, y)
+
+
+def test_unit_class_override():
+    class MyQuantity(u.Quantity):
+        pass
+
+    my_unit = u.Unit("my_deg", u.deg)
+    my_unit._quantity_class = MyQuantity
+    q1 = u.Quantity(1., my_unit)
+    assert type(q1) is u.Quantity
+    q2 = u.Quantity(1., my_unit, subok=True)
+    assert type(q2) is  MyQuantity
