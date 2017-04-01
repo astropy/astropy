@@ -107,7 +107,7 @@ def horoscope(birthday, corrected=True):
         doc = parse(f)
         item = doc.getElementsByTagName('item')[0]
         desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
-    except:
+    except Exception:
         raise CelestialError("Invalid response from celestial gods (failed to load horoscope).")
     finally:
         f.close()
