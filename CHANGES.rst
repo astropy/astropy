@@ -71,6 +71,10 @@ New Features
   - The `~astropy.units.quantity_input` decorator will now convert the output to
     the unit specified as a return annotation under Python 3. [#5606]
 
+  - Passing a logarithmic unit to the ``Quantity`` constructor now returns the
+    appropriate logarithmic quantity class if ``subok=True``. For instance,
+    ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
