@@ -349,7 +349,7 @@ system package in an inconsistent state.
 
 As the best course of action at this point depends largely on the individual
 system and how it is configured, if you are not sure yourself what do please
-ask on the Astropy mailing list.
+ask on the `Astropy mailing list`_.
 
 
 The Windows installer can't find Python in the registry

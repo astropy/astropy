@@ -127,7 +127,7 @@ Getting help
 ************
 
 If you want to get help or discuss issues with other Astropy users, you can sign
-up for the `astropy mailing list`_. Alternatively, the `astropy-dev mailing
+up for the `Astropy mailing list`_. Alternatively, the `astropy-dev mailing
 list`_ is where you should go to discuss more technical aspects of Astropy with
 the developers. You can also email the astropy developers privately at
 `feedback@astropy.org`_...but remember that questions you ask
@@ -145,7 +145,7 @@ create a new issue on the Astropy `GitHub issue page
 account <https://github.com>`_ on GitHub if you do not have one.
 
 If you prefer not to create a GitHub account, please report the issue to either
-the `astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
+the `Astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
 private email to the astropy core developers at
 `feedback@astropy.org <mailto:feedback@astropy.org>`_.
 
@@ -228,5 +228,4 @@ Indices and Tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _astropy mailing list: http://mail.python.org/mailman/listinfo/astropy
 .. _feedback@astropy.org: mailto:feedback@astropy.org
