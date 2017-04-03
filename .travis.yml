@@ -29,6 +29,7 @@ env:
         - PIP_DEPENDENCIES=''
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
+        - SETUP_CMD='test'
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
@@ -103,7 +104,7 @@ matrix:
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
-          env: NUMPY_VERSION=prerelease SETUP_CMD='test'
+          env: NUMPY_VERSION=prerelease
                EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8
