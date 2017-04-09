@@ -730,8 +730,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         check if data is present on this frame object.
         """
         if self._data is None:
-            raise ValueError('The frame object "{0}" does not have associated '
-                             'data'.format(repr(self)))
+            raise ValueError('The frame object "{0!r}" does not have '
+                             'associated data'.format(self))
         return self._data
 
     @property

@@ -1834,7 +1834,7 @@ def _get_index(names, key):
             else:              # multiple match
                 raise KeyError("Ambiguous key name '{}'.".format(key))
     else:
-        raise KeyError("Illegal key '{}'.".format(repr(key)))
+        raise KeyError("Illegal key '{!r}'.".format(key))
 
     return indx
 

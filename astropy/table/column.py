@@ -749,7 +749,7 @@ class Column(BaseColumn):
                           ('length', len(self))):
 
             if val is not None:
-                descr_vals.append('{0}={1}'.format(attr, repr(val)))
+                descr_vals.append('{0}={1!r}'.format(attr, val))
 
         descr = '<' + ' '.join(descr_vals) + '>\n'
 
