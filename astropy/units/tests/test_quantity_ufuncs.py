@@ -19,10 +19,6 @@ class TestUfuncCoverage(object):
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
 
-        # in numpy >=1.13, with __array_ufunc__, np.dot behaves like a ufunc.
-        if not NUMPY_LT_1_13:
-            all_np_ufuncs |= set([np.dot])
-
         from .. import quantity_helper as qh
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |

@@ -215,8 +215,6 @@ def helper_multiplication(f, unit1, unit2):
     return [None, None], _d(unit1) * _d(unit2)
 
 UFUNC_HELPERS[np.multiply] = helper_multiplication
-if not NUMPY_LT_1_13:
-    UFUNC_HELPERS[np.dot] = helper_multiplication
 
 
 def helper_division(f, unit1, unit2):
@@ -519,8 +517,8 @@ def check_output(output, unit, inputs, function=None):
     output : array or `~astropy.units.Quantity` or tuple
         Array that should hold the function output (or tuple of such arrays).
     unit : `~astropy.units.Unit` or None, or tuple
-        Unit that the output will have, or `None` for pure numbers (or tuple
-        of same for multiple outputs).
+        Unit that the output will have, or `None` for pure numbers (should be
+        tuple of same if output is a tuple of outputs).
     inputs : tuple
         Any input arguments.  These should be castable to the output.
     function : callable
@@ -537,11 +535,8 @@ def check_output(output, unit, inputs, function=None):
                 or if the ``inputs`` cannot be cast safely to ``output``.
     """
     if isinstance(output, tuple):
-        if len(output) > 1:
-            return tuple(check_output(output_, unit_, inputs, function)
-                         for output_, unit_ in zip(output, unit))
-        else:
-            output = output[0]
+        return tuple(check_output(output_, unit_, inputs, function)
+                     for output_, unit_ in zip(output, unit))
 
     # ``None`` indicates no actual array is needed.  This can happen, e.g.,
     # with np.modf(a, out=(None, b)).
@@ -566,7 +561,7 @@ def check_output(output, unit, inputs, function=None):
                                if function is not None else ""), type(output),
                         output.__quantity_subclass__(unit)[0]))
 
-        # Turn into ndarray, so we do not loop into array_wrap/numpy_ufunc
+        # Turn into ndarray, so we do not loop into array_wrap/array_ufunc
         # if the output is used to store results of a function.
         output = output.view(np.ndarray)
     else:
@@ -579,9 +574,9 @@ def check_output(output, unit, inputs, function=None):
                                     .format(function.__name__)))
 
     # check we can handle the dtype (e.g., that we are not int
-    # when float is required); specifically exclude None for numpy <=1.7.
-    if not np.can_cast(np.result_type(*[i for i in inputs if i is not None]),
-                       output.dtype):
-        raise TypeError("Arguments cannot be cast safely to output "
-                        "with dtype={0}".format(output.dtype))
+    # when float is required).
+    if not np.can_cast(np.result_type(*inputs), output.dtype,
+                       casting='same_kind'):
+        raise TypeError("Arguments cannot be cast safely to inplace "
+                        "output with dtype={0}".format(output.dtype))
     return output

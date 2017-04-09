@@ -1,5 +1,4 @@
 import numpy as np
-from ...utils.compat import NUMPY_LT_1_13
 
 import pytest
 
@@ -25,7 +24,7 @@ class TestQuantityLinAlgFuncs(object):
         o = np.inner(q1, q2)
         assert o == 32 * u.m / u.s
 
-    @pytest.mark.xfail(NUMPY_LT_1_13, reason="dot only works for numpy>=1.13")
+    @pytest.mark.xfail
     def test_dot(self):
         q1 = np.array([1., 2., 3.]) * u.m
         q2 = np.array([4., 5., 6.]) / u.s
