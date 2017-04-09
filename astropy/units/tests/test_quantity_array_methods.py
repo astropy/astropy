@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4, NUMPY_LT_1_13
+from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4
 
 
 class TestQuantityArrayCopy(object):
@@ -340,7 +340,7 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q1.ediff1d() == np.array([1., 2., 6.]) * u.m)
         assert np.all(np.ediff1d(q1) == np.array([1., 2., 6.]) * u.m)
 
-    @pytest.mark.xfail(NUMPY_LT_1_13, reason=".dot only works for numpy>=1.13")
+    @pytest.mark.xfail
     def test_dot_func(self):
 
         q1 = np.array([1., 2., 4., 10.]) * u.m
