@@ -31,7 +31,6 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
 
-
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.

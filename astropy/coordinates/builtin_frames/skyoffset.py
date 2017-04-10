@@ -4,7 +4,6 @@
 # Adding it leads to str / unicode errors on Python 2
 from __future__ import (absolute_import, division, print_function)
 
-
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
