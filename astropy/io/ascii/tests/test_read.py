@@ -352,7 +352,7 @@ def test_set_converters():
                   }
     data = ascii.read('t/test4.dat', converters=converters)
     assert_equal(str(data['zabs1.nh'].dtype), 'float32')
-    assert_equal(data['p1.gamma'][0], '1.26764544642')
+    assert_equal(data['p1.gamma'][0], '1.26764500000')
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
