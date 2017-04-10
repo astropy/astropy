@@ -1,6 +1,6 @@
-**********************************************
-Miscellaneous Input/Output (`astropy.io.misc`)
-**********************************************
+*****************************************************
+Miscellaneous: HDF5, YAML, pickle (`astropy.io.misc`)
+*****************************************************
 
 The `astropy.io.misc` module contains miscellaneous input/output routines that
 do not fit elsewhere, and are often used by other Astropy sub-packages. For
