@@ -85,6 +85,7 @@ class MetaBaseRepresentation(abc.ABCMeta):
         REPRESENTATION_CLASSES[repr_name] = cls
         MetaBaseRepresentation.REPRESENTATION_CLASSES_CACHE_TICK += 1 # signal cache to update
 
+
 @six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(ShapedLikeNDArray):
     """

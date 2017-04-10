@@ -39,9 +39,9 @@ __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'EarthLocationAttribute', 'RepresentationMapping',
            'CartesianRepresentationFrameAttribute', 'CoordinateAttribute']
 
+
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
-
 
 
 def _get_repr_cls(value):
