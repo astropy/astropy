@@ -31,6 +31,7 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
 
+
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
@@ -64,6 +65,7 @@ def _array2string(values, prefix=''):
 # "TypeError: metaclass conflict: the metaclass of a derived class must be a
 #  (non-strict) subclass of the metaclasses of all its bases"
 class MetaBaseRepresentation(abc.ABCMeta):
+    REPRESENTATION_CLASSES_CACHE_TICK = 0
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
@@ -81,7 +83,7 @@ class MetaBaseRepresentation(abc.ABCMeta):
             raise ValueError("Representation class {0} already defined".format(repr_name))
 
         REPRESENTATION_CLASSES[repr_name] = cls
-
+        MetaBaseRepresentation.REPRESENTATION_CLASSES_CACHE_TICK += 1 # signal cache to update
 
 @six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(ShapedLikeNDArray):

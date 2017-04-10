@@ -4,11 +4,13 @@
 # Adding it leads to str / unicode errors on Python 2
 from __future__ import (absolute_import, division, print_function)
 
+
 from ... import units as u
 from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (CoordinateAttribute, QuantityFrameAttribute,
                          frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
+from ..representation import MetaBaseRepresentation
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
 from ...utils.compat import namedtuple_asdict
@@ -103,6 +105,7 @@ def make_skyoffset_cls(framecls):
                         component_list.insert(0, rmlat)
                     lists_done.append(component_list)
 
+            MetaBaseRepresentation.REPRESENTATION_CLASSES_CACHE_TICK += 1
             return res
 
     # We need this to handle the intermediate metaclass correctly, otherwise we could

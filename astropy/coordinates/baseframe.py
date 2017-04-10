@@ -30,6 +30,7 @@ from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
+                             MetaBaseRepresentation,
                              REPRESENTATION_CLASSES)
 
 
@@ -38,9 +39,9 @@ __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'EarthLocationAttribute', 'RepresentationMapping',
            'CartesianRepresentationFrameAttribute', 'CoordinateAttribute']
 
-
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
+
 
 
 def _get_repr_cls(value):
@@ -789,6 +790,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
+        try:
+            if cls._representation_info_cachetick == MetaBaseRepresentation.REPRESENTATION_CLASSES_CACHE_TICK:
+                return cls._repr_attrs
+        except:
+            pass
 
         repr_attrs = {}
         for repr_cls in REPRESENTATION_CLASSES.values():
@@ -822,7 +828,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             repr_attrs[repr_cls]['names'] = tuple(nms)
             repr_attrs[repr_cls]['units'] = tuple(uns)
 
-        return repr_attrs
+        cls._repr_attrs = repr_attrs
+        cls._representation_info_cachetick = MetaBaseRepresentation.REPRESENTATION_CLASSES_CACHE_TICK
+        return cls._repr_attrs
 
     @property
     def representation_info(self):
