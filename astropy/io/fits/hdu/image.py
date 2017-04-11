@@ -170,7 +170,7 @@ class _ImageBaseHDU(_ValidHDU):
         # but there should be a BSCALE/BZERO now that the data has been set.
         if not bzero_in_header:
             self._orig_bzero = self._bzero
-        if bscale_in_header:
+        if not bscale_in_header:
             self._orig_bscale = self._bscale
 
     @classmethod
@@ -427,7 +427,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._bitpix = self._header['BITPIX']
         self._blank = self._header.pop('BLANK', None)
 
-    def scale(self, type=None, option='old', bscale=1, bzero=0):
+    def scale(self, type=None, option='old', bscale=None, bzero=None):
         """
         Scale image data by using ``BSCALE``/``BZERO``.
 
@@ -443,12 +443,12 @@ class _ImageBaseHDU(_ValidHDU):
             dtype name, (e.g. ``'uint8'``, ``'int16'``, ``'float32'``
             etc.).  If is `None`, use the current data type.
 
-        option : str
-            How to scale the data: if ``"old"``, use the original
-            ``BSCALE`` and ``BZERO`` values when the data was
-            read/created. If ``"minmax"``, use the minimum and maximum
-            of the data to scale.  The option will be overwritten by
-            any user specified ``bscale``/``bzero`` values.
+        option : str, optional
+            How to scale the data: ``"old"`` uses the original ``BSCALE`` and
+            ``BZERO`` values from when the data was read/created (defaulting to
+            1 and 0 if they don't exist). For integer data only, ``"minmax"``
+            uses the minimum and maximum of the data to scale. User-specified
+            ``bscale``/``bzero`` values always take precedence.
 
         bscale, bzero : int, optional
             User-specified ``BSCALE`` and ``BZERO`` values
@@ -458,7 +458,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._scale_internal(type=type, option=option, bscale=bscale,
                              bzero=bzero, blank=None)
 
-    def _scale_internal(self, type=None, option='old', bscale=1, bzero=0,
+    def _scale_internal(self, type=None, option='old', bscale=None, bzero=None,
                         blank=0):
         """
         This is an internal implementation of the `scale` method, which
@@ -485,31 +485,35 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Determine how to scale the data
         # bscale and bzero takes priority
-        if (bscale != 1 or bzero != 0):
+        if bscale is not None and bzero is not None:
             _scale = bscale
             _zero = bzero
+        elif bscale is not None:
+            _scale = bscale
+            _zero = 0
+        elif bzero is not None:
+            _scale = 1
+            _zero = bzero
+        elif (option == 'old' and self._orig_bscale is not None and
+                self._orig_bzero is not None):
+            _scale = self._orig_bscale
+            _zero = self._orig_bzero
+        elif option == 'minmax' and not issubclass(_type, np.floating):
+            min = np.minimum.reduce(self.data.flat)
+            max = np.maximum.reduce(self.data.flat)
+
+            if _type == np.uint8:  # uint8 case
+                _zero = min
+                _scale = (max - min) / (2.0 ** 8 - 1)
+            else:
+                _zero = (max + min) / 2.0
+
+                # throw away -2^N
+                nbytes = 8 * _type().itemsize
+                _scale = (max - min) / (2.0 ** nbytes - 2)
         else:
-            if option == 'old':
-                _scale = self._orig_bscale
-                _zero = self._orig_bzero
-            elif option == 'minmax':
-                if issubclass(_type, np.floating):
-                    _scale = 1
-                    _zero = 0
-                else:
-
-                    min = np.minimum.reduce(self.data.flat)
-                    max = np.maximum.reduce(self.data.flat)
-
-                    if _type == np.uint8:  # uint8 case
-                        _zero = min
-                        _scale = (max - min) / (2.0 ** 8 - 1)
-                    else:
-                        _zero = (max + min) / 2.0
-
-                        # throw away -2^N
-                        nbytes = 8 * _type().itemsize
-                        _scale = (max - min) / (2.0 ** nbytes - 2)
+            _scale = 1
+            _zero = 0
 
         # Do the scaling
         if _zero != 0:
