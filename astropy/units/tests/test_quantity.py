@@ -98,14 +98,12 @@ class TestQuantityCreation(object):
         q = u.Quantity('-inf', unit='cm')
         assert np.isinf(q.value)
 
+        # make sure these strings don't parse...
         with pytest.raises(TypeError):
             q = u.Quantity('', unit='cm')
 
         with pytest.raises(TypeError):
             q = u.Quantity('spam', unit='cm')
-
-        with pytest.raises(TypeError):
-            q = u.Quantity('spam cm', unit='cm')
 
     def test_unit_property(self):
         # test getting and setting 'unit' attribute
