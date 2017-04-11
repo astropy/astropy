@@ -192,7 +192,7 @@ def read(table, guess=None, **kwargs):
         Input table as a file name, file-like object, list of strings,
         single newline-separated string or pathlib.Path object .
     guess : bool
-        Try to guess the table format (default=True)
+        Try to guess the table format (default: None)
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
     Inputter : `~astropy.io.ascii.BaseInputter`
