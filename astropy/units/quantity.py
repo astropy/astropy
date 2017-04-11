@@ -269,13 +269,27 @@ class Quantity(np.ndarray):
                 # will not work.
                 v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
                              r'[.+-]?', value)
+                unit_string = None
                 try:
-                    value = float(v.group())
+                    try:
+                        # first try parsing with the regex pattern
+                        value = float(v.group())
+                        unit_string = v.string[v.end():].strip()
+                    except Exception:
+                        pass
+
+                    try:
+                        # If that fails, try naïve parsing the string as float.
+                        # This will catch string 'nan', 'inf'
+                        value = float(value)
+                    except Exception:
+                        raise
+
                 except Exception:
                     raise TypeError('Cannot parse "{0}" as a {1}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
-                unit_string = v.string[v.end():].strip()
+
                 if unit_string:
                     value_unit = Unit(unit_string)
                     if unit is None:
