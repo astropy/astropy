@@ -283,7 +283,7 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
   - Scaling an image always uses user-supplied values when given. Added
     defaults for scaling when bscale/bzero are not present (float images).
-    Fixed a small bug in when to reset ``_orig_bscale``.
+    Fixed a small bug in when to reset ``_orig_bscale``. [#5955]
 
 - ``astropy.io.misc``
 
