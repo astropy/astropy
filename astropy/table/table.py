@@ -205,19 +205,19 @@ class Table(object):
     masked : bool, optional
         Specify whether the table is masked.
     names : list, optional
-        Specify column names
+        Specify column names.
     dtype : list, optional
-        Specify column data types
+        Specify column data types.
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data (default=True).
+        Copy the input data. Default is True.
     rows : numpy ndarray, list of lists, optional
-        Row-oriented data for table instead of ``data`` argument
+        Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
-        Copy any indices in the input data (default=True)
+        Copy any indices in the input data. Default is True.
     **kwargs : dict, optional
-        Additional keyword args when converting table-like object
+        Additional keyword args when converting table-like object.
 
     .. note::
         If the input is a Table the ``meta`` is always copied regardless of the
@@ -520,8 +520,8 @@ class Table(object):
             Indexing engine class to use, from among SortedArray, BST,
             FastBST, and FastRBT. If the supplied argument is None (by
             default), use SortedArray.
-        unique : bool (defaults to False)
-            Whether the values of the index must be unique
+        unique : bool
+            Whether the values of the index must be unique. Default is False.
         '''
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
@@ -919,13 +919,13 @@ class Table(object):
         Parameters
         ----------
         max_lines : int
-            Maximum number of lines in table output
+            Maximum number of lines in table output.
 
         max_width : int or `None`
-            Maximum character width of output
+            Maximum character width of output.
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -933,7 +933,7 @@ class Table(object):
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes (default=True)
+            Include a header row for column dtypes. Default is True.
 
         align : str or list or tuple or `None`
             Left/right alignment of columns. Default is right (None) for all
@@ -984,7 +984,7 @@ class Table(object):
             notebook.  See `this page <http://getbootstrap.com/css/#tables>`_
             for the list of classes.
         css : string
-            A valid CSS string declaring the formatting for the table. Default
+            A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
         display_length : int, optional
             Number or rows to show. Defaults to 50.
@@ -1134,7 +1134,7 @@ class Table(object):
             Maximum character width of output
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -1142,10 +1142,10 @@ class Table(object):
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes (default=True)
+            Include a header row for column dtypes. Default is True.
 
         html : bool
-            Format the output as an HTML table (default=False)
+            Format the output as an HTML table. Default is False.
 
         tableid : str or `None`
             An ID tag for the table; only used if html is set.  Default is
@@ -1161,12 +1161,12 @@ class Table(object):
 
         tableclass : str or list of str or `None`
             CSS classes for the table; only used if html is set.  Default is
-            none
+            None.
 
         Returns
         -------
         lines : list
-            Formatted table as a list of strings
+            Formatted table as a list of strings.
 
         """
 
@@ -1205,7 +1205,7 @@ class Table(object):
             Maximum character width of output
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -1213,7 +1213,7 @@ class Table(object):
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes (default=True)
+            Include a header row for column dtypes. Default is True.
         """
         self.formatter._more_tabcol(self, max_lines, max_width, show_name=show_name,
                                     show_unit=show_unit, show_dtype=show_dtype)
@@ -1490,11 +1490,11 @@ class Table(object):
         col : Column
             Column object to add.
         index : int or `None`
-            Insert column before this position or at end (default)
+            Insert column before this position or at end (default).
         name : str
             Column name
         rename_duplicate : bool
-            Uniquify column name if it already exist (default=False)
+            Uniquify column name if it already exist. Default is False.
 
         Examples
         --------
@@ -1579,14 +1579,14 @@ class Table(object):
         cols : list of Columns
             Column objects to add.
         indexes : list of ints or `None`
-            Insert column before this position or at end (default)
+            Insert column before this position or at end (default).
         names : list of str
             Column names
         copy : bool
-            Make a copy of the new columns (default=True)
+            Make a copy of the new columns. Default is True.
         rename_duplicate : bool
-            Uniquify new column names if they duplicate the existing ones
-            (default=False)
+            Uniquify new column names if they duplicate the existing ones.
+            Default is False.
 
 
         Examples
@@ -2763,19 +2763,19 @@ class QTable(Table):
     masked : bool, optional
         Specify whether the table is masked.
     names : list, optional
-        Specify column names
+        Specify column names.
     dtype : list, optional
-        Specify column data types
+        Specify column data types.
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data (default=True).
+        Copy the input data. Default is True.
     rows : numpy ndarray, list of lists, optional
-        Row-oriented data for table instead of ``data`` argument
+        Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
-        Copy any indices in the input data (default=True)
+        Copy any indices in the input data. Default is True.
     **kwargs : dict, optional
-        Additional keyword args when converting table-like object
+        Additional keyword args when converting table-like object.
 
     """
     def _add_as_mixin_column(self, col):

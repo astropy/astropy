@@ -1043,14 +1043,14 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
         Each row of a represents a variable, and each column
         a single observation of all variables (same as numpy.cov convention)
 
-    c : float, optional, default=9.0
-        Tuning constant.
+    c : float, optional
+        Tuning constant. Default is 9.0.
 
     M : array-like, optional, shape=(N_dims,)
         Initial guess for biweight location
 
-    transpose : bool, optional, default=False
-        Transpose the input array
+    transpose : bool, optional
+        Transpose the input array. Default is False.
 
     Returns
     -------
