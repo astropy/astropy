@@ -180,9 +180,9 @@ class DataInfo(object):
 
     Parameters
     ----------
-    bound : bool, default=False
+    bound : bool
         If True this is a descriptor attribute in a class definition, else it
-        is a DataInfo() object that is bound to a data object instance.
+        is a DataInfo() object that is bound to a data object instance. Default is False.
     """
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
@@ -348,9 +348,9 @@ class DataInfo(object):
         Parameters
         ----------
         option : str, function, list of (str or function)
-            Info option (default='attributes')
+            Info option, defaults to 'attributes'.
         out : file-like object, None
-            Output destination (default=sys.stdout).  If None then the
+            Output destination, defaults to sys.stdout.  If None then the
             OrderedDict with information attributes is returned
 
         Returns
