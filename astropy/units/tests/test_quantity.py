@@ -84,6 +84,42 @@ class TestQuantityCreation(object):
         with pytest.raises(ValueError):  # Until @mdboom fixes the errors in units
             q1 = u.Quantity(11.412, unit="testingggg")
 
+    def test_nan_inf(self):
+        # Not-a-number
+        q = u.Quantity('nan', unit='cm')
+        assert np.isnan(q.value)
+
+        q = u.Quantity('NaN', unit='cm')
+        assert np.isnan(q.value)
+
+        q = u.Quantity('-nan', unit='cm') # float() allows this
+        assert np.isnan(q.value)
+
+        q = u.Quantity('nan cm')
+        assert np.isnan(q.value)
+        assert q.unit == u.cm
+
+        # Infinity
+        q = u.Quantity('inf', unit='cm')
+        assert np.isinf(q.value)
+
+        q = u.Quantity('-inf', unit='cm')
+        assert np.isinf(q.value)
+
+        q = u.Quantity('inf cm')
+        assert np.isinf(q.value)
+        assert q.unit == u.cm
+
+        q = u.Quantity('Infinity', unit='cm') # float() allows this
+        assert np.isinf(q.value)
+
+        # make sure these strings don't parse...
+        with pytest.raises(TypeError):
+            q = u.Quantity('', unit='cm')
+
+        with pytest.raises(TypeError):
+            q = u.Quantity('spam', unit='cm')
+
     def test_unit_property(self):
         # test getting and setting 'unit' attribute
         q1 = u.Quantity(11.4, unit=u.meter)
