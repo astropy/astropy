@@ -4,6 +4,7 @@
 
 import time
 
+from ....extern.six.moves import urllib
 from ....utils.data import download_file
 from ....io import fits
 
@@ -25,7 +26,7 @@ def fetch_hdu(filename, cache=True):
     for retry in range(MAX_RETRIES):
         try:
             path = download_file(URL + filename, cache=cache, timeout=30)
-        except URLError:
+        except urllib.error.URLError:
             if retry == MAX_RETRIES - 1:
                 raise
             else:
