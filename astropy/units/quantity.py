@@ -267,14 +267,22 @@ class Quantity(np.ndarray):
                 # the second parts adds possible trailing .+-, which will break
                 # the float function below and ensure things like 1.2.3deg
                 # will not work.
-                v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
-                             r'[.+-]?', value)
+                pattern = (r'\s*[+-]?'
+                           r'((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|'
+                           r'([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))'
+                           r'([eE][+-]?\d+)?'
+                           r'[.+-]?')
+
+                v = re.match(pattern, value)
+                unit_string = None
                 try:
                     value = float(v.group())
+
                 except Exception:
                     raise TypeError('Cannot parse "{0}" as a {1}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
+
                 unit_string = v.string[v.end():].strip()
                 if unit_string:
                     value_unit = Unit(unit_string)
