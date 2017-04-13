@@ -91,7 +91,7 @@ class Constant(Quantity):
         name_lower = name.lower()
         instances = Constant._registry.setdefault(name_lower, {})
         if system in instances:
-            warnings.warn('Constant {0!r} is already has a definition in the '
+            warnings.warn('Constant {0!r} already has a definition in the '
                           '{1!r} system'.format(name, system),
                           AstropyUserWarning)
         # By-pass Quantity initialization, since units may not yet be
