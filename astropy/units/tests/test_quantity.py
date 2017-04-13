@@ -97,6 +97,7 @@ class TestQuantityCreation(object):
 
         q = u.Quantity('nan cm')
         assert np.isnan(q.value)
+        assert q.unit == u.cm
 
         # Infinity
         q = u.Quantity('inf', unit='cm')
@@ -104,6 +105,10 @@ class TestQuantityCreation(object):
 
         q = u.Quantity('-inf', unit='cm')
         assert np.isinf(q.value)
+
+        q = u.Quantity('inf cm')
+        assert np.isinf(q.value)
+        assert q.unit == u.cm
 
         q = u.Quantity('Infinity', unit='cm') # float() allows this
         assert np.isinf(q.value)
