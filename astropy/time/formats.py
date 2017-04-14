@@ -958,8 +958,8 @@ class TimeFITS(TimeString):
             fits_scale = tm['scale'].upper()
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
-                raise ValueError("Scale {0} is not in the allowed scales {1}"
-                                 .format(repr(scale), sorted(TIME_SCALES)))
+                raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+                                 .format(scale, sorted(TIME_SCALES)))
             # If no scale was given in the initialiser, set the scale to
             # that given in the string.  Also store a possible realization,
             # so we can round-trip (as long as no scale changes are made).

@@ -310,10 +310,10 @@ class Quantity(np.ndarray):
                 try:
                     value_unit = Unit(value_unit)
                 except Exception as exc:
-                    raise TypeError("The unit attribute {0} of the input could "
+                    raise TypeError("The unit attribute {0!r} of the input could "
                                     "not be parsed as an astropy Unit, raising "
                                     "the following exception:\n{1}"
-                                    .format(repr(value.unit), exc))
+                                    .format(value.unit, exc))
 
                 if unit is None:
                     unit = value_unit

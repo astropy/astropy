@@ -447,8 +447,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError('cannot replace argument "{0}" of kind {1}'
-                                    '.'.format(new_name[i], repr(param.kind)))
+                    raise TypeError('cannot replace argument "{0}" of kind '
+                                    '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
             # the only remaining possibility is that it should be catched
