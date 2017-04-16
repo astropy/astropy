@@ -1,10 +1,10 @@
 .. _nddata_utils:
 
 astropy.nddata.utils
-====================
+********************
 
 Overview
---------
+========
 
 The `astropy.nddata.utils` module includes general utility functions
 for array operations.
@@ -12,10 +12,10 @@ for array operations.
 .. _cutout_images:
 
 2D Cutout Images
-----------------
+================
 
 Getting Started
-^^^^^^^^^^^^^^^
+---------------
 
 The `~astropy.nddata.utils.Cutout2D` class can be used to create a
 postage stamp cutout image from a 2D array.  If an optional
@@ -165,7 +165,7 @@ pixel positions between the original and cutout arrays::
 
 
 2D Cutout modes
-^^^^^^^^^^^^^^^
+---------------
 
 There are three modes for creating cutout arrays, ``'trim'``,
 ``'partial'``, and ``'strict'``.  For the ``'partial'`` and ``'trim'``
@@ -226,7 +226,7 @@ fully contained in the data array:
 
 
 2D Cutout from a `~astropy.coordinates.SkyCoord` position
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------------
 
 The input ``position`` can also be specified as a
 `~astropy.coordinates.SkyCoord`, in which case a `~astropy.wcs.WCS`
@@ -302,7 +302,7 @@ cutout array agree.
 
 
 2D Cutout using an angular ``size``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 The input ``size`` can also be specified as a
 `~astropy.units.Quantity` in angular units, e.g. degrees, arcminutes,
@@ -343,7 +343,7 @@ position, and ``wcs`` object from above to create a cutout with size
 
 
 Reference/API
-=============
+*************
 
 .. automodapi:: astropy.nddata.utils
     :no-inheritance-diagram:

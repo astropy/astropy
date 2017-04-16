@@ -1,7 +1,7 @@
 .. _modeling-new-classes:
 
 Defining New Model Classes
-==========================
+**************************
 
 This document describes how to add a model to the package or to create a
 user-defined model. In short, one needs to define all model parameters and
@@ -13,7 +13,7 @@ used.
 
 
 Basic custom models
--------------------
+===================
 
 For most cases, the `~astropy.modeling.custom_model` decorator provides an
 easy way to make a new `~astropy.modeling.Model` class from an existing Python
@@ -60,7 +60,7 @@ examples.
 
 
 A step by step definition of a 1-D Gaussian model
--------------------------------------------------
+=================================================
 
 The example described in `Basic custom models`_ can be used for most simple
 cases, but the following section describes how to construct model classes in
@@ -205,7 +205,7 @@ this looks something like:
 
 
 Full example
-^^^^^^^^^^^^
+------------
 
 .. code-block:: python
 
@@ -233,7 +233,7 @@ Full example
 
 
 A full example of a LineModel
------------------------------
+=============================
 
 This example demonstrates one other optional feature for model classes, which
 is an *inverse*.  An `~astropy.modeling.Model.inverse` implementation should be
@@ -275,7 +275,7 @@ input``.
 
 
 Defining New Fitter Classes
-===========================
+***************************
 
 This section describes how to add a new nonlinear fitting algorithm to this
 package or write a user-defined fitter.  In short, one needs to define an error
@@ -328,7 +328,7 @@ necessary::
         return model_copy
 
 Defining a Plugin Fitter
-------------------------
+========================
 
 `astropy.modeling` includes a plugin mechanism which allows fitters 
 defined outside of astropy's core to be inserted into the 
@@ -357,7 +357,7 @@ One project which uses this functionality is `Saba <https://saba.readthedocs.io/
 and be can be used as a reference. 
 
 Using a Custom Statistic Function
-=================================
+*********************************
 
 This section describes how to write a new fitter with a user-defined statistic
 function.  The example below shows a specialized class which fits a straight

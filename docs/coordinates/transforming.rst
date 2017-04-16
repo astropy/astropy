@@ -3,7 +3,7 @@
 .. _astropy-coordinates-transforming:
 
 Transforming Between Systems
-----------------------------
+****************************
 
 `astropy.coordinates` supports a rich system for transforming
 coordinates from one frame to another.  While common astronomy frames
@@ -94,7 +94,7 @@ and hence often do not round-trip.
 .. _astropy-coordinates-transforming-ephemerides:
 
 Transformations and Solar-system ephemerides
---------------------------------------------
+********************************************
 
 Some transformations (e.g. the transformation between `~astropy.coordinates.ICRS` and
 `~astropy.coordinates.GCRS`) require the use of a Solar-system ephemeris to calculate

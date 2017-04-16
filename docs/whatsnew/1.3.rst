@@ -2,12 +2,12 @@
 
 .. _whatsnew-1.3:
 
-==========================
+**************************
 What's New in Astropy 1.3?
-==========================
+**************************
 
 Overview
---------
+========
 
 Astropy 1.3 is a major release that adds significant new functionality since
 the 1.2.x series of releases.
@@ -55,7 +55,7 @@ smaller improvements and bug fixes, which are described in the
 .. _whatsnew-1.3-wcsaxes:
 
 New WCSAxes framework to make plots with celestial coordinates
---------------------------------------------------------------
+==============================================================
 
 The :ref:`visualization <astropy-visualization>` subpackage now include the
 WCSAxes framework (previously distributed as a separate package) which makes it
@@ -93,7 +93,7 @@ Examples and documentation are provided in :ref:`wcsaxes`.
 .. _whatsnew-1.3-rgb:
 
 New function to construct RGB images based on Lupton et al. (2004) algorithm
-----------------------------------------------------------------------------
+============================================================================
 
 The :ref:`visualization <astropy-visualization>` subpackage now includes a
 function to create RGB composite images from individual (high dynamic range)
@@ -109,7 +109,7 @@ images.  The technique is detailed in `Lupton et al. (2004)`_ and implemented in
 .. _whatsnew-1.3-representation-arithmetic:
 
 Vector arithmetic using representations
----------------------------------------
+=======================================
 
 :ref:`Representations <astropy-coordinates-representations>` are used inside
 coordinates as vectors to points on the sky, but they can more generally be
@@ -122,7 +122,7 @@ defined, and thus :ref:`have been implemented
 .. _whatsnew-1.3-instance-shapes:
 
 Times and coordinates can now be reshaped like arrays
------------------------------------------------------
+=====================================================
 
 The shapes of :class:`~astropy.time.Time` and
 :class:`~astropy.coordinates.SkyCoord` instances (as well as underlying frames
@@ -135,7 +135,7 @@ methods with the same name.  For more details, see
 .. _whatsnew-1.3-of-address:
 
 Earth locations can now be obtained by address
-----------------------------------------------
+==============================================
 
 With the new :meth:`~astropy.coordinates.EarthLocation.of_address` class
 method, :class:`~astropy.coordinates.EarthLocation` objects can now be
@@ -165,7 +165,7 @@ spherical coordinates of a location::
 .. _whatsnew-1.3-jpl-ephemerides:
 
 Coordinate transformations and barycentric corrections can use JPL Ephemerides
-------------------------------------------------------------------------------
+==============================================================================
 
 JPL ephemerides, which could already be used to calculate positions of solar
 system bodies, can now also be used for :ref:`barycentric corrections
@@ -176,7 +176,7 @@ system bodies, can now also be used for :ref:`barycentric corrections
 .. _whatsnew-1.3-tablechange:
 
 Change in Table behavior when setting column
---------------------------------------------
+============================================
 
 Previous to 1.3, :ref:`Tables <astropy-table>` did in-place
 modification of a table column when a column was set like
@@ -192,7 +192,7 @@ see :ref:`table-replace-1_3`.
 .. _whatsnew-1.3-fortan-exponents:
 
 Support for Fortran exponent formats in ASCII tables
-----------------------------------------------------
+====================================================
 
 The :ref:`fast reader <fast_ascii_io>` in :ref:`io.ascii <io-ascii>` now
 supports FORTRAN-style floating point values (i.e. ``1.495978707D+238``), via
@@ -203,7 +203,7 @@ supports extended precision to fully read fortran outputs. For more details see
 .. _whatsnew-1.3-yaml-serialization:
 
 Serialization of Astropy classes to YAML
-----------------------------------------
+========================================
 
 Astropy now has an :mod:`astropy.io.misc.yaml` module, which allows
 converting astropy objects into a standard `YAML <http://yaml.org/>`_ format.
@@ -221,7 +221,7 @@ This functionality requires PyYaml version 3.12 or later.
 .. _whatsnew-1.3-lazy-loading-fits:
 
 Performance improvements with lazy-loading in the io.fits sub-package
----------------------------------------------------------------------
+=====================================================================
 
 The :ref:`io.fits <astropy-io-fits>` sub-package now supports "lazy loading",
 where all HDUs are not loaded until they are requested (or the file is closed).
@@ -243,7 +243,7 @@ lazy HDU loading.
 .. _whatsnew-1.3-cosmo:
 
 Planck 2015 now the default cosmology
--------------------------------------
+=====================================
 
 The default cosmology in the :ref:`astropy-cosmology` sub-package is
 now the Planck 2015 cosmology, and the references have been updated
@@ -252,7 +252,7 @@ to reflect the published papers.
 .. _whatsnew-1.3-gcrs-repr:
 
 GCRS and PrecessedGeocentric attributes are now representations
----------------------------------------------------------------
+===============================================================
 
 The `astropy.coordinates.GCRS` and `astropy.coordinates.PrecessedGeocentric`
 frames have been subtly changed such that their ``obsgeoloc`` and ``obsgeovel``
@@ -265,7 +265,7 @@ compatible with v1.3 and up, simply change all instances of
 ``<object>.obsgeoloc.xyz``/``<object>.obsgeovel.xyz``.
 
 Full change log
----------------
+===============
 
 To see a detailed list of all changes in version v1.3, including changes in
 API, please see the :ref:`changelog`.

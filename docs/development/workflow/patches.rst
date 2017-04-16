@@ -2,12 +2,12 @@
 
 .. _basic-workflow:
 
-================
+****************
 Creating patches
-================
+****************
 
 Overview
---------
+========
 
 If you haven't already configured git::
 
@@ -44,7 +44,7 @@ Then, send the generated patch files to the `astropy-dev mailing list`_ |emdash|
 where we will thank you warmly.
 
 In detail
----------
+=========
 
 #. Tell git who you are so it can label the commits you've
    made::

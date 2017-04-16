@@ -1,5 +1,5 @@
 Formatting Coordinate Strings
------------------------------
+*****************************
 
 .. todo: @taldcroft should change this to start with a discussion of SkyCoord's capabilities
 
