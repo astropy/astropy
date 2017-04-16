@@ -3,7 +3,7 @@
 .. _numpy-compatibility:
 
 NumPy compatibility
-===================
+*******************
 
 NumPy_ forms an essential basis for astropy, and astropy's development has led
 to the identification of problems with some of numpy's functionality. Often,
@@ -14,7 +14,7 @@ patched routines. Hence, `astropy.utils.compat.numpy`.
 
 
 Adding a patched routine
-------------------------
+========================
 
 To ensure that patched code is only used when required, and that it will be
 easy to remove it if it is no longer needed for any supported version of
@@ -47,7 +47,7 @@ NumPy_ (which can of course form the basis of a `pull request
 
 
 Reference/API
-=============
+*************
 .. automodapi:: astropy.utils.compat.numpy
     :no-inheritance-diagram:
 

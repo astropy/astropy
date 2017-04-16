@@ -1,12 +1,12 @@
 .. currentmodule:: astropy.io.fits
 
 Miscellaneous Features
-----------------------
+**********************
 
 This section describes some of the miscellaneous features of :mod:`astropy.io.fits`.
 
 Differs
-^^^^^^^
+=======
 
 The :mod:`astropy.io.fits.diff` module contains several facilities for
 generating and reporting the differences between two FITS files, or two

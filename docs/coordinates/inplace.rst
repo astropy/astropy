@@ -1,5 +1,5 @@
 In Place Modification of Coordinates
-====================================
+************************************
 
 Coordinates are generally considered to be immutable. If you want to create
 another coordinate frame with different data you should use

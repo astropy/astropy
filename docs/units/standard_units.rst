@@ -1,7 +1,7 @@
 .. _doc_standard_units:
 
 Standard units
-==============
+**************
 
 Standard units are defined in the `astropy.units` package as object
 instances.
@@ -50,7 +50,7 @@ all the existing predefined units of a given type::
 
 
 Prefixes
---------
+========
 
 Most units can be used with prefixes, with both the standard SI prefixes and
 the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
@@ -123,7 +123,7 @@ the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
 .. _doc_dimensionless_unit:
 
 The dimensionless unit
-----------------------
+======================
 
 In addition to these units, `astropy.units` includes the concept of
 the dimensionless unit, used to indicate quantities that don't have a
@@ -178,7 +178,7 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
 .. _enabling-other-units:
 
 Enabling other units
---------------------
+====================
 
 By default, only the "default" units are searched by
 `~astropy.units.core.UnitBase.find_equivalent_units` and similar
