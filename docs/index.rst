@@ -12,9 +12,9 @@
       h1 { display:none; }
     </style>
 
-##################################
+**********************************
 Astropy Core Package Documentation
-##################################
+**********************************
 
 .. |logo_svg| image:: _static/astropy_banner.svg
 
@@ -34,9 +34,9 @@ tools needed for performing astronomy and astrophysics with Python.
 
 .. _user-docs:
 
-******************
+==================
 User Documentation
-******************
+==================
 
 .. only:: html
 
@@ -123,9 +123,9 @@ User Documentation
 
 .. _getting_help:
 
-************
+============
 Getting help
-************
+============
 
 If you want to get help or discuss issues with other Astropy users, you can sign
 up for the `Astropy mailing list`_. Alternatively, the `astropy-dev mailing
@@ -136,9 +136,9 @@ publicly serve as resources for other users!
 
 .. _reporting_issues:
 
-****************
+================
 Reporting Issues
-****************
+================
 
 If you have found a bug in Astropy please report it. The preferred way is to
 create a new issue on the Astropy `GitHub issue page
@@ -170,9 +170,9 @@ however, it's fine to report via the main Astropy issue tracker or one of the
 other avenues described above.
 
 
-************
+============
 Contributing
-************
+============
 
 The Astropy project is made both by and for its users, so we highly encourage
 contributions at all levels.  This spans the gamut from sending an email
@@ -193,9 +193,9 @@ necessary):
 
 .. _developer-docs:
 
-***********************
+=======================
 Developer Documentation
-***********************
+=======================
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
@@ -221,9 +221,9 @@ There are additional tools of use for developers in the
    development/affiliated-packages
    changelog
 
-******************
+==================
 Indices and Tables
-******************
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`

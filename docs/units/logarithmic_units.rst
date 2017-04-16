@@ -3,7 +3,7 @@
 .. _logarithmic_units:
 
 Magnitudes and other Logarithmic Units
-======================================
+**************************************
 
 Magnitudes and logarithmic units such as ``dex`` and ``dB`` are used the
 logarithm of values relative to some reference value.  Quantities with such
@@ -11,7 +11,7 @@ units are supported in ``astropy`` via the :class:`~astropy.units.Magnitude`,
 :class:`~astropy.units.Dex`, and :class:`~astropy.units.Decibel` classes.
 
 Creating Logarithmic Quantities
--------------------------------
+===============================
 
 One can create logarithmic quantities either directly or by multiplication with
 a logarithmic unit.  For instance::
@@ -51,7 +51,7 @@ to a |quantity| with the physical unit using the
     <Quantity 100000.0 cm / s2>
 
 Converting to different units
------------------------------
+=============================
 
 Like |quantity| objects, logarithmic quantities can be converted to different
 units, be it another logarithmic unit or a physical one::
@@ -70,7 +70,7 @@ to convert the |quantity| to base S.I. or c.g.s units::
     <Dex 3.0 dex(m / s2)>
 
 Arithmetic
-----------
+==========
 
 Addition and subtraction work as expected for logarithmic quantities,
 multiplying and dividing the physical units as appropriate.  It may be best
@@ -179,7 +179,7 @@ the 5-5log rule::
     <Quantity 1000.0 pc>
 
 Numpy functions
----------------
+===============
 
 For logarithmic quantities, most numpy functions and many array methods do not
 make sense, hence they are disabled.  But one can use those one would expect to
@@ -197,7 +197,7 @@ work::
 	  please `let us know <http://www.astropy.org/contribute.html>`_.
 
 Dimensionless logarithmic quantities
-------------------------------------
+====================================
 
 Dimensionless quantities are treated somewhat specially, in that, if needed,
 logarithmic quantities will be converted to normal |quantity| objects with the

@@ -1,9 +1,9 @@
 .. doctest-skip-all
 .. _doc-rules:
 
-=======================
+***********************
 Astropy Docstring Rules
-=======================
+***********************
 
 The original source for these docstring standards is the NumPy_ project, and
 the associated numpydoc_ tools. The most up-to-date version of these standards
@@ -13,7 +13,7 @@ guidelines below have been adapted to the Astropy package.
 
 
 Overview
---------
+========
 
 In general, we follow the standard Python style conventions as described here:
 
@@ -54,7 +54,7 @@ after which you may use it::
   np.fft.fft2(...)
 
 Docstring Standard
-------------------
+==================
 
 A documentation string (docstring) is a string that describes a module,
 function, class, or method definition. The docstring is a special attribute
@@ -91,7 +91,7 @@ facilitate reading the docstrings in text terminals.
 .. _numpydoc-sections:
 
 Sections
---------
+========
 
 .. highlight:: rst
 
@@ -369,10 +369,10 @@ The sections of the docstring are:
 .. enable automated testing of the examples as in Numpy.
 
 Documenting classes
--------------------
+===================
 
 Class docstrings
-^^^^^^^^^^^^^^^^
+----------------
 
 Use the same sections as outlined above (all except ``Returns`` are
 applicable). The constructor (``__init__``) should also be documented here,
@@ -436,7 +436,7 @@ methods in the Methods section.
 Do not list ``self`` as the first parameter of a method.
 
 Method docstrings
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Document these as you would any other function. Do not include ``self`` in
 the list of parameters. If a method has an equivalent function, the function
@@ -445,7 +445,7 @@ docstring should refer to it. Only put brief ``Summary`` and ``See Also``
 sections in the method docstring.
 
 Documenting class instances
----------------------------
+===========================
 
 Instances of classes that are part of the Astropy API may require some care.
 To give these instances a useful docstring, we do the following:
@@ -459,7 +459,7 @@ To give these instances a useful docstring, we do the following:
   be mentioned in the Notes and See Also sections.
 
 Documenting constants
----------------------
+=====================
 
 Use the same sections as outlined for functions where applicable::
 
@@ -475,7 +475,7 @@ to them like for for class instances), but will appear in the
 documentation built with Sphinx.
 
 Documenting modules
--------------------
+===================
 
 Each module should have a docstring with at least a summary line. Other
 sections are optional, and should be used in the same order as for documenting
@@ -497,7 +497,7 @@ Note that license and author info, while often included in source files, do not
 belong in docstrings.
 
 Other points to keep in mind
-----------------------------
+============================
 
 * Notes and Warnings : If there are points in the docstring that deserve
   special emphasis, the reST directives for a note or warning can be used
@@ -523,7 +523,7 @@ Other points to keep in mind
   with type ``array-like``.
 
 Common reST concepts
---------------------
+====================
 
 For paragraphs, indentation is significant and indicates indentation in the
 output. New paragraphs are marked with a blank line.
@@ -540,7 +540,7 @@ useful while editing.
 Line spacing and indentation are significant and should be carefully followed.
 
 Conclusion
-----------
+==========
 
 `An example <http://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
 format shown here is available.  Refer to `How to Build API/Reference

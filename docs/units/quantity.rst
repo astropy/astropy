@@ -1,7 +1,7 @@
 .. _quantity:
 
 Quantity
-========
+********
 
 .. |quantity| replace:: :class:`~astropy.units.Quantity`
 
@@ -9,7 +9,7 @@ The |quantity| object is meant to represent a value that has some unit
 associated with the number.
 
 Creating Quantity instances
----------------------------
+===========================
 
 |quantity| objects are created through multiplication with
 :class:`~astropy.units.Unit` objects. For example, to create a |quantity|
@@ -63,7 +63,7 @@ Finally, the current unit and value can be accessed via the
 	  passing ``copy=False`` to |quantity|.
 
 Converting to different units
------------------------------
+=============================
 
 |quantity| objects can be converted to different units using the
 :meth:`~astropy.units.quantity.Quantity.to` method:
@@ -85,7 +85,7 @@ convert the |quantity| to base S.I. or c.g.s units:
 .. _plotting-quantities:
 
 Plotting quantities
--------------------
+===================
 
 |quantity| objects can be conveniently plotted using matplotlib.  This
 feature needs to be explicitly turned on:
@@ -169,10 +169,10 @@ To make sure unit support is turned off afterward, you can use
         plt.plot([1, 2, 3] * u.m)
 
 Arithmetic
-----------
+==========
 
 Addition and Subtraction
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Addition or subtraction between |quantity| objects is supported when their
 units are equivalent. When the units are equal, the resulting object has the
@@ -208,7 +208,7 @@ numeric types:
 except for dimensionless quantities (see `Dimensionless quantities`_).
 
 Multiplication and Division
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 Multiplication and division are supported between |quantity| objects with any
 units, and with numeric types. For these operations between objects with
@@ -247,7 +247,7 @@ This method is also useful for more complicated arithmetic:
 
 
 Numpy functions
----------------
+===============
 
 |quantity| objects are actually full Numpy arrays (the |quantity|
 object class inherits from and extends the ``numpy.ndarray`` class), and
@@ -277,7 +277,7 @@ or dimensionless quantities:
 (see `Dimensionless quantities`_ for more details).
 
 Dimensionless quantities
-------------------------
+========================
 
 Dimensionless quantities have the characteristic that if they are
 added or subtracted from a Python scalar or unitless `~numpy.ndarray`,
@@ -321,7 +321,7 @@ The result is independent from the units the different quantities were specified
     <Quantity 0.995212254618668>
 
 Converting to plain Python scalars
-----------------------------------
+==================================
 
 Converting |quantity| objects does not work for non-dimensionless quantities:
 
@@ -341,7 +341,7 @@ Instead, only dimensionless values can be converted to plain Python scalars:
     3000
 
 Functions Accepting Quantities
-------------------------------
+==============================
 
 Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
@@ -386,7 +386,7 @@ This both checks that the return value of your function is consistent with what
 you expect and makes it much neater to display the results of the function.
 
 Representing vectors with units
--------------------------------
+===============================
 
 |quantity| objects can, like numpy arrays, be used to represent vectors or
 matrices by assigning specific dimensions to represent the coordinates or
@@ -397,7 +397,7 @@ cylindrical), as well as simple vector arithmetic.  For details, see
 :ref:`astropy-coordinates-representations`.
 
 Known issues with conversion to numpy arrays
---------------------------------------------
+============================================
 
 Since |quantity| objects are Numpy arrays, we are not able to ensure
 that only dimensionless quantities are converted to Numpy arrays:
@@ -412,7 +412,7 @@ more complex functions such as ``np.linalg.norm`` and
 ``scipy.integrate.odeint``.
 
 Subclassing Quantity
---------------------
+====================
 
 To subclass |quantity|, one generally proceeds as one would when subclassing
 :class:`~numpy.ndarray`, i.e., one typically needs to override ``__new__``

@@ -3,7 +3,7 @@
 .. _fast_ascii_io:
 
 Fast ASCII I/O
---------------
+**************
 
 While :mod:`astropy.io.ascii` was designed with flexibility and extensibility
 in mind, there is also a less flexible but significantly faster Cython/C engine for
@@ -45,7 +45,7 @@ To disable the fast engine, specify ``fast_reader=False`` or
    (e.g. ``format='csv'``) and/or other options such as the delimiter.
 
 Reading
-^^^^^^^
+=======
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`
 infrastructure, fast readers raise an error when passed certain
 parameters which are not implemented in the fast reader
@@ -67,7 +67,7 @@ These parameters are:
 .. _fast_conversion_opts:
 
 Parallel and fast conversion options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a dict specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``. For example::
@@ -93,7 +93,7 @@ exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
 
 Writing
-^^^^^^^
+=======
 The fast engine supports the same functionality as the ordinary writing engine
 and is generally about 2 to 4 times faster than the ordinary engine. An IPython
 notebook testing the relative performance of the fast writer against the
@@ -106,7 +106,7 @@ Also note that stripping string values slows down the writing process, so
 specifying ``strip_whitespace=False`` can improve performance.
 
 Fast converter
-^^^^^^^^^^^^^^
+==============
 Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
@@ -133,7 +133,7 @@ and values out of the range of floats) is available `here
 <http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
 
 Speed gains
-^^^^^^^^^^^
+===========
 The fast ASCII engine was designed based on the general parsing strategy
 used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by

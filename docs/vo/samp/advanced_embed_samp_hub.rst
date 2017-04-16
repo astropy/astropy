@@ -3,10 +3,10 @@
 .. doctest-skip-all
 
 Embedding a SAMP hub in a GUI
------------------------------
+*****************************
 
 Overview
-^^^^^^^^
+========
 
 If you wish to embed a SAMP hub in your Python GUI tool, you will need to start
 the hub programmatically using::
@@ -59,7 +59,7 @@ from `astropy.vo.samp.WebProfileDialog` and add the following:
        This may, in some cases, be the result of another GUI callback.
 
 Example of embedding a SAMP hub in a Tk application
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===================================================
 
 The following code is a full example of a simple Tk application that watches
 for web SAMP connections and opens the appropriate dialog::

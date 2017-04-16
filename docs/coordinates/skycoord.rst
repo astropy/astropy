@@ -3,7 +3,7 @@
 .. _astropy-coordinates-high-level:
 
 Using the SkyCoord High-level Class
------------------------------------
+***********************************
 
 The |SkyCoord| class provides a simple and flexible user interface for
 celestial coordinate representation, manipulation, and transformation between
@@ -37,7 +37,7 @@ The key distinctions between |SkyCoord| and the low-level classes
   transform graph object.
 
 Creating SkyCoord objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================
 
 The |SkyCoord| class accepts a wide variety of inputs for initialization.
 At a minimum these must provide one or more celestial coordinate values
@@ -136,7 +136,7 @@ coordinate above were created with
 with a different ``equinox`` would raise an exception.
 
 Initialization Syntax
-"""""""""""""""""""""
+---------------------
 
 For spherical representations, which are the most common and are the default
 input format for all built-in frames, the syntax for |SkyCoord| is given
@@ -267,7 +267,7 @@ set via corresponding keyword args in the |SkyCoord| initialization.
 .. _astropy-coordinates-array-operations:
 
 Array operations
-^^^^^^^^^^^^^^^^^
+=================
 
 It is possible to store arrays of coordinates in a |SkyCoord| object, and
 manipulations done in this way will be orders of magnitude faster than
@@ -309,7 +309,7 @@ use new views of the data, with the data copied only if that it is impossible
 
 
 Attributes
-^^^^^^^^^^^
+===========
 
 The |SkyCoord| object has a number of useful attributes which come in handy.
 By digging through these we'll learn a little bit about |SkyCoord| and how it
@@ -390,7 +390,7 @@ Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
 
 Digger deeper
-"""""""""""""
+-------------
 *[Casual users can skip this section]*
 
 After transforming to Galactic the longitude and latitude values are now
@@ -477,7 +477,7 @@ The lowest layer in the stack is the abstract
       ( 1.73900863, -1.02467744)>
 
 Transformations
-^^^^^^^^^^^^^^^^^
+=================
 
 The topic of transformations is covered in detail in the section on
 :ref:`astropy-coordinates-transforming`.
@@ -515,7 +515,7 @@ coordinates are in the exact same reference frame::
 .. _astropy-skycoord-representations:
 
 Representations
-^^^^^^^^^^^^^^^^
+================
 
 So far we have been using a spherical coordinate representation in the all the
 examples, and this is the default for the built-in frames.  Frequently it is
@@ -526,7 +526,7 @@ change the representation of an object.  For more information about
 representation objects themselves see :ref:`astropy-coordinates-representations`.
 
 Initialization
-"""""""""""""""
+---------------
 
 Most of what you need to know can be inferred from the examples below and
 by extrapolating the previous documentation for spherical representations.
@@ -617,7 +617,7 @@ The rest of the inputs for creating a |SkyCoord| object in the general case are
 the same as for spherical.
 
 Details
-"""""""""
+---------
 
 The available set of representations is dynamic and may change depending what
 representation classes have been defined.  The built-in representations are:
@@ -682,7 +682,7 @@ names for that frame to the component name on the representation class::
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
 
 Changing representation
-""""""""""""""""""""""""""
+--------------------------
 
 The representation of the coordinate object can be changed, as shown
 below.  This actually does *nothing* to the object internal data which
@@ -742,7 +742,7 @@ state of the |SkyCoord| object, you should instead use the
 
 
 Example 1: Plotting random data in Aitoff projection
-====================================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is an example how to make a plot in the Aitoff projection using data
 in a |SkyCoord| object. Here a randomly generated data set will be used.
@@ -845,7 +845,7 @@ its usual position to avoid overlap with the axis labels.
 
 
 Example 2: Plotting star positions in bulge and disk
-====================================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is more realistic example how to make a plot in the Aitoff projection
 using data in a |SkyCoord| object.
@@ -934,7 +934,7 @@ We use the same plotting setup as in the last example:
 
 
 Convenience methods
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 A number of convenience methods are available, and you are encouraged to read
 the available docstrings below:

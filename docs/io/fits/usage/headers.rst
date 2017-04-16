@@ -3,7 +3,7 @@
 .. currentmodule:: astropy.io.fits
 
 FITS Headers
-------------
+************
 
 In the next three chapters, more detailed information as well as examples will
 be explained for manipulating FITS headers, image/array data, and table data
@@ -11,7 +11,7 @@ respectively.
 
 
 Header of an HDU
-^^^^^^^^^^^^^^^^
+================
 
 Every HDU normally has two components: header and data. In Astropy these two
 components are accessed through the two attributes of the HDU,
@@ -41,10 +41,10 @@ header agree with the data.
 
 
 The Header Attribute
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 Value Access, Updating, and Creating
-""""""""""""""""""""""""""""""""""""
+------------------------------------
 
 As shown in the :ref:`Getting Started <tutorial>` tutorial, keyword values can
 be accessed via keyword name or index of an HDU's header attribute. You can
@@ -149,7 +149,7 @@ itself.
 
 
 COMMENT, HISTORY, and Blank Keywords
-""""""""""""""""""""""""""""""""""""
+------------------------------------
 
 Most keywords in a FITS header have unique names. If there are more than two
 cards sharing the same name, it is the first one accessed when referred by
@@ -204,7 +204,7 @@ commentary card by using the :meth:`Header.insert` method.
 
 
 Card Images
-^^^^^^^^^^^
+===========
 
 A FITS header consists of card images.
 
@@ -276,7 +276,7 @@ methods provided by the :class:`Header` class instead.
 
 
 CONTINUE Cards
-^^^^^^^^^^^^^^
+==============
 
 The fact that the FITS standard only allows up to 8 characters for the keyword
 name and 80 characters to contain the keyword, the value, and the comment is
@@ -318,7 +318,7 @@ cards can be accessed and updated just like regular keywords.
 
 
 HIERARCH Cards
-^^^^^^^^^^^^^^
+==============
 
 For keywords longer than 8 characters, there is a convention originated at ESO
 to facilitate such use. It uses a special keyword HIERARCH with the actual long

@@ -1,8 +1,8 @@
 .. _whatsnew-0.2:
 
-=========================
+*************************
 What's New in Astropy 0.2
-=========================
+*************************
 
 See this page in the `Astropy v0.2 documentation`__.
 

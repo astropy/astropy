@@ -5,7 +5,7 @@
 .. _vo-samp-example-table-image:
 
 Sending/receiving tables and images over SAMP
----------------------------------------------
+*********************************************
 
 In the following examples, we make use of:
 
@@ -24,7 +24,7 @@ command::
     $ samp_hub
 
 Sending a table to TOPCAT and Ds9
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=================================
 
 The easiest way to send a VO table to TOPCAT is to make use of the
 |SAMPIntegratedClient| class. Once TOPCAT is open, then first instantiate a
@@ -97,7 +97,7 @@ Once finished, we should make sure we disconnect from the hub::
     >>> client.disconnect()
 
 Receiving a table from TOPCAT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================
 
 To receive a table from TOPCAT, we have to set up a client that listens for
 messages from the hub. As before, we instantiate a |SAMPIntegratedClient|
@@ -217,7 +217,7 @@ reads the table once it has::
     print t
 
 Sending an image to Ds9 and Aladin
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 As for tables, the easiest way to send a FITS image over SAMP is to make use of
 the |SAMPIntegratedClient| class. Once Aladin or Ds9 are open, then first
@@ -262,7 +262,7 @@ Once finished, we should make sure we disconnect from the hub::
     >>> client.disconnect()
 
 Receiving a table from Ds9 or Aladin
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================
 
 Receiving images over SAMP is identical to `Receiving a table from TOPCAT`_,
 with the exception that the message type should be ``image.load.fits`` instead

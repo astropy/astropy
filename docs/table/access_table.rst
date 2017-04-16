@@ -3,13 +3,13 @@
 .. include:: references.txt
 
 Accessing a table
------------------
+*****************
 
 Accessing the table properties and data is straightforward and is generally consistent with
 the basic interface for `numpy` structured arrays.
 
 Quick overview
-^^^^^^^^^^^^^^
+==============
 
 For the impatient, the code below shows the basics of accessing table data.
 Where relevant there is a comment about what sort of object is returned.
@@ -78,7 +78,7 @@ to update the original table data or properties.  See also the section on
 
 
 Details
-^^^^^^^
+=======
 
 For all the following examples it is assumed that the table has been created as below::
 
@@ -105,7 +105,7 @@ For all the following examples it is assumed that the table has been created as 
 .. _table-summary-information:
 
 Summary information
-"""""""""""""""""""
+-------------------
 
 You can get summary information about the table as follows::
 
@@ -163,7 +163,7 @@ but provides information about a single column::
 
 
 Accessing properties
-""""""""""""""""""""
+--------------------
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table meta-data, and number of table rows.  The table
@@ -184,7 +184,7 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 
 
 Accessing data
-""""""""""""""
+--------------
 
 As expected you can access a table column by name and get an element from that
 column with a numerical index::
@@ -292,7 +292,7 @@ structured array by creating a copy or reference with ``np.array``::
 
 
 Formatted printing
-""""""""""""""""""
+------------------
 
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
@@ -347,7 +347,7 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   Length = 100 rows
 
 more() method
-'''''''''''''
+^^^^^^^^^^^^^
 
 In order to browse all rows of a table or column use the Table
 :meth:`~astropy.table.Table.more` or Column :func:`~astropy.table.Column.more`
@@ -366,7 +366,7 @@ supported navigation keys are:
 |  **h** : print this help
 
 pprint() method
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 In order to fully control the print output use the Table
 :meth:`~astropy.table.Table.pprint` or Column
@@ -440,7 +440,7 @@ For columns the syntax and behavior of
   Length = 100 rows
 
 Column alignment
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 Individual columns have the ability to be aligned in a number of different
 ways, for an enhanced viewing experience::
@@ -518,7 +518,7 @@ used::
   ##2.00# 2!!!!!!
 
 pformat() method
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 In order to get the formatted output for manipulation or writing to a file use
 the Table :meth:`~astropy.table.Table.pformat` or Column
@@ -529,7 +529,7 @@ the Table :meth:`~astropy.table.Table.pformat` or Column
   >>> lines = t['col3'].pformat(max_lines=8)
 
 Multidimensional columns
-''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 If a column has more than one dimension then each element of the column is
 itself an array.  In the example below there are 3 rows, each of which is a
@@ -571,7 +571,7 @@ any array::
 .. _columns_with_units:
 
 Columns with Units
-''''''''''''''''''
+^^^^^^^^^^^^^^^^^^
 
 A `~astropy.table.Column` object with units within a standard
 `~astropy.table.Table` (as opposed to a `~astropy.table.QTable`) has certain
