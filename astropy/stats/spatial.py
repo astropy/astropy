@@ -52,7 +52,7 @@ class RipleysKEstimator(object):
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(self, area, x_max=None, y_max=None, x_min=0, y_min=0):
+    def __init__(self, area, x_max=None, y_max=None, x_min=None, y_min=None):
         self.area = area
         self.x_max = x_max
         self.y_max = y_max
@@ -77,10 +77,10 @@ class RipleysKEstimator(object):
 
     @y_max.setter
     def y_max(self, value):
-        if value is None or (isinstance(value, (float, int)) and value > 0):
+        if value is None or isinstance(value, (float, int)):
             self._y_max = value
         else:
-            raise ValueError('y_max is expected to be a positive number '
+            raise ValueError('y_max is expected to be a real number '
                              'or None. Got {}.'.format(value))
 
     @property
@@ -89,10 +89,10 @@ class RipleysKEstimator(object):
 
     @x_max.setter
     def x_max(self, value):
-        if value is None or (isinstance(value, (float, int)) and value > 0):
+        if value is None or isinstance(value, (float, int)):
             self._x_max = value
         else:
-            raise ValueError('x_max is expected to be a positive number '
+            raise ValueError('x_max is expected to be a real number '
                              'or None. Got {}.'.format(value))
 
     @property
@@ -101,10 +101,10 @@ class RipleysKEstimator(object):
 
     @y_min.setter
     def y_min(self, value):
-        if isinstance(value, (float, int)) and value >= 0:
+        if value is None or isinstance(value, (float, int)):
             self._y_min = value
         else:
-            raise ValueError('y_min is expected to be a nonnegative number. '
+            raise ValueError('y_min is expected to be a real number. '
                              'Got {}.'.format(value))
 
     @property
@@ -113,10 +113,10 @@ class RipleysKEstimator(object):
 
     @x_min.setter
     def x_min(self, value):
-        if isinstance(value, (float, int)) and value >= 0:
+        if value is None or isinstance(value, (float, int)):
             self._x_min = value
         else:
-            raise ValueError('x_min is expected to be a nonnegative number. '
+            raise ValueError('x_min is expected to be a real number. '
                              'Got {}.'.format(value))
 
     def __call__(self, data, radii, mode='none'):
