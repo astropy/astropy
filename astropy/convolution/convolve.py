@@ -13,6 +13,8 @@ from ..utils.console import human_file_size
 from ..utils.decorators import deprecated_renamed_argument
 from .. import units as u
 from ..nddata import support_nddata
+from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
+from ..modeling.core import _CompoundModelMeta
 
 from ..extern.six.moves import range, zip
 
@@ -784,3 +786,34 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     newarray[isnan] = convolved[isnan]
 
     return newarray
+
+
+def convolve_models(model_a, model_b, mode='convolve_fft'):
+    """
+    Convolve two models using `~astropy.convolution.convolve_fft`.
+
+    Parameters
+    ----------
+    model_a : `~astropy.modeling.core.Model`
+        First model
+    model_b : `~astropy.modeling.core.Model`
+        Second model
+    mode : str
+        Keyword representing which function to use for convolution.
+            * 'convolve_fft' : use convolve_fft function.
+            * 'convolve' : use convolve function.
+
+    Returns
+    -------
+    default : CompoundModel
+        Convolved model
+    """
+
+    if mode == 'convolve_fft':
+        BINARY_OPERATORS['convolve_fft'] = _make_arithmetic_operator(convolve_fft)
+    elif mode == 'convolve':
+        BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(convolve)
+    else:
+        raise ValueError('Mode ' + mode + ' is not supported.')
+
+    return _CompoundModelMeta._from_operator(mode, model_a, model_b)
