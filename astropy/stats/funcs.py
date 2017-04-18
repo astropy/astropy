@@ -1048,7 +1048,7 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     Examples
     --------
     Generate multivariate Gaussian with outliers and compute
-    numpy covariance and the biweight_covariance
+    the biweight_covariance
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcovariance
