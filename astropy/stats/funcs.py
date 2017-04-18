@@ -1109,8 +1109,10 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
 
     # return estimate of the covariance
-    return n * (np.dot(numerator, numerator.T) /
-                np.dot(denominator, denominator.T))
+    numerator_matrix = np.dot(numerator, numerator.T)
+    denominator_matrix = np.dot(denominator, denominator.T)
+    nsqrt = np.sqrt(n.reshape(1,-1))
+    return nsqrt * (numerator_matrix / denominator_matrix) * nsqrt.T
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
                             gain=1.0):
