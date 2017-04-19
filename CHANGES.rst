@@ -131,6 +131,8 @@ API Changes
 
 - ``astropy.utils``
 
+  - Removed the deprecated ``astropy.utils.compat.subprocess`` module. [#5975]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
