@@ -98,6 +98,9 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
+    [#5929]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
