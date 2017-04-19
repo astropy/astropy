@@ -1,3 +1,220 @@
+2.0 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+  - Frame attributes set on ``SkyCoord`` are now always validated, and any
+    ndarray-like operation (like slicing) will also be done on those. [#5751]
+
+  - Caching of  all possible frame attributes was implemented. This greatly
+    speeds up many ``SkyCoord`` operations. [#5703, #5751]
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+  - Checking available disk space before writing out file. [#5550, #4065]
+
+  - Change behavior to warn about units that are not FITS-compliant when
+    writing a FITS file but not when reading. [#5675]
+
+  - Added absolute tolerance parameter when comparing FITS files. [#4729]
+
+  - New convenience function ``printdiff`` to print out diff reports. [#5759]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+  - Added ``SmoothlyBrokenPowerLaw1D`` model. [#5656]
+
+  - Add ``n_submodels`` shared method to single and compound models, which
+    allows users to get the number of components of a given single (compound)
+    model. [#5747]
+
+  - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Added ``biweight_midcovariance`` method. [#5777]
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+  - Issue a warning when assigning a string value to a column and
+    the string gets truncated.  This can occur because numpy string
+    arrays are fixed-width and silently drop characters which do not
+    fit within the fixed width. [#5624]
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - The `~astropy.units.quantity_input` decorator will now convert the output to
+    the unit specified as a return annotation under Python 3. [#5606]
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+- ``astropy.extern``
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
+    [#5929]
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Removed the deprecated ``sig`` and ``varfunc`` keywords in the
+    ``sigma_clip`` function. [#5715]
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+  - Removed the deprecated ``data`` property of Row. [#5729]
+
+  - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
+    ``get_groups`` from np_utils. [#5729]
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+  - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
+    definition of "emu". [#4918, #5906]
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+  - Cone Search now issues deprecation warning because it is moved to
+    Astroquery 0.3.5 and will be removed from Astropy in a future version.
+    [#5558, #5904]
+
+- ``astropy.wcs``
+
+- ``astropy.extern``
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.extern``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+  - Creating a compound model where one of the submodels is
+    a compound model whose parameters were changed now uses the
+    updated parameters and not the parameters of the original model. [#5741]
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+  - Allow to choose which median function is used in ``mad_std`` and
+    ``median_absolute_deviation``. And allow to use these functions with
+    a multi-dimensional ``axis``. [#5835]
+
+- ``astropy.sphinx``
+
+- ``astropy.table``
+
+  - Fix a problem with vstack for bytes columns in Python 3. [#5628]
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+- ``astropy.extern``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
 1.3.3 (unreleased)
 ------------------
 

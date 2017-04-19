@@ -358,14 +358,7 @@ def test_deprecated_did_you_mean_units():
     try:
         u.Unit('ANGSTROM', format='fits')
     except ValueError as e:
-        assert 'angstrom (deprecated)' in six.text_type(e)
-        assert 'Angstrom (deprecated)' in six.text_type(e)
-        assert '10**-1 nm' in six.text_type(e)
-
-    with catch_warnings() as w:
-        u.Unit('Angstrom', format='fits')
-    assert len(w) == 1
-    assert '10**-1 nm' in six.text_type(w[0].message)
+        assert 'Did you mean Angstrom or angstrom?' in six.text_type(e)
 
     try:
         u.Unit('crab', format='ogip')
