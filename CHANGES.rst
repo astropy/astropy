@@ -259,6 +259,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - On systems that do not have ``pkg_resources`` non-numerical additions to
+    version numbers like ``dev`` or ``rc1`` are stripped in ``minversion`` to
+    avoid a ``TypeError`` in ``distutils.version.LooseVersion`` [#5944]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
