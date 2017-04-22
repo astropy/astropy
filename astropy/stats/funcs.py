@@ -1042,7 +1042,7 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
 
     Returns
     -------
-    biweight_covariance : `~numpy.ndarray`
+    biweight_midcovariance : `~numpy.ndarray`
         Estimate of the covariance matrix of <a, a.T>
 
     Examples
@@ -1111,7 +1111,7 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     # return estimate of the covariance
     numerator_matrix = np.dot(numerator, numerator.T)
     denominator_matrix = np.dot(denominator, denominator.T)
-    nsqrt = np.sqrt(n.reshape(1,-1))
+    nsqrt = np.sqrt(n.reshape(1, -1))
     return nsqrt * (numerator_matrix / denominator_matrix) * nsqrt.T
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
