@@ -1082,7 +1082,7 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
 
     Returns
     -------
-    biweight_covariance : `~numpy.ndarray`
+    biweight_midcovariance : `~numpy.ndarray`
         Estimate of the covariance matrix of <a, a.T>
 
     Examples
