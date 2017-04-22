@@ -280,6 +280,11 @@ def test_biweight_midcovariance():
     cov = funcs.biweight_midcovariance(d)
     std = np.around(np.sqrt(cov.diagonal()), 1)
     assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
+    # Test 3: Ensure matrix is symmetric
+    rng = np.random.RandomState(1)
+    d = np.array([rng.gamma(2, 2, 500) for i in range(3)])
+    cov = funcs.biweight_midcovariance(d)
+    assert_equal(cov, cov.T)
 
 def test_midcov_midvar():
     """
