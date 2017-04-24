@@ -17,7 +17,7 @@ Creation
 
 The creation of an |Angle| object is quite flexible and supports a wide
 variety of input object types and formats.  The type of the input angle(s)
-can an array, scalar, tuple, string, `~astropy.units.Quantity` or another
+can be an array, scalar, tuple, string, `~astropy.units.Quantity` or another
 |Angle|.  This is best illustrated with a number of examples of valid ways
 to create an |Angle|::
 
@@ -53,7 +53,7 @@ Representation
 ^^^^^^^^^^^^^^
 
 The |Angle| object also supports a variety of ways of representing the value
-of the angle, both as a floating point number as a string::
+of the angle, both as a floating point number and as a string::
 
     >>> a = Angle(1, u.radian)
     >>> a
