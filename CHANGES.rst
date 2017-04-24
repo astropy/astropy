@@ -33,6 +33,9 @@ New Features
 
   - New convenience function ``printdiff`` to print out diff reports. [#5759]
 
+  - Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
+    Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
