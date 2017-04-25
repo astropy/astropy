@@ -1088,7 +1088,7 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     Examples
     --------
     Generate multivariate Gaussian with outliers and compute
-    numpy covariance and the biweight_covariance
+    the biweight_covariance
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcovariance
@@ -1139,7 +1139,8 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
 
     # now remove the outlier points
     mask = np.abs(u) < 1
-    n = mask.sum(axis=1)
+    maskf = np.array(mask, float)
+    n = np.inner(maskf,maskf)
     usub1 = (1 - u ** 2)
     usub5 = (1 - 5 * u ** 2)
     usub1[~mask] = 0.0
@@ -1149,8 +1150,9 @@ def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
 
     # return estimate of the covariance
-    return n * (np.dot(numerator, numerator.T) /
-                np.dot(denominator, denominator.T))
+    numerator_matrix = np.dot(numerator, numerator.T)
+    denominator_matrix = np.dot(denominator, denominator.T)
+    return n * (numerator_matrix / denominator_matrix)
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
                             gain=1.0):
