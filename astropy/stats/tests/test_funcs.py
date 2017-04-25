@@ -260,7 +260,7 @@ def test_biweight_midcovariance():
     rng = np.random.RandomState(1)
     d = np.array([rng.gamma(2, 2, 500) for i in range(3)])
     cov = funcs.biweight_midcovariance(d)
-    assert_allequal(cov, cov.T)
+    assert_equal(cov, cov.T)
 
 def test_midcov_midvar():
     """
