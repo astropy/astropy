@@ -13,8 +13,7 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
+from __future__ import absolute_import, unicode_literals, division, print_function
 
 import abc
 import copy
@@ -48,13 +47,43 @@ from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError, param_repr_oneline
 
-
-__all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'custom_model', 'ModelDefinitionError']
-
-
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
+
+from .altcompound import _AltCompoundModel
+
+__all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
+           'custom_model', 'ModelDefinitionError','set_compound_model']
+
+# global variable for which Compound Model class to use
+COMPOUND = "regular" # alternative is "lite"
+
+# xxx todo: need to make this thread safe
+def set_compound_model(ctype="regular"):
+    '''
+    Allow setting of the global state of which compound model class 
+    to use in constructing expressions of models. 
+
+    The two permitted values are "regular" and "lite", the 
+    latter being less filling (of memory).
+
+    It returns the previous state as a convenience for restoring in
+    a subsequent call
+    '''
+    global COMPOUND
+    if ctype not in  ['regular', 'lite']:
+        raise ValueError("argument value must be 'regular' or 'lite'")
+    previous = COMPOUND
+    COMPOUND = ctype
+    return previous
+
+def _compound_operator(oper, left, right, **kwargs):
+    if COMPOUND == 'regular':
+        return _CompoundModelMeta._from_operator(oper, left, right, **kwargs)
+    else:
+        return _AltCompoundModel(oper, left, right, **kwargs)
+
+
 
 
 def _model_oper(oper, **kwargs):
@@ -72,7 +101,7 @@ def _model_oper(oper, **kwargs):
     # _CompoundModelMeta has not been defined yet.
 
     # Perform an arithmetic operation on two models.
-    return lambda left, right: _CompoundModelMeta._from_operator(oper,
+    return lambda left, right: _compound_operator(oper,
             left, right, **kwargs)
 
 
@@ -1556,6 +1585,7 @@ class Model(object):
         """
         Return a copy of this model with a new name.
         """
+
         new_model = self.copy()
         new_model._name = name
         return new_model
@@ -2309,6 +2339,7 @@ class _CompoundModelMeta(_ModelMeta):
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
+
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -2349,6 +2380,7 @@ class _CompoundModelMeta(_ModelMeta):
         ``standard_broadcasting``, and ``__module__`.  This is currently for
         internal use only.
         """
+
         # Note, currently this only supports binary operators, but could be
         # easily extended to support unary operators (namely '-') if/when
         # needed
