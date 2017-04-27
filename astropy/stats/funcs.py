@@ -847,20 +847,21 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     .. math::
 
-        C_{bl}= M+\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
-        {\Sigma_{\|u_i\|<1} (1-u_i^2)^2}
+        C_{bi}= M + \frac{\Sigma_{|u_i|<1} \ (x_i - M) (1 - u_i^2)^2}
+            {\Sigma_{|u_i|<1} \ (1 - u_i^2)^2}
 
     where :math:`M` is the sample median (or the input initial guess)
     and :math:`u_i` is given by:
 
     .. math::
 
-        u_{i} = \frac{(x_i-M)}{c\ MAD}
+        u_{i} = \frac{(x_i - M)}{c * MAD}
 
     where :math:`c` is the tuning constant and :math:`MAD` is the median
-    absolute deviation.
+    absolute deviation.  The biweight location tuning constant ``c`` is
+    typically 6.0 (the default).
 
-    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
+    For more details, see `Beers, Flynn, and Gebhardt (1990; AJ 100, 32)
     <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
@@ -873,9 +874,9 @@ def biweight_location(a, c=6.0, M=None, axis=None):
         Initial guess for the biweight location.  An array can be input
         when using the ``axis`` keyword.
     axis : int, optional
-        Axis along which the biweight locations are computed.  The
-        default (`None`) is to compute the biweight location of the
-        flattened array.
+        The axis along which the biweight locations are computed.  The
+        default (`None`) will compute the biweight location of the
+        flattened input array.
 
     Returns
     -------
@@ -883,6 +884,10 @@ def biweight_location(a, c=6.0, M=None, axis=None):
         The biweight location of the input data.  If ``axis`` is `None`
         then a scalar will be returned, otherwise a `~numpy.ndarray`
         will be returned.
+
+    See Also
+    --------
+    biweight_midvariance, median_absolute_deviation, mad_std
 
     Examples
     --------
@@ -892,14 +897,9 @@ def biweight_location(a, c=6.0, M=None, axis=None):
         >>> import numpy as np
         >>> from astropy.stats import biweight_location
         >>> rand = np.random.RandomState(12345)
-        >>> from numpy.random import randn
         >>> loc = biweight_location(rand.randn(1000))
         >>> print(loc)    # doctest: +FLOAT_CMP
         -0.0175741540445
-
-    See Also
-    --------
-    biweight_midvariance, median_absolute_deviation, mad_std
     """
 
     a = np.asanyarray(a)
@@ -947,8 +947,8 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
         u_{i} = \frac{(x_i - M)}{c * MAD}
 
     where :math:`c` is the tuning constant and :math:`MAD` is the median
-    absolute deviation.  The midvariance tuning constant ``c`` is
-    typically 9.0 (the default).
+    absolute deviation.  The biweight midvariance tuning constant ``c``
+    is typically 9.0 (the default).
 
     For the standard definition of `biweight midvariance
     <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_,
