@@ -266,47 +266,63 @@ def test_biweight_midvariance_axis_3d():
         bwi = np.array(bwi)
         assert_allclose(bw[y], bwi)
 
+
 def test_biweight_midcovariance():
-    """test biweight_midcovariance method"""
-    # Test 1
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(5)])
+    d = [[0, 1, 2], [2, 1, 0]]
     cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 1.8,  1.9,  2. ,  2.1,  2.1])
-    # Test 2
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 10) for i in range(5)])
+    val = 0.70121809
+    assert_allclose(cov, [[val, -val], [-val, val]])    # verified against R
+
+    d = [[5, 1, 10], [500, 5, 2]]
     cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
-    # Test 3: Ensure matrix is symmetric
+    assert_allclose(cov, [[14.54159077, -7.79026256],    # verified against R
+                          [-7.79026256, 6.92087252]])
+
+    cov = funcs.biweight_midcovariance(d, modify_sample_size=True)
+    assert_allclose(cov, [[14.54159077, -5.19350838],
+                          [-5.19350838, 4.61391501]])
+
+
+def test_biweight_midcovariance_midvariance():
+    """
+    Test that biweight_midcovariance diagonal elements agree with
+    biweight_midvariance.
+    """
+
+    rng = np.random.RandomState(1)
+    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
+    cov = funcs.biweight_midcovariance(d)
+    var = [funcs.biweight_midvariance(a) for a in d]
+    assert_allclose(cov.diagonal(), var)
+
+    cov2 = funcs.biweight_midcovariance(d, modify_sample_size=True)
+    var2 = [funcs.biweight_midvariance(a, modify_sample_size=True)
+            for a in d]
+    assert_allclose(cov2.diagonal(), var2)
+
+
+def test_midcovariance_shape():
+    """
+    Test that biweight_midcovariance raises error with a 3D array.
+    """
+
+    d = np.ones(27).reshape(3, 3, 3)
+    with pytest.raises(ValueError) as e:
+        funcs.biweight_midcovariance(d)
+    assert 'a.ndim should equal 2' in str(e.value)
+
+
+def test_biweight_midcovariance_symmetric():
+    """
+    Regression test to ensure that midcovariance matrix is symmetric
+    (see #5972).
+    """
+
     rng = np.random.RandomState(1)
     d = np.array([rng.gamma(2, 2, 500) for i in range(3)])
     cov = funcs.biweight_midcovariance(d)
     assert_equal(cov, cov.T)
 
-def test_midcov_midvar():
-    """
-    test biweight_midcovariance and biweight_midvariance
-    are compatible
-    """
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
-    cov = funcs.biweight_midcovariance(d)
-    cov_std = np.around(np.sqrt(cov.diagonal()), 1)
-    std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
-    assert_allclose(cov_std, std)
-
-def test_midcovariance_shape():
-    """
-    test that midcovariance raises error when feed 3D array
-    """
-    rng = np.random.RandomState(1)
-    d = rng.normal(0,1,27).reshape(3,3,3)
-    with pytest.raises(ValueError) as e:
-        funcs.biweight_midcovariance(d)
-    assert 'a.ndim should equal 2' in str(e.value)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
