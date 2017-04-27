@@ -926,7 +926,8 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
-def biweight_midvariance(a, c=9.0, M=None, axis=None):
+def biweight_midvariance(a, c=9.0, M=None, axis=None,
+                         modify_sample_size=False):
     r"""
     Compute the biweight midvariance.
 
@@ -967,14 +968,24 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
     a : array-like
         Input array or object that can be converted to an array.
     c : float, optional
-        Tuning constant for the biweight estimator.  Default value is 9.0.
+        Tuning constant for the biweight estimator.  Default value is
+        9.0.
     M : float or array-like, optional
         Initial guess for the biweight location.  An array can be input
         when using the ``axis`` keyword.
     axis : int, optional
-        Axis along which the biweight midvariances are computed.  The
-        default (`None`) is to compute the biweight midvariance of the
-        flattened array.
+        The axis along which the biweight midvariances are computed.
+        The default (`None`) will compute the biweight midvariance of
+        the flattened input array.
+    modify_sample_size : bool, optional
+        If `False` (default), then the sample size used is the total
+        number of elements in the array (or along the input ``axis``, if
+        specified), which follows the standard definition of
+        ``biweight_midvariance``.  If `True`, then the sample size is
+        reduced to correct for any rejected values (i.e. the sample size
+        used includes only the non-rejected values), which returns a
+        value closer to the true variance for small sample sizes or for
+        a large number of rejected values.
 
     Returns
     -------
@@ -1021,10 +1032,13 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
     mask = np.abs(u) < 1
     u = u ** 2
 
-    if axis is None:
-        n = a.size
+    if modify_sample_size:
+        n = mask.sum(axis=axis)
     else:
-        n = a.shape[axis]
+        if axis is None:
+            n = a.size
+        else:
+            n = a.shape[axis]
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.
