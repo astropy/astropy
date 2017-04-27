@@ -932,36 +932,40 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     Compute the biweight midvariance.
 
     The biweight midvariance is a robust statistic for determining the
-    midvariance (i.e. the standard deviation) of a distribution.  It is
-    given by:
+    variance of a distribution.  Its square root is a robust estimator
+    of scale (i.e. standard deviation).  It is given by:
 
     .. math::
 
-      C_{bl}= (n')^{1/2} \frac{[\Sigma_{|u_i|<1} (x_i-M)^2(1-u_i^2)^4]^{0.5}}
-      {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
+        C_{bi}= n \ \frac{\Sigma_{|u_i| < 1} \ (x_i - M)^2 (1 - u_i^2)^4}
+            {|\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2)|}
 
-    where :math:`u_i` is given by
+    where :math:`u_i` is the indicator function given by
 
     .. math::
 
-        u_{i} = \frac{(x_i-M)}{c MAD}
+        u_{i} = \frac{(x_i - M)}{c * MAD}
 
     where :math:`c` is the tuning constant and :math:`MAD` is the median
     absolute deviation.  The midvariance tuning constant ``c`` is
-    typically 9.0.
+    typically 9.0 (the default).
 
-    :math:`n'` is the number of points for which :math:`|u_i| < 1`
-    holds, while the summations are over all :math:`i` up to :math:`n`:
+    For the standard definition of `biweight midvariance
+    <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_,
+    :math:`n` is the total number of points in the array (or along the
+    input ``axis``, if specified).  That definition is used if
+    ``modify_sample_size`` is `False`, which is the default.
+
+    However, if ``modify_sample_size = True``, then :math:`n` is the
+    number of points for which :math:`|u_i| < 1` (i.e. the total number
+    of non-rejected values),
 
     .. math::
 
-        n' = \Sigma_{|u_i|<1}^n 1
+        n = \Sigma_{|u_i| < 1} \ 1
 
-    This is slightly different than given in the reference below, but
-    results in a value closer to the true midvariance.
-
-    For more details, see `Beers, Flynn, and Gebhardt (1990); AJ 100, 32
-    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
+    which results in a value closer to the true variance for small
+    sample sizes or for a large number of rejected values.
 
     Parameters
     ----------
@@ -980,12 +984,12 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
         number of elements in the array (or along the input ``axis``, if
-        specified), which follows the standard definition of
-        ``biweight_midvariance``.  If `True`, then the sample size is
-        reduced to correct for any rejected values (i.e. the sample size
-        used includes only the non-rejected values), which returns a
-        value closer to the true variance for small sample sizes or for
-        a large number of rejected values.
+        specified), which follows the standard definition of biweight
+        midvariance.  If `True`, then the sample size is reduced to
+        correct for any rejected values (i.e. the sample size used
+        includes only the non-rejected values), which results in a value
+        closer to the true variance for small sample sizes or for a
+        large number of rejected values.
 
     Returns
     -------
@@ -993,6 +997,12 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
         The biweight midvariance of the input data.  If ``axis`` is
         `None` then a scalar will be returned, otherwise a
         `~numpy.ndarray` will be returned.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance
+
+    .. [2] Beers, Flynn, and Gebhardt (1990); AJ 100, 32 (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
 
     Examples
     --------
