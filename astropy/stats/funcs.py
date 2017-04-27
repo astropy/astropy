@@ -1020,7 +1020,11 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
     u = u ** 2
-    n = mask.sum(axis=axis)
+
+    if axis is None:
+        n = a.size
+    else:
+        n = a.shape[axis]
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.
