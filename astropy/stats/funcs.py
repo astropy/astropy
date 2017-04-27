@@ -998,11 +998,15 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
         `None` then a scalar will be returned, otherwise a
         `~numpy.ndarray` will be returned.
 
+    See Also
+    --------
+    biweight_location, mad_std, median_absolute_deviation
+
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance
 
-    .. [2] Beers, Flynn, and Gebhardt (1990); AJ 100, 32 (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
+    .. [2] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
 
     Examples
     --------
@@ -1012,14 +1016,9 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
         >>> import numpy as np
         >>> from astropy.stats import biweight_midvariance
         >>> rand = np.random.RandomState(12345)
-        >>> from numpy.random import randn
         >>> bmv = biweight_midvariance(rand.randn(1000))
         >>> print(bmv)    # doctest: +FLOAT_CMP
-        0.986726249291
-
-    See Also
-    --------
-    biweight_location, mad_std, median_absolute_deviation
+        0.97362869104
     """
 
     a = np.asanyarray(a)
