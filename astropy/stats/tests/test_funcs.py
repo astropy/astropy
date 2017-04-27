@@ -207,13 +207,16 @@ def test_biweight_midvariance():
         # test that it runs
         randvar = randn(10000)
         scl = funcs.biweight_midvariance(randvar)
-
-        assert abs(scl-1) < 1e-2
+        assert_allclose(scl, 1.0, rtol=0.02)
 
 
 def test_biweight_midvariance_small():
+    data = [1, 3, 5, 500, 2]
     scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
-    assert abs(scl-1.529) < 1e-3
+    assert_allclose(scl, 2.9238456)
+
+    scl = funcs.biweight_midvariance(data, modify_sample_size=True)
+    assert_allclose(scl, 2.3390765)
 
 
 def test_biweight_midvariance_5127():
@@ -221,7 +224,7 @@ def test_biweight_midvariance_5127():
     rand = np.random.RandomState(12345)
     data = rand.normal(loc=0., scale=20., size=(100, 100))
     scl = funcs.biweight_midvariance(data)
-    assert_allclose(scl, 20.171003621738148)    # test against previous code
+    assert_allclose(scl, 406.86938710817344)
 
 
 def test_biweight_midvariance_axis():
