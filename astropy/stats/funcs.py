@@ -1024,12 +1024,13 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None):
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.
-    f1 = f1.sum(axis=axis) ** 0.5
+    f1 = f1.sum(axis=axis)
     f2 = (1. - u) * (1. - 5.*u)
     f2[~mask] = 0.
-    f2 = np.abs(f2.sum(axis=axis))
+    f2 = np.abs(f2.sum(axis=axis))**2
 
-    return (n ** 0.5) * f1 / f2
+    return n * f1 / f2
+
 
 def biweight_midcovariance(a, c=9.0, M=None, transpose=False):
     r"""
