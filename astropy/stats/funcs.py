@@ -938,7 +938,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     .. math::
 
         C_{bi}= n \ \frac{\Sigma_{|u_i| < 1} \ (x_i - M)^2 (1 - u_i^2)^4}
-            {|\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2)|}
+            {(\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))^2}
 
     where :math:`u_i` is the indicator function given by
 
