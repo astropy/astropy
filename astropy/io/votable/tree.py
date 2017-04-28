@@ -1115,10 +1115,10 @@ class Values(Element, _IDProperty):
         column.meta['values'] = meta
 
     def from_table_column(self, column):
-        if 'values' not in column.meta:
+        if column.info.meta is None or 'values' not in column.info.meta:
             return
 
-        meta = column.meta['values']
+        meta = column.info.meta['values']
         for key in ['ID', 'null']:
             val = meta.get(key, None)
             if val is not None:
@@ -1547,24 +1547,25 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         `astropy.table.Column` instance.
         """
         kwargs = {}
+        meta = column.info.meta or {}
         for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
-            val = column.meta.get(key, None)
+            val = meta.get(key, None)
             if val is not None:
                 kwargs[key] = val
         # TODO: Use the unit framework when available
-        if column.unit is not None:
-            kwargs['unit'] = column.unit
-        kwargs['name'] = column.name
+        if column.info.unit is not None:
+            kwargs['unit'] = column.info.unit
+        kwargs['name'] = column.info.name
         result = converters.table_column_to_votable_datatype(column)
         kwargs.update(result)
 
         field = cls(votable, **kwargs)
 
-        if column.description is not None:
-            field.description = column.description
+        if column.info.description is not None:
+            field.description = column.info.description
         field.values.from_table_column(column)
-        if 'links' in column.meta:
-            for link in column.meta['links']:
+        if 'links' in meta:
+            for link in meta['links']:
                 field.links.append(Link.from_table_column(link))
 
         # TODO: Parse format into precision and width
