@@ -30,3 +30,10 @@ class TestQuantityLinAlgFuncs(object):
         q2 = np.array([4., 5., 6.]) / u.s
         o = np.dot(q1, q2)
         assert o == 32. * u.m / u.s
+
+    @pytest.mark.xfail
+    def test_matmul(self):
+        q1 = np.eye(3) * u.m
+        q2 = np.array([4., 5., 6.]) / u.s
+        o = np.matmul(q1, q2)
+        assert o == q2 / u.s

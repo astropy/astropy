@@ -579,29 +579,23 @@ class Quantity(np.ndarray):
                 return obj
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
-        """Wrap numpy ufunc and other functions, taking care of units.
+        """Wrap numpy ufuncs, taking care of units.
 
         Parameters
         ----------
         function : callable
-            ufunc or other function or method to wrap.
+            ufunc to wrap.
         method : str
-            Callable attribute of ``function`` to use.  Should generally be
-            ``__call__``, but can also be ``at``, ``reduce``, etc., for ufuncs.
+            Ufunc method: ``__call__``, ``at``, ``reduce``, etc.
         inputs : tuple
-            Input arrays and other positional arguments.
+            Input arrays.
         kwargs : keyword arguments
-            As needed, but with the following treated specially:
-            ``unit`` : `~astropy.units.Unit`
-                Unit of the output result.  If not given (as for all ufunc's),
-                it will be inferred from the inputs and the ufunc.
-            ``out`` : `~astropy.units.Quantity`
-                A possible Quantity instance in which to store the output.
+            As passed on, with ``out`` containing possible quantity output.
 
         Returns
         -------
-        out : `~astropy.units.Quantity`
-            Result of the function call, with the unit set properly.
+        result : `~astropy.units.Quantity`
+            Results of the ufunc, with the unit set properly.
         """
         # Determine required conversion functions -- to bring the unit of the
         # input to that expected (e.g., radian for np.sin), or to get
@@ -626,7 +620,7 @@ class Quantity(np.ndarray):
                                                        *arrays, **kwargs)
         # If unit is None, a plain array is expected (e.g., comparisons and
         # np.frexp), which means we're done.
-        # We're also done if the result was None (for method is 'at') or
+        # We're also done if the result was None (for method 'at') or
         # NotImplemented, which can happen if other inputs/outputs override
         # __array_ufunc__; hopefully, they can then deal with us.
         if unit is None or result is None or result is NotImplemented:
@@ -635,6 +629,26 @@ class Quantity(np.ndarray):
         return self._result_as_quantity(result, unit, outputs)
 
     def _result_as_quantity(self, result, unit, out):
+        """Turn result into a quantity with the given unit.
+
+        If no output is given, it will take a view of the array as a quantity,
+        and set the unit.  If output is given, those should be quantity views
+        of the result arrays, and the function will just set the unit.
+
+        Parameters
+        ----------
+        result : `~numpy.ndarray` or tuple of `~numpy.ndarray`
+            Array(s) which need to be turned into quantity.
+        unit : `~astropy.units.Unit`
+            Unit for the quantities to be returned.
+        out : `~astropy.units.Quantity`
+            Possible output quantity.
+
+        Returns
+        -------
+        out : `~astropy.units.Quantity`
+           With units set.
+        """
         if isinstance(result, tuple):
             if out is None:
                 return tuple(self._new_view(r, unit) for r in result)
@@ -651,7 +665,7 @@ class Quantity(np.ndarray):
 
         # For given output, just set the unit. We know this output is of the
         # correct Quantity subclass, as it was passed through check_output.
-        out._unit = unit
+        out._set_unit(unit)
         return out
 
     def __quantity_subclass__(self, unit):
@@ -1458,8 +1472,8 @@ class Quantity(np.ndarray):
 
         If present, the following arguments are treated specially:
 
-        unit : `~astropy.units.Unit` or `None`
-            Unit of the output result.  Defaults to the unit of ``self``.
+        unit : `~astropy.units.Unit`
+            Unit of the output result.  If not given, the unit of ``self``.
         out : `~astropy.units.Quantity`
             A Quantity instance in which to store the output.
 
@@ -1476,14 +1490,15 @@ class Quantity(np.ndarray):
         unit = kwargs.pop('unit', self.unit)
         out = kwargs.pop('out', None)
         # Ensure we don't loop back by turning any Quantity into array views.
+        args = (self.value,) + tuple((arg.value if isinstance(arg, Quantity)
+                                      else arg) for arg in args)
         if out is not None:
             # If pre-allocated output is used, check it is suitable.
             # This also returns array view, to ensure we don't loop back.
-            kwargs['out'] = check_output(out, unit, args, function=function)
-        args = tuple((arg.value if isinstance(arg, Quantity) else arg)
-                     for arg in args)
+            arrays = tuple(arg for arg in args if isinstance(arg, np.ndarray))
+            kwargs['out'] = check_output(out, unit, arrays, function=function)
         # Apply the function and turn it back into a Quantity.
-        result = function(self.value, *args, **kwargs)
+        result = function(*args, **kwargs)
         return self._result_as_quantity(result, unit, out)
 
     def clip(self, a_min, a_max, out=None):
