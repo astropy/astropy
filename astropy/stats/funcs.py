@@ -1013,12 +1013,12 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     Generate random variates from a Gaussian distribution and return the
     biweight midvariance of the distribution::
 
-        >>> import numpy as np
-        >>> from astropy.stats import biweight_midvariance
-        >>> rand = np.random.RandomState(12345)
-        >>> bmv = biweight_midvariance(rand.randn(1000))
-        >>> print(bmv)    # doctest: +FLOAT_CMP
-        0.97362869104
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_midvariance
+    >>> rand = np.random.RandomState(12345)
+    >>> bmv = biweight_midvariance(rand.randn(1000))
+    >>> print(bmv)    # doctest: +FLOAT_CMP
+    0.97362869104
     """
 
     a = np.asanyarray(a)
@@ -1063,46 +1063,46 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
                            transpose=False):
     r"""
     Compute the biweight midcovariance.
-    This is a robust and resistant estimator of the covariance matrix.
+
+    The biweight midcovariance is a robust and resistant estimator of
+    the covariance between two variables.
 
     Parameters
     ----------
-    a : array-like
-        A 2D numpy.ndarray of shape (N_variables, N_observations)
-        Each row of a represents a variable, and each column
-        a single observation of all variables (same as numpy.cov convention)
+    a : 2D array-like
+        A 2D array of shape (N_variables, N_observations).  Each row of
+        ``a`` represents a variable, and each column a single
+        observation of all those variables (same as the `numpy.cov`
+        convention).
 
     c : float, optional
-        Tuning constant. Default is 9.0.
+        Tuning constant for the biweight estimator (default=9.0).
 
-    M : array-like, optional, shape=(N_dims,)
-        Initial guess for biweight location
+    M : float or 1D array-like, optional
+        Initial guess for the biweight location of each variable, either
+        as a scalar or array.  If ``M`` is an array, then its must be a
+        1D array containing the biweight location of each row (i.e.
+        ``a.ndim`` elements).  If ``M`` is a scalar value, then its
+        value will be used for each variable (row).
+
+    modify_sample_size : bool, optional
+        If `False` (default), then the sample size used is the total
+        number of elements in the array (or along the input ``axis``, if
+        specified), which follows the standard definition of biweight
+        midcovariance.  If `True`, then the sample size is reduced to
+        correct for any rejected values (i.e. the sample size used
+        includes only the non-rejected values), which results in a value
+        closer to the true covariance for small sample sizes or for a
+        large number of rejected values.
 
     transpose : bool, optional
-        Transpose the input array. Default is False.
+        Whether to transpose the input array (default is `False`).
 
     Returns
     -------
     biweight_midcovariance : `~numpy.ndarray`
-        Estimate of the covariance matrix of <a, a.T>
-
-    Examples
-    --------
-    Generate multivariate Gaussian with outliers and compute
-    the biweight_covariance
-
-    >>> import numpy as np
-    >>> from astropy.stats import biweight_midcovariance
-    >>> # Generate 2D normal sampling of points
-    >>> rng = np.random.RandomState(1)
-    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
-    >>> # Introduce an obvious outlier
-    >>> d[0,0] = 30.0
-    >>> # Calculate biweight covariances
-    >>> bw_cov = biweight_midcovariance(d)
-    >>> # Print out recovered standard deviations
-    >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
-    [ 0.9  3.1]
+        A 2D array representing the biweight midcovariances between each
+        pair of the variables (rows) in the input array.
 
     See Also
     --------
@@ -1111,6 +1111,27 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
     References
     ----------
     http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+
+    Examples
+    --------
+    Generate a multivariate Gaussian with outliers and compute
+    the biweight midcovariance:
+
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_midcovariance
+    >>> # Generate 2D normal sampling of points
+    >>> rng = np.random.RandomState(1)
+    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
+    >>> # Introduce an obvious outlier
+    >>> d[0, 0] = 30.0
+    >>> # Calculate the biweight midcovariances
+    >>> bw_cov = biweight_midcovariance(d)
+    >>> print(bw_cov)    # doctest: +FLOAT_CMP
+    [[ 0.82483155 -0.18961219]
+     [-0.18961219 9.80265764]]
+    >>> # Print standard deviation estimates
+    >>> print(np.sqrt(bw_cov.diagonal()))    # doctest: +FLOAT_CMP
+    [ 0.90820237  3.13091961]
     """
 
     # Ensure a is array-like
