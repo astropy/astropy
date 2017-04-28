@@ -1075,8 +1075,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     return n * f1 / f2
 
 
-def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
-                           transpose=False):
+def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
     r"""
     Compute the biweight midcovariance between pairs of multiple
     variables.
@@ -1183,9 +1182,6 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
         covariance for small sample sizes or for a large number of
         rejected values.
 
-    transpose : bool, optional
-        Whether to transpose the input array (default is `False`).
-
     Returns
     -------
     biweight_midcovariance : `~numpy.ndarray`
@@ -1233,10 +1229,6 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
         a = a[np.newaxis, :]
     if a.ndim != 2:
         raise ValueError('The input array must be 2D or 1D.')
-
-    # transpose
-    if transpose and a.ndim == 2:
-        a = a.T
 
     # estimate location if not given
     if M is None:

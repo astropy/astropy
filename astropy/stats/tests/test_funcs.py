@@ -291,14 +291,6 @@ def test_biweight_midcovariance_midvariance():
     assert_allclose(cov2.diagonal(), var2)
 
 
-def test_midcovariance_transpose():
-    rng = np.random.RandomState(1)
-    d = rng.normal(size=(3, 3))
-    cov1 = funcs.biweight_midcovariance(d, transpose=False)
-    cov2 = funcs.biweight_midcovariance(d.T, transpose=True)
-    assert_equal(cov1, cov2)
-
-
 def test_midcovariance_shape():
     """
     Test that biweight_midcovariance raises error with a 3D array.
