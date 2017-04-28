@@ -196,7 +196,7 @@ def test_biweight_midvariance():
 def test_biweight_midvariance_small():
     data = [1, 3, 5, 500, 2]
     scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
-    assert_allclose(scl, 2.9238456)
+    assert_allclose(scl, 2.9238456)    # verified with R
 
     scl = funcs.biweight_midvariance(data, modify_sample_size=True)
     assert_allclose(scl, 2.3390765)
@@ -207,7 +207,7 @@ def test_biweight_midvariance_5127():
     rand = np.random.RandomState(12345)
     data = rand.normal(loc=0., scale=20., size=(100, 100))
     scl = funcs.biweight_midvariance(data)
-    assert_allclose(scl, 406.86938710817344)
+    assert_allclose(scl, 406.86938710817344)    # verified with R
 
 
 def test_biweight_midvariance_axis():
@@ -261,11 +261,11 @@ def test_biweight_midcovariance_2d():
     d = [[0, 1, 2], [2, 1, 0]]
     cov = funcs.biweight_midcovariance(d)
     val = 0.70121809
-    assert_allclose(cov, [[val, -val], [-val, val]])    # verified against R
+    assert_allclose(cov, [[val, -val], [-val, val]])    # verified with R
 
     d = [[5, 1, 10], [500, 5, 2]]
     cov = funcs.biweight_midcovariance(d)
-    assert_allclose(cov, [[14.54159077, -7.79026256],    # verified against R
+    assert_allclose(cov, [[14.54159077, -7.79026256],    # verified with R
                           [-7.79026256, 6.92087252]])
 
     cov = funcs.biweight_midcovariance(d, modify_sample_size=True)

@@ -1105,11 +1105,52 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     where :math:`\zeta_{xx}`, :math:`\zeta_{yy}`, and :math:`\zeta_{zz}`
     are the biweight midvariances of each variable.  The biweight
-    midcovariance between :math:`x` and :math:`y` is :math:`\zeta_{xy} =
-    \zeta_{yx}`.  The biweight midcovariance between :math:`x` and
-    :math:`z` is :math:`\zeta_{xz} = \zeta_{zx}`.  The biweight
-    midcovariance between :math:`y` and :math:`z` is :math:`\zeta_{yz} =
-    \zeta_{zy}`.
+    midcovariance between :math:`x` and :math:`y` is :math:`\zeta_{xy}`
+    (:math:`= \zeta_{yx}`).  The biweight midcovariance between
+    :math:`x` and :math:`z` is :math:`\zeta_{xz}` (:math:`=
+    \zeta_{zx}`).  The biweight midcovariance between :math:`y` and
+    :math:`z` is :math:`\zeta_{yz}` (:math:`= \zeta_{zy}`).
+
+    The biweight midcovariance between two variables :math:`x` and
+    :math:`y` is given by:
+
+    .. math::
+
+        \zeta_{xy} = n \ \frac{\Sigma_{|u_i| < 1, \ |v_i| < 1} \
+            (x_i - M_x) (1 - u_i^2)^2 (y_i - M_y) (1 - v_i^2)^2}
+            {(\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))
+            (\Sigma_{|v_i| < 1} \ (1 - v_i^2) (1 - 5v_i^2))}
+
+    where :math:`M_x` and :math:`M_y` are the medians (or the input
+    locations) of the two variables and :math:`u_i` and :math:`v_i` are
+    the indicator functions given by:
+
+    .. math::
+
+        u_{i} = \frac{(x_i - M_x)}{c * MAD_x}
+
+        v_{i} = \frac{(y_i - M_y)}{c * MAD_y}
+
+    where :math:`c` is the biweight tuning constant and :math:`MAD_x`
+    and :math:`MAD_y` are the `median absolute deviation
+    <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_ of the
+    :math:`x` and :math:`y` variables.  The biweight midvariance tuning
+    constant ``c`` is typically 9.0 (the default).
+
+    For the standard definition of biweight midcovariance :math:`n` is
+    the total number of observations of each variable.  That definition
+    is used if ``modify_sample_size`` is `False`, which is the default.
+
+    However, if ``modify_sample_size = True``, then :math:`n` is the
+    number of observations for which :math:`|u_i| < 1` and :math:`|v_i|
+    < 1`, i.e.
+
+    .. math::
+
+        n = \Sigma_{|u_i| < 1, \ |v_i| < 1} \ 1
+
+    which results in a value closer to the true variance for small
+    sample sizes or for a large number of rejected values.
 
     Parameters
     ----------
@@ -1132,13 +1173,12 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
-        number of elements in the array (or along the input ``axis``, if
-        specified), which follows the standard definition of biweight
-        midcovariance.  If `True`, then the sample size is reduced to
-        correct for any rejected values (i.e. the sample size used
-        includes only the non-rejected values), which results in a value
-        closer to the true covariance for small sample sizes or for a
-        large number of rejected values.
+        number of observations of each variable, which follows the
+        standard definition of biweight midcovariance.  If `True`, then
+        the sample size is reduced to correct for any rejected values
+        (see formula above), which results in a value closer to the true
+        covariance for small sample sizes or for a large number of
+        rejected values.
 
     transpose : bool, optional
         Whether to transpose the input array (default is `False`).
@@ -1163,18 +1203,18 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     Examples
     --------
-    Generate a multivariate Gaussian with outliers and compute
-    the biweight midcovariance:
+    Compute the biweight midcovariance between two random variables:
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcovariance
-    >>> # Generate 2D normal sampling of points
+    >>> # Generate two random variables x and y
     >>> rng = np.random.RandomState(1)
-    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
+    >>> x = rng.normal(0, 1, 200)
+    >>> y = rng.normal(0, 3, 200)
     >>> # Introduce an obvious outlier
-    >>> d[0, 0] = 30.0
-    >>> # Calculate the biweight midcovariances
-    >>> bw_cov = biweight_midcovariance(d)
+    >>> x[0] = 30.0
+    >>> # Calculate the biweight midcovariances between x and y
+    >>> bw_cov = biweight_midcovariance([x, y])
     >>> print(bw_cov)    # doctest: +FLOAT_CMP
     [[ 0.82483155 -0.18961219]
      [-0.18961219 9.80265764]]
