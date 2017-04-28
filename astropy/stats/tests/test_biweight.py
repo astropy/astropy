@@ -8,7 +8,8 @@ from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
 from ..biweight import (biweight_location, biweight_scale,
-                        biweight_midvariance, biweight_midcovariance)
+                        biweight_midvariance, biweight_midcovariance,
+                        biweight_midcorrelation)
 from ...tests.helper import pytest
 from ...extern.six.moves import range
 from ...utils.misc import NumpyRNGContext
@@ -205,3 +206,33 @@ def test_biweight_midcovariance_symmetric():
 
     cov = biweight_midcovariance(d, modify_sample_size=True)
     assert_equal(cov, cov.T)
+
+
+def test_biweight_midcorrelation():
+    x = [0, 1, 2]
+    y = [2, 1, 0]
+    assert_allclose(biweight_midcorrelation(x, x), 1.0)
+    assert_allclose(biweight_midcorrelation(x, y), -1.0)
+
+    x = [5, 1, 10, 12.4, 13.2]
+    y = [500, 5, 2, 7.1, 0.9]
+    # verified with R
+    assert_allclose(biweight_midcorrelation(x, y), -0.14411038976763313)
+
+
+def test_biweight_midcorrelation_inputs():
+    a1 = np.ones((3, 3))
+    a2 = np.ones(5)
+    a3 = np.ones(7)
+
+    with pytest.raises(ValueError) as e:
+        biweight_midcorrelation(a1, a2)
+        assert 'x must be a 1D array.' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        biweight_midcorrelation(a2, a1)
+        assert 'y must be a 1D array.' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        biweight_midcorrelation(a2, a3)
+        assert 'x and y must have the same shape.' in str(e.value)
