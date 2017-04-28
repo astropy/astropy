@@ -831,7 +831,7 @@ def mad_std(data, axis=None, func=None):
 
     See Also
     --------
-    biweight_midvariance, median_absolute_deviation
+    biweight_midvariance, biweight_midcovariance, median_absolute_deviation
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
@@ -847,19 +847,22 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     .. math::
 
-        C_{bi}= M + \frac{\Sigma_{|u_i|<1} \ (x_i - M) (1 - u_i^2)^2}
+        \zeta_{biloc}= M + \frac{\Sigma_{|u_i|<1} \ (x_i - M) (1 - u_i^2)^2}
             {\Sigma_{|u_i|<1} \ (1 - u_i^2)^2}
 
-    where :math:`M` is the sample median (or the input initial guess)
-    and :math:`u_i` is given by:
+    where :math:`x` is the input data, :math:`M` is the sample median
+    (or the input initial location guess) and :math:`u_i` is the
+    indicator function given by:
 
     .. math::
 
         u_{i} = \frac{(x_i - M)}{c * MAD}
 
-    where :math:`c` is the tuning constant and :math:`MAD` is the median
-    absolute deviation.  The biweight location tuning constant ``c`` is
-    typically 6.0 (the default).
+    where :math:`c` is the tuning constant and :math:`MAD` is the
+    `median absolute deviation
+    <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_.  The
+    biweight location tuning constant ``c`` is typically 6.0 (the
+    default).
 
     For more details, see `Beers, Flynn, and Gebhardt (1990; AJ 100, 32)
     <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
@@ -869,14 +872,19 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     a : array-like
         Input array or object that can be converted to an array.
     c : float, optional
-        Tuning constant for the biweight estimator.  Default value is 6.0.
+        Tuning constant for the biweight estimator (default = 6.0).
     M : float or array-like, optional
-        Initial guess for the biweight location.  An array can be input
-        when using the ``axis`` keyword.
+        Initial guess for the location.  If ``M`` is a scalar value,
+        then its value will be used for the entire array (or along each
+        ``axis``, if specified).  If ``M`` is an array, then its must be
+        an array containing the initial location estimate along each
+        ``axis`` of the input array.  If `None` (default), then the
+        median of the input array will be used (or along each ``axis``,
+        if specified).
     axis : int, optional
-        The axis along which the biweight locations are computed.  The
-        default (`None`) will compute the biweight location of the
-        flattened input array.
+        The axis along which the biweight locations are computed.  If
+        `None` (default), then the biweight location of the flattened
+        input array will be computed.
 
     Returns
     -------
@@ -887,19 +895,19 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     See Also
     --------
-    biweight_midvariance, median_absolute_deviation, mad_std
+    biweight_midvariance, biweight_midcovariance, median_absolute_deviation, mad_std
 
     Examples
     --------
     Generate random variates from a Gaussian distribution and return the
-    biweight location of the distribution::
+    biweight location of the distribution:
 
-        >>> import numpy as np
-        >>> from astropy.stats import biweight_location
-        >>> rand = np.random.RandomState(12345)
-        >>> loc = biweight_location(rand.randn(1000))
-        >>> print(loc)    # doctest: +FLOAT_CMP
-        -0.0175741540445
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_location
+    >>> rand = np.random.RandomState(12345)
+    >>> loc = biweight_location(rand.randn(1000))
+    >>> print(loc)    # doctest: +FLOAT_CMP
+    -0.0175741540445
     """
 
     a = np.asanyarray(a)
@@ -937,18 +945,23 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 
     .. math::
 
-        C_{bi}= n \ \frac{\Sigma_{|u_i| < 1} \ (x_i - M)^2 (1 - u_i^2)^4}
-            {(\Sigma_{|u_i| < 1} \ (1 - u_i^2) (1 - 5u_i^2))^2}
+        \zeta_{bivar} = n \ \frac{\Sigma_{|u_i| < 1} \
+            (x_i - M)^2 (1 - u_i^2)^4} {(\Sigma_{|u_i| < 1} \
+            (1 - u_i^2) (1 - 5u_i^2))^2}
 
-    where :math:`u_i` is the indicator function given by
+    where :math:`x` is the input data, :math:`M` is the sample median
+    (or the input location) and :math:`u_i` is the indicator function
+    given by:
 
     .. math::
 
         u_{i} = \frac{(x_i - M)}{c * MAD}
 
-    where :math:`c` is the tuning constant and :math:`MAD` is the median
-    absolute deviation.  The biweight midvariance tuning constant ``c``
-    is typically 9.0 (the default).
+    where :math:`c` is the tuning constant and :math:`MAD` is the
+    `median absolute deviation
+    <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_.  The
+    biweight midvariance tuning constant ``c`` is typically 9.0 (the
+    default).
 
     For the standard definition of `biweight midvariance
     <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_,
@@ -958,7 +971,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 
     However, if ``modify_sample_size = True``, then :math:`n` is the
     number of points for which :math:`|u_i| < 1` (i.e. the total number
-    of non-rejected values),
+    of non-rejected values), i.e.
 
     .. math::
 
@@ -972,15 +985,18 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     a : array-like
         Input array or object that can be converted to an array.
     c : float, optional
-        Tuning constant for the biweight estimator.  Default value is
-        9.0.
+        Tuning constant for the biweight estimator (default = 9.0).
     M : float or array-like, optional
-        Initial guess for the biweight location.  An array can be input
-        when using the ``axis`` keyword.
+        The location estimate.  If ``M`` is a scalar value, then its
+        value will be used for the entire array (or along each ``axis``,
+        if specified).  If ``M`` is an array, then its must be an array
+        containing the location estimate along each ``axis`` of the
+        input array.  If `None` (default), then the median of the input
+        array will be used (or along each ``axis``, if specified).
     axis : int, optional
-        The axis along which the biweight midvariances are computed.
-        The default (`None`) will compute the biweight midvariance of
-        the flattened input array.
+        The axis along which the biweight midvariances are computed.  If
+        `None` (default), then the biweight midvariance of the flattened
+        input array will be computed.
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
         number of elements in the array (or along the input ``axis``, if
@@ -1000,7 +1016,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 
     See Also
     --------
-    biweight_location, mad_std, median_absolute_deviation
+    biweight_midcovariance, biweight_location, mad_std, median_absolute_deviation
 
     References
     ----------
@@ -1011,7 +1027,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     Examples
     --------
     Generate random variates from a Gaussian distribution and return the
-    biweight midvariance of the distribution::
+    biweight midvariance of the distribution:
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midvariance
@@ -1076,14 +1092,15 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
         convention).
 
     c : float, optional
-        Tuning constant for the biweight estimator (default=9.0).
+        Tuning constant for the biweight estimator (default = 9.0).
 
     M : float or 1D array-like, optional
-        Initial guess for the biweight location of each variable, either
-        as a scalar or array.  If ``M`` is an array, then its must be a
-        1D array containing the biweight location of each row (i.e.
-        ``a.ndim`` elements).  If ``M`` is a scalar value, then its
-        value will be used for each variable (row).
+        The location estimate of each variable, either as a scalar or
+        array.  If ``M`` is an array, then its must be a 1D array
+        containing the location estimate of each row (i.e. ``a.ndim``
+        elements).  If ``M`` is a scalar value, then its value will be
+        used for each variable (row).  If `None` (default), then the
+        median of each variable (row) will be used.
 
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
