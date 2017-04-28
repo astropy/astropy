@@ -1078,10 +1078,38 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
                            transpose=False):
     r"""
-    Compute the biweight midcovariance.
+    Compute the biweight midcovariance between pairs of multiple
+    variables.
 
     The biweight midcovariance is a robust and resistant estimator of
     the covariance between two variables.
+
+    This function computes the biweight midcovariance between all pairs
+    of the input variables (rows) in the input data.  The output array
+    will have a shape of (N_variables, N_variables).  The diagonal
+    elements will be the biweight midvariances of each input variable
+    (see :func:`biweight_midvariance`).  The off-diagonal elements will
+    be the biweight midcovariances between each pair of input variables.
+
+    For example, if the input array ``a`` contains three variables
+    (rows) ``x``, ``y``, and ``z``, the output `~numpy.ndarray`
+    midcovariance matrix will be:
+
+    .. math::
+
+         \begin{pmatrix}
+         \zeta_{xx}  & \zeta_{xy}  & \zeta_{xz} \\
+         \zeta_{yx}  & \zeta_{yy}  & \zeta_{yz} \\
+         \zeta_{zx}  & \zeta_{zy}  & \zeta_{zz}
+         \end{pmatrix}
+
+    where :math:`\zeta_{xx}`, :math:`\zeta_{yy}`, and :math:`\zeta_{zz}`
+    are the biweight midvariances of each variable.  The biweight
+    midcovariance between :math:`x` and :math:`y` is :math:`\zeta_{xy} =
+    \zeta_{yx}`.  The biweight midcovariance between :math:`x` and
+    :math:`z` is :math:`\zeta_{xz} = \zeta_{zx}`.  The biweight
+    midcovariance between :math:`y` and :math:`z` is :math:`\zeta_{yz} =
+    \zeta_{zy}`.
 
     Parameters
     ----------
@@ -1119,7 +1147,11 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
     -------
     biweight_midcovariance : `~numpy.ndarray`
         A 2D array representing the biweight midcovariances between each
-        pair of the variables (rows) in the input array.
+        pair of the variables (rows) in the input array.  The output
+        array will have a shape of (N_variables, N_variables).  The
+        diagonal elements will be the biweight midvariances of each
+        input variable.  The off-diagonal elements will be the biweight
+        midcovariances between each pair of input variables.
 
     See Also
     --------
@@ -1127,7 +1159,7 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     References
     ----------
-    http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+    .. [1] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
 
     Examples
     --------
