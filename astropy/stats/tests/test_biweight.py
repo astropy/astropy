@@ -7,8 +7,8 @@ from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
-from ..biweight import (biweight_location, biweight_midvariance,
-                        biweight_midcovariance)
+from ..biweight import (biweight_location, biweight_scale,
+                        biweight_midvariance, biweight_midcovariance)
 from ...tests.helper import pytest
 from ...extern.six.moves import range
 from ...utils.misc import NumpyRNGContext
@@ -67,29 +67,37 @@ def test_biweight_location_axis_3d():
         assert_allclose(bw[y], bwi)
 
 
+def test_biweight_scale():
+    # NOTE:  biweight_scale is covered by biweight_midvariance tests
+    data = [1, 3, 5, 500, 2]
+    scl = biweight_scale(data)
+    var = biweight_midvariance(data)
+    assert_allclose(scl, np.sqrt(var))
+
+
 def test_biweight_midvariance():
     with NumpyRNGContext(12345):
         # test that it runs
         randvar = randn(10000)
-        scl = biweight_midvariance(randvar)
-        assert_allclose(scl, 1.0, rtol=0.02)
+        var = biweight_midvariance(randvar)
+        assert_allclose(var, 1.0, rtol=0.02)
 
 
 def test_biweight_midvariance_small():
     data = [1, 3, 5, 500, 2]
-    scl = biweight_midvariance([1, 3, 5, 500, 2])
-    assert_allclose(scl, 2.9238456)    # verified with R
+    var = biweight_midvariance(data)
+    assert_allclose(var, 2.9238456)    # verified with R
 
-    scl = biweight_midvariance(data, modify_sample_size=True)
-    assert_allclose(scl, 2.3390765)
+    var = biweight_midvariance(data, modify_sample_size=True)
+    assert_allclose(var, 2.3390765)
 
 
 def test_biweight_midvariance_5127():
     # test a regression introduced in #5127
     rand = np.random.RandomState(12345)
     data = rand.normal(loc=0., scale=20., size=(100, 100))
-    scl = biweight_midvariance(data)
-    assert_allclose(scl, 406.86938710817344)    # verified with R
+    var = biweight_midvariance(data)
+    assert_allclose(var, 406.86938710817344)    # verified with R
 
 
 def test_biweight_midvariance_axis():
