@@ -100,9 +100,9 @@ Angles will also behave correctly for appropriate arithmetic operations::
     <Angle 3.5 rad>
     >>> np.sin(a / 2)  # doctest: +FLOAT_CMP
     <Quantity 0.479425538604203>
-    >>> a == a
+    >>> a == a  # doctest: +SKIP
     array(True, dtype=bool)
-    >>> a == (a + a)
+    >>> a == (a + a)    # doctest: +SKIP
     array(False, dtype=bool)
 
 |Angle| objects can also be used for creating coordinate objects::
