@@ -193,6 +193,19 @@ def test_midcovariance_shape():
     assert 'The input array must be 2D or 1D.' in str(e.value)
 
 
+def test_midcovariance_M_shape():
+    """
+    Test that biweight_midcovariance raises error when M is not a scalar
+    or 1D array.
+    """
+
+    d = [0, 1, 2]
+    M = [[0, 1], [2, 3]]
+    with pytest.raises(ValueError) as e:
+        biweight_midcovariance(d, M=M)
+    assert 'M must be a scalar or 1D array.' in str(e.value)
+
+
 def test_biweight_midcovariance_symmetric():
     """
     Regression test to ensure that midcovariance matrix is symmetric

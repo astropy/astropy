@@ -73,7 +73,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     See Also
     --------
-    biweight_midvariance, biweight_midcovariance, median_absolute_deviation, mad_std
+    biweight_scale, biweight_midvariance, biweight_midcovariance
 
     Examples
     --------
@@ -83,8 +83,8 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     >>> import numpy as np
     >>> from astropy.stats import biweight_location
     >>> rand = np.random.RandomState(12345)
-    >>> loc = biweight_location(rand.randn(1000))
-    >>> print(loc)    # doctest: +FLOAT_CMP
+    >>> biloc = biweight_location(rand.randn(1000))
+    >>> print(biloc)    # doctest: +FLOAT_CMP
     -0.0175741540445
     """
 
@@ -117,12 +117,14 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
     Compute the biweight scale.
 
     The biweight scale is a robust statistic for determining the
-    standard deviation of a distribution.  It is given by the square
-    root of the biweight midvariance:
+    standard deviation of a distribution.  It is the square root of the
+    `biweight midvariance
+    <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_.
+    It is given by:
 
     .. math::
 
-        \zeta_{bivar} = \sqrt{n} \ \frac{\sqrt{\Sigma_{|u_i| < 1} \
+        \zeta_{biscl} = \sqrt{n} \ \frac{\sqrt{\Sigma_{|u_i| < 1} \
             (x_i - M)^2 (1 - u_i^2)^4}} {|(\Sigma_{|u_i| < 1} \
             (1 - u_i^2) (1 - 5u_i^2))|}
 
@@ -206,8 +208,8 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
     >>> import numpy as np
     >>> from astropy.stats import biweight_scale
     >>> rand = np.random.RandomState(12345)
-    >>> bmv = biweight_scale(rand.randn(1000))
-    >>> print(bmv)    # doctest: +FLOAT_CMP
+    >>> biscl = biweight_scale(rand.randn(1000))
+    >>> print(biscl)    # doctest: +FLOAT_CMP
     0.986726249291
     """
 
@@ -298,7 +300,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 
     See Also
     --------
-    biweight_midcovariance, biweight_location, mad_std, median_absolute_deviation
+    biweight_midcovariance, biweight_midcorrelation, mad_std, median_absolute_deviation
 
     References
     ----------
@@ -314,8 +316,8 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     >>> import numpy as np
     >>> from astropy.stats import biweight_midvariance
     >>> rand = np.random.RandomState(12345)
-    >>> bmv = biweight_midvariance(rand.randn(1000))
-    >>> print(bmv)    # doctest: +FLOAT_CMP
+    >>> bivar = biweight_midvariance(rand.randn(1000))
+    >>> print(bivar)    # doctest: +FLOAT_CMP
     0.97362869104
     """
 
@@ -476,7 +478,7 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
 
     See Also
     --------
-    biweight_midvariance, biweight_location
+    biweight_midvariance, biweight_midcorrelation, biweight_scale, biweight_location
 
     References
     ----------
@@ -495,12 +497,12 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
     >>> # Introduce an obvious outlier
     >>> x[0] = 30.0
     >>> # Calculate the biweight midcovariances between x and y
-    >>> bw_cov = biweight_midcovariance([x, y])
-    >>> print(bw_cov)    # doctest: +FLOAT_CMP
+    >>> bicov = biweight_midcovariance([x, y])
+    >>> print(bicov)    # doctest: +FLOAT_CMP
     [[ 0.82483155 -0.18961219]
      [-0.18961219 9.80265764]]
     >>> # Print standard deviation estimates
-    >>> print(np.sqrt(bw_cov.diagonal()))    # doctest: +FLOAT_CMP
+    >>> print(np.sqrt(bicov.diagonal()))    # doctest: +FLOAT_CMP
     [ 0.90820237  3.13091961]
     """
 
@@ -558,7 +560,7 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
 
     .. math::
 
-        \r_{bicorr} = \frac{\zeta_{xy}}{\sqrt{\zeta_{xx} \ \zeta_{yy}}}
+        r_{bicorr} = \frac{\zeta_{xy}}{\sqrt{\zeta_{xx} \ \zeta_{yy}}}
 
     where :math:`\zeta_{xx}` is the biweight midvariance of :math:`x`,
     :math:`\zeta_{yy}` is the biweight midvariance of :math:`y`, and
@@ -568,17 +570,19 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
     Parameters
     ----------
     x, y : 1D array-like
-        Input arrays for the two variables.  ``x`` and ``y`` must have
-        the same number of elements.
+        Input arrays for the two variables.  ``x`` and ``y`` must be 1D
+        arrays and have the same number of elements.
     c : float, optional
-        Tuning constant for the biweight estimator (default = 9.0).
+        Tuning constant for the biweight estimator (default = 9.0).  See
+        `biweight_midcovariance` for more details.
     M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
         if specified).  If ``M`` is an array, then its must be an array
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
-        array will be used (or along each ``axis``, if specified).
+        array will be used (or along each ``axis``, if specified).  See
+        `biweight_midcovariance` for more details.
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
         number of elements in the array (or along the input ``axis``, if
@@ -587,7 +591,8 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
         correct for any rejected values (i.e. the sample size used
         includes only the non-rejected values), which results in a value
         closer to the true midcovariance for small sample sizes or for a
-        large number of rejected values.
+        large number of rejected values.  See `biweight_midcovariance`
+        for more details.
 
     Returns
     -------
@@ -596,7 +601,7 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
 
     See Also
     --------
-    biweight_scale, biweight_midvariance, biweight_midcovariance, biweight_location, mad_std, median_absolute_deviation
+    biweight_scale, biweight_midvariance, biweight_midcovariance, biweight_location
 
     References
     ----------
@@ -613,8 +618,8 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
     >>> y = rng.normal(0, 3, 200)
     >>> # Introduce an obvious outlier
     >>> x[0] = 30.0
-    >>> corr = biweight_midcorrelation(x, y)
-    >>> print(corr)    # doctest: +FLOAT_CMP
+    >>> bicorr = biweight_midcorrelation(x, y)
+    >>> print(bicorr)    # doctest: +FLOAT_CMP
     -0.0495780713907
     """
 
