@@ -36,11 +36,7 @@ from ... import units as u
 
 
 def test_median_absolute_deviation():
-    # need to seed the numpy RNG to make sure we don't get some amazingly
-    # flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
-
         # test that it runs
         randvar = randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
@@ -109,8 +105,7 @@ def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan],
                       [2, 5, np.nan, 4]])
     assert_equal(funcs.median_absolute_deviation(array, func=np.nanmedian,
-                                                 axis=1),
-                 [1, 1])
+                                                 axis=1), [1, 1])
 
     array = np.ma.masked_invalid(array)
     assert funcs.median_absolute_deviation(array) == 1
@@ -120,8 +115,8 @@ def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
                  np.zeros(5))
-    assert_equal(funcs.median_absolute_deviation(array, axis=np.array([1, 2])),
-                 np.zeros(5))
+    assert_equal(funcs.median_absolute_deviation(
+        array, axis=np.array([1, 2])), np.zeros(5))
 
 
 def test_median_absolute_deviation_quantity():
@@ -131,29 +126,23 @@ def test_median_absolute_deviation_quantity():
     # quantity
     a = np.array([1, 16, 5]) * u.m
     mad = funcs.median_absolute_deviation(a)
-    # Check for the correct unit and that the result is identical to the result
-    # without units.
+    # Check for the correct unit and that the result is identical to the
+    # result without units.
     assert mad.unit == a.unit
     assert mad.value == funcs.median_absolute_deviation(a.value)
 
 
 def test_biweight_location():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
-
         # test that it runs
         randvar = randn(10000)
         cbl = funcs.biweight_location(randvar)
-
-        assert abs(cbl-0) < 1e-2
+        assert abs(cbl - 0) < 1e-2
 
 
 def test_biweight_location_small():
-
     cbl = funcs.biweight_location([1, 3, 5, 500, 2])
-    assert abs(cbl-2.745) < 1e-3
+    assert abs(cbl - 2.745) < 1e-3
 
 
 def test_biweight_location_axis():
@@ -197,11 +186,7 @@ def test_biweight_location_axis_3d():
 
 
 def test_biweight_midvariance():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
-
         # test that it runs
         randvar = randn(10000)
         scl = funcs.biweight_midvariance(randvar)
@@ -265,7 +250,14 @@ def test_biweight_midvariance_axis_3d():
         assert_allclose(bw[y], bwi)
 
 
-def test_biweight_midcovariance():
+def test_biweight_midcovariance_1d():
+    d = [0, 1, 2]
+    cov = funcs.biweight_midcovariance(d)
+    var = funcs.biweight_midvariance(d)
+    assert_allclose(cov, [[var]])
+
+
+def test_biweight_midcovariance_2d():
     d = [[0, 1, 2], [2, 1, 0]]
     cov = funcs.biweight_midcovariance(d)
     val = 0.70121809
@@ -288,7 +280,7 @@ def test_biweight_midcovariance_midvariance():
     """
 
     rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
+    d = rng.normal(0, 2, size=(100, 3))
     cov = funcs.biweight_midcovariance(d)
     var = [funcs.biweight_midvariance(a) for a in d]
     assert_allclose(cov.diagonal(), var)
@@ -297,6 +289,14 @@ def test_biweight_midcovariance_midvariance():
     var2 = [funcs.biweight_midvariance(a, modify_sample_size=True)
             for a in d]
     assert_allclose(cov2.diagonal(), var2)
+
+
+def test_midcovariance_transpose():
+    rng = np.random.RandomState(1)
+    d = rng.normal(size=(3, 3))
+    cov1 = funcs.biweight_midcovariance(d, transpose=False)
+    cov2 = funcs.biweight_midcovariance(d.T, transpose=True)
+    assert_equal(cov1, cov2)
 
 
 def test_midcovariance_shape():
@@ -313,12 +313,15 @@ def test_midcovariance_shape():
 def test_biweight_midcovariance_symmetric():
     """
     Regression test to ensure that midcovariance matrix is symmetric
-    (see #5972).
+    when ``modify_sample_size=True`` (see #5972).
     """
 
     rng = np.random.RandomState(1)
-    d = np.array([rng.gamma(2, 2, 500) for i in range(3)])
+    d = rng.gamma(2, 2, size=(3, 500))
     cov = funcs.biweight_midcovariance(d)
+    assert_equal(cov, cov.T)
+
+    cov = funcs.biweight_midcovariance(d, modify_sample_size=True)
     assert_equal(cov, cov.T)
 
 
