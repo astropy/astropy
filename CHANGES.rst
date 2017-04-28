@@ -56,7 +56,10 @@ New Features
 
 - ``astropy.stats``
 
-  - Added ``biweight_midcovariance`` method. [#5777]
+  - Added ``biweight_midcovariance`` function. [#5777]
+
+  - Added ``biweight_scale`` and ``biweight_midcorrelation``
+    functions. [#5991]
 
 - ``astropy.sphinx``
 
@@ -131,6 +134,9 @@ API Changes
 
   - Removed the deprecated ``sig`` and ``varfunc`` keywords in the
     ``sigma_clip`` function. [#5715]
+
+  - Added ``modify_sample_size`` keyword to ``biweight_midvariance``
+    function. [#5991]
 
 - ``astropy.sphinx``
 
@@ -207,6 +213,9 @@ Bug Fixes
   - Allow to choose which median function is used in ``mad_std`` and
     ``median_absolute_deviation``. And allow to use these functions with
     a multi-dimensional ``axis``. [#5835]
+
+  - Fixed ``biweight_midvariance`` so that by default it returns a
+    variance that agrees with the standard definition. [#5991]
 
 - ``astropy.sphinx``
 
