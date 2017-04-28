@@ -150,6 +150,39 @@ class TableColumns(OrderedDict):
     def values(self):
         return list(OrderedDict.values(self))
 
+    def isinstance(self, cls):
+        """
+        Return a list of columns which are instances of the specified classes.
+
+        Parameters
+        ----------
+        cls : class or tuple of classes
+            Column class (including mixin) or tuple of Column classes.
+
+        Returns
+        -------
+        col_list : list of Columns
+            List of Column objects which are instances of given classes.
+        """
+        cols = [col for col in self.values() if isinstance(col, cls)]
+        return cols
+
+    def not_isinstance(self, cls):
+        """
+        Return a list of columns which are not instances of the specified classes.
+
+        Parameters
+        ----------
+        cls : class or tuple of classes
+            Column class (including mixin) or tuple of Column classes.
+
+        Returns
+        -------
+        col_list : list of Columns
+            List of Column objects which are not instances of given classes.
+        """
+        cols = [col for col in self.values() if not isinstance(col, cls)]
+        return cols
 
 class Table(object):
     """A class to represent tables of heterogeneous data.
@@ -853,7 +886,7 @@ class Table(object):
     def has_mixin_columns(self):
         """
         True if table has any mixin columns (defined as columns that are not Column
-        subclasses)
+        subclasses).
         """
         return any(has_info_class(col, MixinInfo) for col in self.columns.values())
 
