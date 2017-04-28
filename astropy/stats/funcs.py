@@ -1154,11 +1154,14 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     Parameters
     ----------
-    a : 2D array-like
-        A 2D array of shape (N_variables, N_observations).  Each row of
-        ``a`` represents a variable, and each column a single
-        observation of all those variables (same as the `numpy.cov`
-        convention).
+    a : 2D or 1D array-like
+        Input data either as a 2D or 1D array.  For a 2D array, it
+        should have a shape (N_variables, N_observations).  A 1D array
+        may be input for observations of a single variable, in which
+        case the biweight midvariance will be calculated (no
+        covariance).  Each row of ``a`` represents a variable, and each
+        column a single observation of all those variables (same as the
+        `numpy.cov` convention).
 
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
@@ -1223,23 +1226,24 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
     [ 0.90820237  3.13091961]
     """
 
-    # Ensure a is array-like
     a = np.asanyarray(a)
 
-    # Ensure a is 2D
+    # ensure a is 2D
+    if a.ndim == 1:
+        a = a[np.newaxis, :]
     if a.ndim != 2:
-        if a.ndim == 1:
-            a = a[np.newaxis,:]
-        else:
-            raise ValueError("a.ndim should equal 2")
+        raise ValueError('The input array must be 2D or 1D.')
 
-    # Transpose
-    if transpose == True and a.ndim == 2:
+    # transpose
+    if transpose and a.ndim == 2:
         a = a.T
 
-    # Estimate location if not given
+    # estimate location if not given
     if M is None:
         M = np.median(a, axis=1)
+    M = np.asanyarray(M)
+    if M.ndim > 1:
+        raise ValueError('M must be a scalar or 1D array.')
 
     # set up the differences
     d = (a.T - M).T
@@ -1250,22 +1254,20 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False,
 
     # now remove the outlier points
     mask = np.abs(u) < 1
+    u = u ** 2
 
     if modify_sample_size:
-        maskf = np.array(mask, float)
-        n = np.inner(maskf,maskf)
+        maskf = mask.astype(float)
+        n = np.inner(maskf, maskf)
     else:
         n = a[0].size
 
-    usub1 = (1 - u ** 2)
-    usub5 = (1 - 5 * u ** 2)
-    usub1[~mask] = 0.0
+    usub1 = (1. - u)
+    usub5 = (1. - 5. * u)
+    usub1[~mask] = 0.
 
-    # now compute numerator and denominator
     numerator = d * usub1 ** 2
     denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
-
-    # return estimate of the covariance
     numerator_matrix = np.dot(numerator, numerator.T)
     denominator_matrix = np.dot(denominator, denominator.T)
 
