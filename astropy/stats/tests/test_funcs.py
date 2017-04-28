@@ -307,7 +307,7 @@ def test_midcovariance_shape():
     d = np.ones(27).reshape(3, 3, 3)
     with pytest.raises(ValueError) as e:
         funcs.biweight_midcovariance(d)
-    assert 'a.ndim should equal 2' in str(e.value)
+    assert 'The input array must be 2D or 1D.' in str(e.value)
 
 
 def test_biweight_midcovariance_symmetric():
