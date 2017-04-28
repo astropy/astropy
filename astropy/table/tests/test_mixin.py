@@ -24,6 +24,7 @@ from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates
 from ... import units as u
+from ..column import BaseColumn
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
@@ -102,14 +103,44 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
+def test_io_quantity_write(tmpdir):
+    """
+    Test that table with Quantity mixin column can be written by io.fits,
+    but not by io.votable and io.misc.hdf5. Validation of the output is done.
+    Test that io.fits writes a table containing Quantity mixin columns that can
+    be round-tripped (metadata unit).
+    """
+    t = QTable()
+    t['a'] = u.Quantity([1,2,4], unit='Angstrom')
+
+    filename = tmpdir.join("table-tmp").strpath
+    open(filename, 'w').close()
+
+    for fmt in ('fits', 'votable', 'hdf5'):
+        if fmt == 'fits':
+            t.write(filename, format=fmt, overwrite=True)
+            qt = QTable.read(filename, format=fmt)
+            assert isinstance(qt['a'], u.Quantity)
+            assert qt['a'].unit == 'Angstrom'
+            continue
+        if fmt == 'hdf5' and not HAS_H5PY:
+            continue
+        with pytest.raises(ValueError) as err:
+            t.write(filename, format=fmt, overwrite=True)
+        assert 'cannot write table with mixin column(s)' in str(err.value)
+
+
 def test_io_write_fail(mixin_cols):
     """
-    Test that table with mixin column cannot be written by io.votable,
-    io.fits, and io.misc.hdf5
-    every pure Python writer.  No validation of the output is done,
-    this just confirms no exceptions.
+    Test that table with mixin column (excluding Quantity) cannot be written by io.votable,
+    io.fits, and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
+    # Only do this test if there are unsupported column types (i.e. anything besides
+    # BaseColumn or Quantity subclasses.
+    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
+    if not unsupported_cols:
+        pytest.skip("no unsupported column types")
     for fmt in ('fits', 'votable', 'hdf5'):
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
