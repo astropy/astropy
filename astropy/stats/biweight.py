@@ -13,7 +13,7 @@ from .funcs import median_absolute_deviation
 
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
-           'biweight_midcovariance']
+           'biweight_midcovariance', 'biweight_midcorrelation']
 
 
 def biweight_location(a, c=6.0, M=None, axis=None):
@@ -546,3 +546,88 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
     denominator_matrix = np.dot(denominator, denominator.T)
 
     return n * (numerator_matrix / denominator_matrix)
+
+
+def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
+    r"""
+    Compute the biweight midcorrelation between two variables.
+
+    The `biweight midcorrelation
+    <https://en.wikipedia.org/wiki/Biweight_midcorrelation>`_ is a
+    measure of similarity between samples.  It is given by:
+
+    .. math::
+
+        \r_{bicorr} = \frac{\zeta_{xy}}{\sqrt{\zeta_{xx} \ \zeta_{yy}}}
+
+    where :math:`\zeta_{xx}` is the biweight midvariance of :math:`x`,
+    :math:`\zeta_{yy}` is the biweight midvariance of :math:`y`, and
+    :math:`\zeta_{xy}` is the biweight midcovariance of :math:`x` and
+    :math:`y`.
+
+    Parameters
+    ----------
+    x, y : 1D array-like
+        Input arrays for the two variables.  ``x`` and ``y`` must have
+        the same number of elements.
+    c : float, optional
+        Tuning constant for the biweight estimator (default = 9.0).
+    M : float or array-like, optional
+        The location estimate.  If ``M`` is a scalar value, then its
+        value will be used for the entire array (or along each ``axis``,
+        if specified).  If ``M`` is an array, then its must be an array
+        containing the location estimate along each ``axis`` of the
+        input array.  If `None` (default), then the median of the input
+        array will be used (or along each ``axis``, if specified).
+    modify_sample_size : bool, optional
+        If `False` (default), then the sample size used is the total
+        number of elements in the array (or along the input ``axis``, if
+        specified), which follows the standard definition of biweight
+        midcovariance.  If `True`, then the sample size is reduced to
+        correct for any rejected values (i.e. the sample size used
+        includes only the non-rejected values), which results in a value
+        closer to the true midcovariance for small sample sizes or for a
+        large number of rejected values.
+
+    Returns
+    -------
+    biweight_midcorrelation : float
+        The biweight midcorrelation between ``x`` and ``y``.
+
+    See Also
+    --------
+    biweight_scale, biweight_midvariance, biweight_midcovariance, biweight_location, mad_std, median_absolute_deviation
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Biweight_midcorrelation
+
+    Examples
+    --------
+    Calculate the biweight midcorrelation between two variables:
+
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_midcorrelation
+    >>> rng = np.random.RandomState(12345)
+    >>> x = rng.normal(0, 1, 200)
+    >>> y = rng.normal(0, 3, 200)
+    >>> # Introduce an obvious outlier
+    >>> x[0] = 30.0
+    >>> corr = biweight_midcorrelation(x, y)
+    >>> print(corr)    # doctest: +FLOAT_CMP
+    -0.0495780713907
+    """
+
+    x = np.asanyarray(x)
+    y = np.asanyarray(y)
+    if x.ndim != 1:
+        raise ValueError('x must be a 1D array.')
+    if y.ndim != 1:
+        raise ValueError('y must be a 1D array.')
+    if x.shape != y.shape:
+        raise ValueError('x and y must have the same shape.')
+
+    bicorr = biweight_midcovariance([x, y], c=c, M=M,
+                                    modify_sample_size=modify_sample_size)
+
+    return bicorr[0, 1] / (np.sqrt(bicorr[0, 0] * bicorr[1, 1]))
