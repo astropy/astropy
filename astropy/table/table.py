@@ -1566,14 +1566,14 @@ class Table(object):
               1 0.1  1.0
               2 0.2  2.0
               3 0.3  3.0
-        
+
         Add a column or mixin object at the end of the table and specify a different name::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
             >>> t.add_column(col_b, name='c')
             >>> print(t)
-             a   b   c 
+             a   b   c
             --- --- ---
               1 0.1 1.1
               2 0.2 1.2
@@ -1661,7 +1661,7 @@ class Table(object):
               1 0.1 1.1  x
               2 0.2 1.2  y
               3 0.3 1.3  z
-              
+
         Add unnamed columns or mixin objects at the end of the table using default names::
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> col_c = Column(data=['x', 'y', 'z'])
@@ -1692,7 +1692,7 @@ class Table(object):
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> t.add_columns([col_b, col_c], names=['c', 'd'])
             >>> print(t)
-             a   b   c   d 
+             a   b   c   d
             --- --- --- ---
               1 0.1 1.1   x
               2 0.2 1.2   y
