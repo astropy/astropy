@@ -131,7 +131,7 @@ class FalseArray(np.ndarray):
             self.__setitem__(slice(start, stop), val)
 
 
-def _encode_str_utf8(value):
+def _encode_str(value):
     """
     Encode anything that is unicode-ish as utf-8.  This method is used
     in Column and is only called for Py3+.
@@ -231,7 +231,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         else:
             if not six.PY2 and np.dtype(dtype).char == 'S':
-                data = _encode_str_utf8(data)
+                data = _encode_str(data)
             self_data = np.array(data, dtype=dtype, copy=copy)
 
         self = self_data.view(cls)
@@ -884,7 +884,7 @@ class Column(BaseColumn):
 
     def __setitem__(self, index, value):
         if not six.PY2 and self.dtype.char == 'S':
-            value = _encode_str_utf8(value)
+            value = _encode_str(value)
 
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
@@ -910,7 +910,7 @@ class Column(BaseColumn):
         """
         def _compare(self, other):
             if not six.PY2 and self.dtype.char == 'S':
-                other = _encode_str_utf8(other)
+                other = _encode_str(other)
             return getattr(self.data, oper)(other)
         return _compare
 
@@ -1216,7 +1216,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     def __setitem__(self, index, value):
         # Issue warning for string assignment that truncates ``value``
         if not six.PY2 and self.dtype.char == 'S':
-            value = _encode_str_utf8(value)
+            value = _encode_str(value)
 
         if issubclass(self.dtype.type, np.character):
             # Account for a bug in np.ma.MaskedArray setitem.
