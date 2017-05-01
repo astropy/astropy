@@ -29,8 +29,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
             {\Sigma_{|u_i|<1} \ (1 - u_i^2)^2}
 
     where :math:`x` is the input data, :math:`M` is the sample median
-    (or the input initial location guess) and :math:`u_i` is the
-    indicator function given by:
+    (or the input initial location guess) and :math:`u_i` is given by:
 
     .. math::
 
@@ -41,9 +40,6 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_.  The
     biweight location tuning constant ``c`` is typically 6.0 (the
     default).
-
-    For more details, see `Beers, Flynn, and Gebhardt (1990; AJ 100, 32)
-    <http://adsabs.harvard.edu/abs/1990AJ....100...32B>`_.
 
     Parameters
     ----------
@@ -74,6 +70,12 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     See Also
     --------
     biweight_scale, biweight_midvariance, biweight_midcovariance
+
+    References
+    ----------
+    .. [1] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
+
+    .. [2] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm
 
     Examples
     --------
@@ -129,8 +131,7 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
             (1 - u_i^2) (1 - 5u_i^2))|}
 
     where :math:`x` is the input data, :math:`M` is the sample median
-    (or the input location) and :math:`u_i` is the indicator function
-    given by:
+    (or the input location) and :math:`u_i` is given by:
 
     .. math::
 
@@ -200,6 +201,8 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
     ----------
     .. [1] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
 
+    .. [2] http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm
+
     Examples
     --------
     Generate random variates from a Gaussian distribution and return the
@@ -234,8 +237,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
             (1 - u_i^2) (1 - 5u_i^2))^2}
 
     where :math:`x` is the input data, :math:`M` is the sample median
-    (or the input location) and :math:`u_i` is the indicator function
-    given by:
+    (or the input location) and :math:`u_i` is given by:
 
     .. math::
 
@@ -406,7 +408,7 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
 
     where :math:`M_x` and :math:`M_y` are the medians (or the input
     locations) of the two variables and :math:`u_i` and :math:`v_i` are
-    the indicator functions given by:
+    given by:
 
     .. math::
 
