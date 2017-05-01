@@ -1546,26 +1546,26 @@ class Table(object):
         Add an unnamed column or mixin object at the end of the table using a default name::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_time = Time([1, 2, 3], format='cxcsec')
-            >>> t.add_column(col_time)
+            >>> col_c = Column(data=['x', 'y', 'z'])
+            >>> t.add_column(col_c)
             >>> print(t)
              a   b   2
             --- --- ---
-              1 0.1 1.0
-              2 0.2 2.0
-              3 0.3 3.0
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
 
         Add an unnamed column or mixin object at the end of the table by specifying an explicit name::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_time = Time([1, 2, 3], format='cxcsec')
-            >>> t.add_column(col_time, name='Time')
+            >>> col_c = Column(data=['x', 'y', 'z'])
+            >>> t.add_column(col_c, name='c')
             >>> print(t)
-              a   b  Time
-            --- --- ----
-              1 0.1  1.0
-              2 0.2  2.0
-              3 0.3  3.0
+              a   b  c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
 
         Add a column or mixin object at the end of the table and specify a different name::
 
