@@ -230,6 +230,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 meta = deepcopy(data.info.meta)
 
         else:
+            if not six.PY2 and np.dtype(dtype).char == 'S':
+                data = _encode_str_utf8(data)
             self_data = np.array(data, dtype=dtype, copy=copy)
 
         self = self_data.view(cls)

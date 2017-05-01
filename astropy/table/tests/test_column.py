@@ -630,10 +630,27 @@ def test_string_truncation_warning_masked():
                 in str(w[0].message))
 
 
+@pytest.mark.skipif('six.PY2')
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_create_from_str(Column):
+    """
+    Create a bytestring Column from strings (including unicode) in Py3.
+    """
+    # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
+    # Stress the system by injecting non-ASCII characters.
+    uba = u'bä'
+    c = Column([uba, 'def'], dtype='S')
+    assert c.dtype.char == 'S'
+    assert c[0] == uba
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+
 @pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
 def test_col_unicode_sandwich_bytes(Column):
     """
-    Create a bytestring Column and ensure that it works in Python 3 in
+    Create a bytestring Column from bytes and ensure that it works in Python 3 in
     a convenient way like in Python 2.
     """
     # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
