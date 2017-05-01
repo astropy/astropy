@@ -77,6 +77,10 @@ New Features
 
   - Add support for Quantity columns (within a ``QTable``) in table
     ``join()``, ``hstack()`` and ``vstack()`` operations. [#5841]
+  - Allow unicode strings to be stored in a Table bytestring column in
+    Python 3 using UTF-8 encoding.  Allow comparison and assignment of
+    Python 3 ``str`` object in a bytestring column (numpy ``'S'`` dtype).
+    [#5700]
 
 - ``astropy.time``
 
@@ -161,6 +165,11 @@ API Changes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
+  - In Python 3, when getting an item from a bytestring Column it is now
+    converted to ``str``.  This means comparing a single item to a ``bytes``
+    object will always fail, and instead one must compare with a ``str``
+    object. [#5700]
 
   - Removed the deprecated ``data`` property of Row. [#5729]
 
