@@ -5,12 +5,12 @@ from __future__ import division, print_function, absolute_import
 
 """
 This module provides an alternate implementation of compound models that
-is lighterweight than the default implementation. This is primarily done
+is lighter weight than the default implementation. This is primarily done
 to minimize the memory and construction time demands when compound models
 become very complex.
 
-The movtivation for this arose when JWST NIRSPEC compound models for its
-MOS mode were involving over 100 constituent model elements and on the
+The motivation for this arose when JWST NIRSPEC compound models for its
+MOS mode were involving nearly 100 constituent model elements and on the
 order of 300 parameters. Since the default compound model implementation
 maps parameters from the consistuent components (which themselves are often
 compound models), this led to many thousands of parameter instances since
@@ -26,7 +26,7 @@ complex and difficult to add, it adds clumsiness to the user interface
 (though admittedly, the alternate solution has its own clumsy aspect).
 So this led to a completely different approach that seems much simpler
 for certain use cases (it does forgo the ability to fit compound models
-for example, though adding such capability without impacting the 
+for example, though adding such capability without affecting the
 performance issues isn't out of the question in the following approach)
 
 This is an initial implementation that implements only very basic
@@ -59,9 +59,11 @@ Things not currently supported (but will be if adopted):
 
 - named access to constituent models (And thus their parameters)
 - good string representation and such
+- conversion to and from the default compound model scheme
 - pickling
 - possibly more efficient evaluation as done in the style of the current
   compound models (this implementation walks the tree every time)
+- support for units, when available
 - and other things I've overlooked at this moment...
 
 Things that will never be supported:
@@ -84,7 +86,7 @@ def _alt_model_oper(oper, **kwargs):
     return lambda left, right: _AltCompoundModel(oper, left, right, **kwargs)
 
 
-class _AltCompoundModel:
+class _AltCompoundModel(object):
     '''
     Lightweight compound model implementation: see altcompound.py documentation
     for details.
