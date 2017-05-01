@@ -8,6 +8,10 @@ Accessing a table
 Accessing the table properties and data is straightforward and is generally consistent with
 the basic interface for `numpy` structured arrays.
 
+.. Warning:: Astropy 2.0 introduces an API change that affects comparison of
+   bytestring column elements in Python 3.  See
+   :ref:`bytestring-columns-python-3` for details.
+
 Quick overview
 ==============
 
@@ -644,3 +648,107 @@ expressions (see the warning below for caveats to this)::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
     <Quantity [ 0.5, 1. ]>
+
+.. _bytestring-columns-python-3:
+
+Bytestring columns in Python 3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prior to astropy 2.0, using bytestring columns (numpy ``'S'`` dtype) in Python
+3 was inconvenient because it was not possible to compare with the natural
+Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
+<http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
+for a very brief overview of the difference.  In Python 2 this is not an issue
+because of the language itself blurs the distinction between bytes, string, and
+unicode.
+
+The standard method of representing Python 3 strings in `numpy` is via the
+unicode ``'U'`` dtype.  The problem is that this requires 4 bytes per
+character, and if you have a very large number of strings in memory this could
+fill memory and impact performance.  A very common use case is that these
+strings are actually ASCII and can be represented with 1 byte per character.
+Starting with astropy 2.0 it is possible to work directly and conveniently with
+bytestring data in astropy Table and Column
+
+Taking this further, there is an *advantage* to using Python 3 because it is
+supported to reliably store arbitrary UTF-8 encoded characters in bytestring
+columns.  This is not possible in Python 2, and in fact it should be emphasized
+that astropy 2.0 makes absolutely no change the handling of bytestrings for
+Python 2 -- this only applies to Python 3.
+
+Note that the bytestring issue is a particular problem when dealing with HDF5
+files, where character data are read as bytestrings (``'S'`` dtype) when using
+the :ref:`table_io`. Since HDF5 files are frequently used to store very large
+datasets, the memory bloat associated with conversion to ``'U'`` dtype is
+unacceptable.
+
+
+Python 3 examples
+"""""""""""""""""
+
+The examples below highlight the change in behavior introduced by astropy 2.0
+for Python 3.  *In particular* please note the API change when comparing with a
+single element of a bytestring column.  Previously one was required to compare
+with a ``bytes`` object while now one must compare with a ``str`` object.  When
+comparing with the entire column one can use either a ``bytes`` or ``str``.
+
+**Before astropy 2.0**
+
+.. doctest-skip::
+
+    >>> from astropy.table import Table
+    >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
+
+    >>> t['a'] == 'abc'  # WRONG answer!
+    False
+
+    >>> t['a'] == b'abc'  # Must explicitly compare to bytestring
+    array([ True, False], dtype=bool)
+
+    >>> t = Table([['bä', 'def']], dtype=['S'])
+    Traceback (most recent call last):
+      ...
+    UnicodeEncodeError: 'ascii' codec can't encode character '\xe4' in position 1: 
+                        ordinal not in range(128)
+
+**Astropy 2.0 or later**
+
+.. doctest-skip::
+
+    >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
+
+    >>> t['a'] == 'abc'  # Gives expected answer
+    array([ True, False], dtype=bool)
+
+    >>> t['a'] == b'abc'  # Still gives expected answer
+    array([ True, False], dtype=bool)
+
+    >>> t['a'][0] == 'abc'  # Expected answer
+    True
+
+    >>> t['a'][0] == b'abc'  # API change, this NO LONGER WORKS
+    False
+
+    >>> t['a'][0] = 'bä'
+    >>> t
+    <Table length=2>
+      a   
+    bytes3
+    ------
+        bä
+       def
+
+    >>> t['a'] == 'bä'
+    array([ True, False], dtype=bool)
+
+    # Round trip unicode strings through HDF5
+    >>> t = Table([['bä', 'def']], dtype=['S'])
+    >>> t.write('test.hdf5', format='hdf5', path='data', overwrite=True)
+    >>> t2 = Table.read('test.hdf5', format='hdf5', path='data')
+    >>> t2
+    <Table length=2>
+     col0 
+    bytes3
+    ------
+        bä
+       def
