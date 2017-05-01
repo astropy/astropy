@@ -692,6 +692,7 @@ def test_col_unicode_sandwich_unicode():
     """
     Sanity check that Unicode Column behaves normally.
     """
+    # On Py2 the unicode must be ASCII-compatible, else the final test fails.
     uba = 'ba' if six.PY2 else u'bä'
     uba8 = uba.encode('utf-8')
 
@@ -735,9 +736,9 @@ def test_masked_col_unicode_sandwich():
     ok = c == ['abc', 'def']
     assert ok[0] == True
     assert ok[1] is np.ma.masked
-    #assert c == [b'abc', b'def']
-    #assert c == np.array([u'abc', u'def'])
-    #assert c == np.array([b'abc', b'def'])
+    assert np.all(c == [b'abc', b'def'])
+    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c == np.array([b'abc', b'def']))
 
     for cmp in (u'abc', b'abc'):
         ok = c == cmp
@@ -767,3 +768,7 @@ def test_unicode_sandwich_set(Column):
 
     c[:] = uba
     assert np.all(c == [uba, uba])
+
+    c[:] = ''
+    c[:] = [uba, b'def']
+    assert np.all(c == [uba, b'def'])

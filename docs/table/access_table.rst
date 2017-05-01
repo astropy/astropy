@@ -692,19 +692,19 @@ single element of a bytestring column.  Previously one was required to compare
 with a ``bytes`` object while now one must compare with a ``str`` object.  When
 comparing with the entire column one can use either a ``bytes`` or ``str``.
 
-**Before astropy 2.0**
+.. doctest-skip-all
 
-.. doctest-skip::
+**Before astropy 2.0**
 
     >>> from astropy.table import Table
     >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
-    >>>
+
     >>> t['a'] == 'abc'  # WRONG answer!
     False
-    >>>
+
     >>> t['a'] == b'abc'  # Must explicitly compare to bytestring
     array([ True, False], dtype=bool)
-    >>>
+
     >>> t = Table([['bä', 'def']], dtype=['S'])
     Traceback (most recent call last):
       ...
@@ -713,22 +713,20 @@ comparing with the entire column one can use either a ``bytes`` or ``str``.
 
 **Astropy 2.0 or later**:
 
-.. doctest-skip::
-
     >>> t = Table([['abc', 'def']], names=['a'], dtype=['S'])
-    
+
     >>> t['a'] == 'abc'  # Gives expected answer
     array([ True, False], dtype=bool)
-    
+
     >>> t['a'] == b'abc'  # Still gives expected answer
     array([ True, False], dtype=bool)
-    
+
     >>> t['a'][0] == 'abc'  # Expected answer
     True
-    
+
     >>> t['a'][0] == b'abc'  # API change, this NO LONGER WORKS
     False
-    
+
     >>> t['a'][0] = 'bä'
     >>> t
     <Table length=2>
@@ -737,10 +735,10 @@ comparing with the entire column one can use either a ``bytes`` or ``str``.
     ------
         bä
        def
-    
+
     >>> t['a'] == 'bä'
     array([ True, False], dtype=bool)
-    
+
     >>> # Round trip unicode strings through HDF5
     >>> t = Table([['bä', 'def']], dtype=['S'])
     >>> t.write('test.hdf5', format='hdf5', path='data', overwrite=True)
