@@ -69,6 +69,7 @@ New Features
 
   - Added functionality to allow ``astropy.units.Quantity`` to be written 
     as a normal column to FITS files. [#5910]
+
   - Added ``name`` paramater to method ``add_column`` and ``names`` parameter to method
     ``add_columns`` in module ``astropy.table.table``, to provide the flexibility to add
     unnamed columns, mixin objects and also to specify explicit names. Default names will
