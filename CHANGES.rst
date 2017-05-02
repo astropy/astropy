@@ -226,6 +226,8 @@ Bug Fixes
 
 - ``astropy.visualization``
 
+  - Fix ``RuntimeWarning`` when ``wcsaxes`` tick labels are invalid. [#6002]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -239,9 +241,9 @@ Other Changes and Additions
 
 - Python 3.3 is no longer suppored. [#6020]
 
-- The bundled version of pytest has now been removed, but the 
-  astropy.tests.helper.pytest import will continue to work properly. 
-  Affiliated packages should nevertheless transition to importing pytest 
+- The bundled version of pytest has now been removed, but the
+  astropy.tests.helper.pytest import will continue to work properly.
+  Affiliated packages should nevertheless transition to importing pytest
   directly rather than from astropy.tests.helper. This also means that
   pytest is now a formal requirement for testing for both Astropy and
   for affiliated packages. [#5694]
