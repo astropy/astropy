@@ -793,9 +793,20 @@ class Column(BaseColumn):
         __str__ = __bytes__
 
     def _check_string_truncate(self, value):
+        """
+        Emit a warning if any elements of ``value`` will be truncated when
+        ``value`` is assigned to self.
+        """
+        # Convert input ``value`` to the string dtype of this column
         value = np.asanyarray(value, dtype=self.dtype.type)
 
-        if value.dtype.itemsize > self.dtype.itemsize:
+        # Compute itemsize for ``value`` as the max *actual length* times the
+        # itemsize for a length=1 version of the string type.  Remember itemsize
+        # is the total length in bytes for a single item.
+        value_str_len = np.char.str_len(value).max()
+        value_itemsize = value_str_len * np.array('', dtype=value.dtype.type).itemsize
+
+        if value_itemsize > self.dtype.itemsize:
             warnings.warn('truncated right side string(s) longer than {} '
                           'character(s) during assignment'
                           .format(self.dtype.str[2:]),
@@ -1130,19 +1141,13 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # https://github.com/numpy/numpy/issues/8624
             value = np.ma.asanyarray(value, dtype=self.dtype.type)
 
-            # Turn value into a flat masked array with at least 1d
+            # Processing to check for string truncation:
+            # - Make version of ``value`` that is flat masked array with at least 1d
+            # - Get rid of any masked elements.
+            # - If there are any vals then check for string truncation
             vals = np.ma.atleast_1d(value).flatten()
-
-            # If there are any masked elements get rid of them and turn ``vals``
-            # into a Python list.  This is because np.ma.asanyarray will have
-            # gotten the wrong string itemsize due to the np.ma.masked elements.
-            # I could not figure a clean way to get numpy to compress a string
-            # array to the smallest length without initing from a Python list
-            # of strings.
             if np.any(vals.mask):
-                vals = vals[~vals.mask].tolist()
-
-            # Finally if there are any vals then check for string truncation
+                vals = vals[~vals.mask]
             if len(vals) > 0:
                 self._check_string_truncate(vals)
 

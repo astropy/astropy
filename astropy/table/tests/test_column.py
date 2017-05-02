@@ -585,6 +585,16 @@ def test_string_truncation_warning(masked):
         assert ('truncated right side string(s) longer than 2 character(s)'
                 in str(w[0].message))
 
+    with catch_warnings() as w:
+        # Test the obscure case of assigning from an array that was originally
+        # wider than any of the current elements (i.e. dtype is U4 but actual
+        # elements are U1 at the time of assignment).
+        val = np.array(['ffff', 'gggg'])
+        val[:] = ['f', 'g']
+        t['a'][:] = val
+        assert np.all(t['a'] == ['f', 'g'])
+        assert len(w) == 0
+
 
 def test_string_truncation_warning_masked():
     """
