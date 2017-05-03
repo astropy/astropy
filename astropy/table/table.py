@@ -1549,11 +1549,11 @@ class Table(object):
             >>> col_c = Column(data=['x', 'y', 'z'])
             >>> t.add_column(col_c)
             >>> print(t)
-             a   b   2
-            --- --- ---
-              1 0.1   x
-              2 0.2   y
-              3 0.3   z
+             a   b  col2
+            --- --- ----
+              1 0.1    x
+              2 0.2    y
+              3 0.3    z
 
         Add an unnamed column or mixin object at the end of the table by specifying an explicit name::
 
@@ -1583,11 +1583,10 @@ class Table(object):
         """
         if index is None:
             index = len(self.columns)
-        if name is None:
-            if col.info.name is None:
-                name = str(len(self.columns))
+        if name is not None:
+            name = (name,)
 
-        self.add_columns([col], [index], [name], rename_duplicate=rename_duplicate)
+        self.add_columns([col], [index], name, rename_duplicate=rename_duplicate)
 
     def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
@@ -1668,11 +1667,11 @@ class Table(object):
             >>> col_d = Column(data=['u', 'v', 'w'])
             >>> t.add_columns([col_c, col_d])
             >>> print(t)
-             a   b   2   3
-            --- --- --- ---
-              1 0.1   x   u
-              2 0.2   y   v
-              3 0.3   z   w
+             a   b  col2 col3
+            --- --- ---- ----
+              1 0.1    x    u
+              2 0.2    y    v
+              3 0.3    z    w
 
         Add unnamed columns or mixin objects at the end of the table by specifying explicit names::
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
@@ -1703,17 +1702,6 @@ class Table(object):
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
-        if names is None:
-            names = [str(name) for name in range(len(self.columns), len(self.columns) + len(cols))]
-            for col, name in zip(cols, names):
-                if col.info.name is None:
-                    col.info.name = name
-        elif len(names) != len(cols):
-                raise ValueError('Number of names must match number of cols')
-        elif None not in names:
-                for col, name in zip(cols, names):
-                    col.info.name = name
-
         if copy:
             cols = [col_copy(col) for col in cols]
 
@@ -1727,6 +1715,19 @@ class Table(object):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
                 newcols.insert(i, col)
+                
+        if names is None:
+            names = ['col{}'.format(name) for name in range(len(self.columns), len(self.columns) + len(cols))]
+            for col, name in zip(cols, names):
+                if col.info.name is None:
+                    col.info.name = name
+        elif len(names) != len(cols):
+                raise ValueError('Number of names must match number of cols')
+        else:
+            for col, name in zip(cols, names):
+                if col.info.parent_table is not None:
+                    col = col_copy(col)
+                col.info.name = name
 
         if rename_duplicate:
             existing_names = set(self.colnames)
