@@ -427,6 +427,39 @@ class TestAddPosition(SetupData):
 
 
 @pytest.mark.usefixtures('table_types')
+class TestAddName(SetupData):
+
+    def test_1(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
+        t.add_column(self.a, name='b')
+        t.add_column(self.b, name='a')
+        assert t.columns.keys() == ['b', 'a']
+        assert self.a.info.name == 'a'
+        assert self.b.info.name == 'b'
+
+    def test_2(self, table_types):
+        self._setup(table_types)
+        t1 = table_types.Table([self.a])
+        t2 = table_types.Table()
+        t2.add_column(t1['a'], name='b')
+        assert t2.columns.keys() == ['b']
+        assert t1.columns.keys() == ['a']
+
+    def test_3(self, table_types):
+        t = table_types.Table()
+        col = table_types.Column([1,2,3])
+        t.add_column(col)
+        assert t.columns.keys() == ['col0']
+
+    def test_4(self, table_types):
+        t = table_types.Table()
+        col = table_types.Column([1,2,3])
+        t.add_column(col, name='a')
+        assert t.columns.keys() == ['a']
+
+
+@pytest.mark.usefixtures('table_types')
 class TestInitFromTable(SetupData):
 
     def test_from_table_cols(self, table_types):
@@ -495,6 +528,19 @@ class TestAddColumns(SetupData):
         t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[2, 2])
         assert t.colnames == ['a', 'b', 'c', 'd']
+
+    def test_add_columns6(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
+        t.add_columns([self.a, self.b, self.c], names=['b', 'c', 'a'])
+        assert t.colnames == ['b', 'c', 'a']
+
+    def test_add_columns7(self, table_types):
+        t = table_types.Table()
+        col0 = table_types.Column([1,2,3])
+        col1 = table_types.Column([4,5,3])
+        t.add_columns([col0, col1])
+        assert t.colnames == ['col0', 'col1']
 
     def test_add_duplicate_column(self, table_types):
         self._setup(table_types)
