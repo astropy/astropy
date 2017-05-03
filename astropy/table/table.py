@@ -1715,7 +1715,7 @@ class Table(object):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
                 newcols.insert(i, col)
-                
+
         if names is None:
             names = ['col{}'.format(name) for name in range(len(self.columns), len(self.columns) + len(cols))]
             for col, name in zip(cols, names):
