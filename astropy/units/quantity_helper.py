@@ -72,6 +72,9 @@ UFUNC_HELPERS[np.rint] = helper_invariant
 UFUNC_HELPERS[np.floor] = helper_invariant
 UFUNC_HELPERS[np.ceil] = helper_invariant
 UFUNC_HELPERS[np.trunc] = helper_invariant
+# positive only was added in numpy 1.13
+if isinstance(getattr(np, 'positive', None), np.ufunc):
+    UFUNC_HELPERS[np.positive] = helper_invariant
 
 # ufuncs handled as special cases
 

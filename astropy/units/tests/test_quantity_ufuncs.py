@@ -472,10 +472,12 @@ class TestQuantityMathFuncs(object):
 
 class TestInvariantUfuncs(object):
 
+    # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
                                          np.conj, np.conjugate,
                                          np.negative, np.spacing, np.rint,
-                                         np.floor, np.ceil])
+                                         np.floor, np.ceil] +
+                             [np.positive] if hasattr(np, 'positive') else [])
     def test_invariant_scalar(self, ufunc):
 
         q_i = 4.7 * u.m
