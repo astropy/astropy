@@ -257,6 +257,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Add support for ``positive`` ufunc (new in numpy 1.13). [#5998]
+
 - ``astropy.utils``
 
   - On systems that do not have ``pkg_resources`` non-numerical additions to
