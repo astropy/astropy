@@ -23,6 +23,7 @@ from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
+from ..utils.compat import NUMPY_LT_1_13
 from ..utils.compat.misc import override__dir__
 from ..utils.compat.numpy import matmul
 from ..utils.misc import isiterable, InheritDocstrings
@@ -1094,12 +1095,17 @@ class Quantity(np.ndarray):
         result_array = matmul(getattr(other, 'value', other), self.value)
         return self._new_view(result_array, result_unit)
 
-    def __pos__(self):
-        """
-        Plus the quantity. This is implemented in case users use +q where q is
-        a quantity.  (Required for scalar case.)
-        """
-        return self.copy()
+    if NUMPY_LT_1_13:
+        # In numpy >=1.13, ndarray.__pos__ goes through the np.positive ufunc,
+        # and this is no longer needed.
+        def __pos__(self):
+            """
+            Plus the quantity.
+
+            This is implemented in case users use +q where q is a quantity.
+            (Required for scalar case.)
+            """
+            return self.copy()
 
     # other overrides of special functions
     def __hash__(self):
