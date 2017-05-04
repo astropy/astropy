@@ -34,7 +34,7 @@ __all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo",
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
-__doctest_skip__ = ['Quantity.*']
+__doctest_skip__ = ['Quantity.*', '_QuantityData.*', 'MaskedQuantity.*']
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
@@ -412,9 +412,6 @@ class Quantity(np.ndarray):
         if 'info' in getattr(obj, '__dict__', ()):
             self.info = obj.info
 
-        if isinstance(obj, Quantity):
-            self._unit = obj._unit
-
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
         # array. The object passed in ``obj`` is an empty version of the
@@ -425,8 +422,6 @@ class Quantity(np.ndarray):
         # If no context is set, just return the input
         if context is None:
             return obj
-
-        # print("prepare: obj={0!r}\ncontext={1!r}".format(obj, context))
 
         # Find out which ufunc is being used
         function = context[0]
@@ -634,7 +629,7 @@ class Quantity(np.ndarray):
 
                 # take array view to which output can be written without
                 # getting back here
-                obj_array = np.ndarray.view(obj, np.ndarray)
+                obj_array = obj._array_base
 
                 # Find out which ufunc was called and with which inputs
                 function = context[0]
@@ -1650,13 +1645,16 @@ class SpecificTypeQuantity(Quantity):
 
 class _QuantityData(Quantity):
     # on purpose, break ndarray view -> always stay a Quantity
-    def view(self, cls):
+    def view(self, dtype=None, type=None):
+        if type is None:
+            return super(_QuantityData,
+                         self).view(Quantity if dtype is np.ndarray else dtype)
         return super(_QuantityData,
-                     self).view(self, Quantity if cls is np.ndarray else cls)
+                     self).view(dtype, Quantity if type is np.ndarray else type)
 
     @property
     def _array_base(self):
-        return super(_QuantityData, self).view(self, np.ndarray)
+        return super(_QuantityData, self).view(np.ndarray)
 
     def __repr__(self):
         return 'Quantity('+str(self)+')'
@@ -1706,33 +1704,11 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
     def __repr__(self):
         return np.ma.MaskedArray.__repr__(self)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
-        return MaskedQuantity(val, unit, **kwargs)
-
-    def __quantity_view__(self, obj, unit, mask=np.ma.nomask):
-        obj = obj.view(MaskedQuantity)
-        if mask is not np.ma.nomask:
-            obj.mask = mask
-        return obj
-
     @property
     def _array_base(self):
         output = self.view(np.ma.MaskedArray)
         output._baseclass = np.ndarray
         return output
-
-    @property
-    def value(self):
-        """ The numerical value of this quantity. """
-        value = self._array_base
-        value._baseclass = np.ndarray
-        # The following is necessary because of a bug in Numpy, which was
-        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
-        value.fill_value = self.fill_value
-        if self.shape:
-            return value
-        else:
-            return value.item()
 
     def __array_prepare__(self, obj, context=None):
         # print("array prepare", obj, context)
@@ -1755,25 +1731,44 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         if isinstance(obj, Quantity):
             self._baseclass = Quantity
 
+    def __quantity_subclass__(self, unit):
+        return MaskedQuantity, True
+
     @property
     def _data(self):
         # help break getdata(subok=False)
         return self.view(_QuantityData)
 
+    def __eq__(self, other):
+        result = super(MaskedQuantity, self).__eq__(other)
+        if isinstance(result, MaskedQuantity):
+            return result.view(np.ma.MaskedArray)
+        else:
+            return result
+
+    def __ne__(self, other):
+        result = super(MaskedQuantity, self).__ne__(other)
+        if isinstance(result, MaskedQuantity):
+            return result.view(np.ma.MaskedArray)
+        else:
+            return result
+
     def __pow__(self, other):
-        result = self.view(Quantity) ** other
-        return self.__quantity_view__(result, result.unit, self.mask)
+        # np.ma.core.power does np.where that removes unit.
+        result = super(MaskedQuantity, self).__pow__(other)
+        result_unit = self.unit ** other
+        return self._new_view(result, result_unit)
     # may need some
 
     # TODO improve hack -> needs to rewrite DomainSafeDivide
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, six.string_types):
             other = Unit(other)
 
         return self * (1./other)
 
     # TODO improve hack -> needs to rewrite DomainSafeDivide
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         return other * (1./self.value) / self.unit
 
     # Need to add these to override MaskedArray versions, which call
