@@ -5,7 +5,7 @@ docker info
 cat << EOF | docker run -i \
                         -v ${PWD}:/astropy_src \
                         -a stdin -a stdout -a stderr \
-                        astropy/astropy-32bit-test-env:1.7 \
+                        astropy/astropy-32bit-test-env:1.9 \
                         bash || exit $?
 
 cd /astropy_src
