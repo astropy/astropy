@@ -135,6 +135,11 @@ API Changes
   - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
     ``get_groups`` from np_utils. [#5729]
 
+  - Added ``name`` paramater to method `~astropy.table.Table.add_column` and ``names``
+    parameter to method `~astropy.table.Table.add_columns`, to provide the flexibility to
+    add unnamed columns, mixin objects and also to specify explicit names. Default names
+    will be used if not specified. [#5996]
+
 - ``astropy.time``
 
 - ``astropy.units``
