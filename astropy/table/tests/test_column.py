@@ -10,7 +10,6 @@ from ...tests.helper import pytest, assert_follows_unicode_guidelines, catch_war
 from ... import table
 from ... import units as u
 from ...extern import six
-from ...utils.compat import NUMPY_LT_1_8
 
 
 class TestColumn():
@@ -473,16 +472,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.Column)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.Column)
 
     c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
@@ -493,16 +486,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.MaskedColumn)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.MaskedColumn)
 
 
 def test_unicode_guidelines():

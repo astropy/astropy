@@ -19,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
-from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -522,9 +522,6 @@ class CartesianRepresentation(BaseRepresentation):
         x = self._x
         y = cls(self._y, x.unit, copy=False)
         z = cls(self._z, x.unit, copy=False)
-        if NUMPY_LT_1_8:
-            # numpy 1.7 has problems concatenating broadcasted arrays.
-            x, y, z =  [(c.copy() if 0 in c.strides else c) for c in (x, y, z)]
 
         sh = self.shape
         sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]

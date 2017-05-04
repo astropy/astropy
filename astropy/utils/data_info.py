@@ -27,7 +27,6 @@ import re
 from collections import OrderedDict
 
 from ..extern import six
-from ..utils.compat import NUMPY_LT_1_8
 from ..extern.six.moves import zip, cStringIO as StringIO
 
 # Tuple of filterwarnings kwargs to ignore when calling info
@@ -296,7 +295,7 @@ class DataInfo(object):
     # No nan* methods in numpy < 1.8
     info_summary_stats = staticmethod(
         data_info_factory(names=_stats,
-                          funcs=[getattr(np, ('' if NUMPY_LT_1_8 else 'nan') + stat)
+                          funcs=[getattr(np, 'nan' + stat)
                                  for stat in _stats]))
 
     def __call__(self, option='attributes', out=''):

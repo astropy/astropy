@@ -7,7 +7,6 @@ import numpy as np
 
 from .. import Time
 from ...tests.helper import pytest
-from ...utils.compat.numpycompat import NUMPY_LT_1_9
 from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
@@ -92,21 +91,18 @@ class TestManipulation():
         assert t0_diagonal.shape == (5,)
         assert np.all(t0_diagonal.jd1 == self.t0.jd1.diagonal())
         assert t0_diagonal.location is None
-        if not NUMPY_LT_1_9:
-            assert np.may_share_memory(t0_diagonal.jd1, self.t0.jd1)
+        assert np.may_share_memory(t0_diagonal.jd1, self.t0.jd1)
         t1_diagonal = self.t1.diagonal()
         assert t1_diagonal.shape == (5,)
         assert np.all(t1_diagonal.jd1 == self.t1.jd1.diagonal())
         assert t1_diagonal.location is self.t1.location
-        if not NUMPY_LT_1_9:
-            assert np.may_share_memory(t1_diagonal.jd1, self.t1.jd1)
+        assert np.may_share_memory(t1_diagonal.jd1, self.t1.jd1)
         t2_diagonal = self.t2.diagonal()
         assert t2_diagonal.shape == (5,)
         assert np.all(t2_diagonal.jd1 == self.t2.jd1.diagonal())
         assert t2_diagonal.location.shape == t2_diagonal.shape
-        if not NUMPY_LT_1_9:
-            assert np.may_share_memory(t2_diagonal.jd1, self.t2.jd1)
-            assert np.may_share_memory(t2_diagonal.location, self.t2.location)
+        assert np.may_share_memory(t2_diagonal.jd1, self.t2.jd1)
+        assert np.may_share_memory(t2_diagonal.location, self.t2.location)
 
     def test_swapaxes(self):
         t0_swapaxes = self.t0.swapaxes(0, 1)

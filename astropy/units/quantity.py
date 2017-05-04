@@ -23,7 +23,6 @@ from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
@@ -898,33 +897,32 @@ class Quantity(np.ndarray):
         else:
             return value
 
-    if not NUMPY_LT_1_9:
-        # Equality (return False if units do not match) needs to be handled
-        # explicitly for numpy >=1.9, since it no longer traps errors.
-        def __eq__(self, other):
+    # Equality (return False if units do not match) needs to be handled
+    # explicitly for numpy >=1.9, since it no longer traps errors.
+    def __eq__(self, other):
+        try:
             try:
-                try:
-                    return super(Quantity, self).__eq__(other)
-                except DeprecationWarning:
-                    # We treat the DeprecationWarning separately, since it may
-                    # mask another Exception.  But we do not want to just use
-                    # np.equal, since super's __eq__ treats recarrays correctly.
-                    return np.equal(self, other)
-            except UnitsError:
-                return False
-            except TypeError:
-                return NotImplemented
+                return super(Quantity, self).__eq__(other)
+            except DeprecationWarning:
+                # We treat the DeprecationWarning separately, since it may
+                # mask another Exception.  But we do not want to just use
+                # np.equal, since super's __eq__ treats recarrays correctly.
+                return np.equal(self, other)
+        except UnitsError:
+            return False
+        except TypeError:
+            return NotImplemented
 
-        def __ne__(self, other):
+    def __ne__(self, other):
+        try:
             try:
-                try:
-                    return super(Quantity, self).__ne__(other)
-                except DeprecationWarning:
-                    return np.not_equal(self, other)
-            except UnitsError:
-                return True
-            except TypeError:
-                return NotImplemented
+                return super(Quantity, self).__ne__(other)
+            except DeprecationWarning:
+                return np.not_equal(self, other)
+        except UnitsError:
+            return True
+        except TypeError:
+            return NotImplemented
 
     # Arithmetic operations
     def __mul__(self, other):
@@ -1499,13 +1497,9 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1_8:
-        def nansum(self, axis=None):
-            return self._wrap_function(np.nansum, axis)
-    else:
-        def nansum(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.nansum, axis,
-                                       out=out, keepdims=keepdims)
+    def nansum(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.nansum, axis,
+                                   out=out, keepdims=keepdims)
 
     def insert(self, obj, values, axis=None):
         """

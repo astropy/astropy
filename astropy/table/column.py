@@ -13,7 +13,6 @@ import numpy as np
 from numpy import ma
 
 from ..units import Unit, Quantity
-from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
@@ -958,8 +957,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
-        # go through the fill_value workarounds (see _fix_fill_value below).
-        if fill_value is None and hasattr(data, 'fill_value') and data.fill_value is not None:
+        # go through the fill_value workarounds.
+        if fill_value is None and getattr(data, 'fill_value', None) is not None:
             # Coerce the fill_value to the correct type since `data` may be a
             # different dtype than self.
             fill_value = self.dtype.type(data.fill_value)
@@ -973,21 +972,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return self
 
-    def _fix_fill_value(self, val):
-        """Fix a fill value (if needed) to work around a bug with setting the fill
-        value of a string array in MaskedArray with Python 3.x.  See
-        https://github.com/numpy/numpy/pull/2733.  This mimics the check in
-        numpy.ma.core._check_fill_value() (version < 1.8) which incorrectly sets
-        fill_value to a default if self.dtype.char is 'U' (which is the case for Python
-        3).  Here we change the string to a byte string so that in Python 3 the
-        isinstance(val, basestring) part fails.
-        """
-
-        if (NUMPY_LT_1_8 and isinstance(val, six.string_types) and
-                (self.dtype.char not in 'SV')):
-            val = val.encode()
-        return val
-
     @property
     def fill_value(self):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
@@ -996,9 +980,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work."""
-        val = self._fix_fill_value(val)
 
-        # Yet another ma bug workaround: If the value of fill_value for a string array is
+        # another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward
         # any new fill_values are truncated to 3 characters.  Note that this does not
         # occur if the masked array is a structured array (as in the previous block that
@@ -1042,7 +1025,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         """
         if fill_value is None:
             fill_value = self.fill_value
-        fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
         # Use parent table definition of Column if available
