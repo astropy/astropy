@@ -131,10 +131,11 @@ class TestQuantityCreation:
 
     @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
     def test_preserve_dtype(self, QuantityClass):
-
-        # If unit is not sepcified, preserve dtype (at least to the extent
-        # that Numpy does when copying, i.e. int32 -> int64, not float64)
-
+        """Test that if an explicit dtype is given, it is used, while if not,
+        numbers are converted to float (including decimal.Decimal, which
+        numpy converts to an object; closes #1419)
+        """
+        # If dtype is specified, use it, but if not, convert int, bool to float
         q1 = QuantityClass(12, unit=u.m / u.s, dtype=int)
         assert q1.dtype == int
         q2 = QuantityClass(q1)
@@ -539,7 +540,7 @@ class TestQuantityOperations:
             QuantityClass(1., "m") - QuantityClass(0.1, "")
 
         # and test that scaling of integers works
-        q = QuantityClass(np.array([1, 2, 3]), u.m / u.km)
+        q = QuantityClass(np.array([1, 2, 3]), u.m / u.km, dtype=int)
         q2 = q + np.array([4, 5, 6])
         assert q2.unit == u.dimensionless_unscaled
         assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
@@ -613,6 +614,7 @@ class TestQuantityOperations:
         # for index, this should be unscaled as well
         # (Check on __index__ is also a regression test for #1557)
 
+        # quantities with units should never convert, or be usable as an index
         q1 = QuantityClass(1, u.m)
 
         converter_err_msg = ("only dimensionless scalar quantities "
@@ -656,7 +658,7 @@ class TestQuantityOperations:
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
-        q4 = QuantityClass(2, u.dimensionless_unscaled)
+        q4 = QuantityClass(2, u.dimensionless_unscaled, dtype=int)
 
         assert float(q4) == 2.
         assert int(q4) == 2
@@ -1053,14 +1055,14 @@ class TestMaskedQuantityDisplay(object):
     arrq = u.MaskedQuantity([1, 2.3, 8.9], unit='m', mask=[0, 1, 0])
 
     def test_scalar_quantity_str(self):
-        assert str(self.scalarintq) == "1 m"
+        assert str(self.scalarintq) == "1.0 m"
         assert str(self.scalarfloatq) == "1.3 m"
 
     def test_scalar_quantity_repr(self):
         assert (repr(self.scalarintq) ==
-                "masked_Quantity(data = 1 m,\n"
+                "masked_Quantity(data = 1.0 m,\n"
                 "                mask = False,\n"
-                "          fill_value = 999999)\n")
+                "          fill_value = 1e+20)\n")
         assert (repr(self.scalarfloatq) ==
                 "masked_Quantity(data = 1.3 m,\n"
                 "                mask = False,\n"
@@ -1256,6 +1258,11 @@ def test_quantity_string_unit(QuantityClass):
 
     q2 = q1 * "m"
     assert q2.unit == ((u.m * u.m) / u.s)
+
+
+@raises(ValueError)
+def test_quantity_invalid_unit_string():
+    "foo" * u.m
 
 
 @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
