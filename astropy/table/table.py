@@ -1543,41 +1543,20 @@ class Table(object):
               2 0.2 1.2
               3 0.3 1.3
 
-        Add an unnamed column or mixin object at the end of the table using a default name::
+        Add an unnamed column or mixin object in the table using a default name
+        or by specifying an explicit name with ``name``. Name can also be overridden::
 
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y', 'z'])
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(data=['x', 'y'])
             >>> t.add_column(col_c)
-            >>> print(t)
-             a   b  col2
-            --- --- ----
-              1 0.1    x
-              2 0.2    y
-              3 0.3    z
-
-        Add an unnamed column or mixin object at the end of the table by specifying an explicit name::
-
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y', 'z'])
             >>> t.add_column(col_c, name='c')
+            >>> col_b = Column(name='b', data=[1.1, 1.2])
+            >>> t.add_column(col_b, name='d')
             >>> print(t)
-              a   b  c
-            --- --- ---
-              1 0.1   x
-              2 0.2   y
-              3 0.3   z
-
-        Add a column or mixin object at the end of the table and specify a different name::
-
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> t.add_column(col_b, name='c')
-            >>> print(t)
-             a   b   c
-            --- --- ---
-              1 0.1 1.1
-              2 0.2 1.2
-              3 0.3 1.3
+             a   b  col2  c   d
+            --- --- ---- --- ---
+              1 0.1    x   x 1.1
+              2 0.2    y   y 1.2
 
         To add several columns use add_columns.
         """
@@ -1661,41 +1640,19 @@ class Table(object):
               2 0.2 1.2  y
               3 0.3 1.3  z
 
-        Add unnamed columns or mixin objects at the end of the table using default names::
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y', 'z'])
-            >>> col_d = Column(data=['u', 'v', 'w'])
-            >>> t.add_columns([col_c, col_d])
-            >>> print(t)
-             a   b  col2 col3
-            --- --- ---- ----
-              1 0.1    x    u
-              2 0.2    y    v
-              3 0.3    z    w
+        Add unnamed columns or mixin objects in the table using default names
+        or by specifying explicit names with ``names``. Names can also be overridden::
 
-        Add unnamed columns or mixin objects at the end of the table by specifying explicit names::
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_c = Column(data=['x', 'y', 'z'])
-            >>> col_d = Column(data=['u', 'v', 'w'])
-            >>> t.add_columns([col_c, col_d], names=['c', 'd'])
+            >>> t = Table()
+            >>> col_a = Column(data=['x', 'y'])
+            >>> col_b = Column(name='b', data=['u', 'v'])
+            >>> t.add_columns([col_a, col_b])
+            >>> t.add_columns([col_a, col_b], names=['c', 'd'])
             >>> print(t)
-             a   b   c   d
-            --- --- --- ---
-              1 0.1   x   u
-              2 0.2   y   v
-              3 0.3   z   w
-
-        Add columns or mixin objects at the end of the table and specify different names for each::
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_columns([col_b, col_c], names=['c', 'd'])
-            >>> print(t)
-             a   b   c   d
-            --- --- --- ---
-              1 0.1 1.1   x
-              2 0.2 1.2   y
-              3 0.3 1.3   z
+            col0  b   c   d
+            ---- --- --- ---
+               x   u   x   u
+               y   v   y   v
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
@@ -1717,17 +1674,18 @@ class Table(object):
                 newcols.insert(i, col)
 
         if names is None:
-            names = ['col{}'.format(name) for name in range(len(self.columns), len(self.columns) + len(cols))]
-            for col, name in zip(cols, names):
-                if col.info.name is None:
-                    col.info.name = name
+            names = (None,) * len(cols)
         elif len(names) != len(cols):
                 raise ValueError('Number of names must match number of cols')
-        else:
-            for col, name in zip(cols, names):
-                if col.info.parent_table is not None:
-                    col = col_copy(col)
-                col.info.name = name
+
+        for i, (col, name) in enumerate(zip(cols, names)):
+            if name is None:
+                if col.info.name is not None:
+                    continue
+                name = 'col{}'.format(i + len(self.columns))
+            if col.info.parent_table is not None:
+                col = col_copy(col)
+            col.info.name = name
 
         if rename_duplicate:
             existing_names = set(self.colnames)
