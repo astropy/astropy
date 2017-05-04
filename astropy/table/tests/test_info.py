@@ -15,7 +15,6 @@ from ... import time
 from ... import coordinates
 from ... import table
 from ...utils.data_info import data_info_factory, dtype_info_name
-from ...utils.compat import NUMPY_LT_1_8
 from ..table_helpers import simple_table
 
 
@@ -157,12 +156,11 @@ def test_data_info():
 
         # Test stats info
         cinfo = c.info('stats', out=None)
-        is_nan = NUMPY_LT_1_8 and type(c) is table.Column
         assert cinfo == OrderedDict([('name', 'name'),
-                                     ('mean', 'nan' if is_nan else '1.5'),
-                                     ('std', 'nan' if is_nan else '0.5'),
-                                     ('min', 'nan' if is_nan else '1.0'),
-                                     ('max', 'nan' if is_nan else '2.0'),
+                                     ('mean', '1.5'),
+                                     ('std', '0.5'),
+                                     ('min', '1.0'),
+                                     ('max', '2.0'),
                                      ('n_bad', 1),
                                      ('length', 3)])
 
