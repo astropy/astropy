@@ -37,6 +37,9 @@ def teardown_function(func):
 
 class TestSphericalRepresentation(object):
 
+    def test_name(self):
+        assert SphericalRepresentation.get_name() == 'spherical'
+
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
             s = SphericalRepresentation()
@@ -187,6 +190,9 @@ class TestSphericalRepresentation(object):
 
 class TestUnitSphericalRepresentation(object):
 
+    def test_name(self):
+        assert UnitSphericalRepresentation.get_name() == 'unitspherical'
+
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
             s = UnitSphericalRepresentation()
@@ -290,6 +296,9 @@ class TestUnitSphericalRepresentation(object):
 
 
 class TestPhysicsSphericalRepresentation(object):
+
+    def test_name(self):
+        assert PhysicsSphericalRepresentation.get_name() == 'physicsspherical'
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -416,6 +425,9 @@ class TestPhysicsSphericalRepresentation(object):
 
 
 class TestCartesianRepresentation(object):
+
+    def test_name(self):
+        assert CartesianRepresentation.get_name() == 'cartesian'
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -644,6 +656,9 @@ class TestCartesianRepresentation(object):
 
 
 class TestCylindricalRepresentation(object):
+
+    def test_name(self):
+        assert CylindricalRepresentation.get_name() == 'cylindrical'
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
