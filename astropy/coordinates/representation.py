@@ -62,6 +62,32 @@ def _array2string(values, prefix=''):
     return np.array2string(values, formatter=formatter, style=fmt,
                            separator=', ', prefix=prefix)
 
+def _combine_xyz(x, y, z, xyz_axis=0):
+    """
+    Combine the 3 input arrays, ``x``, ``y``, ``z``.
+    """
+
+    # Add new axis in x, y, z so one can concatenate them around it.
+    # NOTE: just use np.stack once our minimum numpy version is 1.10.
+    result_ndim = x.ndim + 1
+    if not -result_ndim <= xyz_axis < result_ndim:
+        raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
+                         .format(xyz_axis, result_ndim))
+
+    if xyz_axis < 0:
+        xyz_axis += result_ndim
+
+    # Get x, y, z to the same units (this is very fast for identical units)
+    # since np.concatenate cannot deal with quantity.
+    cls = x.__class__
+    y = cls(y, x.unit, copy=False)
+    z = cls(z, x.unit, copy=False)
+
+    sh = x.shape
+    sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
+    xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
+                               axis=xyz_axis)
+    return cls(xyz_value, unit=x.unit, copy=False)
 
 class RepresentationBase(ShapedLikeNDArray):
     """3D coordinate representations and differentials.
@@ -647,27 +673,7 @@ class CartesianRepresentation(BaseRepresentation):
         xyz : `~astropy.units.Quantity`
             With dimension 3 along ``xyz_axis``.
         """
-        # Add new axis in x, y, z so one can concatenate them around it.
-        # NOTE: just use np.stack once our minimum numpy version is 1.10.
-        result_ndim = self.ndim + 1
-        if not -result_ndim <= xyz_axis < result_ndim:
-            raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
-                             .format(xyz_axis, result_ndim))
-        if xyz_axis < 0:
-            xyz_axis += result_ndim
-
-        # Get x, y, z to the same units (this is very fast for identical units)
-        # since np.concatenate cannot deal with quantity.
-        cls = self._x.__class__
-        x = self._x
-        y = cls(self._y, x.unit, copy=False)
-        z = cls(self._z, x.unit, copy=False)
-
-        sh = self.shape
-        sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
-        xyz_value = np.concatenate([c.reshape(sh).value for c in (x, y, z)],
-                                   axis=xyz_axis)
-        return cls(xyz_value, unit=x.unit, copy=False)
+        return _combine_xyz(self._x, self._y, self._z, xyz_axis=xyz_axis)
 
     xyz = property(get_xyz)
 
@@ -1787,31 +1793,7 @@ class CartesianDifferential(BaseDifferential):
         xyz : `~astropy.units.Quantity`
             With dimension 3 along ``xyz_axis``.
         """
-        # Add new axis in x, y, z so one can concatenate them around it.
-        # NOTE: just use np.stack once our minimum numpy version is 1.10.
-        result_ndim = self.ndim + 1
-        if not -result_ndim <= xyz_axis < result_ndim:
-            raise IndexError('xyz_axis {0} out of bounds [-{1}, {1})'
-                             .format(xyz_axis, result_ndim))
-        if xyz_axis < 0:
-            xyz_axis += result_ndim
-
-        # Get x, y, z to the same units (this is very fast for identical units)
-        # since np.concatenate cannot deal with quantity.
-        cls = self._d_x.__class__
-        dx = self._d_x
-        dy = cls(self._d_y, dx.unit, copy=False)
-        dz = cls(self._d_z, dx.unit, copy=False)
-        if NUMPY_LT_1_8:  # pragma: no cover
-            # numpy 1.7 has problems concatenating broadcasted arrays.
-            dx, dy, dz = [(c.copy() if 0 in c.strides else c)
-                          for c in (dx, dy, dz)]
-
-        sh = self.shape
-        sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]
-        dxyz_value = np.concatenate([c.reshape(sh).value for c in (dx, dy, dz)],
-                                    axis=xyz_axis)
-        return cls(dxyz_value, unit=dx.unit, copy=False)
+        return _combine_xyz(self._d_x, self._d_y, self._d_z, xyz_axis=xyz_axis)
 
     d_xyz = property(get_d_xyz)
 

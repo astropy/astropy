@@ -22,7 +22,8 @@ from ..representation import (REPRESENTATION_CLASSES,
                               UnitSphericalRepresentation,
                               CartesianRepresentation,
                               CylindricalRepresentation,
-                              PhysicsSphericalRepresentation)
+                              PhysicsSphericalRepresentation,
+                              _combine_xyz)
 
 
 def setup_function(func):
@@ -1022,3 +1023,31 @@ def test_minimal_subclass():
             attr_classes = OrderedDict([('lon', Longitude),
                                         ('lat', Latitude),
                                         ('logr', u.Dex)])
+
+def test_combine_xyz():
+
+    x,y,z = np.arange(27).reshape(3, 9) * u.kpc
+    xyz = _combine_xyz(x, y, z, xyz_axis=0)
+    assert xyz.shape == (3, 9)
+    assert np.all(xyz[0] == x)
+    assert np.all(xyz[1] == y)
+    assert np.all(xyz[2] == z)
+
+    x,y,z = np.arange(27).reshape(3, 3, 3) * u.kpc
+    xyz = _combine_xyz(x, y, z, xyz_axis=0)
+    assert xyz.ndim == 3
+    assert np.all(xyz[0] == x)
+    assert np.all(xyz[1] == y)
+    assert np.all(xyz[2] == z)
+
+    xyz = _combine_xyz(x, y, z, xyz_axis=1)
+    assert xyz.ndim == 3
+    assert np.all(xyz[:,0] == x)
+    assert np.all(xyz[:,1] == y)
+    assert np.all(xyz[:,2] == z)
+
+    xyz = _combine_xyz(x, y, z, xyz_axis=-1)
+    assert xyz.ndim == 3
+    assert np.all(xyz[...,0] == x)
+    assert np.all(xyz[...,1] == y)
+    assert np.all(xyz[...,2] == z)
