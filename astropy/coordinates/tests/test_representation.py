@@ -26,6 +26,8 @@ from ..representation import (REPRESENTATION_CLASSES,
                               _combine_xyz)
 
 
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass (LogDRepresentation)
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
 
@@ -39,6 +41,7 @@ class TestSphericalRepresentation(object):
 
     def test_name(self):
         assert SphericalRepresentation.get_name() == 'spherical'
+        assert SphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -192,6 +195,7 @@ class TestUnitSphericalRepresentation(object):
 
     def test_name(self):
         assert UnitSphericalRepresentation.get_name() == 'unitspherical'
+        assert UnitSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -299,6 +303,7 @@ class TestPhysicsSphericalRepresentation(object):
 
     def test_name(self):
         assert PhysicsSphericalRepresentation.get_name() == 'physicsspherical'
+        assert PhysicsSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -428,6 +433,7 @@ class TestCartesianRepresentation(object):
 
     def test_name(self):
         assert CartesianRepresentation.get_name() == 'cartesian'
+        assert CartesianRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -659,6 +665,7 @@ class TestCylindricalRepresentation(object):
 
     def test_name(self):
         assert CylindricalRepresentation.get_name() == 'cylindrical'
+        assert CylindricalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:

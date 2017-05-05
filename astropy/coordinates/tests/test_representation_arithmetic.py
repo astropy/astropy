@@ -13,6 +13,7 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CartesianDifferential, UnitSphericalDifferential,
                 PhysicsSphericalDifferential, CylindricalDifferential,
                 RadialRepresentation, RadialDifferential, Longitude, Latitude)
+from ..representation import DIFFERENTIAL_CLASSES
 from ..angle_utilities import angular_separation
 from ...utils.compat.numpy import broadcast_arrays
 from ...tests.helper import assert_quantity_allclose
@@ -547,6 +548,7 @@ class TestSphericalDifferential():
 
     def test_name(self):
         assert SphericalDifferential.get_name() == 'spherical'
+        assert SphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -684,6 +686,7 @@ class TestUnitSphericalDifferential():
 
     def test_name(self):
         assert UnitSphericalDifferential.get_name() == 'unitspherical'
+        assert UnitSphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -783,6 +786,7 @@ class TestRadialDifferential():
 
     def test_name(self):
         assert RadialDifferential.get_name() == 'radial'
+        assert RadialDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         r, s, e, sf = self.r, self.s, self.e, self.sf
@@ -821,6 +825,7 @@ class TestPhysicsSphericalDifferential():
 
     def test_name(self):
         assert PhysicsSphericalDifferential.get_name() == 'physicsspherical'
+        assert PhysicsSphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -876,6 +881,7 @@ class TestCylindricalDifferential():
 
     def test_name(self):
         assert CylindricalDifferential.get_name() == 'cylindrical'
+        assert CylindricalDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -926,6 +932,7 @@ class TestCartesianDifferential():
 
     def test_name(self):
         assert CartesianDifferential.get_name() == 'cartesian'
+        assert CartesianDifferential.get_name() in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
