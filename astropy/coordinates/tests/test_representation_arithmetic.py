@@ -545,6 +545,9 @@ class TestSphericalDifferential():
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
 
+    def test_name(self):
+        assert SphericalDifferential.get_name() == 'spherical'
+
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
 
@@ -679,6 +682,9 @@ class TestUnitSphericalDifferential():
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
 
+    def test_name(self):
+        assert UnitSphericalDifferential.get_name() == 'unitspherical'
+
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
 
@@ -775,6 +781,9 @@ class TestRadialDifferential():
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
 
+    def test_name(self):
+        assert RadialDifferential.get_name() == 'radial'
+
     def test_simple_differentials(self):
         r, s, e, sf = self.r, self.s, self.e, self.sf
 
@@ -809,6 +818,9 @@ class TestPhysicsSphericalDifferential():
         self.s = s
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
+
+    def test_name(self):
+        assert PhysicsSphericalDifferential.get_name() == 'physicsspherical'
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -862,6 +874,9 @@ class TestCylindricalDifferential():
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
 
+    def test_name(self):
+        assert CylindricalDifferential.get_name() == 'cylindrical'
+
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
 
@@ -908,6 +923,9 @@ class TestCartesianDifferential():
         self.s = s
         self.e = s.unit_vectors()
         self.sf = s.scale_factors()
+
+    def test_name(self):
+        assert CartesianDifferential.get_name() == 'cartesian'
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
