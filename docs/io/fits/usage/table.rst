@@ -123,7 +123,7 @@ the input table is generated:
     >>> from astropy.io import fits
     >>> t = fits.open('table.fits')
     >>> tbdata = t[1].data
-    >>> mask = tbdata.['magnitude'] > 5
+    >>> mask = tbdata['magnitude'] > 5
     >>> newtbdata = tbdata[mask]
     >>> hdu = fits.BinTableHDU(data=newtbdata)
     >>> hdu.writeto('newtable.fits')
