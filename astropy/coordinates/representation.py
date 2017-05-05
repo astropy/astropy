@@ -31,10 +31,11 @@ __all__ = ["RepresentationBase", "BaseRepresentation",
            "UnitSphericalDifferential", "RadialDifferential",
            "PhysicsSphericalDifferential", "CylindricalDifferential"]
 
-# Module-level dict mapping representation string alias names to class.
-# This is populated by the metaclass init so all representation classes
-# get registered automatically.
+# Module-level dict mapping representation string alias names to classes.
+# This is populated by the metaclass init so all representation and differential
+# classes get registered automatically.
 REPRESENTATION_CLASSES = {}
+DIFFERENTIAL_CLASSES = {}
 
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
@@ -1535,6 +1536,13 @@ class MetaBaseDifferential(abc.ABCMeta):
             base_attr_classes = cls.base_representation.attr_classes
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
+
+        repr_name = cls.get_name()
+        if repr_name in DIFFERENTIAL_CLASSES:
+            raise ValueError("Differential class {0} already defined"
+                             .format(repr_name))
+
+        DIFFERENTIAL_CLASSES[repr_name] = cls
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:
