@@ -142,6 +142,12 @@ class ColumnInfo(BaseColumnInfo):
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
 
+    def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+        attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
+                                         ('meta', 'unit', 'format', 'description'))
+
+        return self._parent_cls(length=length, **attrs)
+
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
@@ -671,12 +677,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-
-    @classmethod
-    def empty_like(cls, cols, length, metadata_conflicts='warn', name=None):
-        attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
-                                         ('meta', 'unit', 'format', 'description'))
-        return cls(length=length, **attrs)
 
 
 class Column(BaseColumn):
