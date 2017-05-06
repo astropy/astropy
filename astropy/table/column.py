@@ -6,6 +6,7 @@ from ..extern.six.moves import zip
 
 import warnings
 import weakref
+import re
 
 from copy import deepcopy
 
@@ -797,19 +798,19 @@ class Column(BaseColumn):
         Emit a warning if any elements of ``value`` will be truncated when
         ``value`` is assigned to self.
         """
-        # Convert input ``value`` to the string dtype of this column
+        # Convert input ``value`` to the string dtype of this column and
+        # find the length of the longest string in the array.
         value = np.asanyarray(value, dtype=self.dtype.type)
-
-        # Compute itemsize for ``value`` as the max *actual length* times the
-        # itemsize for a length=1 version of the string type.  Remember itemsize
-        # is the total length in bytes for a single item.
         value_str_len = np.char.str_len(value).max()
-        value_itemsize = value_str_len * np.array('', dtype=value.dtype.type).itemsize
 
-        if value_itemsize > self.dtype.itemsize:
+        # Parse the array-protocol typestring (e.g. '|U15') of self.dtype which
+        # has the character repeat count on the right side.
+        self_str_len = int(re.search(r'(\d+)$', self.dtype.str).group(1))
+
+        if value_str_len > self_str_len:
             warnings.warn('truncated right side string(s) longer than {} '
                           'character(s) during assignment'
-                          .format(self.dtype.str[2:]),
+                          .format(self_str_len),
                           StringTruncateWarning,
                           stacklevel=3)
 
@@ -1141,15 +1142,10 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # https://github.com/numpy/numpy/issues/8624
             value = np.ma.asanyarray(value, dtype=self.dtype.type)
 
-            # Processing to check for string truncation:
-            # - Make version of ``value`` that is flat masked array with at least 1d
-            # - Get rid of any masked elements.
-            # - If there are any vals then check for string truncation
-            vals = np.ma.atleast_1d(value).flatten()
-            if np.any(vals.mask):
-                vals = vals[~vals.mask]
-            if len(vals) > 0:
-                self._check_string_truncate(vals)
+            # Check for string truncation after filling masked items with
+            # empty (zero-length) string.  Note that filled() does not make
+            # a copy if there are no masked items.
+            self._check_string_truncate(value.filled(''))
 
         # update indices
         self.info.adjust_indices(index, value, len(self))
