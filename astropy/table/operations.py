@@ -608,7 +608,7 @@ def _join(left, right, keys=None, join_type='inner',
         if left_name and right_name:  # this is a key which comes from left and right
             cols = [left[left_name], right[right_name]]
             col_cls = _get_out_class(cols)
-            out[out_name] = col_cls.empty_like(cols, n_out, metadata_conflicts, out_name)
+            out[out_name] = col_cls.info.empty_like(cols, n_out, metadata_conflicts, out_name)
 
             if issubclass(col_cls, Column):
                 out[out_name][:] = np.where(right_mask,
@@ -695,7 +695,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         return arrays[0]
 
     for arr in arrays:
-        if any(not hasattr(col, 'empty_like') for col in arr.columns.values()):
+        if any(not hasattr(col.info, 'empty_like') for col in arr.columns.values()):
             raise NotImplementedError('vstack not available for columns '
                                       'without an empty_like() method')
 
@@ -739,7 +739,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
 
         col_cls = _get_out_class(cols)
         try:
-            out[out_name] = col_cls.empty_like(cols, n_rows, metadata_conflicts, out_name)
+            out[out_name] = col_cls.info.empty_like(cols, n_rows, metadata_conflicts, out_name)
         except metadata.MergeConflictError as err:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
