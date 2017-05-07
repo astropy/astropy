@@ -332,13 +332,14 @@ function in which the resulting mean (variance) is the sum of the means
 
 .. plot::
     :include-source:
+
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling import models
     from astropy.convolution import convolve_models
 
-    g1 = Gaussian1D(1, -1, 1)
-    g2 = Gaussian1D(1, 1, 1)
+    g1 = models.Gaussian1D(1, -1, 1)
+    g2 = models.Gaussian1D(1, 1, 1)
     g3 = convolve_models(g1, g2)
 
     x = np.linspace(-3, -3, 50)
