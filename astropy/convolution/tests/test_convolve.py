@@ -192,8 +192,10 @@ class TestConvolve2D(object):
              [1, 1, 1],
              [1, 1, 1]]
 
-        z = convolve(x, x, boundary='fill', fill_value=1)
-        assert_array_almost_equal_nulp(z / 9, x, 10)
+        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=True)
+        assert_array_almost_equal_nulp(z, x, 10)
+        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
+        assert_array_almost_equal_nulp(z, np.array(x, float)*9, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
