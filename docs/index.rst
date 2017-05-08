@@ -59,6 +59,7 @@ User Documentation
    install
    getting_started
    Example gallery <generated/examples/index>
+   Tutorials <http://tutorials.astropy.org/>
 
 **Core data structures and transformations**
 
