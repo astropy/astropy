@@ -36,7 +36,7 @@ from .formats import TimeFromEpoch  # pylint: disable=W0611
 
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'TIME_DELTA_SCALES',
-           'ScaleValueError', 'OperandTypeError']
+           'ScaleValueError', 'OperandTypeError', 'TimeInfo']
 
 
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')

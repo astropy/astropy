@@ -32,6 +32,9 @@ from ..extern.six.moves import zip, cStringIO as StringIO
 from . import metadata
 
 
+__all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
+           'DataInfo', 'MixinInfo', 'ParentDtypeInfo']
+
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
                         'Mean of empty slice|Degrees of freedom <= 0'),)
