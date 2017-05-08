@@ -54,7 +54,7 @@ class Conf(_config.ConfigNamespace):
         'http://data.astropy.org/',
         'URL for astropy remote data site.')
     remote_timeout = _config.ConfigItem(
-        3.,
+        10.,
         'Time to wait for remote data queries (in seconds).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     compute_hash_block_size = _config.ConfigItem(
