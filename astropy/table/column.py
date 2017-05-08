@@ -123,6 +123,19 @@ def _merge_ndarray_like_cols(cols, metadata_conflicts, name, attrs):
 
 
 class FalseArray(np.ndarray):
+    """
+    Class to create a stub ``mask`` property which is a boolean array of
+    ``False`` used by default for mixin columns and corresponding to the mixin
+    column data shape.  The ``mask`` looks like a normal numpy array but an
+    exception will be raised if ``True`` is assigned to any element.  The
+    consequences of the limitation are most obvious in the high-level table
+    operations.
+
+    Parameters
+    ----------
+    shape : tuple
+        Data shape
+    """
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)
         return obj
@@ -139,10 +152,37 @@ class FalseArray(np.ndarray):
 
 
 class ColumnInfo(BaseColumnInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
 
     def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return an empty Column instance which is consistent with the
+        input ``cols`` and has ``length`` rows.  This is intended for creating
+        an empty column object whose elements can be set in-place for
+        table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts.
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Column (or subclass)
+            Empty version of this class consistent with ``cols``
+        """
         attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
                                          ('meta', 'unit', 'format', 'description'))
 
