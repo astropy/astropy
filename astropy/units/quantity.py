@@ -601,16 +601,20 @@ class Quantity(np.ndarray):
         # Determine required conversion functions -- to bring the unit of the
         # input to that expected (e.g., radian for np.sin), or to get
         # consistent units between two inputs (e.g., in np.add) --
-        # and the unit of the result.
+        # and the unit of the result (or tuple of units for nout > 1).
         converters, unit = converters_and_unit(function, method, *inputs)
 
-        outputs = kwargs.get('out', None)
+        out = kwargs.get('out', None)
         # Avoid loop back by turning any Quantity output into array views.
-        if outputs is not None:
+        if out is not None:
             # If pre-allocated output is used, check it is suitable.
             # This also returns array view, to ensure we don't loop back.
-            kwargs['out'] = check_output(outputs, unit, inputs,
-                                         function=function)
+            if function.nout == 1:
+                out = out[0]
+            out_array = check_output(out, unit, inputs, function=function)
+            # Ensure output argument remains a tuple.
+            kwargs['out'] = (out_array,) if function.nout == 1 else out_array
+
         # Same for inputs, but here also convert if necessary.
         arrays = tuple(((converter(input_.value) if converter else input_.value)
                         if isinstance(input_, Quantity) else input_)
@@ -619,15 +623,15 @@ class Quantity(np.ndarray):
         # Call our superclass's __array_ufunc__
         result = super(Quantity, self).__array_ufunc__(function, method,
                                                        *arrays, **kwargs)
-        # If unit is None, a plain array is expected (e.g., comparisons and
-        # np.frexp), which means we're done.
+        # If unit is None, a plain array is expected (e.g., comparisons), which
+        # means we're done.
         # We're also done if the result was None (for method 'at') or
         # NotImplemented, which can happen if other inputs/outputs override
         # __array_ufunc__; hopefully, they can then deal with us.
         if unit is None or result is None or result is NotImplemented:
             return result
 
-        return self._result_as_quantity(result, unit, outputs)
+        return self._result_as_quantity(result, unit, out)
 
     def _result_as_quantity(self, result, unit, out):
         """Turn result into a quantity with the given unit.
@@ -640,10 +644,12 @@ class Quantity(np.ndarray):
         ----------
         result : `~numpy.ndarray` or tuple of `~numpy.ndarray`
             Array(s) which need to be turned into quantity.
-        unit : `~astropy.units.Unit`
-            Unit for the quantities to be returned.
-        out : `~astropy.units.Quantity`
-            Possible output quantity.
+        unit : `~astropy.units.Unit` or None
+            Unit for the quantities to be returned (or `None` if the result
+            should not be a quantity).  Should be tuple if result is a tuple.
+        out : `~astropy.units.Quantity` or None
+            Possible output quantity. Should be `None` or a tuple if result
+            is a tuple.
 
         Returns
         -------
@@ -652,20 +658,18 @@ class Quantity(np.ndarray):
         """
         if isinstance(result, tuple):
             if out is None:
-                return tuple(self._new_view(r, unit) for r in result)
-            else:
-                return tuple(self._result_as_quantity(r, unit, o)
-                             for (r, o) in zip(result, out))
+                out = (None,) * len(result)
+            return tuple(self._result_as_quantity(result_, unit_, out_)
+                         for (result_, unit_, out_) in
+                         zip(result, unit, out))
 
         if out is None:
             # View the result array as a Quantity with the proper unit.
-            return self._new_view(result, unit)
+            return result if unit is None else self._new_view(result, unit)
 
-        if isinstance(out, tuple):
-            out = out[0]
-
-        # For given output, just set the unit. We know this output is of the
-        # correct Quantity subclass, as it was passed through check_output.
+        # For given output, just set the unit. We know the unit is not None and
+        # the output is of the correct Quantity subclass, as it was passed
+        # through check_output.
         out._set_unit(unit)
         return out
 
@@ -1096,16 +1100,20 @@ class Quantity(np.ndarray):
         return self._new_view(result_array, result_unit)
 
     if NUMPY_LT_1_13:
-        # In numpy >=1.13, ndarray.__pos__ goes through the np.positive ufunc,
-        # and this is no longer needed.
+        # Pre-numpy 1.13, there was no np.positive ufunc and the copy done
+        # by ndarray did not properly work for scalar quantities.
         def __pos__(self):
-            """
-            Plus the quantity.
-
-            This is implemented in case users use +q where q is a quantity.
-            (Required for scalar case.)
-            """
+            """Plus the quantity."""
             return self.copy()
+
+    else:
+        # In numpy 1.13, a np.positive ufunc exists, but ndarray.__pos__
+        # does not yet go through it, so we still need to define it, to allow
+        # subclasses to override it inside __array_ufunc__.
+        # Presumably, this can eventually be removed.
+        def __pos__(self):
+            """Plus the quantity."""
+            return np.positive(self)
 
     # other overrides of special functions
     def __hash__(self):

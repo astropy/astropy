@@ -715,27 +715,28 @@ class TestInplaceUfuncs(object):
         assert_allclose(s.value, np.arctan2(1., 2.))
         assert s.unit is u.radian
 
-    @pytest.mark.skipif("not hasattr(np, 'divmod')")
+    @pytest.mark.skipif(NUMPY_LT_1_13, reason="numpy >=1.13 required.")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_two_output_ufunc_inplace(self, value):
         v = value * u.m
         divisor = 70.*u.cm
-        v_copy = v.copy()
+        v1 = v.copy()
         tmp = v.copy()
-        # cannot use out1, out2 keywords with numpy 1.7
-        check = np.divmod(v, divisor, tmp, v)
-        assert check[0] is tmp and check[1] is v
+        check = np.divmod(v1, divisor, out=(tmp, v1))
+        assert check[0] is tmp and check[1] is v1
         assert tmp.unit == u.dimensionless_unscaled
-        assert v.unit == v_copy.unit
-        # can also replace in last position if no scaling is needed
-        v2 = v_copy.to(divisor.unit)
-        check2 = np.divmod(v2, divisor, v2, tmp)
+        assert v1.unit == v.unit
+        v2 = v.copy()
+        check2 = np.divmod(v2, divisor, out=(v2, tmp))
         assert check2[0] is v2 and check2[1] is tmp
         assert v2.unit == u.dimensionless_unscaled
-        assert tmp.unit == divisor.unit
-        # but cannot replace input with first output if scaling is needed
-        with pytest.raises(TypeError):
-            np.divmod(v_copy, divisor, v_copy, tmp)
+        assert tmp.unit == v.unit
+        v3a = v.copy()
+        v3b = v.copy()
+        check3 = np.divmod(v3a, divisor, out=(v3a, v3b))
+        assert check3[0] is v3a and check3[1] is v3b
+        assert v3a.unit == u.dimensionless_unscaled
+        assert v3b.unit == v.unit
 
     def test_ufunc_inplace_non_contiguous_data(self):
         # ensure inplace works also for non-contiguous data (closes #1834)
