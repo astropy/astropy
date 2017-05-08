@@ -536,12 +536,13 @@ def test_qtable_column_conversion():
     assert isinstance(qtab['f'], u.Dex)
 
 
-def test_string_truncation_warning():
+@pytest.mark.parametrize('masked', [True, False])
+def test_string_truncation_warning(masked):
     """
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
-    t = table.Table([['aa', 'bb']], names=['a'])
+    t = table.Table([['aa', 'bb']], names=['a'], masked=masked)
 
     with catch_warnings() as w:
         from inspect import currentframe, getframeinfo
@@ -567,6 +568,51 @@ def test_string_truncation_warning():
     with catch_warnings() as w:
         t['a'][:] = ['ff', 'ggg']  # replace item with string that gets truncated
         assert np.all(t['a'] == ['ff', 'gg'])
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
+
+    with catch_warnings() as w:
+        # Test the obscure case of assigning from an array that was originally
+        # wider than any of the current elements (i.e. dtype is U4 but actual
+        # elements are U1 at the time of assignment).
+        val = np.array(['ffff', 'gggg'])
+        val[:] = ['f', 'g']
+        t['a'][:] = val
+        assert np.all(t['a'] == ['f', 'g'])
+        assert len(w) == 0
+
+
+def test_string_truncation_warning_masked():
+    """
+    Test warnings associated with in-place assignment to a string
+    to a masked column, specifically where the right hand side
+    contains np.ma.masked.
+    """
+
+    # Test for strings, but also cover assignment of np.ma.masked to
+    # int and float masked column setting.  This was previously only
+    # covered in an unrelated io.ascii test (test_line_endings) which
+    # showed an unexpected difference between handling of str and numeric
+    # masked arrays.
+    for values in (['a', 'b'], [1, 2], [1.0, 2.0]):
+        mc = table.MaskedColumn(values)
+
+        with catch_warnings() as w:
+            mc[1] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [False, True])
+
+            mc[:] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [True, True])
+
+    mc = table.MaskedColumn(['aa', 'bb'])
+
+    with catch_warnings() as w:
+        mc[:] = [np.ma.masked, 'ggg']  # replace item with string that gets truncated
+        assert mc[1] == 'gg'
+        assert np.all(mc.mask == [True, False])
         assert len(w) == 1
         assert ('truncated right side string(s) longer than 2 character(s)'
                 in str(w[0].message))

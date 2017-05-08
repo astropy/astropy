@@ -6,6 +6,7 @@ from ..extern.six.moves import zip
 
 import warnings
 import weakref
+import re
 
 from copy import deepcopy
 
@@ -40,6 +41,9 @@ class StringTruncateWarning(UserWarning):
     stacklevel=2 to show the user where the issue occurred in their code.
     """
     pass
+
+# Always emit this warning, not just the first instance
+warnings.simplefilter('always', StringTruncateWarning)
 
 
 def _auto_names(n_cols):
@@ -787,11 +791,23 @@ class Column(BaseColumn):
         __str__ = __bytes__
 
     def _check_string_truncate(self, value):
+        """
+        Emit a warning if any elements of ``value`` will be truncated when
+        ``value`` is assigned to self.
+        """
+        # Convert input ``value`` to the string dtype of this column and
+        # find the length of the longest string in the array.
         value = np.asanyarray(value, dtype=self.dtype.type)
-        if value.dtype.itemsize > self.dtype.itemsize:
+        value_str_len = np.char.str_len(value).max()
+
+        # Parse the array-protocol typestring (e.g. '|U15') of self.dtype which
+        # has the character repeat count on the right side.
+        self_str_len = int(re.search(r'(\d+)$', self.dtype.str).group(1))
+
+        if value_str_len > self_str_len:
             warnings.warn('truncated right side string(s) longer than {} '
                           'character(s) during assignment'
-                          .format(self.dtype.str[2:]),
+                          .format(self_str_len),
                           StringTruncateWarning,
                           stacklevel=3)
 
@@ -1098,6 +1114,17 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         return out
 
     def __setitem__(self, index, value):
+        # Issue warning for string assignment that truncates ``value``
+        if issubclass(self.dtype.type, np.character):
+            # Account for a bug in np.ma.MaskedArray setitem.
+            # https://github.com/numpy/numpy/issues/8624
+            value = np.ma.asanyarray(value, dtype=self.dtype.type)
+
+            # Check for string truncation after filling masked items with
+            # empty (zero-length) string.  Note that filled() does not make
+            # a copy if there are no masked items.
+            self._check_string_truncate(value.filled(''))
+
         # update indices
         self.info.adjust_indices(index, value, len(self))
         ma.MaskedArray.__setitem__(self, index, value)
