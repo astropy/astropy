@@ -652,9 +652,10 @@ def _join(left, right, keys=None, join_type='inner',
             try:
                 out[out_name].mask[:] = array_mask
             except ValueError:
-                raise ValueError("join requires masking column '{0}' but column"
-                                 " type {1} does not support masking"
-                                 .format(out_name, out[out_name].__class__.__name__))
+                raise NotImplementedError(
+                    "join requires masking column '{}' but column"
+                    " type {} does not support masking"
+                    .format(out_name, out[out_name].__class__.__name__))
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
@@ -753,8 +754,16 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         idx0 = 0
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
-            val = array[name] if name in array.colnames else np.ma.masked
-            out[out_name][idx0:idx1] = val
+            if name in array.colnames:
+                out[out_name][idx0:idx1] = array[name]
+            else:
+                try:
+                    out[out_name].mask[idx0:idx1] = True
+                except ValueError:
+                    raise NotImplementedError(
+                        "vstack requires masking column '{}' but column"
+                        " type {} does not support masking"
+                        .format(out_name, out[out_name].__class__.__name__))
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
@@ -848,9 +857,10 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 try:
                     out[out_name].mask[arr_len:] = True
                 except ValueError:
-                    raise ValueError("hstack requires masking column '{0}' but column"
-                                     " type {1} does not support masking"
-                                     .format(out_name, out[out_name].__class__.__name__))
+                    raise NotImplementedError(
+                        "hstack requires masking column '{}' but column"
+                        " type {} does not support masking"
+                        .format(out_name, out[out_name].__class__.__name__))
             else:
                 out[out_name] = array[name][:n_rows]
 
