@@ -1123,3 +1123,25 @@ def test_get_out_class():
 
     with pytest.raises(ValueError):
         _get_out_class([q, c])
+
+
+def test_masking_required_exception():
+    """
+    Test that outer join, hstack and vstack fail for a mixin column which
+    does not support masking.
+    """
+    col = [1, 2, 3, 4] * u.m
+    t1 = table.QTable([[1, 2, 3, 4], col], names=['a', 'b'])
+    t2 = table.QTable([[1, 2], col[:2]], names=['a', 'c'])
+
+    with pytest.raises(NotImplementedError) as err:
+        table.vstack([t1, t2], join_type='outer')
+    assert 'vstack requires masking' in str(err)
+
+    with pytest.raises(NotImplementedError) as err:
+        table.hstack([t1, t2], join_type='outer')
+    assert 'hstack requires masking' in str(err)
+
+    with pytest.raises(NotImplementedError) as err:
+        table.join(t1, t2, join_type='outer')
+    assert 'join requires masking' in str(err)
