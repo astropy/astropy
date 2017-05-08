@@ -214,31 +214,43 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     elif array_internal.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array_internal,
-                                                kernel_internal)
+                                                kernel_internal,
+                                                normalize_kernel,
+                                               )
         elif boundary == 'fill':
             result = convolve2d_boundary_fill(array_internal,
                                               kernel_internal,
-                                              float(fill_value))
+                                              float(fill_value),
+                                              normalize_kernel,
+                                             )
         elif boundary == 'wrap':
             result = convolve2d_boundary_wrap(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel,
+                                             )
         else:
             result = convolve2d_boundary_none(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel,
+                                             )
     elif array_internal.ndim == 3:
         if boundary == 'extend':
             result = convolve3d_boundary_extend(array_internal,
-                                                kernel_internal)
+                                                kernel_internal,
+                                                normalize_kernel)
         elif boundary == 'fill':
             result = convolve3d_boundary_fill(array_internal,
                                               kernel_internal,
-                                              float(fill_value))
+                                              float(fill_value),
+                                              normalize_kernel)
         elif boundary == 'wrap':
             result = convolve3d_boundary_wrap(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel)
         else:
             result = convolve3d_boundary_none(array_internal,
-                                              kernel_internal)
+                                              kernel_internal,
+                                              normalize_kernel)
     else:
         raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
                                   'arrays at this time')
