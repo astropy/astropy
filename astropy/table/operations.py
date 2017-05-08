@@ -564,7 +564,8 @@ def _join(left, right, keys=None, join_type='inner',
                 raise TableMergeError('{0} key column {1!r} has missing values'
                                       .format(arr_label, name))
             if not isinstance(arr[name], np.ndarray):
-                raise ValueError("non-ndarray column '{0}' not allowed as a key column")
+                raise ValueError("non-ndarray column '{}' not allowed as a key column"
+                                 .format(name))
 
     len_left, len_right = len(left), len(right)
 
@@ -607,7 +608,12 @@ def _join(left, right, keys=None, join_type='inner',
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
             cols = [left[left_name], right[right_name]]
+
             col_cls = _get_out_class(cols)
+            if not hasattr(col_cls.info, 'empty_like'):
+                raise NotImplementedError('join unavailable for mixin column type(s): {}'
+                                          .format(col_cls.__name__))
+
             out[out_name] = col_cls.info.empty_like(cols, n_out, metadata_conflicts, out_name)
 
             if issubclass(col_cls, Column):
@@ -694,11 +700,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     if len(arrays) == 1:
         return arrays[0]
 
-    for arr in arrays:
-        if any(not hasattr(col.info, 'empty_like') for col in arr.columns.values()):
-            raise NotImplementedError('vstack not available for columns '
-                                      'without an empty_like() method')
-
     # Start by assuming an outer match where all names go to output
     names = set(itertools.chain(*[arr.colnames for arr in arrays]))
     col_name_map = get_col_name_map(arrays, names)
@@ -738,6 +739,9 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
         col_cls = _get_out_class(cols)
+        if not hasattr(col_cls.info, 'empty_like'):
+            raise NotImplementedError('vstack unavailable for mixin column type(s): {}'
+                                      .format(col_cls.__name__))
         try:
             out[out_name] = col_cls.info.empty_like(cols, n_rows, metadata_conflicts, out_name)
         except metadata.MergeConflictError as err:

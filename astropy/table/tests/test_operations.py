@@ -762,6 +762,21 @@ class TestVStack():
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
+    def test_check_for_mixin_functionality(self, mixin_cols):
+        col = mixin_cols['m']
+        t = table.QTable([col])
+        cls_name = type(col).__name__
+
+        # Vstack works for these classes:
+        implemented_mixin_classes = ['Quantity']
+        if cls_name in implemented_mixin_classes:
+            table.vstack([t, t])
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.vstack([t, t])
+            assert ('vstack unavailable for mixin column type(s): {}'
+                    .format(cls_name) in str(err))
+
 
 class TestHStack():
 
