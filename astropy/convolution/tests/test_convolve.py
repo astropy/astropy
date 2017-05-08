@@ -305,7 +305,7 @@ class TestConvolve2D(object):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, interpolate_nan=False)
 
         assert np.isnan(z[1, 1])
         x = np.nan_to_num(z)
@@ -334,11 +334,11 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, interpolate_nan=True, normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
-                                                        [0., 9., 0.],
+                                                        [0., 8., 0.],
                                                         [0., 0., 0.]], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([[1., 5., 4.],
