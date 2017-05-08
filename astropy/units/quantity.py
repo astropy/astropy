@@ -157,6 +157,28 @@ class QuantityInfo(ParentDtypeInfo):
         return self._parent_cls(value, **map)
 
     def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return an empty Quantity instance which is consistent with the
+        input ``cols`` and has ``length`` rows.  This is intended for creating
+        an empty column object whose elements can be set in-place for
+        table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts.
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Quantity (or subclass)
+            Empty version of this class consistent with ``cols``
+        """
         from ..table.column import _merge_ndarray_like_cols
 
         # Get merged info attributes like shape, dtype, format, description, etc.

@@ -211,12 +211,13 @@ that contain mixin columns:
    * - :ref:`grouped-operations`
      - Not implemented yet, but no fundamental limitation
    * - :ref:`stack-vertically`
-     - Not implemented yet, pending definition of generic concatenation protocol
+     - Available for `~astropy.units.Quantity` and any other mixin classes that provide an
+       `empty_like() method`_ in the ``info`` descriptor.
    * - :ref:`stack-horizontally`
-     - Works if output mixin columns do not require masking
+     - Works if output mixin column supports masking or if no masking is required
    * - :ref:`table-join`
-     - Works if output mixin columns do not require masking; no mixin key
-       columns allowed
+     - Works if output mixin column supports masking or if no masking is required; key
+       columns must be subclasses of `numpy.ndarray`.
    * - :ref:`unique-rows`
      - Not implemented yet, uses grouped operations
 
@@ -256,6 +257,45 @@ Other interesting possibilities for mixin columns include:
   spreadsheet)
 - Columns which are themselves a |Table|, i.e. nested tables.  A `proof of
   concept <https://github.com/astropy/astropy/pull/3963>`_ is available.
+
+empty_like() method
+~~~~~~~~~~~~~~~~~~~
+
+In order to support high-level operations like `~astropy.table.join` and
+`~astropy.table.vstack`, a mixin class must provide an ``empty_like()`` method
+in the ``info`` class descriptor.  A key part of the functionality is to ensure
+that the input column metadata are merged appropriately and that the columns
+have consistent properties such as the shape.
+
+This method has the following signature::
+
+    def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return an empty instance of this class which is consistent with the
+        input ``cols`` and has ``length`` rows.  This is intended for creating
+        an empty column object whose elements can be set in-place for
+        table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts.
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : object
+            Empty version of this class consistent with ``cols``
+        """
+
+Examples of this are found in the `astropy.table.column.ColumnInfo` and
+`astropy.unit.quantity.QuantityInfo` classes.
+
 
 .. _arraywrapper_example:
 
