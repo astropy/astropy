@@ -96,27 +96,22 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
         # Now run the proper convolution
         for i in range(nx):
             for j in range(ny):
-                if not npy_isnan(fixed[i, j]):
-                    top = 0.
-                    bot = 0.
-                    iimin = i - wkx
-                    iimax = i + wkx + 1
-                    jjmin = j - wky
-                    jjmax = j + wky + 1
-                    for ii in range(iimin, iimax):
-                        for jj in range(jjmin, jjmax):
-                            iii = ii % nx
-                            jjj = jj % ny
-                            val = fixed[iii, jjj]
-                            ker = g[<unsigned int>(wkx + ii - i),
-                                    <unsigned int>(wky + jj - j)]
-                            if not npy_isnan(val):
-                                top += val * ker
-                                bot += ker
-                    if bot != 0:
-                        conv[i, j] = top / bot
-                    else:
-                        conv[i, j] = fixed[i, j]
+                top = 0.
+                bot = 0.
+                iimin = i - wkx
+                iimax = i + wkx + 1
+                jjmin = j - wky
+                jjmax = j + wky + 1
+                for ii in range(iimin, iimax):
+                    for jj in range(jjmin, jjmax):
+                        iii = ii % nx
+                        jjj = jj % ny
+                        val = fixed[iii, jjj]
+                        ker = g[<unsigned int>(wkx + ii - i),
+                                <unsigned int>(wky + jj - j)]
+                        if not npy_isnan(val):
+                            top += val * ker
+                            bot += ker
                 if normalize_kernel and bot != 0:
                     conv[i, j] = top / bot
                 elif normalize_kernel and bot == 0:
@@ -166,32 +161,27 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
         for i in range(nx):
             for j in range(ny):
                 for k in range(nz):
-                    if not npy_isnan(fixed[i, j, k]):
-                        top = 0.
-                        bot = 0.
-                        iimin = i - wkx
-                        iimax = i + wkx + 1
-                        jjmin = j - wky
-                        jjmax = j + wky + 1
-                        kkmin = k - wkz
-                        kkmax = k + wkz + 1
-                        for ii in range(iimin, iimax):
-                            for jj in range(jjmin, jjmax):
-                                for kk in range(kkmin, kkmax):
-                                    iii = ii % nx
-                                    jjj = jj % ny
-                                    kkk = kk % nz
-                                    val = fixed[iii, jjj, kkk]
-                                    ker = g[<unsigned int>(wkx + ii - i),
-                                            <unsigned int>(wky + jj - j),
-                                            <unsigned int>(wkz + kk - k)]
-                                    if not npy_isnan(val):
-                                        top += val * ker
-                                        bot += ker
-                        if bot != 0:
-                            conv[i, j, k] = top / bot
-                        else:
-                            conv[i, j, k] = fixed[i, j, k]
+                    top = 0.
+                    bot = 0.
+                    iimin = i - wkx
+                    iimax = i + wkx + 1
+                    jjmin = j - wky
+                    jjmax = j + wky + 1
+                    kkmin = k - wkz
+                    kkmax = k + wkz + 1
+                    for ii in range(iimin, iimax):
+                        for jj in range(jjmin, jjmax):
+                            for kk in range(kkmin, kkmax):
+                                iii = ii % nx
+                                jjj = jj % ny
+                                kkk = kk % nz
+                                val = fixed[iii, jjj, kkk]
+                                ker = g[<unsigned int>(wkx + ii - i),
+                                        <unsigned int>(wky + jj - j),
+                                        <unsigned int>(wkz + kk - k)]
+                                if not npy_isnan(val):
+                                    top += val * ker
+                                    bot += ker
                     if normalize_kernel and bot != 0:
                         conv[i, j, k] = top / bot
                     elif normalize_kernel and bot == 0:
