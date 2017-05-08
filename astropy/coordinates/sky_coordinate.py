@@ -24,7 +24,7 @@ from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
-__all__ = ['SkyCoord']
+__all__ = ['SkyCoord', 'SkyCoordInfo']
 
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
 J_PREFIXED_RA_DEC_RE = re.compile(

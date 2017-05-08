@@ -30,7 +30,7 @@ from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
 
 
-__all__ = ["Quantity", "SpecificTypeQuantity"]
+__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy

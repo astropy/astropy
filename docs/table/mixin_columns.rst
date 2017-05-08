@@ -293,8 +293,8 @@ This method has the following signature::
             Empty version of this class consistent with ``cols``
         """
 
-Examples of this are found in the `astropy.table.column.ColumnInfo` and
-`astropy.unit.quantity.QuantityInfo` classes.
+Examples of this are found in the `~astropy.table.column.ColumnInfo` and
+`~astropy.units.quantity.QuantityInfo` classes.
 
 
 .. _arraywrapper_example:
