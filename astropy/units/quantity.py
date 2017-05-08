@@ -392,6 +392,8 @@ class Quantity(np.ndarray):
         # the unit the output from the ufunc will have.
         if function in UFUNC_HELPERS:
             converters, result_unit = UFUNC_HELPERS[function](function, *units)
+            if function.nout > 1:
+                result_unit = result_unit[context[2]]
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
@@ -608,18 +610,14 @@ class Quantity(np.ndarray):
                         obj_array = None
 
                 # Re-compute the output using the ufunc
-                if function.nin == 1:
-                    if function.nout == 1:
-                        out = function(inputs[0], obj_array)
-                    else:  # 2-output function (np.modf, np.frexp); 1 input
-                        if context[2] == 0:
-                            out, _ = function(inputs[0], obj_array, None)
-                        else:
-                            _, out = function(inputs[0], None, obj_array)
+                if context[2] == 0:
+                    inputs.append(obj_array)
                 else:
-                    out = function(inputs[0], inputs[1], obj_array)
-
+                    inputs += [None, obj_array]
+                out = function(*inputs)
                 if obj_array is None:
+                    if function.nout > 1:
+                        out = out[context[2]]
                     obj = self._new_view(out, result_unit)
 
             if result_unit is None:  # return a plain array
@@ -987,12 +985,14 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects. """
         return self.__rtruediv__(other)
 
-    def __divmod__(self, other):
-        other_value = self._to_own_unit(other)
-        result_tuple = divmod(self.value, other_value)
+    if not hasattr(np, 'divmod'):  # NUMPY_LT_1_13
+        # In numpy 1.13, divmod goes via a ufunc and thus works without change.
+        def __divmod__(self, other):
+            other_value = self._to_own_unit(other)
+            result_tuple = divmod(self.value, other_value)
 
-        return (self._new_view(result_tuple[0], dimensionless_unscaled),
-                self._new_view(result_tuple[1]))
+            return (self._new_view(result_tuple[0], dimensionless_unscaled),
+                    self._new_view(result_tuple[1]))
 
     def __pow__(self, other):
         if isinstance(other, Fraction):

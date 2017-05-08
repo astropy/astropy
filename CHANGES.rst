@@ -279,7 +279,8 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Add support for ``positive`` ufunc (new in numpy 1.13). [#5998]
+  - Add support for ``positive`` and ``divmod`` ufuncs (new in numpy 1.13).
+    [#5998, #6020]
 
 - ``astropy.utils``
 

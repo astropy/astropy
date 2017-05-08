@@ -41,6 +41,8 @@ UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
                           np.bitwise_xor, np.invert, np.left_shift,
                           np.right_shift, np.logical_and, np.logical_or,
                           np.logical_xor, np.logical_not])
+if isinstance(getattr(np, 'isnat', None), np.ufunc):
+    UNSUPPORTED_UFUNCS |= {np.isnat}
 
 # SINGLE ARGUMENT UFUNCS
 
@@ -112,7 +114,21 @@ UFUNC_HELPERS[np.log] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.modf] = helper_dimensionless_to_dimensionless
+
+
+def helper_modf(f, unit):
+    if unit is None:
+        return [None], (dimensionless_unscaled, dimensionless_unscaled)
+
+    try:
+        return ([get_converter(unit, dimensionless_unscaled)],
+                (dimensionless_unscaled, dimensionless_unscaled))
+    except UnitsError:
+        raise TypeError("Can only apply '{0}' function to "
+                        "dimensionless quantities"
+                        .format(f.__name__))
+
+UFUNC_HELPERS[np.modf] = helper_modf
 
 
 # ufuncs that require dimensionless input and give output in radians
@@ -183,14 +199,14 @@ UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
 
 
 # ufuncs that require dimensionless_unscaled input and return non-quantities
-def helper_dimensionless_to_none(f, unit):
+def helper_frexp(f, unit):
     if not unit.is_unity():
         raise TypeError("Can only apply '{0}' function to "
                         "unscaled dimensionless quantities"
                         .format(f.__name__))
-    return [None], None
+    return [None], (None, None)
 
-UFUNC_HELPERS[np.frexp] = helper_dimensionless_to_none
+UFUNC_HELPERS[np.frexp] = helper_frexp
 
 # TWO ARGUMENT UFUNCS
 
@@ -345,3 +361,10 @@ def helper_twoarg_floor_divide(f, unit1, unit2):
     return converters, dimensionless_unscaled
 
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
+# divmod only was added in numpy 1.13
+if isinstance(getattr(np, 'divmod', None), np.ufunc):
+    def helper_divmod(f, unit1, unit2):
+        converters, result_unit = get_converters_and_unit(f, unit1, unit2)
+        return converters, (dimensionless_unscaled, result_unit)
+
+    UFUNC_HELPERS[np.divmod] = helper_divmod
