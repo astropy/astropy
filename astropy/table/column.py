@@ -884,7 +884,7 @@ class Column(BaseColumn):
 
     def __setitem__(self, index, value):
         if not six.PY2 and self.dtype.char == 'S':
-            value = self.__class__._encode_str(value)
+            value = self._encode_str(value)
 
         # Issue warning for string assignment that truncates ``value``
         if issubclass(self.dtype.type, np.character):
@@ -910,7 +910,7 @@ class Column(BaseColumn):
         """
         def _compare(self, other):
             if not six.PY2 and self.dtype.char == 'S':
-                other = self.__class__._encode_str(other)
+                other = self._encode_str(other)
             return getattr(self.data, oper)(other)
         return _compare
 
@@ -1216,7 +1216,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     def __setitem__(self, index, value):
         # Issue warning for string assignment that truncates ``value``
         if not six.PY2 and self.dtype.char == 'S':
-            value = self.__class__._encode_str(value)
+            value = self._encode_str(value)
 
         if issubclass(self.dtype.type, np.character):
             # Account for a bug in np.ma.MaskedArray setitem.
