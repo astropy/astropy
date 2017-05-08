@@ -229,8 +229,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
-
+- Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
 1.3.3 (unreleased)
 ------------------

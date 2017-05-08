@@ -36,7 +36,6 @@ from __future__ import absolute_import, division, print_function
 
 import warnings
 
-from ..utils.compat import NUMPY_LT_1_8
 from ..utils.exceptions import AstropyUserWarning
 
 import numpy
@@ -193,16 +192,6 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 
     {%- if func.args_by_inout('in|inout') %}
     make_outputs_scalar = False
-    if NUMPY_LT_1_8:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        {%- for arg in func.args_by_inout('in|inout') %}
-        if {{ arg.name_in_broadcast }}.shape == tuple():
-            {{ arg.name }}_in = {{ arg.name }}_in.reshape((1,) + {{ arg.name }}_in.shape)
-        else:
-            make_outputs_scalar = False
-        {%- endfor %}
     {%- endif %}
 
     #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
