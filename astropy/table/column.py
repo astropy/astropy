@@ -88,40 +88,6 @@ def col_copy(col, copy_indices=True):
     return newcol
 
 
-def _merge_ndarray_like_cols(cols, metadata_conflicts, name, attrs):
-    """
-    Empty like
-    """
-    from ..utils import metadata
-    from .np_utils import TableMergeError
-
-    def warn_str_func(key, left, right):
-        out = ("In merged column '{0}' the '{1}' attribute does not match "
-               "({2} != {3}).  Using {3} for merged output"
-               .format(name, key, left, right))
-        return out
-
-    def getattrs(col):
-        return {attr: getattr(col.info, attr) for attr in attrs
-                if getattr(col.info, attr, None) is not None}
-
-    out = getattrs(cols[0])
-    for col in cols[1:]:
-        out = metadata.merge(out, getattrs(col), metadata_conflicts=metadata_conflicts,
-                             warn_str_func=warn_str_func)
-
-    # Output dtype is the superset of all dtypes in in_cols
-    out['dtype'] = metadata.common_dtype(cols)
-
-    # Make sure all input shapes are the same
-    uniq_shapes = set(col.shape[1:] for col in cols)
-    if len(uniq_shapes) != 1:
-        raise TableMergeError('columns have different shapes')
-    out['shape'] = uniq_shapes.pop()
-
-    return out
-
-
 class FalseArray(np.ndarray):
     """
     Class to create a stub ``mask`` property which is a boolean array of
@@ -183,8 +149,8 @@ class ColumnInfo(BaseColumnInfo):
         col : Column (or subclass)
             Empty version of this class consistent with ``cols``
         """
-        attrs = _merge_ndarray_like_cols(cols, metadata_conflicts, name,
-                                         ('meta', 'unit', 'format', 'description'))
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'unit', 'format', 'description'))
 
         return self._parent_cls(length=length, **attrs)
 
