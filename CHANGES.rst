@@ -395,6 +395,19 @@ Bug Fixes
 
   - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
     [#5929]
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+  - Gaussian models now impose positive ``stddev`` in fitting. [#6019]
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
 
 - ``astropy.table``
 
