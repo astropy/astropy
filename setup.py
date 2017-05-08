@@ -63,7 +63,7 @@ entry_points['console_scripts'] = [
 ]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
-install_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+install_requires = ['numpy>=' + astropy.__minimum_numpy_version__, 'jinja2']
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
