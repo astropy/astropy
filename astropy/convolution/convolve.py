@@ -62,6 +62,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel prior to convolving
+    interpolate_nan : bool, optional
+        The convolution will be re-weighted assuming ``NaN`` values are meant to be
+        ignored, not treated as zero.  If this is off, all ``NaN`` values will be
+        treated as zero.  ``interpolate_nan=True`` is equivalent to the non-fft
+        convolve approach
     mask : `None` or `numpy.ndarray`
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
@@ -285,11 +290,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
-                 normalize_kernel=False, mask=None, crop=True,
-                 return_fft=False, fft_pad=None, psf_pad=None,
-                 interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
-                 min_wt=0.0, allow_huge=False, fftn=np.fft.fftn,
-                 ifftn=np.fft.ifftn, complex_dtype=np.complex, ):
+                 normalize_kernel=False, mask=None, interpolate_nan=False,
+                 crop=True, return_fft=False, fft_pad=None, psf_pad=None,
+                 quiet=False, ignore_edge_zeros=False, min_wt=0.0,
+                 allow_huge=False, fftn=np.fft.fftn, ifftn=np.fft.ifftn,
+                 complex_dtype=np.complex, ):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -339,15 +344,21 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
         ``normalize_kernel = np.sum``.
-
-
-    Other Parameters
-    ----------------
     interpolate_nan : bool, optional
         The convolution will be re-weighted assuming ``NaN`` values are meant to be
         ignored, not treated as zero.  If this is off, all ``NaN`` values will be
         treated as zero.  ``interpolate_nan=True`` is equivalent to the non-fft
         convolve approach
+    mask : `None` or `numpy.ndarray`
+        A "mask" array.  Shape must match ``array``, and anything that is masked
+        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
+        `None`, no masking will be performed unless ``array`` is a masked array.
+        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
+        masked of it is masked in either ``mask`` *or* ``array.mask``.
+
+
+    Other Parameters
+    ----------------
     ignore_edge_zeros : bool, optional
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
@@ -360,20 +371,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         If ``min_wt`` is zero, then all zero-weight points will be set to zero
         instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
         See the examples below
-    normalize_kernel : function or boolean, optional
-        If specified, this is the function to divide kernel by to normalize it.
-        e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
-        ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
-        ``normalize_kernel = np.sum``.
-    mask : `None` or `numpy.ndarray`
-        A "mask" array.  Shape must match ``array``, and anything that is masked
-        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
-        `None`, no masking will be performed unless ``array`` is a masked array.
-        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
-        masked of it is masked in either ``mask`` *or* ``array.mask``.
-
-    Other Parameters
-    ----------------
     fft_pad : bool, optional
         Default on.  Zero-pad image to the nearest 2^n.  With
         ``boundary='wrap'``, this will be disabled.
