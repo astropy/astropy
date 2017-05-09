@@ -68,7 +68,11 @@ def _make_transform_graph_docs():
     isclass = inspect.isclass
     coosys = [item for item in six.itervalues(globals())
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
-    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
+
+    # currently, all of the priorities are set to 1, so we don't need to show
+    #   then in the transform graph.
+    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys,
+                                                  priorities=False)
 
     docstr = """
     The diagram below shows all of the coordinate systems built into the
