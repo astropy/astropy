@@ -235,7 +235,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                                               kernel_internal,
                                               normalize_kernel,
                                              )
-        else:
+        elif boundary is None:
             result = convolve2d_boundary_none(array_internal,
                                               kernel_internal,
                                               normalize_kernel,
@@ -254,7 +254,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             result = convolve3d_boundary_wrap(array_internal,
                                               kernel_internal,
                                               normalize_kernel)
-        else:
+        elif boundary is None:
             result = convolve3d_boundary_none(array_internal,
                                               kernel_internal,
                                               normalize_kernel)
