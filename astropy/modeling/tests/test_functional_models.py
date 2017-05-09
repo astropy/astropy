@@ -36,6 +36,7 @@ def test_GaussianAbsorption1D():
     assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
                     -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
     assert g_ab.bounding_box == g_em.bounding_box
+    assert_allclose(g_ab.fwhm, 47.096400900618988)
 
 
 def test_Gaussian2D():
@@ -54,6 +55,8 @@ def test_Gaussian2D():
              [3.91095768, 4.15212857, 4.18567526, 4.00652015, 3.64146544],
              [3.6440466, 3.95922417, 4.08454159, 4.00113878, 3.72161094]]
     assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+    assert_allclose([model.x_fwhm, model.y_fwhm],
+                    [12.009582229657841, 7.7709061486021325])
 
 
 def test_Gaussian2DCovariance():
@@ -111,6 +114,14 @@ def test_Gaussian2D_invalid_inputs():
         models.Gaussian2D(y_stddev=0, cov_matrix=cov_matrix)
     with pytest.raises(InputParameterError):
         models.Gaussian2D(theta=0, cov_matrix=cov_matrix)
+
+
+def test_moffat_fwhm():
+    ans = 34.641016151377542
+    kwargs = {'gamma': 10, 'alpha': 0.5}
+    m1 = models.Moffat1D(**kwargs)
+    m2 = models.Moffat2D(**kwargs)
+    assert_allclose([m1.fwhm, m2.fwhm], ans)
 
 
 def test_RedshiftScaleFactor():

@@ -52,6 +52,8 @@ New Features
 
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
+  - Added FWHM properties to Gaussian and Moffat models. [#6027]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
