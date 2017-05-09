@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import pytest
 import numpy as np
 
-from ..convolve import convolve
+from ..convolve import convolve, convolve_fft
 
 from numpy.testing import assert_array_almost_equal_nulp
 
@@ -19,6 +19,12 @@ for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 INTERPOLATE_OPTIONS = [True, False]
 NORMALIZE_OPTIONS = [True, False]
+
+BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
+                                        BOUNDARY_OPTIONS)) + [(convolve_fft,
+                                                               'wrap'),
+                                                              (convolve_fft,
+                                                               'fill')])
 
 
 class TestConvolve1D(object):
@@ -47,8 +53,8 @@ class TestConvolve1D(object):
 
         assert x.dtype == z.dtype
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-    def test_unity_1_none(self, boundary):
+    @pytest.mark.parametrize(('convfunc', 'boundary',), BOUNDARIES_AND_CONVOLUTIONS)
+    def test_unity_1_none(self, boundary, convfunc):
         '''
         Test that a unit kernel with a single element returns the same array
         '''
@@ -57,9 +63,9 @@ class TestConvolve1D(object):
 
         y = np.array([1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convfunc(x, y, boundary=boundary)
 
-        assert np.all(z == x)
+        np.testing.assert_allclose(z, x)
 
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_3(self, boundary):
