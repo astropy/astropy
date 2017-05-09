@@ -309,7 +309,7 @@ class DataInfo(object):
         Write summary information about data object to the ``out`` filehandle.
         By default this prints to standard output via sys.stdout.
 
-        The ``option` argument specifies what type of information
+        The ``option`` argument specifies what type of information
         to include.  This can be a string, a function, or a list of
         strings or functions.  Built-in options are:
 
