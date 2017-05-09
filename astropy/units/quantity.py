@@ -29,7 +29,7 @@ from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
 
 
-__all__ = ["Quantity", "SpecificTypeQuantity"]
+__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -154,6 +154,49 @@ class QuantityInfo(ParentDtypeInfo):
         # different first arg name for the value.  :-(
         value = map.pop('value')
         return self._parent_cls(value, **map)
+
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new Quantity instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Quantity (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'format', 'description'))
+
+        # Make an empty quantity using the unit of the last one.
+        shape = (length,) + attrs.pop('shape')
+        dtype = attrs.pop('dtype')
+        data = np.empty(shape=shape, dtype=dtype)
+        unit = cols[-1].unit
+        out = self._parent_cls(data, unit=unit, copy=False)
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
 
 
 @six.add_metaclass(InheritDocstrings)

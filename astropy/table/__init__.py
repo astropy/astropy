@@ -40,7 +40,7 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-from .column import Column, MaskedColumn, StringTruncateWarning
+from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning)
