@@ -45,6 +45,7 @@ class TestConvolve1DModels(object):
         assert_allclose(g3(x) / (2 * np.pi), ans(x) / np.sqrt(2 * np.pi * 2),
                         atol=1e-3)
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitting_convolve_models(self):
         """
         test that a convolve model can be fitted
