@@ -235,6 +235,7 @@ Other Changes and Additions
 - Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
 - Python 3.3 is no longer suppored. [#6020]
+
 - The bundled version of pytest has now been removed, but the 
   astropy.tests.helper.pytest import will continue to work properly. 
   Affiliated packages should nevertheless transition to importing pytest 
