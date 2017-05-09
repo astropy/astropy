@@ -527,7 +527,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             warnings.warn("interpolate_nan is set to True, but since there are"
                           " no NaN values, it is being ignored",
                           AstropyUserWarning)
-        
+
 
     if normalize_kernel is True:
         if kernel.sum() < 1. / MAX_NORMALIZATION:
