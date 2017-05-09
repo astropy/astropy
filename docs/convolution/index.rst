@@ -26,15 +26,38 @@ Astropy's convolve functions on an Astronomical image that contains NaN
 values. Scipy's function essentially returns NaN for all pixels that are
 within a kernel of any NaN value, which is often not the desired result.
 
-.. |original| image:: images/original.png
-.. |scipy| image:: images/scipy.png
-.. |astropy| image:: images/astropy.png
+.. plot::
+   :context: reset
+   :include-source:
+   :align: center
 
-+------------+--------------------+----------------------+
-| Original   | Scipy ``convolve`` | Astropy ``convolve`` |
-+------------+--------------------+----------------------+
-| |original| | |scipy|            | |astropy|            |
-+------------+--------------------+----------------------+
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.visualization.wcsaxes.frame import EllipticalFrame
+    from astropy.convolution import Gaussian2DKernel
+    from scipy.signal import convolve as scipy_convolve
+    from astropy.convolution import convolve,convolve_fft
+    import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    img = hdu.data[50:90,60:100]
+    img[img > 2e-4] = np.nan
+
+    kernel = Gaussian2DKernel(stddev=2)
+    scipy_conv = scipy_convolve(img, kernel)
+    astropy_conv = convolve(img, kernel)
+
+    ax1 = plt.subplot(1,3,1)
+    im = ax1.imshow(img, vmin=-2.e-5, vmax=2.e-4, origin='lower',
+                    interpolation='nearest')
+    ax2 = plt.subplot(1,3,2)
+    im = ax1.imshow(scipy_conv, vmin=-2.e-5, vmax=2.e-4, origin='lower',
+                    interpolation='nearest')
+    ax3 = plt.subplot(1,3,3)
+    im = ax1.imshow(astropy_conv, vmin=-2.e-5, vmax=2.e-4, origin='lower',
+                    interpolation='nearest')
+
 
 The following sections describe how to make use of the convolution functions,
 and how to use built-in convolution kernels:
