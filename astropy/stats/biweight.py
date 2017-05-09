@@ -10,12 +10,14 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from .funcs import median_absolute_deviation
+from ..utils.decorators import deprecated_renamed_argument
 
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
 
 
+@deprecated_renamed_argument('a', 'data', '2.0')
 def biweight_location(data, c=6.0, M=None, axis=None):
     r"""
     Compute the biweight location.
@@ -221,6 +223,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
                              modify_sample_size=modify_sample_size))
 
 
+@deprecated_renamed_argument('a', 'data', '2.0')
 def biweight_midvariance(data, c=9.0, M=None, axis=None,
                          modify_sample_size=False):
     r"""
@@ -361,6 +364,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     return n * f1 / f2
 
 
+@deprecated_renamed_argument('a', 'data', '2.0')
 def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     r"""
     Compute the biweight midcovariance between pairs of multiple
