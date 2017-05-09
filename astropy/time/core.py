@@ -13,14 +13,12 @@ from __future__ import (absolute_import, division, print_function,
 import copy
 import operator
 from datetime import datetime
-from collections import defaultdict
 
 import numpy as np
 
 from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
-from ..utils.decorators import lazyproperty
 from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
@@ -447,7 +445,7 @@ class Time(ShapedLikeNDArray):
             xforms = tuple(reversed(xforms))
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
-        jd1, jd2 = self._time.jd1, self._time.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2_filled
         for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
@@ -467,6 +465,10 @@ class Time(ShapedLikeNDArray):
 
             conv_func = getattr(erfa, sys1 + sys2)
             jd1, jd2 = conv_func(*args)
+
+        if self.masked:
+            jd2[self.mask] = np.nan
+
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
                                                from_jd=True)
@@ -582,6 +584,27 @@ class Time(ShapedLikeNDArray):
         # This is done in __getattr__.  By calling getattr(self, self.format)
         # the ``value`` attribute is cached.
         return getattr(self, self.format)
+
+    @property
+    def masked(self):
+        return self._time.masked
+
+    @property
+    def mask(self):
+        return self._time.mask
+
+    def __setitem__(self, item, value):
+        if value in (np.ma.masked, np.nan):
+            self._time.jd2[item] = np.nan
+
+        elif isinstance(value, Time):
+            if value.location != self.location:
+                raise ValueError('cannot set to Time with different location')
+
+            self._time.jd1[item] = value._time.jd1
+            self._time.jd2[item] = value._time.jd2
+
+        del self.cache
 
     def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
@@ -739,9 +762,12 @@ class Time(ShapedLikeNDArray):
         erfa_function = model['function']
         erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
                            for scale in model['scales']
-                           for jd_part in ('jd1', 'jd2')]
+                           for jd_part in ('jd1', 'jd2_filled')]
 
         sidereal_time = erfa_function(*erfa_parameters)
+
+        if self.masked:
+            sidereal_time[self.mask] = np.nan
 
         return Longitude(sidereal_time, u.radian).to(u.hourangle)
 
@@ -964,7 +990,7 @@ class Time(ShapedLikeNDArray):
         """
         # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
-        approx = jd.min(axis, keepdims=True)
+        approx = np.nanmin(jd, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
         # full precision, all numbers near 0 can be represented correctly,
@@ -975,6 +1001,9 @@ class Time(ShapedLikeNDArray):
         # approx_jd1, approx_jd2 = day_frac(approx, 0.)
         # dt = (self.jd1 - approx_jd1) + (self.jd2 - approx_jd2)
         dt = (self.jd1 - approx) + self.jd2
+
+        # FIX ME
+
         return dt.argmin(axis, out)
 
     def argmax(self, axis=None, out=None):
@@ -989,6 +1018,9 @@ class Time(ShapedLikeNDArray):
         approx = jd.max(axis, keepdims=True)
 
         dt = (self.jd1 - approx) + self.jd2
+
+        # FIX ME
+
         return dt.argmax(axis, out)
 
     def argsort(self, axis=-1):
@@ -999,6 +1031,9 @@ class Time(ShapedLikeNDArray):
         is used, and that corresponding attributes are copied.  Internally,
         it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
         """
+
+        # FIX ME
+
         jd_approx = self.jd
         jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
         if axis is None:
@@ -1017,6 +1052,9 @@ class Time(ShapedLikeNDArray):
         ``np.min``; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
+
+        # FIX ME
+
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1033,6 +1071,9 @@ class Time(ShapedLikeNDArray):
         ``np.max``; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
+
+        # FIX ME?
+
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1049,6 +1090,9 @@ class Time(ShapedLikeNDArray):
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
+
+        # FIX ME?
+
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1069,15 +1113,22 @@ class Time(ShapedLikeNDArray):
             Axis to be sorted.  If ``None``, the flattened array is sorted.
             By default, sort over the last axis.
         """
+
+        # FIX ME?
+
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
-    @lazyproperty
+    @property
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        return defaultdict(dict)
+        return self._time.cache
+
+    @cache.deleter
+    def cache(self):
+        del self._time.cache
 
     def __getattr__(self, attr):
         """
@@ -1207,7 +1258,7 @@ class Time(ShapedLikeNDArray):
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:
                 self_utc = self.utc
-                jd1, jd2 = self_utc.jd1, self_utc.jd2
+                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
                 scale = 'utc'
             else:
                 scale = self.scale
@@ -1251,7 +1302,7 @@ class Time(ShapedLikeNDArray):
                                      'scales')
                 else:
                     jd1 = self._time.jd1
-                    jd2 = self._time.jd2
+                    jd2 = self._time.jd2_filled
 
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
