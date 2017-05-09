@@ -180,9 +180,10 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if not (val1.dtype == np.double and np.all(np.isfinite(val1)) and
-                (val2 is None or
-                 val2.dtype == np.double and np.all(np.isfinite(val2)))):
+        # val1 cannot contain nan, but val2 can contain nan
+        ok1 = val1.dtype == np.double and np.all(np.isfinite(val1))
+        ok2 = val2 is None or (val2.dtype == np.double and not np.any(np.isinf(val2)))
+        if not (ok1 and ok2):
             raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
