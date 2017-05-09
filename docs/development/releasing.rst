@@ -27,9 +27,12 @@ packages that use the full bugfix/maintenance branch approach.)
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
    Once you have finished this, you can could the number of lines in
    ``git shortlog -s`` to get the final contributor count.
+
 #. Also be sure to update the ``docs/credits.rst`` file to include any new
    contributors.  This can come from the above step, or the ``author_lists.py``
-   script in the `astropy-tools repository`_ mostly automates this.
+   script in the `astropy-tools repository`_ mostly automates this.  (This
+   step is only required on major releases, but can be done for bugfix releases
+   as time allows.)
 
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
@@ -169,14 +172,17 @@ packages that use the full bugfix/maintenance branch approach.)
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
    from older release lines that we may still want to make available.
 
-#. Push up all these changes to the `astropy core repository`_::
+#. Push up these changes and the tag to the `astropy core repository`_::
 
-      $ git push --tags upstream v<version branch>.x
+      $ git push upstream v<version branch>.x
+      $ git push upstream v<version branch>
 
    .. note::
 
       You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the `astropy core repository`_.
+      Also, it might be tempting to use the ``--tags`` argument to ``git push``,
+      but this should *not* be done, as it might push up some unintended tags.
 
 #. If this is a release of the current release (i.e., not an LTS supported along
    side a more recent version), update the "stable" branch to point to the new
@@ -303,7 +309,6 @@ The procedure for this is straightforward:
       whatever remote name you use for the `astropy core repository`_.
 
 #. On the github issue tracker, add a new milestone for the next major version.
-
 
 #. Repeat tbe above steps for the astropy-helpers, using the same version series.
 
