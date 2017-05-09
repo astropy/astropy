@@ -22,7 +22,7 @@ import inspect
 import subprocess
 
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 import numpy as np
 
@@ -34,7 +34,6 @@ from ..extern.six.moves import range
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
-
 
 class TransformGraph(object):
     """
@@ -376,7 +375,7 @@ class TransformGraph(object):
         return list(six.iterkeys(self._cached_names))
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
-                     savelayout='plain', saveformat=None):
+                     savelayout='plain', saveformat=None, color_edges=True):
         """
         Converts this transform graph to the graphviz_ DOT format.
 
@@ -403,6 +402,10 @@ class TransformGraph(object):
             The graphviz output format. (e.g. the ``-Txxx`` option for
             the command line program - see graphviz docs for details).
             Ignored if ``savefn`` is `None`.
+        color_edges : bool
+            Color the edges between two nodes (frames) based on the type of
+            transform. ``FunctionTransform``: red, ``StaticMatrixTransform``:
+            blue, ``DynamicMatrixTransform``: green.
 
         Returns
         -------
@@ -429,20 +432,39 @@ class TransformGraph(object):
             else:
                 nodenames.append(n.__name__ + '[ shape=oval ]')
 
+        # As far as @adrn can tell, there is no way to have font with different
+        #   colors in the same node, so I create 3 here instead. This could be
+        #   reduced to a single node if it is possible.
+        for cls, color in trans_to_color.items():
+            nodenames.append('{0} [shape=box label="{0}" style=filled fillcolor="{1}"]'
+                             .format(cls.__name__, color))
+
         edgenames = []
         # Now the edges
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                pri = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
-                edgenames.append((a.__name__, b.__name__, pri))
+                transform = agraph[b]
+                pri = transform.priority if hasattr(transform, 'priority') else 1
+                color = trans_to_color[transform.__class__] if color_edges else 'black'
+                edgenames.append((a.__name__, b.__name__, pri, color))
 
         # generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
         lines.append('; '.join(nodenames) + ';')
-        for enm1, enm2, weights in edgenames:
-            labelstr = '[ label = "{0}" ]'.format(weights) if priorities else ''
+        for enm1, enm2, weights, color in edgenames:
+            labelstr_fmt = '[ {0} {1} ]'
+
+            if priorities:
+                priority_part = 'label = "{0}"'.format(weights)
+            else:
+                priority_part = ''
+
+            color_part = 'color = "{0}"'.format(color)
+
+            labelstr = labelstr_fmt.format(priority_part, color_part)
             lines.append('{0} -> {1}{2};'.format(enm1, enm2, labelstr))
+
         lines.append('')
         lines.append('overlap=false')
         lines.append('}')
@@ -497,8 +519,10 @@ class TransformGraph(object):
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                pri = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
-                nxgraph.add_edge(a, b, weight=pri)
+                transform = agraph[b]
+                pri = transform.priority if hasattr(transform, 'priority') else 1
+                color = trans_to_color[transform.__class__]
+                nxgraph.add_edge(a, b, weight=pri, color=color)
 
         return nxgraph
 
@@ -923,3 +947,9 @@ class CompositeTransform(CoordinateTransform):
         # this is safe even in the case where self.transforms is empty, because
         # coordinate objects are immutible, so copying is not needed
         return curr_coord
+
+# map class names to colorblind-safe colors
+trans_to_color = OrderedDict()
+trans_to_color[FunctionTransform] = '#d95f02' # red-ish
+trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
+trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish
