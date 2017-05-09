@@ -33,7 +33,6 @@ env:
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
@@ -45,12 +44,11 @@ matrix:
 
     include:
 
-        # Try MacOS X. Test Python 3.5 here, until we drop 3.3
+        # Try MacOS X.
         - os: osx
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem'
-               PYTHON_VERSION=3.5
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
@@ -68,10 +66,10 @@ matrix:
         # Numpy 1.10 is tested below in the image tests.
 
         - os: linux
-          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.9
+          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
                SETUP_CMD='test --open-files'
         - os: linux
-          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.11
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
