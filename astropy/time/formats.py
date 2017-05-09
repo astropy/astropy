@@ -164,7 +164,7 @@ class TimeFormat(object):
     @property
     def masked(self):
         if 'masked' not in self.cache:
-            self.cache['masked'] = np.any(self.mask)
+            self.cache['masked'] = bool(np.any(self.mask))
         return self.cache['masked']
 
     @property
@@ -425,6 +425,7 @@ class TimeFromEpoch(TimeFormat):
 
         time_from_epoch = ((jd1 - self.epoch.jd1) +
                            (jd2 - self.epoch.jd2)) / self.unit
+
         return self.mask_if_needed(time_from_epoch)
 
     value = property(to_value)

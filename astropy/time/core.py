@@ -560,7 +560,10 @@ class Time(ShapedLikeNDArray):
                     reshaped.append(val)
 
     def _shaped_like_input(self, value):
-        return value if self._time.jd1.shape else value.item()
+        out = value
+        if not self._time.jd1.shape and not np.ma.is_masked(value):
+            out = value.item()
+        return out
 
     @property
     def jd1(self):
