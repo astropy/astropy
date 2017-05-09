@@ -124,7 +124,7 @@ sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_t
 # to get a precise location of the moon.
 
 from astropy.coordinates import get_moon
-moon_July12_to_13 = get_moon(times_July12_to_13, ephemeris='de432s')
+moon_July12_to_13 = get_moon(times_July12_to_13)
 moonaltazs_July12_to_13 = moon_July12_to_13.transform_to(frame_July12_to_13)
 
 ##############################################################################
