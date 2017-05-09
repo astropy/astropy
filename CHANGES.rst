@@ -67,7 +67,7 @@ New Features
     arrays are fixed-width and silently drop characters which do not
     fit within the fixed width. [#5624, #5819]
 
-  - Added functionality to allow ``astropy.units.Quantity`` to be written 
+  - Added functionality to allow ``astropy.units.Quantity`` to be written
     as a normal column to FITS files. [#5910]
 
   - Add support for Quantity columns (within a ``QTable``) in table
@@ -85,6 +85,9 @@ New Features
     ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
 
 - ``astropy.utils``
+
+  - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
+    that is used to indicate a mirror for the astropy data server. [#5547]
 
 - ``astropy.visualization``
 
