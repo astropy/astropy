@@ -181,7 +181,7 @@ def test_join(table_types):
             assert t12[name2].info.description == name + '2'
 
     for join_type in ('outer', 'right'):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(NotImplementedError) as exc:
             t12 = join(t1, t2, keys='a', join_type=join_type)
         assert 'join requires masking column' in str(exc.value)
 
@@ -211,7 +211,7 @@ def test_hstack(table_types):
             if chop:
                 t2 = t2[:-1]
                 if join_type == 'outer':
-                    with pytest.raises(ValueError) as exc:
+                    with pytest.raises(NotImplementedError) as exc:
                         t12 = hstack([t1, t2], join_type=join_type)
                     assert 'hstack requires masking column' in str(exc.value)
                     continue

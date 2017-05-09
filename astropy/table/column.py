@@ -25,7 +25,6 @@ from .np_utils import fix_column_name
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 
-
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()
@@ -62,7 +61,18 @@ _comparison_functions = set(
 
 def col_copy(col, copy_indices=True):
     """
-    This is a mixin-safe version of Column.copy() (with copy_data=True).
+    Mixin-safe version of Column.copy() (with copy_data=True).
+
+    Parameters
+    ----------
+    col : Column or mixin column
+        Input column
+    copy_indices : bool
+        Copy the column ``indices`` attribute
+
+    Returns
+    -------
+    col : Copy of input column
     """
     if isinstance(col, BaseColumn):
         return col.copy()
@@ -92,6 +102,21 @@ def col_copy(col, copy_indices=True):
 
 
 class FalseArray(np.ndarray):
+    """
+    Boolean mask array that is always False.
+
+    This is used to create a stub ``mask`` property which is a boolean array of
+    ``False`` used by default for mixin columns and corresponding to the mixin
+    column data shape.  The ``mask`` looks like a normal numpy array but an
+    exception will be raised if ``True`` is assigned to any element.  The
+    consequences of the limitation are most obvious in the high-level table
+    operations.
+
+    Parameters
+    ----------
+    shape : tuple
+        Data shape
+    """
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)
         return obj
@@ -108,8 +133,44 @@ class FalseArray(np.ndarray):
 
 
 class ColumnInfo(BaseColumnInfo):
+    """
+    Container for meta information like name, description, format.
+
+    This is required when the object is used as a mixin column within a table,
+    but can be used as a general way to store meta information.
+    """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
+
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new Column instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Column (or subclass)
+            New instance of this class consistent with ``cols``
+
+        """
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'unit', 'format', 'description'))
+
+        return self._parent_cls(length=length, **attrs)
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
