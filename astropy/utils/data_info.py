@@ -27,8 +27,12 @@ import re
 from collections import OrderedDict
 
 from ..extern import six
-from ..utils.compat import NUMPY_LT_1_8
 from ..extern.six.moves import zip, cStringIO as StringIO
+from . import metadata
+
+
+__all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
+           'DataInfo', 'MixinInfo', 'ParentDtypeInfo']
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
@@ -296,7 +300,7 @@ class DataInfo(object):
     # No nan* methods in numpy < 1.8
     info_summary_stats = staticmethod(
         data_info_factory(names=_stats,
-                          funcs=[getattr(np, ('' if NUMPY_LT_1_8 else 'nan') + stat)
+                          funcs=[getattr(np, 'nan' + stat)
                                  for stat in _stats]))
 
     def __call__(self, option='attributes', out=''):
@@ -304,7 +308,7 @@ class DataInfo(object):
         Write summary information about data object to the ``out`` filehandle.
         By default this prints to standard output via sys.stdout.
 
-        The ``option` argument specifies what type of information
+        The ``option`` argument specifies what type of information
         to include.  This can be a string, a function, or a list of
         strings or functions.  Built-in options are:
 
@@ -513,6 +517,60 @@ class BaseColumnInfo(DataInfo):
                 col_slice.info.indices.append(new_index)
 
         return col_slice
+
+    @staticmethod
+    def merge_cols_attributes(cols, metadata_conflicts, name, attrs):
+        """
+        Utility method to merge and validate the attributes ``attrs`` for the
+        input table columns ``cols``.
+
+        Note that ``dtype`` and ``shape`` attributes are handled specially.
+        These should not be passed in ``attrs`` but will always be in the
+        returned dict of merged attributes.
+
+        Parameters
+        ----------
+        cols : list
+            List of input Table column objects
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+        attrs : list
+            List of attribute names to be merged
+
+        Returns
+        -------
+        attrs : dict of merged attributes
+
+        """
+        from ..table.np_utils import TableMergeError
+
+        def warn_str_func(key, left, right):
+            out = ("In merged column '{}' the '{}' attribute does not match "
+                   "({} != {}).  Using {} for merged output"
+                   .format(name, key, left, right, right))
+            return out
+
+        def getattrs(col):
+            return {attr: getattr(col.info, attr) for attr in attrs
+                    if getattr(col.info, attr, None) is not None}
+
+        out = getattrs(cols[0])
+        for col in cols[1:]:
+            out = metadata.merge(out, getattrs(col), metadata_conflicts=metadata_conflicts,
+                                 warn_str_func=warn_str_func)
+
+        # Output dtype is the superset of all dtypes in in_cols
+        out['dtype'] = metadata.common_dtype(cols)
+
+        # Make sure all input shapes are the same
+        uniq_shapes = set(col.shape[1:] for col in cols)
+        if len(uniq_shapes) != 1:
+            raise TableMergeError('columns have different shapes')
+        out['shape'] = uniq_shapes.pop()
+
+        return out
 
 
 class MixinInfo(BaseColumnInfo):

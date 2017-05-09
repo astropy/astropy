@@ -9,7 +9,6 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
-from ...utils.compat import NUMPY_LT_1_8
 from ...utils.exceptions import AstropyDeprecationWarning
 from ...extern.six.moves import zip
 from .conftest import MaskedTable
@@ -21,18 +20,10 @@ def test_masked_row_with_object_col():
     a column with object type.
     """
     t = table.Table([[1]], dtype=['O'], masked=True)
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            t['col0'].mask = False
-            t[0].as_void()
-        with pytest.raises(ValueError):
-            t['col0'].mask = True
-            t[0].as_void()
-    else:
-        t['col0'].mask = False
-        assert t[0]['col0'] == 1
-        t['col0'].mask = True
-        assert t[0]['col0'] is np.ma.masked
+    t['col0'].mask = False
+    assert t[0]['col0'] == 1
+    t['col0'].mask = True
+    assert t[0]['col0'] is np.ma.masked
 
 
 @pytest.mark.usefixtures('table_types')
@@ -203,14 +194,8 @@ class TestRow():
         t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
         assert t[0][0] == {'a': 1}
         assert t[0]['a'] == {'a': 1}
-        if NUMPY_LT_1_8 and t.masked:
-            # With numpy < 1.8 there is a bug setting mvoid with
-            # an object.
-            with pytest.raises(ValueError):
-                t[0].as_void()
-        else:
-            assert t[0].as_void()[0] == {'a': 1}
-            assert t[0].as_void()['a'] == {'a': 1}
+        assert t[0].as_void()[0] == {'a': 1}
+        assert t[0].as_void()['a'] == {'a': 1}
 
     def test_bounds_checking(self, table_types):
         """Row gives index error upon creation for out-of-bounds index"""

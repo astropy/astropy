@@ -71,7 +71,7 @@ def circmean(data, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
+        equals the number of observations. See [1]_, remark 1.4, page 22, for
         detailed explanation.
 
     Returns
@@ -103,8 +103,8 @@ def circvar(data, axis=None, weights=None):
     """ Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
-    data. The variance implemented here is based on the definition given by [1]
-    , which is also the same used by the R package 'CircStats' [2].
+    data. The variance implemented here is based on the definition given by
+    [1]_, which is also the same used by the R package 'CircStats' [2]_.
 
     Parameters
     ----------
@@ -117,8 +117,8 @@ def circvar(data, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -172,8 +172,8 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -228,7 +228,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
         In case of grouped data, the i-th element of ``weights_alpha``
         represents a weighting factor for each group such that
         ``sum(weights_alpha, axis)`` equals the number of observations.
-        See [1], remark 1.4, page 22, for detailed explanation.
+        See [1]_, remark 1.4, page 22, for detailed explanation.
     weights_beta : numpy.ndarray, optional
         See description of ``weights_alpha``.
 
@@ -294,7 +294,7 @@ def rayleightest(data, axis=None, weights=None):
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``np.sum(weights, axis)``
         equals the number of observations.
-        See [1], remark 1.4, page 22, for detailed explanation.
+        See [1]_, remark 1.4, page 22, for detailed explanation.
 
     Returns
     -------
@@ -354,8 +354,8 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     weights : numpy.ndarray, optional
         In case of grouped data, the i-th element of ``weights`` represents a
         weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1], remark 1.4, page 22, for
-        detailed explanation.
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------

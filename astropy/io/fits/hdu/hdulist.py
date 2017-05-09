@@ -160,7 +160,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         kwargs['uint'] = conf.enable_uint
 
     if not name:
-        raise ValueError('Empty filename: {}'.format(repr(name)))
+        raise ValueError('Empty filename: {!r}'.format(name))
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
                             lazy_load_hdus, **kwargs)
@@ -680,7 +680,7 @@ class HDUList(list, _Verify):
                 break
 
         if (found is None):
-            raise KeyError('Extension {} not found.'.format(repr(key)))
+            raise KeyError('Extension {!r} not found.'.format(key))
         else:
             return found
 

@@ -481,6 +481,15 @@ class TestLogQuantityCreation(object):
         assert lq.unit.physical_unit == u.dimensionless_unscaled
         assert np.all(q == lq)
 
+    def test_using_quantity_class(self):
+        """Check that we can use Quantity if we have subok=True"""
+        # following issue #5851
+        lu = u.dex(u.AA)
+        with pytest.raises(u.UnitTypeError):
+            u.Quantity(1., lu)
+        q = u.Quantity(1., lu, subok=True)
+        assert type(q) is lu._quantity_class
+
 
 def test_conversion_to_and_from_physical_quantities():
     """Ensures we can convert from regular quantities."""

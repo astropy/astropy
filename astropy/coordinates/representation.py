@@ -19,7 +19,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
-from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -216,17 +216,12 @@ class BaseRepresentation(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        coordinates = [getattr(self, c) for c in self.components]
-        if NUMPY_LT_1_8:
-            # numpy 1.7 has problems concatenating broadcasted arrays.
-            coordinates = [(coo.copy() if 0 in coo.strides else coo)
-                           for coo in coordinates]
-
-        sh = self.shape + (1,)
-        dtype = np.dtype([(str(c), coo.dtype)
-                          for c, coo in zip(self.components, coordinates)])
-        return np.concatenate([coo.reshape(sh).value for coo in coordinates],
-                              axis=-1).view(dtype).squeeze()
+        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
+        coo_items = [(str(c), getattr(self, c)) for c in self.components]
+        result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
+        for c, coo in coo_items:
+            result[c] = coo.value
+        return result
 
     @property
     def _units(self):
@@ -456,7 +451,7 @@ class CartesianRepresentation(BaseRepresentation):
         except u.UnitsError:
             raise u.UnitsError('x, y, and z should have a unit consistent with '
                                '{0}'.format(unit))
-        except:
+        except Exception:
             raise TypeError('x, y, and z should be able to initialize ' +
                             ('a {0}'.format(self.attr_classes['x'].__name__))
                              if len(set(self.attr_classes.values)) == 1 else
@@ -527,9 +522,6 @@ class CartesianRepresentation(BaseRepresentation):
         x = self._x
         y = cls(self._y, x.unit, copy=False)
         z = cls(self._z, x.unit, copy=False)
-        if NUMPY_LT_1_8:
-            # numpy 1.7 has problems concatenating broadcasted arrays.
-            x, y, z =  [(c.copy() if 0 in c.strides else c) for c in (x, y, z)]
 
         sh = self.shape
         sh = sh[:xyz_axis] + (1,) + sh[xyz_axis:]

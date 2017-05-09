@@ -514,9 +514,11 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the changelog file is named ``CHANGES.rst``, like
-for the astropy core package. If instead you use Markdown, then you should
-replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
+instructions, we assume that the release is made from a fresh clone of the
+remote "main" repository and not from a forked copy. We also assume that
+the changelog file is named ``CHANGES.rst``, like for the astropy core
+package. If instead you use Markdown, then you should replace ``CHANGES.rst``
+by ``CHANGES.md`` in the instructions.
 
 #. Make sure that Travis and any other continuous integration is passing.
 
@@ -629,10 +631,34 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
+#. If your affiliated package is available in the `astropy conda channel
+   <https://github.com/astropy/conda-channel-astropy>`_, you should also submit
+   a pull request to update the version number of your affiliated package. See the
+   `conda-channel-astropy README <https://github.com/astropy/conda-channel-astropy/>`_
+   for details.
+
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
           we recommend that you read over the more complete astropy
           :doc:`releasing` and adapt these for your package.
+
+
+Modifications for a beta/release candidate release
+--------------------------------------------------
+
+   Before a new release of your package, you may wish do a "pre-release" of the
+   code, for example to allow collaborators to independently test the release.
+   If the release you are performing is this kind of pre-release,
+   some of the above steps need to be modified.
+
+   The primary modifications to the release procedure is:
+
+   * When entering the new version number, instead of just removing the
+     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+     is ordered "before" the main release by various automated tools, and also
+     tells PyPI that this is a "pre-release".
+
 
 .. _git: http://git-scm.com/
 .. _github: http://github.com

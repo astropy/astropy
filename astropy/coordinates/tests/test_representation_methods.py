@@ -6,7 +6,6 @@ import numpy as np
 from ... import units as u
 from .. import SphericalRepresentation, Longitude, Latitude
 from ...tests.helper import pytest
-from ...utils.compat.numpycompat import NUMPY_LT_1_9
 from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
@@ -85,8 +84,7 @@ class TestManipulation():
         s0_diagonal = self.s0.diagonal()
         assert s0_diagonal.shape == (6,)
         assert np.all(s0_diagonal.lat == self.s0.lat.diagonal())
-        if not NUMPY_LT_1_9:
-            assert np.may_share_memory(s0_diagonal.lat, self.s0.lat)
+        assert np.may_share_memory(s0_diagonal.lat, self.s0.lat)
 
     def test_swapaxes(self):
         s1_swapaxes = self.s1.swapaxes(0, 1)

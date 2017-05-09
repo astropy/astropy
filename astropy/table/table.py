@@ -150,6 +150,39 @@ class TableColumns(OrderedDict):
     def values(self):
         return list(OrderedDict.values(self))
 
+    def isinstance(self, cls):
+        """
+        Return a list of columns which are instances of the specified classes.
+
+        Parameters
+        ----------
+        cls : class or tuple of classes
+            Column class (including mixin) or tuple of Column classes.
+
+        Returns
+        -------
+        col_list : list of Columns
+            List of Column objects which are instances of given classes.
+        """
+        cols = [col for col in self.values() if isinstance(col, cls)]
+        return cols
+
+    def not_isinstance(self, cls):
+        """
+        Return a list of columns which are not instances of the specified classes.
+
+        Parameters
+        ----------
+        cls : class or tuple of classes
+            Column class (including mixin) or tuple of Column classes.
+
+        Returns
+        -------
+        col_list : list of Columns
+            List of Column objects which are not instances of given classes.
+        """
+        cols = [col for col in self.values() if not isinstance(col, cls)]
+        return cols
 
 class Table(object):
     """A class to represent tables of heterogeneous data.
@@ -853,7 +886,7 @@ class Table(object):
     def has_mixin_columns(self):
         """
         True if table has any mixin columns (defined as columns that are not Column
-        subclasses)
+        subclasses).
         """
         return any(has_info_class(col, MixinInfo) for col in self.columns.values())
 
@@ -1445,7 +1478,7 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, rename_duplicate=False):
+    def add_column(self, col, index=None, name=None, rename_duplicate=False):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1458,6 +1491,8 @@ class Table(object):
             Column object to add.
         index : int or `None`
             Insert column before this position or at end (default)
+        name : str
+            Column name
         rename_duplicate : bool
             Uniquify column name if it already exist (default=False)
 
@@ -1508,13 +1543,31 @@ class Table(object):
               2 0.2 1.2
               3 0.3 1.3
 
+        Add an unnamed column or mixin object in the table using a default name
+        or by specifying an explicit name with ``name``. Name can also be overridden::
+
+            >>> t = Table([[1, 2], [0.1, 0.2]], names=('a', 'b'))
+            >>> col_c = Column(data=['x', 'y'])
+            >>> t.add_column(col_c)
+            >>> t.add_column(col_c, name='c')
+            >>> col_b = Column(name='b', data=[1.1, 1.2])
+            >>> t.add_column(col_b, name='d')
+            >>> print(t)
+             a   b  col2  c   d
+            --- --- ---- --- ---
+              1 0.1    x   x 1.1
+              2 0.2    y   y 1.2
+
         To add several columns use add_columns.
         """
         if index is None:
             index = len(self.columns)
-        self.add_columns([col], [index], rename_duplicate=rename_duplicate)
+        if name is not None:
+            name = (name,)
 
-    def add_columns(self, cols, indexes=None, copy=True, rename_duplicate=False):
+        self.add_columns([col], [index], name, rename_duplicate=rename_duplicate)
+
+    def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
         Add a list of new Column objects ``cols`` to the table.  If a
         corresponding list of ``indexes`` is supplied then insert column
@@ -1527,6 +1580,8 @@ class Table(object):
             Column objects to add.
         indexes : list of ints or `None`
             Insert column before this position or at end (default)
+        names : list of str
+            Column names
         copy : bool
             Make a copy of the new columns (default=True)
         rename_duplicate : bool
@@ -1585,6 +1640,19 @@ class Table(object):
               2 0.2 1.2  y
               3 0.3 1.3  z
 
+        Add unnamed columns or mixin objects in the table using default names
+        or by specifying explicit names with ``names``. Names can also be overridden::
+
+            >>> t = Table()
+            >>> col_a = Column(data=['x', 'y'])
+            >>> col_b = Column(name='b', data=['u', 'v'])
+            >>> t.add_columns([col_a, col_b])
+            >>> t.add_columns([col_a, col_b], names=['c', 'd'])
+            >>> print(t)
+            col0  b   c   d
+            ---- --- --- ---
+               x   u   x   u
+               y   v   y   v
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
@@ -1604,6 +1672,20 @@ class Table(object):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
                 newcols.insert(i, col)
+
+        if names is None:
+            names = (None,) * len(cols)
+        elif len(names) != len(cols):
+                raise ValueError('Number of names must match number of cols')
+
+        for i, (col, name) in enumerate(zip(cols, names)):
+            if name is None:
+                if col.info.name is not None:
+                    continue
+                name = 'col{}'.format(i + len(self.columns))
+            if col.info.parent_table is not None:
+                col = col_copy(col)
+            col.info.name = name
 
         if rename_duplicate:
             existing_names = set(self.colnames)

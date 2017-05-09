@@ -18,8 +18,7 @@ The testing framework used by Astropy (and affiliated packages using the
 :doc:`package template <affiliated-packages>`) is the `pytest`_ framework,
 accessed through the ``python setup.py test`` command.
 
-.. _pytest: http://pytest.org/latest/
-.. _pytest.main: http://pytest.org/latest/builtin.html#pytest.main
+.. _pytest: https://pytest.org/en/latest/
 
 .. note::
 
@@ -58,10 +57,10 @@ through with the ``--args`` argument::
     > python setup.py test --args "-x"
 
 `pytest`_ will look for files that `look like tests
-<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 in the current directory and all recursive directories then run all the code that
 `looks like tests
-<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
 
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
@@ -109,7 +108,7 @@ internet. To turn these tests on use the ``remote_data`` flag::
     astropy.test(package='io.fits', remote_data=True)
 
 In addition, the ``test`` function supports any of the options that can be
-passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
+passed to `pytest.main() <https://pytest.org/en/latest/builtin.html#pytest.main>`_,
 and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
@@ -255,7 +254,7 @@ Writing tests
  * ``test_`` prefixed functions and methods
 
 Consult the `test discovery rules
-<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 for detailed information on how to name files and tests so that they are
 automatically discovered by `pytest`_.
 
@@ -419,7 +418,7 @@ Tests that create files
 Tests may often be run from directories where users do not have write
 permissions so tests which create files should always do so in
 temporary directories. This can be done with the `pytest tmpdir
-function argument <http://pytest.org/latest/tmpdir.html>`_ or with
+function argument <https://pytest.org/en/latest/tmpdir.html>`_ or with
 Python's built-in `tempfile module
 <http://docs.python.org/library/tempfile.html#module-tempfile>`_.
 
@@ -603,7 +602,7 @@ Using pytest helper functions
 -----------------------------
 
 If your tests need to use `pytest helper functions
-<http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as
+<https://pytest.org/en/latest/builtin.html#pytest-helpers>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     from ...tests.helper import pytest

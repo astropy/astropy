@@ -50,7 +50,7 @@ class EcsvHeader(basic.BasicHeader):
         for the *last* comment line as defining the column names.
         """
         if self.splitter.delimiter not in DELIMITERS:
-            raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+            raise ValueError('only space and comma are allowed for delimiter in ECSV format')
 
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
@@ -132,7 +132,7 @@ class EcsvHeader(basic.BasicHeader):
         if 'delimiter' in header:
             delimiter = header['delimiter']
             if delimiter not in DELIMITERS:
-                raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+                raise ValueError('only space and comma are allowed for delimiter in ECSV format')
             self.splitter.delimiter = delimiter
             self.data.splitter.delimiter = delimiter
 

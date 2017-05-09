@@ -24,7 +24,7 @@ from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
-__all__ = ['SkyCoord']
+__all__ = ['SkyCoord', 'SkyCoordInfo']
 
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
 J_PREFIXED_RA_DEC_RE = re.compile(
@@ -462,8 +462,9 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Finally make the new SkyCoord object from the `new_coord` and
         # remaining frame_kwargs that are not frame_attributes in `new_coord`.
-        # We could remove overlaps here, but the init code is set up to accept
-        # overlaps as long as the values are identical (which they must be).
+        for attr in (set(new_coord.get_frame_attr_names()) &
+                     set(frame_kwargs.keys())):
+            frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
 
     def __getattr__(self, attr):

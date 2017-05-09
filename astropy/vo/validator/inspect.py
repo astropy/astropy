@@ -7,11 +7,14 @@ import sys
 
 # LOCAL
 from ..client.vos_catalog import get_remote_catalog_db
-
+from ...utils.decorators import deprecated
 
 __all__ = ['ConeSearchResults']
 
 
+@deprecated(
+    '2.0',
+    alternative='astroquery.vo_conesearch.validator.inspect.ConeSearchResults')
 class ConeSearchResults(object):
     """A class to store Cone Search validation results.
 

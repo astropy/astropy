@@ -13,11 +13,10 @@ New Features
 - ``astropy.coordinates``
 
   - Frame attributes set on ``SkyCoord`` are now always validated, and any
-    ndarray-like operation (like slicing) will also be done on those. [#575
+    ndarray-like operation (like slicing) will also be done on those. [#5751]
 
   - Caching of  all possible frame attributes was implemented. This greatly
     speeds up many ``SkyCoord`` operations. [#5703, #5751]
-
 
 - ``astropy.cosmology``
 
@@ -34,6 +33,9 @@ New Features
 
   - New convenience function ``printdiff`` to print out diff reports. [#5759]
 
+  - Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
+    Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -47,11 +49,13 @@ New Features
   - Add ``n_submodels`` shared method to single and compound models, which
     allows users to get the number of components of a given single (compound)
     model. [#5747]
+
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
   - Added ``biweight_midcovariance`` method. [#5777]
 
 - ``astropy.sphinx``
@@ -61,7 +65,13 @@ New Features
   - Issue a warning when assigning a string value to a column and
     the string gets truncated.  This can occur because numpy string
     arrays are fixed-width and silently drop characters which do not
-    fit within the fixed width. [#5624]
+    fit within the fixed width. [#5624, #5819]
+
+  - Added functionality to allow ``astropy.units.Quantity`` to be written 
+    as a normal column to FITS files. [#5910]
+
+  - Add support for Quantity columns (within a ``QTable``) in table
+    ``join()``, ``hstack()`` and ``vstack()`` operations. [#5841]
 
 - ``astropy.time``
 
@@ -69,6 +79,10 @@ New Features
 
   - The `~astropy.units.quantity_input` decorator will now convert the output to
     the unit specified as a return annotation under Python 3. [#5606]
+
+  - Passing a logarithmic unit to the ``Quantity`` constructor now returns the
+    appropriate logarithmic quantity class if ``subok=True``. For instance,
+    ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
 
 - ``astropy.utils``
 
@@ -97,6 +111,9 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
+    [#5929]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -115,20 +132,35 @@ API Changes
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
   - Removed the deprecated ``data`` property of Row. [#5729]
 
   - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
     ``get_groups`` from np_utils. [#5729]
 
+  - Added ``name`` paramater to method `~astropy.table.Table.add_column` and ``names``
+    parameter to method `~astropy.table.Table.add_columns`, to provide the flexibility to
+    add unnamed columns, mixin objects and also to specify explicit names. Default names
+    will be used if not specified. [#5996]
+
 - ``astropy.time``
 
 - ``astropy.units``
 
+  - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
+    definition of "emu". [#4918, #5906]
+
 - ``astropy.utils``
+
+  - Removed the deprecated ``astropy.utils.compat.subprocess`` module. [#5975]
 
 - ``astropy.visualization``
 
 - ``astropy.vo``
+
+  - Cone Search now issues deprecation warning because it is moved to
+    Astroquery 0.3.5 and will be removed from Astropy in a future version.
+    [#5558, #5904]
 
 - ``astropy.wcs``
 
@@ -169,6 +201,10 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Allow to choose which median function is used in ``mad_std`` and
+    ``median_absolute_deviation``. And allow to use these functions with
+    a multi-dimensional ``axis``. [#5835]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -196,11 +232,12 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
+- Python 3.3 is no longer suppored. [#6020]
 
-1.3.2 (unreleased)
--------------------
+1.3.3 (unreleased)
+------------------
 
 Bug Fixes
 ^^^^^^^^^
@@ -241,7 +278,14 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Add support for ``positive`` and ``divmod`` ufuncs (new in numpy 1.13).
+    [#5998, #6020]
+
 - ``astropy.utils``
+
+  - On systems that do not have ``pkg_resources`` non-numerical additions to
+    version numbers like ``dev`` or ``rc1`` are stripped in ``minversion`` to
+    avoid a ``TypeError`` in ``distutils.version.LooseVersion`` [#5944]
 
 - ``astropy.visualization``
 
@@ -253,6 +297,39 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.3.2 (2017-03-30)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Ensure that checking equivalance of ``SkyCoord`` objects works with
+    non-scalar attributes [#5884, #5887]
+
+  - Ensure that transformation to frames with multi-dimensional attributes
+    works as expected [#5890, #5897]
+
+  - Make sure all ``BaseRepresentation`` objects can be output as strings.
+    [#5889, #5897]
+
+- ``astropy.units``
+
+  - Add support for ``heaviside`` ufunc (new in numpy 1.13). [#5920]
+
+- ``astropy.utils``
+
+  - Fix to allow the C-based _fast_iterparse() VOTable XML parser to
+    relloc() its buffers instead of overflowing them. [#5824, #5869]
+
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- File permissions are revised in the released source distribution. [#5912]
 
 
 1.3.1 (2017-03-18)
@@ -366,9 +443,6 @@ Other Changes and Additions
 
 - Updated bundled astropy-helpers to v1.3.1. [#5880]
 
-- In the process of fixing frame attributes on ``SkyCoord``, caching of the
-  all possible frame attributes was implemented (following #5703). This greatly
-  speeds up many ``SkyCoord`` operations. [#5751]
 
 1.3 (2016-12-22)
 ----------------
@@ -487,8 +561,7 @@ New Features
 
   - Install both runtime and test dependencies when running the
     ./setup.py test command. These dependencies are specified by the
-    install_requires and tests_require keywords via setuptools.
-    [#5092, astropy-helpers #212]
+    install_requires and tests_require keywords via setuptools. [#5092]
 
   - Enable easier subclassing of the TestRunner class. [#5505]
 
