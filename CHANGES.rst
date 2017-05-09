@@ -77,6 +77,7 @@ New Features
 
   - Add support for Quantity columns (within a ``QTable``) in table
     ``join()``, ``hstack()`` and ``vstack()`` operations. [#5841]
+
   - Allow unicode strings to be stored in a Table bytestring column in
     Python 3 using UTF-8 encoding.  Allow comparison and assignment of
     Python 3 ``str`` object in a bytestring column (numpy ``'S'`` dtype).
