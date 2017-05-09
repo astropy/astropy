@@ -50,11 +50,11 @@ within a kernel of any NaN value, which is often not the desired result.
     scipy_conv = scipy_convolve(img, kernel, mode='same')
     scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same')
     astropy_conv = convolve(img, kernel)
-    astropy_conv_intnan = convolve(img, kernel, interpolate_nan=True)
+    astropy_conv_intnan = convolve(img, kernel, interpolate_nan=True, normalize_kernel=False)
     astropy_conv_intnan_norm = convolve(img, kernel, interpolate_nan=True,
                                         normalize_kernel=True)
     astropy_conv_fft = convolve_fft(img, kernel)
-    astropy_conv_intnan_fft = convolve_fft(img, kernel, interpolate_nan=True)
+    astropy_conv_intnan_fft = convolve_fft(img, kernel, interpolate_nan=True, normalize_kernel=False)
     astropy_conv_intnan_fft_norm = convolve_fft(img, kernel,
                        interpolate_nan=True, normalize_kernel=True)
 
