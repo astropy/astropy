@@ -16,7 +16,7 @@ __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
 
 
-def biweight_location(a, c=6.0, M=None, axis=None):
+def biweight_location(data, c=6.0, M=None, axis=None):
     r"""
     Compute the biweight location.
 
@@ -43,7 +43,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
 
     Parameters
     ----------
-    a : array-like
+    data : array-like
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator (default = 6.0).
@@ -90,18 +90,18 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     -0.0175741540445
     """
 
-    a = np.asanyarray(a)
+    data = np.asanyarray(data)
 
     if M is None:
-        M = np.median(a, axis=axis)
+        M = np.median(data, axis=axis)
     if axis is not None:
         M = np.expand_dims(M, axis=axis)
 
     # set up the differences
-    d = a - M
+    d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(a, axis=axis)
+    mad = median_absolute_deviation(data, axis=axis)
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
     u = d / (c * mad)
@@ -114,7 +114,7 @@ def biweight_location(a, c=6.0, M=None, axis=None):
     return M.squeeze() + (d * u).sum(axis=axis) / u.sum(axis=axis)
 
 
-def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
+def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
     r"""
     Compute the biweight scale.
 
@@ -161,7 +161,7 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
 
     Parameters
     ----------
-    a : array-like
+    data : array-like
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
@@ -217,11 +217,11 @@ def biweight_scale(a, c=9.0, M=None, axis=None, modify_sample_size=False):
     """
 
     return np.sqrt(
-        biweight_midvariance(a, c=c, M=M, axis=axis,
+        biweight_midvariance(data, c=c, M=M, axis=axis,
                              modify_sample_size=modify_sample_size))
 
 
-def biweight_midvariance(a, c=9.0, M=None, axis=None,
+def biweight_midvariance(data, c=9.0, M=None, axis=None,
                          modify_sample_size=False):
     r"""
     Compute the biweight midvariance.
@@ -268,7 +268,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
 
     Parameters
     ----------
-    a : array-like
+    dat : array-like
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
@@ -323,18 +323,18 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     0.97362869104
     """
 
-    a = np.asanyarray(a)
+    data = np.asanyarray(data)
 
     if M is None:
-        M = np.median(a, axis=axis)
+        M = np.median(data, axis=axis)
     if axis is not None:
         M = np.expand_dims(M, axis=axis)
 
     # set up the differences
-    d = a - M
+    d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(a, axis=axis)
+    mad = median_absolute_deviation(data, axis=axis)
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
     u = d / (c * mad)
@@ -347,9 +347,9 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
         n = mask.sum(axis=axis)
     else:
         if axis is None:
-            n = a.size
+            n = data.size
         else:
-            n = a.shape[axis]
+            n = data.shape[axis]
 
     f1 = d * d * (1. - u)**4
     f1[~mask] = 0.
@@ -361,7 +361,7 @@ def biweight_midvariance(a, c=9.0, M=None, axis=None,
     return n * f1 / f2
 
 
-def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
+def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     r"""
     Compute the biweight midcovariance between pairs of multiple
     variables.
@@ -376,7 +376,7 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
     (see :func:`biweight_midvariance`).  The off-diagonal elements will
     be the biweight midcovariances between each pair of input variables.
 
-    For example, if the input array ``a`` contains three variables
+    For example, if the input array ``data`` contains three variables
     (rows) ``x``, ``y``, and ``z``, the output `~numpy.ndarray`
     midcovariance matrix will be:
 
@@ -439,14 +439,14 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
 
     Parameters
     ----------
-    a : 2D or 1D array-like
+    data : 2D or 1D array-like
         Input data either as a 2D or 1D array.  For a 2D array, it
         should have a shape (N_variables, N_observations).  A 1D array
         may be input for observations of a single variable, in which
         case the biweight midvariance will be calculated (no
-        covariance).  Each row of ``a`` represents a variable, and each
-        column a single observation of all those variables (same as the
-        `numpy.cov` convention).
+        covariance).  Each row of ``data`` represents a variable, and
+        each column a single observation of all those variables (same as
+        the `numpy.cov` convention).
 
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
@@ -508,26 +508,26 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
     [ 0.90820237  3.13091961]
     """
 
-    a = np.asanyarray(a)
+    data = np.asanyarray(data)
 
-    # ensure a is 2D
-    if a.ndim == 1:
-        a = a[np.newaxis, :]
-    if a.ndim != 2:
+    # ensure data is 2D
+    if data.ndim == 1:
+        data = data[np.newaxis, :]
+    if data.ndim != 2:
         raise ValueError('The input array must be 2D or 1D.')
 
     # estimate location if not given
     if M is None:
-        M = np.median(a, axis=1)
+        M = np.median(data, axis=1)
     M = np.asanyarray(M)
     if M.ndim > 1:
         raise ValueError('M must be a scalar or 1D array.')
 
     # set up the differences
-    d = (a.T - M).T
+    d = (data.T - M).T
 
     # set up the weighting
-    mad = median_absolute_deviation(a, axis=1)
+    mad = median_absolute_deviation(data, axis=1)
     u = (d.T / (c * mad)).T
 
     # now remove the outlier points
@@ -538,7 +538,7 @@ def biweight_midcovariance(a, c=9.0, M=None, modify_sample_size=False):
         maskf = mask.astype(float)
         n = np.inner(maskf, maskf)
     else:
-        n = a[0].size
+        n = data[0].size
 
     usub1 = (1. - u)
     usub5 = (1. - 5. * u)
