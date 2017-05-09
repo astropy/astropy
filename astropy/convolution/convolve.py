@@ -20,10 +20,11 @@ from ..extern.six.moves import range, zip
 # in doctests can be determined
 __doctest_skip__ = ['*']
 
+BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
-             normalize_kernel=False, mask=None, interpolate_nan=True):
+             normalize_kernel=False, mask=None, interpolate_nan=False):
     '''
     Convolve an array with a kernel.
 
@@ -98,6 +99,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                                 convolve2d_boundary_wrap,
                                 convolve3d_boundary_wrap)
 
+    if boundary not in BOUNDARY_OPTIONS:
+        raise ValueError("Invalid boundary option: must be one of {0}"
+                         .format(BOUNDARY_OPTIONS))
+
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
@@ -116,10 +121,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # return new kernel instance
         if isinstance(array, Kernel):
             if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
-                new_array = convolve1d_boundary_fill(array.array, kernel.array, 0)
+                new_array = convolve1d_boundary_fill(array.array, kernel.array,
+                                                     0, normalize_kernel)
                 new_kernel = Kernel1D(array=new_array)
             elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
-                new_array = convolve2d_boundary_fill(array.array, kernel.array, 0)
+                new_array = convolve2d_boundary_fill(array.array, kernel.array,
+                                                     0, normalize_kernel)
                 new_kernel = Kernel2D(array=new_array)
             else:
                 raise Exception("Can't convolve 1D and 2D kernel.")
@@ -207,7 +214,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             result = convolve1d_boundary_wrap(array_internal,
                                               kernel_internal,
                                               normalize_kernel)
-        else:
+        elif boundary is None:
             result = convolve1d_boundary_none(array_internal,
                                               kernel_internal,
                                               normalize_kernel)

@@ -349,9 +349,9 @@ class TestConvolve2D(object):
                                                         [8., 8., 8.],
                                                         [8., 8., 8.]], dtype='>f8'), 10)
         elif boundary == 'extend':
-            assert_array_almost_equal_nulp(z, np.array([[3., 10., 17.],
-                                                        [6., 8., 12.],
-                                                        [9., 8., 7.]], dtype='>f8'), 10)
+            assert_array_almost_equal_nulp(z, np.array([[2., 9., 16.],
+                                                        [5., 8., 11.],
+                                                        [8., 7., 6.]], dtype='>f8'), 10)
         else:
             raise ValueError("Invalid boundary specification")
 
@@ -478,7 +478,7 @@ class TestConvolve3D(object):
         y = np.zeros((3, 3, 3), dtype='>f8')
         y[1, 1, 1] = 1.
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, interpolate_nan=False)
 
         assert np.isnan(z[1, 1, 1])
         x = np.nan_to_num(z)
@@ -505,21 +505,36 @@ class TestConvolve3D(object):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, interpolate_nan=True)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
-                                                       [[0., 0., 0.], [0., 81., 0.], [0., 0., 0.]],
-                                                       [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]], dtype='>f8'), 10)
+                                                        [[0., 0., 0.], [0., 78., 0.], [0., 0., 0.]],
+                                                        [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]], dtype='>f8'), 10)
         elif boundary == 'fill':
-            assert_array_almost_equal_nulp(z, np.array([[[23., 28., 16.], [35., 46., 25.], [25., 34., 18.]],
-                                                       [[40., 50., 23.], [63., 81., 36.], [46., 60., 27.]],
-                                                       [[32., 40., 16.], [50., 61., 22.], [36., 44., 16.]]], dtype='>f8'), 10)
+            assert_array_almost_equal_nulp(z, np.array([[[ 20.,  25.,  13.],
+                                                         [ 32.,  43.,  22.],
+                                                         [ 22.,  31.,  15.]],
+                                                        [[ 37.,  47.,  20.],
+                                                         [ 60.,  78.,  33.],
+                                                         [ 43.,  57.,  24.]],
+                                                        [[ 29.,  37.,  13.],
+                                                         [ 47.,  58.,  19.],
+                                                         [ 33.,  41.,  13.]]], dtype='>f8'), 10)
         elif boundary == 'wrap':
-            assert_array_almost_equal_nulp(z, np.array([[[81., 81., 81.], [81., 81., 81.], [81., 81., 81.]],
-                                                       [[81., 81., 81.], [81., 81., 81.], [81., 81., 81.]],
-                                                       [[81., 81., 81.], [81., 81., 81.], [81., 81., 81.]]], dtype='>f8'), 10)
+            assert_array_almost_equal_nulp(z, np.array([[[78., 78., 78.], [78., 78., 78.], [78., 78., 78.]],
+                                                        [[78., 78., 78.], [78., 78., 78.], [78., 78., 78.]],
+                                                        [[78., 78., 78.], [78., 78., 78.], [78., 78., 78.]]], dtype='>f8'), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([[[  62.,   51.,   40.],
+                                                         [  72.,   63.,   54.],
+                                                         [  82.,   75.,   68.]],
+                                                        [[  93.,   68.,   43.],
+                                                         [ 105.,   78.,   51.],
+                                                         [ 117.,   88.,   59.]],
+                                                        [[ 124.,   85.,   46.],
+                                                         [ 138.,   93.,   48.],
+                                                         [ 152.,  101.,   50.]]],
+                                                       dtype='>f8'), 10)
         else:
-            assert_array_almost_equal_nulp(z, np.array([[[65., 54., 43.], [75., 66., 57.], [85., 78., 71.]],
-                                                       [[96., 71., 46.], [108., 81., 54.], [120., 91., 62.]],
-                                                       [[127., 88., 49.], [141., 96., 51.], [155., 104., 53.]]], dtype='>f8'), 10)
+            raise ValueError("Invalid Boundary Option")
