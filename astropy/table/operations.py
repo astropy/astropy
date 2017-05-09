@@ -60,6 +60,7 @@ def _get_list_of_tables(tables):
 def _get_out_class(objs):
     """
     From a list of input objects ``objs`` get merged output object class.
+
     This is just taken as the deepest subclass. This doesn't handle complicated
     inheritance schemes.
     """
@@ -610,11 +611,11 @@ def _join(left, right, keys=None, join_type='inner',
             cols = [left[left_name], right[right_name]]
 
             col_cls = _get_out_class(cols)
-            if not hasattr(col_cls.info, 'empty_like'):
+            if not hasattr(col_cls.info, 'new_like'):
                 raise NotImplementedError('join unavailable for mixin column type(s): {}'
                                           .format(col_cls.__name__))
 
-            out[out_name] = col_cls.info.empty_like(cols, n_out, metadata_conflicts, out_name)
+            out[out_name] = col_cls.info.new_like(cols, n_out, metadata_conflicts, out_name)
 
             if issubclass(col_cls, Column):
                 out[out_name][:] = np.where(right_mask,
@@ -740,11 +741,11 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
         cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
         col_cls = _get_out_class(cols)
-        if not hasattr(col_cls.info, 'empty_like'):
+        if not hasattr(col_cls.info, 'new_like'):
             raise NotImplementedError('vstack unavailable for mixin column type(s): {}'
                                       .format(col_cls.__name__))
         try:
-            out[out_name] = col_cls.info.empty_like(cols, n_rows, metadata_conflicts, out_name)
+            out[out_name] = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
         except metadata.MergeConflictError as err:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
