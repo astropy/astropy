@@ -218,6 +218,7 @@ packages that use the full bugfix/maintenance branch approach.)
    be better off just copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
+
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -457,7 +458,10 @@ for these scripts is given in their repository, but here we summarize the basic
 workflow.  Run the scripts in order (they are numbered 1.<something>.py,
 2.<something>.py, etc.), entering your github login credentials as needed (if
 you are going to run them multiple times, using a ``~/.netrc`` file is
-recommended). The script to actually scheck consistency should be run as:
+recommended - see `this Stack Overflow post
+<http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
+for more on how to do that). The script to actually scheck consistency should be
+run like:
 
     $ python 4.check_consistency.py > consistency.html
 
@@ -474,11 +478,15 @@ are needed to make the milestones and branches consistent.  Make sure you're in
 the correct maintainence branch with e.g.,
 
     $ git checkout v1.3.x
+    $ git pull upstream v1.3.x  # Or possibly a rebase if conflicts exist
 
 if you are doing bugfixes for the 1.3.x series. Go through the commands one at a
 time, following the cherry-picking procedure described above. If for some reason
 you determine the github milestone was in error and the backporting is
-impossible, re-label the issue on github and move on.
+impossible, re-label the issue on github and move on.  Also, whever you
+backport a PR, it's useful to leave a comment in the issue along the lines of
+"backported this to v1.3.x as <SHA>" so that it's clear that the backport
+happened to others who might later look.
 
 .. warning::
 
