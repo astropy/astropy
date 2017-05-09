@@ -596,13 +596,26 @@ class Time(ShapedLikeNDArray):
     def __setitem__(self, item, value):
         if value in (np.ma.masked, np.nan):
             self._time.jd2[item] = np.nan
+            del self.cache
+            return
 
-        elif isinstance(value, Time):
-            if value.location != self.location:
-                raise ValueError('cannot set to Time with different location')
+        if not isinstance(value, Time):
+            try:
+                value = self.__class__(value, scale=self.scale, location=self.location)
+            except Exception:
+                try:
+                    value = self.__class__(value, scale=self.scale, format=self.format,
+                                           location=self.location)
+                except Exception:
+                    raise ValueError('cannot convert value to a compatible Time object')
 
-            self._time.jd1[item] = value._time.jd1
-            self._time.jd2[item] = value._time.jd2
+        if self.location != value.location:
+            raise ValueError('cannot set to Time with different location')
+
+        # Are there any cases where this would be incorrect?
+        value = getattr(value, self.scale)
+        self._time.jd1[item] = value._time.jd1
+        self._time.jd2[item] = value._time.jd2
 
         del self.cache
 
