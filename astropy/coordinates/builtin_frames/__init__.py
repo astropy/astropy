@@ -83,11 +83,9 @@ def _make_transform_graph_docs():
     between these systems, but the pre-defined transformations should be
     sufficient for typical usage.
 
-    The graph also indicates the priority for each transformation as a
-    number next to the arrow.  These priorities are used to decide the
-    preferred order when two transformation paths have the same number
-    of steps.  These priorities are defined such that the path with a
-    *smaller* total priority is favored.
+    The color of an edge in the graph (i.e. the transformations between two
+    frames) is set by the type of transformation; the legend box defines the
+    mapping from transform class name to color.
 
 
     .. graphviz::
