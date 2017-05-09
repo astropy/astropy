@@ -156,12 +156,13 @@ class QuantityInfo(ParentDtypeInfo):
         value = map.pop('value')
         return self._parent_cls(value, **map)
 
-    def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
-        Return an empty Quantity instance which is consistent with the
-        input ``cols`` and has ``length`` rows.  This is intended for creating
-        an empty column object whose elements can be set in-place for
-        table operations like join or vstack.
+        Return a new Quantity instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
 
         Parameters
         ----------
@@ -170,25 +171,25 @@ class QuantityInfo(ParentDtypeInfo):
         length : int
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')
-            How to handle metadata conflicts.
+            How to handle metadata conflicts
         name : str
             Output column name
 
         Returns
         -------
         col : Quantity (or subclass)
-            Empty version of this class consistent with ``cols``
+            Empty instance of this class consistent with ``cols``
+
         """
 
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
                                            ('meta', 'format', 'description'))
 
-        # Make an empty quantity filled with Nan using the unit of the last one.
+        # Make an empty quantity using the unit of the last one.
         shape = (length,) + attrs.pop('shape')
         dtype = attrs.pop('dtype')
         data = np.empty(shape=shape, dtype=dtype)
-        data[()] = np.nan
         unit = cols[-1].unit
         out = self._parent_cls(data, unit=unit, copy=False)
 

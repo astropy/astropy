@@ -212,7 +212,7 @@ that contain mixin columns:
      - Not implemented yet, but no fundamental limitation
    * - :ref:`stack-vertically`
      - Available for `~astropy.units.Quantity` and any other mixin classes that provide an
-       `empty_like() method`_ in the ``info`` descriptor.
+       `new_like() method`_ in the ``info`` descriptor.
    * - :ref:`stack-horizontally`
      - Works if output mixin column supports masking or if no masking is required
    * - :ref:`table-join`
@@ -240,7 +240,8 @@ relatively simple and requires that a class behave like a minimal numpy array
 with the following properties:
 
 - Contains array-like data
-- Supports getting data as a single item, slicing, or index array access
+- Implements ``__getitem__`` to support getting data as a
+  single item, slicing, or index array access
 - Has a ``shape`` attribute
 - Has a ``__len__`` method for length
 - Has an ``info`` class descriptor which is a subclass of the
@@ -258,23 +259,27 @@ Other interesting possibilities for mixin columns include:
 - Columns which are themselves a |Table|, i.e. nested tables.  A `proof of
   concept <https://github.com/astropy/astropy/pull/3963>`_ is available.
 
-empty_like() method
-~~~~~~~~~~~~~~~~~~~
+new_like() method
+~~~~~~~~~~~~~~~~~
 
 In order to support high-level operations like `~astropy.table.join` and
-`~astropy.table.vstack`, a mixin class must provide an ``empty_like()`` method
+`~astropy.table.vstack`, a mixin class must provide a ``new_like()`` method
 in the ``info`` class descriptor.  A key part of the functionality is to ensure
 that the input column metadata are merged appropriately and that the columns
 have consistent properties such as the shape.
 
-This method has the following signature::
+A mixin class that provides ``new_like()`` must also implement ``__setitem__``
+to support setting via a single item, slicing, or index array.
 
-    def empty_like(self, cols, length, metadata_conflicts='warn', name=None):
+The ``new_like`` method has the following signature::
+
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
-        Return an empty instance of this class which is consistent with the
-        input ``cols`` and has ``length`` rows.  This is intended for creating
-        an empty column object whose elements can be set in-place for
-        table operations like join or vstack.
+        Return a new instance of this class which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
 
         Parameters
         ----------
@@ -283,14 +288,14 @@ This method has the following signature::
         length : int
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')
-            How to handle metadata conflicts.
+            How to handle metadata conflicts
         name : str
             Output column name
 
         Returns
         -------
         col : object
-            Empty version of this class consistent with ``cols``
+            New instance of this class consistent with ``cols``
         """
 
 Examples of this are found in the `~astropy.table.column.ColumnInfo` and

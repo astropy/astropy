@@ -534,7 +534,7 @@ class BaseColumnInfo(DataInfo):
         cols : list
             List of input Table column objects
         metadata_conflicts : str ('warn'|'error'|'silent')
-            How to handle metadata conflicts.
+            How to handle metadata conflicts
         name : str
             Output column name
         attrs : list
