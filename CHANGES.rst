@@ -231,6 +231,8 @@ Other Changes and Additions
 
 - Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
+- Python 3.3 is no longer suppored. [#6020]
+
 1.3.3 (unreleased)
 ------------------
 
