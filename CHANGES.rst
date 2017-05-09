@@ -70,6 +70,10 @@ New Features
   - Added functionality to allow ``astropy.units.Quantity`` to be written 
     as a normal column to FITS files. [#5910]
 
+  - ``vstack``, ``hstack``, and ``join`` now also work with ``QTable``
+    instances that hold ``Quantity`` columns, as long as the output
+    does not require any masking. [#5811]
+
 - ``astropy.time``
 
 - ``astropy.units``
