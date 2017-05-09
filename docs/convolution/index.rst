@@ -53,10 +53,14 @@ within a kernel of any NaN value, which is often not the desired result.
     astropy_conv_intnan = convolve(img, kernel, interpolate_nan=True, normalize_kernel=False)
     astropy_conv_intnan_norm = convolve(img, kernel, interpolate_nan=True,
                                         normalize_kernel=True)
+    astropy_conv_norm = convolve(img, kernel, interpolate_nan=False,
+                                        normalize_kernel=True)
     astropy_conv_fft = convolve_fft(img, kernel)
     astropy_conv_intnan_fft = convolve_fft(img, kernel, interpolate_nan=True, normalize_kernel=False)
     astropy_conv_intnan_fft_norm = convolve_fft(img, kernel,
                        interpolate_nan=True, normalize_kernel=True)
+    astropy_conv_fft_norm = convolve_fft(img, kernel,
+                       interpolate_nan=False, normalize_kernel=True)
 
     plt.figure(1, figsize=(12,12)).clf()
     ax1 = plt.subplot(3,3,1)

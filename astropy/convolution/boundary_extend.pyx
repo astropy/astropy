@@ -18,7 +18,7 @@ cimport cython
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
                                np.ndarray[DTYPE_t, ndim=1] g,
-                               bint normalize_kernel
+                               bint normalize_by_kernel
                               ):
 
     if g.shape[0] % 2 != 1:
@@ -56,9 +56,9 @@ def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
                 if not npy_isnan(val):
                     top += val * ker
                     bot += ker
-            if normalize_kernel and bot != 0:
+            if normalize_by_kernel and bot != 0:
                 conv[i] = top / bot
-            elif normalize_kernel and bot == 0:
+            elif normalize_by_kernel and bot == 0:
                 conv[i] = fixed[i]
             else:
                 conv[i] = top
@@ -69,7 +69,7 @@ def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                                np.ndarray[DTYPE_t, ndim=2] g,
-                               bint normalize_kernel):
+                               bint normalize_by_kernel):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
@@ -116,9 +116,9 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                         if not npy_isnan(val):
                             top += val * ker
                             bot += ker
-                if normalize_kernel and bot != 0:
+                if normalize_by_kernel and bot != 0:
                     conv[i, j] = top / bot
-                elif normalize_kernel and bot == 0:
+                elif normalize_by_kernel and bot == 0:
                     conv[i, j] = fixed[i, j]
                 else:
                     conv[i, j] = top
@@ -129,7 +129,7 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
                                np.ndarray[DTYPE_t, ndim=3] g,
-                               bint normalize_kernel):
+                               bint normalize_by_kernel):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1 or g.shape[2] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
@@ -186,9 +186,9 @@ def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
                                 if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
-                    if normalize_kernel and bot != 0:
+                    if normalize_by_kernel and bot != 0:
                         conv[i, j, k] = top / bot
-                    elif normalize_kernel and bot == 0:
+                    elif normalize_by_kernel and bot == 0:
                         conv[i, j, k] = fixed[i, j, k]
                     else:
                         conv[i, j, k] = top
