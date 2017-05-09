@@ -24,7 +24,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
-             normalize_kernel=False, mask=None, interpolate_nan=False):
+             normalize_kernel=True, mask=None, interpolate_nan=True):
     '''
     Convolve an array with a kernel.
 
@@ -290,7 +290,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
-                 normalize_kernel=False, mask=None, interpolate_nan=False,
+                 normalize_kernel=True, mask=None, interpolate_nan=True,
                  crop=True, return_fft=False, fft_pad=None, psf_pad=None,
                  quiet=False, ignore_edge_zeros=False, min_wt=0.0,
                  allow_huge=False, fftn=np.fft.fftn, ifftn=np.fft.ifftn,
