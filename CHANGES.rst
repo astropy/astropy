@@ -52,6 +52,9 @@ New Features
 
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
+  - Allow passing of tuples for setting constraints on model parameters.
+    [#4574]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``

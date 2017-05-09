@@ -422,3 +422,36 @@ def test_fit_with_bound_constraints_estimate_jacobian():
     # Check that the estimated Jacobian was computed (it doesn't matter what
     # the values are so long as they're not all zero.
     assert np.any(f2.fit_info['fjac'] != 0)
+
+def test_tuple_for_contraints():
+    """
+    Test passing tuples as convenience for setting contraints on model parameters.
+    For https://github.com/astropy/astropy/issues/3028.
+    """
+
+    def tie1(model):
+        return 50 * model.stddev
+
+    def tie2(model):
+        return 30 * model.mean
+
+    m = models.Gaussian1D(10, 5, .3, fixed=(True, False, True)
+                          , tied=(tie1, tie2, False), bounds=((5, 15), False, [.2, .4]))
+
+    assert m.amplitude.fixed
+    assert not m.mean.fixed
+    assert m.stddev.fixed
+
+    assert m.amplitude.tied
+    assert m.mean.tied
+    assert not m.stddev.tied
+
+    assert m.amplitude.bounds
+    assert m.amplitude.min is 5
+    assert m.amplitude.max is 15
+
+    assert not m.mean.bounds
+
+    assert m.stddev.bounds
+    assert m.stddev.min is .2
+    assert m.stddev.max is .4
