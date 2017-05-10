@@ -559,6 +559,7 @@ class IERS_Auto(IERS_A):
         """
         if not conf.auto_download:
             cls.iers_table = IERS.open()
+            return cls.iers_table
 
         if cls.iers_table is not None:
 
