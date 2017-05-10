@@ -1098,6 +1098,7 @@ class TestCompressedImage(FitsTestCase):
 
         """
         import scipy.misc
+        np.random.seed(42)
         data = scipy.misc.ascent() + np.random.randn(512, 512)*10
 
         fits.ImageHDU(data).writeto(self.temp('im1.fits'))
@@ -1113,10 +1114,10 @@ class TestCompressedImage(FitsTestCase):
         im3 = fits.getdata(self.temp('im3.fits'))
 
         assert not np.array_equal(im2, im3)
-        assert np.isclose(np.min(im1 - im2), -0.5, atol=1e-5)
-        assert np.isclose(np.max(im1 - im2), 0.5, atol=1e-5)
-        assert np.isclose(np.min(im1 - im3), -50, atol=1e-3)
-        assert np.isclose(np.max(im1 - im3), 50, atol=1e-3)
+        assert np.isclose(np.min(im1 - im2), -0.5, atol=1e-3)
+        assert np.isclose(np.max(im1 - im2), 0.5, atol=1e-3)
+        assert np.isclose(np.min(im1 - im3), -50, atol=1e-1)
+        assert np.isclose(np.max(im1 - im3), 50, atol=1e-1)
 
     @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompression_1_invalid_data(self):
