@@ -17,8 +17,9 @@ for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
         VALID_DTYPES.append((dtype_array, dtype_kernel))
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
-INTERPOLATE_OPTIONS = [True, False]
+NANHANDLING_OPTIONS = ['interpolate', 'fill']
 NORMALIZE_OPTIONS = [True, False]
+PRESERVE_NAN_OPTIONS = [True, False]
 
 BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
                                         BOUNDARY_OPTIONS)) + [(convolve_fft,
@@ -107,13 +108,14 @@ class TestConvolve1D(object):
         else:
             assert np.all(z == np.array([2., 4., 6.], dtype='>f8'))
 
-    @pytest.mark.parametrize(('boundary', 'interpolate_nan',
-                              'normalize_kernel'),
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan'),
                              itertools.product(BOUNDARY_OPTIONS,
-                                               INTERPOLATE_OPTIONS,
-                                               NORMALIZE_OPTIONS))
-    def test_unity_3_withnan(self, boundary, interpolate_nan,
-                             normalize_kernel):
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS))
+    def test_unity_3_withnan(self, boundary, nan_treatment,
+                             normalize_kernel, preserve_nan):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None). This version includes a NaN value in
@@ -124,10 +126,11 @@ class TestConvolve1D(object):
 
         y = np.array([0., 1., 0.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=interpolate_nan,
-                     normalize_kernel=normalize_kernel)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel,
+                     preserve_nan=preserve_nan)
 
-        if not interpolate_nan:
+        if preserve_nan:
             assert np.isnan(z[1])
 
         x = np.nan_to_num(z)
@@ -138,13 +141,14 @@ class TestConvolve1D(object):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary', 'interpolate_nan',
-                              'normalize_kernel'),
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan'),
                              itertools.product(BOUNDARY_OPTIONS,
-                                               INTERPOLATE_OPTIONS,
-                                               NORMALIZE_OPTIONS))
-    def test_uniform_3_withnan(self, boundary, interpolate_nan,
-                               normalize_kernel):
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS))
+    def test_uniform_3_withnan(self, boundary, nan_treatment, normalize_kernel,
+                               preserve_nan):
         '''
         Test that the different modes are producing the correct results using
         a uniform kernel with three elements. This version includes a NaN
@@ -155,38 +159,38 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=interpolate_nan,
-                     normalize_kernel=normalize_kernel)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel,
+                     preserve_nan=preserve_nan)
 
-        if not interpolate_nan:
+        if preserve_nan:
             assert np.isnan(z[1])
 
-        x = np.nan_to_num(z)
         z = np.nan_to_num(z)
 
-        if normalize_kernel:
-            midval = 2. if interpolate_nan else 0.
-            if boundary is None:
-                assert_array_almost_equal_nulp(z, np.array([0., midval, 0.], dtype='>f8'), 10)
-            elif boundary == 'fill':
-                # this is effectively convolve([0,1,nan,3,0]) with [1,1,1]
-                assert_array_almost_equal_nulp(z, np.array([1./2., midval, 3./2.],
-                                                           dtype='>f8'), 10)
-            elif boundary == 'wrap':
-                assert_array_almost_equal_nulp(z, np.array([2., midval, 2.], dtype='>f8'), 10)
-            else:
-                assert_array_almost_equal_nulp(z, np.array([1., midval, 3.], dtype='>f8'), 10)
-        else:
-            midval = 4. if interpolate_nan else 0.
-            if boundary is None:
-                assert_array_almost_equal_nulp(z, np.array([0., midval, 0.], dtype='>f8'), 10)
-            elif boundary == 'fill':
-                # this is effectively convolve([0,1,nan,3,0]) with [1,1,1]
-                assert_array_almost_equal_nulp(z, np.array([1., midval, 3.], dtype='>f8'), 10)
-            elif boundary == 'wrap':
-                assert_array_almost_equal_nulp(z, np.array([4., midval, 4.], dtype='>f8'), 10)
-            else:
-                assert_array_almost_equal_nulp(z, np.array([2., midval, 6.], dtype='>f8'), 10)
+        # boundary, nan_treatment, normalize_kernel
+        rslt = {
+                (None, 'interpolate', True): [0,2,0],
+                (None, 'interpolate', False): [0,4,0],
+                (None, 'fill', True): [0,4/3.,0],
+                (None, 'fill', False): [0,4,0],
+                ('fill', 'interpolate', True): [1/2.,2,3/2.],
+                ('fill', 'interpolate', False): [1,4,3],
+                ('fill', 'fill', True): [1/3.,4/3.,3/3.],
+                ('fill', 'fill', False): [1,4,3],
+                ('wrap', 'interpolate', True): [2,2,2],
+                ('wrap', 'interpolate', False): [4,4,4],
+                ('wrap', 'fill', True): [4/3.,4/3.,4/3.],
+                ('wrap', 'fill', False): [4,4,4],
+                ('extend', 'interpolate', True): [1,2,3],
+                ('extend', 'interpolate', False): [2,4,6],
+                ('extend', 'fill', True): [2/3., 4/3., 6/3.],
+                ('extend', 'fill', False): [2,4,6],
+               }[boundary, nan_treatment, normalize_kernel]
+        if preserve_nan:
+            rslt[1] = 0
+
+        assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
 
 class TestConvolve2D(object):
@@ -311,7 +315,8 @@ class TestConvolve2D(object):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=False)
+        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+                     preserve_nan=True)
 
         assert np.isnan(z[1, 1])
         x = np.nan_to_num(z)
@@ -340,7 +345,8 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=True, normalize_kernel=False)
+        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+                     normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
@@ -469,10 +475,12 @@ class TestConvolve3D(object):
                                                        [[96., 71., 46.], [108., 81., 54.], [120., 91., 62.]],
                                                        [[127., 88., 49.], [141., 96., 51.], [155., 104., 53.]]], dtype='>f8'), 10)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-    def test_unity_3x3x3_withnan(self, boundary):
+    @pytest.mark.parametrize(('boundary', 'nan_treatment'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS))
+    def test_unity_3x3x3_withnan(self, boundary, nan_treatment):
         '''
-        Test that a 3x3 unit kernel returns the same array (except when
+        Test that a 3x3x3 unit kernel returns the same array (except when
         boundary is None). This version includes a NaN value in the original
         array.
         '''
@@ -484,7 +492,8 @@ class TestConvolve3D(object):
         y = np.zeros((3, 3, 3), dtype='>f8')
         y[1, 1, 1] = 1.
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=False)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     preserve_nan=True)
 
         assert np.isnan(z[1, 1, 1])
         x = np.nan_to_num(z)
@@ -511,7 +520,7 @@ class TestConvolve3D(object):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, interpolate_nan=True)
+        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate')
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
