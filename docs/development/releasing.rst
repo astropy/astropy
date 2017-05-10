@@ -218,6 +218,9 @@ packages that use the full bugfix/maintenance branch approach.)
    be better off just copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
+#. If there are any issues in the Github issue tracker that are labeled
+  ``affects-dev`` but are issues that apply to this release, update them to
+  ``affects-release``.
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
