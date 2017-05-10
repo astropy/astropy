@@ -1733,4 +1733,5 @@ def test_image_write_readonly(tmpdir):
     x = np.array([1,2,3])
     x.setflags(write=False)
     ghdu = fits.ImageHDU(data=x)
+    ghdu.add_datasum()
     ghdu.writeto(tmpdir.join('test.fits').strpath)
