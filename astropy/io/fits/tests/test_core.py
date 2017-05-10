@@ -1203,10 +1203,3 @@ class TestStreamingFunctions(FitsTestCase):
         # See https://github.com/astropy/astropy/issues/3766
         hdul = fits.open(pth, memmap=True, do_not_scale_image_data=True)
         hdul[0].data  # Just make sure it doesn't crash
-
-
-def test_write_readonly():
-    # Regression test to make sure that we can write out read-only arrays
-    x = np.array([1,2,3])
-    x.setflags(write=False)
-    fits.writeto('x.fits', x, overwrite=True)

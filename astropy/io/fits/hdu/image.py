@@ -630,12 +630,18 @@ class _ImageBaseHDU(_ValidHDU):
                 should_swap = (byteorder in swap_types)
 
             if not fileobj.simulateonly:
+
                 if should_swap:
-                    output.byteswap(True)
-                    try:
-                        fileobj.writearray(output)
-                    finally:
+                    if output.flags.writeable:
                         output.byteswap(True)
+                        try:
+                            fileobj.writearray(output)
+                        finally:
+                            output.byteswap(True)
+                    else:
+                        # For read-only arrays, there is no way around making
+                        # a byteswapped copy of the data.
+                        fileobj.writearray(output.byteswap(False))
                 else:
                     fileobj.writearray(output)
 
