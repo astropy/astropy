@@ -477,8 +477,9 @@ workflow.  Run the scripts in order (they are numbered 1.<something>.py,
 you are going to run them multiple times, using a ``~/.netrc`` file is
 recommended - see `this Stack Overflow post
 <http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
-for more on how to do that). The script to actually scheck consistency should be
-run like:
+for more on how to do that, or
+`a similar github help page <https://help.github.com/articles/caching-your-github-password-in-git>`_).
+The script to actually scheck consistency should be run like:
 
     $ python 4.check_consistency.py > consistency.html
 
