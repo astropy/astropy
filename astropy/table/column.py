@@ -474,16 +474,16 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             Maximum lines of output (header + data rows)
 
         show_name : bool
-            Include column name (default=True)
+            Include column name. Default is True.
 
         show_unit : bool
-            Include a header row for unit (default=False)
+            Include a header row for unit. Default is False.
 
         show_dtype : bool
-            Include column dtype (default=False)
+            Include column dtype. Default is False.
 
         html : bool
-            Format the output as an HTML table (default=False)
+            Format the output as an HTML table. Default is False.
 
         Returns
         -------
@@ -513,13 +513,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             Maximum number of values in output
 
         show_name : bool
-            Include column name (default=True)
+            Include column name. Default is True.
 
         show_unit : bool
-            Include a header row for unit (default=False)
+            Include a header row for unit. Default is False.
 
         show_dtype : bool
-            Include column dtype (default=True)
+            Include column dtype. Default is True.
         """
         _pformat_col = self._formatter._pformat_col
         lines, outs = _pformat_col(self, max_lines, show_name=show_name, show_unit=show_unit,
@@ -550,13 +550,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         Parameters
         ----------
         max_lines : int
-            Maximum number of lines in table output
+            Maximum number of lines in table output.
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
-            Include a header row for unit (default=False)
+            Include a header row for unit. Default is False.
 
         """
         _more_tabcol = self._formatter._more_tabcol

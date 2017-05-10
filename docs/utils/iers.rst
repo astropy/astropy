@@ -72,7 +72,7 @@ of the automatic IERS downloading:
     Enable auto-downloading of the latest IERS data.  If set to ``False`` then
     the local IERS-B file will be used by default (even if the full IERS file
     with predictions was already downloaded and cached).  This replicates the
-    behavior prior to astropy 1.2.  (default= ``True``)
+    behavior prior to astropy 1.2.  (default=True)
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
