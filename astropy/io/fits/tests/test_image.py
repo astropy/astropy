@@ -1726,3 +1726,11 @@ def test_bzero_mishandled_info(tmpdir):
     hdu.writeto(filename, clobber=True)
     hdul = fits.open(filename)
     hdul.info()
+
+
+def test_image_write_readonly(tmpdir):
+    # Regression test to make sure that we can write out read-only arrays (#5512)
+    x = np.array([1,2,3])
+    x.setflags(write=False)
+    ghdu = fits.ImageHDU(data=x)
+    ghdu.writeto(tmpdir.join('test.fits').strpath)
