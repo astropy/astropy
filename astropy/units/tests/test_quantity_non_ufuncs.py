@@ -1,7 +1,8 @@
 import numpy as np
 
+import pytest
+
 from ... import units as u
-from ...tests.helper import pytest
 
 
 class TestQuantityLinAlgFuncs(object):

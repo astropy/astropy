@@ -11,17 +11,17 @@ import functools
 
 from textwrap import dedent
 
+import pytest
 import numpy as np
 from numpy import ma
 
-from ....table import Table, MaskedColumn, Column
+from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
     FastRdb, FastNoHeader
 from .common import assert_equal, assert_almost_equal, assert_true
-from ....tests.helper import pytest
 from ....extern import six
 from ....extern.six.moves import range
 

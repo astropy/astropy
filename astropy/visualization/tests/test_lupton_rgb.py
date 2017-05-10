@@ -10,15 +10,15 @@ import sys
 import os
 import tempfile
 
+import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
 from ...convolution import convolve, Gaussian2DKernel
-from ...tests.helper import pytest
 from .. import lupton_rgb
 
 try:
-    import matplotlib
+    import matplotlib  # noqa
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False

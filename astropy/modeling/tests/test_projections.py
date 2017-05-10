@@ -5,15 +5,17 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 import os
+
+import pytest
 import numpy as np
 from numpy.testing import utils
+
 from .. import projections
 from ..parameters import InputParameterError
 
 from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
-from ...tests.helper import pytest
 from ...extern.six.moves import range, zip
 
 

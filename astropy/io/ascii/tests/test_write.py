@@ -6,12 +6,14 @@ import os
 import copy
 from itertools import chain
 
+import pytest
 import numpy as np
+
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....table.table_helpers import simple_table
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 

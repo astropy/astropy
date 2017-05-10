@@ -8,9 +8,9 @@ from __future__ import (absolute_import, division, print_function,
 import os
 from copy import copy
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table

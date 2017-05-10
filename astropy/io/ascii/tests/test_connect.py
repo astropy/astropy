@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
-from ....tests.helper import pytest
+
+import pytest
 
 from ....table import Table, Column
 

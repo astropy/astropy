@@ -7,12 +7,12 @@ import os
 from datetime import datetime
 import locale
 
+import pytest
 import numpy as np
 
 from .. import data, misc
 from ...tests.helper import remote_data
 from ...extern import six
-from ...tests.helper import pytest
 
 
 def test_isiterable():

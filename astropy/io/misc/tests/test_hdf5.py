@@ -2,10 +2,10 @@
 
 from __future__ import print_function
 
-
+import pytest
 import numpy as np
 
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 from ....table import Table, Column
 
 try:

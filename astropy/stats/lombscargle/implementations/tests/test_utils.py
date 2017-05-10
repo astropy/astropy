@@ -1,8 +1,8 @@
 from __future__ import division
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
-from .....tests.helper import pytest
 
 from ..utils import extirpolate, bitceil, trig_sum
 

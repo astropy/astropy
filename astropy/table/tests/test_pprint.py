@@ -3,9 +3,9 @@
 
 # TEST_UNICODE_LITERALS
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ... import table
 from ...table import Table, QTable
 from ...table.table_helpers import simple_table

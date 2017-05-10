@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
+
+import pytest
 import numpy as np
 
 from ... import units as u
 from .. import SphericalRepresentation, Longitude, Latitude
-from ...tests.helper import pytest
 from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 

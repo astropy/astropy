@@ -2,6 +2,8 @@
 
 # TEST_UNICODE_LITERALS
 import functools
+
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -9,7 +11,7 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CylindricalRepresentation, SphericalRepresentation,
                 UnitSphericalRepresentation, Longitude, Latitude)
 from ..angle_utilities import angular_separation
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,

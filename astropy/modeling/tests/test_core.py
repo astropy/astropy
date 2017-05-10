@@ -3,13 +3,15 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
-from ..core import Model, InputParameterError, custom_model
+
+from ..core import Model, custom_model
 from ..parameters import Parameter
 from .. import models
 
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ...utils.compat.funcsigs import signature
 from ...utils.exceptions import AstropyDeprecationWarning
 

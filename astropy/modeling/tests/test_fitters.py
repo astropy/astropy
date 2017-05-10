@@ -8,18 +8,17 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import os.path
 
+import pytest
 import numpy as np
-
 from numpy import linalg
-from numpy.testing.utils import assert_raises
 from numpy.testing.utils import assert_allclose, assert_almost_equal
+
 from . import irafutil
 from .. import models
 from ..core import Fittable2DModel, Parameter
 from ..fitting import *
 from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
-from ...tests.helper import pytest
 from .utils import ignore_non_integer_warning
 from ...stats import sigma_clip
 

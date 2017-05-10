@@ -4,11 +4,14 @@ from __future__ import division, with_statement
 
 import warnings
 
+import pytest
+import numpy as np
+
 from ....extern import six  # pylint: disable=W0611
 from ....io import fits
 from ....table import Table
 from .. import printdiff
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 
 from . import FitsTestCase
 
