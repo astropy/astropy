@@ -220,7 +220,9 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. If there are any issues in the Github issue tracker that are labeled
   ``affects-dev`` but are issues that apply to this release, update them to
-  ``affects-release``.
+  ``affects-release``.  Similarly, if any issues remain open for this release,
+  re-assign them to the next relevant milestone, and close the milestone for the
+  release you just completed.
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
