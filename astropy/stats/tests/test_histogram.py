@@ -3,10 +3,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...tests.helper import pytest
 from .. import histogram, scott_bin_width, freedman_bin_width, knuth_bin_width
 
 try:

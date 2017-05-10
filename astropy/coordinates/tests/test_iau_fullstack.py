@@ -4,6 +4,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy import testing as npt
 
@@ -13,7 +14,7 @@ from ..builtin_frames import ICRS, AltAz
 from ..builtin_frames.utils import get_jd12
 from .. import EarthLocation
 from .. import SkyCoord
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ... import _erfa as erfa
 from ...utils import iers
 from .utils import randomly_sample_sphere

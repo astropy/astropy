@@ -4,9 +4,10 @@
 
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ...table import Table, QTable, TableMergeError
 from ...table.operations import _get_out_class
 from ... import units as u

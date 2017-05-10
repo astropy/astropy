@@ -8,11 +8,12 @@ from __future__ import (absolute_import, division, print_function,
 
 """Test initalization and other aspects of Angle and subclasses"""
 
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose, assert_array_equal
 
 from ..angles import Longitude, Latitude, Angle, rotation_matrix, angle_axis
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ... import units as u
 from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
 from ...utils.exceptions import AstropyDeprecationWarning

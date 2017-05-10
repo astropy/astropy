@@ -5,6 +5,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -14,7 +15,6 @@ from ... import NDDataRef
 from ...nddata import NDData
 
 from ....units import UnitsError, Quantity
-from ....tests.helper import pytest
 from .... import units as u
 
 

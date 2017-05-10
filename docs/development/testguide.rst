@@ -32,7 +32,8 @@ Running Tests
 
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
-calling.
+calling. To run the tests, you will need to make sure you have the `pytest`_
+package (version 2.8 or later) installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
@@ -66,27 +67,17 @@ within those files.
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
 
-.. note::
-
-    This method of running the tests defaults to the version of `pytest`_
-    that is bundled with Astropy. To use the locally-installed version, you
-    can set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
-
-        > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
-
 .. _astropy.test():
 
 astropy.test()
 --------------
 
-AstroPy includes a standalone version of pytest that allows to tests
-to be run even if pytest is not installed. Tests can be run from within
-AstroPy with::
+Tests can be run from within Astropy with::
 
     import astropy
     astropy.test()
 
-This will run all the default tests for AstroPy.
+This will run all the default tests for Astropy.
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
@@ -113,13 +104,6 @@ and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
 ``astropy.test``. This will enable PEP8 checking and disable regular tests.
-
-.. note::
-    This method of running the tests defaults to the version of
-    `pytest`_ that is bundled with Astropy. To use the locally-installed
-    version, you should set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment
-    variable (see :doc:`/config/index`) or the `pytest`_ method described
-    above.
 
 Astropy Test Function
 ^^^^^^^^^^^^^^^^^^^^^
@@ -605,14 +589,14 @@ If your tests need to use `pytest helper functions
 <https://pytest.org/en/latest/builtin.html#pytest-helpers>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
+    import pytest
+
+Prior to Astropy 2.0, it was possible to import pytest from a
+bundled version using e.g.::
+
     from ...tests.helper import pytest
 
-You may need to adjust the relative import to work for the depth of
-your module.  ``tests.helper`` imports ``pytest`` either from the
-user's system or ``extern.pytest`` if the user does not have pytest
-installed. This is so that users need not install pytest to run
-AstroPy's tests.
-
+but this is no longer the recommended method.
 
 Testing warnings
 ----------------

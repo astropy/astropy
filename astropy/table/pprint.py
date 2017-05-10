@@ -61,11 +61,11 @@ def get_auto_format_func(
     Parameters
     ----------
     col_name : object, optional
-        Hashable object to identify column like id or name (default=None).
+        Hashable object to identify column like id or name. Default is None.
 
     possible_string_format_functions : func, optional
         Function that yields possible string formatting functions
-        (default=internal function to do this).
+        (defaults to internal function to do this).
 
     Returns
     -------
@@ -207,7 +207,7 @@ class TableFormatter(object):
             Maximum lines of output (header + data rows)
 
         show_name : bool
-            Include column name (default=True)
+            Include column name. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -215,7 +215,7 @@ class TableFormatter(object):
             for the unit.
 
         show_dtype : bool
-            Include column dtype (default=False)
+            Include column dtype. Default is False.
 
         show_length : bool
             Include column length at end.  Default is to show this only
@@ -329,7 +329,7 @@ class TableFormatter(object):
             Maximum lines of output (header + data rows)
 
         show_name : bool
-            Include column name (default=True)
+            Include column name. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -341,7 +341,7 @@ class TableFormatter(object):
             defined within the iterator.
 
         show_dtype : bool
-            Include column dtype (default=False)
+            Include column dtype. Default is False.
 
         show_length : bool
             Include column length at end.  Default is to show this only
@@ -472,7 +472,7 @@ class TableFormatter(object):
             Maximum character width of output
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -480,10 +480,10 @@ class TableFormatter(object):
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes (default=False)
+            Include a header row for column dtypes. Default is False.
 
         html : bool
-            Format the output as an HTML table (default=False)
+            Format the output as an HTML table. Default is False.
 
         tableid : str or None
             An ID tag for the table; only used if html is set.  Default is
@@ -610,7 +610,7 @@ class TableFormatter(object):
             Maximum character width of output
 
         show_name : bool
-            Include a header row for column names (default=True)
+            Include a header row for column names. Default is True.
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
@@ -618,7 +618,7 @@ class TableFormatter(object):
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes (default=False)
+            Include a header row for column dtypes. Default is False.
         """
         allowed_keys = 'f br<>qhpn'
 

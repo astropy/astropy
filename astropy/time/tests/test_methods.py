@@ -3,10 +3,11 @@
 # TEST_UNICODE_LITERALS
 import itertools
 import copy
+
+import pytest
 import numpy as np
 
 from .. import Time
-from ...tests.helper import pytest
 from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 

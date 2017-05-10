@@ -9,6 +9,7 @@ place to live
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -19,7 +20,7 @@ from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
 
-from ...tests.helper import pytest, assert_quantity_allclose, catch_warnings, quantity_allclose
+from ...tests.helper import assert_quantity_allclose, catch_warnings, quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
 
 

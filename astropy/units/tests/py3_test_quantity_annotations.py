@@ -4,9 +4,10 @@
 from functools import wraps
 from textwrap import dedent
 
+import pytest
+
 from ... import units as u  # pylint: disable=W0611
 from ...extern import six
-from ...tests.helper import pytest
 
 
 def py3only(func):

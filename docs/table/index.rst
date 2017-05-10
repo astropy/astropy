@@ -29,7 +29,7 @@ notable capabilities of this package are:
 * Hooks for :ref:`subclassing_table` and its component classes.
 
 Currently `astropy.table` is used when reading an ASCII table using
-`astropy.io.ascii`.  Future releases of AstroPy are expected to use
+`astropy.io.ascii`.  Future releases of Astropy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
 Getting Started

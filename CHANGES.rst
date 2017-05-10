@@ -67,7 +67,7 @@ New Features
     arrays are fixed-width and silently drop characters which do not
     fit within the fixed width. [#5624, #5819]
 
-  - Added functionality to allow ``astropy.units.Quantity`` to be written 
+  - Added functionality to allow ``astropy.units.Quantity`` to be written
     as a normal column to FITS files. [#5910]
 
   - Add support for Quantity columns (within a ``QTable``) in table
@@ -85,6 +85,9 @@ New Features
     ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
 
 - ``astropy.utils``
+
+  - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
+    that is used to indicate a mirror for the astropy data server. [#5547]
 
 - ``astropy.visualization``
 
@@ -235,6 +238,13 @@ Other Changes and Additions
 - Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
 - Python 3.3 is no longer suppored. [#6020]
+
+- The bundled version of pytest has now been removed, but the 
+  astropy.tests.helper.pytest import will continue to work properly. 
+  Affiliated packages should nevertheless transition to importing pytest 
+  directly rather than from astropy.tests.helper. This also means that
+  pytest is now a formal requirement for testing for both Astropy and
+  for affiliated packages. [#5694]
 
 1.3.3 (unreleased)
 ------------------

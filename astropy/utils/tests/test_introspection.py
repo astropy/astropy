@@ -5,8 +5,9 @@ from __future__ import (absolute_import, division, print_function,
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
 
+import pytest
+
 from ...extern import six
-from ...tests.helper import pytest
 from .. import introspection
 from ..introspection import (find_current_module, find_mod_objs,
                              isinstancemethod, minversion)

@@ -1,6 +1,7 @@
 import tempfile
 
-from ....tests.helper import pytest
+import pytest
+
 from ....utils.data import get_pkg_data_filename
 
 from ..hub import SAMPHubServer

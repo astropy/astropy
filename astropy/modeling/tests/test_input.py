@@ -6,15 +6,14 @@ This module tests fitting and model evaluation with various inputs
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import pytest
 import numpy as np
-
 from numpy.testing.utils import assert_allclose
 
 from .. import models
 from .. import fitting
 from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
-from ...tests.helper import pytest
 from ...extern.six.moves import range
 
 try:

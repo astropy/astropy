@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ...tests.disable_internet import INTERNET_OFF
 from .. import Time
 from ...utils.iers import iers  # used in testing

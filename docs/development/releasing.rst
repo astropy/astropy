@@ -26,10 +26,13 @@ packages that use the full bugfix/maintenance branch approach.)
    addresses.  Look for any mis-named entries or duplicates, and add them to the
    ``.mailmap`` file (matched to the appropriate canonical name/email address.)
    Once you have finished this, you can could the number of lines in
-   ``git shortlog -s`` to get the final contributor count.  Also be sure to
-   use the names in that list to update the ``docs/credits.rst`` file. (The
-   ``author_lists.py`` script in the `astropy-tools repository`_ helps with
-   this.)
+   ``git shortlog -s`` to get the final contributor count.
+
+#. Also be sure to update the ``docs/credits.rst`` file to include any new
+   contributors.  This can come from the above step, or the ``author_lists.py``
+   script in the `astropy-tools repository`_ mostly automates this.  (This
+   step is only required on major releases, but can be done for bugfix releases
+   as time allows.)
 
 #. (Optional) You may want to set up a clean environment to build the release.
    For more on setting up virtual environments, see :ref:`virtual_envs`, but
@@ -50,10 +53,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
-   also want to locally run the tests in ``remote-data`` mode, as those are not
-   necessarily run automatically::
+   also want to locally run the tests (with remote data on to ensure all the
+   tests actually run), and make sure the description in ``setup.py`` is ReST
+   compliant::
 
-      $ python setup.py test --remote-data
+      $ python setup.py test --remote-data=any
+      $ python setup.py check --restructuredtext
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
@@ -154,13 +159,9 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git clean -dfx
 
-   Then register the release on PyPI with::
-
-      $ python setup.py register
-
 #. Upload the source distribution to PyPI; this is preceded by re-running
-   the sdist command, which is necessary for the upload command to know
-   which distribution to upload::
+   the sdist command, which makes sure the source code is packaged up and ready
+   to be uploaded::
 
       $ python setup.py build sdist upload --sign
 
@@ -173,28 +174,33 @@ packages that use the full bugfix/maintenance branch approach.)
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
    from older release lines that we may still want to make available.
 
-#. Push up all these changes to the `astropy core repository`_::
+#. Push up these changes and the tag to the `astropy core repository`_::
 
-      $ git push --tags upstream v<version>
+      $ git push upstream v<version branch>.x
+      $ git push upstream v<version branch>
 
    .. note::
 
       You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the `astropy core repository`_.
+      Also, it might be tempting to use the ``--tags`` argument to ``git push``,
+      but this should *not* be done, as it might push up some unintended tags.
 
-#. If this is a release of the current release (not an LTS), update the
-   "stable" branch to point to the new release::
+#. If this is a release of the current release (i.e., not an LTS supported along
+   side a more recent version), update the "stable" branch to point to the new
+   release::
 
       $ git checkout stable
       $ git reset --hard v<version>
       $ git push upstream stable --force
 
-#. Update Readthedocs so that it builds docs for the corresponding github tag.
+#. Update Readthedocs so that it builds docs for the version you just released.
+   You'll find this in the "admin" tab, with checkboxes next to each github tag.
    Also verify that the ``stable`` Readthedocs version builds correctly for
    the new version (it should trigger automatically once you've done the
-   previous step.)
+   previous step).
 
-   When releasing a patch release, also set the previous version in the
+#. When releasing a patch release, also set the previous RTD version in the
    release history to "protected".  For example when releasing v1.1.2, set
    v1.1.1 to "protected".  This prevents the previous releases from
    cluttering the list of versions that users see in the version dropdown
@@ -214,10 +220,21 @@ packages that use the full bugfix/maintenance branch approach.)
    be better off just copying-and-pasting the relevant parts of the maintenance
    branch's ``CHANGES.rst`` into master.
 
+#. If there are any issues in the Github issue tracker that are labeled
+   ``affects-dev`` but are issues that apply to this release, update them to
+   ``affects-release``.  Similarly, if any issues remain open for this release,
+   re-assign them to the next relevant mileston.
+
 #. Create a github milestone for the next bugfix version, move any remaining
    issues from the version you just released, and close the milestone. When
    releasing a major release, close the last milestone on the previous
    maintanance branch, too.
+
+#. Notify the Conda Distribution Maintainer and the Continuous Integration
+   maintainer about the new release.  Typically, you should wait to make sure
+   ``conda-forge`` and possible ``conda`` works before sending out the public
+   announcement (so that users that want to try out the new version can do so on
+   conda).
 
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -234,7 +251,11 @@ Modifications for a beta/release candidate release
      numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
      is ordered "before" the main release by various automated tools, and also
      tells PyPI that this is a "pre-release".
-   * Do not do step #21 or later, as those are tasks for an actual release.
+   * Do *not* do the step of adding ``.dev`` in the "back to development" stage.
+     If an RC goes well, there's no need for a "dev" stage, as the same version
+     will be released with only minor doc updates, and strings like "x.yrcz.dev"
+     confuse some version number parsing tools.
+   * Do not do step #22 or later, as those are tasks for an actual release.
 
 
 Performing a Feature Freeze/Branching new Major Versions
@@ -436,59 +457,58 @@ release. The rest of the procedure is the same as any other release as
 described in :ref:`release-procedure` (although be sure to provide the
 right version number).
 
-1. Any existing fixes to the issues assigned to the current bug fix release
-   milestone, or labeled with the relevant "backport-x.y.z" label must be
-   merged into the bug fix branch.
+1. Any existing fixes to the issues assigned to a release milestone (and older
+   LTS releases, if there are any), must be included in the maintainence branch
+   before release.
 
 2. The Astropy changelog must be updated to list all issues--especially
    user-visible issues--fixed for the current release.  The changelog should
    be updated in the master branch, and then merged into the bug fix branch.
-   Most issues *should* already have changelog entries for them. But it's
-   typical to forget this, so if doesn't exist yet please add one in
+   Most issues *should* already have changelog entries for them. But
+   occasionally these are forgotten, so if doesn't exist yet please add one in
    the process of backporting.  See :ref:`changelog-format` for more details.
 
-To aid in this process there is a `suggest_backports.py script in the astropy-tools repository <https://github.com/astropy/astropy-tools/blob/master/suggest_backports.py>`_.
-The script is not perfect and still needs a little work, but it will get most of
-the work done.  For example, if
-the current bug fix branch is called 'v1.2.x' run it like so::
+To aid this process, there are a series of related scripts in the
+`astropy-tools repository`_, in the ``pr_consistency`` directory.  These scripts
+essentially check that the above two conditions are met. Detailed documentation
+for these scripts is given in their repository, but here we summarize the basic
+workflow.  Run the scripts in order (they are numbered 1.<something>.py,
+2.<something>.py, etc.), entering your github login credentials as needed (if
+you are going to run them multiple times, using a ``~/.netrc`` file is
+recommended - see `this Stack Overflow post
+<http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
+for more on how to do that). The script to actually scheck consistency should be
+run like:
 
-    $ suggest_backports.py astropy astropy v1.2.x -f backport.sh
+    $ python 4.check_consistency.py > consistency.html
 
-This will search GitHub for all issues assigned to the next bug fix release
-milestone that's associated with the given bug fix branch ('v1.2.2' for
-example), find the commits that fix those issues, and will generate a shell
-script called ``backport.sh`` containing all the ``git cherry-pick`` commands
-to backport all those fixes.
+Which will generate a simple web page that shows all of the areas where either
+a pull request was merged into master but is *not* in the relevant release that
+it has been milestoned for, as well as any changelog irregularities (i.e., PRs
+that are in the wrong section for what the github milestone indicates).  You'll
+want to correct those irregularities *first* before starting the backport
+process (re-running the scripts in order as needed).
 
-The ``suggest_backports.py`` script will typically take a couple minutes to
-run, but once it's done simply execute the generated script from within your
-local clone of the Astropy repository::
+The end of the ``consistency.html`` page will then show a series of
+``git cherry-pick`` commands to update the maintainence branch with the PRs that
+are needed to make the milestones and branches consistent.  Make sure you're in
+the correct maintainence branch with e.g.,
 
-    $ ./backport.sh
+    $ git checkout v1.3.x
+    $ git pull upstream v1.3.x  # Or possibly a rebase if conflicts exist
 
-This will checkout the appropriate bug fix branch ('v1.2.x' in this example),
-do a ``git pull upstream v1.2.x`` to make sure it's up to date, and then start
-doing cherry-picks into the bug fix branch.
-
-.. note::
-
-    As discussed earlier, cherry-pick may result in merge conflicts.  If this
-    occurs, the ``backport.sh`` script will exit and the conflict should be
-    resolved manually, followed by running ``git commit``.  To resume the
-    ``backport.sh`` script after the merge conflict, it is currently necessary
-    to edit the script to either remove or comment out the ``git cherry-pick``
-    commands that already ran successfully.
-
-    The author of the script hopes to improve it in the future to add
-    ``git rebase`` like functionality, such that running
-    ``backport.sh --continue`` or ``backport.sh --skip`` will be possible in
-    such cases.
+if you are doing bugfixes for the 1.3.x series. Go through the commands one at a
+time, following the cherry-picking procedure described above. If for some reason
+you determine the github milestone was in error and the backporting is
+impossible, re-label the issue on github and move on.  Also, whever you
+backport a PR, it's useful to leave a comment in the issue along the lines of
+"backported this to v1.3.x as <SHA>" so that it's clear that the backport
+happened to others who might later look.
 
 .. warning::
 
-    It has also been noted that the ``suggest_backports.py`` script is not
-    perfect, and can either miss issues that need to be backported, and in some
-    cases can report false positives.
+    Automated scripts are never perfect, and can either miss issues that need to
+    be backported, or in some cases can report false positives.
 
     It's always a good idea before finalizing a bug fix release to look on
     GitHub through the list of closed issues in the release milestone and check
