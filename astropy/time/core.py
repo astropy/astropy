@@ -172,6 +172,59 @@ class TimeInfo(MixinInfo):
 
         return out
 
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new Time instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Time (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'description'))
+        attrs.pop('dtype')  # Not relevant for Time
+
+        # Check that location is the same for all input Time objects
+        ok = all(np.all(col0.location == col1.location)
+                 for col0, col1 in zip(cols[:-1], cols[1:]))
+        if not ok:
+            raise ValueError('input columns have inconsistent locations')
+
+        # Make a new Time object
+        shape = (length,) + attrs.pop('shape')
+        jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
+        jd1 = np.full(shape, jd2000, dtype='f8')
+        jd2 = np.zeros(shape, dtype='f8')
+        tm_attrs = {attr: getattr(cols[0], attr)
+                    for attr in ('scale', 'location',
+                                 'precision', 'in_subfmt', 'out_subfmt')}
+        out = self._parent_cls(jd1, jd2, format='jd', **tm_attrs)
+        out.format = cols[0].format
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
+
 
 class TimeDeltaInfo(TimeInfo):
     _represent_as_dict_extra_attrs = ('format', 'scale')
