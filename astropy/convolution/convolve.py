@@ -119,6 +119,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
+    renormalize_by_kernel = normalize_kernel
+
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
@@ -210,8 +212,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
-
-    renormalize_by_kernel = normalize_kernel
 
     if kernel_sum < 1. / MAX_NORMALIZATION and normalize_kernel:
         raise Exception("The kernel can't be normalized, because its sum is "
