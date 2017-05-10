@@ -11,6 +11,7 @@ import warnings
 
 import pytest
 import numpy as np
+from numpy.testing import assert_equal
 
 from ....extern.six.moves import range
 from ....io import fits
@@ -1729,9 +1730,17 @@ def test_bzero_mishandled_info(tmpdir):
 
 
 def test_image_write_readonly(tmpdir):
+
     # Regression test to make sure that we can write out read-only arrays (#5512)
+
     x = np.array([1,2,3])
     x.setflags(write=False)
     ghdu = fits.ImageHDU(data=x)
     ghdu.add_datasum()
-    ghdu.writeto(tmpdir.join('test.fits').strpath)
+
+    filename = tmpdir.join('test.fits').strpath
+
+    ghdu.writeto(filename)
+
+    with fits.open(filename) as hdulist:
+        assert_equal(hdulist[1].data, [1, 2, 3])
