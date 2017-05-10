@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy.random import randn, normal
 from numpy.testing import assert_equal
@@ -10,7 +11,6 @@ from numpy.testing.utils import assert_allclose
 from ..biweight import (biweight_location, biweight_scale,
                         biweight_midvariance, biweight_midcovariance,
                         biweight_midcorrelation)
-from ...tests.helper import pytest
 from ...extern.six.moves import range
 from ...utils.misc import NumpyRNGContext
 
