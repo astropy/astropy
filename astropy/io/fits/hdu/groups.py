@@ -524,7 +524,9 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         """
 
         if self._has_data:
+
             # We have the data to be used.
+
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
             # TODO: Maybe check this on a per-field basis instead of assuming
@@ -533,9 +535,16 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 self.data.dtype.fields[self.data.dtype.names[0]][0].str[0]
 
             if byteorder != '>':
-                byteswapped = True
-                d = self.data.byteswap(True)
-                d.dtype = d.dtype.newbyteorder('>')
+                if self.data.flags.writeable:
+                    byteswapped = True
+                    d = self.data.byteswap(True)
+                    d.dtype = d.dtype.newbyteorder('>')
+                else:
+                    # If the data is not writeable, we just make a byteswapped
+                    # copy and don't bother changing it back after
+                    d = self.data.byteswap(False)
+                    d.dtype = d.dtype.newbyteorder('>')
+                    byteswapped = False
             else:
                 byteswapped = False
                 d = self.data
