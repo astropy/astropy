@@ -4,6 +4,11 @@
 New Features
 ------------
 
+- The config and cache directories and the name of the config file are now
+  customizable. This allows affiliated packages to put their configuration
+  files in locations other than ``CONFIG_DIR/.astropy/``. [#5828]
+
+
 astropy.config
 ^^^^^^^^^^^^^^
 
