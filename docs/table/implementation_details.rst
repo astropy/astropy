@@ -1,9 +1,5 @@
 .. include:: references.txt
 
-.. |column_after| image:: table_column_after_1.0.png
-   :width: 45%
-
-
 
 .. _table_implementation_details:
 
@@ -13,9 +9,7 @@ Table implementation details
 This page provides a brief overview of the |Table| class implementation, in
 particular highlighting the internal data storage architecture.  This is aimed
 at developers and/or users who are interested in optimal use of the |Table|
-class.  Note that this applies to astropy version 1.0 and later.  For
-differences between version 1.0 and 0.4.x see the
-:ref:`table_implementation_change` page.
+class.  Note that this applies to astropy version 1.0 and later.
 
 The image below illustrates the basic architecture of the |Table| class.
 The fundamental data container is an ordered dictionary of individual column
@@ -42,6 +36,5 @@ elements of the parent table.
 In some cases it is desirable to have a static copy of the full row.  This is
 available via the `~astropy.table.Row.as_void()` method, which creates and
 returns a ``numpy.void`` or ``numpy.ma.mvoid`` object with a copy of the
-original data.  For backward compatibility the row ``data`` attribute is
-available but as a *deprecated* property.
+original data.
 

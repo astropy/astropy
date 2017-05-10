@@ -59,9 +59,8 @@ The details of the docstring format are described on a separate page:
 Sphinx Documentation Themes
 ---------------------------
 
-A custom Sphinx HTML theme is included in the `astropy-helpers`_ package (it is
-also included in Astropy's source package, but this will be removed after v0.4
-and subsequently only be available through astropy-helpers). This allows the
+A custom Sphinx HTML theme is included in the `astropy-helpers`_ package. 
+This allows the
 theme to be used by both Astropy and affiliated packages. This is done by
 setting the theme in the global Astropy sphinx configuration, which is imported
 in the sphinx configuration of both Astropy and affiliated packages.
@@ -98,14 +97,6 @@ Sphinx extensions
 Astropy-helpers includes a number of sphinx extensions that are used in Astropy
 and its affiliated packages to facilitate easily documenting code in a
 homogeneous and readable way.
-
-.. note::
-
-  These extensions are also included with Astropy itself in v0.4 and
-  below, to facilitate backwards-compatibility for existing affiliated
-  packages.  The versions actually in astropy will not receive further
-  updates, however, and will likely be removed in a future version. So
-  we strongly recommend using the astropy-helper versions instead.
 
 
 automodapi Extension

@@ -3,6 +3,7 @@
 import glob
 import io
 import os
+import platform
 import sys
 
 import numpy as np
@@ -12,6 +13,7 @@ from ....extern.six.moves import range
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.compat import NUMPY_LT_1_12
 
 from . import FitsTestCase
 
@@ -528,6 +530,9 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
+
+    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
+                       reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
         """
         Test saving updates to a file where the header is one block smaller
@@ -789,10 +794,11 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
-            assert warning_lines[0].category == AstropyDeprecationWarning
-            assert (str(warning_lines[0].message) == '"clobber" was '
-                    'deprecated in version 1.3 and will be removed in a '
-                    'future version. Use argument "overwrite" instead.')
+            assert len(warning_lines) == 0
+            # assert warning_lines[0].category == AstropyDeprecationWarning
+            # assert (str(warning_lines[0].message) == '"clobber" was '
+            #         'deprecated in version 1.3 and will be removed in a '
+            #         'future version. Use argument "overwrite" instead.')
 
     def test_invalid_hdu_key_in_contains(self):
         """

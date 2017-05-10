@@ -12,7 +12,7 @@ from ..verify import VerifyWarning
 
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
-from ....utils import isiterable, lazyproperty, classproperty, deprecated
+from ....utils import isiterable, lazyproperty, classproperty
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -836,18 +836,6 @@ class _ImageBaseHDU(_ValidHDU):
             return super(_ImageBaseHDU, self)._calculate_datasum(
                 blocking=blocking)
 
-    @classproperty
-    @deprecated('1.1.0', alternative='the module level constant BITPIX2DTYPE',
-                obj_type='class attribute')
-    def NumCode(cls):
-        return BITPIX2DTYPE
-
-    @classproperty
-    @deprecated('1.1.0', alternative='the module level constant DTYPE2BITPIX',
-                obj_type='class attribute')
-    def ImgCode(cls):
-        return DTYPE2BITPIX
-
 
 class Section(object):
     """
@@ -1007,8 +995,10 @@ class PrimaryHDU(_ImageBaseHDU):
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
+        # Due to problems discussed in #5808, we cannot assume the 'GROUPS'
+        # keyword to be True/False, have to check the value
         return (card.keyword == 'SIMPLE' and
-                ('GROUPS' not in header or not header['GROUPS']) and
+                ('GROUPS' not in header or header['GROUPS'] != True) and  # noqa
                 card.value)
 
     def update_header(self):

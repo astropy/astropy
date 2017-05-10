@@ -274,7 +274,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
 
 def deprecated_renamed_argument(old_name, new_name, since,
-                                arg_in_kwargs=False, relax=False):
+                                arg_in_kwargs=False, relax=False,
+                                pending=False):
     """Deprecate a _renamed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -306,6 +307,11 @@ def deprecated_renamed_argument(old_name, new_name, since,
         If ``False`` a ``TypeError`` is raised if both ``new_name`` and
         ``old_name`` are given.  If ``True`` the value for ``new_name`` is used
         and a Warning is issued.
+        Default is ``False``.
+
+    pending : bool or list/tuple thereof, optional
+        If ``True`` this will hide the deprecation warning and ignore the
+        corresponding ``relax`` parameter value.
         Default is ``False``.
 
     Raises
@@ -402,6 +408,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
             arg_in_kwargs = [arg_in_kwargs] * n
         if not isinstance(relax, cls_iter):
             relax = [relax] * n
+        if not isinstance(pending, cls_iter):
+            pending = [pending] * n
     else:
         # To allow a uniform approach later on, wrap all arguments in lists.
         n = 1
@@ -410,6 +418,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         since = [since]
         arg_in_kwargs = [arg_in_kwargs]
         relax = [relax]
+        pending = [pending]
 
     def decorator(function):
         # Lazy import to avoid cyclic imports
@@ -438,8 +447,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError('cannot replace argument "{0}" of kind {1}'
-                                    '.'.format(new_name[i], repr(param.kind)))
+                    raise TypeError('cannot replace argument "{0}" of kind '
+                                    '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
             # the only remaining possibility is that it should be catched
@@ -462,12 +471,15 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # parameter was renamed to newkeyword.
                 if old_name[i] in kwargs:
                     value = kwargs.pop(old_name[i])
-                    warnings.warn('"{0}" was deprecated in version {1} '
-                                  'and will be removed in a future version. '
-                                  'Use argument "{2}" instead.'
-                                  ''.format(old_name[i], since[i],
-                                            new_name[i]),
-                                  AstropyDeprecationWarning)
+                    # Display the deprecation warning only when it's only
+                    # pending.
+                    if not pending[i]:
+                        warnings.warn(
+                            '"{0}" was deprecated in version {1} '
+                            'and will be removed in a future version. '
+                            'Use argument "{2}" instead.'
+                            ''.format(old_name[i], since[i], new_name[i]),
+                            AstropyDeprecationWarning)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
@@ -475,17 +487,19 @@ def deprecated_renamed_argument(old_name, new_name, since,
                     newarg_in_kwargs = new_name[i] in kwargs
 
                     if newarg_in_args or newarg_in_kwargs:
-                        # If both are given print a Warning if relax is True or
-                        # raise an Exception is relax is False.
-                        if relax[i]:
-                            warnings.warn('"{0}" and "{1}" keywords were set. '
-                                          'Using the value of "{1}".'
-                                          ''.format(old_name[i], new_name[i]),
-                                          AstropyUserWarning)
-                        else:
-                            raise TypeError('cannot specify both "{}" and "{}"'
-                                            '.'.format(old_name[i],
-                                                       new_name[i]))
+                        if not pending[i]:
+                            # If both are given print a Warning if relax is
+                            # True or raise an Exception is relax is False.
+                            if relax[i]:
+                                warnings.warn(
+                                    '"{0}" and "{1}" keywords were set. '
+                                    'Using the value of "{1}".'
+                                    ''.format(old_name[i], new_name[i]),
+                                    AstropyUserWarning)
+                            else:
+                                raise TypeError(
+                                    'cannot specify both "{}" and "{}"'
+                                    '.'.format(old_name[i], new_name[i]))
                     else:
                         # If the new argument isn't specified just pass the old
                         # one with the name of the new argument to the function

@@ -1638,11 +1638,17 @@ def _recreate_irreducible_unit(cls, names, registered):
     """
     registry = get_current_unit_registry().registry
     if names[0] in registry:
+        # If in local registry return that object.
         return registry[names[0]]
     else:
+        # otherwise, recreate the unit.
         unit = cls(names)
         if registered:
+            # If not in local registry but registered in origin registry,
+            # enable unit in local registry.
             get_current_unit_registry().add_enabled_units([unit])
+
+        return unit
 
 
 class IrreducibleUnit(NamedUnit):

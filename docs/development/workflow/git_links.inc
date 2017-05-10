@@ -51,7 +51,7 @@
 .. _deleting master on github: http://matthew-brett.github.com/pydagogue/gh_delete_master.html
 .. _rebase without tears: http://matthew-brett.github.com/pydagogue/rebase_without_tears.html
 .. _resolving a merge: http://schacon.github.com/git/user-manual.html#resolving-a-merge
-.. _ipython git workflow: http://mail.scipy.org/pipermail/ipython-dev/2010-October/006746.html
+.. _ipython git workflow: https://mail.python.org/pipermail/ipython-dev/2010-October/005632.html
 .. _ipython notebook on using git in science: http://nbviewer.ipython.org/github/fperez/reprosw/blob/master/Version%20Control.ipynb
 
 .. other stuff

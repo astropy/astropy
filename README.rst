@@ -5,11 +5,8 @@ Astropy
 .. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
-.. image:: https://img.shields.io/pypi/dm/astropy.svg
-    :target: https://pypi.python.org/pypi/astropy
-
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/astropy/astropy 
+    :target: https://gitter.im/astropy/astropy
 
 Astropy (http://astropy.org/) is a package intended to contain much of
 the core functionality and some common tools needed for performing
@@ -41,10 +38,10 @@ Project Status
 .. image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
     :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
 
-For an overview of the testing and build status of all packages associated 
+For an overview of the testing and build status of all packages associated
 with the Astropy Project, see http://dashboard.astropy.org.
 
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
-``licenses/LICENSE.rst`` file.
+``LICENSE.rst`` file.

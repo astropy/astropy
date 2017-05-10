@@ -354,6 +354,35 @@ def test_deprecated_argument_relaxed():
         assert len(w) == 1
 
 
+def test_deprecated_argument_pending():
+    # Relax turns the TypeError if both old and new keyword are used into
+    # a warning.
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    def test(overwrite):
+        return overwrite
+
+    # As positional argument only
+    assert test(1) == 1
+
+    # As new keyword argument
+    assert test(overwrite=1) == 1
+
+    # Using the deprecated name
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(clobber=1) == 1
+        assert len(w) == 0
+
+    # Using both. Both keyword
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(clobber=2, overwrite=1) == 1
+        assert len(w) == 0
+
+    # One positional, one keyword
+    with catch_warnings(AstropyUserWarning, AstropyDeprecationWarning) as w:
+        assert test(1, clobber=2) == 1
+        assert len(w) == 0
+
+
 def test_deprecated_argument_multi_deprecation():
     @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
                                  [1.3, 1.2, 1.3], relax=True)

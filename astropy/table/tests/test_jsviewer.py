@@ -33,12 +33,30 @@ table.dataTable {width: auto !important; margin: 0 !important;}
  </head>
  <body>
   <script>
+var astropy_sort_num = function(a, b) {
+    var a_num = parseFloat(a);
+    var b_num = parseFloat(b);
+
+    if (isNaN(a_num) && isNaN(b_num))
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    else if (!isNaN(a_num) && !isNaN(b_num))
+        return ((a_num < b_num) ? -1 : ((a_num > b_num) ? 1 : 0));
+    else
+        return isNaN(a_num) ? -1 : 1;
+}
+
+jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+    "optionalnum-asc": astropy_sort_num,
+    "optionalnum-desc": function (a,b) { return -astropy_sort_num(a, b); }
+});
+
 $(document).ready(function() {
     $('#%(table_id)s').dataTable({
-        "order": [],
-        "iDisplayLength": %(length)s,
-        "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
-        "pagingType": "full_numbers"
+        order: [],
+        pageLength: %(length)s,
+        lengthMenu: [[%(display_length)s, -1], [%(display_length)s, 'All']],
+        pagingType: "full_numbers",
+        columnDefs: [{targets: [0], type: "optionalnum"}]
     });
 } );  </script>
   <table class="%(table_class)s" id="%(table_id)s">

@@ -5,10 +5,12 @@ import optparse
 import os
 import sys
 import textwrap
+import warnings
 
 from ... import fits
 from ..util import fill
 from ....extern.six.moves import zip
+from ....utils.exceptions import AstropyDeprecationWarning
 
 
 log = logging.getLogger('fitsdiff')
@@ -43,7 +45,7 @@ file contains one keyword.
 Example
 -------
 
-    fitsdiff -k filename,filtnam1 -n 5 -d 1.e-6 test1.fits test2
+    fitsdiff -k filename,filtnam1 -n 5 -r 1.e-6 test1.fits test2
 
 This command will compare files test1.fits and test2.fits, report maximum of 5
 different pixels values per extension, only report data values larger than
@@ -100,9 +102,23 @@ def handle_options(argv=None):
              'to report per extension (default %default).')
 
     parser.add_option(
-        '-d', '--difference-tolerance', type='float', default=0.,
+        '-d', '--difference-tolerance', type='float', default=None,
         dest='tolerance', metavar='NUMBER',
+        help='DEPRECATED. Alias for "--relative-tolerance". '
+             'Deprecated, provided for backward compatibility (default %default).')
+
+    parser.add_option(
+        '-r', '--rtol', '--relative-tolerance', type='float', default=None,
+        dest='rtol', metavar='NUMBER',
         help='The relative tolerance for comparison of two numbers, '
+             'specifically two floating point numbers.  This applies to data '
+             'in both images and tables, and to floating point keyword values '
+             'in headers (default %default).')
+
+    parser.add_option(
+        '-a', '--atol', '--absolute-tolerance', type='float', default=None,
+        dest='atol', metavar='NUMBER',
+        help='The absolute tolerance for comparison of two numbers, '
              'specifically two floating point numbers.  This applies to data '
              'in both images and tables, and to floating point keyword values '
              'in headers (default %default).')
@@ -247,12 +263,25 @@ def main():
 
     opts, args = handle_options(argv)
 
+    if opts.tolerance is not None:
+        warnings.warn(
+            '"-d" ("--difference-tolerance") was deprecated in version 2.0 '
+            'and will be removed in a future version. '
+            'Use "-r" ("--relative-tolerance") instead.',
+            AstropyDeprecationWarning)
+        opts.rtol = opts.tolerance
+    if opts.rtol is None:
+        opts.rtol = 0.0
+    if opts.atol is None:
+        opts.atol = 0.0
+
     if opts.exact_comparisons:
         # override the options so that each is the most restrictive
         opts.ignore_keywords = []
         opts.ignore_comments = []
         opts.ignore_fields = []
-        opts.tolerance = 0.0
+        opts.rtol = 0.0
+        opts.atol = 0.0
         opts.ignore_blanks = False
         opts.ignore_blank_cards = False
 
@@ -279,9 +308,11 @@ def main():
                 ignore_comments=opts.ignore_comments,
                 ignore_fields=opts.ignore_fields,
                 numdiffs=opts.numdiffs,
-                tolerance=opts.tolerance,
+                rtol=opts.rtol,
+                atol=opts.atol,
                 ignore_blanks=opts.ignore_blanks,
                 ignore_blank_cards=opts.ignore_blank_cards)
+
             diff.report(fileobj=out_file)
             identical.append(diff.identical)
 

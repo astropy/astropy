@@ -361,7 +361,6 @@ Implementation
    :maxdepth: 2
 
    implementation_details.rst
-   implementation_change_1.0.rst
 
 Reference/API
 =============

@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import copy
 import re
 import collections
 import warnings
@@ -23,7 +24,7 @@ from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
-__all__ = ['SkyCoord']
+__all__ = ['SkyCoord', 'SkyCoordInfo']
 
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
 J_PREFIXED_RA_DEC_RE = re.compile(
@@ -31,18 +32,6 @@ J_PREFIXED_RA_DEC_RE = re.compile(
     ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
     ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
     """, re.VERBOSE)
-
-
-# Define a convenience mapping.  This is used like a module constants
-# but is actually dynamically evaluated.
-def FRAME_ATTR_NAMES_SET():
-    """Set of all possible frame-specific attributes"""
-    out = set()
-    for frame_cls in frame_transform_graph.frame_set:
-        for attr in frame_cls.get_frame_attr_names().keys():
-            out.add(attr)
-    return out
-
 
 class SkyCoordInfo(MixinInfo):
     """
@@ -83,7 +72,7 @@ class SkyCoordInfo(MixinInfo):
     def _represent_as_dict(self):
         obj = self._parent
         attrs = list(obj.representation_component_names)
-        attrs += list(FRAME_ATTR_NAMES_SET())
+        attrs += list(frame_transform_graph.frame_attributes.keys())
         out = _get_obj_attrs_map(obj, attrs)
 
         # Don't output distance if it is all unitless 1.0
@@ -211,11 +200,16 @@ class SkyCoord(ShapedLikeNDArray):
         copy = kwargs.pop('copy', True)
         kwargs = self._parse_inputs(args, kwargs)
 
-        # Set internal versions of object state attributes
-        for attr in FRAME_ATTR_NAMES_SET():
-            setattr(self, '_' + attr, kwargs[attr])
-
         frame = kwargs['frame']
+        frame_attr_names = frame.get_frame_attr_names()
+        # Set internal versions of object state attributes
+        self._extra_attr_names = set()
+        for attr in kwargs:
+            if (attr not in frame_attr_names and
+                attr in frame_transform_graph.frame_attributes):
+                # Setting it will also validate it.
+                setattr(self, attr, kwargs[attr])
+
         coord_kwargs = {}
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
@@ -271,6 +265,14 @@ class SkyCoord(ShapedLikeNDArray):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
+        def apply_method(value):
+            if isinstance(value, ShapedLikeNDArray):
+                return value._apply(method, *args, **kwargs)
+            else:
+                if callable(method):
+                    return method(value, *args, **kwargs)
+                else:
+                    return getattr(value, method)(*args, **kwargs)
 
         self_frame = self._sky_coord_frame
         try:
@@ -278,6 +280,16 @@ class SkyCoord(ShapedLikeNDArray):
             # this to get all the right attributes
             self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
             out = SkyCoord(self, representation=self.representation, copy=False)
+            for attr in self._extra_attr_names:
+                value = getattr(self, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = apply_method(value)
+                elif method == 'copy' or method == 'flatten':
+                    # flatten should copy also for a single element array, but
+                    # we cannot use it directly for array scalars, since it
+                    # always returns a one-dimensional array. So, just copy.
+                    value = copy.copy(value)
+                setattr(out, '_' + attr, value)
 
             # Copy other 'info' attr only if it has actually been defined.
             # See PR #3898 for further explanation and justification, along
@@ -306,8 +318,9 @@ class SkyCoord(ShapedLikeNDArray):
         if 'representation' in kwargs:
             valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
 
-        for attr in FRAME_ATTR_NAMES_SET():
-            valid_kwargs[attr] = kwargs.pop(attr, None)
+        for attr in frame_transform_graph.frame_attributes:
+            if attr in kwargs:
+                valid_kwargs[attr] = kwargs.pop(attr)
 
         # Get units
         units = _get_units(args, kwargs)
@@ -362,22 +375,33 @@ class SkyCoord(ShapedLikeNDArray):
 
         return valid_kwargs
 
-    def transform_to(self, frame):
-        """
-        Transform this coordinate to a new frame.
+    def transform_to(self, frame, merge_attributes=True):
+        """Transform this coordinate to a new frame.
 
-        The frame attributes (e.g. equinox or obstime) for the returned object
-        depend on the corresponding attributes of SkyCoord object and the
-        supplied ``frame``, with the following precedence:
+        The precise frame transformed to depends on ``merge_attributes``.
+        If `False`, the destination frame is used exactly as passed in.
+        But this is often not quite what one wants.  E.g., suppose one wants to
+        transform an ICRS coordinate that has an obstime attribute to FK4; in
+        this case, one likely would want to use this information. Thus, the
+        default for ``merge_attributes`` is `True`, in which the precedence is
+        as follows: (1) explicitly set (i.e., non-default) values in the
+        destination frame; (2) explicitly set values in the source; (3) default
+        value in the destination frame.
 
-        1. Non-default value in the supplied frame
-        2. Non-default value in the SkyCoord instance
-        3. Default value in the supplied frame
+        Note that in either case, any explicitly set attributes on the source
+        `SkyCoord` that are not part of the destination frame's definition are
+        kept (stored on the resulting `SkyCoord`), and thus one can round-trip
+        (e.g., from FK4 to ICRS to FK4 without loosing obstime).
 
         Parameters
         ----------
-        frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
-            The frame to transform this coordinate into.
+        frame : str, `BaseCoordinateFrame` class or instance, or `SkyCoord` instance
+            The frame to transform this coordinate into.  If a `SkyCoord`, the
+            underlying frame is extracted, and all other information ignored.
+        merge_attributes : bool, optional
+            Whether the default attributes in the destination frame are allowed
+            to be overridden by explicitly set attributes in the source
+            (see note above; default: `True`).
 
         Returns
         -------
@@ -388,6 +412,7 @@ class SkyCoord(ShapedLikeNDArray):
         ------
         ValueError
             If there is no possible transformation route.
+
         """
         from astropy.coordinates.errors import ConvertError
 
@@ -404,19 +429,16 @@ class SkyCoord(ShapedLikeNDArray):
 
         if isinstance(frame, BaseCoordinateFrame):
             new_frame_cls = frame.__class__
-
-            # Set the keyword args for making a new frame instance for the
-            # transform.  Frame attributes track whether they were explicitly
-            # set by user or are just reflecting default values.  Precedence:
-            # 1. Non-default value in the supplied frame instance
-            # 2. Non-default value in the self instance
-            # 3. Default value in the supplied frame instance
-            for attr in FRAME_ATTR_NAMES_SET():
+            # Get frame attributes, allowing defaults to be overridden by
+            # explicitly set attributes of the source if ``merge_attributes``.
+            for attr in frame_transform_graph.frame_attributes:
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if frame_val is not None and not frame.is_frame_attr_default(attr):
+                if (frame_val is not None and not
+                    (merge_attributes and frame.is_frame_attr_default(attr))):
                     frame_kwargs[attr] = frame_val
-                elif self_val is not None and not self.is_frame_attr_default(attr):
+                elif (self_val is not None and
+                      not self.is_frame_attr_default(attr)):
                     frame_kwargs[attr] = self_val
                 elif frame_val is not None:
                     frame_kwargs[attr] = frame_val
@@ -440,8 +462,9 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Finally make the new SkyCoord object from the `new_coord` and
         # remaining frame_kwargs that are not frame_attributes in `new_coord`.
-        # We could remove overlaps here, but the init code is set up to accept
-        # overlaps as long as the values are identical (which they must be).
+        for attr in (set(new_coord.get_frame_attr_names()) &
+                     set(frame_kwargs.keys())):
+            frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
 
     def __getattr__(self, attr):
@@ -456,21 +479,11 @@ class SkyCoord(ShapedLikeNDArray):
             # Anything in the set of all possible frame_attr_names is handled
             # here. If the attr is relevant for the current frame then delegate
             # to self.frame otherwise get it from self._<attr>.
-            if attr in FRAME_ATTR_NAMES_SET():
+            if attr in frame_transform_graph.frame_attributes:
                 if attr in self.frame.get_frame_attr_names():
                     return getattr(self.frame, attr)
                 else:
-                    try:
-                        return getattr(self, '_' + attr)
-                    except AttributeError:
-                        # this can happen because FRAME_ATTR_NAMES_SET is
-                        # dynamic.  So if a frame is added to the transform
-                        # graph after this SkyCoord was created, the "real"
-                        # underlying attribute - e.g. `_equinox` does not exist
-                        # on the SkyCoord.  So we add this case to just use
-                        # None, as it wouldn't have been possible for the user
-                        # to have set the value until the frame existed anyway
-                        return None
+                    return getattr(self, '_' + attr, None)
 
             # Some attributes might not fall in the above category but still
             # are available through self._sky_coord_frame.
@@ -492,17 +505,52 @@ class SkyCoord(ShapedLikeNDArray):
             if self.frame.name == attr:
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-            if (attr in FRAME_ATTR_NAMES_SET() or
-                (not attr.startswith('_') and
-                 hasattr(self._sky_coord_frame, attr))):
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
                 setattr(self._sky_coord_frame, attr, val)
+                return
 
             frame_cls = frame_transform_graph.lookup_name(attr)
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 raise AttributeError("'{0}' is immutable".format(attr))
 
-        # Otherwise, do the standard Python attribute setting
-        super(SkyCoord, self).__setattr__(attr, val)
+        if attr in frame_transform_graph.frame_attributes:
+            # All possible frame attributes can be set, but only via a private
+            # variable.  See __getattr__ above.
+            super(SkyCoord, self).__setattr__('_' + attr, val)
+            # Validate it
+            frame_transform_graph.frame_attributes[attr].__get__(self)
+            # And add to set of extra attributes
+            self._extra_attr_names |= {attr}
+
+        else:
+            # Otherwise, do the standard Python attribute setting
+            super(SkyCoord, self).__setattr__(attr, val)
+
+    def __delattr__(self, attr):
+        # mirror __setattr__ above
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame,
+                                                    attr):
+                delattr(self._sky_coord_frame, attr)
+                return
+
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+        if attr in frame_transform_graph.frame_attributes:
+            # All possible frame attributes can be deleted, but need to remove
+            # the corresponding private variable.  See __getattr__ above.
+            super(SkyCoord, self).__delattr__('_' + attr)
+            # Also remove it from the set of extra attributes
+            self._extra_attr_names -= {attr}
+
+        else:
+            # Otherwise, do the standard Python attribute setting
+            super(SkyCoord, self).__delattr__(attr)
 
     @override__dir__
     def __dir__(self):
@@ -523,7 +571,7 @@ class SkyCoord(ShapedLikeNDArray):
         dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
 
         # Add all possible frame attributes
-        dir_values.update(FRAME_ATTR_NAMES_SET())
+        dir_values.update(frame_transform_graph.frame_attributes.keys())
 
         return dir_values
 
@@ -636,8 +684,8 @@ class SkyCoord(ShapedLikeNDArray):
             if other.frame.name != self.frame.name:
                 return False
 
-            for fattrnm in FRAME_ATTR_NAMES_SET():
-                if getattr(self, fattrnm) != getattr(other, fattrnm):
+            for fattrnm in frame_transform_graph.frame_attributes:
+                if np.any(getattr(self, fattrnm) != getattr(other, fattrnm)):
                     return False
             return True
         else:
@@ -674,17 +722,15 @@ class SkyCoord(ShapedLikeNDArray):
         from . import Angle
         from .angle_utilities import angular_separation
 
-        if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
-        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
-            # it's a frame
-            self_in_other_system = self.transform_to(other)
-        else:
-            raise TypeError('Can only get separation to another SkyCoord or a '
-                            'coordinate frame with data')
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, merge_attributes=False)
+            except TypeError:
+                raise TypeError('Can only get separation to another SkyCoord '
+                                'or a coordinate frame with data')
 
-        lon1 = self_in_other_system.spherical.lon
-        lat1 = self_in_other_system.spherical.lat
+        lon1 = self.spherical.lon
+        lat1 = self.spherical.lat
         lon2 = other.spherical.lon
         lat2 = other.spherical.lat
 
@@ -715,15 +761,12 @@ class SkyCoord(ShapedLikeNDArray):
         ValueError
             If this or the other coordinate do not have distances.
         """
-
-        if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
-        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
-            # it's a frame
-            self_in_other_system = self.transform_to(other)
-        else:
-            raise TypeError('Can only get separation to another SkyCoord or a '
-                            'coordinate frame with data')
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, merge_attributes=False)
+            except TypeError:
+                raise TypeError('Can only get separation to another SkyCoord '
+                                'or a coordinate frame with data')
 
         if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
@@ -732,8 +775,7 @@ class SkyCoord(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        return Distance((self_in_other_system.cartesian -
-                         other.cartesian).norm())
+        return Distance((self.cartesian - other.cartesian).norm())
 
     def spherical_offsets_to(self, tocoord):
         r"""
@@ -1057,15 +1099,17 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from . import angle_utilities
 
-        if self.frame.name == other.frame.name:
-            other_in_self_frame = other
-        else:
-            other_in_self_frame = other.frame.transform_to(self.frame)
+        if not self.is_equivalent_frame(other):
+            try:
+                other = other.transform_to(self, merge_attributes=False)
+            except TypeError:
+                raise TypeError('Can only get position_angle to another '
+                                'SkyCoord or a coordinate frame with data')
 
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
-        olat = other_in_self_frame.represent_as(UnitSphericalRepresentation).lat
-        olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
+        olat = other.represent_as(UnitSphericalRepresentation).lat
+        olon = other.represent_as(UnitSphericalRepresentation).lon
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
@@ -1346,6 +1390,9 @@ def _get_frame(args, kwargs):
     # make it into a class.
 
     if isinstance(frame, SkyCoord):
+        # Copy any extra attributes if they are not explicitly given.
+        for attr in frame._extra_attr_names:
+            kwargs.setdefault(attr, getattr(frame, attr))
         frame = frame.frame
 
     if isinstance(frame, BaseCoordinateFrame):
@@ -1484,7 +1531,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Get the value from `data` in the eventual representation
             values.append(getattr(data, repr_attr_name))
 
-        for attr in FRAME_ATTR_NAMES_SET():
+        for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord)
                          or attr not in coords._attr_names_with_defaults)
@@ -1524,7 +1571,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # get the frame attributes from the first one, because from above we
             # know it matches all the others
-            for fattrnm in FRAME_ATTR_NAMES_SET():
+            for fattrnm in frame_transform_graph.frame_attributes:
                 valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below

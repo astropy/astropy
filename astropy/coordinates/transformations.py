@@ -70,6 +70,19 @@ class TransformGraph(object):
 
         return self._cached_frame_set.copy()
 
+    @property
+    def frame_attributes(self):
+        """
+        A `dict` of all the attributes of all frame classes in this `TransformGraph`.
+        """
+        if self._cached_frame_attributes is None:
+            result = {}
+            for frame_cls in self.frame_set:
+                result.update(frame_cls.frame_attributes)
+            self._cached_frame_attributes = result
+
+        return self._cached_frame_attributes
+
     def invalidate_cache(self):
         """
         Invalidates the cache that stores optimizations for traversing the
@@ -79,6 +92,7 @@ class TransformGraph(object):
         """
         self._cached_names_dct = None
         self._cached_frame_set = None
+        self._cached_frame_attributes = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -310,7 +324,7 @@ class TransformGraph(object):
         """
         if not inspect.isclass(fromsys):
             raise TypeError('fromsys is not a class')
-        if not inspect.isclass(fromsys):
+        if not inspect.isclass(tosys):
             raise TypeError('tosys is not a class')
 
         path, distance = self.find_shortest_path(fromsys, tosys)

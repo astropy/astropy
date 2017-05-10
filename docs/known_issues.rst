@@ -129,7 +129,6 @@ not limited to
 
 * OS X, Python 2.7.5 via homebrew
 * Linux, Python 2.7.6 via conda [#]_
-* Linux, Python 2.6.9 via conda
 
 are built without support for the ``bsddb`` module, resulting in an error
 such as::
@@ -169,18 +168,6 @@ certain circumstances output the following error::
 
 This can be resolved by upgrading to Python 2.7.4 or later (at the time of
 writing, the latest Python 2.7.x version is 2.7.9).
-
-
-Floating point precision issues on Python 2.6 on Microsoft Windows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When converting floating point numbers to strings on Python 2.6 on a
-Microsoft Windows platform, some of the requested precision may be
-lost.
-
-The easiest workaround is to install Python 2.7.
-
-The Python issue: http://bugs.python.org/issue7117
 
 
 Color printing on Windows

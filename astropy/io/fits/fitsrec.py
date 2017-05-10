@@ -15,7 +15,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
-from ...extern.six import string_types
+from ...extern.six import string_types, PY2
 from ...extern.six.moves import range, zip
 from ...utils import lazyproperty
 from ...utils.compat import suppress
@@ -95,9 +95,6 @@ class FITS_record(object):
                 raise IndexError('Index out of bounds')
 
         self.array.field(indx)[self.row] = value
-
-    def __getslice__(self, start, end):
-        return self[slice(start, end)]
 
     def __len__(self):
         return len(range(self.start, self.end, self.step))
@@ -553,11 +550,13 @@ class FITS_rec(np.recarray):
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
 
-    def __getslice__(self, start, end):
-        return self[slice(start, end)]
+    if PY2:
+        # avoid falling back through to ndarray.__getslice__
+        def __getslice__(self, start, end):
+            return self.__getitem__(slice(start, end))
 
-    def __setslice__(self, start, end, value):
-        self[slice(start, end)] = value
+        def __setslice__(self, start, end, value):
+            self.__setitem__(slice(start, end), value)
 
     def copy(self, order='C'):
         """

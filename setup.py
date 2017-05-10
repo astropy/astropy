@@ -31,8 +31,6 @@ RELEASE = 'dev' not in VERSION
 if not RELEASE:
     VERSION += get_git_devstr(False)
 
-DOWNLOAD_BASE_URL = 'https://pypi.python.org/packages/source/a/astropy'
-
 # Populate the dict of setup command overrides; this should be done before
 # invoking any other functionality from distutils since it can potentially
 # modify distutils' behavior.
@@ -84,7 +82,6 @@ setup(name=NAME,
       license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
-      download_url='{0}/astropy-{1}.tar.gz'.format(DOWNLOAD_BASE_URL, VERSION),
       keywords=['astronomy', 'astrophysics', 'cosmology', 'space', 'science',
                 'units', 'table', 'wcs', 'vo', 'samp', 'coordinate', 'fits',
                 'modeling', 'models', 'fitting', 'ascii'],

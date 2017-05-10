@@ -7,7 +7,7 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.7, 3.3, 3.4 or 3.5
+- `Python <http://www.python.org/>`_ 2.7, 3.3, 3.4, 3.5 or 3.6
 
   - Prior to Astropy v1.0, Python 3.1 and 3.2 were also supported
 
@@ -120,7 +120,7 @@ run::
 Binary installers
 -----------------
 
-Binary installers are available on Windows for Python 2.6, 2.7, and >= 3.3
+Binary installers are available on Windows for Python 2.7, and >= 3.3
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 .. _testing_installed_astropy:
@@ -349,7 +349,7 @@ system package in an inconsistent state.
 
 As the best course of action at this point depends largely on the individual
 system and how it is configured, if you are not sure yourself what do please
-ask on the Astropy mailing list.
+ask on the `Astropy mailing list`_.
 
 
 The Windows installer can't find Python in the registry

@@ -675,6 +675,8 @@ Finally, to make a table with the union of rows from both tables do an "outer" j
       M82 2012-10-29  16.2  15.2  45.0
   NGC3516 2011-11-11    --    --  42.1
 
+In all cases the output join table will be sorted by the key column(s) and in general
+will not preserve the row order of the input tables.
 
 Non-identical key column names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

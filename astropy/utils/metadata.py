@@ -62,9 +62,9 @@ def common_dtype(arrs):
 
     # For string-type arrays need to explicitly fill in non-zero
     # values or the final arr_common = .. step is unpredictable.
-    for arr in arrs:
+    for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arr[0] = '0' * arr.itemsize
+            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') * arr.itemsize]
 
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
@@ -280,7 +280,23 @@ def enable_merge_strategies(*merge_strategies):
     return _EnableMergeStrategies(*merge_strategies)
 
 
-def merge(left, right, merge_func=None, metadata_conflicts='warn'):
+def _warn_str_func(key, left, right):
+    out = ('Cannot merge meta key {0!r} types {1!r}'
+           ' and {2!r}, choosing {0}={3!r}'
+           .format(key, type(left), type(right), right))
+    return out
+
+
+def _error_str_func(key, left, right):
+    out = ('Cannot merge meta key {0!r} '
+           'types {1!r} and {2!r}'
+           .format(key, type(left), type(right)))
+    return out
+
+
+def merge(left, right, merge_func=None, metadata_conflicts='warn',
+          warn_str_func=_warn_str_func,
+          error_str_func=_error_str_func):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
@@ -332,14 +348,10 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn'):
                     out[key] = left[key]
                 elif _not_equal(left[key], right[key]):
                     if metadata_conflicts == 'warn':
-                        warnings.warn('Cannot merge meta key {0!r} types {1!r}'
-                                      ' and {2!r}, choosing {0}={3!r}'
-                                      .format(key, type(left[key]), type(right[key]), right[key]),
+                        warnings.warn(warn_str_func(key, left[key], right[key]),
                                       MergeConflictWarning)
                     elif metadata_conflicts == 'error':
-                        raise MergeConflictError('Cannot merge meta key {0!r} '
-                                                 'types {1!r} and {2!r}'
-                                                 .format(key, type(left[key]), type(right[key])))
+                        raise MergeConflictError(error_str_func(key, left[key], right[key]))
                     elif metadata_conflicts != 'silent':
                         raise ValueError('metadata_conflicts argument must be one '
                                          'of "silent", "warn", or "error"')

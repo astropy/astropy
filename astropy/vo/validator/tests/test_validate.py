@@ -14,6 +14,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import shutil
 import tempfile
+import warnings
 
 # LOCAL
 from .. import conf
@@ -21,10 +22,20 @@ from .. import validate
 from ...client.vos_catalog import VOSDatabase
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
+from ....utils.exceptions import AstropyDeprecationWarning
 from ....utils import data
 
 
 __doctest_skip__ = ['*']
+
+
+def setup_module():
+    """Ignore all deprecation warnings here."""
+    warnings.simplefilter('ignore', AstropyDeprecationWarning)
+
+
+def teardown_module():
+    warnings.resetwarnings()
 
 
 @remote_data

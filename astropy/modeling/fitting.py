@@ -277,10 +277,7 @@ class LinearLSQFitter(object):
                                                    x=x)
             else:
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
-            if len(y.shape) == 2:
-                rhs = y
-            else:
-                rhs = y
+            rhs = y
         else:
             x, y, z = farg
 
@@ -420,8 +417,9 @@ class FittingWithOutlierRemoval(object):
         if z is None:
             filtered_data = y
             for n in range(self.niter):
-                filtered_data = self.outlier_func(filtered_data,
+                filtered_data = self.outlier_func(filtered_data - fitted_model(x),
                                                   **self.outlier_kwargs)
+                filtered_data += fitted_model(x)
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
@@ -429,8 +427,9 @@ class FittingWithOutlierRemoval(object):
         else:
             filtered_data = z
             for n in range(self.niter):
-                filtered_data = self.outlier_func(filtered_data,
+                filtered_data = self.outlier_func(filtered_data - fitted_model(x, y),
                                                   **self.outlier_kwargs)
+                filtered_data += fitted_model(x, y)
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                y[~filtered_data.mask],
@@ -619,7 +618,10 @@ class LevMarLSQFitter(object):
             if z is None:
                 return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
             else:
-                return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                if not model.col_fit_deriv:
+                    return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                else:
+                    return [np.ravel(_) for _ in (weights * np.array(model.fit_deriv(x, y, *params)))]
 
 
 class SLSQPLSQFitter(Fitter):
@@ -727,8 +729,6 @@ class SimplexLSQFitter(Fitter):
 
         maxiter : int
             maximum number of iterations
-        epsilon : float
-            the step size for finite-difference derivative estimates
         acc : float
             Relative error in approximate solution
 

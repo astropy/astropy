@@ -6,11 +6,10 @@ import operator
 
 import numpy as np
 
-from ...tests.helper import pytest, assert_follows_unicode_guidelines
+from ...tests.helper import pytest, assert_follows_unicode_guidelines, catch_warnings
 from ... import table
 from ... import units as u
 from ...extern import six
-from ...utils.compat import NUMPY_LT_1_8
 
 
 class TestColumn():
@@ -473,16 +472,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.Column)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.Column)
 
     c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
@@ -493,16 +486,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.MaskedColumn)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.MaskedColumn)
 
 
 def test_unicode_guidelines():
@@ -547,3 +534,85 @@ def test_qtable_column_conversion():
     # should become the appropriate FunctionQuantity subclass.
     qtab['f'].unit = u.dex(u.cm/u.s**2)
     assert isinstance(qtab['f'], u.Dex)
+
+
+@pytest.mark.parametrize('masked', [True, False])
+def test_string_truncation_warning(masked):
+    """
+    Test warnings associated with in-place assignment to a string
+    column that results in truncation of the right hand side.
+    """
+    t = table.Table([['aa', 'bb']], names=['a'], masked=masked)
+
+    with catch_warnings() as w:
+        from inspect import currentframe, getframeinfo
+        t['a'][1] = 'cc'
+        assert len(w) == 0
+
+        t['a'][:] = 'dd'
+        assert len(w) == 0
+
+    with catch_warnings() as w:
+        frameinfo = getframeinfo(currentframe())
+        t['a'][0] = 'eee'  # replace item with string that gets truncated
+        assert t['a'][0] == 'ee'
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
+
+        # Make sure the warning points back to the user code line
+        assert w[0].lineno == frameinfo.lineno + 1
+        assert w[0].category is table.StringTruncateWarning
+        assert 'test_column' in w[0].filename
+
+    with catch_warnings() as w:
+        t['a'][:] = ['ff', 'ggg']  # replace item with string that gets truncated
+        assert np.all(t['a'] == ['ff', 'gg'])
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
+
+    with catch_warnings() as w:
+        # Test the obscure case of assigning from an array that was originally
+        # wider than any of the current elements (i.e. dtype is U4 but actual
+        # elements are U1 at the time of assignment).
+        val = np.array(['ffff', 'gggg'])
+        val[:] = ['f', 'g']
+        t['a'][:] = val
+        assert np.all(t['a'] == ['f', 'g'])
+        assert len(w) == 0
+
+
+def test_string_truncation_warning_masked():
+    """
+    Test warnings associated with in-place assignment to a string
+    to a masked column, specifically where the right hand side
+    contains np.ma.masked.
+    """
+
+    # Test for strings, but also cover assignment of np.ma.masked to
+    # int and float masked column setting.  This was previously only
+    # covered in an unrelated io.ascii test (test_line_endings) which
+    # showed an unexpected difference between handling of str and numeric
+    # masked arrays.
+    for values in (['a', 'b'], [1, 2], [1.0, 2.0]):
+        mc = table.MaskedColumn(values)
+
+        with catch_warnings() as w:
+            mc[1] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [False, True])
+
+            mc[:] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [True, True])
+
+    mc = table.MaskedColumn(['aa', 'bb'])
+
+    with catch_warnings() as w:
+        mc[:] = [np.ma.masked, 'ggg']  # replace item with string that gets truncated
+        assert mc[1] == 'gg'
+        assert np.all(mc.mask == [True, False])
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))

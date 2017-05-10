@@ -1,9 +1,15 @@
-from astropy.tests.runner import TestRunner, TestRunnerBase, keyword
+# Renamed these imports so that them being in the namespace will not
+# cause pytest 3 to discover them as tests and then complain that
+# they have __init__ defined.
+from astropy.tests.runner import TestRunner as _TestRunner
+from astropy.tests.runner import TestRunnerBase as _TestRunnerBase
+
+from astropy.tests.runner import keyword
 from astropy.tests.helper import pytest
 
 
 def test_disable_kwarg():
-    class no_remote_data(TestRunner):
+    class no_remote_data(_TestRunner):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return NotImplemented
@@ -14,13 +20,13 @@ def test_disable_kwarg():
 
 
 def test_wrong_kwarg():
-    r = TestRunner('.')
+    r = _TestRunner('.')
     with pytest.raises(TypeError):
         r.run_tests(spam='eggs')
 
 
 def test_invalid_kwarg():
-    class bad_return(TestRunnerBase):
+    class bad_return(_TestRunnerBase):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return 'bob'
@@ -31,7 +37,7 @@ def test_invalid_kwarg():
 
 
 def test_new_kwarg():
-    class Spam(TestRunnerBase):
+    class Spam(_TestRunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             return [spam]
@@ -44,7 +50,7 @@ def test_new_kwarg():
 
 
 def test_priority():
-    class Spam(TestRunnerBase):
+    class Spam(_TestRunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             return [spam]
@@ -61,7 +67,7 @@ def test_priority():
 
 
 def test_docs():
-    class Spam(TestRunnerBase):
+    class Spam(_TestRunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             """

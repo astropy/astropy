@@ -74,7 +74,7 @@ dimensionless).  For instance, normally the following raise exceptions::
     ...
   UnitConversionError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
-But when passing we pass the proper conversion function,
+But when passing the proper conversion function,
 :func:`~astropy.units.equivalencies.dimensionless_angles`, it works.
 
   >>> u.deg.to('', equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP

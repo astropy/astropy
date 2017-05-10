@@ -26,6 +26,37 @@ def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     return t, y, dy
 
 
+@pytest.mark.parametrize('minimum_frequency', [None, 1.0])
+@pytest.mark.parametrize('maximum_frequency', [None, 5.0])
+@pytest.mark.parametrize('nyquist_factor', [1, 10])
+@pytest.mark.parametrize('samples_per_peak', [1, 5])
+def test_autofrequency(data, minimum_frequency, maximum_frequency,
+                       nyquist_factor, samples_per_peak):
+    t, y, dy = data
+    baseline = t.max() - t.min()
+
+    freq = LombScargle(t, y, dy).autofrequency(samples_per_peak,
+                                               nyquist_factor,
+                                               minimum_frequency,
+                                               maximum_frequency)
+    df = freq[1] - freq[0]
+
+    # Check sample spacing
+    assert_allclose(df, 1. / baseline / samples_per_peak)
+
+    # Check minimum frequency
+    if minimum_frequency is None:
+        assert_allclose(freq[0], 0.5 * df)
+    else:
+        assert_allclose(freq[0], minimum_frequency)
+
+    if maximum_frequency is None:
+        avg_nyquist = 0.5 * len(t) / baseline
+        assert_allclose(freq[-1], avg_nyquist * nyquist_factor, atol=0.5*df)
+    else:
+        assert_allclose(freq[-1], maximum_frequency, atol=0.5*df)
+
+
 @pytest.mark.parametrize('method', ALL_METHODS_NO_AUTO)
 @pytest.mark.parametrize('center_data', [True, False])
 @pytest.mark.parametrize('fit_mean', [True, False])
@@ -312,3 +343,154 @@ def test_model_units_mismatch(data):
     with pytest.raises(ValueError) as err:
         LombScargle(t, y, dy).model(t_fit, frequency)
     assert str(err.value).startswith('Units of dy not equivalent')
+
+
+def test_autopower(data):
+    t, y, dy = data
+    ls = LombScargle(t, y, dy)
+    kwargs = dict(samples_per_peak=6, nyquist_factor=2,
+                  minimum_frequency=2, maximum_frequency=None)
+    freq1 = ls.autofrequency(**kwargs)
+    power1 = ls.power(freq1)
+    freq2, power2 = ls.autopower(**kwargs)
+
+    assert_allclose(freq1, freq2)
+    assert_allclose(power1, power2)
+
+
+@pytest.fixture
+def null_data(N=1000, dy=1, rseed=0):
+    """Generate null hypothesis data"""
+    rng = np.random.RandomState(rseed)
+    t = 100 * rng.rand(N)
+    dy = 0.5 * dy * (1 + rng.rand(N))
+    y = dy * rng.randn(N)
+    return t, y, dy
+
+
+@pytest.mark.parametrize('normalization', NORMALIZATIONS)
+def test_distribution(null_data, normalization):
+    t, y, dy = null_data
+    N = len(t)
+    ls = LombScargle(t, y, dy)
+    freq, power = ls.autopower(normalization=normalization,
+                               maximum_frequency=40)
+    z = np.linspace(0, power.max(), 1000)
+
+    # Test that pdf and cdf are consistent
+    dz = z[1] - z[0]
+    z_mid = z[:-1] + 0.5 * dz
+    pdf = _lombscargle_pdf(z_mid, N, normalization=normalization)
+    cdf = _lombscargle_cdf(z, N, normalization=normalization)
+    assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
+
+    # Test that observed power is distributed according to the theoretical pdf
+    hist, bins = np.histogram(power, 30, normed=True)
+    midpoints = 0.5 * (bins[1:] + bins[:-1])
+    pdf = _lombscargle_pdf(midpoints, N, normalization=normalization)
+    assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
+
+
+# The following are convenience functions used to compute statistics of the
+# periodogram under various normalizations; they are used in the preceding
+# test.
+
+
+def _lombscargle_pdf(z, N, normalization, dH=1, dK=3):
+    """Probability density function for Lomb-Scargle periodogram
+
+    Compute the expected probability density function of the periodogram
+    for the null hypothesis - i.e. data consisting of Gaussian noise.
+
+    Parameters
+    ----------
+    z : array-like
+        the periodogram value
+    N : int
+        the number of data points from which the periodogram was computed
+    normalization : string
+        The periodogram normalization. Must be one of
+        ['standard', 'model', 'log', 'psd']
+    dH, dK : integers (optional)
+        The number of parameters in the null hypothesis and the model
+
+    Returns
+    -------
+    pdf : np.ndarray
+        The expected probability density function
+
+    Notes
+    -----
+    For normalization='psd', the distribution can only be computed for
+    periodograms constructed with errors specified.
+    All expressions used here are adapted from Table 1 of Baluev 2008 [1]_.
+
+    References
+    ----------
+    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+    """
+    if dK - dH != 2:
+        raise NotImplementedError("Degrees of freedom != 2")
+    Nk = N - dK
+
+    if normalization == 'psd':
+        return np.exp(-z)
+    elif normalization == 'standard':
+        return 0.5 * Nk * (1 + z) ** (-0.5 * Nk - 1)
+    elif normalization == 'model':
+        return 0.5 * Nk * (1 - z) ** (0.5 * Nk - 1)
+    elif normalization == 'log':
+        return 0.5 * Nk * np.exp(-0.5 * Nk * z)
+    else:
+        raise ValueError("normalization='{0}' is not recognized"
+                         "".format(normalization))
+
+
+def _lombscargle_cdf(z, N, normalization, dH=1, dK=3):
+    """Cumulative distribution for the Lomb-Scargle periodogram
+
+    Compute the expected cumulative distribution of the periodogram
+    for the null hypothesis - i.e. data consisting of Gaussian noise.
+
+    Parameters
+    ----------
+    z : array-like
+        the periodogram value
+    N : int
+        the number of data points from which the periodogram was computed
+    normalization : string
+        The periodogram normalization. Must be one of
+        ['standard', 'model', 'log', 'psd']
+    dH, dK : integers (optional)
+        The number of parameters in the null hypothesis and the model
+
+    Returns
+    -------
+    cdf : np.ndarray
+        The expected cumulative distribution function
+
+    Notes
+    -----
+    For normalization='psd', the distribution can only be computed for
+    periodograms constructed with errors specified.
+    All expressions used here are adapted from Table 1 of Baluev 2008 [1]_.
+
+    References
+    ----------
+    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+    """
+    if dK - dH != 2:
+        raise NotImplementedError("Degrees of freedom != 2")
+    Nk = N - dK
+
+    if normalization == 'psd':
+        return 1 - np.exp(-z)
+    elif normalization == 'standard':
+        return 1 - (1 + z) ** (-0.5 * Nk)
+    elif normalization == 'model':
+        return 1 - (1 - z) ** (0.5 * Nk)
+    elif normalization == 'log':
+        return 1 - np.exp(-0.5 * Nk * z)
+    else:
+        raise ValueError("normalization='{0}' is not recognized"
+                         "".format(normalization))

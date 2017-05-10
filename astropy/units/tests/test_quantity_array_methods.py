@@ -5,8 +5,7 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...utils.compat import (NUMPY_LT_1_8, NUMPY_LT_1_9_1,
-                             NUMPY_LT_1_10, NUMPY_LT_1_10_4)
+from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10, NUMPY_LT_1_10_4
 
 
 class TestQuantityArrayCopy(object):
@@ -286,7 +285,6 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
 
-    @pytest.mark.xfail(NUMPY_LT_1_8, reason="Numpy 1.8 or later is required")
     def test_nansum_inplace(self):
 
         q1 = np.array([1., 2., np.nan]) * u.m

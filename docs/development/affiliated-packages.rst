@@ -73,7 +73,9 @@ Starting a new package
     # .gitignore specifies which types of files to ignore in the repository
     cp ../template/.gitignore .
 
-    # MANIFEST.in specifies which files to include in a tar file release
+    # MANIFEST.in specifies which files to include in a tar file
+    release. Change all ``'packagename'`` text to be the name of your
+    package, <packagename>.
     cp ../template/MANIFEST.in .
 
     # ah_bootstrap.py is used by setup.py to use the astropy-helpers
@@ -95,11 +97,12 @@ Starting a new package
     #       out the line that appends 'data/*'.
     cp ../template/setup.py .
 
-   .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
-                 ``setup.py`` as indicated above!
+   .. important:: Before proceeding, make sure you have edited
+                 ``MANIFEST.in``, ``setup.cfg`` and ``setup.py`` as
+                 indicated above!
 
-   Once you have edited ``setup.cfg`` and ``setup.py``, you can commit the
-   changes::
+   Once you have edited ``MANIFEST.in``, ``setup.cfg`` and ``setup.py``, you
+   can commit the changes::
 
     git add .gitignore MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
 
@@ -194,6 +197,9 @@ Starting a new package
    .. important:: Before proceeding, make sure you have edited ``.travis.yml`` as
                   indicated above!
 
+#. Double check that you have changed all the ``'packagename'`` references
+   in the configuration files to be <packagename>, the name of your package.
+
 #. Now you are ready to make your first commit::
 
     git commit -m "Initial layout for package"
@@ -230,6 +236,51 @@ update the corresponding ``ah_bootstrap.py`` file, for example::
 You can find out what the latest version of astropy-helpers is by checking the
 `astropy-helpers <https://pypi.python.org/pypi/astropy-helpers/>`__ entry on
 PyPI.
+
+Customizing the documentation CSS
+---------------------------------
+
+As described in the documentation configuration file (`teplate/docs/conf.py
+<https://github.com/astropy/package-template/blob/master/docs/conf.py#L95>`_),
+the documentation uses a custom theme based on `bootstrap
+<http://getbootstrap.com/css/>`_. You can swap out this theme by editing the
+configuration file. You can also tweak aspects of the documentation theme by
+creating a custom CSS file in your package documentation.
+
+To do this, create a new CSS file in ``<packagename>/_static/`` -- let's call it
+``<packagename>.css``::
+
+    cd <packagename>/_static/
+    touch <packagename>.css
+
+We're going to set the HTML style to this new ``<packagename>.css`` stylesheet,
+so we need to import the original ``bootstrap-astropy`` style before we start
+modifying entries. To the first line of your ``<packagename>.css`` file, import
+the default style. We can add any custom CSS below the import. For example, to
+hide the Astropy logo and Astropy link from your project's documentation menu
+bar:
+
+.. code-block:: css
+
+    @import url("bootstrap-astropy.css");
+
+    div.topbar a.brand {
+        background: none;
+        background-image: none;
+    }
+
+    div.topbar ul li a.homelink {
+        background: none;
+        background-image: none;
+    }
+
+We now have to include the ``<packagename>.css`` in the documentation, and tell
+Sphinx to use the new style. To do this, edit your
+``<packagename>/docs/conf.py`` file and add the lines::
+
+    # Static files to copy after template files
+    html_static_path = ['_static']
+    html_style = '<packagename>.css'
 
 Managing the template files via git
 ===================================
@@ -274,7 +325,7 @@ files manually`_ section since this explains what many of the files do.
    directly, to make the move.  For example, with git::
 
     git mv packagename <packagename>
-      
+
 #. Update the main package docstring in ``<packagename>/__init__.py``.
 
 #. Decide what license you want to use to release your source code. If
@@ -463,9 +514,11 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the changelog file is named ``CHANGES.rst``, like
-for the astropy core package. If instead you use Markdown, then you should
-replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
+instructions, we assume that the release is made from a fresh clone of the
+remote "main" repository and not from a forked copy. We also assume that
+the changelog file is named ``CHANGES.rst``, like for the astropy core
+package. If instead you use Markdown, then you should replace ``CHANGES.rst``
+by ``CHANGES.md`` in the instructions.
 
 #. Make sure that Travis and any other continuous integration is passing.
 
@@ -578,10 +631,34 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
+#. If your affiliated package is available in the `astropy conda channel
+   <https://github.com/astropy/conda-channel-astropy>`_, you should also submit
+   a pull request to update the version number of your affiliated package. See the
+   `conda-channel-astropy README <https://github.com/astropy/conda-channel-astropy/>`_
+   for details.
+
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
           we recommend that you read over the more complete astropy
           :doc:`releasing` and adapt these for your package.
+
+
+Modifications for a beta/release candidate release
+--------------------------------------------------
+
+   Before a new release of your package, you may wish do a "pre-release" of the
+   code, for example to allow collaborators to independently test the release.
+   If the release you are performing is this kind of pre-release,
+   some of the above steps need to be modified.
+
+   The primary modifications to the release procedure is:
+
+   * When entering the new version number, instead of just removing the
+     ``.dev``, enter "1.2b1" or "1.2rc1".  It is critical that you follow this
+     numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+     is ordered "before" the main release by various automated tools, and also
+     tells PyPI that this is a "pre-release".
+
 
 .. _git: http://git-scm.com/
 .. _github: http://github.com

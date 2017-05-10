@@ -97,7 +97,7 @@ def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
 def_unit(['statA', 'statampere'], Fr * s ** -1, namespace=_ns,
          doc='statampere: CGS (ESU) unit of current')
 
-def_unit(['Bi', 'Biot', 'abA', 'abampere', 'emu'],
+def_unit(['Bi', 'Biot', 'abA', 'abampere'],
          g ** Fraction(1, 2) * cm ** Fraction(1, 2) * s ** -1, namespace=_ns,
          doc='Biot: CGS (EMU) unit of current')
 

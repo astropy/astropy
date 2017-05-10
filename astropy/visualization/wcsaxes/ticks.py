@@ -26,17 +26,17 @@ class Ticks(Line2D):
     we read defaults from `xtick.*`. The following settings affect the
     default appearance of ticks:
 
+    * `xtick.direction`
     * `xtick.major.size`
     * `xtick.major.width`
     * `xtick.color`
     """
 
-    def __init__(self, ticksize=None, tick_out=False, **kwargs):
+    def __init__(self, ticksize=None, tick_out=None, **kwargs):
         if ticksize is None:
             ticksize = rcParams['xtick.major.size']
         self.set_ticksize(ticksize)
-        self.set_tick_out(tick_out)
-        # FIXME: tick_out is incompatible with Matplotlib tickdir option
+        self.set_tick_out(rcParams.get('xtick.direction', 'in') == 'out')
         self.clear()
         line2d_kwargs = {'color': rcParams['xtick.color'],
                          # For the linewidth we need to set a default since old versions of

@@ -121,9 +121,9 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
         assert allclose(sc.ra, sc_rt.ra)
         assert allclose(sc.dec, sc_rt.dec)
     if equinox0:
-        assert Time(sc.equinox) == Time(sc_rt.equinox)
+        assert type(sc.equinox) is Time and sc.equinox == sc_rt.equinox
     if obstime0:
-        assert Time(sc.obstime) == Time(sc_rt.obstime)
+        assert type(sc.obstime) is Time and sc.obstime == sc_rt.obstime
 
 
 def test_coord_init_string():
@@ -610,6 +610,32 @@ def test_position_angle_directly():
     assert result.value == 0.
 
 
+def test_sep_pa_equivalence():
+    """Regression check for bug in #5702.
+
+    PA and separation from object 1 to 2 should be consistent with those
+    from 2 to 1
+    """
+    cfk5 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5')
+    cfk5B1950 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='B1950')
+    # test with both default and explicit equinox #5722 and #3106
+    sep_forward = cfk5.separation(cfk5B1950)
+    sep_backward = cfk5B1950.separation(cfk5)
+    assert sep_forward != 0 and sep_backward != 0
+    assert_allclose(sep_forward, sep_backward)
+    posang_forward = cfk5.position_angle(cfk5B1950)
+    posang_backward = cfk5B1950.position_angle(cfk5)
+    assert posang_forward != 0 and posang_backward != 0
+    assert 179 < (posang_forward - posang_backward).wrap_at(360*u.deg).degree < 181
+    dcfk5 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', distance=1*u.pc)
+    dcfk5B1950 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5', equinox='B1950',
+                          distance=1.*u.pc)
+    sep3d_forward = dcfk5.separation_3d(dcfk5B1950)
+    sep3d_backward = dcfk5B1950.separation_3d(dcfk5)
+    assert sep3d_forward != 0 and sep3d_backward != 0
+    assert_allclose(sep3d_forward, sep3d_backward)
+
+
 def test_table_to_coord():
     """
     Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`
@@ -901,6 +927,16 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5(equinox='J1990'))
     assert c2.equinox.value == 'J1990.000'
     assert c2.obstime.value == 'J1980.000'
+
+    # The work-around for #5722
+    c  = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5')
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5', equinox='B1950.000')
+    c2 = c1.transform_to(c)
+    assert not c2.is_equivalent_frame(c) # counterintuitive, but documented
+    assert c2.equinox.value == 'B1950.000'
+    c3 = c1.transform_to(c, merge_attributes=False)
+    assert c3.equinox.value == 'J2000.000'
+    assert c3.is_equivalent_frame(c)
 
 
 def test_deepcopy():
@@ -1293,3 +1329,50 @@ def test_cache_clear_sc():
     i.cache.clear()
 
     assert len(i.cache['representation']) == 0
+
+
+def test_set_attribute_exceptions():
+    """Ensure no attrbute for any frame can be set directly.
+
+    Though it is fine if the current frame does not have it."""
+    sc = SkyCoord(1.*u.deg, 2.*u.deg, frame='fk5')
+    assert hasattr(sc.frame, 'equinox')
+    with pytest.raises(AttributeError):
+        sc.equinox = 'B1950'
+
+    assert sc.relative_humidity is None
+    sc.relative_humidity = 0.5
+    assert sc.relative_humidity == 0.5
+    assert not hasattr(sc.frame, 'relative_humidity')
+
+
+def test_extra_attributes():
+    """Ensure any extra attributes are dealt with correctly.
+
+    Regression test against #5743.
+    """
+    obstime_string = ['2017-01-01T00:00','2017-01-01T00:10']
+    obstime = Time(obstime_string)
+    sc = SkyCoord([5, 10], [20, 30], unit=u.deg, obstime=obstime_string)
+    assert not hasattr(sc.frame, 'obstime')
+    assert type(sc.obstime) is Time
+    assert sc.obstime.shape == (2,)
+    assert np.all(sc.obstime == obstime)
+    # ensure equivalency still works for more than one obstime.
+    assert sc.is_equivalent_frame(sc)
+    sc_1 = sc[1]
+    assert sc_1.obstime == obstime[1]
+    # Transforming to FK4 should use sc.obstime.
+    sc_fk4 = sc.transform_to('fk4')
+    assert np.all(sc_fk4.frame.obstime == obstime)
+    # And transforming back should not loose it.
+    sc2 = sc_fk4.transform_to('icrs')
+    assert not hasattr(sc2.frame, 'obstime')
+    assert np.all(sc2.obstime == obstime)
+    # Ensure obstime get taken from the SkyCoord if passed in directly.
+    # (regression test for #5749).
+    sc3 = SkyCoord([0., 1.], [2., 3.], unit='deg', frame=sc)
+    assert np.all(sc3.obstime == obstime)
+    # Finally, check that we can delete such attributes.
+    del sc3.obstime
+    assert sc3.obstime is None

@@ -500,7 +500,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                 reader_repr = repr(kwargs.get('Reader', basic.Basic))
                 keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
-                keys_vals.extend(['{}: {}'.format(key, repr(val)) for key, val in kwargs_sorted])
+                keys_vals.extend(['{}: {!r}'.format(key, val) for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
 
             msg = ['',

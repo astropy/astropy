@@ -45,7 +45,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     References
     ----------
     .. [1] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
-    .. [2] W. Press et al, Numerical Recipies in C (2002)
+    .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
     """
@@ -124,7 +124,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     p = np.array([compute_power(i) for i in range(Nf)])
 
     if normalization == 'psd':
-        p *= 0.5 * t.size / ws
+        p *= 0.5
     elif normalization == 'standard':
         p /= chi2_ref
     elif normalization == 'log':
