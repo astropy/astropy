@@ -4,38 +4,16 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 import warnings
-from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 from ..extern.six.moves import range
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, **kwargs):
-    # temporary function to handle deprecated and removed keywords
-    if 'sig' in kwargs:
-        warnings.warn('The "sig" keyword is now deprecated, use the '
-                      '"sigma" keyword instead.', AstropyDeprecationWarning)
-
-        if 'sigma' not in kwargs:
-            kwargs['sigma'] = kwargs['sig']
-        else:
-            warnings.warn('Both the "sig" and "sigma" keywords were set. '
-                          'Using the value of "sigma".', AstropyUserWarning)
-        del kwargs['sig']
-
-    if 'varfunc' in kwargs:
-        raise SyntaxError('The "varfunc" keyword is no longer supported. '
-                          'Please use the "stdfunc" keyword instead.')
-
-    return _sigma_clip(data, **kwargs)
-
-
-def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
-                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
+def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
+               cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """
-    sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True)
-
     Perform sigma-clipping on the provided data.
 
     The data will be iterated over, each time rejecting points that are
@@ -162,6 +140,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     Note that along the other axis, no points would be masked, as the
     variance is higher.
     """
+
     def perform_clip(_filtered_data, _kwargs):
         """
         Perform sigma clip by comparing the data to the minimum and maximum
@@ -169,14 +148,23 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         sigma_upper to get the correct limits. Data values less or greater
         than the minimum / maximum values will have True set in the mask array.
         """
+
+        if _filtered_data.size == 0:
+            return _filtered_data
+
         max_value = cenfunc(_filtered_data, **_kwargs)
         std = stdfunc(_filtered_data, **_kwargs)
         min_value = max_value - std * sigma_lower
         max_value += std * sigma_upper
+
         if axis is not None:
             if axis != 0:
                 min_value = np.expand_dims(min_value, axis=axis)
                 max_value = np.expand_dims(max_value, axis=axis)
+        if max_value is np.ma.masked:
+            max_value = np.ma.MaskedArray(np.nan, mask=True)
+            min_value = np.ma.MaskedArray(np.nan, mask=True)
+
         _filtered_data.mask |= _filtered_data > max_value
         _filtered_data.mask |= _filtered_data < min_value
 
@@ -198,10 +186,8 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     filtered_data = np.ma.array(data, copy=copy)
 
     if iters is None:
-        i = -1
         lastrej = filtered_data.count() + 1
         while filtered_data.count() != lastrej:
-            i += 1
             lastrej = filtered_data.count()
             perform_clip(filtered_data, kwargs)
     else:
@@ -215,17 +201,11 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     return filtered_data
 
 
-sigma_clip.__doc__ = _sigma_clip.__doc__
-
-
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, iters=5,
                         cenfunc=np.ma.median, stdfunc=np.std, axis=None):
     """
-    Calculate sigma-clipped statistics from data.
-
-    For example, sigma-clipped statistics can be used to estimate the
-    background and background noise in an image.
+    Calculate sigma-clipped statistics on the provided data.
 
     Parameters
     ----------
@@ -235,12 +215,12 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     mask : `numpy.ndarray` (bool), optional
         A boolean mask with the same shape as ``data``, where a `True`
         value indicates the corresponding element of ``data`` is masked.
-        Masked pixels are excluded when computing the image statistics.
+        Masked pixels are excluded when computing the statistics.
 
     mask_value : float, optional
-        An image data value (e.g., ``0.0``) that is ignored when
-        computing the image statistics.  ``mask_value`` will be masked
-        in addition to any input ``mask``.
+        A data value (e.g., ``0.0``) that is ignored when computing the
+        statistics.  ``mask_value`` will be masked in addition to any
+        input ``mask``.
 
     sigma : float, optional
         The number of standard deviations to use as the lower and upper
@@ -260,8 +240,8 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     iters : int, optional
         The number of iterations to perform sigma clipping, or `None` to
         clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing) when calculating the image
-        statistics. Defaults to 5.
+        last iteration clips nothing) when calculating the statistics.
+        Defaults to 5.
 
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
@@ -294,7 +274,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     -------
     mean, median, stddev : float
         The mean, median, and standard deviation of the sigma-clipped
-        image.
+        data.
     """
 
     if mask is not None:

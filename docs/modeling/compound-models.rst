@@ -176,6 +176,12 @@ In a future version it may be possible to "freeze" a compound model, so that
 from the user's perspective it is treated as a single model.  However, as this
 is the default behavior it is good to be aware of.
 
+One is also able to get the number of components (also known as submodels) in
+a compound model by accessing the method ``n_submodels``::
+
+    >>> FourGaussians.n_submodels()
+    4
+
 
 Model names
 ^^^^^^^^^^^
@@ -247,6 +253,25 @@ to be used for evaluation::
 
     >>> both_gaussians(0.2)  # doctest: +FLOAT_CMP
     0.6343031510582392
+
+In this case it is possible to directly assign a name to the compound model instance
+by using the `Model.name <astropy.modeling.Model.name>` attribute.
+
+    >>> both_gaussians.name = "BothGaussians"
+    >>> print(both_gaussians)  # doctest: +SKIP
+    Model: CompoundModel6
+    Name: BothGaussians
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 1
+    Expression: [0] + [1]
+    Components:
+        [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
+        [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
+    Parameters:
+        amplitude_0 mean_0 stddev_0 amplitude_1 mean_1 stddev_1
+        ----------- ------ -------- ----------- ------ --------
+                1.0    0.0      0.2         2.5    0.5      0.1
 
 This was found to be much more convenient and natural, in this case, than
 returning a class.  It is worth understanding that the way this works under the

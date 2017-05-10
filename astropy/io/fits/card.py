@@ -1095,7 +1095,7 @@ class Card(_Verify):
             if not self._keywd_FSC_RE.match(keyword):
                 errs.append(self.run_option(
                     option,
-                    err_text='Illegal keyword name {}'.format(repr(keyword)),
+                    err_text='Illegal keyword name {!r}'.format(keyword),
                     fixable=False))
 
         # verify the value, it may be fixable

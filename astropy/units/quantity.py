@@ -23,14 +23,13 @@ from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
 
 
-__all__ = ["Quantity", "SpecificTypeQuantity"]
+__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -156,6 +155,49 @@ class QuantityInfo(ParentDtypeInfo):
         value = map.pop('value')
         return self._parent_cls(value, **map)
 
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new Quantity instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : Quantity (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'format', 'description'))
+
+        # Make an empty quantity using the unit of the last one.
+        shape = (length,) + attrs.pop('shape')
+        dtype = attrs.pop('dtype')
+        data = np.empty(shape=shape, dtype=dtype)
+        unit = cols[-1].unit
+        out = self._parent_cls(data, unit=unit, copy=False)
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
+
 
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
@@ -195,7 +237,9 @@ class Quantity(np.ndarray):
 
     subok : bool, optional
         If `False` (default), the returned array will be forced to be a
-        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through.
+        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through,
+        or a subclass appropriate for the unit will be used (such as
+        `~astropy.units.Dex` for ``u.dex(u.AA)``).
 
     ndmin : int, optional
         Specifies the minimum number of dimensions that the resulting array
@@ -236,6 +280,11 @@ class Quantity(np.ndarray):
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
+            # if we allow subclasses, allow a class from the unit.
+            if subok:
+                qcls = getattr(unit, '_quantity_class', cls)
+                if issubclass(qcls, cls):
+                    cls = qcls
 
         # optimize speed for Quantity with no dtype given, copy=False
         if isinstance(value, Quantity):
@@ -267,14 +316,22 @@ class Quantity(np.ndarray):
                 # the second parts adds possible trailing .+-, which will break
                 # the float function below and ensure things like 1.2.3deg
                 # will not work.
-                v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
-                             r'[.+-]?', value)
+                pattern = (r'\s*[+-]?'
+                           r'((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|'
+                           r'([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))'
+                           r'([eE][+-]?\d+)?'
+                           r'[.+-]?')
+
+                v = re.match(pattern, value)
+                unit_string = None
                 try:
                     value = float(v.group())
+
                 except Exception:
                     raise TypeError('Cannot parse "{0}" as a {1}. It does not '
                                     'start with a number.'
                                     .format(value, cls.__name__))
+
                 unit_string = v.string[v.end():].strip()
                 if unit_string:
                     value_unit = Unit(unit_string)
@@ -302,10 +359,10 @@ class Quantity(np.ndarray):
                 try:
                     value_unit = Unit(value_unit)
                 except Exception as exc:
-                    raise TypeError("The unit attribute {0} of the input could "
+                    raise TypeError("The unit attribute {0!r} of the input could "
                                     "not be parsed as an astropy Unit, raising "
                                     "the following exception:\n{1}"
-                                    .format(repr(value.unit), exc))
+                                    .format(value.unit, exc))
 
                 if unit is None:
                     unit = value_unit
@@ -384,6 +441,8 @@ class Quantity(np.ndarray):
         # the unit the output from the ufunc will have.
         if function in UFUNC_HELPERS:
             converters, result_unit = UFUNC_HELPERS[function](function, *units)
+            if function.nout > 1:
+                result_unit = result_unit[context[2]]
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
@@ -600,18 +659,14 @@ class Quantity(np.ndarray):
                         obj_array = None
 
                 # Re-compute the output using the ufunc
-                if function.nin == 1:
-                    if function.nout == 1:
-                        out = function(inputs[0], obj_array)
-                    else:  # 2-output function (np.modf, np.frexp); 1 input
-                        if context[2] == 0:
-                            out, _ = function(inputs[0], obj_array, None)
-                        else:
-                            _, out = function(inputs[0], None, obj_array)
+                if context[2] == 0:
+                    inputs.append(obj_array)
                 else:
-                    out = function(inputs[0], inputs[1], obj_array)
-
+                    inputs += [None, obj_array]
+                out = function(*inputs)
                 if obj_array is None:
+                    if function.nout > 1:
+                        out = out[context[2]]
                     obj = self._new_view(out, result_unit)
 
             if result_unit is None:  # return a plain array
@@ -883,33 +938,32 @@ class Quantity(np.ndarray):
         else:
             return value
 
-    if not NUMPY_LT_1_9:
-        # Equality (return False if units do not match) needs to be handled
-        # explicitly for numpy >=1.9, since it no longer traps errors.
-        def __eq__(self, other):
+    # Equality (return False if units do not match) needs to be handled
+    # explicitly for numpy >=1.9, since it no longer traps errors.
+    def __eq__(self, other):
+        try:
             try:
-                try:
-                    return super(Quantity, self).__eq__(other)
-                except DeprecationWarning:
-                    # We treat the DeprecationWarning separately, since it may
-                    # mask another Exception.  But we do not want to just use
-                    # np.equal, since super's __eq__ treats recarrays correctly.
-                    return np.equal(self, other)
-            except UnitsError:
-                return False
-            except TypeError:
-                return NotImplemented
+                return super(Quantity, self).__eq__(other)
+            except DeprecationWarning:
+                # We treat the DeprecationWarning separately, since it may
+                # mask another Exception.  But we do not want to just use
+                # np.equal, since super's __eq__ treats recarrays correctly.
+                return np.equal(self, other)
+        except UnitsError:
+            return False
+        except TypeError:
+            return NotImplemented
 
-        def __ne__(self, other):
+    def __ne__(self, other):
+        try:
             try:
-                try:
-                    return super(Quantity, self).__ne__(other)
-                except DeprecationWarning:
-                    return np.not_equal(self, other)
-            except UnitsError:
-                return True
-            except TypeError:
-                return NotImplemented
+                return super(Quantity, self).__ne__(other)
+            except DeprecationWarning:
+                return np.not_equal(self, other)
+        except UnitsError:
+            return True
+        except TypeError:
+            return NotImplemented
 
     # Arithmetic operations
     def __mul__(self, other):
@@ -979,12 +1033,14 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects. """
         return self.__rtruediv__(other)
 
-    def __divmod__(self, other):
-        other_value = self._to_own_unit(other)
-        result_tuple = divmod(self.value, other_value)
+    if not hasattr(np, 'divmod'):  # NUMPY_LT_1_13
+        # In numpy 1.13, divmod goes via a ufunc and thus works without change.
+        def __divmod__(self, other):
+            other_value = self._to_own_unit(other)
+            result_tuple = divmod(self.value, other_value)
 
-        return (self._new_view(result_tuple[0], dimensionless_unscaled),
-                self._new_view(result_tuple[1]))
+            return (self._new_view(result_tuple[0], dimensionless_unscaled),
+                    self._new_view(result_tuple[1]))
 
     def __pow__(self, other):
         if isinstance(other, Fraction):
@@ -1037,16 +1093,16 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
-        # update indices
-        if not self.isscalar:
+        # update indices in info if the info property has been accessed
+        # (in which case 'info' in self.__dict__ is True; this is guaranteed
+        # to be the case if we're part of a table).
+        if not self.isscalar and 'info' in self.__dict__:
             self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
-    def __setslice__(self, i, j, value):
-        # update indices
-        if not self.isscalar:
-            self.info.adjust_indices(slice(i, j), value, len(self))
-        self.view(np.ndarray).__setslice__(i, j, self._to_own_unit(value))
+    if six.PY2:  # don't fall through to ndarray.__setslice__
+        def __setslice__(self, i, j, value):
+            self.__setitem__(slice(i, j), value)
 
     # __contains__ is OK
 
@@ -1162,7 +1218,7 @@ class Quantity(np.ndarray):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return '${0} \; {1}$'.format(latex_value, latex_unit)
+        return r'${0} \; {1}$'.format(latex_value, latex_unit)
 
     def __format__(self, format_spec):
         """
@@ -1484,13 +1540,9 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1_8:
-        def nansum(self, axis=None):
-            return self._wrap_function(np.nansum, axis)
-    else:
-        def nansum(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.nansum, axis,
-                                       out=out, keepdims=keepdims)
+    def nansum(self, axis=None, out=None, keepdims=False):
+        return self._wrap_function(np.nansum, axis,
+                                   out=out, keepdims=keepdims)
 
     def insert(self, obj, values, axis=None):
         """

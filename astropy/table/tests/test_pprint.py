@@ -7,8 +7,9 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
-from ...table import Table
+from ...table import Table, QTable
 from ...table.table_helpers import simple_table
+from ... import units as u
 from ...extern.six import PY2
 from ...utils import console
 
@@ -673,3 +674,13 @@ def test_align():
 
     with pytest.raises(ValueError):
         t.pprint(align='x=')
+
+
+def test_auto_format_func():
+    """Test for #5802 (fix for #5800 where format_func key is not unique)"""
+    t = Table([[1, 2] * u.m])
+    t['col0'].format = '%f'
+    t.pformat()  # Force caching of format function
+
+    qt = QTable(t)
+    qt.pformat()  # Generates exception prior to #5802

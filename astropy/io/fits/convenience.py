@@ -61,15 +61,18 @@ import warnings
 
 import numpy as np
 
+from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
-from .hdu.hdulist import fitsopen
+from .hdu.hdulist import fitsopen, HDUList
 from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from .fitsrec import FITS_rec
+from ...units import Unit
 from ...units.format.fits import UnitScaleError
+from ...units import Quantity
 from ...extern import six
 from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
@@ -78,7 +81,7 @@ from ...utils.decorators import deprecated_renamed_argument
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',
-           'table_to_hdu']
+           'table_to_hdu', 'printdiff']
 
 
 def getheader(filename, *args, **kwargs):
@@ -393,7 +396,7 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist._close(closed=closed)
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def writeto(filename, data, header=None, output_verify='exception',
             overwrite=False, checksum=False):
     """
@@ -442,7 +445,8 @@ def writeto(filename, data, header=None, output_verify='exception',
 
 def table_to_hdu(table):
     """
-    Convert an astropy.table.Table object to a FITS BinTableHDU
+    Convert an `~astropy.table.Table` object to a FITS
+    `~astropy.io.fits.BinTableHDU`.
 
     Parameters
     ----------
@@ -451,18 +455,24 @@ def table_to_hdu(table):
 
     Returns
     -------
-    table_hdu : astropy.io.fits.BinTableHDU
-        The FITS binary table HDU
+    table_hdu : `~astropy.io.fits.BinTableHDU`
+        The FITS binary table HDU.
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
 
-    # Tables with mixin columns are not supported
+    # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
-        mixin_names = [name for name, col in table.columns.items()
-                       if not isinstance(col, table.ColumnClass)]
-        raise ValueError('cannot write table with mixin column(s) {0}'
-                         .format(mixin_names))
+        # Import is done here, in order to avoid it at build time as erfa is not
+        # yet available then.
+        from ...table.column import BaseColumn
+
+        # Only those columns which are instances of BaseColumn or Quantity can be written
+        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity))
+        if unsupported_cols:
+            unsupported_names = [col.info.name for col in unsupported_cols]
+            raise ValueError('cannot write table with mixin column(s) {0}'
+                         .format(unsupported_names))
 
     # Create a new HDU object
     if table.masked:
@@ -472,8 +482,7 @@ def table_to_hdu(table):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -490,8 +499,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        fits_rec = FITS_rec.from_columns(np.array(table.filled()))
-        table_hdu = BinTableHDU(fits_rec)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
 
     # Set units for output HDU
     for col in table_hdu.columns:
@@ -510,6 +518,9 @@ def table_to_hdu(table):
                 warnings.warn(
                     "The unit '{0}' could not be saved to FITS format".format(
                         unit.to_string()), AstropyUserWarning)
+
+            # Try creating a Unit to issue a warning if the unit is not FITS compliant
+            Unit(col.unit, format='fits', parse_strict='warn')
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
@@ -707,7 +718,117 @@ def info(filename, output=None, **kwargs):
     return ret
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+def printdiff(inputa, inputb, *args, **kwargs):
+    """
+    Compare two parts of a FITS file, including entire FITS files,
+    FITS `HDUList` objects and FITS ``HDU`` objects.
+
+    Parameters
+    ----------
+    inputa : str, `HDUList` object, or ``HDU`` object
+        The filename of a FITS file, `HDUList`, or ``HDU``
+        object to compare to ``inputb``.
+
+    inputb : str, `HDUList` object, or ``HDU`` object
+        The filename of a FITS file, `HDUList`, or ``HDU``
+        object to compare to ``inputa``.
+
+    ext, extname, extver
+        Additional positional arguments are for extension specification if your
+        inputs are string filenames (will not work if
+        ``inputa`` and ``inputb`` are ``HDU`` objects or `HDUList` objects).
+        They are flexible and are best illustrated by examples.  In addition
+        to using these arguments positionally you can directly call the
+        keyword parameters ``ext``, ``extname``.
+
+        By extension number::
+
+            printdiff('inA.fits', 'inB.fits', 0)      # the primary HDU
+            printdiff('inA.fits', 'inB.fits', 2)      # the second extension
+            printdiff('inA.fits', 'inB.fits', ext=2)  # the second extension
+
+        By name, i.e., ``EXTNAME`` value (if unique). ``EXTNAME`` values are
+        not case sensitive:
+
+            printdiff('inA.fits', 'inB.fits', 'sci')
+            printdiff('inA.fits', 'inB.fits', extname='sci')  # equivalent
+
+        By combination of ``EXTNAME`` and ``EXTVER`` as separate
+        arguments or as a tuple::
+
+            printdiff('inA.fits', 'inB.fits', 'sci', 2)    # EXTNAME='SCI'
+                                                           # & EXTVER=2
+            printdiff('inA.fits', 'inB.fits', extname='sci', extver=2)
+                                                           # equivalent
+            printdiff('inA.fits', 'inB.fits', ('sci', 2))  # equivalent
+
+        Ambiguous or conflicting specifications will raise an exception::
+
+            printdiff('inA.fits', 'inB.fits',
+                      ext=('sci', 1), extname='err', extver=2)
+
+    kwargs
+        Any additional keyword arguments to be passed to
+        `~astropy.io.fits.FITSDiff`.
+
+    Notes
+    -----
+    The primary use for the `printdiff` function is to allow quick print out
+    of a FITS difference report and will write to ``sys.stdout``.
+    To save the diff report to a file please use `~astropy.io.fits.FITSDiff`
+    directly.
+    """
+
+    # Pop extension keywords
+    extension = {key: kwargs.pop(key) for key in ['ext', 'extname', 'extver']
+                 if key in kwargs}
+    has_extensions = args or extension
+
+    if isinstance(inputa, string_types) and has_extensions:
+        # Use handy _getext to interpret any ext keywords, but
+        # will need to close a if  fails
+        modea, closeda = _get_file_mode(inputa)
+        modeb, closedb = _get_file_mode(inputb)
+
+        hdulista, extidxa = _getext(inputa, modea, *args, **extension)
+        # Have to close a if b doesn't make it
+        try:
+            hdulistb, extidxb = _getext(inputb, modeb, *args, **extension)
+        except Exception:
+            hdulista._close(closed=closeda)
+            raise
+
+        try:
+            hdua = hdulista[extidxa]
+            hdub = hdulistb[extidxb]
+            # See below print for note
+            print(HDUDiff(hdua, hdub, **kwargs).report())
+
+        finally:
+            # See note about _close in getheader function
+            hdulista._close(closed=closeda)
+            hdulistb._close(closed=closedb)
+
+    # If input is not a string, can feed HDU objects or HDUList directly,
+    # but can't currently handle extensions
+    elif isinstance(inputa, _ValidHDU) and has_extensions:
+        raise ValueError("Cannot use extension keywords when providing an "
+                         "HDU object.")
+
+    elif isinstance(inputa, _ValidHDU) and not has_extensions:
+        print(HDUDiff(inputa, inputb, **kwargs).report())
+
+    elif isinstance(inputa, HDUList) and has_extensions:
+        raise NotImplementedError("Extension specification with HDUList "
+                                  "objects not implemented.")
+
+    # This function is EXCLUSIVELY for printing the diff report to screen
+    # in a one-liner call, hence the use of print instead of logging
+    else:
+        print(FITSDiff(inputa, inputb, **kwargs).report())
+
+
+@deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
               overwrite=False):
     """

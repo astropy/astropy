@@ -223,8 +223,12 @@ packages that use the full bugfix/maintenance branch approach.)
 #. If there are any issues in the Github issue tracker that are labeled
    ``affects-dev`` but are issues that apply to this release, update them to
    ``affects-release``.  Similarly, if any issues remain open for this release,
-   re-assign them to the next relevant milestone, and close the milestone for the
-   release you just completed.
+   re-assign them to the next relevant mileston.
+
+#. Create a github milestone for the next bugfix version, move any remaining
+   issues from the version you just released, and close the milestone. When
+   releasing a major release, close the last milestone on the previous
+   maintanance branch, too.
 
 #. Notify the Conda Distribution Maintainer and the Continuous Integration
    maintainer about the new release.  Typically, you should wait to make sure
@@ -324,7 +328,7 @@ The procedure for this is straightforward:
 
 #. On the github issue tracker, add a new milestone for the next major version.
 
-#. Repeat tbe above steps for the astropy-helpers, using the same version series.
+#. Repeat the above steps for the astropy-helpers, using the same version series.
 
 Maintaining Bug Fix Releases
 ----------------------------

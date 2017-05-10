@@ -63,43 +63,43 @@ choices for the ``format`` argument.
 Built-in table readers/writers
 ------------------------------
 
-The full list of built-in readers and writers is shown in the table below:
+The :class:`~astropy.table.Table` class has built-in support for various input 
+and output formats including :ref:`table_io_ascii`, 
+-:ref:`table_io_fits`, :ref:`table_io_hdf5`, and :ref:`table_io_votable`.
 
-=========================== ==== ===== ============= ==========
-           Format           Read Write Auto-identify Deprecated
-=========================== ==== ===== ============= ==========
-                     aastex  Yes   Yes            No        Yes
-                      ascii  Yes   Yes            No
-               ascii.aastex  Yes   Yes            No
-                ascii.basic  Yes   Yes            No
-                  ascii.cds  Yes    No            No
-     ascii.commented_header  Yes   Yes            No
-              ascii.daophot  Yes    No            No
-              ascii.ecsv     Yes   Yes            No
-          ascii.fixed_width  Yes   Yes            No
-ascii.fixed_width_no_header  Yes   Yes            No
- ascii.fixed_width_two_line  Yes   Yes            No
-                 ascii.html  Yes   Yes           Yes
-                 ascii.ipac  Yes   Yes            No
-                ascii.latex  Yes   Yes           Yes
-            ascii.no_header  Yes   Yes            No
-                  ascii.rdb  Yes   Yes           Yes
-           ascii.sextractor  Yes    No            No
-                  ascii.tab  Yes   Yes            No
-                  ascii.csv  Yes   Yes           Yes
-                        cds  Yes    No            No        Yes
-                    daophot  Yes    No            No        Yes
-                       fits  Yes   Yes           Yes
-                       hdf5  Yes   Yes           Yes
-                       html  Yes   Yes            No        Yes
-                       ipac  Yes   Yes            No        Yes
-                      latex  Yes   Yes            No        Yes
-                        rdb  Yes   Yes            No        Yes
-                    votable  Yes   Yes           Yes
-=========================== ==== ===== ============= ==========
+A full list of the supported formats and corresponding classes
+is shown in the table below.
+The ``Write`` column indicates those formats that support write functionality, and 
+the ``Suffix`` column indicates the filename suffix indicating a particular format.
+If the value of ``Suffix`` is ``auto``, the format is auto-detected from the file itself.
+Not all formats support auto-detection.
 
-Deprecated format names like ``aastex`` will be removed in a future version.
-Use the full name (e.g. ``ascii.aastex``) instead.
+===========================  =====  ======  ============================================================================================
+           Format            Write  Suffix                                          Description                                    
+===========================  =====  ======  ============================================================================================
+                      ascii    Yes          ASCII table in any supported format (uses guessing)                                     
+               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals             
+                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters                    
+                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table                                                
+     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line            
+                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values                         
+              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table                           
+                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)    
+          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width                                              
+ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header                       
+ ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line               
+                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table                                             
+                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table                                              
+                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table                                           
+            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers                                
+                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line                
+                  ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
+           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table                          
+                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values  
+                       fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
+                       hdf5    Yes    auto  HDF5_: Hierarchical Data Format binary file
+                    votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
+===========================  =====  ======  ============================================================================================
 
 .. _table_io_ascii:
 
@@ -138,40 +138,13 @@ column delimiter and the output format for the ``colc`` column use::
   a|1|2.00
   b|3|4.00
 
-A full list of the supported ``format`` values and corresponding format types
-for ASCII tables is given below.  The ``Suffix`` column indicates the filename
-suffix where the format will be auto-detected, while the ``Write`` column
-indicates which support write functionality.
-
-=============================== ====== ===== ============================================================================================
-           Format               Suffix Write                                          Description
-=============================== ====== ===== ============================================================================================
-``ascii``                                Yes ASCII table in any supported format (uses guessing)
-``ascii.aastex``                         Yes :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
-``ascii.basic``                          Yes :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
-``ascii.cds``                                :class:`~astropy.io.ascii.Cds`: CDS format table
-``ascii.commented_header``               Yes :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
-``ascii.daophot``                            :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
-``ascii.fixed_width``                    Yes :class:`~astropy.io.ascii.FixedWidth`: Fixed width
-``ascii.fixed_width_no_header``          Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
-``ascii.fixed_width_two_line``           Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
-``ascii.ipac``                           Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
-``ascii.html``                   .html   Yes :class:`~astropy.io.ascii.HTML`: HTML table
-``ascii.latex``                   .tex   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
-``ascii.no_header``                      Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
-``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
-``ascii.sextractor``                         :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
-``ascii.tab``                            Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
-``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
-``ascii.ecsv``                   .ecsv   Yes :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
-=============================== ====== ===== ============================================================================================
 
 .. note::
 
    When specifying a specific ASCII table format using the unified interface, the format name is
-   prefixed with ``ascii.`` in order to identify the format as ASCII-based.  Compare the
-   table above to the `astropy.io.ascii` list of :ref:`supported_formats`.  Therefore the following
-   are equivalent::
+   prefixed with ``ascii`` in order to identify the format as ASCII-based.  Compare the
+   table above to the `astropy.io.ascii` list of :ref:`supported formats <supported_formats>` where the prefix is not
+   needed. Therefore the following are equivalent::
 
      >>> dat = ascii.read('file.dat', format='daophot')
      >>> dat = Table.read('file.dat', format='ascii.daophot')
@@ -262,9 +235,12 @@ FITS header (for example, keyword comments are dropped).
 HDF5
 ^^^^^^^^
 
-Reading/writing from/to `HDF5 <http://www.hdfgroup.org/HDF5/>`_ files is
-supported with ``format='hdf5'`` (this requires `h5py
-<http://code.google.com/p/h5py/>`_ to be installed). However, the ``.hdf5``
+.. _HDF5: http://www.hdfgroup.org/HDF5/
+.. _h5py: http://www.h5py.org/
+
+Reading/writing from/to HDF5_ files is
+supported with ``format='hdf5'`` (this requires h5py_
+to be installed). However, the ``.hdf5``
 file extension is automatically recognized when writing files, and HDF5 files
 are automatically identified (even with a different extension) when reading
 in (using the first few bytes of the file to identify the format), so in most

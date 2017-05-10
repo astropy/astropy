@@ -48,7 +48,7 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 
     References
     ----------
-    .. [1] W. Press et al, Numerical Recipies in C (2002)
+    .. [1] W. Press et al, Numerical Recipes in C (2002)
     .. [2] Scargle, J.D. 1982, ApJ 263:835-853
     .. [3] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
     """
@@ -88,8 +88,7 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
         return -np.log(1 - PLS)
     elif normalization == 'psd':
         w = dy ** -2
-        w /= w.sum()
-        PLS *= 0.5 * t.size * np.dot(w, y * y)
+        PLS *= 0.5 * np.dot(w, y * y)
     else:
         raise ValueError("normalization='{0}' "
                          "not recognized".format(normalization))

@@ -14,7 +14,8 @@ from .. import conf
 from ..file import _File
 from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first)
+                    itersubclasses, decode_ascii, _get_array_mmap, first,
+                    _free_space_check)
 from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
@@ -333,7 +334,7 @@ class _BaseHDU(object):
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
@@ -489,7 +490,6 @@ class _BaseHDU(object):
         # Handle checksum
         self._update_checksum(checksum)
 
-
     def _update_uint_scale_keywords(self):
         """
         If the data is unsigned int 16, 32, or 64 add BSCALE/BZERO cards to
@@ -638,7 +638,6 @@ class _BaseHDU(object):
 
         If this proves too slow a more direct approach may be used.
         """
-
         raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
         if raw is not None:
             fileobj.writearray(raw)
@@ -651,6 +650,15 @@ class _BaseHDU(object):
     # HDUList, eventually the plan is to have this be moved into writeto()
     # somehow...
     def _writeto(self, fileobj, inplace=False, copy=False):
+        try:
+            dirname = os.path.dirname(fileobj._file.name)
+        except AttributeError:
+            dirname = None
+
+        with _free_space_check(self, dirname):
+            self._writeto_internal(fileobj, inplace, copy)
+
+    def _writeto_internal(self, fileobj, inplace, copy):
         # For now fileobj is assumed to be a _File object
         if not inplace or self._new:
             header_offset, _ = self._writeheader(fileobj)
@@ -692,12 +700,12 @@ class _BaseHDU(object):
         if self._data_loaded:
             if self.data is not None:
                 # Seek through the array's bases for an memmap'd array; we
-                # can't rely on the _File object to give us this info since the
-                # user may have replaced the previous mmap'd array
+                # can't rely on the _File object to give us this info since
+                # the user may have replaced the previous mmap'd array
                 if copy or self._data_replaced:
-                    # Of course, if we're copying the data to a new file we
-                    # don't care about flushing the original mmap; instead just
-                    # read it into the new file
+                    # Of course, if we're copying the data to a new file
+                    # we don't care about flushing the original mmap;
+                    # instead just read it into the new file
                     array_mmap = None
                 else:
                     array_mmap = _get_array_mmap(self.data)
@@ -1572,7 +1580,7 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """

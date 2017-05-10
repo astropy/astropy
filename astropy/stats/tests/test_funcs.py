@@ -32,6 +32,7 @@ from .. import funcs
 # of poisson_upper_limit
 # from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
 
+from ...utils.compat import NUMPY_LT_1_10  # pylint: disable=W0611
 from ...utils.misc import NumpyRNGContext
 from ... import units as u
 
@@ -103,6 +104,26 @@ def test_median_absolute_deviation_masked():
         funcs.median_absolute_deviation(array, axis=0).data, [0, 1])
     np.testing.assert_array_equal(
         funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
+
+
+@pytest.mark.skipif('NUMPY_LT_1_10')
+def test_median_absolute_deviation_nans():
+    array = np.array([[1, 4, 3, np.nan],
+                      [2, 5, np.nan, 4]])
+    assert_equal(funcs.median_absolute_deviation(array, func=np.nanmedian,
+                                                 axis=1),
+                 [1, 1])
+
+    array = np.ma.masked_invalid(array)
+    assert funcs.median_absolute_deviation(array) == 1
+
+
+def test_median_absolute_deviation_multidim_axis():
+    array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
+    assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
+                 np.zeros(5))
+    assert_equal(funcs.median_absolute_deviation(array, axis=np.array([1, 2])),
+                 np.zeros(5))
 
 
 def test_median_absolute_deviation_quantity():
@@ -242,6 +263,42 @@ def test_biweight_midvariance_axis_3d():
         bwi = np.array(bwi)
         assert_allclose(bw[y], bwi)
 
+def test_biweight_midcovariance():
+    """test biweight_midcovariance method"""
+    # Test 1
+    rng = np.random.RandomState(1)
+    d = np.array([rng.normal(0, 2, 100) for i in range(5)])
+    cov = funcs.biweight_midcovariance(d)
+    std = np.around(np.sqrt(cov.diagonal()), 1)
+    assert_allclose(std, [ 1.8,  1.9,  2. ,  2.1,  2.1])
+    # Test 2
+    rng = np.random.RandomState(1)
+    d = np.array([rng.normal(0, 2, 10) for i in range(5)])
+    cov = funcs.biweight_midcovariance(d)
+    std = np.around(np.sqrt(cov.diagonal()), 1)
+    assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
+
+def test_midcov_midvar():
+    """
+    test biweight_midcovariance and biweight_midvariance
+    are compatible
+    """
+    rng = np.random.RandomState(1)
+    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
+    cov = funcs.biweight_midcovariance(d)
+    cov_std = np.around(np.sqrt(cov.diagonal()), 1)
+    std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
+    assert_allclose(cov_std, std)
+
+def test_midcovariance_shape():
+    """
+    test that midcovariance raises error when feed 3D array
+    """
+    rng = np.random.RandomState(1)
+    d = rng.normal(0,1,27).reshape(3,3,3)
+    with pytest.raises(ValueError) as e:
+        funcs.biweight_midcovariance(d)
+    assert 'a.ndim should equal 2' in str(e.value)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():

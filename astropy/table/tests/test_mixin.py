@@ -24,6 +24,7 @@ from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates
 from ... import units as u
+from ..column import BaseColumn
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
@@ -102,14 +103,44 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
+def test_io_quantity_write(tmpdir):
+    """
+    Test that table with Quantity mixin column can be written by io.fits,
+    but not by io.votable and io.misc.hdf5. Validation of the output is done.
+    Test that io.fits writes a table containing Quantity mixin columns that can
+    be round-tripped (metadata unit).
+    """
+    t = QTable()
+    t['a'] = u.Quantity([1,2,4], unit='Angstrom')
+
+    filename = tmpdir.join("table-tmp").strpath
+    open(filename, 'w').close()
+
+    for fmt in ('fits', 'votable', 'hdf5'):
+        if fmt == 'fits':
+            t.write(filename, format=fmt, overwrite=True)
+            qt = QTable.read(filename, format=fmt)
+            assert isinstance(qt['a'], u.Quantity)
+            assert qt['a'].unit == 'Angstrom'
+            continue
+        if fmt == 'hdf5' and not HAS_H5PY:
+            continue
+        with pytest.raises(ValueError) as err:
+            t.write(filename, format=fmt, overwrite=True)
+        assert 'cannot write table with mixin column(s)' in str(err.value)
+
+
 def test_io_write_fail(mixin_cols):
     """
-    Test that table with mixin column cannot be written by io.votable,
-    io.fits, and io.misc.hdf5
-    every pure Python writer.  No validation of the output is done,
-    this just confirms no exceptions.
+    Test that table with mixin column (excluding Quantity) cannot be written by io.votable,
+    io.fits, and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
+    # Only do this test if there are unsupported column types (i.e. anything besides
+    # BaseColumn or Quantity subclasses.
+    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
+    if not unsupported_cols:
+        pytest.skip("no unsupported column types")
     for fmt in ('fits', 'votable', 'hdf5'):
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
@@ -150,7 +181,7 @@ def test_join(table_types):
             assert t12[name2].info.description == name + '2'
 
     for join_type in ('outer', 'right'):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(NotImplementedError) as exc:
             t12 = join(t1, t2, keys='a', join_type=join_type)
         assert 'join requires masking column' in str(exc.value)
 
@@ -180,7 +211,7 @@ def test_hstack(table_types):
             if chop:
                 t2 = t2[:-1]
                 if join_type == 'outer':
-                    with pytest.raises(ValueError) as exc:
+                    with pytest.raises(NotImplementedError) as exc:
                         t12 = hstack([t1, t2], join_type=join_type)
                     assert 'hstack requires masking column' in str(exc.value)
                     continue
@@ -277,17 +308,37 @@ def test_add_column(mixin_cols):
     m.info.meta = {'a': 1}
     t = QTable([m])
 
-    # Add columns m2 and m3 by two different methods and test expected equality
+    # Add columns m2, m3, m4 by two different methods and test expected equality
     t['m2'] = m
     m.info.name = 'm3'
     t.add_columns([m], copy=True)
     m.info.name = 'm4'
     t.add_columns([m], copy=False)
     for name in ('m2', 'm3', 'm4'):
-        assert_table_name_col_equal(t, 'm', t[name])
+        assert_table_name_col_equal(t, name, m)
         for attr in attrs:
             if attr != 'name':
                 assert getattr(t['m'].info, attr) == getattr(t[name].info, attr)
+    # Also check that one can set using a scalar.
+    s = m[0]
+    if type(s) is type(m):
+        # We're not going to worry about testing classes for which scalars
+        # are a different class than the real array (and thus loose info, etc.)
+        t['s'] = m[0]
+        assert_table_name_col_equal(t, 's', m[0])
+        for attr in attrs:
+            if attr != 'name':
+                assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
+
+    # While we're add it, also check a length-1 table.
+    t = QTable([m[1:2]], names=['m'])
+    if type(s) is type(m):
+        t['s'] = m[0]
+        assert_table_name_col_equal(t, 's', m[0])
+        for attr in attrs:
+            if attr != 'name':
+                assert getattr(t['m'].info, attr) == getattr(t['s'].info, attr)
+
 
 def test_vstack():
     """

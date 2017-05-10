@@ -603,6 +603,10 @@ class TimeDatetime(TimeUnique):
                              op_dtypes=7*[iys.dtype] + [np.object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
+            if isec >= 60:
+                raise ValueError('Time {} is within a leap second but datetime '
+                                 'does not support leap seconds'
+                                 .format((iy, im, id, ihr, imin, isec, ifracsec)))
             if timezone is not None:
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec,
                                              tzinfo=TimezoneInfo()).astimezone(timezone)
@@ -954,8 +958,8 @@ class TimeFITS(TimeString):
             fits_scale = tm['scale'].upper()
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
-                raise ValueError("Scale {0} is not in the allowed scales {1}"
-                                 .format(repr(scale), sorted(TIME_SCALES)))
+                raise ValueError("Scale {0!r} is not in the allowed scales {1}"
+                                 .format(scale, sorted(TIME_SCALES)))
             # If no scale was given in the initialiser, set the scale to
             # that given in the string.  Also store a possible realization,
             # so we can round-trip (as long as no scale changes are made).

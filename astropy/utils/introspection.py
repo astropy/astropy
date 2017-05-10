@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 
 
 import inspect
+import re
 import types
 
 from ..extern import six
@@ -154,6 +155,13 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
         from pkg_resources import parse_version
     except ImportError:
         from distutils.version import LooseVersion as parse_version
+        # LooseVersion raises a TypeError when strings like dev, rc1 are part
+        # of the version number. Match the dotted numbers only. Regex taken
+        # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
+        expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
+        m = re.match(expr, version)
+        if m:
+            version = m.group(0)
 
     if inclusive:
         return parse_version(have_version) >= parse_version(version)

@@ -92,34 +92,36 @@ class TestTableColumnsItems(BaseTestItems):
 @pytest.mark.usefixtures('table_data')
 class TestTableItems(BaseTestItems):
 
-    def test_column(self, table_data):
+    @pytest.mark.parametrize("idx", [1, np.int64(1), np.array(1)])
+    def test_column(self, table_data, idx):
         """Column access returns REFERENCE to data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
 
         a = self.t['a']
-        assert a[1] == 2
-        a[1] = 0
-        assert self.t['a'][1] == 0
+        assert a[idx] == 2
+        a[idx] = 0
+        assert self.t['a'][idx] == 0
 
-    def test_row(self, table_data):
+    @pytest.mark.parametrize("idx", [1, np.int64(1), np.array(1)])
+    def test_row(self, table_data, idx):
         """Row  access returns REFERENCE to data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
 
-        row = self.t[1]
+        row = self.t[idx]
         assert row['a'] == 2
-        assert row[1] == 5
+        assert row[idx] == 5
         assert row.columns['a'].attrs_equal(table_data.COLS[0])
         assert row.columns['b'].attrs_equal(table_data.COLS[1])
         assert row.columns['c'].attrs_equal(table_data.COLS[2])
 
         # Check that setting by col index sets the table and row value
-        row[1] = 0
-        assert row[1] == 0
+        row[idx] = 0
+        assert row[idx] == 0
         assert row['b'] == 0
-        assert self.t['b'][1] == 0
-        assert self.t[1]['b'] == 0
+        assert self.t['b'][idx] == 0
+        assert self.t[idx]['b'] == 0
 
         # Check that setting by col name sets the table and row value
         row['a'] = 0

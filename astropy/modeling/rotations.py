@@ -29,7 +29,8 @@ import numpy as np
 from .core import Model
 from .parameters import Parameter
 from ..extern.six.moves import zip
-
+from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
+from .. import units as u
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
@@ -42,28 +43,10 @@ class _EulerRotation(object):
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
         for angle, axis in zip([phi, theta, psi], axes_order):
-            matrix = np.zeros((3, 3), dtype=np.float)
-            if axis == 'x':
-                mat = self.rotation_matrix_from_angle(angle)
-                matrix[0, 0] = 1
-                matrix[1:, 1:] = mat
-            elif axis == 'y':
-                mat = self.rotation_matrix_from_angle(-angle)
-                matrix[1, 1] = 1
-                matrix[0, 0] = mat[0, 0]
-                matrix[0, 2] = mat[0, 1]
-                matrix[2, 0] = mat[1, 0]
-                matrix[2, 2] = mat[1, 1]
-            elif axis == 'z':
-                mat = self.rotation_matrix_from_angle(angle)
-                matrix[2, 2] = 1
-                matrix[:2, :2] = mat
-            else:
-                raise ValueError("Expected axes_order to be a combination of characters"
-                                 "'x', 'y' and 'z', got {0}".format(
-                                     set(axes_order).difference(self.axes)))
-            matrices.append(matrix)
-        return np.dot(matrices[2], np.dot(matrices[1], matrices[0]))
+            # We use float here to coerce the angle to a scalar value, otherwise
+            # rotation_matrix would return a (1,3,3) matrix.
+            matrices.append(rotation_matrix(float(angle), axis, unit=u.rad))
+        return matrix_product(*matrices[::-1])
 
     @staticmethod
     def spherical2cartesian(alpha, delta):
@@ -187,9 +170,9 @@ class _SkyRotation(_EulerRotation, Model):
                                                           lon_pole, self.axes_order)
         mask = alpha < 0
         if isinstance(mask, np.ndarray):
-            alpha[mask] +=360
+            alpha[mask] += 360
         else:
-            alpha +=360
+            alpha += 360
         return alpha, delta
 
 

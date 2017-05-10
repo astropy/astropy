@@ -427,6 +427,40 @@ class TestAddPosition(SetupData):
 
 
 @pytest.mark.usefixtures('table_types')
+class TestAddName(SetupData):
+
+    def test_override_name(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
+
+        # Check that we can override the name of the input column in the Table
+        t.add_column(self.a, name='b')
+        t.add_column(self.b, name='a')
+        assert t.columns.keys() == ['b', 'a']
+        # Check that we did not change the name of the input column
+        assert self.a.info.name == 'a'
+        assert self.b.info.name == 'b'
+
+        # Now test with an input column from another table
+        t2 = table_types.Table()
+        t2.add_column(t['a'], name='c')
+        assert t2.columns.keys() == ['c']
+        # Check that we did not change the name of the input column
+        assert t.columns.keys() == ['b', 'a']
+
+        # Check that we can give a name if none was present
+        col = table_types.Column([1,2,3])
+        t.add_column(col, name='c')
+        assert t.columns.keys() == ['b', 'a', 'c']
+
+    def test_default_name(self, table_types):
+        t = table_types.Table()
+        col = table_types.Column([1,2,3])
+        t.add_column(col)
+        assert t.columns.keys() == ['col0']
+
+
+@pytest.mark.usefixtures('table_types')
 class TestInitFromTable(SetupData):
 
     def test_from_table_cols(self, table_types):
@@ -495,6 +529,21 @@ class TestAddColumns(SetupData):
         t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[2, 2])
         assert t.colnames == ['a', 'b', 'c', 'd']
+
+    def test_add_columns6(self, table_types):
+        """Check that we can override column names."""
+        self._setup(table_types)
+        t = table_types.Table()
+        t.add_columns([self.a, self.b, self.c], names=['b', 'c', 'a'])
+        assert t.colnames == ['b', 'c', 'a']
+
+    def test_add_columns7(self, table_types):
+        """Check that default names are used when appropriate."""
+        t = table_types.Table()
+        col0 = table_types.Column([1,2,3])
+        col1 = table_types.Column([4,5,3])
+        t.add_columns([col0, col1])
+        assert t.colnames == ['col0', 'col1']
 
     def test_add_duplicate_column(self, table_types):
         self._setup(table_types)

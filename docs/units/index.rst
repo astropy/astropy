@@ -106,7 +106,7 @@ parentheses to create a corresponding logarithmic quantity::
     >>> from astropy import constants as c
     >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
     <Dex 4.43842814841305 dex(cm / s2)>
-    
+
 `astropy.units` also handles :ref:`equivalencies <unit_equivalencies>`, such as
 that between wavelength and frequency. To use that feature, equivalence objects
 are passed to the :meth:`~astropy.units.quantity.Quantity.to` conversion
@@ -206,6 +206,8 @@ Reference/API
 .. automodapi:: astropy.units.equivalencies
 
 .. automodapi:: astropy.units.function
+
+.. automodapi:: astropy.units.deprecated
 
 Acknowledgments
 ===============

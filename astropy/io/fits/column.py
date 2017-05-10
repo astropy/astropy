@@ -338,7 +338,7 @@ class _FormatP(str):
     # As far as I can tell from my reading of the FITS standard, a type code is
     # *required* for P and Q formats; there is no default
     _format_re_template = (r'(?P<repeat>\d+)?{}(?P<dtype>[LXBIJKAEDCM])'
-                            '(?:\((?P<max>\d*)\))?')
+                           r'(?:\((?P<max>\d*)\))?')
     _format_code = 'P'
     _format_re = re.compile(_format_re_template.format(_format_code))
     _descriptor_format = '2i4'
@@ -1834,7 +1834,7 @@ def _get_index(names, key):
             else:              # multiple match
                 raise KeyError("Ambiguous key name '{}'.".format(key))
     else:
-        raise KeyError("Illegal key '{}'.".format(repr(key)))
+        raise KeyError("Illegal key '{!r}'.".format(key))
 
     return indx
 

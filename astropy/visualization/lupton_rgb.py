@@ -56,7 +56,7 @@ class Mapping(object):
     minimum : float or sequence(3)
         Intensity that should be mapped to black (a scalar or array for R, G, B).
     image : `~numpy.ndarray`, optional
-        An image used to calculate some parameters of sopme mappings.
+        An image used to calculate some parameters of some mappings.
     """
 
     def __init__(self, minimum=None, image=None):
@@ -352,7 +352,8 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
     Q : float
         The asinh softening parameter.
     filename: str
-        Write the resulting RGB image to a file (file type determined frome extension).
+        Write the resulting RGB image to a file (file type determined
+        from extension).
 
     Returns
     -------

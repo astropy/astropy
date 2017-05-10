@@ -155,3 +155,17 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(-0.5, 11.5)
 
         return fig
+
+    def test_copy_frame_properties_change_wcs(self):
+
+        # When WCS is changed, a new frame is created, so we need to make sure
+        # that the color and linewidth are transferred over
+
+        fig = plt.figure()
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+        fig.add_axes(ax)
+        ax.coords.frame.set_linewidth(5)
+        ax.coords.frame.set_color('purple')
+        ax.reset_wcs()
+        assert ax.coords.frame.get_linewidth() == 5
+        assert ax.coords.frame.get_color() == 'purple'

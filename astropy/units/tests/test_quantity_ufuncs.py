@@ -233,23 +233,40 @@ class TestQuantityMathFuncs(object):
         assert np.all(function(np.arange(3.) * u.m, 2. * u.s) ==
                       function(np.arange(3.), 2.) * u.m / u.s)
 
-    def test_divmod_and_floor_divide(self):
+    def test_floor_divide_remainder_and_divmod(self):
         inch = u.Unit(0.0254 * u.m)
         dividend = np.array([1., 2., 3.]) * u.m
         divisor = np.array([3., 4., 5.]) * inch
         quotient = dividend // divisor
+        remainder = dividend % divisor
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
-        quotient2, remainder = divmod(dividend, divisor)
-        assert np.all(quotient2 == quotient)
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
         assert remainder.unit == dividend.unit
+        quotient2 = np.floor_divide(dividend, divisor)
+        remainder2 = np.remainder(dividend, divisor)
+        assert np.all(quotient2 == quotient)
+        assert np.all(remainder2 == remainder)
+        quotient3, remainder3 = divmod(dividend, divisor)
+        assert np.all(quotient3 == quotient)
+        assert np.all(remainder3 == remainder)
 
         with pytest.raises(TypeError):
             divmod(dividend, u.km)
 
         with pytest.raises(TypeError):
             dividend // u.km
+
+        with pytest.raises(TypeError):
+            dividend % u.km
+
+        if hasattr(np, 'divmod'):  # not NUMPY_LT_1_13
+            quotient4, remainder4 = np.divmod(dividend, divisor)
+            assert np.all(quotient4 == quotient)
+            assert np.all(remainder4 == remainder)
+            with pytest.raises(TypeError):
+                np.divmod(dividend, u.km)
+
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
@@ -273,6 +290,22 @@ class TestQuantityMathFuncs(object):
                       == np.array([1., 0.5, 0.25]) / u.m)
 
     # cbrt only introduced in numpy 1.10
+    # heaviside only introduced in numpy 1.13
+    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
+    def test_heaviside_scalar(self):
+        assert np.heaviside(0. * u.m, 0.5) == 0.5 * u.dimensionless_unscaled
+        assert np.heaviside(0. * u.s,
+                            25 * u.percent) == 0.25 * u.dimensionless_unscaled
+        assert np.heaviside(2. * u.J, 0.25) == 1. * u.dimensionless_unscaled
+
+    @pytest.mark.skipif("not hasattr(np, 'heaviside')")
+    def test_heaviside_array(self):
+        values = np.array([-1., 0., 0., +1.])
+        halfway = np.array([0.75, 0.25, 0.75, 0.25]) * u.dimensionless_unscaled
+        assert np.all(np.heaviside(values * u.m,
+                                   halfway * u.dimensionless_unscaled) ==
+                      [0, 0.25, 0.75, +1.] * u.dimensionless_unscaled)
+
     @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_scalar(self):
         assert np.cbrt(8. * u.m**3) == 2. * u.m
@@ -456,10 +489,12 @@ class TestQuantityMathFuncs(object):
 
 class TestInvariantUfuncs(object):
 
+    # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
                                          np.conj, np.conjugate,
                                          np.negative, np.spacing, np.rint,
-                                         np.floor, np.ceil])
+                                         np.floor, np.ceil] +
+                             [np.positive] if hasattr(np, 'positive') else [])
     def test_invariant_scalar(self, ufunc):
 
         q_i = 4.7 * u.m
@@ -668,6 +703,28 @@ class TestInplaceUfuncs(object):
         np.arctan2(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
         assert_allclose(s.value, np.arctan2(1., 2.))
         assert s.unit is u.radian
+
+    @pytest.mark.skipif("not hasattr(np, 'divmod')")
+    @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
+    def test_two_argument_two_output_ufunc_inplace(self, value):
+        v = value * u.m
+        divisor = 70.*u.cm
+        v_copy = v.copy()
+        tmp = v.copy()
+        # cannot use out1, out2 keywords with numpy 1.7
+        check = np.divmod(v, divisor, tmp, v)
+        assert check[0] is tmp and check[1] is v
+        assert tmp.unit == u.dimensionless_unscaled
+        assert v.unit == v_copy.unit
+        # can also replace in last position if no scaling is needed
+        v2 = v_copy.to(divisor.unit)
+        check2 = np.divmod(v2, divisor, v2, tmp)
+        assert check2[0] is v2 and check2[1] is tmp
+        assert v2.unit == u.dimensionless_unscaled
+        assert tmp.unit == divisor.unit
+        # but cannot replace input with first output if scaling is needed
+        with pytest.raises(TypeError):
+            np.divmod(v_copy, divisor, v_copy, tmp)
 
     def test_ufunc_inplace_non_contiguous_data(self):
         # ensure inplace works also for non-contiguous data (closes #1834)

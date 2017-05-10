@@ -8,8 +8,7 @@ import collections
 import numpy as np
 
 from ..extern import six
-from ..utils import deprecated
-from ..utils.compat import NUMPY_LT_1_8
+
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -90,17 +89,6 @@ class Row(object):
     def index(self):
         return self._index
 
-    @property
-    @deprecated('0.4', alternative=':attr:`Row.as_void`')
-    def data(self):
-        """
-        Returns a *read-only* copy of the row values in the form of np.void or
-        np.ma.mvoid objects.  This corresponds to the object types returned for
-        row indexing of a pure numpy structured array or masked array. This
-        method is slow and its use is deprecated.
-        """
-        return self.as_void()
-
     def as_void(self):
         """
         Returns a *read-only* copy of the row values in the form of np.void or
@@ -132,28 +120,7 @@ class Row(object):
 
             # Make np.void version of values, and then the final mvoid row
             row_vals = np.array([vals], dtype=self.dtype)[0]
-            try:
-                void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
-            except ValueError as err:
-                # Another bug (or maybe same?) that is fixed in 1.8 prevents
-                # accessing a row in masked array if it has object-type members.
-                # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
-                # >>> x['a'] = 1
-                # >>> x['a'].mask = True
-                # >>> x[0]
-                # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
-                #
-                # All we do here is re-raise with a more informative message
-                msg = six.text_type(err)
-                if ('Setting void-array with object members' in msg and
-                        NUMPY_LT_1_8):
-                    raise ValueError(
-                        'Cannot convert masked table row with Object type '
-                        'columns using as_void(), due to a bug in Numpy '
-                        '{0}.  Please upgrade to Numpy 1.8 or newer.'.format(
-                            np.__version__))
-                else:
-                    raise
+            void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
         else:
             void_row = np.array([vals], dtype=self.dtype)[0]
         return void_row

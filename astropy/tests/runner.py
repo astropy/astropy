@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import inspect
 import os
+import copy
 import shlex
 import sys
 import tempfile
@@ -109,6 +110,22 @@ class TestRunnerBase(object):
         cls.keywords = OrderedDict()
         doc_keywords = ""
         for name, func in sorted_keywords:
+            # Here we test if the function has been overloaded to return
+            # NotImplemented which is the way to disable arguments on
+            # subclasses. If it has been disabled we need to remove it from the
+            # default keywords dict. We do it in the try except block because
+            # we do not have access to an instance of the class, so this is
+            # going to error unless the method is just doing `return
+            # NotImplemented`.
+            try:
+                # Second argument is False, as it is normally a bool.
+                # The other two are placeholders for objects.
+                if func(None, False, None) is NotImplemented:
+                    continue
+            except Exception:
+                pass
+
+            # Construct the default kwargs dict and docstring
             cls.keywords[name] = func._default_value
             if func.__doc__:
                 doc_keywords += ' '*8
@@ -124,12 +141,14 @@ class TestRunnerBase(object):
 
     def _generate_args(self, **kwargs):
         # Update default values with passed kwargs
-        self.keywords.update(kwargs)
+        # but don't modify the defaults
+        keywords = copy.deepcopy(self.keywords)
+        keywords.update(kwargs)
         # Iterate through the keywords (in order of priority)
         args = []
-        for keyword in self.keywords.keys():
+        for keyword in keywords.keys():
             func = getattr(self, keyword)
-            result = func(self.keywords[keyword], self.keywords)
+            result = func(keywords[keyword], keywords)
 
             # Allow disabaling of options in a subclass
             if result is NotImplemented:
@@ -353,7 +372,7 @@ class TestRunner(TestRunnerBase):
 
         return []
 
-    @keyword()
+    @keyword(default_value='none')
     def remote_data(self, remote_data, kwargs):
         """
         remote_data : {'none', 'astropy', 'any'}, optional
@@ -369,9 +388,10 @@ class TestRunner(TestRunnerBase):
             remote_data = 'none'
         elif remote_data not in ('none', 'astropy', 'any'):
             warnings.warn("The remote_data option should be one of "
-                          "none/astropy/any. For backward-compatibility, "
+                          "none/astropy/any (found {0}). For backward-compatibility, "
                           "assuming 'any', but you should change the option to be "
-                          "one of the supported ones to avoid issues in future.",
+                          "one of the supported ones to avoid issues in "
+                          "future.".format(remote_data),
                           AstropyDeprecationWarning)
             remote_data = 'any'
 

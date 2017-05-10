@@ -59,6 +59,7 @@ User Documentation
    install
    getting_started
    Example gallery <generated/examples/index>
+   Tutorials <http://tutorials.astropy.org/>
 
 **Core data structures and transformations**
 
@@ -127,7 +128,7 @@ Getting help
 ************
 
 If you want to get help or discuss issues with other Astropy users, you can sign
-up for the `astropy mailing list`_. Alternatively, the `astropy-dev mailing
+up for the `Astropy mailing list`_. Alternatively, the `astropy-dev mailing
 list`_ is where you should go to discuss more technical aspects of Astropy with
 the developers. You can also email the astropy developers privately at
 `feedback@astropy.org`_...but remember that questions you ask
@@ -145,7 +146,7 @@ create a new issue on the Astropy `GitHub issue page
 account <https://github.com>`_ on GitHub if you do not have one.
 
 If you prefer not to create a GitHub account, please report the issue to either
-the `astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
+the `Astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
 private email to the astropy core developers at
 `feedback@astropy.org <mailto:feedback@astropy.org>`_.
 
@@ -159,7 +160,7 @@ necessary.
 For astropy-helpers
 -------------------
 
-As of Astropy v0.4, Astropy and many affiliated packages use a package of
+Astropy and many affiliated packages use a package of
 utilities called astropy-helpers during building and installation.  If you have
 any build/installation issue--particularly if you're getting a traceback
 mentioning the ``astropy_helpers`` or ``ah_bootstrap`` modules--please send a
@@ -228,5 +229,4 @@ Indices and Tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _astropy mailing list: http://mail.scipy.org/mailman/listinfo/astropy
 .. _feedback@astropy.org: mailto:feedback@astropy.org
