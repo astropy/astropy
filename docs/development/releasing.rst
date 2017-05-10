@@ -226,6 +226,12 @@ packages that use the full bugfix/maintenance branch approach.)
   re-assign them to the next relevant milestone, and close the milestone for the
   release you just completed.
 
+#. Notify the Conda Distribution Maintainer and the Continuous Integration
+   maintainer about the new release.  Typically, you should wait to make sure
+   ``conda-forge`` and possible ``conda`` works before sending out the public
+   announcement (so that users that want to try out the new version can do so on
+   conda).
+
 Modifications for a beta/release candidate release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
