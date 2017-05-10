@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
+
 from ... import units as u
-from ...tests.helper import pytest
 
 
 from .py3_test_quantity_annotations import *

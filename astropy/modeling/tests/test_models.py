@@ -14,6 +14,7 @@ try:
 except ImportError:
     import pickle
 
+import pytest
 import numpy as np
 
 from numpy.testing import utils
@@ -22,7 +23,6 @@ from .example_models import models_1D, models_2D
 from .. import fitting, models
 from ..core import FittableModel
 from ..polynomial import PolynomialBase
-from ...tests.helper import pytest
 from ...utils import minversion
 from ...extern.six.moves import zip
 

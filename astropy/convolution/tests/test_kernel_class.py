@@ -4,10 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_allclose
 
-from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
 from ..kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,

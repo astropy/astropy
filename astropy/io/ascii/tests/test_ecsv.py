@@ -10,12 +10,12 @@ import os
 import copy
 import sys
 
+import pytest
 import numpy as np
 
 from ....table import Table, Column
 from ....table.table_helpers import simple_table
 
-from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
 from ... import ascii

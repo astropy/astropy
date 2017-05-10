@@ -8,13 +8,14 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ...extern.six.moves import zip
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
 # LOCAL
 from ... import units as u
 from ... import constants
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 
 
 def test_dimensionless_angles():

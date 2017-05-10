@@ -4,13 +4,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
 from ..convolve import convolve, convolve_fft
 from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from ..kernels import Moffat2DKernel
-from ...tests.helper import pytest
 
 
 SHAPES_ODD = [[15, 15], [31, 31]]

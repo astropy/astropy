@@ -493,6 +493,7 @@ installing astropy) is to run this from the root of the source tree::
 
     python setup.py test
 
-There are also alternative methods of :ref:`running-tests`.
+There are also alternative methods of :ref:`running-tests`. Note that you will
+need `pytest <http://pytest.org>`_ to be installed for this to work.
 
 .. include:: development/workflow/known_projects.inc

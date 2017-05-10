@@ -7,10 +7,11 @@ import gc
 import locale
 import re
 
+import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from ...tests.helper import pytest, raises, catch_warnings
+from ...tests.helper import raises, catch_warnings
 from ...io import fits
 from .. import wcs
 from .. import _wcs

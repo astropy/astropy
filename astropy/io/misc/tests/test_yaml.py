@@ -5,6 +5,8 @@ This module tests some of the methods related to YAML serialization.
 
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
+
+import pytest
 import numpy as np
 
 from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
@@ -12,8 +14,6 @@ from .... import units as u
 from ....time import Time
 from ....table import QTable
 from ....extern.six.moves import StringIO
-
-from ....tests.helper import pytest
 
 try:
     from ..yaml import load, load_all, dump

@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ...tests.helper import pytest
+
+import pytest
 import numpy as np
+
 from .test_table import SetupData
 from ..bst import BST, FastRBT
 from ..sorted_array import SortedArray

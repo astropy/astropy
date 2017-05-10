@@ -1,11 +1,11 @@
+import pytest
+
 # Renamed these imports so that them being in the namespace will not
 # cause pytest 3 to discover them as tests and then complain that
 # they have __init__ defined.
 from astropy.tests.runner import TestRunner as _TestRunner
 from astropy.tests.runner import TestRunnerBase as _TestRunnerBase
-
 from astropy.tests.runner import keyword
-from astropy.tests.helper import pytest
 
 
 def test_disable_kwarg():

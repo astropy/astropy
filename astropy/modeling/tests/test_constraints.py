@@ -5,14 +5,16 @@ from __future__ import (absolute_import, division, print_function,
 
 import types
 
+import pytest
+import numpy as np
+from numpy.testing import utils
+from numpy.random import RandomState
+
 from ..core import Fittable1DModel
 from ..parameters import Parameter
 from .. import models
 from .. import fitting
-import numpy as np
-from numpy.testing import utils
-from numpy.random import RandomState
-from ...tests.helper import pytest
+
 from .utils import ignore_non_integer_warning
 
 try:

@@ -6,12 +6,13 @@ import os
 import platform
 import sys
 
+import pytest
 import numpy as np
 
 from ..verify import VerifyError
 from ....extern.six.moves import range
 from ....io import fits
-from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
+from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from ....utils.compat import NUMPY_LT_1_12
 

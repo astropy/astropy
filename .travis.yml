@@ -74,7 +74,7 @@ matrix:
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy). We also test the two latest matplotlib versions
-        # for the image tests, and with the system rather than build-in pytest.
+        # for the image tests.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
@@ -82,7 +82,6 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
                MATPLOTLIB_VERSION=1.5
-               ASTROPY_USE_SYSTEM_PYTEST=1
                EVENT_TYPE='push pull_request cron'
 
         - os: linux
@@ -92,7 +91,6 @@ matrix:
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
-               ASTROPY_USE_SYSTEM_PYTEST=1
                EVENT_TYPE='push pull_request cron'
 
         # Try pre-release version of Numpy without optional dependencies
@@ -127,6 +125,15 @@ matrix:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+
+    # Workaround for Python 3.3, for which pytest 2.8 or greater is not available.
+    # This can be removed after Astropy 2.0 is released since the next version
+    # will only support Python 3.4+ (see APE 10)
+    - if [[ $PYTHON_VERSION == 3.3 && $SETUP_CMD == test* ]]; then
+        conda remove pytest --force;
+        pip install pytest>=2.8;
+      fi
+
 
 script:
     - $MAIN_CMD $SETUP_CMD

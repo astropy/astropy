@@ -15,6 +15,8 @@ import types
 import warnings
 import zlib
 
+import pytest
+
 from ..extern import six
 from ..extern.six.moves import cPickle as pickle
 
@@ -38,63 +40,6 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'assert_follows_unicode_guidelines', 'quantity_allclose',
            'assert_quantity_allclose', 'check_pickling_recovery',
            'pickle_protocol', 'generic_recursive_equality_test']
-
-
-if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
-    import pytest
-
-else:
-    from ..extern import pytest as extern_pytest
-
-    if six.PY2:
-        exec("def do_exec_def(co, loc): exec co in loc\n")
-        extern_pytest.do_exec = do_exec_def
-
-        unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodestring(extern_pytest.sources)))
-    else:
-        exec("def do_exec_def(co, loc): exec(co, loc)\n")
-        extern_pytest.do_exec = do_exec_def
-
-        unpacked_sources = extern_pytest.sources.encode("ascii")
-        unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
-
-    importer = extern_pytest.DictImporter(unpacked_sources)
-    sys.meta_path.insert(0, importer)
-
-    pytest = importer.load_module(str('pytest'))
-
-
-# Monkey-patch py.test to work around issue #811
-# https://github.com/astropy/astropy/issues/811
-from _pytest.assertion import rewrite as _rewrite
-_orig_write_pyc = _rewrite._write_pyc
-
-
-def _write_pyc_wrapper(*args):
-    """Wraps the internal _write_pyc method in py.test to recognize
-    PermissionErrors and just stop trying to cache its generated pyc files if
-    it can't write them to the __pycache__ directory.
-
-    When py.test scans for test modules, it actually rewrites the bytecode
-    of each test module it discovers--this is how it manages to add extra
-    instrumentation to the assert builtin.  Normally it caches these
-    rewritten bytecode files--``_write_pyc()`` is just a function that handles
-    writing the rewritten pyc file to the cache.  If it returns ``False`` for
-    any reason py.test will stop trying to cache the files altogether.  The
-    original function catches some cases, but it has a long-standing bug of
-    not catching permission errors on the ``__pycache__`` directory in Python
-    3.  Hence this patch.
-    """
-
-    try:
-        return _orig_write_pyc(*args)
-    except IOError as e:
-        if e.errno == errno.EACCES:
-            return False
-_rewrite._write_pyc = _write_pyc_wrapper
-
 
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data

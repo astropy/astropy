@@ -6,6 +6,7 @@ import copy
 import gc
 import re
 
+import pytest
 import numpy as np
 from numpy import char as chararray
 
@@ -19,7 +20,7 @@ from ....extern import six
 from ....extern.six.moves import range, zip
 from ....extern.six.moves import cPickle as pickle
 from ....io import fits
-from ....tests.helper import pytest, catch_warnings, ignore_warnings
+from ....tests.helper import catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
 
 from ..column import Delayed, NUMPY2FITS

@@ -19,9 +19,9 @@ from copy import deepcopy
 from collections import OrderedDict
 import pickle
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ... import table
 from ...table import table_helpers, Table, QTable
 from ... import time

@@ -9,13 +9,14 @@ import re
 import time
 import warnings
 
+import pytest
 import numpy as np
 
 from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
 from ....utils.compat import NUMPY_LT_1_12
-from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
+from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
 

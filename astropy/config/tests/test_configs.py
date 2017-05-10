@@ -9,6 +9,8 @@ import os
 import sys
 import subprocess
 
+import pytest
+
 from ...tests.helper import catch_warnings
 from ...extern import six
 
@@ -120,8 +122,6 @@ def test_configitem():
 
 def test_configitem_types():
 
-    from ...tests.helper import pytest
-
     from ..configuration import ConfigNamespace, ConfigItem
 
     cio = ConfigItem(['op1', 'op2', 'op3'])
@@ -150,7 +150,6 @@ def test_configitem_types():
 
 def test_configitem_options(tmpdir):
 
-    from ...tests.helper import pytest
     from ..configuration import ConfigNamespace, ConfigItem, get_config
 
     cio = ConfigItem(['op1', 'op2', 'op3'])
@@ -189,7 +188,6 @@ def test_config_noastropy_fallback(monkeypatch):
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
-    from ...tests.helper import pytest
 
     # make sure the config directory is not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')

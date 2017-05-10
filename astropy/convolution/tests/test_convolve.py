@@ -2,9 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
-
-from ...tests.helper import pytest
 
 from ..convolve import convolve
 

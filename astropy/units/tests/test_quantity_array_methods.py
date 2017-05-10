@@ -1,10 +1,10 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
 
+import pytest
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import pytest
 from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10, NUMPY_LT_1_10_4
 
 
