@@ -160,8 +160,8 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git clean -dfx
 
 #. Upload the source distribution to PyPI; this is preceded by re-running
-   the sdist command, which is necessary for the upload command to know
-   which distribution to upload::
+   the sdist command, which makes sure the source code is packaged up and ready
+   to be uploaded::
 
       $ python setup.py build sdist upload --sign
 
