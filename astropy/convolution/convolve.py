@@ -24,7 +24,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
-             nan_treatment='interpolate', normalize_kernel=True, mask=None,
+             nan_treatment='interpolate', normalize_kernel=False, mask=None,
              preserve_nan=False):
     '''
     Convolve an array with a kernel.
@@ -116,11 +116,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         raise ValueError("Invalid boundary option: must be one of {0}"
                          .format(BOUNDARY_OPTIONS))
 
-    if nan_treatment == 'interpolate':
-        renormalize_by_kernel = True
-    elif nan_treatment == 'fill':
-        renormalize_by_kernel = False
-    else:
+    if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
     # The cython routines all need float type inputs (so, a particular
@@ -207,16 +203,23 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if preserve_nan:
         badvals = np.isnan(array_internal)
 
+    if nan_treatment == 'fill':
+        array_internal[np.isnan(array_internal)] = fill_value
+
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
 
+    renormalize_by_kernel = normalize_kernel
+
     if kernel_sum < 1. / MAX_NORMALIZATION and normalize_kernel:
         raise Exception("The kernel can't be normalized, because its sum is "
                         "close to zero. The sum of the given kernel is < {0}"
                         .format(1. / MAX_NORMALIZATION))
-    #kernel_internal /= kernel_sum
+
+    kernel_internal /= kernel_sum
+
 
     if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
@@ -283,11 +286,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                                   'arrays at this time')
 
     # If normalization was not requested, we need to scale the array (since
-    # the kernel was normalized prior to convolution)
-    # (with normalize_kernel now operating *inside* the cython functions, we
-    # don't need this)
-    #if not normalize_kernel:
-    #    result *= kernel_sum
+    # the kernel is effectively normalized within the cython functions)
+    if not normalize_kernel:
+        result *= kernel_sum
 
     if preserve_nan:
         result[badvals] = np.nan
@@ -305,7 +306,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
-                 nan_treatment='interpolate', normalize_kernel=True,
+                 nan_treatment='interpolate', normalize_kernel=False,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, quiet=False,
                  ignore_edge_zeros=False, min_wt=0.0, allow_huge=False,
@@ -384,8 +385,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     ignore_edge_zeros : bool, optional
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
-        This parameter may result in 'edge-brightening' effects if you're using
-        a normalized kernel
     min_wt : float, optional
         If ignoring ``NaN`` / zeros, force all grid points with a weight less than
         this value to ``NaN`` (the weight of a grid point with *no* ignored
@@ -489,17 +488,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
         kernel = kernel.array
         if isinstance(array, Kernel):
-            raise TypeError("Can't convolve two kernels. Use convolve() instead.")
+            raise TypeError("Can't convolve two kernels.")
 
-    if nan_treatment == 'interpolate':
-        renormalize_by_kernel = True
-    elif nan_treatment == 'fill':
-        renormalize_by_kernel = False
-    else:
+    if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
     # Convert array dtype to complex
@@ -550,21 +546,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             raise Exception("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
-        kernel_scale = 1. / kernel.sum()
-        normalized_kernel = kernel * kernel_scale
+        kernel_scale = kernel.sum()
+        normalized_kernel = kernel / kernel_scale
+        kernel_scale = 1 # if we want to normalize it, leave it normed!
     elif normalize_kernel:
         # try this.  If a function is not passed, the code will just crash... I
         # think type checking would be better but PEPs say otherwise...
-        kernel_scale = 1. / normalize_kernel(kernel)
-        normalized_kernel = kernel * kernel_scale
+        kernel_scale = normalize_kernel(kernel)
+        normalized_kernel = kernel / kernel_scale
     else:
-        kernel_scale = 1
-        if np.abs(kernel.sum() - 1) < 1e-8:
+        kernel_scale = kernel.sum()
+        if np.abs(kernel_scale - 1) < 1e-8:
             normalized_kernel = kernel
         else:
             if np.abs(kernel.sum()) < 1e-8 and nan_treatment == 'interpolate':
                 raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
-            normalized_kernel = kernel / kernel.sum()
+            normalized_kernel = kernel / kernel_scale
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
@@ -668,8 +665,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
 
-    interpolate_nan = nan_treatment == 'interpolate'
-    if (interpolate_nan or ignore_edge_zeros):
+    interpolate_nan = (nan_treatment == 'interpolate')
+    if (interpolate_nan or ignore_edge_zeros) and normalize_kernel:
         if ignore_edge_zeros:
             bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
@@ -700,7 +697,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array[nanmaskarray] = np.nan
     kernel[nanmaskkernel] = np.nan
 
-    fftmult /= kernel_scale
+    fftmult *= kernel_scale
 
     if return_fft:
         return fftmult
@@ -713,6 +710,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                 rifft[bigimwt == 0.0] = 0.0
     else:
         rifft = (ifftn(fftmult))
+
+    if preserve_nan:
+        rifft[nanmaskarray] = np.nan
 
     if crop:
         result = rifft[arrayslices].real
