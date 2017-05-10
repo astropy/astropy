@@ -54,9 +54,11 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests in ``remote-data`` mode, as those are not
-   necessarily run automatically::
+   necessarily run automatically. You may also want to make sure the
+   description in ``setup.py`` is ReST compliant::
 
       $ python setup.py test --remote-data
+      $ python setup.py check --restructuredtext
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
