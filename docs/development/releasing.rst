@@ -221,10 +221,10 @@ packages that use the full bugfix/maintenance branch approach.)
    branch's ``CHANGES.rst`` into master.
 
 #. If there are any issues in the Github issue tracker that are labeled
-  ``affects-dev`` but are issues that apply to this release, update them to
-  ``affects-release``.  Similarly, if any issues remain open for this release,
-  re-assign them to the next relevant milestone, and close the milestone for the
-  release you just completed.
+   ``affects-dev`` but are issues that apply to this release, update them to
+   ``affects-release``.  Similarly, if any issues remain open for this release,
+   re-assign them to the next relevant milestone, and close the milestone for the
+   release you just completed.
 
 #. Notify the Conda Distribution Maintainer and the Continuous Integration
    maintainer about the new release.  Typically, you should wait to make sure
