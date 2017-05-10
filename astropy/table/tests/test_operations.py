@@ -843,7 +843,7 @@ class TestVStack():
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        implemented_mixin_classes = ['Quantity', 'Angle',
+        implemented_mixin_classes = ['Quantity', 'Angle', 'Time',
                                      'Latitude', 'Longitude',
                                      'EarthLocation']
         if cls_name in implemented_mixin_classes:
@@ -853,6 +853,16 @@ class TestVStack():
                 table.vstack([t, t])
             assert ('vstack unavailable for mixin column type(s): {}'
                     .format(cls_name) in str(err))
+
+        t2 = table.QTable([col], names='a')  # different from col0 name for t
+        mixin_classes_with_masking = ['Time']
+        if cls_name in mixin_classes_with_masking:
+            table.vstack([t, t2], join_type='outer')
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.vstack([t, t2], join_type='outer')
+            assert ('vstack requires masking' in str(err) or
+                    'vstack unavailable' in str(err))
 
 
 class TestHStack():
@@ -1057,6 +1067,23 @@ class TestHStack():
         """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
+
+    def test_check_for_mixin_functionality(self, mixin_cols):
+        col = mixin_cols['m']
+        t = table.QTable([col])
+        t2 = t[:2]  # shorter version of same table
+
+        cls_name = type(col).__name__
+
+        table.hstack([t, t2], join_type='inner')
+
+        mixin_classes_with_masking = ['Time']
+        if cls_name in mixin_classes_with_masking:
+            table.hstack([t, t2], join_type='outer')
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.hstack([t, t2], join_type='outer')
+            assert 'hstack requires masking' in str(err)
 
 
 def test_unique(operation_table_type):
