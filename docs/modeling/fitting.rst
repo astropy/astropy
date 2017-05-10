@@ -21,6 +21,14 @@ The rules for passing input to fitters are:
   argument just as used when evaluating models; this may be required for the
   fitter to know how to broadcast the input data.
 
+* The `~astropy.modeling.fitting.LinearLSQFitter` currently works only with
+  simple (not compound) models.
+
+* The current fitters work only with models that have a single output
+  (including bivariate functions such as
+  `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
+  x, y -> x', y').
+
 
 Fitting examples
 ----------------
