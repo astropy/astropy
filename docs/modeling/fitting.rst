@@ -27,7 +27,7 @@ The rules for passing input to fitters are:
 * The current fitters work only with models that have a single output
   (including bivariate functions such as
   `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
-  x, y -> x', y').
+  ``x, y -> x', y'``).
 
 
 Fitting examples
