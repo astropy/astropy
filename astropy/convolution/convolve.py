@@ -723,3 +723,44 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         return result
     else:
         return rifft.real
+
+
+def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
+    """
+    Given a data set containing NaNs, replace the NaNs by interpolating from
+    neighboring data points with a given kernel.
+
+    Parameters
+    ----------
+    array : `numpy.ndarray`
+        Array to be convolved with `kernel`.  It can be of any
+        dimensionality, though only 1, 2, and 3d arrays have been tested.
+    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
+        The convolution kernel. The number of dimensions should match those
+        for the array.  The dimensions *do not* have to be odd in all directions,
+        unlike in the non-fft `convolve` function.  The kernel will be
+        normalized if `normalize_kernel` is set.  It is assumed to be centered
+        (i.e., shifts may result if your kernel is asymmetric).  The kernel
+        *must be normalizable* (i.e., its sum cannot be zero).
+    convolve : `convolve` or `convolve_fft`
+        One of the two convolution functions defined in this package.
+
+    Returns
+    -------
+    newarray : `numpy.ndarray`
+        A copy of the original array with NaN pixels replaced with their
+        interpolated counterparts
+    """
+
+    if not np.any(np.isnan(array)):
+        return array.copy()
+
+    newarray = array.copy()
+
+    convolved = convolve(array, kernel, nan_treatment='interpolate',
+                         normalize_kernel=True, **kwargs)
+
+    isnan = np.isnan(array)
+    newarray[isnan] = convolved[isnan]
+
+    return newarray
