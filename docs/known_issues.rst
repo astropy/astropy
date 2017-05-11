@@ -45,11 +45,21 @@ E.g.::
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] (Unit not initialised)>
 
+::
+
+    >>> ratio = (3600 * u.s) / (1 * u.h)
+    >>> ratio
+    <Quantity 3600.0 s / h>
+    >>> np.array(ratio)
+    array(3600.0)
+    >>> np.array([ratio])
+    array([ 1.])
+
 Also in-place operations where the output is a normal `~numpy.ndarray`
 will drop the unit silently (at least in numpy <= 1.9)::
 
     >>> a = np.arange(10.)
-    >>> a *= 1.*u.kg
+    >>> a *= 1. * u.kg
     >>> a
     array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
 
@@ -57,6 +67,9 @@ Work-arounds are available for some cases.  For the above::
 
     >>> q.dot(q)
     <Quantity 285.0 m2>
+
+    >>> np.array(ratio.to(u.dimensionless_unscaled))
+    array(1.0)
 
     >>> u.Quantity([q, q]).flatten()
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
