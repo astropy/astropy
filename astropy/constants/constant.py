@@ -90,21 +90,22 @@ class Constant(Quantity):
                 system=None):
         name_lower = name.lower()
         instances = Constant._registry.setdefault(name_lower, {})
-        if system in instances:
-            warnings.warn('Constant {0!r} already has a definition in the '
-                          '{1!r} system'.format(name, system),
-                          AstropyUserWarning)
         # By-pass Quantity initialization, since units may not yet be
         # initialized here, and we store the unit in string form.
         inst = np.array(value).view(cls)
 
-        for c in six.itervalues(instances):
-            if system is not None and not hasattr(c.__class__, system):
-                setattr(c, system, inst)
-            if c.system is not None and not hasattr(inst.__class__, c.system):
-                setattr(inst, c.system, c)
+        if system in instances:
+            warnings.warn('Constant {0!r} already has a definition in the '
+                          '{1!r} system'.format(name, system),
+                          AstropyUserWarning)
+        else:
+            for c in six.itervalues(instances):
+                if system is not None and not hasattr(c.__class__, system):
+                    setattr(c, system, inst)
+                if c.system is not None and not hasattr(inst.__class__, c.system):
+                    setattr(inst, c.system, c)
 
-        instances[system] = inst
+            instances[system] = inst
 
         inst._abbrev = abbrev
         inst._name = name
