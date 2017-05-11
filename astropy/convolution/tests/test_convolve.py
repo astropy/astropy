@@ -40,6 +40,18 @@ class TestConvolve1D(object):
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
+    def test_input_unmodified(self):
+        """
+        Test that convolve works correctly when inputs are lists
+        """
+
+        inlist = [1, 4, 5, 6, 5, 7, 8]
+        x = np.array(inlist)
+        y = [0.2, 0.6, 0.2]
+        z = convolve(x, y, boundary=None)
+
+        assert np.all(np.array(inlist) == x)
+
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
@@ -97,7 +109,7 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert np.all(z == np.array([0., 4., 0.], dtype='>f8'))
@@ -171,19 +183,19 @@ class TestConvolve1D(object):
         # boundary, nan_treatment, normalize_kernel
         rslt = {
                 (None, 'interpolate', True): [0,2,0],
-                (None, 'interpolate', False): [0,4,0],
+                (None, 'interpolate', False): [0,6,0],
                 (None, 'fill', True): [0,4/3.,0],
                 (None, 'fill', False): [0,4,0],
                 ('fill', 'interpolate', True): [1/2.,2,3/2.],
-                ('fill', 'interpolate', False): [1,4,3],
+                ('fill', 'interpolate', False): [3/2.,6,9/2.],
                 ('fill', 'fill', True): [1/3.,4/3.,3/3.],
                 ('fill', 'fill', False): [1,4,3],
                 ('wrap', 'interpolate', True): [2,2,2],
-                ('wrap', 'interpolate', False): [4,4,4],
+                ('wrap', 'interpolate', False): [6,6,6],
                 ('wrap', 'fill', True): [4/3.,4/3.,4/3.],
                 ('wrap', 'fill', False): [4,4,4],
                 ('extend', 'interpolate', True): [1,2,3],
-                ('extend', 'interpolate', False): [2,4,6],
+                ('extend', 'interpolate', False): [3,6,9],
                 ('extend', 'fill', True): [2/3., 4/3., 6/3.],
                 ('extend', 'fill', False): [2,4,6],
                }[boundary, nan_treatment, normalize_kernel]
@@ -280,7 +292,7 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
@@ -330,7 +342,7 @@ class TestConvolve2D(object):
             assert np.all(z == x)
 
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-    def test_uniform_3x3_withnan(self, boundary):
+    def test_uniform_3x3_withnanfilled(self, boundary):
         '''
         Test that the different modes are producing the correct results using
         a 3x3 uniform kernel. This version includes a NaN value in the
@@ -345,7 +357,7 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
                      normalize_kernel=False)
 
         if boundary is None:
@@ -368,6 +380,44 @@ class TestConvolve2D(object):
             raise ValueError("Invalid boundary specification")
 
 
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_uniform_3x3_withnaninterped(self, boundary):
+        '''
+        Test that the different modes are producing the correct results using
+        a 3x3 uniform kernel. This version includes a NaN value in the
+        original array.
+        '''
+
+        x = np.array([[0., 0., 4.],
+                      [1., np.nan, 0.],
+                      [0., 3., 0.]], dtype='>f8')
+
+        y = np.array([[1., 1., 1.],
+                      [1., 1., 1.],
+                      [1., 1., 1.]], dtype='>f8')
+
+        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+                     normalize_kernel=True)
+
+        if boundary is None:
+            assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
+                                                        [0., 1., 0.],
+                                                        [0., 0., 0.]], dtype='>f8'), 10)
+        elif boundary == 'fill':
+            assert_array_almost_equal_nulp(z, np.array([[1./8, 5./8, 4./8],
+                                                        [4./8, 8./8, 7./8],
+                                                        [4./8, 4./8, 3./8]], dtype='>f8'), 10)
+        elif boundary == 'wrap':
+            assert_array_almost_equal_nulp(z, np.array([[1., 1., 1.],
+                                                        [1., 1., 1.],
+                                                        [1., 1., 1.]], dtype='>f8'), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([[2./8, 9./8, 16./8],
+                                                        [5./8, 8./8, 11./8],
+                                                        [8./8, 7./8, 6./8]], dtype='>f8'), 10)
+        else:
+            raise ValueError("Invalid boundary specification")
+
 class TestConvolve3D(object):
     def test_list(self):
         """
@@ -383,7 +433,7 @@ class TestConvolve3D(object):
               [1, 1, 1],
               [1, 1, 1]]]
 
-        z = convolve(x, x, boundary='fill', fill_value=1)
+        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z / 27, x, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
@@ -456,7 +506,7 @@ class TestConvolve3D(object):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
@@ -507,7 +557,7 @@ class TestConvolve3D(object):
             assert np.all(z == x)
 
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-    def test_uniform_3x3x3_withnan(self, boundary):
+    def test_uniform_3x3x3_withnan_filled(self, boundary):
         '''
         Test that the different modes are producing the correct results using
         a 3x3 uniform kernel. This version includes a NaN value in the
@@ -520,7 +570,8 @@ class TestConvolve3D(object):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate')
+        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+                     normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
@@ -551,5 +602,58 @@ class TestConvolve3D(object):
                                                          [ 138.,   93.,   48.],
                                                          [ 152.,  101.,   50.]]],
                                                        dtype='>f8'), 10)
+        else:
+            raise ValueError("Invalid Boundary Option")
+
+
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_uniform_3x3x3_withnan_interped(self, boundary):
+        '''
+        Test that the different modes are producing the correct results using
+        a 3x3 uniform kernel. This version includes a NaN value in the
+        original array.
+        '''
+
+        x = np.array([[[1., 2., 1.], [2., 3., 1.], [3., 2., 5.]],
+                      [[4., 3., 1.], [5., np.nan, 2.], [6., 1., 1.]],
+                      [[7., 0., 2.], [8., 2., 3.], [9., 2., 2.]]], dtype='>f8')
+
+        y = np.ones((3, 3, 3), dtype='>f8')
+
+        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+                     normalize_kernel=True)
+
+        kernsum = y.sum() - 1 # one nan is missing
+        mid = x[np.isfinite(x)].sum() / kernsum
+
+        if boundary is None:
+            assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
+                                                        [[0., 0., 0.], [0., 78., 0.], [0., 0., 0.]],
+                                                        [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]],
+                                                       dtype='>f8')/kernsum, 10)
+        elif boundary == 'fill':
+            assert_array_almost_equal_nulp(z, np.array([[[ 20.,  25.,  13.],
+                                                         [ 32.,  43.,  22.],
+                                                         [ 22.,  31.,  15.]],
+                                                        [[ 37.,  47.,  20.],
+                                                         [ 60.,  78.,  33.],
+                                                         [ 43.,  57.,  24.]],
+                                                        [[ 29.,  37.,  13.],
+                                                         [ 47.,  58.,  19.],
+                                                         [ 33.,  41.,  13.]]],
+                                                       dtype='>f8')/kernsum, 10)
+        elif boundary == 'wrap':
+            assert_array_almost_equal_nulp(z, np.tile(mid.astype('>f8'), [3,3,3]), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([[[  62.,   51.,   40.],
+                                                         [  72.,   63.,   54.],
+                                                         [  82.,   75.,   68.]],
+                                                        [[  93.,   68.,   43.],
+                                                         [ 105.,   78.,   51.],
+                                                         [ 117.,   88.,   59.]],
+                                                        [[ 124.,   85.,   46.],
+                                                         [ 138.,   93.,   48.],
+                                                         [ 152.,  101.,   50.]]],
+                                                       dtype='>f8')/kernsum, 10)
         else:
             raise ValueError("Invalid Boundary Option")
