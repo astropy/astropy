@@ -102,6 +102,7 @@ class TimeInfo(MixinInfo):
     _represent_as_dict_extra_attrs = ('format', 'scale', 'precision',
                                       'in_subfmt', 'out_subfmt', 'location',
                                       '_delta_ut1_utc', '_delta_tdb_tt')
+    mask_val = np.ma.masked
 
     @property
     def _represent_as_dict_attrs(self):
