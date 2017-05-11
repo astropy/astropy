@@ -343,7 +343,7 @@ position, and ``wcs`` object from above to create a cutout with size
 
 
 Reference/API
-*************
+=============
 
 .. automodapi:: astropy.nddata.utils
     :no-inheritance-diagram:
