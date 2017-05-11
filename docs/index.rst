@@ -48,7 +48,7 @@ Getting Started
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
    Get Help <http://www.astropy.org/help.html>
-   Contribute <http://www.astropy.org/contribute.html>
+   Contribute and Report Problems <http://www.astropy.org/contribute.html>
 
 .. _user-docs:
 
