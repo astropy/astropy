@@ -92,5 +92,35 @@ def _make_transform_graph_docs():
 
     """
 
-    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+
+    # colors are in dictionary at the bottom of transformations.py
+    graph_legend = """
+    .. raw:: html
+
+        <ul>
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>FunctionTransform:</b>
+                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #d95f02 "></span>
+                </p>
+            </li>
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>StaticMatrixTransform:</b>
+                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #7570b3 "></span>
+                </p>
+            </li>
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>DynamicMatrixTransform:</b>
+                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #1b9e77 "></span>
+                </p>
+            </li>
+        </ul>
+    """
+    docstr = docstr + dedent(graph_legend)
+
+    return docstr
+
 _transform_graph_docs = _make_transform_graph_docs()

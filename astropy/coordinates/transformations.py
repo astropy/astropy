@@ -432,13 +432,6 @@ class TransformGraph(object):
             else:
                 nodenames.append(n.__name__ + '[ shape=oval ]')
 
-        # As far as @adrn can tell, there is no way to have font with different
-        #   colors in the same node, so I create 3 here instead. This could be
-        #   reduced to a single node if it is possible.
-        for cls, color in trans_to_color.items():
-            nodenames.append('{0} [shape=box label="{0}" style=filled fillcolor="{1}"]'
-                             .format(cls.__name__, color))
-
         edgenames = []
         # Now the edges
         for a in self._graph:
