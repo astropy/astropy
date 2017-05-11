@@ -11,11 +11,7 @@ Try the development version
     take a look at `Git Basics`_.
 
     If you have never used `git`_ before, allow one hour the first time you do
-    this. You will not need to do this every time you want to contribute;
-    most of it is one-time setup. You can count on one hand the number of
-    `git`_ commands you will need to regularly use to keep your local copy
-    of `Astropy`_ up to date. If you find this taking more than an hour email
-    the `astropy developers list <http://groups.google.com/group/astropy-dev>`_ for help
+    this. If you find this taking more than one hour, post in one of the `astropy forums <http://www.astropy.org/help.html>`_ to get help.
 
 
 Trying out the development version of Astropy is useful in three ways:
