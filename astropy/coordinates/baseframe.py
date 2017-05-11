@@ -299,6 +299,7 @@ class TimeFrameAttribute(FrameAttribute):
                                                                value, err))
             converted = True
 
+        out.writeable = False
         return out, converted
 
 
