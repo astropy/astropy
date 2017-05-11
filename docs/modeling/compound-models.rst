@@ -414,7 +414,7 @@ example, to create the following compound model:
     digraph {
         in0 [shape="none", label="input 0"];
         out0 [shape="none", label="output 0"];
-        redshift0 [shape="box", label="Redshift"];
+        redshift0 [shape="box", label="RedshiftScaleFactor"];
         gaussian0 [shape="box", label="Gaussian1D(1, 0.75, 0.1)"];
 
         in0 -> redshift0;
