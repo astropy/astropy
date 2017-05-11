@@ -29,6 +29,10 @@ The classification is as follows:
               color: #03a913;
               content: "⬤";
          }
+         .pendingdep:before {
+              color: #a84b03;
+              content: "⬤";
+         }
          .deprecated:before {
               color: #ff0000;
               content: "⬤";
@@ -51,6 +55,10 @@ The classification is as follows:
       <tr>
         <td align='center'><span class="mature"></span></td>
         <td>Mature.  Additions/improvements possible, but no major changes planned. </td>
+      </tr>
+      <tr>
+        <td align='center'><span class="pendingdep"></span></td>
+        <td>Pending deprecation.  Might be deprecated in a future version.</td>
       </tr>
       <tr>
         <td align='center'><span class="deprecated"></span></td>
@@ -79,10 +87,21 @@ The current planned and existing sub-packages are:
                 astropy.analytic_functions
             </td>
             <td align='center'>
-                <span class="dev"></span>
+                <span class="pendingdep"></span>
             </td>
             <td>
-                New in v1.0.
+                New in v1.0. Contains blackbody calculations. Will be deprecated when <tt class="docutils literal"><span class="pre">astropy.modeling</span></tt> supports units.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.config
+            </td>
+            <td align='center'>
+                <span class="mature"></span>
+            </td>
+            <td>
+                Configuration received major overhaul in v0.4. Since then on, the package has been stable.
             </td>
         </tr>
         <tr>
@@ -201,17 +220,6 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
-                astropy.photometry
-            </td>
-            <td align='center'>
-                <span class="planned"></span>
-            </td>
-            <td>
-                &nbsp;
-            </td>
-        </tr>
-        <tr>
-            <td>
                 astropy.stats
             </td>
             <td align='center'>
@@ -275,6 +283,17 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 New in v1.0, and in development.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.visualization.wcsaxes
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td>
+                New in v1.3. Originally developed as <tt class="docutils literal"><span class="pre">wcsaxes</span></tt> and has maintained a stable API.
             </td>
         </tr>
         <tr>
