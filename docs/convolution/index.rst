@@ -102,23 +102,42 @@ The kernel can then be used directly when calling
 
 Using astropy's convolution to replace bad data
 -----------------------------------------------
-Astropy's convolution methods can be used to *replace* bad data with values
-relatively closely approximating their "correct" values.  This is great for
-handling images with a few bad pixels or for interpolating sparse images with a
-custom kernel.
+Astropy's convolution methods can be used to replace bad data with values
+interpolated from their neighbors.  Kernel-based interpolation is useful for
+handling images with a few bad pixels or for interpolating sparsely sampled
+images.
 
-Basic interpolation can be useful when you want to run a source finding
-algorithm or some other image analysis tool that requires a NaN-free image:
+Some contexts in which you might want to use kernel-based interpolation include:
+
+ * images with saturated pixels.  Generally, these are the highest-intensity
+   regions in the imaged area, and the interpolated values are not reliable,
+   but this can be useful for display purposes
+ * images with flagged pixels, e.g., with a few small regions affected by cosmic
+   rays or other spurious signals that require those pixels to be flagged out.
+   If the affected region is small enough, the resulting interpolation will have
+   a small effect on source statistics and may allow for robust source finding
+   algorithms to be run on the resulting data
+ * sparsely sampled images such as those constructed with single-pixel
+   detectors.  Such images will only have a few discrete points sampled across
+   the imaged area, but an approximation of the extended sky emission can still
+   be constructed.
+
+
+The script below shows an example of kernel interpolation to fill in
+flagged-out pixels:
 
 .. plot:: convolution/images/interpolate_example.py
    :context: reset
-   :include-source:
+   :include-source: false
 
-You can also use this tool to reconstruct a sparsely sampled image:
+This script shows the power of this technique for reconstructing images from
+sparse sampling.  Note that the image is not perfect - the pointlike sources
+are sometimes missed - but the extended structure is very well recovered (by
+eye).
 
 .. plot:: convolution/images/reconstruct_example.py
    :context: reset
-   :include-source:
+   :include-source: false
 
 
 Using `astropy.convolution`
