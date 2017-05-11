@@ -1,8 +1,8 @@
+:orphan:
+
 ********
 Overview
 ********
-
-Here we describe a broad overview of the Astropy project and its parts.
 
 Astropy Project Concept
 =======================
