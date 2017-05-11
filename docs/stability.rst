@@ -106,7 +106,7 @@ The current planned and existing sub-packages are:
             <td>
                 New top-level package in v0.3 (was previously part of
                 <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>).
-                No major changes since, likely will maintain backwards compatibility but possible future additions or improvements.
+                No major changes since, but possible future additions or improvements.
             </td>
         </tr>
         <tr>
@@ -252,7 +252,7 @@ The current planned and existing sub-packages are:
                 <span class="stable"></span>
             </td>
             <td>
-                New in v0.2. Adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality is likely to be added in future versions.
+                New in v0.2. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality is likely to be added in future versions.
             </td>
         </tr>
         <tr>
