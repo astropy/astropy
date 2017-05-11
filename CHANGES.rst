@@ -214,6 +214,12 @@ Other Changes and Additions
 
 - Nothing changed yet.
 
+- The bundled version of pytest has now been removed, but the
+  astropy.tests.helper.pytest import will continue to work properly.
+  Affiliated packages should nevertheless transition to importing pytest
+  directly rather than from astropy.tests.helper. This also means that
+  pytest is now a formal requirement for testing for both Astropy and
+  for affiliated packages. [#5694]
 
 1.3.3 (unreleased)
 ------------------
@@ -236,6 +242,9 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Fix table header not written out properly when ``fits.writeto()``
+    convenience function is used. [#6042]
 
 - ``astropy.io.misc``
 
