@@ -397,6 +397,15 @@ class Time(ShapedLikeNDArray):
     info = TimeInfo()
 
     @property
+    def writeable(self):
+        return self._time.jd1.flags.writeable & self._time.jd2.flags.writeable
+
+    @writeable.setter
+    def writeable(self, value):
+        self._time.jd1.flags.writeable = value
+        self._time.jd2.flags.writeable = value
+
+    @property
     def format(self):
         """
         Get or set time format.
