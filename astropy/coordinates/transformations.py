@@ -777,10 +777,7 @@ class StaticMatrixTransform(CoordinateTransform):
             #think it has a valid distance
             newrep = newrep.represent_as(fromcoord.data.__class__)
 
-        frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
-                           for attrnm in self.overlapping_frame_attr_names])
-
-        return toframe.realize_frame(newrep, **frameattrs)
+        return toframe.realize_frame(newrep)
 
 
 class DynamicMatrixTransform(CoordinateTransform):
