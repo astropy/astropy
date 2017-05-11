@@ -747,8 +747,7 @@ class FunctionTransform(CoordinateTransform):
 class AffineTransform(CoordinateTransform):
     """
     A coordinate transformation specified as a function that yields a 3 x 3
-    cartesian transformation matrix and an offset vector. The transform function
-    can optionally depend on frame attributes.
+    cartesian transformation matrix and a tuple of displacement vectors.
 
     Parameters
     ----------
@@ -756,8 +755,8 @@ class AffineTransform(CoordinateTransform):
         A callable that has the signature ``transform_func(fromcoord, toframe)``
         and returns a length-2 tuple that contains: [0] a (3, 3) matrix that
         converts ``fromcoord`` in a cartesian representation to the new
-        coordinate system, and [1] a (3,) vector that contains an optional
-        offset, or ``None``.
+        coordinate system, and [1] a (N, 3) set of vectors that contain
+        offsets for differentials (or None).
     fromsys : class
         The coordinate frame class to start from.
     tosys : class
@@ -801,23 +800,16 @@ class AffineTransform(CoordinateTransform):
             # think it has a valid distance
             newrep = newrep.represent_as(fromcoord.data.__class__)
 
+        return newrep
+
     def __call__(self, fromcoord, toframe):
 
-        # TODO:
-        # - Frames will be able to contain a coordinate AND a velocity,
-        #   so how do we have the transform functions pass the relevant
-        #   offsets for both in a nice way, and shortcut if no velocity.
-        # - BTW: vec should be a CartesianRepresentation or
-        #   CartesianDifferential because then the representation arithmetic
-        #   will work
-        # - representations have recursive links to differentials
-        # - returns from frame transform function should return M, (N x 3)
         M, vec = self.transform_func(fromcoord, toframe)
         newrep = self._apply_transform(fromcoord, M, vec)
 
         return toframe.realize_frame(newrep)
 
-class StaticMatrixTransform(CoordinateTransform):
+class StaticMatrixTransform(AffineTransform):
     """
     A coordinate transformation defined as a 3 x 3 cartesian
     transformation matrix.
@@ -857,15 +849,16 @@ class StaticMatrixTransform(CoordinateTransform):
         if self.matrix.shape != (3, 3):
             raise ValueError('Provided matrix is not 3 x 3')
 
-        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+        def _transform_func(fromcoord, toframe):
+            return self.matrix, None
 
-    def __call__(self, fromcoord, toframe):
-        newrep = self._apply_transform(fromcoord, self.matrix, None)
-        return toframe.realize_frame(newrep)
+        super(StaticMatrixTransform, self).__init__(_transform_func,
+                                                    fromsys, tosys,
+                                                    priority=priority,
+                                                    register_graph=register_graph)
 
 
-class DynamicMatrixTransform(CoordinateTransform):
+class DynamicMatrixTransform(AffineTransform):
     """
     A coordinate transformation specified as a function that yields a
     3 x 3 cartesian transformation matrix.
@@ -902,13 +895,13 @@ class DynamicMatrixTransform(CoordinateTransform):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 
-        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+        def _transform_func(fromcoord, toframe):
+            return self.matrix_func(fromcoord, toframe), None
 
-    def __call__(self, fromcoord, toframe):
-        matrix = self.matrix_func(fromcoord, toframe)
-        newrep = self._apply_transform(fromcoord, matrix, None)
-        return toframe.realize_frame(newrep)
+        super(DynamicMatrixTransform, self).__init__(_transform_func,
+                                                     fromsys, tosys,
+                                                     priority=priority,
+                                                     register_graph=register_graph)
 
 
 class CompositeTransform(CoordinateTransform):
