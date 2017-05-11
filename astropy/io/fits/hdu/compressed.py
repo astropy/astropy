@@ -1651,7 +1651,13 @@ class CompImageHDU(BinTableHDU):
             should_swap = not self.data.dtype.isnative
 
         if should_swap:
-            self.data.byteswap(True)
+
+            if self.data.flags.writeable:
+                self.data.byteswap(True)
+            else:
+                # For read-only arrays, there is no way around making
+                # a byteswapped copy of the data.
+                self.data = self.data.byteswap(False)
 
         try:
             nrows = self._header['NAXIS2']
