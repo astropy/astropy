@@ -100,6 +100,26 @@ The kernel can then be used directly when calling
    :include-source:
 
 
+Using astropy's convolution to replace bad data
+-----------------------------------------------
+Astropy's convolution methods can be used to *replace* bad data with values
+relatively closely approximating their "correct" values.  This is great for
+handling images with a few bad pixels or for interpolating sparse images with a
+custom kernel.
+
+Basic interpolation can be useful when you want to run a source finding
+algorithm or some other image analysis tool that requires a NaN-free image:
+
+.. plot:: convolution/images/interpolate_example.py
+   :context: reset
+   :include-source:
+
+You can also use this tool to reconstruct a sparsely sampled image:
+
+.. plot:: convolution/images/reconstruct_example.py
+   :context: reset
+   :include-source:
+
 
 Using `astropy.convolution`
 ===========================

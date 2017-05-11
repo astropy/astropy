@@ -9,7 +9,7 @@ from .utils import discretize_model
 
 try:
     # Not guaranteed available at setup time
-    from .convolve import convolve, convolve_fft
+    from .convolve import convolve, convolve_fft, interpolate_replace_nans
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
