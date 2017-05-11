@@ -24,7 +24,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
-             nan_treatment='interpolate', normalize_kernel=False, mask=None,
+             nan_treatment='interpolate', normalize_kernel=True, mask=None,
              preserve_nan=False):
     '''
     Convolve an array with a kernel.
@@ -119,7 +119,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    renormalize_by_kernel = normalize_kernel
+    renormalize_by_kernel = True
 
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
@@ -206,7 +206,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         badvals = np.isnan(array_internal)
 
     if nan_treatment == 'fill':
-        array_internal[np.isnan(array_internal)] = fill_value
+        initially_nan = np.isnan(array_internal)
+        array_internal[initially_nan] = fill_value
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
@@ -293,6 +294,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if preserve_nan:
         result[badvals] = np.nan
 
+    if nan_treatment == 'fill':
+        array_internal[initially_nan] = np.nan
+
     # Try to preserve the input type if it's a floating point type
     if array_dtype.kind == 'f':
         # Avoid making another copy if possible
@@ -306,10 +310,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
-                 nan_treatment='interpolate', normalize_kernel=False,
+                 nan_treatment='interpolate', normalize_kernel=True,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, quiet=False,
-                 ignore_edge_zeros=False, min_wt=0.0, allow_huge=False,
+                 min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
                  complex_dtype=np.complex, ):
     """
@@ -382,9 +386,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     Other Parameters
     ----------------
-    ignore_edge_zeros : bool, optional
-        Ignore the zero-pad-created zeros.  This will effectively decrease
-        the kernel area on the edges but will not re-normalize the kernel.
     min_wt : float, optional
         If ignoring ``NaN`` / zeros, force all grid points with a weight less than
         this value to ``NaN`` (the weight of a grid point with *no* ignored
@@ -474,12 +475,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array([ 1.,  4.,  3.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
-    ...               normalize_kernel=True, ignore_edge_zeros=True)
+    ...               normalize_kernel=True)
     array([ 1.,  2.,  3.])
 
     >>> import scipy.fftpack  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
-    ...               normalize_kernel=True, ignore_edge_zeros=True,
+    ...               normalize_kernel=True,
     ...               fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
     array([ 1.,  2.,  3.])
 
@@ -532,7 +533,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         array[mask != 0] = np.nan
     # the *kenrel* doesn't support NaN interpolation, so instead we just fill it
     if np.ma.is_masked(kernel):
-        kernel = kernel.filled(fill_value)
+        kernel = kernel.filled(0)
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
@@ -630,7 +631,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     #         optional(weight image + weight_fft + weight_ifft) +
     #         optional(returned_fft))
     #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
-    #                        * (5 + 3*((interpolate_nan or ignore_edge_zeros) and kernel_is_normalized))
+    #                        * (5 + 3*((interpolate_nan or ) and kernel_is_normalized))
     #                        + (1 + (not return_fft)) *
     #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize
     #                        + np.product(arrayshape)*np.dtype(bool).itemsize
@@ -649,7 +650,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                              center + (kerndimsize + 1) // 2)]
 
     if not np.all(newshape == arrayshape):
-        bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+        if np.isfinite(fill_value):
+            bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+        else:
+            bigarray = np.zeros(newshape, dtype=complex_dtype)
         bigarray[arrayslices] = array
     else:
         bigarray = array
@@ -666,8 +670,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     fftmult = arrayfft * kernfft
 
     interpolate_nan = (nan_treatment == 'interpolate')
-    if (interpolate_nan or ignore_edge_zeros) and normalize_kernel:
-        if ignore_edge_zeros:
+    if interpolate_nan:
+        if not np.isfinite(fill_value):
             bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
             bigimwt = np.ones(newshape, dtype=complex_dtype)
@@ -702,7 +706,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if return_fft:
         return fftmult
 
-    if interpolate_nan or ignore_edge_zeros:
+    if interpolate_nan:
         rifft = (ifftn(fftmult)) / bigimwt
         if not np.isscalar(bigimwt):
             rifft[bigimwt < min_wt] = np.nan

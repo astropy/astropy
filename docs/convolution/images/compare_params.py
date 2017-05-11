@@ -1,3 +1,4 @@
+import numpy as np
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
@@ -14,16 +15,19 @@ img_zerod = img.copy()
 img_zerod[np.isnan(img)] = 0
 
 kernel = Gaussian2DKernel(stddev=1)
-scipy_conv = scipy_convolve(img, kernel, mode='same')
-scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same')
+scipy_conv = scipy_convolve(img, kernel, mode='same', method='direct')
+scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same', method='direct')
 astropy_conv = convolve(img, kernel)
-astropy_conv_intnan = convolve(img, kernel, nan_treatment='interpolate', normalize_kernel=False)
+astropy_conv_intnan = convolve(img, kernel, nan_treatment='interpolate',
+                               normalize_kernel=False)
 astropy_conv_intnan_norm = convolve(img, kernel, nan_treatment='interpolate',
                                     normalize_kernel=True)
-astropy_conv_norm = convolve(img, kernel, nan_treatment='interpolate'e,
+astropy_conv_norm = convolve(img, kernel, nan_treatment='fill',
                                     normalize_kernel=True)
 astropy_conv_fft = convolve_fft(img, kernel)
-astropy_conv_intnan_fft = convolve_fft(img, kernel, nan_treatment='interpolate', normalize_kernel=False)
+astropy_conv_intnan_fft = convolve_fft(img, kernel,
+                                       nan_treatment='interpolate',
+                                       normalize_kernel=False)
 astropy_conv_intnan_fft_norm = convolve_fft(img, kernel,
                    nan_treatment='interpolate', normalize_kernel=True)
 astropy_conv_fft_norm = convolve_fft(img, kernel,
@@ -93,13 +97,14 @@ ax9.set_title("Default fft astropy")
 ax9.set_xticklabels([])
 ax9.set_yticklabels([])
 
-pl.figure(2).clf()
-pl.plot(img[:,25], label='input', drawstyle='steps-mid', linewidth=2, alpha=0.5)
-pl.plot(scipy_conv[:,25], label='scipy', drawstyle='steps-mid',
-        linewidth=2, alpha=0.5, marker='s')
-pl.plot(scipy_conv_zerod[:,25], label='scipy nan->zero', drawstyle='steps-mid',
-        linewidth=2, alpha=0.5, marker='s')
-pl.plot(astropy_conv[:,25], label='astropy', drawstyle='steps-mid', linewidth=2, alpha=0.5)
-pl.plot(astropy_conv_intnan_norm[:,25], label='astropy intnan norm', drawstyle='steps-mid', linewidth=2, alpha=0.5)
-pl.plot(astropy_conv_intnan[:,25], label='astropy intnan', drawstyle='steps-mid', linewidth=2, alpha=0.5)
-pl.legend(loc='best')
+plt.figure(2).clf()
+plt.plot(img[:,25], label='input', drawstyle='steps-mid', linewidth=2, alpha=0.5)
+plt.plot(scipy_conv[:,25], label='scipy', drawstyle='steps-mid',
+         linewidth=2, alpha=0.5, marker='s')
+plt.plot(scipy_conv_zerod[:,25], label='scipy nan->zero', drawstyle='steps-mid',
+         linewidth=2, alpha=0.5, marker='s')
+plt.plot(astropy_conv[:,25], label='astropy', drawstyle='steps-mid', linewidth=2, alpha=0.5)
+plt.plot(astropy_conv_intnan_norm[:,25], label='astropy intnan norm', drawstyle='steps-mid', linewidth=2, alpha=0.5)
+plt.plot(astropy_conv_intnan[:,25], label='astropy intnan', drawstyle='steps-mid', linewidth=2, alpha=0.5)
+plt.legend(loc='best')
+plt.show()
