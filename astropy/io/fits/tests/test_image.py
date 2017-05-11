@@ -1744,3 +1744,17 @@ def test_image_write_readonly(tmpdir):
 
     with fits.open(filename) as hdulist:
         assert_equal(hdulist[1].data, [1, 2, 3])
+
+    # Same for compressed HDU
+    x = np.array([1.0, 2.0, 3.0])
+    x.setflags(write=False)
+    ghdu = fits.CompImageHDU(data=x)
+    # add_datasum does not work for CompImageHDU
+    # ghdu.add_datasum()
+
+    filename = tmpdir.join('test2.fits').strpath
+
+    ghdu.writeto(filename)
+
+    with fits.open(filename) as hdulist:
+        assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
