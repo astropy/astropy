@@ -71,7 +71,7 @@ def _regexify_subfmts(subfmts):
 
 class TimeMaskedArray(np.ma.MaskedArray):
     def __repr__(self):
-        return str(self)
+        return 'masked_array({})'.format(self)
 
 
 class TimeFormatMeta(type):
@@ -166,7 +166,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     @property
     def jd2_filled(self):
-        return np.nan_to_num(self.jd2)
+        return np.nan_to_num(self.jd2) if self.masked else self.jd2
 
     @lazyproperty
     def cache(self):
