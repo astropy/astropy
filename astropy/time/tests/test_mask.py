@@ -37,6 +37,7 @@ def test_str():
     t[1] = np.ma.masked
     assert str(t) == "['2000:001:00:00:00.000' --]"
     assert repr(t) == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000' --]>"
+    assert repr(t.iso) == "masked_array(['2000-01-01 00:00:00.000' --])"
 
     # Assign value to unmask
     t[1] = '2000:111'
