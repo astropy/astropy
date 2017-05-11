@@ -744,6 +744,78 @@ class FunctionTransform(CoordinateTransform):
                 'should have been of type {1}'.format(res, self.tosys))
         return res
 
+class AffineTransform(CoordinateTransform):
+    """
+    A coordinate transformation specified as a function that yields a 3 x 3
+    cartesian transformation matrix and an offset vector. The transform function
+    can optionally depend on frame attributes.
+
+    Parameters
+    ----------
+    transform_func : callable
+        A callable that has the signature ``transform_func(fromcoord, toframe)``
+        and returns a length-2 tuple that contains: [0] a (3, 3) matrix that
+        converts ``fromcoord`` in a cartesian representation to the new
+        coordinate system, and [1] a (3,) vector that contains an optional
+        offset, or ``None``.
+    fromsys : class
+        The coordinate frame class to start from.
+    tosys : class
+        The coordinate frame class to transform into.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate transform path - large numbers are lower priorities.
+    register_graph : `TransformGraph` or `None`
+        A graph to register this transformation with on creation, or
+        `None` to leave it unregistered.
+
+    Raises
+    ------
+    TypeError
+        If ``transform_func`` is not callable
+
+    """
+    def __init__(self, transform_func, fromsys, tosys, priority=1,
+                 register_graph=None):
+
+        if not six.callable(transform_func):
+            raise TypeError('transform_func is not callable')
+        self.transform_func = transform_func
+
+        super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
+                                              register_graph=register_graph)
+
+    def _apply_transform(self, fromcoord, matrix, vector):
+        from .representation import (CartesianRepresentation,
+                                     UnitSphericalRepresentation)
+
+        rep = fromcoord.represent_as(CartesianRepresentation)
+        newrep = rep.transform(matrix)
+
+        if vector is not None:
+            # TODO: something
+            pass
+
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
+            # need to special-case this because otherwise the new class will
+            # think it has a valid distance
+            newrep = newrep.represent_as(fromcoord.data.__class__)
+
+    def __call__(self, fromcoord, toframe):
+
+        # TODO:
+        # - Frames will be able to contain a coordinate AND a velocity,
+        #   so how do we have the transform functions pass the relevant
+        #   offsets for both in a nice way, and shortcut if no velocity.
+        # - BTW: vec should be a CartesianRepresentation or
+        #   CartesianDifferential because then the representation arithmetic
+        #   will work
+        # - representations have recursive links to differentials
+        # - returns from frame transform function should return M, (N x 3)
+        M, vec = self.transform_func(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, M, vec)
+
+        return toframe.realize_frame(newrep)
 
 class StaticMatrixTransform(CoordinateTransform):
     """
@@ -789,14 +861,7 @@ class StaticMatrixTransform(CoordinateTransform):
             priority=priority, register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
-        from .representation import UnitSphericalRepresentation
-
-        newrep = fromcoord.cartesian.transform(self.matrix)
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
-            #need to special-case this because otherwise the new class will
-            #think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
-
+        newrep = self._apply_transform(fromcoord, self.matrix, None)
         return toframe.realize_frame(newrep)
 
 
@@ -841,20 +906,8 @@ class DynamicMatrixTransform(CoordinateTransform):
             priority=priority, register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
-
-        from .representation import CartesianRepresentation, \
-                                    UnitSphericalRepresentation
-
-        transform_matrix = self.matrix_func(fromcoord, toframe)
-
-        rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.transform(transform_matrix)
-
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
-            #need to special-case this because otherwise the new class will
-            #think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
-
+        matrix = self.matrix_func(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, matrix, None)
         return toframe.realize_frame(newrep)
 
 
@@ -943,6 +996,7 @@ class CompositeTransform(CoordinateTransform):
 
 # map class names to colorblind-safe colors
 trans_to_color = OrderedDict()
+trans_to_color[AffineTransform] = '#555555' # gray
 trans_to_color[FunctionTransform] = '#d95f02' # red-ish
 trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
 trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish
