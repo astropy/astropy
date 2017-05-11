@@ -28,7 +28,7 @@ within a kernel of any NaN value, which is often not the desired result.
 
 .. plot:: convolution/images/compare_params.py
    :context: reset
-   :include-source: false
+   :include-source:
    :align: center
 
 
@@ -128,7 +128,7 @@ flagged-out pixels:
 
 .. plot:: convolution/images/interpolate_example.py
    :context: reset
-   :include-source: false
+   :include-source:
 
 This script shows the power of this technique for reconstructing images from
 sparse sampling.  Note that the image is not perfect - the pointlike sources
@@ -137,7 +137,7 @@ eye).
 
 .. plot:: convolution/images/reconstruct_example.py
    :context: reset
-   :include-source: false
+   :include-source:
 
 
 Using `astropy.convolution`
