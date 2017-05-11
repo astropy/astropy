@@ -630,12 +630,18 @@ class _ImageBaseHDU(_ValidHDU):
                 should_swap = (byteorder in swap_types)
 
             if not fileobj.simulateonly:
+
                 if should_swap:
-                    output.byteswap(True)
-                    try:
-                        fileobj.writearray(output)
-                    finally:
+                    if output.flags.writeable:
                         output.byteswap(True)
+                        try:
+                            fileobj.writearray(output)
+                        finally:
+                            output.byteswap(True)
+                    else:
+                        # For read-only arrays, there is no way around making
+                        # a byteswapped copy of the data.
+                        fileobj.writearray(output.byteswap(False))
                 else:
                     fileobj.writearray(output)
 
@@ -800,6 +806,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
 
         if self._has_data:
+
             # We have the data to be used.
             d = self.data
 
@@ -812,9 +819,16 @@ class _ImageBaseHDU(_ValidHDU):
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
             if d.dtype.str[0] != '>':
-                byteswapped = True
-                d = d.byteswap(True)
-                d.dtype = d.dtype.newbyteorder('>')
+                if d.flags.writeable:
+                    byteswapped = True
+                    d = d.byteswap(True)
+                    d.dtype = d.dtype.newbyteorder('>')
+                else:
+                    # If the data is not writeable, we just make a byteswapped
+                    # copy and don't bother changing it back after
+                    d = d.byteswap(False)
+                    d.dtype = d.dtype.newbyteorder('>')
+                    byteswapped = False
             else:
                 byteswapped = False
 

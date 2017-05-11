@@ -279,6 +279,8 @@ Bug Fixes
   - Fix table header not written out properly when ``fits.writeto()``
     convenience function is used. [#6042]
 
+  - Fix writing out read-only arrays. [#6036]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
