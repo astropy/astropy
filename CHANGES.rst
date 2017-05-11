@@ -157,6 +157,12 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where ``StaticMatrixTransform`` erroneously copied frame
+    attributes from the input coordinate to the output frame. In practice, this
+    didn't actually affect any transforms in Astropy but may change behavior for
+    users who explicitly used the ``StaticMatrixTransform`` in their own code.
+    [#6045]
+
 - ``astropy.cosmology``
 
 - ``astropy.extern``
