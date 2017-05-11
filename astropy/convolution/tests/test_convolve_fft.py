@@ -463,8 +463,9 @@ class TestConvolve2D(object):
 
         z = convolve_fft(x, y, boundary=boundary,
                          nan_treatment=nan_treatment,
-                         normalize_kernel=normalize_kernel,
-                         )
+                         fill_value=np.nan if normalize_kernel else 0,
+                         normalize_kernel=normalize_kernel)
+
 
         # weights
         w_n = np.array([[3., 5., 3.],
@@ -488,9 +489,9 @@ class TestConvolve2D(object):
         answer_dict['average_withzeros'] = answer_dict['sum'] / 9.
         answer_dict['average_withzeros_interpnan'] = answer_dict['sum'] / 8.
         answer_dict['sum_withzeros'] = answer_dict['sum']
-        answer_dict['sum_interpnan'] = answer_dict['sum']
+        answer_dict['sum_interpnan'] = answer_dict['sum'] * 9/8.
         answer_dict['sum_withzeros_interpnan'] = answer_dict['sum']
-        answer_dict['sum_wrap_interpnan'] = answer_dict['sum_wrap']
+        answer_dict['sum_wrap_interpnan'] = answer_dict['sum_wrap'] * 9/8.
 
         if normalize_kernel:
             answer_key = 'average'
@@ -499,6 +500,8 @@ class TestConvolve2D(object):
 
         if boundary == 'wrap':
             answer_key += '_wrap'
+        elif nan_treatment == 'fill':
+            answer_key += '_withzeros'
 
         if nan_treatment == 'interpolate':
             answer_key += '_interpnan'
