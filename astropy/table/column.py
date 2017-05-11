@@ -1025,6 +1025,17 @@ class Column(BaseColumn):
     to = BaseColumn.to
 
 
+class MaskedColumnInfo(ColumnInfo):
+    """
+    Container for meta information like name, description, format.
+
+    This is required when the object is used as a mixin column within a table,
+    but can be used as a general way to store meta information.  In this case
+    it just adds the ``mask_val`` attribute.
+    """
+    mask_val = np.ma.masked
+
+
 class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     """Define a masked data column for use in a Table object.
 
@@ -1096,6 +1107,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
     """
+    info = MaskedColumnInfo()
 
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
