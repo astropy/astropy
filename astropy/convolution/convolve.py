@@ -44,9 +44,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
         the `~astropy.nddata.NDData` will be used as the ``mask`` argument.
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
-        The convolution kernel. The number of dimensions should match those
-        for the array, and the dimensions should be odd in all directions.
-        If a masked array, the masked values will be replaced by ``fill_value``.
+        The convolution kernel. The number of dimensions should match those for
+        the array, and the dimensions should be odd in all directions.  If a
+        masked array, the masked values will be replaced by ``fill_value``.
     boundary : str, optional
         A flag indicating how to handle boundaries:
             * `None`
@@ -415,7 +415,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
         ``fft=```scipy.fftpack.fftn`
-    complex_dtype : `numpy.complex`, optional
+    complex_dtype : numpy.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
     quiet : bool, optional
