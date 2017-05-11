@@ -15,7 +15,7 @@ Try the development version
     most of it is one-time setup. You can count on one hand the number of
     `git`_ commands you will need to regularly use to keep your local copy
     of `Astropy`_ up to date. If you find this taking more than an hour email
-    the :ref:`astropy developers list for help <getting_help>`
+    the `astropy developers list <http://groups.google.com/group/astropy-dev>`_ for help
 
 
 Trying out the development version of Astropy is useful in three ways:
