@@ -28,6 +28,8 @@ except ImportError:
 from .constant import Constant, EMConstant
 from . import si
 from . import cgs
+from .si import (CODATA2010, CODATA2014, ASTRON_V2_0, ASTRON_V1_3,
+                 ASTROPYCONST20, ASTROPYCONST13)
 
 # for updating the constants module docstring
 _lines = [
