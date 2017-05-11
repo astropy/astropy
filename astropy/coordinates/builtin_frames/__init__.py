@@ -95,30 +95,26 @@ def _make_transform_graph_docs():
     docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
 
     # colors are in dictionary at the bottom of transformations.py
+    from ..transformations import trans_to_color
+    html_list_items = []
+    for cls,color in trans_to_color.items():
+        block = """
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>{0}:</b>
+                    <span style="font-size: 20px; color: {1};"><b>➝</b></span>
+                </p>
+            </li>
+        """.format(cls.__name__, color)
+        html_list_items.append(block)
+
     graph_legend = """
     .. raw:: html
 
         <ul>
-            <li style='list-style: none;'>
-                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
-                    <b>FunctionTransform:</b>
-                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #d95f02 "></span>
-                </p>
-            </li>
-            <li style='list-style: none;'>
-                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
-                    <b>StaticMatrixTransform:</b>
-                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #7570b3 "></span>
-                </p>
-            </li>
-            <li style='list-style: none;'>
-                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
-                    <b>DynamicMatrixTransform:</b>
-                    <span style="width: 15px; height: 15px; margin:auto; display: inline-block; vertical-align: middle; border-radius: 2px; background: #1b9e77 "></span>
-                </p>
-            </li>
+            {}
         </ul>
-    """
+    """.format("\n".join(html_list_items))
     docstr = docstr + dedent(graph_legend)
 
     return docstr
