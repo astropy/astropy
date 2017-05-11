@@ -102,7 +102,7 @@ def _make_transform_graph_docs():
             <li style='list-style: none;'>
                 <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
                     <b>{0}:</b>
-                    <span style="font-size: 20px; color: {1};"><b>➝</b></span>
+                    <span style="font-size: 24px; color: {1};"><b>➝</b></span>
                 </p>
             </li>
         """.format(cls.__name__, color)
