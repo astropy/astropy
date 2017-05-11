@@ -28,7 +28,7 @@ within a kernel of any NaN value, which is often not the desired result.
 
 .. plot:: convolution/images/compare_params.py
    :context: reset
-   :include-source:
+   :include-source: false
    :align: center
 
 
