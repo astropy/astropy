@@ -361,13 +361,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     fill_value : float, optional
         The value to use outside the array when using boundary='fill'
     nan_treatment : 'interpolate', 'fill'
-        interpolate will result in renormalization of the kernel at each
+        ``interpolate`` will result in renormalization of the kernel at each
         position ignoring (pixels that are NaN in the image) in both the image
-        and the kernel.
-        'fill' will replace the NaN pixels with a fixed numerical value (default
-        zero, see ``fill_value``) prior to convolution
-        Note that if the kernel has a sum equal to zero, NaN interpolation
-        is not possible and will raise an exception
+        and the kernel.  ``fill`` will replace the NaN pixels with a fixed
+        numerical value (default zero, see ``fill_value``) prior to
+        convolution.  Note that if the kernel has a sum equal to zero, NaN
+        interpolation is not possible and will raise an exception.
     normalize_kernel : function or boolean, optional
         If specified, this is the function to divide kernel by to normalize it.
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
@@ -445,8 +444,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     Notes
     -----
-        With psf_pad=True and a large PSF, the resulting data can become very
-        large and consume a lot of memory.  See Issue
+        With ``psf_pad=True`` and a large PSF, the resulting data can become
+        very large and consume a lot of memory.  See Issue
         https://github.com/astropy/astropy/pull/4366 for further detail.
 
     Examples
