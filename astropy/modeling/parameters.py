@@ -808,7 +808,7 @@ class Parameter(OrderedDescriptor):
         """
         def _update_parameter_value(model, name, value):
             # TODO: Maybe handle exception on invalid input shape
-            param_metrics = model._param_metrics[self._name]
+            param_metrics = model._param_metrics[name]
             param_slice = param_metrics['slice']
             param_shape = param_metrics['shape']
             param_size = np.prod(param_shape)
@@ -816,7 +816,7 @@ class Parameter(OrderedDescriptor):
             if np.size(value) != param_size:
                 raise InputParameterError(
                     "Input value for parameter {0!r} does not have {1} elements "
-                    "as the current value does".format(self._name, param_size))
+                    "as the current value does".format(name, param_size))
 
             model._parameters[param_slice] = np.array(value).ravel()
         _update_parameter_value(model, self._name, value)
