@@ -31,6 +31,11 @@ within a kernel of any NaN value, which is often not the desired result.
    :include-source:
    :align: center
 
+.. plot:: convolution/images/compare_params_plots.py
+   :context:
+   :include-source: false
+   :align: center
+
 
 The following sections describe how to make use of the convolution functions,
 and how to use built-in convolution kernels:
