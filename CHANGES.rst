@@ -321,7 +321,7 @@ Bug Fixes
 
   - Fix a bug that caused labels to be missing from frames with labels that
     could change direction mid-axis, such as EllipticalFrame. Also ensure
-    that empty tick labels do not cause any warnings.
+    that empty tick labels do not cause any warnings. [#6063]
 
 - ``astropy.vo``
 
