@@ -6,7 +6,6 @@ from fractions import Fraction
 import numpy as np
 from .core import (UnitsError, UnitConversionError, UnitTypeError,
                    dimensionless_unscaled, get_current_unit_registry)
-from ..utils.compat import NUMPY_LT_1_13
 
 
 def _d(unit):
@@ -24,6 +23,9 @@ def get_converter(from_unit, to_unit):
     except UnitsError:
         return from_unit._apply_equivalencies(
                 from_unit, to_unit, get_current_unit_registry().equivalencies)
+    except AttributeError:
+        raise UnitTypeError("Unit '{0}' cannot be converted to '{1}'"
+                            .format(from_unit, to_unit))
     if scale == 1.:
         return None
     else:
@@ -104,9 +106,9 @@ def helper_dimensionless_to_dimensionless(f, unit):
         return ([get_converter(unit, dimensionless_unscaled)],
                 dimensionless_unscaled)
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "dimensionless quantities"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
@@ -125,9 +127,9 @@ def helper_modf(f, unit):
         return ([get_converter(unit, dimensionless_unscaled)],
                 (dimensionless_unscaled, dimensionless_unscaled))
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "dimensionless quantities"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.modf] = helper_modf
 
@@ -141,9 +143,9 @@ def helper_dimensionless_to_radian(f, unit):
     try:
         return [get_converter(unit, dimensionless_unscaled)], radian
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "dimensionless quantities"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
 UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
@@ -159,9 +161,9 @@ def helper_degree_to_radian(f, unit):
     try:
         return [get_converter(unit, degree)], radian
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "quantities with angle units"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.radians] = helper_degree_to_radian
 UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
@@ -173,9 +175,9 @@ def helper_radian_to_degree(f, unit):
     try:
         return [get_converter(unit, radian)], degree
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "quantities with angle units"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
 UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
@@ -187,9 +189,9 @@ def helper_radian_to_dimensionless(f, unit):
     try:
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "quantities with angle units"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
 
 UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
 UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
@@ -202,9 +204,9 @@ UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
 # ufuncs that require dimensionless_unscaled input and return non-quantities
 def helper_frexp(f, unit):
     if not unit.is_unity():
-        raise TypeError("Can only apply '{0}' function to "
-                        "unscaled dimensionless quantities"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "unscaled dimensionless quantities"
+                            .format(f.__name__))
     return [None], (None, None)
 
 UFUNC_HELPERS[np.frexp] = helper_frexp
@@ -233,7 +235,8 @@ def helper_power(f, unit1, unit2):
     try:
         return [None, get_converter(unit2, dimensionless_unscaled)], False
     except UnitsError:
-        raise TypeError("Can only raise something to a dimensionless quantity")
+        raise UnitTypeError("Can only raise something to a "
+                            "dimensionless quantity")
 
 UFUNC_HELPERS[np.power] = helper_power
 # float_power was added in numpy 1.12
@@ -267,8 +270,8 @@ if isinstance(getattr(np, 'heaviside', None), np.ufunc):
             converter2 = (get_converter(unit2, dimensionless_unscaled)
                           if unit2 is not None else None)
         except UnitsError:
-            raise TypeError("Can only apply 'heaviside' function with a "
-                            "dimensionless second argument.")
+            raise UnitTypeError("Can only apply 'heaviside' function with a "
+                                "dimensionless second argument.")
         return ([None, converter2], dimensionless_unscaled)
 
     UFUNC_HELPERS[np.heaviside] = helper_heaviside
@@ -281,9 +284,9 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
         converter2 = (get_converter(unit2, dimensionless_unscaled)
                       if unit2 is not None else None)
     except UnitsError:
-        raise TypeError("Can only apply '{0}' function to "
-                        "dimensionless quantities"
-                        .format(f.__name__))
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
     return ([converter1, converter2], dimensionless_unscaled)
 
 UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
@@ -417,7 +420,7 @@ def converters_and_unit(function, method, *args):
         (e.g., np.logical_or), or when the routine does not know how to handle
         the specified function (in which case an issue should be raised on
         https://github.com/astropy/astropy).
-    UnitsError : when the conversion to the required (or consistent) units
+    UnitTypeError : when the conversion to the required (or consistent) units
         is not possible.
     """
     # Check whether we even support this ufunc
@@ -565,8 +568,9 @@ def check_output(output, unit, inputs, function=None):
 
     Raises
     ------
-    TypeError : If ``unit`` is inconsistent with the class of ``output``,
-                or if the ``inputs`` cannot be cast safely to ``output``.
+    UnitTypeError : If ``unit`` is inconsistent with the class of ``output``
+
+    TypeError : If the ``inputs`` cannot be cast safely to ``output``.
     """
     if isinstance(output, tuple):
         return tuple(check_output(output_, unit_, inputs, function)
@@ -601,11 +605,11 @@ def check_output(output, unit, inputs, function=None):
     else:
         # output is not a Quantity, so cannot attain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
-            raise TypeError("Cannot store quantity with dimension "
-                            "{0}in a non-Quantity instance."
-                            .format("" if function is None else
-                                    "resulting from {0} function "
-                                    .format(function.__name__)))
+            raise UnitTypeError("Cannot store quantity with dimension "
+                                "{0}in a non-Quantity instance."
+                                .format("" if function is None else
+                                        "resulting from {0} function "
+                                        .format(function.__name__)))
 
     # check we can handle the dtype (e.g., that we are not int
     # when float is required).
