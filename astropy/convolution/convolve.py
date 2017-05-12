@@ -410,12 +410,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         For example, if an input image has shape [100,3] but a kernel with shape
         [6,6] is used, the output will be [100,6].
     return_fft : bool, optional
-        Return the fft(image)*fft(kernel) instead of the convolution (which is
-        ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
+        Return the ``fft(image)*fft(kernel)`` instead of the convolution (which is
+        ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
     fftn, ifftn : functions, optional
         The fft and inverse fft functions.  Can be overridden to use your own
-        ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
-        ``fft=```scipy.fftpack.fftn`
+        ffts, e.g. an fftw3 wrapper or scipy's fftn,
+        ``fft=scipy.fftpack.fftn``
     complex_dtype : numpy.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
@@ -441,7 +441,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     -------
     default : ndarray
         ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
-        fft(``array``) * fft(``kernel``).  If crop is not set, returns the
+        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
         image, but with the fft-padded size instead of the input size
 
     Notes

@@ -1,5 +1,6 @@
 # This script needs to be executed in an environment established by
 # `compare_params.py` above
+from astropy.convolution import interpolate_replace_nans
 
 hdu = fits.open(filename)[0]
 img = hdu.data[50:90,60:100] * 1e5
