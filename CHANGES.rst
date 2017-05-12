@@ -319,6 +319,10 @@ Bug Fixes
   - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
     functions. [#5686, #5692, #6060]
 
+  - Fix a bug that caused labels to be missing from frames with labels that
+    could change direction mid-axis, such as EllipticalFrame. Also ensure
+    that empty tick labels do not cause any warnings.
+
 - ``astropy.vo``
 
 - ``astropy.wcs``

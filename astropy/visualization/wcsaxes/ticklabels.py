@@ -70,14 +70,17 @@ class TickLabels(Text):
                     t1 = self.text[axis][i]
                     continue
                 start = 0
-                for j in range(len(t1)):
+                # In the following loop, we need to ignore the last character,
+                # hence the len(t1) - 1. This is because if we have two strings
+                # like 13d14m15s we want to make sure that we keep the last
+                # part (15s) even if the two labels are identical.
+                for j in range(len(t1) - 1):
                     if t1[j] != t2[j]:
                         break
                     if t1[j] not in '-0123456789.':
                         start = j + 1
-                if start == 0:
-                    t1 = self.text[axis][i]
-                else:
+                t1 = self.text[axis][i]
+                if start != 0:
                     self.text[axis][i] = self.text[axis][i][start:]
 
     def set_visible_axes(self, visible_axes):
@@ -104,6 +107,12 @@ class TickLabels(Text):
         for axis in self.get_visible_axes():
 
             for i in range(len(self.world[axis])):
+
+                # In the event that the label is empty (which is not expected
+                # but could happen in unforeseen corner cases), we should just
+                # skip to the next label.
+                if self.text[axis][i] == '':
+                    continue
 
                 self.set_text(self.text[axis][i])
 
