@@ -1,7 +1,7 @@
 .. _nddata_io:
 
 I/O mixin
-=========
+*********
 
 The I/O mixin, `~astropy.nddata.NDIOMixin`, adds ``read`` and ``write``
 methods that us the astropy I/O registry.

@@ -2,12 +2,12 @@
 
 .. _whatsnew-1.2:
 
-==========================
+**************************
 What's New in Astropy 1.2?
-==========================
+**************************
 
 Overview
---------
+========
 
 Astropy 1.2 is a major release that adds significant new functionality since
 the 1.1.x series of releases.
@@ -45,7 +45,7 @@ smaller improvements and bug fixes, which are described in the
 .. _whatsnew-1.2-lombscargle:
 
 Lomb-scargle periodograms
--------------------------
+=========================
 The new :class:`~astropy.stats.LombScargle` class implements a fast Lomb-Scargle
 periodogram, useful for detecting periodic signals in noisy, unevenly-spaced
 data. For example, here is an irregular sinusoidal signal:
@@ -147,7 +147,7 @@ see :ref:`stats-lombscargle`.
 .. _whatsnew-1.2-stats:
 
 Other new statistics features
------------------------------
+=============================
 
 The **Jackknife resampling method** is available via the
 :func:`~astropy.stats.jackknife_resampling` function. Jackknife resampling
@@ -175,7 +175,7 @@ number of parameters.
 .. _whatsnew-1.2-solarsystem:
 
 Solar system ephemerides
-------------------------
+========================
 
 It is now possible to calculate the positions of the major solar system bodies
 (as well as the moon) in the :ref:`coordinates <astropy-coordinates>`
@@ -190,7 +190,7 @@ see :ref:`astropy-coordinates-solarsystem`.
 .. _whatsnew-1.2-barycentric:
 
 Barycentric light-travel time corrections
------------------------------------------
+=========================================
 
 The :class:`~astropy.time.Time` class has gained a new method
 :meth:`~astropy.time.Time.light_travel_time` for calculating barycentric
@@ -200,7 +200,7 @@ The :class:`~astropy.time.Time` class has gained a new method
 .. _whatsnew-1.2-skyoffset:
 
 Sky offset coordinate frames
-----------------------------
+============================
 
 The :ref:`coordinates <astropy-coordinates>` sub-package now includes support
 for coordinate frames that are rotated in the sky to be centered on a
@@ -214,7 +214,7 @@ details, see :ref:`astropy-skyoffset-frames`.
 .. _whatsnew-1.2-zscale:
 
 Zscale implementation
----------------------
+=====================
 
 The `zscale <http://iraf.net/forum/viewtopic.php?showtopic=134139>`_ algorithm
 from IRAF is now included in Astropy's :ref:`visualization
@@ -227,7 +227,7 @@ dimensions.
 .. _whatsnew-1.2-examples:
 
 New example gallery
--------------------
+===================
 
 The Astropy documentation now contains an
 `example gallery <../generated/examples/index.html>`_ that highlights key
@@ -239,7 +239,7 @@ maintained at `<http://tutorials.astropy.org/>`_.
 .. _whatsnew-1.2-magnitudes:
 
 Apparent/absolute bolometric magnitudes and other new units
------------------------------------------------------------
+===========================================================
 
 The :ref:`units <astropy-units>` sub-package now supports bolometric magnitudes, based on the
 bolometric flux and luminosity scales adopted in IAU 2015 resolution B2.
@@ -249,7 +249,7 @@ Furthermore, Earth and Jupiter radii have been made available as units.
 .. _whatsnew-1.2-nddata:
 
 NDData improvements
--------------------
+===================
 
 Arithmetic and uncertainty handling have been enhanced for astropy 1.2, and a
 new class, :class:`~astropy.nddata.NDDataRef`, has been added that should be
@@ -267,7 +267,7 @@ straightforward.
 .. _whatsnew-1.2-iers:
 
 Automatic updates to IERS Earth rotation data
----------------------------------------------
+=============================================
 
 The `astropy.utils.iers` sub-package provides access to the tables provided by
 the International Earth Rotation and Reference Systems (IERS) service.  These
@@ -284,12 +284,12 @@ needs a value which is not already available via the download cache.
 For details see the `astropy.utils.iers` sub-package documentation.
 
 Other significant changes
--------------------------
+=========================
 
 Astropy now requires Numpy 1.7.0 or later.
 
 Full change log
----------------
+===============
 
 To see a detailed list of all changes in version v1.2, including changes in
 API, please see the :ref:`changelog`.

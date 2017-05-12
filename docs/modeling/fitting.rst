@@ -23,7 +23,7 @@ The rules for passing input to fitters are:
 
 
 Fitting examples
-----------------
+================
 
 - Fitting a polynomial model to multiple data sets simultaneously::
 
@@ -165,7 +165,7 @@ bounds internally.
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
 
 Plugin Fitters
---------------
+==============
 
 
 Fitters defined outside of astropy's core can be inserted into the

@@ -3,7 +3,7 @@
 .. _astropy_conesearch:
 
 VO Simple Cone Search (deprecated)
-==================================
+**********************************
 
 .. warning::
 
@@ -21,7 +21,7 @@ all the objects found within the area in the given catalog.
 .. _vo-sec-default-scs-services:
 
 Default Cone Search Services
-----------------------------
+============================
 
 Currently, the default Cone Search services used are a subset of those found in
 the STScI VAO Registry. They were hand-picked to represent commonly used
@@ -55,7 +55,7 @@ service in the list above, please open a
 
 
 Caching
--------
+=======
 
 Caching of downloaded contents is controlled by `astropy.utils.data`.
 To use cached data, some functions in this package have a ``cache``
@@ -63,7 +63,7 @@ keyword that can be set to ``True``.
 
 
 Getting Started
----------------
+===============
 
 This section only contains minimal examples showing how to perform
 basic Cone Search.
@@ -146,7 +146,7 @@ masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
 
 
 Using `astropy.vo`
-------------------
+==================
 
 This package has four main components across two subpackages:
 
@@ -167,7 +167,7 @@ The one that a typical user needs is the :ref:`vo-sec-client-scs` component
 
 
 See Also
---------
+========
 
 - `NVO Directory <http://nvo.stsci.edu/vor10/index.aspx>`_
 
@@ -179,7 +179,7 @@ See Also
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.vo
    :no-inheritance-diagram:

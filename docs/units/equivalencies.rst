@@ -3,7 +3,7 @@
 .. _unit_equivalencies:
 
 Equivalencies
-=============
+*************
 
 The unit module has machinery for supporting equivalences between
 different units in certain contexts. Namely when equations can
@@ -23,10 +23,10 @@ piece of code needs the same equivalencies, one can set them for a
 :ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
-----------------------
+======================
 
 Parallax Units
-^^^^^^^^^^^^^^
+--------------
 
 :func:`~astropy.units.equivalencies.parallax` is a function that returns an
 equivalency list to handle conversions between angles and length.
@@ -51,7 +51,7 @@ into units of length (and vice versa).
     3437.7467707580054
 
 Angles as Dimensionless Units
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 Angles are treated as a physically distinct type, which usually helps to
 avoid mistakes.  For units such as rotational energy, however, it is not
@@ -91,7 +91,7 @@ number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
 Spectral Units
-^^^^^^^^^^^^^^
+--------------
 
 :func:`~astropy.units.equivalencies.spectral` is a function that returns
 an equivalency list to handle conversions between wavelength,
@@ -116,7 +116,7 @@ These equivalencies even work with non-base units::
   1.869180759162485e-27
 
 Spectral (Doppler) equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 Spectral equivalencies allow you to convert between wavelength,
 frequency, energy, and wave number but not to velocity, which is
@@ -143,7 +143,7 @@ These three conventions are implemented in
     <Quantity -1895.4321928669085 km / s>
 
 Spectral Flux / Luminosity Density Units
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
 There is also support for spectral flux and luminosity density units. Their use
 is more complex, since it is necessary to also supply the location in the
@@ -164,7 +164,7 @@ its arguments the |quantity| for the spectral location. For example::
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
 Brightness Temperature / Flux Density Equivalency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 
 There is an equivalency for brightness temperature and flux density.
 This equivalency is often referred to as "Antenna Gain" since, at a
@@ -214,7 +214,7 @@ example converts the FWHM to sigma::
 
 
 Temperature Energy Equivalency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 This equivalency allows conversion between temperature and its equivalent
 in energy (i.e., the temperature multiplied by the Boltzmann constant),
@@ -228,7 +228,7 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
 
 
 Pixel and plate scale Equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 These equivalencies are for converting between angular scales and either linear
 scales in the focal plane or distances in units of the number of pixels.  For
@@ -252,7 +252,7 @@ and you want to know how big your pixels need to be to cover half an arcsecond::
     <Quantity 18.9077335632719 micron>
 
 Writing new equivalencies
--------------------------
+=========================
 
 An equivalence list is just a list of tuples, where each tuple has 4
 elements::
@@ -286,7 +286,7 @@ And it also works in the other direction::
   0.9586114172355459
 
 A slightly more complicated example: Spectral Doppler Equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------------------
 
 We show how to define an equivalency using the radio convention for CO 1-0.
 This function is already defined in
@@ -310,7 +310,7 @@ return value is assumed to be in units of ``km/s``, which is why the ``.value``
 of ``c`` is used instead of the constant.
 
 Displaying available equivalencies
-----------------------------------
+==================================
 
 The :meth:`~astropy.units.core.UnitBase.find_equivalent_units` method also
 understands equivalencies.  For example, without passing equivalencies,
@@ -353,7 +353,7 @@ all kinds of things that ``Hz`` can be converted to::
 .. _equivalency-context:
 
 Using equivalencies in larger pieces of code
---------------------------------------------
+============================================
 Sometimes one has an involved calculation where one is regularly
 switching back between equivalent units. For these cases, one can set
 equivalencies that will by default be used, in a way similar to which

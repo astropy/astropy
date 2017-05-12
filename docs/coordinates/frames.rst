@@ -1,7 +1,7 @@
 .. include:: references.txt
 
 Using and Designing Coordinate Frames
--------------------------------------
+*************************************
 
 In `astropy.coordinates`, as outlined in the
 :ref:`astropy-coordinates-overview`, subclasses of |baseframe| ("frame
@@ -18,7 +18,7 @@ Using Frame Objects
 ===================
 
 Frames without Data
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 Frame objects have two distinct (but related) uses.  The first is
 storing the information needed to uniquely define a frame (e.g.,
@@ -56,7 +56,7 @@ into an `~astropy.time.Time` object with UTC scale (see
 
 
 Frames with Data
-^^^^^^^^^^^^^^^^
+----------------
 
 The second use for frame objects is to store actual realized coordinate
 data for frames like those described above. In this use, it is similar

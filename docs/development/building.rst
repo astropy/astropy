@@ -1,6 +1,6 @@
-====================================
+************************************
 Building Astropy and its Subpackages
-====================================
+************************************
 
 The build process currently uses the `setuptools
 <https://bitbucket.org/pypa/setuptools>`_ package to build and install the
@@ -11,7 +11,7 @@ distribution if it isn't installed for the user.
 
 
 Astropy-helpers
----------------
+===============
 
 As of Astropy v0.4, Astropy also uses an external package called
 `astropy-helpers <https://github.com/astropy/astropy-helpers>`_ to provide some
@@ -48,7 +48,7 @@ astropy-helpers is a dependency of building Astropy's documentation.
 
 
 Customizing setup/build for subpackages
----------------------------------------
+=======================================
 
 As is typical, there is a single ``setup.py`` file that is used for the whole
 ``astropy`` package.  To customize setup parameters for a given sub-package, a

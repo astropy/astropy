@@ -1,8 +1,8 @@
 .. doctest-skip-all
 
-============
+************
 Known Issues
-============
+************
 
 .. contents::
    :local:
@@ -24,12 +24,12 @@ cases where the test suite can report false negatives depending on the context/
 platform on which it was run.
 
 Known deficiencies
-------------------
+==================
 
 .. _quantity_issues:
 
 Quantities lose their units with some operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
 Quantities are subclassed from numpy's `~numpy.ndarray` and in some numpy operations
 (and in scipy operations using numpy internally) the subclass is ignored, which
@@ -89,7 +89,7 @@ See: https://github.com/astropy/astropy/issues/1274
 
 
 Quantities float comparison with np.isclose fails
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 
 Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
 numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
@@ -113,7 +113,7 @@ An easy solution is::
 
 
 Quantities in np.linspace failure on numpy 1.10
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------
 
 `~numpy.linspace` does not work correctly with quantities when using numpy
 1.10.0 to 1.10.5 due to a bug in numpy. The solution is to upgrade to numpy
@@ -121,7 +121,7 @@ Quantities in np.linspace failure on numpy 1.10
 
 
 Table sorting can silently fail on MacOS X or Windows with Python 3 and Numpy < 1.6.2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------------------------------------
 
 In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 sorting of structured arrays to silently fail under certain circumstances (for
@@ -133,7 +133,7 @@ to a more recent version of Numpy.
 
 
 Remote data utilities in `astropy.utils.data` fail on some Python distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------------------------------
 
 The remote data utilities in `astropy.utils.data` depend on the Python
 standard library `shelve` module, which in some cases depends on the
@@ -152,7 +152,7 @@ One workaround is to install the ``bsddb3`` module.
 
 
 mmap support for ``astropy.io.fits`` on GNU Hurd
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
 On Hurd and possibly other platforms ``flush()`` on memory-mapped files is not
 implemented, so writing changes to a mmap'd FITS file may not be reliable and is
@@ -163,7 +163,7 @@ See: https://github.com/astropy/astropy/issues/968
 
 
 Bug with unicode endianness in ``io.fits`` for big-endian processors
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------------------
 
 On big-endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
 files may not be correctly read when using the ``Table.read`` interface. This
@@ -172,7 +172,7 @@ will be fixed in a subsequent bug fix release of Astropy (see `bug report here
 
 
 Error *'buffer' does not have the buffer interface* in ``io.fits``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------------------
 
 For Python 2.7.x versions prior to 2.7.4, the `astropy.io.fits` may under
 certain circumstances output the following error::
@@ -184,7 +184,7 @@ writing, the latest Python 2.7.x version is 2.7.9).
 
 
 Color printing on Windows
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 Colored printing of log messages and other colored text does work in Windows
 but only when running in the IPython console.  Colors are not currently
@@ -192,7 +192,7 @@ supported in the basic Python command-line interpreter on Windows.
 
 
 Pickling error on compound models
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 When calling `pickle.dumps` on a :ref:`compound model <compound-models>`, it
 is possible to get an exception with a `pickle.PickleError` or, depending on
@@ -214,10 +214,10 @@ and using it instead of the copy built-in to your Python).
 
 
 Build/installation/test issues
-------------------------------
+==============================
 
 Anaconda users should upgrade with ``conda``, not ``pip``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------------
 
 Upgrading Astropy in the anaconda python distribution using ``pip`` can result
 in a corrupted install with a mix of files from the old version and the new
@@ -228,7 +228,7 @@ versions with ``conda search astropy``.
 
 
 Locale errors in MacOS X and Linux
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
@@ -276,7 +276,7 @@ terminal).
 
 
 Creating a Time object fails with ValueError after upgrading Astropy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------------------
 
 In some cases, have users have upgraded Astropy from an older version to v1.0
 or greater they have run into the following crash when trying to create a
@@ -311,7 +311,7 @@ repository you intend to save.  Then rebuild/reinstall from the clean repo.
 
 
 Failing logging tests when running the tests in IPython
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------
 
 When running the Astropy tests using ``astropy.test()`` in an IPython
 interpreter some of the tests in the ``astropy/tests/test_logger.py`` *might*
@@ -323,7 +323,7 @@ See: https://github.com/astropy/astropy/issues/717
 
 
 Some docstrings can not be displayed in IPython < 0.13.2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------
 
 Displaying long docstrings that contain Unicode characters may fail on
 some platforms in the IPython console (prior to IPython version
@@ -352,7 +352,7 @@ The IPython issue: https://github.com/ipython/ipython/pull/2738
 
 
 Installation fails on Mageia-2 or Mageia-3 distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------
 
 Building may fail with warning messages such as::
 
@@ -368,7 +368,7 @@ and search for the line that adds the option ``-Wl,--no-undefined`` to the
 
 
 Crash on upgrading from Astropy 0.2 to a newer version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------
 
 It is possible for installation of a new version of Astropy, or upgrading of an
 existing installation to crash due to not having permissions on the

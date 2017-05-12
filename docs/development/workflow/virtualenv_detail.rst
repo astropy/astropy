@@ -3,7 +3,7 @@
 .. _using-virtualenv:
 
 Using virtualenv
-================
+****************
 
 `virtualenv`_ is a tool for creating and activating isolated Python
 environments that allow installing and experimenting with Python packages
@@ -75,7 +75,7 @@ your default Python version:
    virtualenv as described :ref:`activate_development_astropy`.
 
 Using virtualenv with IPython
------------------------------
+=============================
 
 .. note::
 
@@ -127,7 +127,7 @@ Now IPython will import all packages from your virtualenv where applicable.
     version in question.
 
 virtualenvwrapper
------------------
+=================
 
 `virtualenvwrapper`_ is a set of enhancements to virtualenv mostly
 implemented through simple shell scripts and aliases.  It automatically
@@ -149,7 +149,7 @@ There also exists `virtualenvwrapper-win`_, which ports virtualenvwrapper to
 Windows batch scripts.
 
 venv
-----
+====
 
 virtualenv is so commonly used in the Python development community that its
 functionality was finally added to the standard library in Python 3.3 under

@@ -1,6 +1,6 @@
-==================
+******************
 Release Procedures
-==================
+******************
 
 The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
@@ -10,7 +10,7 @@ more of the process, if not all.
 .. _release-procedure:
 
 Release Procedure
------------------
+=================
 
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
@@ -242,7 +242,7 @@ packages that use the full bugfix/maintenance branch approach.)
    conda).
 
 Modifications for a beta/release candidate release
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------
 
    For major releases we do beta and/or release candidates to have a chance to
    catch significant bugs before the true release. If the release you are
@@ -264,7 +264,7 @@ Modifications for a beta/release candidate release
 
 
 Performing a Feature Freeze/Branching new Major Versions
---------------------------------------------------------
+========================================================
 
 As outlined in
 `APE2 <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_, astropy
@@ -336,7 +336,7 @@ The procedure for this is straightforward:
 #. Repeat the above steps for the astropy-helpers, using the same version series.
 
 Maintaining Bug Fix Releases
-----------------------------
+============================
 
 Astropy releases, as recommended for most Python projects, follows a
 <major>.<minor>.<micro> version scheme, where the "micro" version is also
@@ -377,7 +377,7 @@ be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
 
 Backporting fixes from master
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
@@ -435,7 +435,7 @@ to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
 
 Making fixes directly to the bug fix branch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 As mentioned earlier in this section, in some cases a fix only applies to a bug
 fix release, and is not applicable in the mainline development.  In this case
@@ -455,7 +455,7 @@ there are two choices:
    that branch when the PR is accepted.
 
 Preparing the bug fix branch for release
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
 There are two primary steps that need to be taken before creating a bug fix
 release. The rest of the procedure is the same as any other release as
@@ -541,7 +541,7 @@ issues that you don't expect to be fixed in time for 'v1.2.2'.
 .. _helpers-release-info:
 
 Coordinating Astropy and astropy-helpers Releases
--------------------------------------------------
+=================================================
 
 A bit more initial effort is required for an Astropy release that has a
 corresponding astropy-helpers release.  The main reason for this more complex
@@ -619,7 +619,7 @@ testing the release gets merged.
 .. _key-signing-info:
 
 Creating a GPG Signing Key and a Signed Tag
--------------------------------------------
+===========================================
 
 One of the main steps in performing a release is to create a tag in the git
 repository representing the exact state of the repository that represents the
@@ -635,7 +635,7 @@ after the tag has been created.  But only one "0.1" will be signed by one of
 the Astropy project coordinators and will be verifiable with their public key.
 
 Generating a public/private key pair
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 Git uses GPG to created signed tags, so in order to perform an Astropy release
 you will need GPG installed and will have to generated a signing key pair.
@@ -673,7 +673,7 @@ a trusted online encrypted storage, though some might not find that secure
 enough--it's up to you and what you're comfortable with.
 
 Add your public key to a keyserver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 Now that you have a public key, you can publish this anywhere you like--in your
 e-mail, in a public code repository, etc.  You can also upload it to a
 dedicated public OpenPGP keyserver.  This will store the public key
@@ -704,7 +704,7 @@ come configured with a sensible default keyserver, so you shouldn't have to
 specify any more than that.
 
 Create a tag
-^^^^^^^^^^^^
+------------
 Now test creating a signed tag in git.  It's safe to experiment with this--you
 can always delete the tag before pushing it to a remote repository::
 
