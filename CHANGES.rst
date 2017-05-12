@@ -91,7 +91,8 @@ New Features
 
   - The ``quantity_input`` decorator now accepts a string physical type instead
     of a unit object to specify the expected input ``Quantity``'s physical type.
-    [#3847]
+    For example, ``@u.quantity_input(x='angle')`` is now functionally the same
+    as ``@u.quantity_input(x=u.degree)``. [#3847]
 
 - ``astropy.utils``
 
