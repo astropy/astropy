@@ -429,7 +429,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     ------
     ValueError:
         If the array is bigger than 1 GB after padding, will raise this exception
-        unless allow_huge is True
+        unless ``allow_huge`` is True
 
     See Also
     --------
