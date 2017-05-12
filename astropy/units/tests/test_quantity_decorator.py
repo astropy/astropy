@@ -68,7 +68,7 @@ def test_wrong_unit():
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to physical type 'angle'."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to physical type 'angle'."
 
 def test_not_quantity():
     @u.quantity_input(solarx=u.arcsec, solary=u.deg)
@@ -127,7 +127,7 @@ def test_kwarg_wrong_unit():
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to physical type 'angle'."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to physical type 'angle'."
 
 def test_kwarg_not_quantity():
     @u.quantity_input(solarx=u.arcsec, solary=u.deg)
@@ -207,6 +207,19 @@ def test_args_physical_type():
     assert solarx.unit == u.arcsec
     assert solary.unit == u.arcsec
 
+def test_args_pass_string():
+    @u.quantity_input(solarx='degree', solary='degree')
+    def myfunc_args(solarx, solary):
+        return solarx, solary
+
+    solarx, solary = myfunc_args(1*u.arcsec, 1*u.arcsec)
+
+    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solary, u.Quantity)
+
+    assert solarx.unit == u.arcsec
+    assert solary.unit == u.arcsec
+
 def test_arg_equivalencies_physical_type():
     @u.quantity_input(solarx='angle', solary='energy', equivalencies=u.mass_energy())
     def myfunc_args(solarx, solary):
@@ -227,7 +240,7 @@ def test_kwarg_wrong_unit_physical_type():
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to physical type 'angle'."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to physical type 'angle'."
 
 def test_kwarg_invalid_physical_type():
     @u.quantity_input(solarx='angle', solary='africanswallow')
