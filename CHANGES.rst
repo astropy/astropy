@@ -127,6 +127,8 @@ API Changes
 
 - ``astropy.modeling``
 
+  - Removed deprecated ``Redshift`` model; Use ``RedshiftScaleFactor``. [#6053]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
