@@ -132,7 +132,7 @@ The script below shows an example of kernel interpolation to fill in
 flagged-out pixels:
 
 .. plot:: convolution/images/interpolate_example.py
-   :context: reset
+   :context:
    :include-source:
 
 This script shows the power of this technique for reconstructing images from
@@ -141,7 +141,7 @@ are sometimes missed - but the extended structure is very well recovered (by
 eye).
 
 .. plot:: convolution/images/reconstruct_example.py
-   :context: reset
+   :context:
    :include-source:
 
 
