@@ -63,7 +63,7 @@ interpolated using the kernel::
 
     >>> import numpy as np
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.75,  6.5,  7.25,  7.8])
+    array([ 1.6 ,  3.6 ,  5.  ,  5.75,  6.5 ,  7.25,  7.8 ])
 
 Kernels and arrays can be specified either as lists or as Numpy
 arrays. The following examples show how to construct a 1-d array as a
