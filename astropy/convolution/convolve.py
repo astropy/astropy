@@ -353,9 +353,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
+
             * 'fill': set values outside the array boundary to fill_value
               (default)
             * 'wrap': periodic boundary
+
         The `None` and 'extend' parameters are not supported for FFT-based
         convolution
     fill_value : float, optional
@@ -431,16 +433,16 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     See Also
     --------
-    convolve : Convolve is a non-fft version of this code.  It is more
-               memory efficient and for small kernels can be faster.
+    convolve:
+        Convolve is a non-fft version of this code.  It is more memory
+        efficient and for small kernels can be faster.
 
     Returns
     -------
     default : ndarray
-        **array** convolved with ``kernel``.
-        If ``return_fft`` is set, returns fft(**array**) * fft(``kernel``).
-        If crop is not set, returns the image, but with the fft-padded size
-        instead of the input size
+        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
+        fft(``array``) * fft(``kernel``).  If crop is not set, returns the
+        image, but with the fft-padded size instead of the input size
 
     Notes
     -----
