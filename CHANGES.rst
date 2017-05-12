@@ -314,8 +314,8 @@ Bug Fixes
 
 - ``astropy.visualization``
 
-  - Created param labelpad in set_xlabel and set_ylabel functions. It
-    is directly passed to set_axislabel as minpad. [#5686, #5692, #6060]
+  - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
+    functions. [#5686, #5692, #6060]
 
 - ``astropy.vo``
 
