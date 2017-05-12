@@ -3,7 +3,7 @@
 .. _command_history:
 
 Condensed example of contributing code to Astropy
-=================================================
+*************************************************
 
 There are two versions:
 
@@ -13,7 +13,7 @@ There are two versions:
 .. _with output:
 
 Example, with output
---------------------
+====================
 
 In this version the commands are on the lines that begin ``$`` others are
 comments or output.
@@ -24,7 +24,7 @@ comments or output.
 .. _no output:
 
 Example, no output
-------------------
+==================
 
 .. literalinclude:: command_history.sh
     :language: bash

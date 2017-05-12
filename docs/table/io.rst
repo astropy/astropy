@@ -3,7 +3,7 @@
 .. _read_write_tables:
 
 Reading and writing Table objects
-===================================
+***********************************
 
 Astropy provides a unified interface for reading and writing data
 in different formats.  For many common cases this will
@@ -13,7 +13,7 @@ examples of using this interface see the :ref:`table_io`
 section.
 
 Getting started
-----------------
+================
 
 The :class:`~astropy.table.Table` class includes two methods,
 :meth:`~astropy.table.Table.read` and
@@ -55,7 +55,7 @@ section :ref:`built_in_readers_writers`.  This section also provides the full li
 choices for the ``format`` argument.
 
 Supported formats
-------------------
+==================
 
 The  :ref:`table_io` has built-in support for the following data file formats:
 

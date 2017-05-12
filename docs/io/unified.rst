@@ -3,7 +3,7 @@
 .. _table_io:
 
 Unified file read/write interface
-===================================
+***********************************
 
 Astropy provides a unified interface for reading and writing data in different formats.
 For many common cases this will simplify the process of file I/O and reduce the need to
@@ -12,7 +12,7 @@ still in active development and the number of supported formats will be increasi
 details on the implementation see :ref:`io_registry`.
 
 Getting started with Table I/O
-------------------------------
+==============================
 
 The :class:`~astropy.table.Table` class includes two methods,
 :meth:`~astropy.table.Table.read` and
@@ -61,7 +61,7 @@ choices for the ``format`` argument.
 .. _built_in_readers_writers:
 
 Built-in table readers/writers
-------------------------------
+==============================
 
 The :class:`~astropy.table.Table` class has built-in support for various input 
 and output formats including :ref:`table_io_ascii`, 
@@ -104,7 +104,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
 .. _table_io_ascii:
 
 ASCII formats
-^^^^^^^^^^^^^^
+--------------
 
 The :meth:`~astropy.table.Table.read` and
 :meth:`~astropy.table.Table.write` methods can be used to read and write formats
@@ -155,7 +155,7 @@ column delimiter and the output format for the ``colc`` column use::
 .. _table_io_fits:
 
 FITS
-^^^^
+----
 
 Reading and writing tables in `FITS <http://fits.gsfc.nasa.gov/>`_ format is
 supported with ``format='fits'``. In most cases, existing FITS files should be
@@ -163,7 +163,7 @@ automatically identified as such based on the header of the file, but if not,
 or if writing to disk, then the format should be explicitly specified.
 
 Reading
-""""""""
+^^^^^^^^
 
 If a FITS table file contains only a single table, then it can be read in
 with::
@@ -183,7 +183,7 @@ read in and a warning will be emitted::
     WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
 
 Writing
-""""""""
+^^^^^^^^
 
 To write a table ``t`` to a new file::
 
@@ -202,7 +202,7 @@ binary table HDU and insert or append that to an existing
 :class:`~astropy.io.fits.HDUList`.
 
 Keywords
-"""""""""
+^^^^^^^^^
 
 The FITS keywords associated with an HDU table are represented in the ``meta``
 ordered dictionary attribute of a :ref:`Table <astropy-table>`.  After reading
@@ -233,7 +233,7 @@ FITS header (for example, keyword comments are dropped).
 .. _table_io_hdf5:
 
 HDF5
-^^^^^^^^
+--------
 
 .. _HDF5: http://www.hdfgroup.org/HDF5/
 .. _h5py: http://www.h5py.org/
@@ -287,7 +287,7 @@ used to ensure that the data is compressed on disk::
 .. _table_io_votable:
 
 VO Tables
-^^^^^^^^^^^
+-----------
 
 Reading/writing from/to `VO table <http://www.ivoa.net/Documents/VOTable/>`_
 files is supported with ``format='votable'``. In most cases, existing VO

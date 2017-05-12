@@ -1,5 +1,5 @@
 Combining and defining units
-============================
+****************************
 
 Units and quantities can be combined together using the regular Python
 numeric operators.  For example::

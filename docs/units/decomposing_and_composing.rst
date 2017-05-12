@@ -1,10 +1,10 @@
 Decomposing and composing units
-===============================
+*******************************
 
 .. _decomposing:
 
 Reducing a unit to its irreducible parts
-----------------------------------------
+========================================
 
 A unit or quantity can be decomposed into its irreducible parts using
 the `Unit.decompose <astropy.units.core.UnitBase.decompose>` or
@@ -35,7 +35,7 @@ Finally, if you just want to know how a unit was defined::
   Unit("13.6057 eV")
 
 Automatically composing a unit into more complex units
-------------------------------------------------------
+======================================================
 
 Conversely, a unit may be recomposed back into more complex units
 using the `~astropy.units.core.UnitBase.compose` method.  Since there
@@ -81,7 +81,7 @@ unit to the fewest possible symbols::
    [Unit("lm Wb")]
 
 Converting between systems
---------------------------
+==========================
 
 Built on top of this functionality is a convenience method to convert
 between unit systems.

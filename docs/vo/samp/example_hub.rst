@@ -5,12 +5,12 @@
 .. _vo-samp-example_hub:
 
 Starting and stopping a SAMP hub server
----------------------------------------
+***************************************
 
 There are several ways you can start up a SAMP hub:
 
 Using an existing hub
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 You can start up another application that includes a hub, such as
 `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
@@ -18,7 +18,7 @@ You can start up another application that includes a hub, such as
 `Aladin Desktop <http://aladin.u-strasbg.fr>`_.
 
 Using the command-line hub utility
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 You can make use of the ``samp_hub`` command-line utility, which is included in
 Astropy::
@@ -32,7 +32,7 @@ To get more help on available options for ``samp_hub``::
 To stop the server, you can simply press control-C.
 
 Starting a hub programmatically (advanced)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================================
 
 You can start up a hub by creating a |SAMPHubServer| instance and starting it,
 either from the interactive Python prompt, or from a Python script::

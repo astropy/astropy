@@ -1,7 +1,7 @@
 .. _astropy-coordinates-definitions:
 
 Important Definitions
----------------------
+*********************
 
 For reference, below, we define some key terms as they are used in
 `~astropy.coordinates`, due to some ambiguities that exist in the

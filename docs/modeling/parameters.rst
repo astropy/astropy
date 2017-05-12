@@ -38,7 +38,7 @@ the standard `Numpy broadcasting rules`_.
 
 
 Parameter examples
-------------------
+==================
 
 - Model classes can be introspected directly to find out what parameters they
   accept::
