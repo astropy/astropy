@@ -343,13 +343,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     Parameters
     ----------
     array : `numpy.ndarray`
-        Array to be convolved with `kernel`.  It can be of any
+        Array to be convolved with ``kernel``.  It can be of any
         dimensionality, though only 1, 2, and 3d arrays have been tested.
-    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
+    kernel : `numpy.ndarray` or `astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array.  The dimensions *do not* have to be odd in all directions,
         unlike in the non-fft `convolve` function.  The kernel will be
-        normalized if `normalize_kernel` is set.  It is assumed to be centered
+        normalized if ``normalize_kernel`` is set.  It is assumed to be centered
         (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
@@ -733,9 +733,9 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     Parameters
     ----------
     array : `numpy.ndarray`
-        Array to be convolved with `kernel`.  It can be of any
+        Array to be convolved with ``kernel``.  It can be of any
         dimensionality, though only 1, 2, and 3d arrays have been tested.
-    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
+    kernel : `numpy.ndarray` or `astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array.  The dimensions *do not* have to be odd in all directions,
         unlike in the non-fft `convolve` function.  The kernel will be
