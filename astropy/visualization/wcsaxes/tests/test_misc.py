@@ -103,3 +103,22 @@ def test_plot_coord_transform():
     c = SkyCoord(359.76045223*u.deg, 0.26876217*u.deg)
     with pytest.raises(TypeError):
         ax.plot_coord(c, 'o', transform=ax.get_transform('galactic'))
+
+
+def test_set_label_properties():
+
+    # Regression test to make sure that arguments passed to
+    # set_xlabel/set_ylabel are passed to the underlying coordinate helpers
+
+    ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+
+    ax.set_xlabel('Test x label', labelpad=2, color='red')
+    ax.set_ylabel('Test y label', labelpad=3, color='green')
+
+    assert ax.coords[0].axislabels.get_text() == 'Test x label'
+    assert ax.coords[0].axislabels.get_minpad('b') == 2
+    assert ax.coords[0].axislabels.get_color() == 'red'
+
+    assert ax.coords[1].axislabels.get_text() == 'Test y label'
+    assert ax.coords[1].axislabels.get_minpad('l') == 3
+    assert ax.coords[1].axislabels.get_color() == 'green'
