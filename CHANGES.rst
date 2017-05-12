@@ -210,6 +210,8 @@ Bug Fixes
     a compound model whose parameters were changed now uses the
     updated parameters and not the parameters of the original model. [#5741]
 
+  - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
