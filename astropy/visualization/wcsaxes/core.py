@@ -352,11 +352,11 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    def set_xlabel(self, label):
-        self.coords[self._x_index].set_axislabel(label)
+    def set_xlabel(self, label, labelpad=1, **kwargs):
+        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
-    def set_ylabel(self, label):
-        self.coords[self._y_index].set_axislabel(label)
+    def set_ylabel(self, label, labelpad=1, **kwargs):
+        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()
