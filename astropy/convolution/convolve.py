@@ -739,7 +739,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         The convolution kernel. The number of dimensions should match those
         for the array.  The dimensions *do not* have to be odd in all directions,
         unlike in the non-fft `convolve` function.  The kernel will be
-        normalized if `normalize_kernel` is set.  It is assumed to be centered
+        normalized if ``normalize_kernel`` is set.  It is assumed to be centered
         (i.e., shifts may result if your kernel is asymmetric).  The kernel
         *must be normalizable* (i.e., its sum cannot be zero).
     convolve : `convolve` or `convolve_fft`
