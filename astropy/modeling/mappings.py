@@ -3,14 +3,14 @@ Special models useful for complex compound models where control is needed over
 which outputs from a source model are mapped to which inputs of a target model.
 """
 
-from .core import Model
+from .core import FittableModel
 from ..extern.six.moves import range
 
 
 __all__ = ['Mapping', 'Identity']
 
 
-class Mapping(Model):
+class Mapping(FittableModel):
     """
     Allows inputs to be reordered, duplicated or dropped.
 
@@ -45,6 +45,7 @@ class Mapping(Model):
     >>> model(1, 2)  # doctest: +FLOAT_CMP
     (17.0, 14.2)
     """
+    linear = True  # FittableModel is non-linear by default
 
     def __init__(self, mapping, n_inputs=None, name=None, meta=None):
         if n_inputs is None:
@@ -154,6 +155,7 @@ class Identity(Mapping):
         >>> model.inverse(2.4, 2) # doctest: +FLOAT_CMP
         (1.0, 1.0)
     """
+    linear = True  # FittableModel is non-linear by default
 
     def __init__(self, n_inputs, name=None, meta=None):
         mapping = tuple(range(n_inputs))

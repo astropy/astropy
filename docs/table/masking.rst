@@ -3,7 +3,7 @@
 .. _masking_and_missing_values:
 
 Masking and missing values
---------------------------
+**************************
 
 The `astropy.table` package provides support for masking and missing
 values in a table by wrapping the ``numpy.ma`` masked array package.
@@ -33,7 +33,7 @@ on masked arrays
    missing data in the context of `numpy`.
 
 Table creation
-^^^^^^^^^^^^^^^
+===============
 
 A masked table can be created in several ways:
 
@@ -102,7 +102,7 @@ Note the INFO message because the underlying type of the table is modified in th
   >>> t = Table(t, masked=True)  # convert to masked table
 
 Table access
-^^^^^^^^^^^^
+============
 
 Nearly all the of standard methods for accessing and modifying data
 columns, rows, and individual elements also apply to masked tables.
@@ -117,14 +117,14 @@ Both of these differences are due to issues in the underlying
 `numpy.ma.MaskedArray` implementation.
 
 Masking and filling
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 Both the |Table| and |MaskedColumn| classes provide
 attributes and methods to support manipulating tables with missing or
 invalid data.
 
 Mask
-""""
+----
 
 The actual mask for the table as a whole or a single column can be
 viewed and modified via the ``mask`` attribute::
@@ -159,7 +159,7 @@ To get the indices of masked elements use an expression like::
 
 
 Filling
-"""""""
+-------
 
 The entries which are masked (i.e. missing or invalid) can be replaced
 with specified fill values.  In this case the |MaskedColumn| or masked

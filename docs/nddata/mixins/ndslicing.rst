@@ -1,10 +1,10 @@
 .. _nddata_slicing:
 
 Slicing and Indexing NDData
-===========================
+***************************
 
 Introduction
-------------
+============
 
 This page only deals with peculiarities applying to
 `~astropy.nddata.NDData`-like classes. For a tutorial about slicing/indexing see the
@@ -20,7 +20,7 @@ and `numpy documentation <http://docs.scipy.org/doc/numpy/reference/arrays.index
 
 
 Slicing NDDataRef
------------------
+=================
 
 Unlike `~astropy.nddata.NDData` the class `~astropy.nddata.NDDataRef`
 implements slicing or indexing. The result will be wrapped inside the same
@@ -55,7 +55,7 @@ except you indexed only one element (for example ``ndd_sliced = ndd[1]``). Then
 the element is a scalar and changes will not propagate to the original.
 
 Slicing NDDataRef including attributes
---------------------------------------
+======================================
 
 In case a ``wcs``, ``mask`` or ``uncertainty`` is present this attribute will
 be sliced too::
@@ -99,7 +99,7 @@ printed and the property will be kept as is::
     False
 
 Example: Remove masked data
----------------------------
+===========================
 
 .. warning::
     If you are using a `~astropy.wcs.WCS` object as ``wcs`` this will **NOT**

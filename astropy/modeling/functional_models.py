@@ -4,20 +4,19 @@
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-import warnings
+
 import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..extern.six.moves import map
-from ..utils.exceptions import AstropyDeprecationWarning
-
+from ..stats.funcs import gaussian_sigma_to_fwhm
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Redshift',
+           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
@@ -65,6 +64,11 @@ class BaseGaussian1D(Fittable1DModel):
         dx = factor * self.stddev
 
         return (x0 - dx, x0 + dx)
+
+    @property
+    def fwhm(self):
+        """Gaussian full width at half maximum."""
+        return self.stddev * gaussian_sigma_to_fwhm
 
 
 class Gaussian1D(BaseGaussian1D):
@@ -349,6 +353,16 @@ class Gaussian2D(Fittable2DModel):
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
 
+    @property
+    def x_fwhm(self):
+        """Gaussian full width at half maximum in X."""
+        return self.x_stddev * gaussian_sigma_to_fwhm
+
+    @property
+    def y_fwhm(self):
+        """Gaussian full width at half maximum in Y."""
+        return self.y_stddev * gaussian_sigma_to_fwhm
+
     def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits in each dimension,
@@ -545,15 +559,6 @@ class RedshiftScaleFactor(Fittable1DModel):
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
         return inv
-
-
-class Redshift(RedshiftScaleFactor):
-    """This is **deprecated**, use :class:`RedshiftScaleFactor`."""
-    def __init__(self, *args):
-        warnings.warn('The "Redshift" class is now deprecated -- use the '
-                      '"RedshiftScaleFactor" class instead.',
-                      AstropyDeprecationWarning)
-        super(Redshift, self).__init__(*args)
 
 
 class Sersic1D(Fittable1DModel):
@@ -1883,6 +1888,15 @@ class Moffat1D(Fittable1DModel):
     gamma = Parameter(default=1)
     alpha = Parameter(default=1)
 
+    @property
+    def fwhm(self):
+        """
+        Moffat full width at half maximum.
+        Derivation of the formula is available in
+        `this notebook by Yoonsoo Bach <http://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
+        """
+        return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
+
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
         """One dimensional Moffat model function"""
@@ -1938,6 +1952,15 @@ class Moffat2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     gamma = Parameter(default=1)
     alpha = Parameter(default=1)
+
+    @property
+    def fwhm(self):
+        """
+        Moffat full width at half maximum.
+        Derivation of the formula is available in
+        `this notebook by Yoonsoo Bach <http://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
+        """
+        return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):

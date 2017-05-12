@@ -3,7 +3,7 @@
 .. include:: references.txt
 
 Modifying a table
------------------
+*****************
 
 The data values within a |Table| object can be modified in much the same manner
 as for `numpy` structured arrays by accessing columns or rows of data and
@@ -12,7 +12,7 @@ is the ability to easily modify the structure of the table: one can add or
 remove columns, and add new rows of data.
 
 Quick overview
-^^^^^^^^^^^^^^
+==============
 
 The code below shows the basics of modifying a table and its data.
 
@@ -182,7 +182,7 @@ as the item as shown below::
   >>> t_acb = t[new_order]
 
 Caveats
-^^^^^^^
+=======
 
 Modifying the table data and properties is fairly straightforward.  One thing
 to keep in mind is that adding a row *may* require a new copy in memory of the
@@ -214,7 +214,7 @@ a time.
 .. _table-replace-1_3:
 
 API change in replacing columns
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 Astropy version 1.3 introduces an API change in the way that the following
 behaves::

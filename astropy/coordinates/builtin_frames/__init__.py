@@ -68,7 +68,11 @@ def _make_transform_graph_docs():
     isclass = inspect.isclass
     coosys = [item for item in six.itervalues(globals())
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
-    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
+
+    # currently, all of the priorities are set to 1, so we don't need to show
+    #   then in the transform graph.
+    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys,
+                                                  priorities=False)
 
     docstr = """
     The diagram below shows all of the coordinate systems built into the
@@ -79,16 +83,40 @@ def _make_transform_graph_docs():
     between these systems, but the pre-defined transformations should be
     sufficient for typical usage.
 
-    The graph also indicates the priority for each transformation as a
-    number next to the arrow.  These priorities are used to decide the
-    preferred order when two transformation paths have the same number
-    of steps.  These priorities are defined such that the path with a
-    *smaller* total priority is favored.
+    The color of an edge in the graph (i.e. the transformations between two
+    frames) is set by the type of transformation; the legend box defines the
+    mapping from transform class name to color.
 
 
     .. graphviz::
 
     """
 
-    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+
+    # colors are in dictionary at the bottom of transformations.py
+    from ..transformations import trans_to_color
+    html_list_items = []
+    for cls,color in trans_to_color.items():
+        block = u"""
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>{0}:</b>
+                    <span style="font-size: 24px; color: {1};"><b>➝</b></span>
+                </p>
+            </li>
+        """.format(cls.__name__, color)
+        html_list_items.append(block)
+
+    graph_legend = u"""
+    .. raw:: html
+
+        <ul>
+            {}
+        </ul>
+    """.format("\n".join(html_list_items))
+    docstr = docstr + dedent(graph_legend)
+
+    return docstr
+
 _transform_graph_docs = _make_transform_graph_docs()

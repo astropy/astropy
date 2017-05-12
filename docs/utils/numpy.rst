@@ -3,7 +3,7 @@
 .. _numpy-compatibility:
 
 NumPy compatibility
-===================
+*******************
 
 NumPy_ forms an essential basis for astropy, and astropy's development has led
 to the identification of problems with some of numpy's functionality. Often,
@@ -14,7 +14,7 @@ patched routines. Hence, `astropy.utils.compat.numpy`.
 
 
 Adding a patched routine
-------------------------
+========================
 
 To ensure that patched code is only used when required, and that it will be
 easy to remove it if it is no longer needed for any supported version of
@@ -34,15 +34,15 @@ NumPy_, the following procedure should be used to add a patched routine:
 * In ``numpy/__init__.py``, import your patched code.
 * In ``numpy/tests``, add a new test routine that tests that the patch is used
   when necessary (i.e., test the test function), and that it provides the
-  desired functionality. 
+  desired functionality.
 
 For an example, see ``numpy/lib/stride_tricks.py`` and the corresponding
 ``numpy/tests/test_broadcast_arrays.py``.
 
-Note that patched routines will normally only be considered if they are part 
+Note that patched routines will normally only be considered if they are part
 of NumPy_. Thus, if the patch concerns a new bug discovered in numpy, a `pull
 request <https://github.com/numpy/numpy/pulls>`__ should first be made to
-NumPy_ (which can of course form the basis of a `pull request 
+NumPy_ (which can of course form the basis of a `pull request
 <https://github.com/astropy/astropy/pulls>`__ to ``astropy``).
 
 

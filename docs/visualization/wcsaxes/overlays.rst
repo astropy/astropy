@@ -1,6 +1,6 @@
-================================
+********************************
 Overplotting markers and artists
-================================
+********************************
 
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.
@@ -24,7 +24,7 @@ For the example in the following page we start from the example introduced in
 
 
 Pixel coordinates
-=================
+*****************
 
 Apart from the handling of the ticks, tick labels, and grid lines, the
 `~astropy.visualization.wcsaxes.WCSAxes` class behaves like a normal Matplotlib
@@ -58,7 +58,7 @@ in pixel coordinates:
     ax.scatter([40, 100, 130], [30, 130, 60], s=100, edgecolor='white', facecolor=(1, 1, 1, 0.5))
 
 World coordinates
-=================
+*****************
 
 All such Matplotlib commands allow a ``transform=`` argument to be passed,
 which will transform the input from world to pixel coordinates before it is
@@ -89,7 +89,7 @@ transformation at all (and things then behave as described in the `Pixel
 coordinates`_ section).
 
 Celestial coordinates
-=====================
+*********************
 
 For the special case where the WCS represents celestial coordinates, a number
 of other inputs can be passed to :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`. These
@@ -135,7 +135,7 @@ For example, you can add markers with positions defined in the FK5 system using:
 In the case of :meth:`~matplotlib.axes.Axes.scatter` and :meth:`~matplotlib.axes.Axes.plot`, the positions of the center of the markers is transformed, but the markers themselves are drawn in the frame of reference of the image, which means that they will not look distorted.
 
 Patches/shapes/lines
-====================
+********************
 
 Transformations can also be passed to Matplotlib patches. For example, we can
 use the :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method above to plot a rectangle
@@ -199,7 +199,7 @@ In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -2
                section.
 
 Contours
-========
+********
 
 Overplotting contours is also simple using the
 :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method. For contours,
@@ -236,7 +236,7 @@ image to plot the contours for:
                levels=[1,2,3,4,5,6], colors='white')
 
 Spherical patches
-=================
+*****************
 
 In the case where you are making a plot of a celestial image, and want to plot a circle that represents the area within a certain angle of a longitude/latitude, the `~matplotlib.patches.Circle` patch is not appropriate, since it will result in a distorted shape (because longitude is not the same as the angle on the sky). For this use case, you can instead use `~astropy.visualization.wcsaxes.SphericalCircle`, which takes a tuple of `~astropy.units.Quantity` as the input, and a `~astropy.units.Quantity` as the radius:
 

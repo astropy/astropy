@@ -3,7 +3,7 @@
 .. _astropy-coordinates-representations:
 
 Using and Designing Coordinate Representations
-----------------------------------------------
+**********************************************
 
 Points in a 3-d vector space can be represented in different ways, such as
 cartesian, spherical polar, cylindrical, and so on. These underlie the way
@@ -39,7 +39,7 @@ The built-in representation classes are:
    :ref:`astropy-skycoord-representations` section.
 
 Instantiating and converting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 Representation classes are instantiated with `~astropy.units.Quantity`
 objects::
@@ -107,7 +107,7 @@ removed, and the points are still located on a unit sphere:
 
 
 Array values and numpy array method analogs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================================
 
 Array `~astropy.units.Quantity` objects can also be passed to representations,
 and such representations can be sliced, reshaped, etc., using the same
@@ -135,7 +135,7 @@ methods as are available to `~numpy.ndarray`::
 .. _astropy-coordinates-representations-arithmetic:
 
 Vector arithmetic
-^^^^^^^^^^^^^^^^^
+=================
 
 Representations support basic vector arithmetic, in particular taking the norm,
 multiplying with and dividing by quantities, taking dot and cross products, as
@@ -215,7 +215,7 @@ To see how the operations work, consider the following examples::
 .. _astropy-coordinates-create-repr:
 
 Creating your own representations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=================================
 
 To create your own representation class, your class must inherit from the
 ``BaseRepresentation`` class.  In addition the following must be defined:

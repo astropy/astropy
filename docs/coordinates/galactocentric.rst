@@ -1,8 +1,8 @@
 .. _coordinates-galactocentric:
 
-========================================================
+********************************************************
 Description of Galactocentric coordinates transformation
-========================================================
+********************************************************
 
 This document describes the mathematics behind the transformation from
 :class:`~astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`

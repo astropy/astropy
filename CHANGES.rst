@@ -52,6 +52,8 @@ New Features
 
   - Added a ``name`` setter for instances of ``_CompoundModel``. [#5741]
 
+  - Added FWHM properties to Gaussian and Moffat models. [#6027]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -125,6 +127,8 @@ API Changes
 
 - ``astropy.modeling``
 
+  - Removed deprecated ``Redshift`` model; Use ``RedshiftScaleFactor``. [#6053]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -180,6 +184,12 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where ``StaticMatrixTransform`` erroneously copied frame
+    attributes from the input coordinate to the output frame. In practice, this
+    didn't actually affect any transforms in Astropy but may change behavior for
+    users who explicitly used the ``StaticMatrixTransform`` in their own code.
+    [#6045]
+
 - ``astropy.cosmology``
 
 - ``astropy.extern``
@@ -199,6 +209,8 @@ Bug Fixes
   - Creating a compound model where one of the submodels is
     a compound model whose parameters were changed now uses the
     updated parameters and not the parameters of the original model. [#5741]
+
+  - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
 
 - ``astropy.nddata``
 
@@ -239,9 +251,9 @@ Other Changes and Additions
 
 - Python 3.3 is no longer suppored. [#6020]
 
-- The bundled version of pytest has now been removed, but the 
-  astropy.tests.helper.pytest import will continue to work properly. 
-  Affiliated packages should nevertheless transition to importing pytest 
+- The bundled version of pytest has now been removed, but the
+  astropy.tests.helper.pytest import will continue to work properly.
+  Affiliated packages should nevertheless transition to importing pytest
   directly rather than from astropy.tests.helper. This also means that
   pytest is now a formal requirement for testing for both Astropy and
   for affiliated packages. [#5694]
@@ -267,6 +279,14 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - Fix table header not written out properly when ``fits.writeto()``
+    convenience function is used. [#6042]
+
+  - Fix writing out read-only arrays. [#6036]
+
+  - Extension headers are written out properly when the ``fits.update()``
+    convenience function is used. [#6058]
 
 - ``astropy.io.misc``
 
@@ -298,6 +318,9 @@ Bug Fixes
     avoid a ``TypeError`` in ``distutils.version.LooseVersion`` [#5944]
 
 - ``astropy.visualization``
+
+  - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
+    functions. [#5686, #5692, #6060]
 
 - ``astropy.vo``
 

@@ -4,7 +4,7 @@
 .. _table_operations:
 
 Table operations
------------------
+*****************
 
 In this section we describe higher-level operations that can be used to generate a new
 table from one or more input tables.  This includes:
@@ -41,7 +41,7 @@ table from one or more input tables.  This includes:
 .. _grouped-operations:
 
 Grouped operations
-^^^^^^^^^^^^^^^^^^
+------------------
 
 Sometimes in a table or table column there are natural groups within the dataset for which
 it makes sense to compute some derived values.  A simple example is a list of objects with
@@ -62,7 +62,7 @@ photometry from various observing runs::
   ...                     """, format='ascii')
 
 Table groups
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Now suppose we want the mean magnitudes for each object.  We first group the data by the
 ``name`` column with the :func:`~astropy.table.Table.group_by` method.  This returns
@@ -127,7 +127,7 @@ night, we would first group the table on both ``name`` and ``obs_date`` as follo
 
 
 Manipulating groups
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you have applied grouping to a table then you can easily access the individual
 groups or subsets of groups.  In all cases this returns a new grouped table.
@@ -200,7 +200,7 @@ One can iterate over the group sub-tables and corresponding keys with::
    M82 2012-03-26  15.7  16.5
 
 Column Groups
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Like |Table| objects, |Column| objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
@@ -242,7 +242,7 @@ Examples::
 
 
 Aggregation
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Aggregation is the process of applying a
 specified reduction function to the values within each group for each
@@ -321,7 +321,7 @@ respective reduceat methods.
 
 
 Filtering
-~~~~~~~~~~
+^^^^^^^^^^
 
 Table groups can be filtered by means of the
 `~astropy.table.groups.TableGroups.filter` method.  This is done by
@@ -384,7 +384,7 @@ either `True` or `False`.  For example::
 .. _table_binning:
 
 Binning
-^^^^^^^
+-------
 
 A common tool in analysis is to bin a table based on some reference value.
 Examples:
@@ -437,7 +437,7 @@ This time plot with ``plt.plot(dat_binned['phase'], dat_binned['mag'])``.
 .. _stack-vertically:
 
 Stack vertically
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 The |Table| class supports stacking tables vertically with the
 `~astropy.table.vstack` function.  This process is also commonly known as
@@ -519,7 +519,7 @@ full table as one of the inputs.
 .. _stack-horizontally:
 
 Stack horizontally
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
 `~astropy.table.hstack` function.    It corresponds roughly
@@ -585,7 +585,7 @@ full table as one of the inputs.
 .. _table-join:
 
 Join
-^^^^^^^^^^^^^^
+--------------
 
 The |Table| class supports the `database join <http://en.wikipedia.org/wiki/Join_(SQL)>`_
 operation.  This provides a flexible and powerful way to combine tables based on the
@@ -632,7 +632,7 @@ the "left" (``optical``) and "right" (``xray``) tables, respectively.
 
 
 Different join options
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 The table joins so far are known as "inner" joins and represent the strict intersection of
 the two tables on the key columns.
@@ -679,7 +679,7 @@ In all cases the output join table will be sorted by the key column(s) and in ge
 will not preserve the row order of the input tables.
 
 Non-identical key column names
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The |join| function requires the key column names to be identical in the
 two tables. However, in the following one table has a ``'name'`` column
@@ -718,7 +718,7 @@ The original ``xray_1`` table remains unchanged after the operation::
 
 
 Identical key values
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 The |Table| join operation works even if there are multiple rows with identical key
 values.  For example the following tables have multiple rows for the key column ``x``::
@@ -786,14 +786,14 @@ attributes`_ for details on how these characteristics of the input tables are me
 the single output table.
 
 Merging details
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 When combining two or more tables there is the need to merge certain
 characteristics in the inputs and potentially resolve conflicts.  This
 section describes the process.
 
 Column renaming
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 
 In cases where the input tables have conflicting column names, there
@@ -821,7 +821,7 @@ in the |join| example defined previously::
 
 
 Merging metadata
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 |Table| objects can have associated metadata:
 
@@ -858,7 +858,7 @@ In most cases one also will use the
 strategies. The linked documentation strings provide details.
 
 Merging column attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In addition to the table and column ``meta`` attributes, the column attributes ``unit``,
 ``format``, and ``description`` are merged by going through the input tables in
@@ -884,7 +884,7 @@ The rules for merging are as for `Merging metadata`_, and the
 .. _unique-rows:
 
 Unique rows
-^^^^^^^^^^^
+-----------
 
 Sometimes it makes sense to use only rows with unique key columns or even
 fully unique rows from a table. This can be done using the above described

@@ -3,7 +3,7 @@
 .. _astropy.io.ascii_read:
 
 Reading tables
---------------
+**************
 
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function::
@@ -32,7 +32,7 @@ the :class:`~astropy.io.ascii.Basic` format reader and other similar character-s
 .. _io_ascii_read_parameters:
 
 Parameters for ``read()``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 **table** : input table
   There are four ways to specify the table to be read:
@@ -139,7 +139,7 @@ Parameters for ``read()``
   built-in :ref:`extension_reader_classes`.
 
 Specifying header and data location
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===================================
 
 The three parameters ``header_start``, ``data_start`` and ``data_end`` make it
 possible to read a table file that has extraneous non-table data included.
@@ -188,7 +188,7 @@ work in this case.
 .. _replace_bad_or_missing_values:
 
 Bad or missing values
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 ASCII data tables can contain bad or missing values.  A common case is when a table
 contains blank entries with no available data, for example::
@@ -285,7 +285,7 @@ values in with typical placeholders::
          would wind up as float.
 
 Guess table format
-^^^^^^^^^^^^^^^^^^
+==================
 
 If the ``guess`` parameter in |read| is set to True (which is the default) then
 |read| will try to guess the table format by cycling through a number of
@@ -306,7 +306,7 @@ auto-assign column names because of the restriction on column names that
 look like a number.
 
 Guess order
-"""""""""""
+-----------
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
@@ -341,7 +341,7 @@ would only try the four delimiter possibilities, skipping all the conflicting
 Reader and quotechar combinations.
 
 Disabling
-"""""""""
+---------
 
 Guessing can be disabled in two ways::
 
@@ -352,7 +352,7 @@ Guessing can be disabled in two ways::
   data = astropy.io.ascii.read(table)               # guessing disabled
 
 Debugging
-"""""""""
+---------
 
 In order to get more insight into the guessing process and possibly debug if
 something isn't working as expected, use the
@@ -360,7 +360,7 @@ something isn't working as expected, use the
 attempted read formats for the last call to `~astropy.io.ascii.read()`.
 
 Comments and metadata
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 Any comment lines detected during reading are inserted into the output table
 via the ``comments`` key in the table's ``.meta`` dictionary. For example::
@@ -390,7 +390,7 @@ comments. Here is one example, where comments are of the form "# KEY = VALUE"::
 
 
 Converters
-^^^^^^^^^^
+==========
 
 :mod:`astropy.io.ascii` converts the raw string values from the table into
 numeric data types by using converter functions such as the Python ``int`` and
@@ -423,7 +423,7 @@ The default converters for each column can be overridden with the
 .. _fortran_style_exponents:
 
 Fortran-style exponents
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 The :ref:`fast converter <fast_conversion_opts>` available with the C
 input parser provides an ``exponent_style`` option to define a custom
@@ -443,7 +443,7 @@ case-insensitive; any value other than the default ``'E'`` implies the
 automatic setting of ``'use_fast_converter': True``.
 
 Advanced customization
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 Here we provide a few examples that demonstrate how to extend the base
 functionality to handle special cases.  To go beyond these simple examples the
