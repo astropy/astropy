@@ -2852,6 +2852,14 @@ class _CompoundModel(Model):
     def _get_submodels(self):
         return self.__class__._get_submodels()
 
+    def _parameter_units_for_data_units(self, input_units, output_units):
+        units_for_data = {}
+        for imodel, model in enumerate(self._submodels):
+            units_for_data_sub = model._parameter_units_for_data_units(input_units, output_units)
+            for param_sub in units_for_data_sub:
+                param = self._param_map_inverse[(imodel, param_sub)]
+                units_for_data[param] = units_for_data_sub[param_sub]
+        return units_for_data
 
 def custom_model(*args, **kwargs):
     """
