@@ -118,14 +118,24 @@ class QuantityInput(object):
                 if target_unit is not funcsigs.Parameter.empty:
 
                     if isinstance(target_unit, str):
-                        # user specified a physical type instead of a unit
-                        ureg = get_current_unit_registry()
-                        try:
-                            physical_type_id = _unit_physical_mapping[target_unit]
-                        except KeyError:
-                            raise ValueError("Invalid physical type '{0}'.".format(target_unit))
-                        target_units = ureg._by_physical_type[physical_type_id]
-                        target_unit = target_units.pop() # HACK
+                        from .core import Unit
+
+                        try: # unit passed in as a string
+                            target_unit = Unit(target_unit)
+                            phys_type = False
+                        except ValueError:
+                            phys_type = True
+
+                        if phys_type:
+                            # user specified a physical type instead of a unit
+                            ureg = get_current_unit_registry()
+                            try:
+                                physical_type_id = _unit_physical_mapping[target_unit]
+                            except KeyError:
+                                raise ValueError("Invalid physical type '{0}'."
+                                                 .format(target_unit))
+                            target_units = ureg._by_physical_type[physical_type_id]
+                            target_unit = target_units.pop() # just grab the first valid unit
 
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
@@ -133,7 +143,7 @@ class QuantityInput(object):
 
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
-                                             " must be in units convertable to"
+                                             " must be in units convertible to"
                                              " physical type '{2}'."
                                              .format(param.name,
                                                      wrapped_function.__name__,
