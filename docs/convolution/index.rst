@@ -31,11 +31,6 @@ within a kernel of any NaN value, which is often not the desired result.
    :include-source:
    :align: center
 
-.. plot:: convolution/images/compare_params_plots.py
-   :context:
-   :include-source: false
-   :align: center
-
 
 The following sections describe how to make use of the convolution functions,
 and how to use built-in convolution kernels:
@@ -131,10 +126,6 @@ Some contexts in which you might want to use kernel-based interpolation include:
    detectors.  Such images will only have a few discrete points sampled across
    the imaged area, but an approximation of the extended sky emission can still
    be constructed.
-
-.. plot:: convolution/images/imports.py
-   :context:
-   :include-source: false
 
 The script below shows an example of kernel interpolation to fill in
 flagged-out pixels:
