@@ -112,6 +112,11 @@ interpolated from their neighbors.  Kernel-based interpolation is useful for
 handling images with a few bad pixels or for interpolating sparsely sampled
 images.
 
+The interpolation tool is implemented and used as::
+
+    from astropy.convolution import interpolate_and_replace_nans
+    result = interpolate_and_replace_nans(image, kernel)
+
 Some contexts in which you might want to use kernel-based interpolation include:
 
  * images with saturated pixels.  Generally, these are the highest-intensity
@@ -127,6 +132,9 @@ Some contexts in which you might want to use kernel-based interpolation include:
    the imaged area, but an approximation of the extended sky emission can still
    be constructed.
 
+.. plot:: convolution/images/imports.py
+   :context:
+   :include-source: false
 
 The script below shows an example of kernel interpolation to fill in
 flagged-out pixels:
@@ -134,6 +142,7 @@ flagged-out pixels:
 .. plot:: convolution/images/interpolate_example.py
    :context:
    :include-source:
+   :align: center
 
 This script shows the power of this technique for reconstructing images from
 sparse sampling.  Note that the image is not perfect - the pointlike sources
@@ -143,6 +152,7 @@ eye).
 .. plot:: convolution/images/reconstruct_example.py
    :context:
    :include-source:
+   :align: center
 
 
 Using `astropy.convolution`
