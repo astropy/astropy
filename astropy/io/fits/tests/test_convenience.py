@@ -70,3 +70,22 @@ class TestConvenience(FitsTestCase):
         fits.writeto(filename, data=data, header=h_in, overwrite=True)
         h_out = fits.getheader(filename, ext=1)
         assert h_out['ANSWER'] == 42
+
+    def test_image_extension_update_header(self):
+        """
+        Test that _makehdu correctly includes the header. For example in the
+        fits.update convenience function.
+        """
+        filename = self.temp('twoextension.fits')
+
+        hdus = [fits.PrimaryHDU(np.zeros((10, 10))),
+                fits.ImageHDU(np.zeros((10, 10)))]
+
+        fits.HDUList(hdus).writeto(filename)
+
+        fits.update(filename,
+                    np.zeros((10, 10)),
+                    header=fits.Header([('WHAT', 100)]),
+                    ext=1)
+        h_out = fits.getheader(filename, ext=1)
+        assert h_out['WHAT'] == 100

@@ -254,6 +254,9 @@ Bug Fixes
 
   - Fix writing out read-only arrays. [#6036]
 
+  - Extension headers are written out properly when the ``fits.update()``
+    convenience function is used. [#6058]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

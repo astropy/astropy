@@ -900,7 +900,7 @@ def _makehdu(data, header):
                 isinstance(data, np.recarray)):
             hdu = BinTableHDU(data, header=header)
         elif isinstance(data, np.ndarray):
-            hdu = ImageHDU(data)
+            hdu = ImageHDU(data, header=header)
         else:
             raise KeyError('Data must be a numpy array.')
     return hdu
