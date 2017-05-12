@@ -1,6 +1,15 @@
-# This script needs to be executed in an environment established by
-# `compare_params.py` above
+import numpy as np
+from astropy.io import fits
+from astropy.utils.data import get_pkg_data_filename
+from astropy.visualization.wcsaxes.frame import EllipticalFrame
+from astropy.convolution import Gaussian2DKernel
+from scipy.signal import convolve as scipy_convolve
+from astropy.convolution import convolve,convolve_fft
+import matplotlib.pyplot as plt
 from astropy.convolution import interpolate_replace_nans
+
+# Load the data from data.astropy.org
+filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
 
 hdu = fits.open(filename)[0]
 img = hdu.data[50:90,60:100] * 1e5
