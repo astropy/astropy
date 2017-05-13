@@ -153,7 +153,7 @@ class UnitSystem(object):
 
             >>> usys = UnitSystem(u.kpc, u.Myr, u.radian, u.Msun)
             >>> usys.get_constant('c')
-            306.6013937879527
+            <Quantity 306.6013937879527 kpc / Myr>
 
         """
         from .. import constants as const
