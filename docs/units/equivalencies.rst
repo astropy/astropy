@@ -6,13 +6,13 @@ Equivalencies
 *************
 
 The unit module has machinery for supporting equivalences between
-different units in certain contexts. Namely when equations can
+different units in certain contexts, namely when equations can
 uniquely relate a value in one unit to a different unit. A good
 example is the equivalence between wavelength, frequency and energy
 for specifying a wavelength of radiation. Normally these units are not
 convertible, but when understood as representing light, they are
-convertible in certain contexts.  This will describe how to use the
-equivalencies included in `astropy.units` and then describe how to
+convertible in certain contexts.  Here we describe how to use the
+equivalencies included in `astropy.units` and how to
 define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
@@ -53,9 +53,10 @@ into units of length (and vice versa).
 Angles as Dimensionless Units
 -----------------------------
 
-Angles are treated as a physically distinct type, which usually helps to
-avoid mistakes.  For units such as rotational energy, however, it is not
-very handy.  (Indeed, this double-sidedness underlies why radian went from
+Angles are treated as a physically distinct type, which usually helps
+to avoid mistakes.  However, this is not very handy when working with
+units related to rotational energy or the small angle approximation.
+(Indeed, this double-sidedness underlies why radian went from
 `supplementary to derived unit <http://www.bipm.org/en/CGPM/db/20/8/>`__.)
 The function :func:`~astropy.units.equivalencies.dimensionless_angles`
 provides the required equivalency list that helps convert between
@@ -90,6 +91,27 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
+This equivalency may result in some unanticipated behavior, such as
+when converting from an angular velocity :math:`\omega` in radians per
+second to the corresponding frequency :math:`f` in hertz, where the
+correct relation is :math:`f=\omega/2\pi`. The
+:func:`~astropy.units.equivalencies.dimensionless_angles` equivalency
+does not account for the factor of :math:`2\pi` in this relation.
+
+  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # might expect ~0.159 Hz
+  <Quantity 1.0 Hz>
+  >>> (1*u.cycle/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # might expect 1 Hz
+  <Quantity 6.283185307179586 Hz>
+
+This behavior occurs because
+:func:`~astropy.units.equivalencies.dimensionless_angles` is
+converting to radians per second and then dropping radians as a unit.
+The best way to avoid this potential pitfall is to use an equivalency
+between a cycle per second and a hertz.
+
+  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # expecting ~0.159 Hz
+  <Quantity 0.15915494309189535 Hz>
+  
 Spectral Units
 --------------
 
