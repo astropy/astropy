@@ -130,6 +130,7 @@ class QuantityInfo(ParentDtypeInfo):
     attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
     _supports_indexing = True
     _represent_as_dict_attrs = ('value', 'unit')
+    mask_val = np.nan
 
     @staticmethod
     def default_format(val):
