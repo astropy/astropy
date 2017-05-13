@@ -809,16 +809,16 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self.unit.to(unit, self.view(np.ndarray),
                             equivalencies=equivalencies)
 
-    def to(self, unit, equivalencies=[]):
+    def to(self, unit_or_usys, equivalencies=[]):
         """
         Return a new `~astropy.units.Quantity` object with the specified unit.
 
         Parameters
         ----------
-        unit : `~astropy.units.UnitBase` instance, str
+        unit_or_usys : `~astropy.units.UnitBase` instance, str, `~astropy.units.UnitSystem`
             An object that represents the unit to convert to. Must be
             an `~astropy.units.UnitBase` object or a string parseable
-            by the `~astropy.units` package.
+            by the `~astropy.units` package. TODO: explain unitsystem.
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
@@ -832,9 +832,18 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         --------
         to_value : get the numerical value in a given unit.
         """
+        from .unitsystem import UnitSystem
+
+        if equivalencies == []:
+            equivalencies = self._equivalencies
+
+        if isinstance(unit_or_usys, UnitSystem):
+            unit = unit_or_usys[self.unit.physical_type]
+        else:
+            unit = Unit(unit_or_usys)
+
         # We don't use `to_value` below since we always want to make a copy
         # and don't want to slow down this method (esp. the scalar case).
-        unit = Unit(unit)
         return self._new_view(self._to_value(unit, equivalencies), unit)
 
     def to_value(self, unit=None, equivalencies=[]):

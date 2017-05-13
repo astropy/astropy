@@ -13,6 +13,7 @@ code under a BSD license.
 from .core import *
 from .quantity import *
 from .decorators import *
+from .unitsystem import *
 
 from . import si
 from . import cgs
