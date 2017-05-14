@@ -41,11 +41,11 @@ def scatter_contour(x, y,
     histogram2d_kwargs : dict
         Keyword arguments passed to :func:`numpy.histogram2d`, which is used to
         generate the input for the contour plotting function used. See docstring
-        of `numpy.histogram2d` for more information.
+        of :func:`numpy.histogram2d` for more information.
     plot_kwargs : dict
         Keyword arguments passed to :meth:`~matplotlib.axes.Axes.plot`. By
-        default it will use `marker='.'` and `linestyle='none'`. See docstring
-        of :meth:`matplotlib.axes.Axes.plot` for more information.
+        default it will use ``marker='.'`` and ``linestyle='none'``. See
+        docstring of :meth:`matplotlib.axes.Axes.plot` for more information.
     contour_kwargs : dict
         Keyword arguments passed to :meth:`~matplotlib.axes.Axes.contour` or
         :meth:`matplotlib.axes.Axes.contourf`, depending on the value of
