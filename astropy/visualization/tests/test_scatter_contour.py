@@ -29,7 +29,8 @@ class TestScatterContour(object):
         scatter_contour(self.x, self.y, threshold=10)
 
         # or, could make bins larger
-        scatter_contour(self.x, self.y, threshold=100, histogram2d_kwargs=dict(bins=5))
+        scatter_contour(self.x, self.y, threshold=100,
+                        histogram2d_kwargs=dict(bins=5))
 
         # fails when threshold is too high, no valid contours to draw
         with pytest.raises(ValueError):
