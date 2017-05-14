@@ -21,7 +21,7 @@ are often hard to interpret because of overlapping markers. For example:
     figsize = (6, 6)
     lim = (-8, 8)
 
-    np.random.seed(24)
+    np.random.seed(42)
     x, y = np.random.normal([0., 0.], [1., 1.], size=(16384, 2)).T
 
     fig,ax = plt.subplots(1, 1, figsize=figsize)
