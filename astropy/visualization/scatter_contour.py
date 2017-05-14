@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, unicode_literals
 
 import numpy as np
 
+__all__ = ['scatter_contour']
+
 def scatter_contour(x, y,
                     levels=10,
                     threshold=100,
@@ -13,6 +15,57 @@ def scatter_contour(x, y,
                     contour_kwargs=None,
                     filled_contour=True,
                     ax=None):
+    """Scatter plot with contours over dense regions
+
+    The contours are either drawn with `~matplotlib.pyplot.contour()` or
+    `~matplotlib.pyplot.contourf()`. The points in sparse regions are plotted
+    using `~matplotlib.pyplot.plot()` rather than scatter.
+
+    This function was ported from astroML: http://astroML.org/
+
+    Original code:
+    Copyright (c) 2012-2013, Jacob Vanderplas. All rights reserved.
+
+    Parameters
+    ----------
+    x : array_like
+        x data for the contour plot.
+    y : array_like
+        y data for the contour plot.
+    levels : integer or array_like (optional, default=10)
+        Number of contour levels, or array of contour levels.
+    threshold : float (optional)
+        Number of points per 2D bin at which to begin drawing contours.
+    log_counts : boolean (optional)
+        If ``True``, contour levels are the base-10 logarithm of the bin counts.
+    histogram2d_kwargs : dict
+        Keyword arguments passed to `numpy.histogram2d`, which is used to
+        generate the input for the contour plotting function used. See docstring
+        of `numpy.histogram2d` for more information.
+    plot_kwargs : dict
+        Keyword arguments passed to `~matplotlib.pyplot.plot()`. By default it
+        will use `marker='.'` and `linestyle='none'`. See docstring of
+        `~matplotlib.pyplot.plot()` for more information.
+    contour_kwargs : dict
+        Keyword arguments passed to `~matplotlib.pyplot.contour()` or
+        `~matplotlib.pyplot.contourf()`, depending on the value of
+        `filled_contour`. See docstrings of these functions for more
+        information.
+    filled_contour : bool
+        If ``True`` (default) use filled contours,
+        `~matplotlib.pyplot.contourf()`. Otherwise, use contour outlines,
+        `~matplotlib.pyplot.contour()`.
+    ax : `matplotlib.axes.Axes`
+        The axes on which to plot. If not specified, the current axes are used,
+        from `~matplotlib.pyplot.gca()`.
+
+    Returns
+    -------
+    points, contours :
+       ``points`` is the return value of `~matplotlib.pyplot.plot()`.
+       ``contours`` is the return value of the contour function that is called.
+
+    """
     x = np.asarray(x)
     y = np.asarray(y)
 
