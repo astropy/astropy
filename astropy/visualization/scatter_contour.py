@@ -17,9 +17,9 @@ def scatter_contour(x, y,
                     ax=None):
     """Scatter plot with contours over dense regions
 
-    The contours are either drawn with `~matplotlib.pyplot.contour()` or
-    `~matplotlib.pyplot.contourf()`. The points in sparse regions are plotted
-    using `~matplotlib.pyplot.plot()` rather than scatter.
+    The contours are either drawn with :meth:`~matplotlib.axes.Axes.contour` or
+    :meth:`~matplotlib.axes.Axes.contourf`. The points in sparse regions are
+    plotted using :meth:`~matplotlib.axes.Axes.plot`.
 
     This function was ported from astroML: http://astroML.org/
 
@@ -39,30 +39,30 @@ def scatter_contour(x, y,
     log_counts : boolean (optional)
         If ``True``, contour levels are the base-10 logarithm of the bin counts.
     histogram2d_kwargs : dict
-        Keyword arguments passed to `numpy.histogram2d`, which is used to
+        Keyword arguments passed to :func:`numpy.histogram2d`, which is used to
         generate the input for the contour plotting function used. See docstring
         of `numpy.histogram2d` for more information.
     plot_kwargs : dict
-        Keyword arguments passed to `~matplotlib.pyplot.plot()`. By default it
-        will use `marker='.'` and `linestyle='none'`. See docstring of
-        `~matplotlib.pyplot.plot()` for more information.
+        Keyword arguments passed to :meth:`~matplotlib.axes.Axes.plot`. By
+        default it will use `marker='.'` and `linestyle='none'`. See docstring
+        of :meth:`matplotlib.axes.Axes.plot` for more information.
     contour_kwargs : dict
-        Keyword arguments passed to `~matplotlib.pyplot.contour()` or
-        `~matplotlib.pyplot.contourf()`, depending on the value of
-        `filled_contour`. See docstrings of these functions for more
+        Keyword arguments passed to :meth:`~matplotlib.axes.Axes.contour` or
+        :meth:`matplotlib.axes.Axes.contourf`, depending on the value of
+        ``filled_contour``. See docstrings of these functions for more
         information.
     filled_contour : bool
         If ``True`` (default) use filled contours,
-        `~matplotlib.pyplot.contourf()`. Otherwise, use contour outlines,
-        `~matplotlib.pyplot.contour()`.
+        :meth:`matplotlib.axes.Axes.contourf`. Otherwise, use contour outlines,
+        :meth:`matplotlib.axes.Axes.contour`.
     ax : `matplotlib.axes.Axes`
         The axes on which to plot. If not specified, the current axes are used,
-        from `~matplotlib.pyplot.gca()`.
+        from :func:`~matplotlib.pyplot.gca()`.
 
     Returns
     -------
     points, contours :
-       ``points`` is the return value of `~matplotlib.pyplot.plot()`.
+       ``points`` is the return value of :meth:`~matplotlib.axes.Axes.plot`.
        ``contours`` is the return value of the contour function that is called.
 
     """
