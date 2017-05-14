@@ -23,6 +23,7 @@ Using `astropy.visualization`
    normalization.rst
    histogram.rst
    lupton_rgb.rst
+   scatter_contour.rst
 
 Astropy matplotlib style
 =========================
