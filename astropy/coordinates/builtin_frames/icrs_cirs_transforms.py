@@ -20,17 +20,51 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
-from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
+from .utils import get_jd12, get_dut1utc, aticq, atciqz, get_cip, prepare_earth_position_vel
+
+
+MJD_RESOLUTION = 600. / 86400.  # in days (default 10 min)
+JD0 = 2400000.5
+
+
+def _apci13_fast(jd1, jd2, dut1utc):
+
+    # calculate Earth parameters for lower time resolution (they change slowly)
+    # only Earth rotation angle needs to be calculated for each time
+
+    mjd = (jd1 - JD0) + jd2
+    mjd_i = np.int64(mjd / MJD_RESOLUTION + 0.5)
+
+    mjd_ui, mjd_idx, mjd_uidx = np.unique(
+        mjd_i, return_index=True, return_inverse=True
+        )
+
+    astrom_ui, _ = erfa.apci13(JD0, mjd_ui * MJD_RESOLUTION)
+
+    # astrom = np.empty(jd1.size, astrom_ui.dtype)
+    astrom = astrom_ui[mjd_uidx]
+
+    jd1_ut1, jd2_ut1 = erfa.utcut1(jd1, jd2, dut1utc)
+    astrom = erfa.aper13(jd1_ut1, jd2_ut1, astrom)
+
+    return astrom
 
 
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
-    x, y, s = get_cip(jd1, jd2)
-    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_frame.obstime)
-    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
+    # jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
+    jd1, jd2 = get_jd12(cirs_frame.obstime, 'utc')
+
+    # x, y, s = get_cip(jd1, jd2)
+    # earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_frame.obstime)
+    # astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
+
+    # astrom, eo = erfa.apci13(jd1, jd2)
+
+    dut1utc = get_dut1utc(cirs_frame.obstime)
+    astrom = _apci13_fast(jd1, jd2, dut1utc)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -71,10 +105,18 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    jd1, jd2 = get_jd12(cirs_coo.obstime, 'tdb')
-    x, y, s = get_cip(jd1, jd2)
-    earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_coo.obstime)
-    astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
+    # jd1, jd2 = get_jd12(cirs_coo.obstime, 'tdb')
+    jd1, jd2 = get_jd12(cirs_coo.obstime, 'utc')
+
+    # x, y, s = get_cip(jd1, jd2)
+    # earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_coo.obstime)
+    # astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
+
+    # astrom, eo = erfa.apci13(jd1, jd2)
+
+    dut1utc = get_dut1utc(cirs_coo.obstime)
+    astrom = _apci13_fast(jd1, jd2, dut1utc)
+
     i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
