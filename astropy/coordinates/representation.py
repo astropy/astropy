@@ -1791,11 +1791,13 @@ class CartesianDifferential(BaseDifferential):
 
     def get_d_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
+
         Parameters
         ----------
         xyz_axis : int, optional
             The axis in the final array along which the x, y, z components
             should be stored (default: 0).
+
         Returns
         -------
         xyz : `~astropy.units.Quantity`
