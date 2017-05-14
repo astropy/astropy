@@ -112,7 +112,7 @@ explicit equivalency between cycle per second and hertz:
 
   >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 0.15915494309189535 Hz>
-  >>> (1*u.cy/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())
+  >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])
   <Quantity 1.0 Hz>
   
 Spectral Units
