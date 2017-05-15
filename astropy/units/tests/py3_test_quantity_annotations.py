@@ -106,7 +106,7 @@ def test_wrong_unit3():
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to physical type 'angle'."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
     """
 
 
@@ -202,7 +202,7 @@ def test_kwarg_wrong_unit3():
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to physical type 'angle'."
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
     """
 
 
