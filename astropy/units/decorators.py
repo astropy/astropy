@@ -6,7 +6,7 @@ __all__ = ['quantity_input']
 from ..utils.decorators import wraps
 from ..utils.compat import funcsigs
 
-from .core import (UnitsError, add_enabled_equivalencies,
+from .core import (Unit, UnitsError, add_enabled_equivalencies,
                    get_current_unit_registry)
 from .physical import _unit_physical_mapping
 
@@ -119,14 +119,15 @@ class QuantityInput(object):
                 if target_unit is not funcsigs.Parameter.empty:
 
                     if isinstance(target_unit, str):
-                        from .core import Unit
 
                         try: # unit passed in as a string
                             target_unit = Unit(target_unit)
+                            str_target_unit = target_unit.to_string()
                         except ValueError:
                             # user specified a physical type instead of a unit
                             try:
                                 physical_type_id = _unit_physical_mapping[target_unit]
+                                str_target_unit = target_unit
                             except KeyError:
                                 raise ValueError("Invalid physical type '{0}'."
                                                  .format(target_unit))
@@ -134,6 +135,9 @@ class QuantityInput(object):
                             ureg = get_current_unit_registry()
                             target_units = ureg._by_physical_type[physical_type_id]
                             target_unit = target_units.pop() # just grab the first valid unit
+
+                    else:
+                        str_target_unit = target_unit.to_string()
 
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
@@ -144,7 +148,7 @@ class QuantityInput(object):
                                              " must be in units convertible to"
                                              " '{2}'.".format(param.name,
                                                               wrapped_function.__name__,
-                                                              target_unit.to_string()))
+                                                              str_target_unit))
 
                     # Either there is no .unit or no .is_equivalent
                     except AttributeError:
