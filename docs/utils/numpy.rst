@@ -47,7 +47,7 @@ NumPy_ (which can of course form the basis of a `pull request
 
 
 Reference/API
-=============
+*************
 .. automodapi:: astropy.utils.compat.numpy
     :no-inheritance-diagram:
 
