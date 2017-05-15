@@ -91,30 +91,30 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
-Note that In some situations, this equivalency may not quite give
-what one anticipated. For instance, one might think of using it for
-converting from an angular velocity :math:`\omega` in radians per
-second to the corresponding frequency :math:`f` in hertz, i.e., to
-implement :math:`f=\omega/2\pi`. But if one tries, one finds:
+In some situations, this equivalency may behave differently than 
+anticipated.  For instance, it might at first seem reasonable to use it 
+for converting from an angular velocity :math:`\omega` in radians per
+second to the corresponding frequency :math:`f` in hertz (i.e., to
+implement :math:`f=\omega/2\pi`). However, attempting this yields:
 
   >>> (1*u.rad/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())
   <Quantity 1.0 Hz>
   >>> (1*u.cycle/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 6.283185307179586 Hz>
-  
-Here, one might have expected ~0.159 Hz in the first example and 1 Hz in
-the second. But :func:`~astropy.units.equivalencies.dimensionless_angles`
+
+Here, we might have expected ~0.159 Hz in the first example and 1 Hz in
+the second. However, :func:`~astropy.units.equivalencies.dimensionless_angles`
 converts to radians per second and then drops radians as a unit. The
-mistake is that implicit in the above was that the unit Hz was equivalent
-to cycles per second, which it is not (it is just "per second"). But
-this realization also leads to the solution: one should just use an
-explicit equivalency between cycle per second and hertz:
+implicit mistake in these examples is that the unit Hz is equivalent
+to cycles per second, which it is not (it is just "per second"). 
+This realization also leads to the solution: to use an
+explicit equivalency between cycles per second and hertz:
 
   >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 0.15915494309189535 Hz>
   >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])
   <Quantity 1.0 Hz>
-  
+
 Spectral Units
 --------------
 
