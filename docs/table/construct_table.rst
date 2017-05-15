@@ -65,8 +65,7 @@ Quantities`_ for details)::
 
 
 Comment lines
-"""""""""""""
-
+-------------
 Comment lines in an ASCII file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
 ASCII file unless ``comment=False`` is explicitly set in ``write()``::
