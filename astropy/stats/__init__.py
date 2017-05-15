@@ -12,6 +12,7 @@ astronomers' needs.
 """
 
 from .funcs import *
+from .biweight import *
 from .sigma_clipping import *
 from .jackknife import *
 from .circstats import *
