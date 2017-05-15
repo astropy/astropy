@@ -18,7 +18,8 @@ from ... import _erfa as erfa
 
 from .cirs import CIRS
 from .altaz import AltAz
-from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
+from .utils import PIOVER2
+from ..astrom_manager import get_astrom
 
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, AltAz)
@@ -49,21 +50,8 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
         cirs_ra = diffrepr.lon.to(u.radian).value
         cirs_dec = diffrepr.lat.to(u.radian).value
 
-    lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
-    xp, yp = get_polar_motion(obstime)
-
     #first set up the astrometry context for CIRS<->AltAz
-    jd1, jd2 = get_jd12(obstime, 'utc')
-    astrom = erfa.apio13(jd1, jd2,
-                         get_dut1utc(obstime),
-                         lon.to(u.radian).value, lat.to(u.radian).value,
-                         height.to(u.m).value,
-                         xp, yp,  # polar motion
-                         # all below are already in correct units because they are QuantityFrameAttribues
-                         altaz_frame.pressure.value,
-                         altaz_frame.temperature.value,
-                         altaz_frame.relative_humidity,
-                         altaz_frame.obswl.value)
+    astrom = get_astrom(altaz_frame, 'apio13')
 
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
@@ -89,21 +77,8 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     az = usrepr.lon.to(u.radian).value
     zen = PIOVER2 - usrepr.lat.to(u.radian).value
 
-    lon, lat, height = altaz_coo.location.to_geodetic('WGS84')
-    xp, yp = get_polar_motion(altaz_coo.obstime)
-
     #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
-    jd1, jd2 = get_jd12(altaz_coo.obstime, 'utc')
-    astrom = erfa.apio13(jd1, jd2,
-                         get_dut1utc(altaz_coo.obstime),
-                         lon.to(u.radian).value, lat.to(u.radian).value,
-                         height.to(u.m).value,
-                         xp, yp,  # polar motion
-                         # all below are already in correct units because they are QuantityFrameAttribues
-                         altaz_coo.pressure.value,
-                         altaz_coo.temperature.value,
-                         altaz_coo.relative_humidity,
-                         altaz_coo.obswl.value)
+    astrom = get_astrom(altaz_coo, 'apio13')
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian

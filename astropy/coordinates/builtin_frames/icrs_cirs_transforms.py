@@ -22,47 +22,14 @@ from .cirs import CIRS
 from .hcrs import HCRS
 from .utils import get_jd12, get_dut1utc, aticq, atciqz, get_cip, prepare_earth_position_vel
 
-
-MJD_RESOLUTION = 600. / 86400.  # in days (default 10 min)
-JD0 = 2400000.5
-
-
-def _apci13_fast(obstime):
-
-    # calculate Earth parameters for lower time resolution (they change slowly)
-    # only Earth rotation angle needs to be calculated for each time
-
-    jd1, jd2 = get_jd12(obstime, 'tdb')
-    jd1_ut1, jd2_ut1 = get_jd12(obstime, 'ut1')
-
-    mjd = (jd1 - JD0) + jd2
-    mjd_i = np.int64(mjd / MJD_RESOLUTION + 0.5)
-
-    mjd_ui, mjd_idx, mjd_uidx = np.unique(
-        mjd_i, return_index=True, return_inverse=True
-        )
-
-    astrom_ui, _ = erfa.apci13(JD0, mjd_ui * MJD_RESOLUTION)
-    astrom = astrom_ui[mjd_uidx]
-
-    astrom = erfa.aper13(jd1_ut1, jd2_ut1, astrom)
-
-    return astrom
+from ..astrom_manager import get_astrom
 
 
 # First the ICRS/CIRS related transforms
 @frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    # jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
-
-    # x, y, s = get_cip(jd1, jd2)
-    # earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_frame.obstime)
-    # astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
-
-    # astrom, eo = erfa.apci13(jd1, jd2)
-
-    astrom = _apci13_fast(cirs_frame.obstime)
+    astrom = get_astrom(cirs_frame, 'apci')
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -103,15 +70,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    # jd1, jd2 = get_jd12(cirs_coo.obstime, 'tdb')
-
-    # x, y, s = get_cip(jd1, jd2)
-    # earth_pv, earth_heliocentric = prepare_earth_position_vel(cirs_coo.obstime)
-    # astrom = erfa.apci(jd1, jd2, earth_pv, earth_heliocentric, x, y, s)
-
-    # astrom, eo = erfa.apci13(jd1, jd2)
-
-    astrom = _apci13_fast(cirs_coo.obstime)
+    astrom = get_astrom(cirs_coo, 'apci')
 
     i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
 
@@ -158,20 +117,7 @@ def cirs_to_cirs(from_coo, to_frame):
 @frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
-    # get the position and velocity arrays for the observatory.  Need to
-    # have xyz in last dimension, and pos/vel in one-but-last.
-    # (Note could use np.stack once our minimum numpy version is >=1.10.)
-    pv = np.concatenate(
-        (gcrs_frame.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_frame.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
-
-    # find the position and velocity of earth
-    jd1, jd2 = get_jd12(gcrs_frame.obstime, 'tdb')
-    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_frame.obstime)
-
-    # get astrometry context object, astrom.
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = get_astrom(gcrs_frame, 'apcs')
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -212,15 +158,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
-    pv = np.concatenate(
-        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
-
-    jd1, jd2 = get_jd12(gcrs_coo.obstime, 'tdb')
-
-    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = get_astrom(gcrs_coo, 'apcs')
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
@@ -274,14 +212,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
-    pv = np.concatenate(
-        (gcrs_coo.obsgeoloc.get_xyz(xyz_axis=-1).value[..., np.newaxis, :],
-         gcrs_coo.obsgeovel.get_xyz(xyz_axis=-1).value[..., np.newaxis, :]),
-        axis=-2)
-
-    jd1, jd2 = get_jd12(hcrs_frame.obstime, 'tdb')
-    earth_pv, earth_heliocentric = prepare_earth_position_vel(gcrs_coo.obstime)
-    astrom = erfa.apcs(jd1, jd2, pv, earth_pv, earth_heliocentric)
+    astrom = get_astrom(gcrs_coo, 'apcs')
 
     i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
 
