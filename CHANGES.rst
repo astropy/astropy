@@ -58,7 +58,10 @@ New Features
 
 - ``astropy.stats``
 
-  - Added ``biweight_midcovariance`` method. [#5777]
+  - Added ``biweight_midcovariance`` function. [#5777]
+
+  - Added ``biweight_scale`` and ``biweight_midcorrelation``
+    functions. [#5991]
 
 - ``astropy.sphinx``
 
@@ -135,6 +138,9 @@ API Changes
 
   - Removed the deprecated ``sig`` and ``varfunc`` keywords in the
     ``sigma_clip`` function. [#5715]
+
+  - Added ``modify_sample_size`` keyword to ``biweight_midvariance``
+    function. [#5991]
 
 - ``astropy.sphinx``
 
@@ -219,6 +225,9 @@ Bug Fixes
   - Allow to choose which median function is used in ``mad_std`` and
     ``median_absolute_deviation``. And allow to use these functions with
     a multi-dimensional ``axis``. [#5835]
+
+  - Fixed ``biweight_midvariance`` so that by default it returns a
+    variance that agrees with the standard definition. [#5991]
 
 - ``astropy.sphinx``
 
@@ -317,10 +326,16 @@ Bug Fixes
     version numbers like ``dev`` or ``rc1`` are stripped in ``minversion`` to
     avoid a ``TypeError`` in ``distutils.version.LooseVersion`` [#5944]
 
+  - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
+
 - ``astropy.visualization``
 
   - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
     functions. [#5686, #5692, #6060]
+
+  - Fix a bug that caused labels to be missing from frames with labels that
+    could change direction mid-axis, such as EllipticalFrame. Also ensure
+    that empty tick labels do not cause any warnings. [#6063]
 
 - ``astropy.vo``
 
@@ -2266,6 +2281,8 @@ Other Changes and Additions
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  -  Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
 
 - ``astropy.io.misc``
 
