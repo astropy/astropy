@@ -22,6 +22,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  -  Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
