@@ -25,6 +25,7 @@ from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...utils import minversion
 from ...extern.six.moves import zip
+from ...utils import NumpyRNGContext
 
 try:
     import scipy
@@ -590,3 +591,32 @@ def test_tabular_nd():
     t = tab(lookup_table=a)
     result = t(x, y, z)
     utils.assert_allclose(a, result)
+
+
+def test_with_bounding_box():
+    """
+    Test the option to evaluate a model respecting
+    its bunding_box.
+    """
+    p = models.Polynomial2D(2) & models.Polynomial2D(2)
+    m = models.Mapping((0, 1, 0, 1)) | p
+    with NumpyRNGContext(1234567):
+        m.parameters = np.random.rand(12)
+
+    m.bounding_box = ((3, 9), (1, 8))
+    x, y = np.mgrid[ :10, :10]
+    a, b = m(x, y)
+    aw, bw = m(x, y, with_bounding_box=True)
+    ind = (~np.isnan(aw)).nonzero()
+    utils.assert_allclose(a[ind], aw[ind])
+    utils.assert_allclose(b[ind], bw[ind])
+
+    aw, bw = m(x, y, with_bounding_box=True, fill_value=1000)
+    ind = (aw != 1000).nonzero()
+    utils.assert_allclose(a[ind], aw[ind])
+    utils.assert_allclose(b[ind], bw[ind])
+
+    # test the order of bbox is not reversed for 1D models
+    p = models.Polynomial1D(1, c0=12, c1=2.3)
+    p.bounding_box = (0, 5)
+    assert(p(1) == p(1, with_bounding_box=True))
