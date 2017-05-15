@@ -22,6 +22,13 @@ from .test_table import comparerecords
 
 from . import FitsTestCase
 
+try:
+    import scipy  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
 
 class TestImageFunctions(FitsTestCase):
     def test_constructor_name_arg(self):
@@ -1081,6 +1088,36 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header['NAXIS1'] == chdu.header['NAXIS1']
             assert fd[1].header['NAXIS2'] == chdu.header['NAXIS2']
             assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_comp_image_quantize_level(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5969
+
+        Test that quantize_level is used.
+
+        """
+        import scipy.misc
+        np.random.seed(42)
+        data = scipy.misc.ascent() + np.random.randn(512, 512)*10
+
+        fits.ImageHDU(data).writeto(self.temp('im1.fits'))
+        fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
+                          quantize_level=-1, dither_seed=5)\
+            .writeto(self.temp('im2.fits'))
+        fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
+                          quantize_level=-100, dither_seed=5)\
+            .writeto(self.temp('im3.fits'))
+
+        im1 = fits.getdata(self.temp('im1.fits'))
+        im2 = fits.getdata(self.temp('im2.fits'))
+        im3 = fits.getdata(self.temp('im3.fits'))
+
+        assert not np.array_equal(im2, im3)
+        assert np.isclose(np.min(im1 - im2), -0.5, atol=1e-3)
+        assert np.isclose(np.max(im1 - im2), 0.5, atol=1e-3)
+        assert np.isclose(np.min(im1 - im3), -50, atol=1e-1)
+        assert np.isclose(np.max(im1 - im3), 50, atol=1e-1)
 
     @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompression_1_invalid_data(self):
