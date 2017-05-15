@@ -271,6 +271,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
+
 - ``astropy.tests``
 
 - ``astropy.time``
