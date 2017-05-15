@@ -74,7 +74,7 @@ def test_arg_equivalencies(solarx_unit, solary_unit):
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
                          (u.arcsec, u.deg),
-                         ('angle', 'angle')]) # TODO: broken right now
+                         ('angle', 'angle')])
 def test_wrong_unit(solarx_unit, solary_unit):
     @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary):
@@ -82,7 +82,9 @@ def test_wrong_unit(solarx_unit, solary_unit):
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
+
+    str_to = str(solary_unit)
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
                          (u.arcsec, u.deg),
@@ -148,7 +150,7 @@ def test_kwarg_equivalencies(solarx_unit, energy_unit):
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
                          (u.arcsec, u.deg),
-                         ('angle', 'angle')]) # TODO: broken because of error check
+                         ('angle', 'angle')])
 def test_kwarg_wrong_unit(solarx_unit, solary_unit):
     @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary=10*u.deg):
@@ -156,7 +158,9 @@ def test_kwarg_wrong_unit(solarx_unit, solary_unit):
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
+
+    str_to = str(solary_unit)
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
                          (u.arcsec, u.deg),
