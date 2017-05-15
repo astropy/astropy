@@ -134,7 +134,7 @@ class QuantityInput(object):
 
                             ureg = get_current_unit_registry()
                             target_units = ureg._by_physical_type[physical_type_id]
-                            target_unit = target_units.pop() # just grab the first valid unit
+                            target_unit = next(iter(target_units)) # get first valid unit from set
 
                     else:
                         str_target_unit = target_unit.to_string()
