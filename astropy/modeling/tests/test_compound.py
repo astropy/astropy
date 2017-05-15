@@ -906,7 +906,7 @@ def test_name():
     scl = Scale(2)
     m = offx | scl
     scl.name = "scale"
-    assert m._submodel_names == ('None_0', 'None_1')
+    assert m._submodel_names == (None, None)
     assert m.name is None
     m.name = "M"
     assert m.name == "M"
