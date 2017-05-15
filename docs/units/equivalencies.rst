@@ -105,10 +105,10 @@ implement :math:`f=\omega/2\pi`). However, attempting this yields:
 Here, we might have expected ~0.159 Hz in the first example and 1 Hz in
 the second. However, :func:`~astropy.units.equivalencies.dimensionless_angles`
 converts to radians per second and then drops radians as a unit. The
-implicit mistake in these examples is that the unit Hz is equivalent
-to cycles per second, which it is not (it is just "per second"). 
-This realization also leads to the solution: to use an
-explicit equivalency between cycles per second and hertz:
+implicit mistake made in these examples is that the unit Hz is taken to be
+equivalent to cycles per second, which it is not (it is just "per second"). 
+This realization also leads to the solution: to use an explicit equivalency
+between cycles per second and hertz:
 
   >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 0.15915494309189535 Hz>
