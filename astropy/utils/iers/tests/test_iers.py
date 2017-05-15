@@ -149,7 +149,14 @@ class TestIERS_A():
         assert status3 == iers.FROM_IERS_A_PREDICTION
         assert ut1_utc3 != 0.
 
+
 class TestIERS_Auto():
+
+    @remote_data
+    def test_no_auto_download(self):
+        with iers.conf.set_temp('auto_download', False):
+            t = iers.IERS_Auto.open()
+        assert type(t) is iers.IERS_B
 
     @remote_data
     def test_simple(self):
