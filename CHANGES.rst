@@ -311,8 +311,6 @@ Bug Fixes
 
 - ``astropy.table``
 
-  - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
-
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -327,6 +325,8 @@ Bug Fixes
   - On systems that do not have ``pkg_resources`` non-numerical additions to
     version numbers like ``dev`` or ``rc1`` are stripped in ``minversion`` to
     avoid a ``TypeError`` in ``distutils.version.LooseVersion`` [#5944]
+
+  - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
 
 - ``astropy.visualization``
 
