@@ -63,6 +63,27 @@ Quantities`_ for details)::
   >>> type(t['velocity'])  # doctest: +SKIP
   astropy.units.quantity.Quantity
 
+
+Comment lines
+"""""""""""""
+
+Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+table's metadata. The following will insert two comment lines in the output
+ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+
+  >>> import sys
+  >>> from astropy.table import Table
+  >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
+  >>> t.add_row((1, 2.0, 'x'))
+  >>> t.meta['comments'] = ['Here is my explanatory text. This is awesome.',
+  ...                       'Second comment line.']
+  >>> t.write(sys.stdout, format='ascii')
+  # Here is my explanatory text. This is awesome.
+  # Second comment line.
+  a b c
+  1.0 2 x
+
+
 List of columns
 ---------------
 A typical case is where you have a number of data columns with the same length
