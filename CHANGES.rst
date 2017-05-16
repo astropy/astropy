@@ -165,6 +165,13 @@ API Changes
   - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
     to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
     headers are read into ``comments`` meta [#6097]
+  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
+    [#5929]
+
+  - Remove compatibility code which forced loading all HDUs on close. The old
+    behavior can be used with ``lazy_load_hdus=False``. Because of this change,
+    trying to access the ``.data`` attribute from an HDU which is not loaded
+    now raises a ``IndexError`` instead of a ``ValueError``. [#6082]
 
 - ``astropy.io.misc``
 
