@@ -8,6 +8,12 @@ New Features
 
 - ``astropy.constants``
 
+  - Constants are now organized into version classes, with updated physical
+    constants in the CODATA2014 class and astronomical constants in the
+    ASTRON_V2_0 class. These updated constants are available in the
+    ``astropy.constants`` namespace. The constants for astropy v1.3
+    are retained in separate version classes. [#4958, #4109, #4397]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
