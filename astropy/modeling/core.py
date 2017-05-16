@@ -1324,8 +1324,7 @@ class Model(object):
         if coords is not None:
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
-            if len(coords) != ndim:
-                raise AssertionError
+            assert len(coords) == ndim
             if out is not None:
                 if coords[0].shape != out.shape:
                     raise AssertionError

@@ -1455,8 +1455,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @values.setter
     def values(self, values):
-        if not (values is None or isinstance(values, Values)):
-            raise AssertionError
+        assert values is None or isinstance(values, Values)
         self._values = values
 
     @values.deleter
@@ -2832,8 +2831,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            if type(chunk) != six.binary_type:
-                                raise TypeError
+                            assert type(chunk) == six.binary_type
                         except Exception as e:
                             vo_reraise(
                                 e, additional="(in row {:d}, col '{}')".format(
