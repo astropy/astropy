@@ -26,9 +26,9 @@ pytestmark = pytest.mark.skipif('not HAS_YAML')
 
 @pytest.mark.parametrize('c', [np.int32(1), np.int64(3)])
 def test_numpy_types(c):
-    
     cy = load(dump(c))
     assert c == cy
+
 
 @pytest.mark.parametrize('c', [u.m, u.m / u.s, u.hPa, u.dimensionless_unscaled])
 def test_unit(c):
