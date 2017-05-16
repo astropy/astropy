@@ -263,6 +263,7 @@ flagged-out pixels:
    # Now we do a bunch of plots.  In the first two plots, the originally masked
    # values are marked with red X's
    plt.figure(1, figsize=(12, 6)).clf()
+   plt.close(2) # close the second plot from above
 
    ax1 = plt.subplot(1, 2, 1)
    im = ax1.imshow(img, vmin=-2., vmax=2.e1, origin='lower',
