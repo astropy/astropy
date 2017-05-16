@@ -75,6 +75,7 @@ from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
 from ...extern import six
+from astropy.logger import warnings
 
 
 try:
@@ -222,6 +223,19 @@ AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
+AstropyDumper.add_representer(np.int32, \
+                              yaml.representer.Representer.represent_int)
+try:
+    AstropyDumper.add_representer(np.int64, \
+                                  yaml.representer.Representer.represent_long)
+except:
+    warnings.warn("This version of Pyyaml does not support long ints; using "
+                  "standard ints instead")
+    AstropyDumper.add_representer(np.int64, \
+                                  yaml.representer.Representer.represent_int)
+
+AstropyDumper.add_representer(np.float64, \
+                              yaml.representer.Representer.represent_float)
 
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)
