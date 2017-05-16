@@ -221,7 +221,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     kernel_internal /= kernel_sum
 
-
     if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
     elif array_internal.ndim == 1:
@@ -532,7 +531,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if mask is not None:
         # mask != 0 yields a bool mask for all ints/floats/bool
         array[mask != 0] = np.nan
-    # the *kenrel* doesn't support NaN interpolation, so instead we just fill it
+    # the *kernel* doesn't support NaN interpolation, so instead we just fill it
     if np.ma.is_masked(kernel):
         kernel = kernel.filled(0)
 
