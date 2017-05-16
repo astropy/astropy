@@ -39,18 +39,10 @@ class BaseGaussian1D(Fittable1DModel):
 
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
-    stddev = Parameter(default=1)
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        # Ensure stddev makes sense if its bounds are not explicitly set.
-        if 'bounds' not in kwargs:
-            kwargs['bounds'] = {'stddev': (FLOAT_EPSILON, None)}
-        else:
-            kwargs['bounds']['stddev'] = kwargs['bounds'].get(
-                'stddev', (FLOAT_EPSILON, None))
-
-        super(BaseGaussian1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
+    # Ensure stddev makes sense if its bounds are not explicitly set.
+    # stddev must be non-zero and positive.
+    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
 
     def bounding_box(self, factor=5.5):
         """
@@ -346,9 +338,12 @@ class Gaussian2D(Fittable2DModel):
     amplitude = Parameter(default=1)
     x_mean = Parameter(default=0)
     y_mean = Parameter(default=0)
-    x_stddev = Parameter(default=1)
-    y_stddev = Parameter(default=1)
     theta = Parameter(default=0.0)
+
+    # Ensure stddev makes sense if its bounds are not explicitly set.
+    # stddev must be non-zero and positive.
+    x_stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
+    y_stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -379,16 +374,6 @@ class Gaussian2D(Fittable2DModel):
                 x_stddev, y_stddev = np.sqrt(eig_vals)
                 y_vec = eig_vecs[:, 0]
                 theta = np.arctan2(y_vec[1], y_vec[0])
-
-        # Ensure stddev makes sense if its bounds are not explicitly set.
-        if 'bounds' not in kwargs:
-            kwargs['bounds'] = {'x_stddev': (FLOAT_EPSILON, None),
-                                'y_stddev': (FLOAT_EPSILON, None)}
-        else:
-            kwargs['bounds']['x_stddev'] = kwargs['bounds'].get(
-                'x_stddev', (FLOAT_EPSILON, None))
-            kwargs['bounds']['y_stddev'] = kwargs['bounds'].get(
-                'y_stddev', (FLOAT_EPSILON, None))
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
