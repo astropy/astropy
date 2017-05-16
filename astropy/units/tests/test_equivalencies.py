@@ -93,7 +93,7 @@ def test_doppler_wavelength_0(function):
 @pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
-    q1 = 0.000434286445543 * u.eV
+    q1 = 0.0004342864612223407 * u.eV
     velo0 = q1.to(u.km/u.s, equivalencies=function(rest))
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
@@ -514,7 +514,7 @@ def test_irrelevant_equivalency():
 def test_brightness_temperature():
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
-    tb = 7.05258885885 * u.K
+    tb = 7.052590289134352 * u.K
     np.testing.assert_almost_equal(
         tb.value, (1 * u.Jy).to(
             u.K, equivalencies=u.brightness_temperature(omega_B, nu)).value)
