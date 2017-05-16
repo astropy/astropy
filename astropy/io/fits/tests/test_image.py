@@ -73,7 +73,7 @@ class TestImageFunctions(FitsTestCase):
         # Original header should be unchanged
         assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
-    @raises(ValueError)
+    @raises(IndexError)
     def test_open(self):
         # The function "open" reads a FITS file into an HDUList object.  There
         # are three modes to open: "readonly" (the default), "append", and
@@ -99,6 +99,30 @@ class TestImageFunctions(FitsTestCase):
             assert r.info(output=False) == info
         finally:
             r.close()
+
+    def test_open_3(self):
+        # Test that HDUs cannot be accessed after the file was closed
+        r = fits.open(self.data('test0.fits'))
+        r.close()
+        with pytest.raises(IndexError):
+            r[1]
+
+        # Test that HDUs can be accessed with lazy_load_hdus=False
+        r = fits.open(self.data('test0.fits'), lazy_load_hdus=False)
+        r.close()
+        assert isinstance(r[1], fits.ImageHDU)
+        assert len(r) == 5
+
+        # And the same with the global config item
+        assert fits.conf.lazy_load_hdus  # True by default
+        fits.conf.lazy_load_hdus = False
+        try:
+            r = fits.open(self.data('test0.fits'))
+            r.close()
+            assert isinstance(r[1], fits.ImageHDU)
+            assert len(r) == 5
+        finally:
+            fits.conf.lazy_load_hdus = True
 
     def test_primary_with_extname(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/151
