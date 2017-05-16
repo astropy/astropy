@@ -52,13 +52,11 @@ within a kernel of any NaN value, which is often not the desired result.
 
     # This example is intended to demonstrate how astropy.convolve and
     # scipy.convolve handle missing data, so we start by setting the
-    # brightest
-    # pixels to NaN to simulate a "saturated" data set
+    # brightest pixels to NaN to simulate a "saturated" data set
     img[img > 2e1] = np.nan
 
     # We also create a copy of the data and set those NaNs to zero.  We'll
-    use this
-    # for the scipy convolution
+    # use this for the scipy convolution
     img_zerod = img.copy()
     img_zerod[np.isnan(img)] = 0
 
@@ -67,12 +65,11 @@ within a kernel of any NaN value, which is often not the desired result.
     kernel = Gaussian2DKernel(stddev=1)
 
     # Convolution: scipy's direct convolution mode spreads out NaNs (see
-    panel 2 below)
+    # panel 2 below)
     scipy_conv = scipy_convolve(img, kernel, mode='same', method='direct')
 
     # scipy's direct convolution mode run on the 'zero'd' image will not
-    have NaNs,
-    # but will have some very low value zones where the NaNs were
+    # have NaNs, but will have some very low value zones where the NaNs were
     # (see panel 3 below)
     scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same',
     method='direct')
@@ -82,14 +79,13 @@ within a kernel of any NaN value, which is often not the desired result.
     astropy_conv = convolve(img, kernel)
 
 
-    # Now we do a bunch of plots.  In the first two plots, the originally
-      masked
+    # Now we do a bunch of plots.  In the first two plots, the originally masked
     # values are marked with red X's
     plt.figure(1, figsize=(12, 12)).clf()
     ax1 = plt.subplot(2, 2, 1)
     im = ax1.imshow(img, vmin=-2., vmax=2.e1, origin='lower',
                     interpolation='nearest', cmap='viridis')
-    y,x = np.where(np.isnan(img))
+    y, x = np.where(np.isnan(img))
     ax1.set_autoscale_on(False)
     ax1.plot(x, y, 'rx', markersize=4)
     ax1.set_title("Original")
@@ -120,18 +116,16 @@ within a kernel of any NaN value, which is often not the desired result.
     ax4.set_yticklabels([])
 
     # we make a second plot of the amplitudes vs offset position to more
-      clearly
-    # illustrate the value differences
+    # clearly illustrate the value differences
     plt.figure(2).clf()
     plt.plot(img[:, 25], label='input', drawstyle='steps-mid', linewidth=2,
-      alpha=0.5)
+             alpha=0.5)
     plt.plot(scipy_conv[:, 25], label='scipy', drawstyle='steps-mid',
              linewidth=2, alpha=0.5, marker='s')
     plt.plot(scipy_conv_zerod[:, 25], label='scipy nan->zero',
-      drawstyle='steps-mid',
-             linewidth=2, alpha=0.5, marker='s')
+             drawstyle='steps-mid', linewidth=2, alpha=0.5, marker='s')
     plt.plot(astropy_conv[:, 25], label='astropy', drawstyle='steps-mid',
-      linewidth=2, alpha=0.5)
+             linewidth=2, alpha=0.5)
     plt.ylabel("Amplitude")
     plt.ylabel("Position Offset")
     plt.legend(loc='best')
