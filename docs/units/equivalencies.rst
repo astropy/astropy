@@ -217,7 +217,7 @@ here is an example::
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    3.526294...
+    3.526295...
 
 .. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
           the conversion factor from Jy/beam to K (because ``u.beam`` cannot
@@ -382,7 +382,7 @@ all kinds of things that ``Hz`` can be converted to::
     Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
     cm           | 0.01 m                 | centimeter            ,
     eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
-    earthRad     | 6.37814e+06 m          | R_earth, Rearth       ,
+    earthRad     | 6.3568e+06 m           | R_earth, Rearth       ,
     erg          | 1e-07 kg m2 / s2       |                       ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser        ,
@@ -390,7 +390,7 @@ all kinds of things that ``Hz`` can be converted to::
     m            | irreducible            | meter                 ,
     micron       | 1e-06 m                |                       ,
     pc           | 3.08568e+16 m          | parsec                ,
-    solRad       | 6.95508e+08 m          | R_sun, Rsun           ,
+    solRad       | 6.957e+08 m            | R_sun, Rsun           ,
   ]
 
 .. _equivalency-context:
