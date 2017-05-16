@@ -770,8 +770,7 @@ def _unsigned_zero(dtype):
     middle of its range.
     """
 
-    if dtype.kind != 'u':
-        raise TypeError
+    assert dtype.kind == 'u'
     return 1 << (dtype.itemsize * 8 - 1)
 
 

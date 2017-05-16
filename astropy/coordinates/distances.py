@@ -198,10 +198,9 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
     """
     try:
         unit = u.Unit(unit)
-        if ((not unit.is_equivalent(u.kpc) and not allow_dimensionless)
-                or unit != u.dimensionless_unscaled):
-            raise TypeError
-    except TypeError:
+        assert (unit.is_equivalent(u.kpc) or
+                allow_dimensionless and unit == u.dimensionless_unscaled)
+    except (TypeError, AssertionError):
         raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
 
     return unit
