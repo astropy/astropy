@@ -242,4 +242,4 @@ def test_kwarg_invalid_physical_type():
 
     with pytest.raises(ValueError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.deg)
-    assert str(e.value) == "Invalid physical type 'africanswallow'."
+    assert str(e.value) == "Invalid unit of physical type 'africanswallow'."
