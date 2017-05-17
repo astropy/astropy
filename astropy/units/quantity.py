@@ -1251,8 +1251,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         pops = np.get_printoptions()
 
         format_spec = '.{}g'.format(pops['precision'])
+
         def float_formatter(value):
-            return Latex.format_exponential_notation(value, format_spec=format_spec)
+            return Latex.format_exponential_notation(value,
+                                                     format_spec=format_spec)
 
         try:
             formatter = {'float_kind': float_formatter}
@@ -1261,10 +1263,17 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                     formatter=formatter)
 
             # the view is needed for the scalar case - value might be float
-            latex_value = np.array2string(
-                self.view(np.ndarray),
-                style=(float_formatter if self.dtype.kind == 'f' else repr),
-                max_line_width=np.inf, separator=',~')
+            if NUMPY_LT_1_13:   # style deprecated in 1.13
+                latex_value = np.array2string(
+                    self.view(np.ndarray),
+                    style=(float_formatter if self.dtype.kind == 'f'
+                           else repr),
+                    max_line_width=np.inf, separator=',~')
+            else:
+                latex_value = np.array2string(
+                    self.view(np.ndarray),
+                    max_line_width=np.inf, separator=',~')
+
             latex_value = latex_value.replace('...', r'\dots')
         finally:
             np.set_printoptions(**pops)

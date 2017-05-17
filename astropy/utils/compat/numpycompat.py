@@ -15,4 +15,4 @@ __all__ = ['NUMPY_LT_1_10_4', 'NUMPY_LT_1_11',
 NUMPY_LT_1_10_4 = not minversion('numpy', '1.10.4')
 NUMPY_LT_1_11 = not minversion('numpy', '1.11.0')
 NUMPY_LT_1_12 = not minversion('numpy', '1.12')
-NUMPY_LT_1_13 = not minversion('numpy', '1.13dev')
+NUMPY_LT_1_13 = not minversion('numpy', '1.13')
