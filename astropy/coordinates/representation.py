@@ -17,8 +17,9 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..utils import ShapedLikeNDArray, classproperty
+
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -56,12 +57,15 @@ def _array2string(values, prefix=''):
                                            zip(x, format_functions)))
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
-        formatter = {'numpystr': fmt}
-        return np.array2string(values, formatter=formatter, style=fmt,
-                               separator=', ', prefix=prefix)
+        kwargs['formatter'] = {'numpystr': fmt}
+        kwargs['style'] = fmt
+
     else:
-        return np.array2string(values, formatter={},
-                           separator=', ', prefix=prefix)
+        kwargs['formatter'] = {}
+        if NUMPY_LT_1_14:  # style is deprecated in 1.14
+            kwargs['style'] = repr
+
+    return np.array2string(values, **kwargs)
 
 
 def _combine_xyz(x, y, z, xyz_axis=0):
