@@ -41,7 +41,7 @@ class TestInterval(object):
 
     def test_manual_defaults_with_nan(self):
         interval = ManualInterval()
-        data = self.data.copy()
+        data = np.copy(self.data)
         data[0] = np.nan
         vmin, vmax = interval.get_limits(self.data)
         np.testing.assert_allclose(vmin, -20)
