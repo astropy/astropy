@@ -33,12 +33,10 @@ if not six.PY2:
                 return s.decode('ascii')
             except UnicodeDecodeError:
                 warnings.warn('non-ASCII characters are present in the FITS '
-                              'file header and have been replaced by the '
-                              'U+FFFD REPLACEMENT CHARACTER',
-                              AstropyUserWarning)
-                return s.decode('ascii', errors='replace')
-                # FIXME: replace with question mark ?
-                # return s.replace(u'\ufffd', '?')
+                              'file header and have been replaced by "?" '
+                              'characters', AstropyUserWarning)
+                s = s.decode('ascii', errors='replace')
+                return s.replace(u'\ufffd', '?')
         elif (isinstance(s, numpy.ndarray) and
               issubclass(s.dtype.type, numpy.bytes_)):
             # np.char.encode/decode annoyingly don't preserve the type of the
