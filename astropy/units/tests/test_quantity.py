@@ -16,6 +16,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises
 from ...utils import isiterable, minversion
+from ...utils.compat.numpy import NUMPY_LT_1_13
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
@@ -752,7 +753,10 @@ class TestQuantityDisplay:
     def test_dimensionless_quantity_repr(self):
         q2 = u.Quantity(1., unit='m-1')
         q3 = u.Quantity(1, unit='m-1', dtype=int)
-        assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
+        if NUMPY_LT_1_13:
+            assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
+        else:
+            assert repr(self.scalarintq * q2) == "<Quantity  1.>"
         assert repr(self.scalarintq * q3) == "<Quantity 1>"
         assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
 
@@ -773,7 +777,10 @@ class TestQuantityDisplay:
 
     def test_scalar_quantity_repr(self):
         assert repr(self.scalarintq) == "<Quantity 1 m>"
-        assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
+        if NUMPY_LT_1_13:
+            assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
+        else:
+            assert repr(self.scalarfloatq) == "<Quantity  1.3 m>"
 
     def test_array_quantity_str(self):
         assert str(self.arrq) == "[ 1.   2.3  8.9] m"
@@ -1298,8 +1305,12 @@ def test_repr_array_of_quantity():
     """
 
     a = np.array([1 * u.m, 2 * u.s], dtype=object)
-    assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
-    assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+    if NUMPY_LT_1_13:
+        assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
+        assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+    else:
+        assert repr(a) == 'array([<Quantity  1. m>, <Quantity  2. s>], dtype=object)'
+        assert str(a) == '[<Quantity  1. m> <Quantity  2. s>]'
 
 
 class TestSpecificTypeQuantity:
