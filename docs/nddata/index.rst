@@ -82,9 +82,9 @@ Instances are created in the same way::
 But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
 
     >>> import astropy.units as u
-    >>> ndd2 = ndd.add([4, 3, 2, 1] * u.erg / u.s)
+    >>> ndd2 = ndd.add([4, -3.5, 3, 2.5] * u.erg / u.s)
     >>> ndd2
-    NDDataRef([ 5.,  5.,  5.,  5.])
+    NDDataRef([ 5. , -1.5,  6. ,  6.5])
 
 Because these operations have a wide range of options these are not available
 using arithmetic operators like ``+``.
@@ -94,10 +94,10 @@ some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements
     INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
-    NDDataRef([ 5.,  5.])
+    NDDataRef([ 6. ,  6.5])
     >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
     INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
-    NDDataRef( 5.)
+    NDDataRef(-1.5)
 
 
 StdDevUncertainty
