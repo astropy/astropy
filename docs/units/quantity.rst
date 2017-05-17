@@ -39,7 +39,7 @@ specifying a value and unit:
 The constructor gives a few more options.  In particular, it allows one to
 merge sequences of |quantity| objects (as long as all of their units are
 equivalent), and to parse simple strings (which may help, e.g., to parse
-configuration files, etc.):    
+configuration files, etc.):
 
     >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
@@ -346,17 +346,27 @@ Functions Accepting Quantities
 Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
 arguments to a function are `~astropy.units.Quantity` objects and that the units
-are compatible with a desired unit.
+are compatible with a desired unit or physical type.
 
-The decorator does not convert the unit to the desired unit, say arcseconds
-to degrees, it merely checks that such a conversion is possible, thus verifying
-that the `~astropy.units.Quantity` argument can be used in calculations.
+The decorator does not convert the input quantity to the desired unit, say
+arcseconds to degrees in the example below, it merely checks that such a
+conversion is possible, thus verifying that the `~astropy.units.Quantity`
+argument can be used in calculations.
 
 The decorator `~astropy.units.quantity_input` accepts keyword arguments to
 specify which arguments should be validated and what unit they are expected to
 be compatible with:
 
     >>> @u.quantity_input(myarg=u.deg)
+    ... def myfunction(myarg):
+    ...     return myarg.unit
+
+    >>> myfunction(100*u.arcsec)
+    Unit("arcsec")
+
+It is also possible to instead specify the physical type of the desired unit:
+
+    >>> @u.quantity_input(myarg='angle')
     ... def myfunction(myarg):
     ...     return myarg.unit
 

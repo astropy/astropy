@@ -9,8 +9,11 @@ from ... import units as u
 from .py3_test_quantity_annotations import *
 
 
-def test_args():
-    @u.quantity_input(solarx=u.arcsec, solary=u.arcsec)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.arcsec),
+                         ('angle', 'angle')])
+def test_args(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary):
         return solarx, solary
 
@@ -22,8 +25,11 @@ def test_args():
     assert solarx.unit == u.arcsec
     assert solary.unit == u.arcsec
 
-def test_args_noconvert():
-    @u.quantity_input(solarx=u.arcsec, solary=u.arcsec)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.arcsec),
+                         ('angle', 'angle')])
+def test_args_noconvert(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary):
         return solarx, solary
 
@@ -36,8 +42,10 @@ def test_args_noconvert():
     assert solary.unit == u.arcmin
 
 
-def test_args_nonquantity():
-    @u.quantity_input(solarx=u.arcsec)
+@pytest.mark.parametrize("solarx_unit", [
+                         u.arcsec, 'angle'])
+def test_args_nonquantity(solarx_unit):
+    @u.quantity_input(solarx=solarx_unit)
     def myfunc_args(solarx, solary):
         return solarx, solary
 
@@ -48,8 +56,11 @@ def test_args_nonquantity():
 
     assert solarx.unit == u.arcsec
 
-def test_arg_equivalencies():
-    @u.quantity_input(solarx=u.arcsec, solary=u.eV, equivalencies=u.mass_energy())
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.eV),
+                         ('angle', 'energy')])
+def test_arg_equivalencies(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit, equivalencies=u.mass_energy())
     def myfunc_args(solarx, solary):
         return solarx, solary+(10*u.J)  # Add an energy to check equiv is working
 
@@ -61,17 +72,25 @@ def test_arg_equivalencies():
     assert solarx.unit == u.arcsec
     assert solary.unit == u.gram
 
-def test_wrong_unit():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_wrong_unit(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary):
         return solarx, solary
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
 
-def test_not_quantity():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+    str_to = str(solary_unit)
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_not_quantity(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary):
         return solarx, solary
 
@@ -79,8 +98,11 @@ def test_not_quantity():
         solarx, solary = myfunc_args(1*u.arcsec, 100)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
 
-def test_kwargs():
-    @u.quantity_input(solarx=u.arcsec, myk=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_kwargs(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, myk=solary_unit)
     def myfunc_args(solarx, solary, myk=1*u.arcsec):
         return solarx, solary, myk
 
@@ -92,8 +114,11 @@ def test_kwargs():
 
     assert myk.unit == u.deg
 
-def test_unused_kwargs():
-    @u.quantity_input(solarx=u.arcsec, myk=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_unused_kwargs(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, myk=solary_unit)
     def myfunc_args(solarx, solary, myk=1*u.arcsec, myk2=1000):
         return solarx, solary, myk, myk2
 
@@ -107,8 +132,11 @@ def test_unused_kwargs():
     assert myk.unit == u.deg
     assert myk2 == 10
 
-def test_kwarg_equivalencies():
-    @u.quantity_input(solarx=u.arcsec, energy=u.eV, equivalencies=u.mass_energy())
+@pytest.mark.parametrize("solarx_unit,energy_unit", [
+                         (u.arcsec, u.eV),
+                         ('angle', 'energy')])
+def test_kwarg_equivalencies(solarx_unit, energy_unit):
+    @u.quantity_input(solarx=solarx_unit, energy=energy_unit, equivalencies=u.mass_energy())
     def myfunc_args(solarx, energy=10*u.eV):
         return solarx, energy+(10*u.J)  # Add an energy to check equiv is working
 
@@ -120,17 +148,25 @@ def test_kwarg_equivalencies():
     assert solarx.unit == u.arcsec
     assert energy.unit == u.gram
 
-def test_kwarg_wrong_unit():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_kwarg_wrong_unit(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary=10*u.deg):
         return solarx, solary
 
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to 'deg'."
 
-def test_kwarg_not_quantity():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+    str_to = str(solary_unit)
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_kwarg_not_quantity(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary=10*u.deg):
         return solarx, solary
 
@@ -138,8 +174,11 @@ def test_kwarg_not_quantity():
         solarx, solary = myfunc_args(1*u.arcsec, solary=100)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
 
-def test_kwarg_default():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_kwarg_default(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx, solary=10*u.deg):
         return solarx, solary
 
@@ -166,8 +205,11 @@ def test_no_equivalent():
 
         assert str(e.value) == "Argument 'solarx' to function 'myfunc_args' has a 'unit' attribute without an 'is_equivalent' method. You may want to pass in an astropy Quantity instead."
 
-def test_kwargs_input():
-    @u.quantity_input(solarx=u.arcsec, solary=u.deg)
+@pytest.mark.parametrize("solarx_unit,solary_unit", [
+                         (u.arcsec, u.deg),
+                         ('angle', 'angle')])
+def test_kwargs_input(solarx_unit, solary_unit):
+    @u.quantity_input(solarx=solarx_unit, solary=solary_unit)
     def myfunc_args(solarx=1*u.arcsec, solary=1*u.deg):
         return solarx, solary
 
@@ -180,8 +222,10 @@ def test_kwargs_input():
     assert solarx.unit == u.arcsec
     assert solary.unit == u.deg
 
-def test_kwargs_extra():
-    @u.quantity_input(solary=u.deg)
+@pytest.mark.parametrize("solarx_unit", [
+                         u.arcsec, 'angle'])
+def test_kwargs_extra(solarx_unit):
+    @u.quantity_input(solarx=solarx_unit)
     def myfunc_args(solarx, **kwargs):
         return solarx
 
@@ -190,3 +234,12 @@ def test_kwargs_extra():
     assert isinstance(solarx, u.Quantity)
 
     assert solarx.unit == u.deg
+
+def test_kwarg_invalid_physical_type():
+    @u.quantity_input(solarx='angle', solary='africanswallow')
+    def myfunc_args(solarx, solary=10*u.deg):
+        return solarx, solary
+
+    with pytest.raises(ValueError) as e:
+        solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.deg)
+    assert str(e.value) == "Invalid unit of physical type 'africanswallow'."
