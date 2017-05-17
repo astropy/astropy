@@ -59,8 +59,8 @@ Customize the setter for a property
 
     >>> ndd = NDDataMaskBoolNumpy([1,2,3])
     >>> ndd.mask = True
-    >>> ndd.mask
-    array(True, dtype=bool)
+    >>> ndd.mask  # doctest: +NORMALIZE_WHITESPACE
+    array( True, dtype=bool)
 
 Extend the setter for a property
 --------------------------------

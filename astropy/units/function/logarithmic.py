@@ -214,12 +214,12 @@ class LogQuantity(FunctionQuantity):
     subclasses, as in::
 
         >>> import astropy.units as u
-        >>> u.Magnitude(15.)
-        <Magnitude 15.0 mag>
-        >>> u.Magnitude(10.*u.count/u.second)
+        >>> u.Magnitude(12.5)  # doctest: +FLOAT_CMP
+        <Magnitude 12.5 mag>
+        >>> u.Magnitude(10.*u.count/u.second)  # doctest: +FLOAT_CMP
         <Magnitude -2.5 mag(ct / s)>
-        >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))
-        <Decibel 30.0 dB(mW)>
+        >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))  # doctest: +FLOAT_CMP
+        <Decibel  30. dB(mW)>
 
     """
     # only override of FunctionQuantity
