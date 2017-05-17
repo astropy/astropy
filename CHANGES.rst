@@ -223,6 +223,10 @@ Bug Fixes
 
   - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
 
+  - OrthoPolynomialBase (Chebyshev2D / Legendre2D) models were being evaluated
+    incorrectly when part of a compound model (using the parameters from the
+    original model), which in turn caused fitting to fail as a no-op. [#6085]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
