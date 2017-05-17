@@ -122,6 +122,10 @@ matrix:
       - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
+      # TEMPORARY: 1.13rc introduces errors that need upstream fixes
+      - env: NUMPY_VERSION=prerelease
+             EVENT_TYPE='push pull_request cron'
+
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
