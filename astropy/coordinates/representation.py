@@ -57,11 +57,10 @@ def _array2string(values, prefix=''):
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
         formatter = {'numpystr': fmt}
+        return np.array2string(values, formatter=formatter, style=fmt,
+                               separator=', ', prefix=prefix)
     else:
-        fmt = repr
-        formatter = {}
-
-    return np.array2string(values, formatter=formatter, style=fmt,
+        return np.array2string(values, formatter={},
                            separator=', ', prefix=prefix)
 
 
