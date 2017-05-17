@@ -1654,6 +1654,29 @@ class TestHeaderFunctions(FitsTestCase):
             assert str(w[0].message).startswith(
                 "Missing padding to end of the FITS block")
 
+    def test_invalid_characters(self):
+        """
+        Test header with invalid characters
+        """
+
+        # Generate invalid file with non-ASCII character
+        h = fits.Header()
+        h['FOO'] = 'BAR'
+        h['COMMENT'] = 'hello'
+        hdul = fits.PrimaryHDU(header=h, data=np.arange(5))
+        hdul.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f, \
+             open(self.temp('test2.fits'), 'wb') as f2:
+            f2.write(f.read().replace(b'hello', u'héllo'.encode('latin1')))
+
+        with catch_warnings() as w:
+            h = fits.getheader(self.temp('test2.fits'))
+            assert h['COMMENT'] ==  'h�llo'
+            assert len(w) == 1
+            assert str(w[0].message).startswith(
+                "non-ASCII characters are present in the FITS file")
+
     def test_unnecessary_move(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/125
