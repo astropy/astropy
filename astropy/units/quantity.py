@@ -19,7 +19,7 @@ import numpy as np
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_13
+from ..utils.compat import NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
@@ -1263,7 +1263,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                     formatter=formatter)
 
             # the view is needed for the scalar case - value might be float
-            if NUMPY_LT_1_13:   # style deprecated in 1.13
+            if NUMPY_LT_1_14:   # style deprecated in 1.14
                 latex_value = np.array2string(
                     self.view(np.ndarray),
                     style=(float_formatter if self.dtype.kind == 'f'

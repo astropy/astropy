@@ -7,7 +7,7 @@ from ...utils import minversion
 
 
 __all__ = ['NUMPY_LT_1_10_4', 'NUMPY_LT_1_11',
-           'NUMPY_LT_1_12', 'NUMPY_LT_1_13']
+           'NUMPY_LT_1_12', 'NUMPY_LT_1_13', 'NUMPY_LT_1_14']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
@@ -16,3 +16,4 @@ NUMPY_LT_1_10_4 = not minversion('numpy', '1.10.4')
 NUMPY_LT_1_11 = not minversion('numpy', '1.11.0')
 NUMPY_LT_1_12 = not minversion('numpy', '1.12')
 NUMPY_LT_1_13 = not minversion('numpy', '1.13')
+NUMPY_LT_1_14 = not minversion('numpy', '1.14dev')
