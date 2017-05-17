@@ -422,6 +422,8 @@ Bug Fixes
 
   - Recognize PrimaryHDU when non boolean values are present for the
     'GROUPS' header keyword. [#5808]
+    
+  - Fixed ``fits.Header._keyword_from_index()`` to give correct keyword and repeat number. [#5827, #5852]
 
   - Fix the insertion of new keywords in compressed image headers
     (``CompImageHeader``). [#5866]

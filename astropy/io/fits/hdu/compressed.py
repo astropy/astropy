@@ -169,6 +169,8 @@ class CompImageHeader(Header):
 
         if remapped_keyword in self._table_header:
             if index is not None:
+                if isinstance(key, int):
+                    _, index = self._table_header._keyword_from_index(key)
                 del self._table_header[(remapped_keyword, index)]
             else:
                 del self._table_header[remapped_keyword]
