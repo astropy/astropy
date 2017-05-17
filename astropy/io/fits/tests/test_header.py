@@ -1654,6 +1654,7 @@ class TestHeaderFunctions(FitsTestCase):
             assert str(w[0].message).startswith(
                 "Missing padding to end of the FITS block")
 
+    @pytest.mark.skipif('six.PY2')
     def test_invalid_characters(self):
         """
         Test header with invalid characters
@@ -1666,13 +1667,17 @@ class TestHeaderFunctions(FitsTestCase):
         hdul = fits.PrimaryHDU(header=h, data=np.arange(5))
         hdul.writeto(self.temp('test.fits'))
 
-        with open(self.temp('test.fits'), 'rb') as f, \
-             open(self.temp('test2.fits'), 'wb') as f2:
-            f2.write(f.read().replace(b'hello', u'héllo'.encode('latin1')))
+        with open(self.temp('test.fits'), 'rb') as f:
+            out = f.read()
+        out = out.replace(b'hello', u'héllo'.encode('latin1'))
+        out = out.replace(b'BAR', u'BÀR'.encode('latin1'))
+        with open(self.temp('test2.fits'), 'wb') as f2:
+            f2.write(out)
 
         with catch_warnings() as w:
             h = fits.getheader(self.temp('test2.fits'))
-            assert h['COMMENT'] ==  'h�llo'
+            assert h['FOO'] ==  'B?R'
+            assert h['COMMENT'] ==  'h?llo'
             assert len(w) == 1
             assert str(w[0].message).startswith(
                 "non-ASCII characters are present in the FITS file")
