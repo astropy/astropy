@@ -362,6 +362,7 @@ def test_zero_degree_polynomial(cls):
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_2d_orthopolynomial_in_compound_model():
     """
     Ensure that OrthoPolynomialBase (ie. Chebyshev2D & Legendre2D) models get
