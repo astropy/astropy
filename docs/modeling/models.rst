@@ -27,8 +27,8 @@ a model may be instantiated with all scalar parameters::
 
     >>> from astropy.modeling.models import Gaussian1D
     >>> g = Gaussian1D(amplitude=1, mean=0, stddev=1)
-    >>> g
-    <Gaussian1D(amplitude=1.0, mean=0.0, stddev=1.0)>
+    >>> g  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=1., mean=0., stddev=1.)>
 
 The newly created model instance ``g`` now works like a Gaussian function
 with the given parameters fixed.  It takes a single input::

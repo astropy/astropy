@@ -75,8 +75,8 @@ Parameter examples
       >>> p1 = models.Polynomial1D(degree=3, c0=1.0, c1=0.0, c2=2.0, c3=3.0)
       >>> p1.param_names
       ('c0', 'c1', 'c2', 'c3')
-      >>> p1
-      <Polynomial1D(3, c0=1.0, c1=0.0, c2=2.0, c3=3.0)>
+      >>> p1  # doctest: +FLOAT_CMP
+      <Polynomial1D(3, c0=1., c1=0., c2=2., c3=3.)>
 
   For the basic `~astropy.modeling.polynomial.Polynomial1D` class the
   parameters are named ``c0`` through ``cN`` where ``N`` is the degree of the
@@ -89,8 +89,8 @@ Parameter examples
   of the coefficients initially::
 
       >>> p2 = models.Polynomial1D(degree=4)
-      >>> p2
-      <Polynomial1D(4, c0=0.0, c1=0.0, c2=0.0, c3=0.0, c4=0.0)>
+      >>> p2  # doctest: +FLOAT_CMP
+      <Polynomial1D(4, c0=0., c1=0., c2=0., c3=0., c4=0.)>
 
 - Parameters can then be set/updated by accessing attributes on the model of
   the same names as the parameters::
@@ -98,8 +98,8 @@ Parameter examples
       >>> p2.c4 = 1
       >>> p2.c2 = 3.5
       >>> p2.c0 = 2.0
-      >>> p2
-      <Polynomial1D(4, c0=2.0, c1=0.0, c2=3.5, c3=0.0, c4=1.0)>
+      >>> p2  # doctest: +FLOAT_CMP
+      <Polynomial1D(4, c0=2., c1=0., c2=3.5, c3=0., c4=1.)>
 
   This example now represents the polynomial :math:`x^4 + 3.5x^2 + 2`.
 
