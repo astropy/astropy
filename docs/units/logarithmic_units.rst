@@ -17,13 +17,13 @@ One can create logarithmic quantities either directly or by multiplication with
 a logarithmic unit.  For instance::
 
   >>> import astropy.units as u, astropy.constants as c, numpy as np
-  >>> u.Magnitude(-10.)
-  <Magnitude -10.0 mag>
-  >>> u.Magnitude(10 * u.ct / u.s)
+  >>> u.Magnitude(-10.)  # doctest: +FLOAT_CMP
+  <Magnitude  -10. mag>
+  >>> u.Magnitude(10 * u.ct / u.s)  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
-  >>> u.Magnitude(-2.5, "mag(ct/s)")
+  >>> u.Magnitude(-2.5, "mag(ct/s)")  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
-  >>> -2.5 * u.mag(u.ct / u.s)
+  >>> -2.5 * u.mag(u.ct / u.s)  # doctest: +FLOAT_CMP
   <Magnitude -2.5 mag(ct / s)>
   >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
   <Dex 4.438067627303133 dex(cm / s2)>
@@ -47,8 +47,8 @@ to a |quantity| with the physical unit using the
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
     5.0
-    >>> logg.physical
-    <Quantity 100000.0 cm / s2>
+    >>> logg.physical  # FLOAT_CMP
+    <Quantity  100000. cm / s2>
 
 Converting to different units
 =============================
@@ -57,17 +57,17 @@ Like |quantity| objects, logarithmic quantities can be converted to different
 units, be it another logarithmic unit or a physical one::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
-    >>> logg.to(u.m / u.s**2)
-    <Quantity 1000.0 m / s2>
-    >>> logg.to('dex(m/s2)')
-    <Dex 3.0 dex(m / s2)>
+    >>> logg.to(u.m / u.s**2)  # doctest: +FLOAT_CMP
+    <Quantity  1000. m / s2>
+    >>> logg.to('dex(m/s2)')  # doctest: +FLOAT_CMP
+    <Dex  3. dex(m / s2)>
 
 For convenience, the `~astropy.units.function.FunctionQuantity.si` and
 `~astropy.units.function.FunctionQuantity.cgs` attributes can be used
 to convert the |quantity| to base S.I. or c.g.s units::
 
-    >>> logg.si
-    <Dex 3.0 dex(m / s2)>
+    >>> logg.si  # doctest: +FLOAT_CMP
+    <Dex  3. dex(m / s2)>
 
 Arithmetic
 ==========
@@ -208,11 +208,11 @@ supported as logarithmic units.  For instance::
     >>> dBm = u.dB(u.mW)
     >>> signal_in, signal_out = 100. * dBm, 50 * dBm
     >>> cable_loss = (signal_in - signal_out) / (100. * u.m)
-    >>> signal_in, signal_out, cable_loss
-    (<Decibel 100.0 dB(mW)>, <Decibel 50.0 dB(mW)>, <Quantity 0.5 dB / m>)
+    >>> signal_in, signal_out, cable_loss  # doctest: +FLOAT_CMP
+    (<Decibel  100. dB(mW)>, <Decibel  50. dB(mW)>, <Quantity  0.5 dB / m>)
     >>> better_cable_loss = 0.2 * u.dB / u.m
-    >>> signal_in - better_cable_loss * 100. * u.m
-    <Decibel 80.0 dB(mW)>
+    >>> signal_in - better_cable_loss * 100. * u.m  # doctest: +FLOAT_CMP
+    <Decibel  80. dB(mW)>
 
 
 .. [M15] Mamajek et al., 2015, `arXiv:1510.06262

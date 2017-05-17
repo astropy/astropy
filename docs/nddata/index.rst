@@ -17,7 +17,90 @@ image classes.
 Getting started
 ===============
 
-Make a test image
+NDData
+------
+
+The primary purpose of `~astropy.nddata.NDData` is to act as a *container* for
+data, metadata, and other related information like a mask.
+
+An `~astropy.nddata.NDData` object can be instantiated by passing it an
+n-dimensional `numpy` array::
+
+    >>> import numpy as np
+    >>> from astropy.nddata import NDData
+    >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
+    >>> ndd1 = NDData(array)
+
+or something that can be converted to an `numpy.ndarray`::
+
+    >>> ndd2 = NDData([1, 2, 3, 4])
+    >>> ndd2
+    NDData([1, 2, 3, 4])
+
+and can be accessed again via the ``data`` attribute::
+
+    >>> ndd2.data
+    array([1, 2, 3, 4])
+
+It also supports additional properties like a ``unit`` or ``mask`` for the
+data, a ``wcs`` (world coordinate system) and ``uncertainty`` of the data and
+additional ``meta`` attributes:
+
+    >>> data = np.array([1,2,3,4])
+    >>> mask = data > 2
+    >>> unit = 'erg / s'
+    >>> from astropy.nddata import StdDevUncertainty
+    >>> uncertainty = StdDevUncertainty(np.sqrt(data)) # representing standard deviation
+    >>> meta = {'object': 'fictional data.'}
+    >>> from astropy.coordinates import SkyCoord
+    >>> wcs = SkyCoord('00h42m44.3s', '+41d16m09s')
+    >>> ndd = NDData(data, mask=mask, unit=unit, uncertainty=uncertainty,
+    ...              meta=meta, wcs=wcs)
+    >>> ndd
+    NDData([1, 2, 3, 4])
+
+The representation only displays the ``data``; the other attributes need to be
+accessed directly, for example ``ndd.mask`` to access the mask.
+
+
+NDDataRef
+---------
+
+Building upon this pure container `~astropy.nddata.NDDataRef` implements:
+
++ a ``read`` and ``write`` method to access astropy's unified file io interface.
++ simple arithmetics like addition, subtraction, division and multiplication.
++ slicing.
+
+Instances are created in the same way::
+
+    >>> from astropy.nddata import NDDataRef
+    >>> ndd = NDDataRef(ndd)
+    >>> ndd
+    NDDataRef([1, 2, 3, 4])
+
+But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
+
+    >>> import astropy.units as u
+    >>> ndd2 = ndd.add([4, 3, 2, 1] * u.erg / u.s)
+    >>> ndd2
+    NDDataRef([ 5.,  5.,  5.,  5.])
+
+Because these operations have a wide range of options these are not available
+using arithmetic operators like ``+``.
+
+Slicing or indexing (:ref:`nddata_slicing`) is possible (issuing warnings if
+some attribute cannot be sliced)::
+
+    >>> ndd2[2:]  # discard the first two elements
+    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
+    NDDataRef([ 5.,  5.])
+    >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
+    INFO: wcs cannot be sliced. [astropy.nddata.mixins.ndslicing]
+    NDDataRef( 5.)
+
+
+StdDevUncertainty
 -----------------
 
 Though the `~astropy.nddata` package supports any kind of gridded data, this

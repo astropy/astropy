@@ -162,8 +162,8 @@ coordinate objects::
     >>> c
     <SkyCoord (ICRS): (x, y, z) in kpc
         ( 1.,  2.,  3.)>
-    >>> c.x, c.y, c.z
-    (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
+    >>> c.x, c.y, c.z  # doctest: +FLOAT_CMP
+    (<Quantity  1. kpc>, <Quantity  2. kpc>, <Quantity  3. kpc>)
 
     >>> c.representation = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP

@@ -411,9 +411,11 @@ def set_enabled_equivalencies(equivalencies):
         >>> from astropy import units as u
         >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
         ...     phase = 0.5 * u.cycle
-        ...     np.exp(1j*phase)  # doctest: +FLOAT_CMP
-        <Quantity (-1+1.2246063538223773e-16j)>
+        ...     np.exp(1j*phase)  # doctest: +SKIP
+        <Quantity  -1. +1.22464680e-16j>
     """
+    # doctest skipped as the complex number formatting changed in numpy 1.13.
+    #
     # get a context with a new registry, using all units of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the equivalencies requested

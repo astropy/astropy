@@ -8,10 +8,10 @@ numeric operators.  For example::
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
   Unit("erg / (cm2 s)")
-  >>> 52.0 * fluxunit
-  <Quantity 52.0 erg / (cm2 s)>
-  >>> 52.0 * fluxunit / u.s
-  <Quantity 52.0 erg / (cm2 s2)>
+  >>> 52.0 * fluxunit  # doctest: +FLOAT_CMP
+  <Quantity  52. erg / (cm2 s)>
+  >>> 52.0 * fluxunit / u.s  # doctest: +FLOAT_CMP
+  <Quantity  52. erg / (cm2 s2)>
 
 Units support fractional powers, which retain their precision through
 complex operations.  To do this, it is recommended to use
@@ -42,8 +42,8 @@ using the `~astropy.units.def_unit` function.  For example::
 The addition of a string gives the new unit a name that will show up
 when the unit is printed::
 
-  >>> 10. * bakers_fortnight
-  <Quantity 10.0 bakers_fortnight>
+  >>> 10. * bakers_fortnight  # doctest: +FLOAT_CMP
+  <Quantity  10. bakers_fortnight>
 
 Creating a new fundamental unit is simple::
 
@@ -53,8 +53,8 @@ Creating a new fundamental unit is simple::
   >>> guffaw = u.def_unit('guffaw', 3 * laugh)
   >>> rofl = u.def_unit('rofl', 4 * guffaw)
   >>> death_by_laughing = u.def_unit('death_by_laughing', 10 * rofl)
-  >>> (1. * rofl).to(titter)
-  <Quantity 240.0 titter>
+  >>> (1. * rofl).to(titter)  # doctest: +FLOAT_CMP
+  <Quantity  240. titter>
 
 One can see the definition of a unit and its :ref:`decomposition <decomposing>`
 via::

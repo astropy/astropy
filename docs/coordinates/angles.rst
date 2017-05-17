@@ -56,8 +56,8 @@ The |Angle| object also supports a variety of ways of representing the value
 of the angle, both as a floating point number and as a string::
 
     >>> a = Angle(1, u.radian)
-    >>> a
-    <Angle 1.0 rad>
+    >>> a  # doctest: +FLOAT_CMP
+    <Angle  1. rad>
     >>> a.radian
     1.0
     >>> a.degree  # doctest: +FLOAT_CMP

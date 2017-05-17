@@ -25,24 +25,24 @@ whole string representation of the |quantity|. This means you can do::
 
     >>> from astropy import units as u
     >>> import numpy as np
-    >>> q = 10. * u.km
+    >>> q = 10.5 * u.km
     >>> q
-    <Quantity 10.0 km>
+    <Quantity  10.5 km>
     >>> "{0}".format(q)
-    '10.0 km'
+    '10.5 km'
     >>> "{0:+0.03f}".format(q)
-    '+10.000 km'
+    '+10.500 km'
     >>> "{0:20s}".format(q)
-    '10.0 km             '
+    '10.5 km             '
 
 To format both the value and the unit separately, you can access the |quantity|
 class attributes within new-style format strings::
 
-    >>> q = 10. * u.km
+    >>> q = 10.5 * u.km
     >>> q
-    <Quantity 10.0 km>
-    >>> "{0.value:0.003f} in {0.unit:s}".format(q)  # doctest: +SKIP
-    '10.000 in km'
+    <Quantity  10.5 km>
+    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
+    '10.500 in km'
 
 Because Numpy arrays don't accept most format specifiers, using specifiers like
 ``0.003f`` will not work when applied to a Numpy array or non-scalar |quantity|.

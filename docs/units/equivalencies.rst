@@ -84,8 +84,8 @@ But when passing the proper conversion function,
   ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +FLOAT_CMP
-  <Quantity (0.7071067811865476+0.7071067811865475j)>
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +SKIP
+  <Quantity  0.70710678+0.70710678j>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the

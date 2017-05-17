@@ -28,8 +28,8 @@ a |quantity| is to simply multiply or divide a value by one of the built-in
 units.  It works with scalars, sequences and Numpy arrays::
 
     >>> from astropy import units as u
-    >>> 42.0 * u.meter
-    <Quantity 42.0 m>
+    >>> 42.0 * u.meter  # doctest: +FLOAT_CMP
+    <Quantity  42. m>
     >>> [1., 2., 3.] * u.m
     <Quantity [ 1., 2., 3.] m>
     >>> import numpy as np
@@ -120,8 +120,8 @@ normally work:
 
 but by passing an equivalency list, in this case ``spectral()``, it does:
 
-    >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())
-    <Quantity 299792457999999.94 Hz>
+    >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+    <Quantity  2.99792458e+14 Hz>
 
 Quantities and units can be :ref:`printed nicely to strings
 <astropy-units-format>` using the `Format String Syntax

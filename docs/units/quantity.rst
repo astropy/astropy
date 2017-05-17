@@ -16,8 +16,8 @@ Creating Quantity instances
 to represent 15 m/s:
 
     >>> import astropy.units as u
-    >>> 15 * u.m / u.s
-    <Quantity 15.0 m / s>
+    >>> 15 * u.m / u.s  # doctest: +FLOAT_CMP
+    <Quantity  15. m / s>
 
 This extends as expected to division by a unit, or using Numpy arrays or Python
 sequences:
@@ -33,8 +33,8 @@ sequences:
 You can also create instances using the |quantity| constructor directly, by
 specifying a value and unit:
 
-    >>> u.Quantity(15, u.m / u.s)
-    <Quantity 15.0 m / s>
+    >>> u.Quantity(15, u.m / u.s)  # doctest: +FLOAT_CMP
+    <Quantity  15. m / s>
 
 The constructor gives a few more options.  In particular, it allows one to
 merge sequences of |quantity| objects (as long as all of their units are
@@ -44,8 +44,8 @@ configuration files, etc.):
     >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
     <Quantity [ 1.,  1.] min>
-    >>> u.Quantity('15 m/s')
-    <Quantity 15.0 m / s>
+    >>> u.Quantity('15 m/s')  # doctest: +FLOAT_CMP
+    <Quantity  15. m / s>
 
 Finally, the current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
@@ -79,8 +79,8 @@ convert the |quantity| to base S.I. or c.g.s units:
     >>> q = 2.4 * u.m / u.s
     >>> q.si  # doctest: +FLOAT_CMP
     <Quantity 2.4 m / s>
-    >>> q.cgs
-    <Quantity 240.0 cm / s>
+    >>> q.cgs  # doctest: +FLOAT_CMP
+    <Quantity  240. cm / s>
 
 If you want the value of the quantity in a different unit, you can use
 :meth:`~astropy.units.Quantity.to_value` as a short-cut:
@@ -193,10 +193,10 @@ Addition or subtraction between |quantity| objects is supported when their
 units are equivalent. When the units are equal, the resulting object has the
 same unit:
 
-    >>> 11 * u.s + 30 * u.s
-    <Quantity 41.0 s>
-    >>> 30 * u.s - 11 * u.s
-    <Quantity 19.0 s>
+    >>> 11 * u.s + 30 * u.s  # doctest: +FLOAT_CMP
+    <Quantity  41. s>
+    >>> 30 * u.s - 11 * u.s  # doctest: +FLOAT_CMP
+    <Quantity  19. s>
 
 If the units are equivalent, but not equal (e.g. kilometer and meter), the
 resulting object **has units of the object on the left**:
@@ -235,8 +235,8 @@ equivalent units, the **resulting object has composite units**:
     <Quantity 154.33 cm m>
     >>> 1. * u.m / (20. * u.cm)  # doctest: +FLOAT_CMP
     <Quantity 0.05 m / cm>
-    >>> 20. * u.cm / (1. * u.m)
-    <Quantity 20.0 cm / m>
+    >>> 20. * u.cm / (1. * u.m)  # doctest: +FLOAT_CMP
+    <Quantity  20. cm / m>
 
 For multiplication, you can change how to represent the resulting object by
 using the :meth:`~astropy.units.quantity.Quantity.to` method:

@@ -370,10 +370,10 @@ Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
 which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
 
-  >>> sc.ra
-  <Longitude 1.0 deg>
-  >>> sc.dec
-  <Latitude 2.0 deg>
+  >>> sc.ra  # doctest: +FLOAT_CMP
+  <Longitude  1. deg>
+  >>> sc.dec  # doctest: +FLOAT_CMP
+  <Latitude   2. deg>
 
 Next notice that all the built-in frame names ``icrs``, ``galactic``, ``fk5``
 ``fk4``, and ``fk4noeterms`` are there.  Through the magic of Python
@@ -537,8 +537,8 @@ supplying the corresponding components for that representation::
     >>> c
     <SkyCoord (ICRS): (x, y, z) in kpc
         ( 1.,  2.,  3.)>
-    >>> c.x, c.y, c.z
-    (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
+    >>> c.x, c.y, c.z  # doctest: +FLOAT_CMP
+    (<Quantity  1. kpc>, <Quantity  2. kpc>, <Quantity  3. kpc>)
 
 Other variations include::
 
