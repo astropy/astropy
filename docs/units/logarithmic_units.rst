@@ -47,7 +47,7 @@ to a |quantity| with the physical unit using the
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
     5.0
-    >>> logg.physical  # FLOAT_CMP
+    >>> logg.physical  # doctest: +FLOAT_CMP
     <Quantity  100000. cm / s2>
 
 Converting to different units
