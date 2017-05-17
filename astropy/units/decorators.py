@@ -129,7 +129,7 @@ class QuantityInput(object):
                                 physical_type_id = _unit_physical_mapping[target_unit]
                                 str_target_unit = target_unit
                             except KeyError:
-                                raise ValueError("Invalid physical type '{0}'."
+                                raise ValueError("Invalid unit of physical type '{0}'."
                                                  .format(target_unit))
 
                             ureg = get_current_unit_registry()

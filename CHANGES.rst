@@ -89,10 +89,10 @@ New Features
     appropriate logarithmic quantity class if ``subok=True``. For instance,
     ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
 
-  - The ``quantity_input`` decorator now accepts a string physical type instead
-    of a unit object to specify the expected input ``Quantity``'s physical type.
-    For example, ``@u.quantity_input(x='angle')`` is now functionally the same
-    as ``@u.quantity_input(x=u.degree)``. [#3847]
+  - The ``quantity_input`` decorator now accepts a string physical type in
+    addition to of a unit object to specify the expected input ``Quantity``'s
+    physical type. For example, ``@u.quantity_input(x='angle')`` is now
+    functionally the same as ``@u.quantity_input(x=u.degree)``. [#3847]
 
 - ``astropy.utils``
 
