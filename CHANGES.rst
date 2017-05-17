@@ -289,6 +289,10 @@ Bug Fixes
 
 - ``astropy.visualization``
 
+  - Fix bug in ManualInterval which caused the limits to be returned incorrectly
+    if set to zero, and fix defaults for ManualInterval in the presence of NaNs.
+    [#6088]
+
   - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
     functions. [#5686, #5692, #6060]
 
