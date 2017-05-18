@@ -161,6 +161,9 @@ API Changes
     add unnamed columns, mixin objects and also to specify explicit names. Default names
     will be used if not specified. [#5996]
 
+  - Added optional ``axis`` parameter to ``insert`` method for ``Column`` and
+    ``MaskedColumn`` classes. [#6092]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -239,6 +242,8 @@ Bug Fixes
 - ``astropy.table``
 
   - Fix a problem with vstack for bytes columns in Python 3. [#5628]
+
+  - Fix QTable add/insert row for multidimensional Quantity. [#6092]
 
 - ``astropy.table``
 
