@@ -16,7 +16,7 @@ def _get_allowed_units(targets):
     types, return a list of Unit objects.
     """
 
-    allows_units = []
+    allowed_units = []
     for target in targets:
         if isinstance(target, str): # Could be a string unit or physical type
 
