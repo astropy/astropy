@@ -254,6 +254,26 @@ def test_args_None():
     x_target = u.deg
     x_unit = u.arcsec
     y_target = u.km
+    y_unit = u.kpc
+
+    @u.quantity_input(x=[x_target, None], y=[y_target, None])
+    def myfunc_args(x, y):
+        return x, y
+
+    x, y = myfunc_args(1*x_unit, None)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+    assert y is None
+
+    x, y = myfunc_args(None, 1*y_unit)
+    assert isinstance(y, u.Quantity)
+    assert y.unit == y_unit
+    assert x is None
+
+def test_args_None_kwarg():
+    x_target = u.deg
+    x_unit = u.arcsec
+    y_target = u.km
 
     @u.quantity_input(x=x_target, y=y_target)
     def myfunc_args(x, y=None):
