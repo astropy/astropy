@@ -42,7 +42,7 @@ def _get_allowed_units(targets):
 
     return allowed_units
 
-def _validate_arg_value(arg, targets, equivalencies):
+def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
     """
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
@@ -66,18 +66,18 @@ def _validate_arg_value(arg, targets, equivalencies):
 
             raise TypeError("Argument '{0}' to function '{1}' has {2}. "
                   "You may want to pass in an astropy Quantity instead."
-                     .format(param.name, wrapped_function.__name__, error_msg))
+                     .format(param_name, func_name, error_msg))
 
     else:
         if len(targets) > 1:
             raise UnitsError("Argument '{0}' to function '{1}' must be in units"
-                             " convertible to one of: {2}"
-                             .format(param.name, wrapped_function.__name__,
+                             " convertible to one of: {2}."
+                             .format(param_name, func_name,
                                      [str(targ) for targ in targets]))
         else:
             raise UnitsError("Argument '{0}' to function '{1}' must be in units"
-                             " convertible to '{2}'"
-                             .format(param.name, wrapped_function.__name__,
+                             " convertible to '{2}'."
+                             .format(param_name, func_name,
                                      str(targets[0])))
 
 class QuantityInput(object):
@@ -199,7 +199,8 @@ class QuantityInput(object):
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
-                _validate_arg_value(arg, targets, self.equivalencies)
+                _validate_arg_value(param.name, wrapped_function.__name__,
+                                    arg, targets, self.equivalencies)
 
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
