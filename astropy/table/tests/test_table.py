@@ -664,6 +664,12 @@ class TestAddRow(SetupData):
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['obj'] == np.array([1, 'string', 3, [10]], dtype='O'))
 
+    def test_add_qtable_row_multidimensional(self):
+        q = [[1, 2], [3, 4]] * u.m
+        qt = table.QTable([q])
+        qt.add_row(([5, 6] * u.km,))
+        assert np.all(qt['col0'] == [[1, 2], [3, 4], [5000, 6000]] * u.m)
+
     def test_add_with_tuple(self, table_types):
         self._setup(table_types)
         t = self.t
