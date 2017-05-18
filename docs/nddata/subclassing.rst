@@ -58,7 +58,7 @@ Customize the setter for a property
     ...         self._mask = np.array(value, dtype=np.bool_)
 
     >>> ndd = NDDataMaskBoolNumpy([1,2,3])
-    >>> ndd.mask = True, False, True
+    >>> ndd.mask = [True, False, True]
     >>> ndd.mask
     array([ True, False,  True], dtype=bool)
 
