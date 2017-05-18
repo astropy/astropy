@@ -1968,7 +1968,7 @@ class Unit(NamedUnit):
     @classmethod
     def _from_physical_type_id(cls, physical_type_id):
         # get string bases and powers from the ID tuple
-        bases = [Unit(base) for base, _ in physical_type_id]
+        bases = [cls(base) for base, _ in physical_type_id]
         powers = [power for _, power in physical_type_id]
 
         if len(physical_type_id) == 1 and powers[0] == 1:
