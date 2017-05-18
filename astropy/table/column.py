@@ -906,7 +906,8 @@ class Column(BaseColumn):
             ``values`` should be shaped so that it can be broadcast appropriately
         axis : int, optional
             Axis along which to insert ``values``.  If ``axis`` is None then
-            the column array is flattened before insertion.  Default is 0.
+            the column array is flattened before insertion.  Default is 0,
+            which will insert a row.
 
         Returns
         -------
@@ -1132,7 +1133,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             Mask value(s) to insert.  If not supplied then False is used.
         axis : int, optional
             Axis along which to insert ``values``.  If ``axis`` is None then
-            the column array is flattened before insertion.  Default is 0.
+            the column array is flattened before insertion.  Default is 0,
+            which will insert a row.
 
         Returns
         -------
