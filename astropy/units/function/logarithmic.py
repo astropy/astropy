@@ -211,15 +211,15 @@ class LogQuantity(FunctionQuantity):
     Examples
     --------
     Typically, use is made of an `~astropy.units.function.FunctionQuantity`
-    subclasses, as in::
+    subclass, as in::
 
         >>> import astropy.units as u
-        >>> u.Magnitude(12.5)  # doctest: +FLOAT_CMP
-        <Magnitude 12.5 mag>
-        >>> u.Magnitude(10.*u.count/u.second)  # doctest: +FLOAT_CMP
+        >>> u.Magnitude(-2.5)
+        <Magnitude -2.5 mag>
+        >>> u.Magnitude(10.*u.count/u.second)
         <Magnitude -2.5 mag(ct / s)>
         >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))  # doctest: +FLOAT_CMP
-        <Decibel  30. dB(mW)>
+        <Decibel 30. dB(mW)>
 
     """
     # only override of FunctionQuantity
