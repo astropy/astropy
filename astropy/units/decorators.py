@@ -50,6 +50,10 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
 
     allowed_units = _get_allowed_units(targets)
 
+    # short-circuit if None is passed, and None is allowed
+    if arg is None and None in targets:
+        return
+
     for allowed_unit in allowed_units:
         try:
             is_equivalent = arg.unit.is_equivalent(allowed_unit,
