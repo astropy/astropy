@@ -343,7 +343,7 @@ Converting |quantity| objects does not work for non-dimensionless quantities:
     >>> float(3. * u.m)
     Traceback (most recent call last):
       ...
-    TypeError: Only dimensionless scalar quantities can be converted
+    TypeError: only dimensionless scalar quantities can be converted
     to Python scalars
 
 Instead, only dimensionless values can be converted to plain Python scalars:

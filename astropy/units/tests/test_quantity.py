@@ -524,9 +524,9 @@ class TestQuantityOperations(object):
         # quantities with units should never convert, or be usable as an index
         q1 = u.Quantity(1, u.m)
 
-        converter_err_msg = ("Only dimensionless scalar quantities "
+        converter_err_msg = ("only dimensionless scalar quantities "
                              "can be converted to Python scalars")
-        index_err_msg = ("Only integer dimensionless scalar quantities "
+        index_err_msg = ("only integer dimensionless scalar quantities "
                          "can be converted to a Python index")
         with pytest.raises(TypeError) as exc:
             float(q1)

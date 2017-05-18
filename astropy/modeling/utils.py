@@ -405,7 +405,7 @@ class _BoundingBox(tuple):
 
             if (not isiterable(bounding_box)
                     or np.shape(bounding_box) not in ((2,), (1, 2))):
-                raise TypeError(msg)
+                raise ValueError(msg)
 
             if len(bounding_box) == 1:
                 return cls((tuple(bounding_box[0]),))
@@ -418,8 +418,8 @@ class _BoundingBox(tuple):
                    "evaluate the model.").format(model.name, nd)
 
             if (not isiterable(bounding_box)
-                    or np.shape(bounding_box) == (nd, 2)):
-                raise TypeError(msg)
+                    or np.shape(bounding_box) != (nd, 2)):
+                raise ValueError(msg)
 
             return cls(tuple(bounds) for bounds in bounding_box)
 
