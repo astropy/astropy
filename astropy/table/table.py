@@ -2327,7 +2327,7 @@ class Table(object):
                 if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
                     col = self.ColumnClass(col, copy=False)
 
-                newcol = col.insert(index, val)
+                newcol = col.insert(index, val, axis=0)
                 if not isinstance(newcol, BaseColumn):
                     newcol.info.name = name
                     if self.masked:
