@@ -890,7 +890,7 @@ class Column(BaseColumn):
         def __setslice__(self, start, stop, value):
             self.__setitem__(slice(start, stop), value)
 
-    def insert(self, obj, values):
+    def insert(self, obj, values, axis=0):
         """
         Insert values before the given indices in the column and return
         a new `~astropy.table.Column` object.
@@ -904,6 +904,10 @@ class Column(BaseColumn):
             Value(s) to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the column array is flattened before insertion.  Default is 0,
+            which will insert a row.
 
         Returns
         -------
@@ -915,13 +919,13 @@ class Column(BaseColumn):
             # Even if values is array-like (e.g. [1,2,3]), insert as a single
             # object.  Numpy.insert instead inserts each element in an array-like
             # input individually.
-            data = np.insert(self, obj, None, axis=0)
+            data = np.insert(self, obj, None, axis=axis)
             data[obj] = values
         else:
             # Explicitly convert to dtype of this column.  Needed because numpy 1.7
             # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
             values = np.asarray(values, dtype=self.dtype)
-            data = np.insert(self, obj, values, axis=0)
+            data = np.insert(self, obj, values, axis=axis)
         out = data.view(self.__class__)
         out.__array_finalize__(self)
         return out
@@ -1111,7 +1115,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                          meta=deepcopy(self.meta))
         return out
 
-    def insert(self, obj, values, mask=None):
+    def insert(self, obj, values, mask=None, axis=0):
         """
         Insert values along the given axis before the given indices and return
         a new `~astropy.table.MaskedColumn` object.
@@ -1127,6 +1131,10 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             ``values`` should be shaped so that it can be broadcast appropriately
         mask : boolean array_like
             Mask value(s) to insert.  If not supplied then False is used.
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the column array is flattened before insertion.  Default is 0,
+            which will insert a row.
 
         Returns
         -------
@@ -1140,20 +1148,20 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # Even if values is array-like (e.g. [1,2,3]), insert as a single
             # object.  Numpy.insert instead inserts each element in an array-like
             # input individually.
-            new_data = np.insert(self_ma.data, obj, None, axis=0)
+            new_data = np.insert(self_ma.data, obj, None, axis=axis)
             new_data[obj] = values
         else:
             # Explicitly convert to dtype of this column.  Needed because numpy 1.7
             # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
             values = np.asarray(values, dtype=self.dtype)
-            new_data = np.insert(self_ma.data, obj, values, axis=0)
+            new_data = np.insert(self_ma.data, obj, values, axis=axis)
 
         if mask is None:
             if self.dtype.kind == 'O':
                 mask = False
             else:
                 mask = np.zeros(values.shape, dtype=np.bool)
-        new_mask = np.insert(self_ma.mask, obj, mask, axis=0)
+        new_mask = np.insert(self_ma.mask, obj, mask, axis=axis)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 
         out = new_ma.view(self.__class__)
