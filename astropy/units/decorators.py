@@ -6,8 +6,7 @@ __all__ = ['quantity_input']
 from ..utils.decorators import wraps
 from ..utils.compat import funcsigs
 
-from .core import (Unit, UnitsError, add_enabled_equivalencies,
-                   get_current_unit_registry)
+from .core import Unit, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping
 
 class QuantityInput(object):
@@ -132,9 +131,7 @@ class QuantityInput(object):
                                 raise ValueError("Invalid unit of physical type '{0}'."
                                                  .format(target_unit))
 
-                            ureg = get_current_unit_registry()
-                            target_units = ureg._by_physical_type[physical_type_id]
-                            target_unit = next(iter(target_units)) # get first valid unit from set
+                            target_unit = Unit._from_physical_type_id(physical_type_id)
 
                     else:
                         str_target_unit = target_unit.to_string()
