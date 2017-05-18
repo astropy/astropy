@@ -171,6 +171,7 @@ class QuantityInput(object):
                 if param.kind in (funcsigs.Parameter.VAR_KEYWORD,
                                   funcsigs.Parameter.VAR_POSITIONAL):
                     continue
+
                 # Catch the (never triggered) case where bind relied on a default value.
                 if param.name not in bound_args.arguments and param.default is not param.empty:
                     bound_args.arguments[param.name] = param.default
@@ -188,6 +189,11 @@ class QuantityInput(object):
                 # If the targets is empty, then no target units or physical
                 #   types were specified so we can continue to the next arg
                 if targets is funcsigs.Parameter.empty:
+                    continue
+
+                # If the argument value is None, and the default value is None,
+                #   pass through the None even if there is a target unit
+                if arg is None and param.default is None:
                     continue
 
                 # Here, we check whether multiple target unit/physical type's
