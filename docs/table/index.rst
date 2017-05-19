@@ -261,9 +261,11 @@ and the native object type (see :ref:`mixin_columns`).  For example::
   2000:002:00:00:00.000 10.0,-45.0
   2002:345:00:00:00.000  20.0,40.0
 
-The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` that
-allows including a native `~astropy.units.Quantity` in a table instead of
-converting to a `~astropy.table.Column` object (see :ref:`quantity_and_qtable`
+The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` in 
+which `~astropy.units.Quantity` are used natively, instead of being
+converted to `~astropy.table.Column`. This means their units get taken into
+account in numerical operations, etc. In this class `~astropy.table.Column`
+is still used for all unit-less arrays (see :ref:`quantity_and_qtable`
 for details)::
 
   >>> from astropy.table import QTable
@@ -271,15 +273,23 @@ for details)::
   >>> t = QTable()
   >>> t['dist'] = [1, 2] * u.m
   >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t['flag'] = [0, 1]
   >>> t
   <QTable length=2>
-    dist  velocity
-     m     m / s
-  float64 float64
-  ------- --------
-      1.0      3.0
-      2.0      4.0
-
+    dist  velocity  flag
+     m     m / s        
+  float64 float64  int64
+  ------- -------- -----
+      1.0      3.0     0
+      2.0      4.0     1
+  >>> t.info()
+  <QTable length=2>
+    name    dtype   unit  class  
+  -------- ------- ----- --------
+      dist float64     m Quantity
+  velocity float64 m / s Quantity
+      flag   int64         Column
+ 
 .. Note::
 
    The **only** difference between `~astropy.table.QTable` and
