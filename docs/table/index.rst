@@ -273,22 +273,22 @@ for details)::
   >>> t = QTable()
   >>> t['dist'] = [1, 2] * u.m
   >>> t['velocity'] = [3, 4] * u.m / u.s
-  >>> t['flag'] = [0, 1]
+  >>> t['flag'] = [True, False]
   >>> t
   <QTable length=2>
     dist  velocity  flag
      m     m / s        
-  float64 float64  int64
+  float64 float64   bool
   ------- -------- -----
-      1.0      3.0     0
-      2.0      4.0     1
+      1.0      3.0  True
+      2.0      4.0 False
   >>> t.info()
   <QTable length=2>
     name    dtype   unit  class  
   -------- ------- ----- --------
       dist float64     m Quantity
   velocity float64 m / s Quantity
-      flag   int64         Column
+      flag    bool         Column
  
 .. Note::
 
