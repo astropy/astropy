@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import warnings
 from ...extern import six
 from ...utils.compat.numpycompat import NUMPY_LT_1_10
+from ...utils.exceptions import AstropyUserWarning
 
 if six.PY3:
     # Stuff to do if Python 3
@@ -27,7 +29,14 @@ if six.PY3:
 
     def decode_ascii(s):
         if isinstance(s, bytes):
-            return s.decode('ascii')
+            try:
+                return s.decode('ascii')
+            except UnicodeDecodeError:
+                warnings.warn('non-ASCII characters are present in the FITS '
+                              'file header and have been replaced by "?" '
+                              'characters', AstropyUserWarning)
+                s = s.decode('ascii', errors='replace')
+                return s.replace(u'\ufffd', '?')
         elif (isinstance(s, numpy.ndarray) and
               issubclass(s.dtype.type, numpy.bytes_)):
             # np.char.encode/decode annoyingly don't preserve the type of the

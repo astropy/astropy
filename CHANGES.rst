@@ -24,6 +24,9 @@ Bug Fixes
 
   -  Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
 
+  - Prevent crash when a header contains non-ASCII (e.g. UTF-8) characters, to
+    allow fixing the problematic cards. [#6084]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
