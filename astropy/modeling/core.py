@@ -1040,6 +1040,11 @@ class Model(object):
 
         return self._user_bounding_box is not None
 
+    @property
+    def separable(self):
+        """Are the axes independent/separable?"""
+        return True
+
     # *** Public methods ***
 
     @abc.abstractmethod
@@ -1676,6 +1681,7 @@ class Model(object):
 
         return '\n'.join(parts)
 
+
 class FittableModel(Model):
     """
     Base class for models that can be fitted using the built-in fitting
@@ -1719,6 +1725,11 @@ class Fittable2DModel(FittableModel):
 
     inputs = ('x', 'y')
     outputs = ('z',)
+
+    @property
+    def separable(self):
+        """Not all 2D models have separable axes."""
+        return False
 
 
 def _make_arithmetic_operator(oper):
@@ -2492,8 +2503,11 @@ class _CompoundModel(Model):
                     "defined in order for the composite model to have an "
                     "inverse.  {0!r} does not have an inverse.".format(model))
 
-
         return self._tree.evaluate(operators, getter=getter)
+
+    @property
+    def separable(self):
+        raise AttributeError('separable not allowed for compound models')
 
     @sharedmethod
     def _get_submodels(self):

@@ -368,6 +368,28 @@ def test_custom_bounding_box_1d():
     g2.bounding_box = bb
     assert_allclose(g2.render(), expected)
 
+
 def test_n_submodels_in_single_models():
     assert models.Gaussian1D.n_submodels() == 1
     assert models.Gaussian2D.n_submodels() == 1
+
+
+# https://github.com/astropy/astropy/pull/6080
+def test_separable():
+    """
+    Test ``separable`` property.
+    """
+    poly = models.Polynomial2D(2)
+    assert poly.separable
+
+    g = models.Gaussian2D()
+    assert not g.separable
+
+    # Not allowed to be settable
+    with pytest.raises(AttributeError):
+        g.separable = True
+
+    # Not allowed for compound models
+    m = g + poly
+    with pytest.raises(AttributeError):
+        m.separable
