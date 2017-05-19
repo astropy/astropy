@@ -9,7 +9,10 @@ from .py3_test_quantity_annotations import *
 
 # list of pairs (target unit/physical type, input unit)
 x_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
-            (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s)]
+            (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s),
+            ([u.arcsec, u.km], u.deg), ([u.arcsec, u.km], u.km), # multiple allowed
+            (['angle', 'length'], u.deg), (['angle', 'length'], u.km)]
+
 y_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
             (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s)]
 
@@ -22,7 +25,6 @@ def x_input(request):
                 params=list(range(len(y_inputs))))
 def y_input(request):
     return y_inputs[request.param]
-
 
 # ---- Tests that use the fixtures defined above ----
 
@@ -246,4 +248,61 @@ def test_kwarg_invalid_physical_type():
 
     with pytest.raises(ValueError) as e:
         x, y = myfunc_args(1*u.arcsec, y=100*u.deg)
-    assert str(e.value) == "Invalid unit of physical type 'africanswallow'."
+    assert str(e.value) == "Invalid unit or physical type 'africanswallow'."
+
+def test_default_value_check():
+    x_target = u.deg
+    x_unit = u.arcsec
+
+    with pytest.raises(TypeError):
+        @u.quantity_input(x=x_target)
+        def myfunc_args(x=1.):
+            return x
+
+        x = myfunc_args()
+
+    x = myfunc_args(1*x_unit)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+
+def test_args_None():
+    x_target = u.deg
+    x_unit = u.arcsec
+    y_target = u.km
+    y_unit = u.kpc
+
+    @u.quantity_input(x=[x_target, None], y=[None, y_target])
+    def myfunc_args(x, y):
+        return x, y
+
+    x, y = myfunc_args(1*x_unit, None)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+    assert y is None
+
+    x, y = myfunc_args(None, 1*y_unit)
+    assert isinstance(y, u.Quantity)
+    assert y.unit == y_unit
+    assert x is None
+
+def test_args_None_kwarg():
+    x_target = u.deg
+    x_unit = u.arcsec
+    y_target = u.km
+
+    @u.quantity_input(x=x_target, y=y_target)
+    def myfunc_args(x, y=None):
+        return x, y
+
+    x, y = myfunc_args(1*x_unit)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+    assert y is None
+
+    x, y = myfunc_args(1*x_unit, None)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+    assert y is None
+
+    with pytest.raises(TypeError):
+        x, y = myfunc_args(None, None)

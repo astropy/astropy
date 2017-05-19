@@ -94,6 +94,14 @@ New Features
     physical type. For example, ``@u.quantity_input(x='angle')`` is now
     functionally the same as ``@u.quantity_input(x=u.degree)``. [#3847]
 
+  - The ``quantity_input`` decorator now also supports unit checking for
+    optional keyword arguments and accepts iterables of units or physical types
+    for specifying multiple valid equivalent inputs. For example,
+    ``@u.quantity_input(x=['angle', 'angular speed'])`` or
+    ``@u.quantity_input(x=[u.radian, u.radian/u.yr])`` would both allow either
+    a ``Quantity`` angle or angular speed passed in to the argument ``x``.
+    [#5653]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
