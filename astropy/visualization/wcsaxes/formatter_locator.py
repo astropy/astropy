@@ -238,6 +238,12 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         else:
 
+            # In the special case where value_min is the same as value_max, we
+            # don't locate any ticks. This can occur for example when taking a
+            # slice for a cube (along the dimension sliced).
+            if value_min == value_max:
+                return [] * u.deg, 0 * u.arcsec
+
             if self.spacing is not None:
 
                 # spacing was manually specified
