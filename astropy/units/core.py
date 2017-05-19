@@ -199,7 +199,7 @@ class _UnitRegistry(object):
                 if (st in self._registry and unit != self._registry[st]):
                     raise ValueError(
                         "Object with name {0!r} already exists in namespace. "
-                        "Filter the set of units to avoid name classes before "
+                        "Filter the set of units to avoid name clashes before "
                         "enabling them.".format(st))
 
             for st in unit._names:
