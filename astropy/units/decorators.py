@@ -18,25 +18,21 @@ def _get_allowed_units(targets):
 
     allowed_units = []
     for target in targets:
-        if isinstance(target, str): # Could be a string unit or physical type
 
-            try: # unit passed in as a string
-                target_unit = Unit(target)
+        try: # unit passed in as a string
+            target_unit = Unit(target)
 
-            except ValueError:
+        except ValueError:
 
-                try: # See if the function writer specified a physical type
-                    physical_type_id = _unit_physical_mapping[target]
+            try: # See if the function writer specified a physical type
+                physical_type_id = _unit_physical_mapping[target]
 
-                except KeyError: # Function argument target is invalid
-                    raise ValueError("Invalid unit or physical type '{0}'."
-                                     .format(target))
+            except KeyError: # Function argument target is invalid
+                raise ValueError("Invalid unit or physical type '{0}'."
+                                 .format(target))
 
-                # get unit directly from physical type id
-                target_unit = Unit._from_physical_type_id(physical_type_id)
-
-        else: # Remain agnostic, but it should be a Unit object if not a string
-            target_unit = target
+            # get unit directly from physical type id
+            target_unit = Unit._from_physical_type_id(physical_type_id)
 
         allowed_units.append(target_unit)
 
@@ -49,10 +45,6 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
     """
 
     allowed_units = _get_allowed_units(targets)
-
-    # short-circuit if None is passed, and None is allowed
-    if arg is None and None in targets:
-        return
 
     for allowed_unit in allowed_units:
         try:
@@ -205,12 +197,25 @@ class QuantityInput(object):
                 #   single string (unit or physical type) or a Unit object was
                 #   specified
                 if isinstance(targets, str) or not isiterable(targets):
-                    targets = [targets]
+                    valid_targets = [targets]
+
+                # Check for None in the supplied list of allowed units and, if
+                #   present and the passed value is also None, ignore.
+                elif None in targets:
+                    valid_targets = targets.copy()
+
+                    if arg is None:
+                        continue
+                    else:
+                        valid_targets.remove(None)
+
+                else:
+                    valid_targets = targets
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
                 _validate_arg_value(param.name, wrapped_function.__name__,
-                                    arg, targets, self.equivalencies)
+                                    arg, valid_targets, self.equivalencies)
 
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):

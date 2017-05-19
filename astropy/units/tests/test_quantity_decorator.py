@@ -250,13 +250,28 @@ def test_kwarg_invalid_physical_type():
         x, y = myfunc_args(1*u.arcsec, y=100*u.deg)
     assert str(e.value) == "Invalid unit or physical type 'africanswallow'."
 
+def test_default_value_check():
+    x_target = u.deg
+    x_unit = u.arcsec
+
+    with pytest.raises(TypeError):
+        @u.quantity_input(x=x_target)
+        def myfunc_args(x=1.):
+            return x
+
+        x = myfunc_args()
+
+    x = myfunc_args(1*x_unit)
+    assert isinstance(x, u.Quantity)
+    assert x.unit == x_unit
+
 def test_args_None():
     x_target = u.deg
     x_unit = u.arcsec
     y_target = u.km
     y_unit = u.kpc
 
-    @u.quantity_input(x=[x_target, None], y=[y_target, None])
+    @u.quantity_input(x=[x_target, None], y=[None, y_target])
     def myfunc_args(x, y):
         return x, y
 
