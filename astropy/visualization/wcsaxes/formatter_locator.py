@@ -415,6 +415,12 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             return self.values, 1.1 * self._unit
         else:
 
+            # In the special case where value_min is the same as value_max, we
+            # don't locate any ticks. This can occur for example when taking a
+            # slice for a cube (along the dimension sliced).
+            if value_min == value_max:
+                return [] * self._unit, 0 * self._unit
+
             if self.spacing is not None:
 
                 # spacing was manually specified
