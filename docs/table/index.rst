@@ -280,7 +280,19 @@ for details)::
       1.0      3.0
       2.0      4.0
 
+.. Note::
 
+   The **only** difference between `~astropy.table.QTable` and
+   `~astropy.table.Table` is the behavior when adding a column that has a
+   specified unit.  With `~astropy.table.QTable` such a column is always
+   converted to a `~astropy.units.Quantity` object before being added to the
+   table.  Likewise if a unit is specified for an existing unit-less
+   `~astropy.table.Column` in a `~astropy.table.QTable`, then the column is
+   converted to `~astropy.units.Quantity`.
+
+   The converse is that if one adds a `~astropy.units.Quantity` column to an
+   ordinary `~astropy.table.Table` then it gets converted to an ordinary
+   `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
 .. _using_astropy_table:
 
