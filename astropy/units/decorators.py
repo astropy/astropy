@@ -202,7 +202,7 @@ class QuantityInput(object):
                 # Check for None in the supplied list of allowed units and, if
                 #   present and the passed value is also None, ignore.
                 elif None in targets:
-                    valid_targets = targets.copy()
+                    valid_targets = [t for t in targets] # make a shallow copy
 
                     if arg is None:
                         continue
