@@ -232,15 +232,16 @@ class OrthoPolynomialBase(PolynomialBase):
                 c.append((i, j))
         return np.array(c[::-1])
 
-    def invlex_coeff(self):
-        coeff = []
+    def invlex_coeff(self, coeffs):
+        invlex_coeffs = []
         xvar = np.arange(self.x_degree + 1)
         yvar = np.arange(self.y_degree + 1)
         for j in yvar:
             for i in xvar:
                 name = 'c{0}_{1}'.format(i, j)
-                coeff.append(getattr(self, name))
-        return np.array(coeff[::-1])
+                coeff = coeffs[self.param_names.index(name)]
+                invlex_coeffs.append(coeff)
+        return np.array(invlex_coeffs[::-1])
 
     def _alpha(self):
         invlexdeg = self._invlex()
@@ -302,7 +303,7 @@ class OrthoPolynomialBase(PolynomialBase):
             x = poly_map_domain(x, self.x_domain, self.x_window)
         if self.y_domain is not None:
             y = poly_map_domain(y, self.y_domain, self.y_window)
-        invcoeff = self.invlex_coeff()
+        invcoeff = self.invlex_coeff(coeffs)
         return self.imhorner(x, y, invcoeff)
 
     def prepare_inputs(self, x, y, **kwargs):
