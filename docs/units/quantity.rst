@@ -340,8 +340,8 @@ Instead, only dimensionless values can be converted to plain Python scalars:
     >>> int(6. * u.km / (2. * u.m))
     3000
 
-Functions Accepting Quantities
-==============================
+Functions that accept Quantities
+================================
 
 Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
@@ -373,6 +373,18 @@ It is also possible to instead specify the physical type of the desired unit:
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
 
+Optionally ``None`` keyword arguments are also supported; for such cases, the
+input is only checked when a value other than ``None`` is passed:
+
+    >>> @u.quantity_input(a='length', b='angle')
+    ... def myfunction(a, b=None):
+    ...     return a, b
+
+    >>> myfunction(1.*u.km)
+    (<Quantity 1.0 km>, None)
+    >>> myfunction(1.*u.km, 1*u.deg)
+    (<Quantity 1.0 km>, <Quantity 1.0 deg>)
+
 Under Python 3 you can use the annotations syntax to provide the units:
 
     >>> @u.quantity_input  # doctest: +SKIP
@@ -394,6 +406,19 @@ value will be converted, i.e.::
 
 This both checks that the return value of your function is consistent with what
 you expect and makes it much neater to display the results of the function.
+
+The decorator also supports specifying a list of valid equivalent units or
+physical types for functions that should accept inputs with multiple valid
+units:
+
+    >>> @u.quantity_input(a=['length', 'speed'])
+    ... def myfunction(a):
+    ...     return a.unit
+
+    >>> myfunction(1.*u.km)
+    Unit("km")
+    >>> myfunction(1.*u.km/u.s)
+    Unit("km / s")
 
 Representing vectors with units
 ===============================
