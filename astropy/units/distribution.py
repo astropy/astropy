@@ -19,11 +19,27 @@ __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
 
 class Distribution(Quantity):
     """
-    A unitful value with associated uncertainty distribution.
+    A unitful value with associated uncertainty distribution.  While subclasses
+    may have exact analytic forms, this class uses samples to represent the
+    distribution.
+
+    Parameters
+    ----------
+    distr : array-like
+        The distribution, with sampling along the *leading* axis.
+    distr_center : None or array-like
+        The "center" of this distribution.  It must have the same shape as
+        ``distr``, aside from the (initial) sample dimension. If None, the
+        *median* of ``distr``  along the sampling axis will be used.
+    unit : astropy unit
+        A unit of the same sort that `~astropy.units.Quantity` accepts.
+
+    Additional argumnets are passed into the `~astropy.units.Quantity`
+    constructor.
 
     Notes
     -----
-    This class has an attribute ``stat_view`` which can be set to a an
+    This class has an attribute ``stat_view`` which can be set to an
     `numpy.ndarray` subclass to determine what the summary statistics are
     converted to.  By default this is `~astropy.units.Quantity`, but it is
     available so that subclasses can change it.
@@ -36,11 +52,18 @@ class Distribution(Quantity):
     # Quantity.
     stat_view = Quantity
 
-    def __new__(cls, distr, unit=None, *args, **kwargs):
-        self = super(Distribution, cls).__new__(cls, distr, unit, *args, **kwargs)
+    def __new__(cls, distr, distr_center=None, unit=None, *args, **kwargs):
+        if not isinstance(distr, cls.stat_view):
+            distr = cls.stat_view(distr, unit=unit)
 
-        if len(self.shape) < 1:
+        if len(distr.shape) < 1:
             raise TypeError('Attempted to initialize a Distribution with a scalar')
+
+        if distr_center is None:
+            distr_center = np.median(distr, axis=0)
+
+        self = super(Distribution, cls).__new__(cls, distr_center, unit, *args, **kwargs)
+        self.distribution = distr
 
         return self
 
@@ -64,7 +87,7 @@ class Distribution(Quantity):
         """
         The number of samples of this distribution.  A single int.
         """
-        return self.shape[0]
+        return self.distribution.shape[0]
 
     @property
     def distr_shape(self):
@@ -72,42 +95,42 @@ class Distribution(Quantity):
         The shape of the underlying quantity (i.e., the *non-samples* part of
         this distribution). A tuple (possibly length-0 for scalars).
         """
-        return self.shape[1:]
+        return self.distribution.shape[1:]
 
     @property
     def pdf_mean(self):
         """
         The mean of this distribution.
         """
-        return self.mean(axis=0).view(self.stat_view)
+        return self.distribution.mean(axis=0).view(self.stat_view)
 
     @property
     def pdf_std(self):
         """
         The standard deviation of this distribution.
         """
-        return self.std(axis=0).view(self.stat_view)
+        return self.distribution.std(axis=0).view(self.stat_view)
 
     @property
     def pdf_var(self):
         """
         The variance of this distribution.
         """
-        return self.var(axis=0).view(self.stat_view)
+        return self.distribution.var(axis=0).view(self.stat_view)
 
     @property
     def pdf_median(self):
         """
         The median of this distribution.
         """
-        return np.median(self, axis=0).view(self.stat_view)
+        return np.median(self.distribution, axis=0).view(self.stat_view)
 
     @property
     def pdf_mad(self):
         """
         The median absolute deviation of this distribution.
         """
-        return np.median(np.abs(self - self.pdf_median), axis=0).view(self.stat_view)
+        return np.median(np.abs(self.distribution - self.pdf_median), axis=0).view(self.stat_view)
 
     # we set this by hand because the symbolic expression (below) requires scipy
     # _smad_scale_factor = 1 / scipy.stats.norm.ppf(0.75)
@@ -137,7 +160,7 @@ class Distribution(Quantity):
         percs : Quantity of shape ``distr_shape``
             The ``fracs`` percentiles of this distribution.
         """
-        perc = np.percentile(self, perc, axis=0)
+        perc = np.percentile(self.distribution, perc, axis=0)
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
         return self.stat_view(perc, unit=self.unit, copy=False)
@@ -222,10 +245,9 @@ class NormalDistribution(Distribution):
         if distr.unit != center.unit:
             distr = distr.to(center.unit)
 
-        self = super(NormalDistribution, cls).__new__(cls, distr, unit=None,
+        self = super(NormalDistribution, cls).__new__(cls, distr, center, unit=None,
                                                       **kwargs)
         self.distr_std = std
-        self.distr_center = center
         return self
 
 
