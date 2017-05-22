@@ -731,7 +731,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     # Write the lines to output
     outstr = os.linesep.join(lines)
     if not hasattr(output, 'write'):
-        output = open(output, 'w')
+        output = open(output, 'w', newline='')
         output.write(outstr)
         output.write(os.linesep)
         output.close()
