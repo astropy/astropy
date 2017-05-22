@@ -731,7 +731,13 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     # Write the lines to output
     outstr = os.linesep.join(lines)
     if not hasattr(output, 'write'):
-        output = open(output, 'w', newline='')
+        if sys.version_info[0] == 2:
+            access = 'wb'
+            kwargs = {}
+        else:
+            access = 'wt'
+            kwargs={'newline': ''}
+        output = open(output, access, **kwargs)
         output.write(outstr)
         output.write(os.linesep)
         output.close()
