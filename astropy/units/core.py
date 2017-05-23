@@ -674,11 +674,13 @@ class UnitBase(object):
             # Cannot handle this as Unit.  Here, m cannot be a Quantity,
             # so we make it into one, fasttracking when it does not have a
             # unit, for the common case of <array> / <unit>.
-            from .quantity import Quantity
+            from .quantity import Quantity, MaskedQuantity
             if hasattr(m, 'unit'):
                 result = Quantity(m)
                 result /= self
                 return result
+            elif isinstance(m, np.ma.MaskedArray):
+                return MaskedQuantity(m, self**(-1))
             else:
                 return Quantity(m, self**(-1))
         except TypeError:
@@ -712,13 +714,15 @@ class UnitBase(object):
 
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
         # so we make it into one, fasttracking when it does not have a unit
-        # for the common case of <array> * <unit>.
+        # for the common case of <array> * <unit> and <masked-array> * unit.
         try:
-            from .quantity import Quantity
+            from .quantity import Quantity, MaskedQuantity
             if hasattr(m, 'unit'):
                 result = Quantity(m)
                 result *= self
                 return result
+            elif isinstance(m, np.ma.MaskedArray):
+                return MaskedQuantity(m, self)
             else:
                 return Quantity(m, self)
         except TypeError:
