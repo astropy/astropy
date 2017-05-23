@@ -37,7 +37,7 @@ except ImportError:
 
 class TestQuantityCreation:
 
-    def test_1(self):
+    def test_1a(self):
         # create objects through operations with Unit objects:
 
         quantity = 11.42 * u.meter  # returns a Quantity object
@@ -61,6 +61,18 @@ class TestQuantityCreation:
 
         with pytest.raises(TypeError):
             quantity = 182.234 % u.meter
+
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_1b(self, QuantityClass):
+        # create through operations of arrays with Unit objects.
+        array_class = QuantityClass._array_class
+        a = np.array([1., 2., 4., 8.]).view(array_class)
+        quantity = a * u.meter
+        assert isinstance(quantity, QuantityClass)
+        quantity = a / u.second
+        assert isinstance(quantity, QuantityClass)
+        quantity = a * u.meter / u.second
+        assert isinstance(quantity, QuantityClass)
 
     @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
     def test_2(self, QuantityClass):

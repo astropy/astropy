@@ -269,6 +269,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     _unit = None
 
     __array_priority__ = 10000
+    _array_class = np.ndarray
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
@@ -644,7 +645,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     @property
     def _array_base(self):
-        return self.view(np.ndarray)
+        return self.view(self._array_class)
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
@@ -1719,7 +1720,7 @@ class _QuantityData(Quantity):
 
     @property
     def _array_base(self):
-        return super(_QuantityData, self).view(np.ndarray)
+        return super().view(self._array_class)
 
     def __repr__(self):
         return 'Quantity('+str(self)+')'
@@ -1767,11 +1768,11 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
     #     return prefixstr + arrstr + ' ' + unitstr + '>'
 
     def __repr__(self):
-        return np.ma.MaskedArray.__repr__(self)
+        return self._array_class.__repr__(self)
 
     @property
     def _array_base(self):
-        output = self.view(np.ma.MaskedArray)
+        output = self.view(self._array_class)
         output._baseclass = np.ndarray
         return output
 
