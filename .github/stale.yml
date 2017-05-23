@@ -1,0 +1,40 @@
+# Configuration for probot-stale - https://github.com/probot/stale
+
+# Probot is a bot that is run via GitHub integrations, and probot-stale is
+# a specific plugin that will comment on issues or pull requests that are
+# inactive for a certain amount of time, and add a 'stale' label. If an
+# issue or pull request is stale for more than a certain amount of time,
+# then the issue or pull request is closed. For Astropy, we use this only for
+# pull requests.
+
+# Number of days of inactivity before a pull request becomes stale
+daysUntilStale: 182
+
+# Number of days of inactivity before a stale pull request is closed
+daysUntilClose: 30
+
+# Pull requests with these labels will never be considered stale
+exemptLabels: []
+
+# Label to use when marking as stale
+staleLabel: stale
+
+# Comment to post when marking as stale. Set to `false` to disable
+markComment: >
+  This pull request has been automatically marked as stale because it has not
+  had any activity for the past six months. It will be closed if no further
+  activity occurs. If the ideas in this pull request are still worth
+  implementing, please make sure you open an issue to keep track of that idea!
+
+# Comment to post when removing the stale label. Set to `false` to disable
+unmarkComment: false
+
+# Comment to post when closing a stale pull request. Set to `false` to disable
+closeComment: >
+  This pull request has been automatically closed since there was no activity
+  for a month since it was marked as stale. If the ideas in this pull request
+  are still worth implementing, please make sure you open an issue to keep track
+  of that idea!
+
+# Limit to only `issues` or `pulls`
+only: pulls
