@@ -299,14 +299,25 @@ class HDUList(list, _Verify):
                     if not self._read_next_hdu():
                         break
 
-            hdus = super(HDUList, self).__getitem__(key)
-            return HDUList(hdus)
+            try:
+                hdus = super(HDUList, self).__getitem__(key)
+            except IndexError:
+                raise IndexError('HDU not found, possibly because the index '
+                                 'is out of range, or because the file was '
+                                 'closed before all HDUs were read')
+            else:
+                return HDUList(hdus)
 
         # Originally this used recursion, but hypothetically an HDU with
         # a very large number of HDUs could blow the stack, so use a loop
         # instead
-        return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
-                                           self._positive_index_of(key))
+        try:
+            return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
+                                            self._positive_index_of(key))
+        except IndexError:
+            raise IndexError('HDU not found, possibly because the index '
+                             'is out of range, or because the file was '
+                             'closed before all HDUs were read')
 
     def __contains__(self, item):
         """
