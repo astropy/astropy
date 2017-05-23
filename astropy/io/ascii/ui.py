@@ -648,11 +648,9 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     return writer
 
 
-def write(table, output=None, format=None, Writer=None, fast_writer=True, exclude_names=None,
-          include_names=None, names=None, formats=[], **kwargs):
+def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
-
     Parameters
     ----------
     table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
@@ -689,7 +687,6 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, exclud
         (e.g., a file object).
     Writer : ``Writer``
         Writer class (DEPRECATED).
-
     """
     overwrite = kwargs.pop('overwrite', None)
     if isinstance(output, six.string_types):
@@ -706,12 +703,12 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, exclud
     if output is None:
         output = sys.stdout
 
-    table = Table(table, names=names)
+    table = Table(table, names=kwargs.get('names'))
 
     table0 = table[:0].copy()
-    core._apply_include_exclude_names(table0, names,
-                                      include_names, exclude_names)
-    diff_format_with_names = set(formats) - set(table0.colnames)
+    core._apply_include_exclude_names(table0, kwargs.get('names'),
+                    kwargs.get('include_names'), kwargs.get('exclude_names'))
+    diff_format_with_names = set(kwargs.get('formats', [])) - set(table0.colnames)
 
     if diff_format_with_names:
         warnings.warn(
@@ -732,20 +729,13 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, exclud
     # Write the lines to output
     outstr = os.linesep.join(lines)
     if not hasattr(output, 'write'):
-        #if format is 'csv':
-        #    if sys.version_info[0] == 2:
-        #        access = 'wb'
-        #        kwargs = {}
-        #    else:
-        #        access = 'wt'
-        #        kwargs={'newline': ''}
-        #else:
-        #    access = 'w'
-        #    kwargs = {}
         output = open(output, 'w')
         output.write(outstr)
         output.write(os.linesep)
         output.close()
+    else:
+        output.write(outstr)
+        output.write(os.linesep)
 
 def get_read_trace():
     """

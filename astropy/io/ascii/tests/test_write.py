@@ -605,7 +605,6 @@ def test_csv_line_termination(fast_writer):
         for row in csvreader:
             out.append(row)
         csvfile.close()
-    print(out)
     assert not(out[1]) and not(out[3]) and not (out[5])
     #assert(out == [['col0'],['1'], ['2']])
 
