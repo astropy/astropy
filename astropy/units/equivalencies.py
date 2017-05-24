@@ -446,9 +446,9 @@ def mass_energy():
     ]
 
 
-def brightness_temperature(beam_area, disp):
+def brightness_temperature(disp, beam_area=None):
     r"""
-    Defines the conversion between Jy/beam and "brightness temperature",
+    Defines the conversion between Jy/sr and "brightness temperature",
     :math:`T_B`, in Kelvins.  The brightness temperature is a unit very
     commonly used in radio astronomy.  See, e.g., "Tools of Radio Astronomy"
     (Wilson 2009) eqn 8.16 and eqn 8.19 (these pages are available on `google
@@ -457,16 +457,17 @@ def brightness_temperature(beam_area, disp):
 
     :math:`T_B \equiv S_\nu / \left(2 k \nu^2 / c^2 \right)`
 
-    However, the beam area is essential for this computation: the brightness
-    temperature is inversely proportional to the beam area
+    If the input is in Jy/beam or Jy (assuming it came from a single beam), the
+    beam area is essential for this computation: the brightness temperature is
+    inversely proportional to the beam area.
 
     Parameters
     ----------
-    beam_area : Beam Area equivalent
-        Beam area in angular units, i.e. steradian equivalent
     disp : `~astropy.units.Quantity` with spectral units
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength)
+    beam_area : angular area equivalent
+        Beam area in angular units, i.e. steradian equivalent
 
     Examples
     --------
@@ -494,18 +495,31 @@ def brightness_temperature(beam_area, disp):
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
         217.2658703625732
     """
-    beam = beam_area.to_value(si.sr)
     nu = disp.to(si.GHz, spectral())
 
-    def convert_Jy_to_K(x_jybm):
-        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
-        return (x_jybm / beam / factor)
+    if beam_area is not None:
+        beam = beam_area.to_value(si.sr)
+        def convert_Jy_to_K(x_jybm):
+            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+            return (x_jybm / beam / factor)
 
-    def convert_K_to_Jy(x_K):
-        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to_value(si.K)
-        return (x_K * beam / factor)
+        def convert_K_to_Jy(x_K):
+            factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+            return (x_K * beam / factor)
 
-    return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
+        return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
+                (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy),
+               ]
+    else:
+        def convert_JySr_to_K(x_jysr):
+            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+            return (x_jysr / factor)
+
+        def convert_K_to_JySr(x_K):
+            factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+            return (x_K / factor) # multiplied by 1x for 1 steradian
+
+        return [(astrophys.Jy/u.sr, si.K, convert_JySr_to_K, convert_K_to_JySr), ]
 
 def beam_angular_area(beam_area):
     """
