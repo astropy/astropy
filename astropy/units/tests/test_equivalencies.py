@@ -615,6 +615,15 @@ def test_temperature_energy():
     assert_allclose(y.to(u.K, u.temperature_energy()).value, x.value)
 
 
+def test_molar_mass_amu():
+    x = 1 * (u.g/u.mol)
+    y = 1 * u.u
+    assert_allclose(x.to(u.u, u.molar_mass_amu()).value, y.value)
+    assert_allclose(y.to(u.g/u.mol, u.molar_mass_amu()).value, x.value)
+    with pytest.raises(u.UnitsError):
+        x.to(u.u)
+
+
 def test_compose_equivalencies():
     x = u.Unit("arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
     assert x[0] == u.pc
