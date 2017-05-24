@@ -7,6 +7,8 @@ import numpy as np
 from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
+from astropy.utils.compat import NUMPY_LT_1_10, NUMPY_LT_1_11
+from ...tests.helper import catch_warnings
 
 try:
     import scipy  # pylint: disable=W0611
@@ -329,6 +331,48 @@ def test_mad_std():
         data = normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
+@pytest.mark.xfail('not NUMPY_LT_1_10')
+def test_mad_std_scalar_return():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(10, 10))
+        # make a masked array with no masked points
+        data = np.ma.masked_where(np.isnan(data), data)
+        rslt = funcs.mad_std(data)
+        # want a scalar result, NOT a masked array
+        assert np.isscalar(rslt)
+
+        data[5,5] = np.nan
+        rslt = funcs.mad_std(data, ignore_nan=True)
+        assert np.isscalar(rslt)
+        with catch_warnings() as warns:
+            rslt = funcs.mad_std(data)
+            assert np.isscalar(rslt)
+            assert not np.isnan(rslt)
+
+def test_mad_std_warns():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(10, 10))
+        data[5,5] = np.nan
+
+        with catch_warnings() as warns:
+            rslt = funcs.mad_std(data, ignore_nan=False)
+            if NUMPY_LT_1_10:
+                w = warns[0]
+                assert str(w.message).startswith("Numpy versions <1.10 will return")
+            else:
+                assert np.isnan(rslt)
+
+def test_mad_std_withnan():
+    with NumpyRNGContext(12345):
+        data = np.empty([102,102])
+        data[:] = np.nan
+        data[1:-1,1:-1] = normal(5, 2, size=(100, 100))
+        assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
+
+    if not NUMPY_LT_1_10:
+        assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan],  ignore_nan=True),
+                    1.482602218505602)
 
 def test_mad_std_with_axis():
     data = np.array([[1, 2, 3, 4],
@@ -339,6 +383,29 @@ def test_mad_std_with_axis():
     result_axis1 = np.array([1.48260222, 1.48260222])
     assert_allclose(funcs.mad_std(data, axis=0), result_axis0)
     assert_allclose(funcs.mad_std(data, axis=1), result_axis1)
+
+def test_mad_std_with_axis_and_nan():
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+    # results follow data symmetry
+    result_axis0 = np.array([2.22390333, 0.74130111, 0.74130111,
+                             2.22390333, np.nan])
+    result_axis1 = np.array([1.48260222, 1.48260222])
+
+    assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
+    assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
+
+def test_mad_std_with_axis_and_nan_array_type():
+    # mad_std should return a masked array if given one, and not otherwise
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert not np.ma.isMaskedArray(result)
+
+    data = np.ma.masked_where(np.isnan(data), data)
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert np.ma.isMaskedArray(result)
 
 
 def test_gaussian_fwhm_to_sigma():

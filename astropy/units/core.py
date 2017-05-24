@@ -199,7 +199,7 @@ class _UnitRegistry(object):
                 if (st in self._registry and unit != self._registry[st]):
                     raise ValueError(
                         "Object with name {0!r} already exists in namespace. "
-                        "Filter the set of units to avoid name classes before "
+                        "Filter the set of units to avoid name clashes before "
                         "enabling them.".format(st))
 
             for st in unit._names:
@@ -1964,6 +1964,19 @@ class Unit(NamedUnit):
 
     def __hash__(self):
         return hash(self.name) + hash(self._represents)
+
+    @classmethod
+    def _from_physical_type_id(cls, physical_type_id):
+        # get string bases and powers from the ID tuple
+        bases = [cls(base) for base, _ in physical_type_id]
+        powers = [power for _, power in physical_type_id]
+
+        if len(physical_type_id) == 1 and powers[0] == 1:
+            unit = bases[0]
+        else:
+            unit = CompositeUnit(1, bases, powers)
+
+        return unit
 
 
 class PrefixUnit(Unit):

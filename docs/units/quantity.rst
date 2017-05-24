@@ -39,7 +39,7 @@ specifying a value and unit:
 The constructor gives a few more options.  In particular, it allows one to
 merge sequences of |quantity| objects (as long as all of their units are
 equivalent), and to parse simple strings (which may help, e.g., to parse
-configuration files, etc.):    
+configuration files, etc.):
 
     >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
@@ -340,17 +340,18 @@ Instead, only dimensionless values can be converted to plain Python scalars:
     >>> int(6. * u.km / (2. * u.m))
     3000
 
-Functions Accepting Quantities
-==============================
+Functions that accept Quantities
+================================
 
 Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
 arguments to a function are `~astropy.units.Quantity` objects and that the units
-are compatible with a desired unit.
+are compatible with a desired unit or physical type.
 
-The decorator does not convert the unit to the desired unit, say arcseconds
-to degrees, it merely checks that such a conversion is possible, thus verifying
-that the `~astropy.units.Quantity` argument can be used in calculations.
+The decorator does not convert the input quantity to the desired unit, say
+arcseconds to degrees in the example below, it merely checks that such a
+conversion is possible, thus verifying that the `~astropy.units.Quantity`
+argument can be used in calculations.
 
 The decorator `~astropy.units.quantity_input` accepts keyword arguments to
 specify which arguments should be validated and what unit they are expected to
@@ -362,6 +363,27 @@ be compatible with:
 
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
+
+It is also possible to instead specify the physical type of the desired unit:
+
+    >>> @u.quantity_input(myarg='angle')
+    ... def myfunction(myarg):
+    ...     return myarg.unit
+
+    >>> myfunction(100*u.arcsec)
+    Unit("arcsec")
+
+Optionally ``None`` keyword arguments are also supported; for such cases, the
+input is only checked when a value other than ``None`` is passed:
+
+    >>> @u.quantity_input(a='length', b='angle')
+    ... def myfunction(a, b=None):
+    ...     return a, b
+
+    >>> myfunction(1.*u.km)
+    (<Quantity 1.0 km>, None)
+    >>> myfunction(1.*u.km, 1*u.deg)
+    (<Quantity 1.0 km>, <Quantity 1.0 deg>)
 
 Under Python 3 you can use the annotations syntax to provide the units:
 
@@ -384,6 +406,19 @@ value will be converted, i.e.::
 
 This both checks that the return value of your function is consistent with what
 you expect and makes it much neater to display the results of the function.
+
+The decorator also supports specifying a list of valid equivalent units or
+physical types for functions that should accept inputs with multiple valid
+units:
+
+    >>> @u.quantity_input(a=['length', 'speed'])
+    ... def myfunction(a):
+    ...     return a.unit
+
+    >>> myfunction(1.*u.km)
+    Unit("km")
+    >>> myfunction(1.*u.km/u.s)
+    Unit("km / s")
 
 Representing vectors with units
 ===============================

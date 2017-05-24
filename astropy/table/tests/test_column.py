@@ -286,6 +286,16 @@ class TestColumn():
         with pytest.raises((ValueError,IndexError)):
             c1 = c.insert(4, 100)
 
+    def test_insert_axis(self, Column):
+        """Insert with non-default axis kwarg"""
+        c = Column([[1, 2], [3, 4]])
+
+        c1 = c.insert(1, [5, 6], axis=None)
+        assert np.all(c1 == [1, 5, 6, 2, 3, 4])
+
+        c1 = c.insert(1, [5, 6], axis=1)
+        assert np.all(c1 == [[1, 5, 2], [3, 6, 4]])
+
     def test_insert_multidim(self, Column):
         c = Column([[1, 2],
                     [3, 4]], name='a', dtype=int)

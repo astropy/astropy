@@ -89,6 +89,19 @@ New Features
     appropriate logarithmic quantity class if ``subok=True``. For instance,
     ``Quantity(1, u.dex(u.m), subok=True)`` yields ``<Dex 1.0 dex(m)>``. [#5928]
 
+  - The ``quantity_input`` decorator now accepts a string physical type in
+    addition to of a unit object to specify the expected input ``Quantity``'s
+    physical type. For example, ``@u.quantity_input(x='angle')`` is now
+    functionally the same as ``@u.quantity_input(x=u.degree)``. [#3847]
+
+  - The ``quantity_input`` decorator now also supports unit checking for
+    optional keyword arguments and accepts iterables of units or physical types
+    for specifying multiple valid equivalent inputs. For example,
+    ``@u.quantity_input(x=['angle', 'angular speed'])`` or
+    ``@u.quantity_input(x=[u.radian, u.radian/u.yr])`` would both allow either
+    a ``Quantity`` angle or angular speed passed in to the argument ``x``.
+    [#5653]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
@@ -156,6 +169,9 @@ API Changes
     add unnamed columns, mixin objects and also to specify explicit names. Default names
     will be used if not specified. [#5996]
 
+  - Added optional ``axis`` parameter to ``insert`` method for ``Column`` and
+    ``MaskedColumn`` classes. [#6092]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -218,6 +234,10 @@ Bug Fixes
 
   - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
 
+  - OrthoPolynomialBase (Chebyshev2D / Legendre2D) models were being evaluated
+    incorrectly when part of a compound model (using the parameters from the
+    original model), which in turn caused fitting to fail as a no-op. [#6085]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -234,6 +254,8 @@ Bug Fixes
 - ``astropy.table``
 
   - Fix a problem with vstack for bytes columns in Python 3. [#5628]
+
+  - Fix QTable add/insert row for multidimensional Quantity. [#6092]
 
 - ``astropy.table``
 
@@ -329,6 +351,13 @@ Bug Fixes
   - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
 
 - ``astropy.visualization``
+
+  - Fix bug in ManualInterval which caused the limits to be returned incorrectly
+    if set to zero, and fix defaults for ManualInterval in the presence of NaNs.
+    [#6088]
+
+  - Get rid of warnings that occurred when slicing a cube due to the tick
+    locator trying to find ticks for the sliced axis. [#6104]
 
   - Accept normal Matplotlib keyword arguments in set_xlabel and set_ylabel
     functions. [#5686, #5692, #6060]
@@ -596,6 +625,10 @@ New Features
 
   - Added ``axis`` keyword to ``biweight_location`` and
     ``biweight_midvariance``. [#5127, #5158]
+
+  - ``median_absolute_deviation`` and ``mad_std`` have ``ignore_nan`` option
+    that will use ``np.ma.median`` with nans masked out or ``np.nanmedian``
+    instead of ``np.median`` when computing the median. [#5232]
 
 - ``astropy.table``
 
@@ -2283,6 +2316,9 @@ Other Changes and Additions
 - ``astropy.io.fits``
 
   -  Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
+
+  - Prevent crash when a header contains non-ASCII (e.g. UTF-8) characters, to
+    allow fixing the problematic cards. [#6084]
 
 - ``astropy.io.misc``
 

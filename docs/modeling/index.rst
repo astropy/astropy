@@ -288,7 +288,8 @@ without specifying any parameter values up front.  This more advanced usage is
 explained in more detail in the :ref:`compound model documentation
 <compound-model-classes>`.
 
-These new compound models can also be fitted to data, like most other models:
+These new compound models can also be fitted to data, like most other models
+(though this currently requires one of the non-linear fitters):
 
 .. plot::
     :include-source:
