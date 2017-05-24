@@ -1871,46 +1871,32 @@ class _CompoundModelMeta(_ModelMeta):
 
     @property
     def submodel_names(cls):
-        # If results are not cached, then set the cache
-        if cls._submodel_names is None:
-            
-            # Duplicate names must be disambiguated.
-            seen = {}
-            names = []
-            for idx, submodel in enumerate(cls._get_submodels()):
-                name = submodel.name
-                if name is None:
-                    # No need to disambiguate None
-                    names.append(name)
-    
-                elif name in seen:
-                    # Disambiguate names seen before by
-                    # adding a traailing number. 
-                    names.append('{0}_{1}'.format(name, idx))
-                    
-                    if seen[name] >= 0:
-                        # We don't know a name is ambiguous until we've seen the
-                        # second one and we only make one pass over the data. So
-                        # we track the first occurence of each name with
-                        # an index to it in the seen dictionary and set it after
-                        # setting the second occurence.
-                        jdx = seen[name]
-                        names[jdx] = '{0}_{1}'.format(names[jdx], jdx)
-                        
-                        # Reset the  index to a negative number to keep from
-                        # setting the first occurence more than once.
-                        seen[name] = -1
-                        
-                else:
-                    # No ambiguity in name (yet), add it to the seen dictionary
-                    # so we can find ambiguities later.
-                    names.append(name)
-                    seen[name] = idx
+        if cls._submodel_names is not None:
+            return cls._submodel_names
 
-            # Save all this work in the cache
-            cls._submodel_names = tuple(names)
+        by_name = defaultdict(list)
 
-        return cls._submodel_names
+        for idx, submodel in enumerate(cls._get_submodels()):
+            # Keep track of the original sort order of the submodels
+            by_name[submodel.name].append(idx)
+
+        names = []
+        for basename, indices in six.iteritems(by_name):
+            if len(indices) == 1:
+                # There is only one model with this name, so it doesn't need an
+                # index appended to its name
+                names.append((basename, indices[0]))
+            else:
+                for idx in indices:
+                    names.append(('{0}_{1}'.format(basename, idx), idx))
+
+        # Sort according to the models' original sort orders
+        names.sort(key=lambda k: k[1])
+
+        names = tuple(k[0] for k in names)
+
+        cls._submodel_names = names
+        return names
 
     @property
     def param_names(cls):
