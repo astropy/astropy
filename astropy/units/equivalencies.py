@@ -19,7 +19,7 @@ from .core import UnitsError
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature', 'temperature_energy',
+           'logarithmic', 'temperature', 'temperature_energy', 'molar_mass_amu',
            'pixel_scale', 'plate_scale']
 
 
@@ -424,6 +424,15 @@ def doppler_relativistic(rest):
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
+
+
+def molar_mass_amu():
+    """
+     Returns the equivalence between amu and molar mass.
+    """
+    return [
+        (si.g/si.mol, astrophys.u)
+    ]
 
 
 def mass_energy():
