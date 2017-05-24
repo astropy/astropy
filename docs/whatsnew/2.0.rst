@@ -25,8 +25,15 @@ smaller improvements and bug fixes, which are described in the
 * xxx distinct people have contributed code
 
 
-Other significant changes
-=========================
+No relativistic species by default in cosmological models
+=========================================================
+For all of the built in cosmological model types (e.g., FlatLambdaCDM)
+the default CMB temperature at z=0 is now 0K, which corresponds to no
+contributions from photons or neutrinos (massive or otherwise).  This
+does not affect built in literature models (such as the WMAP or Planck
+models).  The justification is to avoid including mass-energy components
+that the user has not explicitly requested.  This is a non-backwards
+compatible change, although the effects are small for most use cases.
 
 
 Full change log

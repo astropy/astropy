@@ -55,7 +55,7 @@ You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
 
   >>> from astropy.cosmology import FlatLambdaCDM
-  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
                 Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
@@ -92,14 +92,14 @@ arguments giving the Hubble parameter and Omega matter (both at z=0)::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
-  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
+  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=0 K,
+                Neff=3.04, m_nu=None, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
-  >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.3)
+  >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Tcmb0=2.725 * u.K, Om0=0.3)
 
 However, most of the parameters that accept units (``H0``, ``Tcmb0``)
 have default units, so unit quantities do not have to be used.
@@ -160,8 +160,8 @@ at class instantiation by passing the keyword argument ``Ob0``::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
   >>> cosmo
-  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=0.05)
+  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=0 K,
+                Neff=3.04, m_nu=None, Ob0=0.05)
 
 In this case the dark matter only density at redshift zero is
 available as class attribute ``Odm0`` and the redshift evolution of
@@ -185,8 +185,7 @@ used to describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV,
-	   Ob0=None)
+           w0=-1.02, Tcmb0=0 K, Neff=3.04, m_nu=None, Ob0=None)
 
 This is also an example with a different model for dark energy, a flat
 Universe with a constant dark energy equation of state, but not
@@ -299,18 +298,20 @@ should consult the cosmology module source code for details.
 
 Photons and Neutrinos
 ---------------------
-The cosmology classes include the contribution to the energy density
+The cosmology classes (can) include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
 massless.  The three parameters controlling the properties of these
 species, which are arguments to the initializers of all the
 cosmological classes, are ``Tcmb0`` (the temperature of the CMB at z=0),
 ``Neff``, the effective number of neutrino species, and ``m_nu``, the rest
 mass of the neutrino species.  ``Tcmb0`` and ``m_nu`` should be expressed
-as unit Quantities.  All three have standard default values (2.725 K,
+as unit Quantities.  All three have standard default values (0 K,
 3.04, and 0 eV respectively; the reason that ``Neff`` is not 3 primarily
 has to do with a small bump in the neutrino energy spectrum due to
 electron-positron annihilation, but is also affected by weak
-interaction physics).
+interaction physics).  Setting the CMB temperature to zero removes
+the contribution of both neutrinos and photons.  This is the default
+so that users do not include components by default that they did not request.
 
 Massive neutrinos are treated using the approach described in the
 WMAP 7-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section 3.3).
@@ -341,7 +342,7 @@ can be found as a function of redshift::
    array([  3.44215495e-05,   1.89567887e-04,   3.45121234e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
-simply set ``Tcmb0`` to 0::
+simply set ``Tcmb0`` to 0 (which is also the default)::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
@@ -349,11 +350,13 @@ simply set ``Tcmb0`` to 0::
   >>> cos.Ogamma0, cos.Onu0
   (0.0, 0.0)
 
-Neutrinos can be removed (while leaving photons) by setting ``Neff`` to 0::
+You can include photons but exclude any contributions from neutrinos by
+setting ``Tcmb0`` to be non-zero (2.725 K is the standard value for our
+Universe) but setting ``Neff`` to 0::
 
   >>> from astropy.cosmology import FlatLambdaCDM
-  >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
-  >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
+  >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725, Neff=0)
+  >>> cos.Ogamma([0, 1, 2])  # Photons are present  # doctest: +FLOAT_CMP
   array([  4.98569497e-05,   2.74623215e-04,   5.00051839e-04])
   >>> cos.Onu([0, 1, 2])  # But not neutrinos
   array([ 0.,  0.,  0.])
@@ -370,13 +373,13 @@ value is provided, all the species are assumed to have the same mass.
   >>> import astropy.units as u
   >>> H0 = 70.4 * u.km / u.s / u.Mpc
   >>> m_nu = 0 * u.eV
-  >>> cosmo = FlatLambdaCDM(H0, 0.272, m_nu=m_nu)
+  >>> cosmo = FlatLambdaCDM(H0, 0.272, Tcmb0=2.725, m_nu=m_nu)
   >>> cosmo.has_massive_nu
   False
   >>> cosmo.m_nu
   <Quantity [ 0., 0., 0.] eV>
   >>> m_nu = [0.0, 0.05, 0.10] * u.eV
-  >>> cosmo = FlatLambdaCDM(H0, 0.272, m_nu=m_nu)
+  >>> cosmo = FlatLambdaCDM(H0, 0.272, Tcmb0=2.725, m_nu=m_nu)
   >>> cosmo.has_massive_nu
   True
   >>> cosmo.m_nu
