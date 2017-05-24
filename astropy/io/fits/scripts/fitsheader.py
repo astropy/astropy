@@ -136,9 +136,9 @@ class HeaderFormatter(object):
 
             if idx > 0:  # Separate HDUs by a blank line
                 result.append('\n')
-            result.append('# HDU {} in {}:\n'.format(hdu, self.filename))
+            result.append('# HDU {0} in {1}:\n'.format(hdu, self.filename))
             for c in cards:
-                result.append('{}\n'.format(c))
+                result.append('{0}\n'.format(c))
         return ''.join(result)
 
     def _get_cards(self, hdukey, keywords, compressed):
