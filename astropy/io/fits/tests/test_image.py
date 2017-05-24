@@ -128,9 +128,7 @@ class TestImageFunctions(FitsTestCase):
 
         with pytest.raises(IndexError) as exc_info:
             r[6]
-        assert str(exc_info.value) == ('HDU not found, possibly because the index '
-                                       'is out of range, or because the file was '
-                                       'closed before all HDUs were read')
+        assert str(exc_info.value) == 'list index out of range'
 
         # And the same with the global config item
         assert fits.conf.lazy_load_hdus  # True by default
