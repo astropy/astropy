@@ -26,10 +26,12 @@ __all__ = ["RepresentationBase", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
            "UnitSphericalRepresentation", "RadialRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation",
-           "BaseDifferential", "BaseSphericalDifferential",
-           "CartesianDifferential", "SphericalDifferential",
-           "UnitSphericalDifferential", "RadialDifferential",
-           "PhysicsSphericalDifferential", "CylindricalDifferential"]
+           "BaseDifferential", "CartesianDifferential",
+           "BaseSphericalDifferential", "BaseSphericalCosLatDifferential",
+           "SphericalDifferential", "SphericalCosLatDifferential",
+           "UnitSphericalDifferential", "UnitSphericalCosLatDifferential",
+           "RadialDifferential", "CylindricalDifferential",
+           "PhysicsSphericalDifferential"]
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by the metaclass init so all representation and differential
@@ -894,7 +896,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
              ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
                                              coslat, copy=False))))
 
-    def scale_factors(self):
+    def scale_factors(self, omit_coslat=False):
         """Scale factors for each component's direction.
 
         Returns
@@ -902,9 +904,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
         scale_factors : dict of `~astropy.units.Quantity`
             The keys are the component names.
         """
-        coslat = np.cos(self.lat)
-        l = broadcast_to(1./u.radian, self.shape, subok=True)
-        return OrderedDict((('lon', coslat / u.radian), ('lat', l)))
+        sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
+        sf_lon  = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
+        return OrderedDict((('lon', sf_lon),
+                            ('lat', sf_lat)))
 
     def to_cartesian(self):
         """
@@ -1172,7 +1175,7 @@ class SphericalRepresentation(BaseRepresentation):
              ('distance', CartesianRepresentation(coslat*coslon, coslat*sinlon,
                                                   sinlat, copy=False))))
 
-    def scale_factors(self):
+    def scale_factors(self, omit_coslat=False):
         """Scale factors for each component's direction.
 
         Returns
@@ -1180,12 +1183,12 @@ class SphericalRepresentation(BaseRepresentation):
         scale_factors : dict of `~astropy.units.Quantity`
             The keys are the component names.
         """
-        d = self.distance / u.radian
-        coslat = np.cos(self.lat)
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('lon', d * coslat),
-                            ('lat', d),
-                            ('distance', l)))
+        sf_lat = self.distance / u.radian
+        sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
+        sf_distance = broadcast_to(1.*u.one, self.shape, subok=True)
+        return OrderedDict((('lon', sf_lon),
+                            ('lat', sf_lat),
+                            ('distance', sf_distance)))
 
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
@@ -1524,7 +1527,8 @@ class MetaBaseDifferential(abc.ABCMeta):
         super(MetaBaseDifferential, cls).__init__(name, bases, dct)
 
         # Don't do anything for base helper classes.
-        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential'):
+        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
+                            'BaseSphericalCosLatDifferential'):
             return
 
         if 'base_representation' not in dct:
@@ -1583,6 +1587,30 @@ class BaseDifferential(RepresentationBase):
                             '{0}, not {1}.'.format(cls.base_representation,
                                                    type(base)))
 
+    @classmethod
+    def _get_base_vectors(cls, base):
+        """Get unit vectors and scale factors from base.
+
+        Parameters
+        ----------
+        base : instance of ``self.base_representation``
+            The points for which the unit vectors and scale factors should be
+            retrieved.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            In the directions of the coordinates of base.
+        scale_factors : dict of `~astropy.units.Quantity`
+            Scale factors for each of the coordinates
+
+        Raises
+        ------
+        TypeError : if the base is not of the correct type
+        """
+        cls._check_base(base)
+        return base.unit_vectors(), base.scale_factors()
+
     def to_cartesian(self, base):
         """Convert the differential to 3D rectangular cartesian coordinates.
 
@@ -1592,9 +1620,7 @@ class BaseDifferential(RepresentationBase):
              The points for which the differentials are to be converted: each of
              the components is multiplied by its unit vectors and scale factors.
         """
-        self._check_base(base)
-        base_e = base.unit_vectors()
-        base_sf = base.scale_factors()
+        base_e, base_sf = self._get_base_vectors(base)
         return functools.reduce(
             operator.add, (getattr(self, d_c) * base_sf[c] * base_e[c]
                            for d_c, c in zip(self.components, base.components)))
@@ -1608,9 +1634,7 @@ class BaseDifferential(RepresentationBase):
         base : instance of ``self.base_representation``
             Base relative to which the differentials are defined.
         """
-        cls._check_base(base)
-        base_e = base.unit_vectors()
-        base_sf = base.scale_factors()
+        base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
                      for component, e in six.iteritems(base_e)), copy=False)
 
@@ -1653,7 +1677,6 @@ class BaseDifferential(RepresentationBase):
             the representation is a differential itself, the base will be
             converted to its ``base_representation`` to help convert it.
         """
-        cls._check_base(base)
         if isinstance(representation, BaseDifferential):
             cartesian = representation.to_cartesian(
                 base.represent_as(representation.base_representation))
@@ -1809,6 +1832,31 @@ class CartesianDifferential(BaseDifferential):
 
 
 class BaseSphericalDifferential(BaseDifferential):
+    def _d_lon_coslat(self, base):
+        """Convert longitude differential d_lon to d_lon_coslat.
+
+        Parameters
+        ----------
+        base : instance of ``cls.base_representation``
+            The base from which the latitude will be taken.
+        """
+        self._check_base(base)
+        return self.d_lon * np.cos(base.lat)
+
+    @classmethod
+    def _get_d_lon(cls, d_lon_coslat, base):
+        """Convert longitude differential d_lon_coslat to d_lon.
+
+        Parameters
+        ----------
+        d_lon_coslat : `~astropy.units.Quantity`
+            Longitude differential that includes ``cos(lat)``.
+        base : instance of ``cls.base_representation``
+            The base from which the latitude will be taken.
+        """
+        cls._check_base(base)
+        return d_lon_coslat / np.cos(base.lat)
+
     def _combine_operation(self, op, other, reverse=False):
         """Combine two differentials, or a differential with a representation.
 
@@ -1833,7 +1881,8 @@ class BaseSphericalDifferential(BaseDifferential):
             ``self.__rsub__`` because ``self`` is a subclass of ``other``).
         """
         if (isinstance(other, BaseSphericalDifferential) and
-                not isinstance(self, type(other))):
+                not isinstance(self, type(other)) or
+                isinstance(other, RadialDifferential)):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
@@ -1865,24 +1914,36 @@ class SphericalDifferential(BaseSphericalDifferential):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
 
     def represent_as(self, other_class, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude.
         if issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_lon, self.d_lat)
-        elif issubclass(other_class, PhysicsSphericalDifferential):
-            return other_class(self.d_lon, -self.d_lat, self.d_distance)
         elif issubclass(other_class, RadialDifferential):
             return other_class(self.d_distance)
+        elif issubclass(other_class, SphericalCosLatDifferential):
+            return other_class(self._d_lon_coslat(base), self.d_lat,
+                               self.d_distance)
+        elif issubclass(other_class, UnitSphericalCosLatDifferential):
+            return other_class(self._d_lon_coslat(base), self.d_lat)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            return other_class(self.d_lon, -self.d_lat, self.d_distance)
         else:
             return super(SphericalDifferential,
                          self).represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        if isinstance(representation, PhysicsSphericalDifferential):
+        # Other spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude.
+        if isinstance(representation, SphericalCosLatDifferential):
+            d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
+            return cls(d_lon, representation.d_lat, representation.d_distance)
+        elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta,
                        representation.d_r)
-        else:
-            return super(SphericalDifferential,
-                         cls).from_representation(representation, base)
+
+        return super(SphericalDifferential,
+                     cls).from_representation(representation, base)
 
 
 class UnitSphericalDifferential(BaseSphericalDifferential):
@@ -1914,18 +1975,241 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         base = base.represent_as(UnitSphericalRepresentation)
         return scale * super(UnitSphericalDifferential, self).to_cartesian(base)
 
+    def represent_as(self, other_class, base=None):
+        # Only have enough information to represent other unit-spherical.
+        if issubclass(other_class, UnitSphericalCosLatDifferential):
+            return other_class(self._d_lon_coslat(base), self.d_lat)
+
+        return super(UnitSphericalDifferential,
+                     self).represent_as(other_class, base)
+
     @classmethod
     def from_representation(cls, representation, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude.
         if isinstance(representation, SphericalDifferential):
             return cls(representation.d_lon, representation.d_lat)
+        elif isinstance(representation, (SphericalCosLatDifferential,
+                                         UnitSphericalCosLatDifferential)):
+            d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
+            return cls(d_lon, representation.d_lat)
         elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta)
+
+        return super(UnitSphericalDifferential,
+                     cls).from_representation(representation, base)
+
+
+class BaseSphericalCosLatDifferential(BaseDifferential):
+    """Differtials from points on a spherical base representation.
+
+    With cos(lat) assumed to be included in the longitude differential.
+    """
+    @classmethod
+    def _get_base_vectors(cls, base):
+        """Get unit vectors and scale factors from (unit)spherical base.
+
+        Parameters
+        ----------
+        base : instance of ``self.base_representation``
+            The points for which the unit vectors and scale factors should be
+            retrieved.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            In the directions of the coordinates of base.
+        scale_factors : dict of `~astropy.units.Quantity`
+            Scale factors for each of the coordinates.  The scale factor for
+            longitude does not include the cos(lat) factor.
+
+        Raises
+        ------
+        TypeError : if the base is not of the correct type
+        """
+        cls._check_base(base)
+        return base.unit_vectors(), base.scale_factors(omit_coslat=True)
+
+    def _d_lon(self, base):
+        """Convert longitude differential with cos(lat) to one without.
+
+        Parameters
+        ----------
+        base : instance of ``cls.base_representation``
+            The base from which the latitude will be taken.
+        """
+        self._check_base(base)
+        return self.d_lon_coslat / np.cos(base.lat)
+
+    @classmethod
+    def _get_d_lon_coslat(cls, d_lon, base):
+        """Convert longitude differential d_lon to d_lon_coslat.
+
+        Parameters
+        ----------
+        d_lon : `~astropy.units.Quantity`
+            Value of the longitude differential without ``cos(lat)``.
+        base : instance of ``cls.base_representation``
+            The base from which the latitude will be taken.
+        """
+        cls._check_base(base)
+        return d_lon * np.cos(base.lat)
+
+    def _combine_operation(self, op, other, reverse=False):
+        """Combine two differentials, or a differential with a representation.
+
+        If ``other`` is of the same differential type as ``self``, the
+        components will simply be combined.  If both are different parts of
+        a `~astropy.coordinates.SphericalDifferential` (e.g., a
+        `~astropy.coordinates.UnitSphericalDifferential` and a
+        `~astropy.coordinates.RadialDifferential`), they will combined
+        appropriately.
+
+        If ``other`` is a representation, it will be used as a base for which
+        to evaluate the differential, and the result is a new representation.
+
+        Parameters
+        ----------
+        op : `~operator` callable
+            Operator to apply (e.g., `~operator.add`, `~operator.sub`, etc.
+        other : `~astropy.coordinates.BaseRepresentation` instance
+            The other differential or representation.
+        reverse : bool
+            Whether the operands should be reversed (e.g., as we got here via
+            ``self.__rsub__`` because ``self`` is a subclass of ``other``).
+        """
+        if (isinstance(other, BaseSphericalCosLatDifferential) and
+                not isinstance(self, type(other)) or
+                isinstance(other, RadialDifferential)):
+            all_components = set(self.components) | set(other.components)
+            first, second = (self, other) if not reverse else (other, self)
+            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+                           for c in all_components}
+            return SphericalCosLatDifferential(**result_args)
+
+        return super(BaseSphericalCosLatDifferential,
+                     self)._combine_operation(op, other, reverse)
+
+
+class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
+    """Differential(s) of points in 3D spherical coordinates.
+
+    Parameters
+    ----------
+    d_lon_coslat, d_lat : `~astropy.units.Quantity`
+        The differential longitude (with cos(lat) included) and latitude.
+    d_distance : `~astropy.units.Quantity`
+        The differential distance.
+    copy : bool, optional
+        If `True` (default), arrays will be copied rather than referenced.
+    """
+    base_representation = SphericalRepresentation
+    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
+                                ('d_lat', u.Quantity),
+                                ('d_distance', u.Quantity)])
+
+    def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
+        super(SphericalCosLatDifferential,
+              self).__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
+        if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
+                               'units.')
+
+    def represent_as(self, other_class, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though some need base for the latitude to remove cos(lat).
+        if issubclass(other_class, UnitSphericalCosLatDifferential):
+            return other_class(self.d_lon_coslat, self.d_lat)
+        elif issubclass(other_class, RadialDifferential):
+            return other_class(self.d_distance)
+        elif issubclass(other_class, SphericalDifferential):
+            return other_class(self._d_lon(base), self.d_lat, self.d_distance)
+        elif issubclass(other_class, UnitSphericalDifferential):
+            return other_class(self._d_lon(base), self.d_lat)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            return other_class(self._d_lon(base), -self.d_lat, self.d_distance)
+
+        return super(SphericalCosLatDifferential,
+                     self).represent_as(other_class, base)
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        # Other spherical differentials can be done without going to Cartesian,
+        # though we need base for the latitude to remove coslat.
+        if isinstance(representation, SphericalDifferential):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
+            return cls(d_lon_coslat, representation.d_lat,
+                       representation.d_distance)
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
+            return cls(d_lon_coslat, -representation.d_theta,
+                       representation.d_r)
+
+        return super(SphericalCosLatDifferential,
+                     cls).from_representation(representation, base)
+
+
+class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
+    """Differential(s) of points on a unit sphere.
+
+    Parameters
+    ----------
+    d_lon_coslat, d_lat : `~astropy.units.Quantity`
+        The longitude and latitude of the differentials.
+    copy : bool, optional
+        If `True` (default), arrays will be copied rather than referenced.
+    """
+    base_representation = UnitSphericalRepresentation
+    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
+                                ('d_lat', u.Quantity)])
+
+    def __init__(self, d_lon_coslat, d_lat, copy=True):
+        super(UnitSphericalCosLatDifferential,
+              self).__init__(d_lon_coslat, d_lat, copy=copy)
+        if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
+                               'units.')
+
+    def to_cartesian(self, base):
+        if isinstance(base, SphericalRepresentation):
+            scale = base.distance
+        elif isinstance(base, PhysicsSphericalRepresentation):
+            scale = base.r
         else:
-            return super(UnitSphericalDifferential,
-                         cls).from_representation(representation, base)
+            return super(UnitSphericalCosLatDifferential,
+                         self).to_cartesian(base)
+
+        base = base.represent_as(UnitSphericalRepresentation)
+        return scale * super(UnitSphericalCosLatDifferential,
+                             self).to_cartesian(base)
+
+    def represent_as(self, other_class, base=None):
+        # Only have enough information to represent other unit-spherical.
+        if issubclass(other_class, UnitSphericalDifferential):
+            return other_class(self._d_lon(base), self.d_lat)
+
+        return super(UnitSphericalCosLatDifferential,
+                     self).represent_as(other_class, base)
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though w/o CosLat needs base for the latitude.
+        if isinstance(representation, SphericalCosLatDifferential):
+            return cls(representation.d_lon_coslat, representation.d_lat)
+        elif isinstance(representation, (SphericalDifferential,
+                                         UnitSphericalDifferential)):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
+            return cls(d_lon_coslat, representation.d_lat)
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
+            return cls(d_lon_coslat, -representation.d_theta)
+
+        return super(UnitSphericalDifferential,
+                     cls).from_representation(representation, base)
 
 
-class RadialDifferential(BaseSphericalDifferential):
+class RadialDifferential(BaseDifferential):
     """Differential(s) of radial distances.
 
     Parameters
@@ -1948,7 +2232,8 @@ class RadialDifferential(BaseSphericalDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        if isinstance(representation, SphericalDifferential):
+        if isinstance(representation, (SphericalDifferential,
+                                       SphericalCosLatDifferential)):
             return cls(representation.d_distance)
         elif isinstance(representation, PhysicsSphericalDifferential):
             return cls(representation.d_r)
@@ -1963,6 +2248,14 @@ class RadialDifferential(BaseSphericalDifferential):
             else:
                 first, second = self.d_distance, other.distance
             return other.__class__(op(first, second), copy=False)
+        elif isinstance(other, (BaseSphericalDifferential,
+                                BaseSphericalCosLatDifferential)):
+            all_components = set(self.components) | set(other.components)
+            first, second = (self, other) if not reverse else (other, self)
+            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+                           for c in all_components}
+            return SphericalDifferential(**result_args)
+
         else:
             return super(RadialDifferential,
                          self)._combine_operation(op, other, reverse)
@@ -1990,24 +2283,42 @@ class PhysicsSphericalDifferential(BaseDifferential):
                                'units.')
 
     def represent_as(self, other_class, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude. For those, explicitly
+        # do the equivalent of self._d_lon_coslat in SphericalDifferential.
         if issubclass(other_class, SphericalDifferential):
             return other_class(self.d_phi, -self.d_theta, self.d_r)
         elif issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_phi, -self.d_theta)
+        elif issubclass(other_class, SphericalCosLatDifferential):
+            self._check_base(base)
+            d_lon_coslat = self.d_phi * np.sin(base.theta)
+            return other_class(d_lon_coslat, -self.d_theta, self.d_r)
+        elif issubclass(other_class, UnitSphericalCosLatDifferential):
+            self._check_base(base)
+            d_lon_coslat = self.d_phi * np.sin(base.theta)
+            return other_class(d_lon_coslat, -self.d_theta)
         elif issubclass(other_class, RadialDifferential):
             return other_class(self.d_r)
-        else:
-            return super(PhysicsSphericalDifferential,
-                         self).represent_as(other_class, base)
+
+        return super(PhysicsSphericalDifferential,
+                     self).represent_as(other_class, base)
 
     @classmethod
     def from_representation(cls, representation, base=None):
+        # Other spherical differentials can be done without going to Cartesian,
+        # though we need base for the latitude to remove coslat. For that case,
+        # do the equivalent of cls._d_lon in SphericalDifferential.
         if isinstance(representation, SphericalDifferential):
             return cls(representation.d_lon, -representation.d_lat,
                        representation.d_distance)
-        else:
-            return super(PhysicsSphericalDifferential,
-                         cls).from_representation(representation, base)
+        elif isinstance(representation, SphericalCosLatDifferential):
+            cls._check_base(base)
+            d_phi = representation.d_lon_coslat / np.sin(base.theta)
+            return cls(d_phi, -representation.d_lat, representation.d_distance)
+
+        return super(PhysicsSphericalDifferential,
+                     cls).from_representation(representation, base)
 
 
 class CylindricalDifferential(BaseDifferential):

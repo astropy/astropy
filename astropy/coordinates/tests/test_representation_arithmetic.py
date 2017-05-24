@@ -11,6 +11,7 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 CylindricalRepresentation, SphericalRepresentation,
                 UnitSphericalRepresentation, SphericalDifferential,
                 CartesianDifferential, UnitSphericalDifferential,
+                SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
                 PhysicsSphericalDifferential, CylindricalDifferential,
                 RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from ..representation import DIFFERENTIAL_CLASSES
@@ -26,6 +27,15 @@ def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,
     actual_xyz, desired_xyz = broadcast_arrays(actual_xyz, desired_xyz,
                                                subok=True)
     assert_quantity_allclose(actual_xyz, desired_xyz, rtol, atol, **kwargs)
+
+
+def assert_differential_allclose(actual, desired, rtol=1.e-7, **kwargs):
+    assert actual.components == desired.components
+    for component in actual.components:
+        actual_c = getattr(actual, component)
+        atol = 1.e-10 * actual_c.unit
+        assert_quantity_allclose(actual_c, getattr(desired, component),
+                                 rtol, atol, **kwargs)
 
 
 def representation_equal(first, second):
@@ -537,30 +547,44 @@ class TestUnitVectorsAndScales():
         assert_representation_allclose(s_z2, s_z)
 
 
+@pytest.mark.parametrize('omit_coslat', [False, True], scope='class')
 class TestSphericalDifferential():
-    def setup(self):
+    # these test cases are subclassed for SphericalCosLatDifferential,
+    # hence some tests depend on omit_coslat.
+
+    def _setup(self, omit_coslat):
+        if omit_coslat:
+            self.SD_cls = SphericalCosLatDifferential
+        else:
+            self.SD_cls = SphericalDifferential
+
         s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
                                     lat=[0., -30., 85.] * u.deg,
                                     distance=[1, 2, 3] * u.kpc)
         self.s = s
         self.e = s.unit_vectors()
-        self.sf = s.scale_factors()
+        self.sf = s.scale_factors(omit_coslat=omit_coslat)
 
-    def test_name(self):
-        assert SphericalDifferential.get_name() == 'spherical'
-        assert SphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
+    def test_name_coslat(self, omit_coslat):
+        self._setup(omit_coslat)
+        if omit_coslat:
+            assert self.SD_cls is SphericalCosLatDifferential
+            assert self.SD_cls.get_name() == 'sphericalcoslat'
+        else:
+            assert self.SD_cls is SphericalDifferential
+            assert self.SD_cls.get_name() == 'spherical'
+        assert self.SD_cls.get_name() in DIFFERENTIAL_CLASSES
 
-    def test_simple_differentials(self):
+    def test_simple_differentials(self, omit_coslat):
+        self._setup(omit_coslat)
         s, e, sf = self.s, self.e, self.sf
 
-        o_lon = SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
+        o_lon = self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
         o_lonc = o_lon.to_cartesian(base=s)
-        o_lon2 = SphericalDifferential.from_cartesian(o_lonc, base=s)
-        assert_quantity_allclose(o_lon.d_lon, o_lon2.d_lon, atol=1.*u.narcsec)
-        assert_quantity_allclose(o_lon.d_lat, o_lon2.d_lat, atol=1.*u.narcsec)
-        assert_quantity_allclose(o_lon.d_distance, o_lon2.d_distance,
-                                 atol=1.*u.npc)
+        o_lon2 = self.SD_cls.from_cartesian(o_lonc, base=s)
+        assert_differential_allclose(o_lon, o_lon2)
         # simple check by hand for first element.
+        # lat[0] is 0, so cos(lat) term doesn't matter.
         assert_quantity_allclose(o_lonc[0].xyz,
                                  [0., np.pi/180./3600., 0.]*u.kpc)
         # check all using unit vectors and scale factors.
@@ -569,7 +593,7 @@ class TestSphericalDifferential():
         s_lon2 = s + o_lon
         assert_representation_allclose(s_lon2, s_lon, atol=1*u.npc)
 
-        o_lat = SphericalDifferential(0.*u.arcsec, 1.*u.arcsec, 0.*u.kpc)
+        o_lat = self.SD_cls(0.*u.arcsec, 1.*u.arcsec, 0.*u.kpc)
         o_latc = o_lat.to_cartesian(base=s)
         assert_quantity_allclose(o_latc[0].xyz,
                                  [0., 0., np.pi/180./3600.]*u.kpc,
@@ -579,7 +603,7 @@ class TestSphericalDifferential():
         s_lat2 = s + o_lat
         assert_representation_allclose(s_lat2, s_lat, atol=1*u.npc)
 
-        o_distance = SphericalDifferential(0.*u.arcsec, 0.*u.arcsec, 1.*u.mpc)
+        o_distance = self.SD_cls(0.*u.arcsec, 0.*u.arcsec, 1.*u.mpc)
         o_distancec = o_distance.to_cartesian(base=s)
         assert_quantity_allclose(o_distancec[0].xyz,
                                  [1e-6, 0., 0.]*u.kpc, atol=1.*u.npc)
@@ -589,10 +613,11 @@ class TestSphericalDifferential():
         s_distance2 = s + o_distance
         assert_representation_allclose(s_distance2, s_distance)
 
-    def test_differential_arithmetic(self):
+    def test_differential_arithmetic(self, omit_coslat):
+        self._setup(omit_coslat)
         s = self.s
 
-        o_lon = SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
+        o_lon = self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc)
         o_lon_by_2 = o_lon / 2.
         assert_representation_allclose(o_lon_by_2.to_cartesian(s) * 2.,
                                        o_lon.to_cartesian(s), atol=1e-10*u.kpc)
@@ -604,7 +629,7 @@ class TestSphericalDifferential():
         o_lon_0 = o_lon - o_lon
         for c in o_lon_0.components:
             assert np.all(getattr(o_lon_0, c) == 0.)
-        o_lon2 = SphericalDifferential(1*u.mas/u.yr, 0*u.mas/u.yr, 0*u.km/u.s)
+        o_lon2 = self.SD_cls(1*u.mas/u.yr, 0*u.mas/u.yr, 0*u.km/u.s)
         assert_quantity_allclose(o_lon2.norm(s)[0], 4.74*u.km/u.s,
                                  atol=0.01*u.km/u.s)
         assert_representation_allclose(o_lon2.to_cartesian(s) * 1000.*u.yr,
@@ -613,17 +638,20 @@ class TestSphericalDifferential():
         s_off2 = s + o_lon2 * 1000.*u.yr
         assert_representation_allclose(s_off, s_off2, atol=1e-10*u.kpc)
 
-        s_off_big = s + o_lon * 1e5 * u.radian/u.arcsec
+        factor = 1e5 * u.radian/u.arcsec
+        if not omit_coslat:
+            factor = factor / np.cos(s.lat)
+        s_off_big = s + o_lon * factor
 
         assert_representation_allclose(
             s_off_big, SphericalRepresentation(s.lon + 90.*u.deg, 0.*u.deg,
-                                               1e5*s.distance*np.cos(s.lat)),
+                                               1e5*s.distance),
             atol=5.*u.kpc)
 
         o_lon3c = CartesianRepresentation(0., 4.74047, 0., unit=u.km/u.s)
-        o_lon3 = SphericalDifferential.from_cartesian(o_lon3c, base=s)
-        assert_quantity_allclose(o_lon3.d_lon[0], 1.*u.mas/u.yr,
-                                 atol=1.*u.uas/u.yr)
+        o_lon3 = self.SD_cls.from_cartesian(o_lon3c, base=s)
+        expected0 = self.SD_cls(1.*u.mas/u.yr, 0.*u.mas/u.yr, 0.*u.km/u.s)
+        assert_differential_allclose(o_lon3[0], expected0)
         s_off_big2 = s + o_lon3 * 1e5 * u.yr * u.radian/u.mas
         assert_representation_allclose(
             s_off_big2, SphericalRepresentation(90.*u.deg, 0.*u.deg,
@@ -634,69 +662,83 @@ class TestSphericalDifferential():
         with pytest.raises(TypeError):
             s.to_cartesian() + o_lon
 
-    def test_differential_init_errors(self):
+    def test_differential_init_errors(self, omit_coslat):
+        self._setup(omit_coslat)
         s = self.s
         with pytest.raises(u.UnitsError):
-            SphericalDifferential(1.*u.arcsec, 0., 0.)
+            self.SD_cls(1.*u.arcsec, 0., 0.)
         with pytest.raises(TypeError):
-            SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
+            self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
                                   False, False)
         with pytest.raises(TypeError):
-            SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                            copy=False, d_lon=0.*u.arcsec)
+            self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
+                            copy=False, d_lat=0.*u.arcsec)
         with pytest.raises(TypeError):
-            SphericalDifferential(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
+            self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
                             copy=False, flying='circus')
         with pytest.raises(ValueError):
-            SphericalDifferential(np.ones(2)*u.arcsec,
+            self.SD_cls(np.ones(2)*u.arcsec,
                             np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
         with pytest.raises(u.UnitsError):
-            SphericalDifferential(1.*u.arcsec, 1.*u.s, 0.*u.kpc)
+            self.SD_cls(1.*u.arcsec, 1.*u.s, 0.*u.kpc)
         with pytest.raises(u.UnitsError):
-            SphericalDifferential(1.*u.kpc, 1.*u.arcsec, 0.*u.kpc)
-        o = SphericalDifferential(1.*u.arcsec, 1.*u.arcsec, 0.*u.km/u.s)
+            self.SD_cls(1.*u.kpc, 1.*u.arcsec, 0.*u.kpc)
+        o = self.SD_cls(1.*u.arcsec, 1.*u.arcsec, 0.*u.km/u.s)
         with pytest.raises(u.UnitsError):
             o.to_cartesian(s)
         with pytest.raises(AttributeError):
-            o.d_lon = 0.*u.arcsec
+            o.d_lat = 0.*u.arcsec
         with pytest.raises(AttributeError):
-            del o.d_lon
+            del o.d_lat
 
-        o = SphericalDifferential(1.*u.arcsec, 1.*u.arcsec, 0.*u.km)
+        o = self.SD_cls(1.*u.arcsec, 1.*u.arcsec, 0.*u.km)
         with pytest.raises(TypeError):
             o.to_cartesian()
         c = CartesianRepresentation(10., 0., 0., unit=u.km)
         with pytest.raises(TypeError):
-            SphericalDifferential.to_cartesian(c)
+            self.SD_cls.to_cartesian(c)
         with pytest.raises(TypeError):
-            SphericalDifferential.from_cartesian(c)
+            self.SD_cls.from_cartesian(c)
         with pytest.raises(TypeError):
-            SphericalDifferential.from_cartesian(c, SphericalRepresentation)
+            self.SD_cls.from_cartesian(c, SphericalRepresentation)
         with pytest.raises(TypeError):
-            SphericalDifferential.from_cartesian(c, c)
+            self.SD_cls.from_cartesian(c, c)
 
 
+@pytest.mark.parametrize('omit_coslat', [False, True], scope='class')
 class TestUnitSphericalDifferential():
-    def setup(self):
+    def _setup(self, omit_coslat):
+        if omit_coslat:
+            self.USD_cls = UnitSphericalCosLatDifferential
+        else:
+            self.USD_cls = UnitSphericalDifferential
+
         s = UnitSphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
                                         lat=[0., -30., 85.] * u.deg)
         self.s = s
         self.e = s.unit_vectors()
-        self.sf = s.scale_factors()
+        self.sf = s.scale_factors(omit_coslat=omit_coslat)
 
-    def test_name(self):
-        assert UnitSphericalDifferential.get_name() == 'unitspherical'
-        assert UnitSphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
+    def test_name_coslat(self, omit_coslat):
+        self._setup(omit_coslat)
+        if omit_coslat:
+            assert self.USD_cls is UnitSphericalCosLatDifferential
+            assert self.USD_cls.get_name() == 'unitsphericalcoslat'
+        else:
+            assert self.USD_cls is UnitSphericalDifferential
+            assert self.USD_cls.get_name() == 'unitspherical'
+        assert self.USD_cls.get_name() in DIFFERENTIAL_CLASSES
 
-    def test_simple_differentials(self):
+    def test_simple_differentials(self, omit_coslat):
+        self._setup(omit_coslat)
         s, e, sf = self.s, self.e, self.sf
 
-        o_lon = UnitSphericalDifferential(1.*u.arcsec, 0.*u.arcsec)
+        o_lon = self.USD_cls(1.*u.arcsec, 0.*u.arcsec)
         o_lonc = o_lon.to_cartesian(base=s)
-        o_lon2 = UnitSphericalDifferential.from_cartesian(o_lonc, base=s)
-        assert_quantity_allclose(o_lon.d_lon, o_lon2.d_lon, atol=1.*u.narcsec)
-        assert_quantity_allclose(o_lon.d_lat, o_lon2.d_lat, atol=1.*u.narcsec)
-        # simple check by hand for first element.
+        o_lon2 = self.USD_cls.from_cartesian(o_lonc, base=s)
+        assert_differential_allclose(o_lon, o_lon2)
+        # simple check by hand for first element
+        # (lat[0]=0, so works for both normal and CosLat differential)
         assert_quantity_allclose(o_lonc[0].xyz,
                                  [0., np.pi/180./3600., 0.]*u.one)
         # check all using unit vectors and scale factors.
@@ -706,7 +748,7 @@ class TestUnitSphericalDifferential():
         s_lon2 = s + o_lon
         assert_representation_allclose(s_lon2, s_lon, atol=1e-10*u.one)
 
-        o_lat = UnitSphericalDifferential(0.*u.arcsec, 1.*u.arcsec)
+        o_lat = self.USD_cls(0.*u.arcsec, 1.*u.arcsec)
         o_latc = o_lat.to_cartesian(base=s)
         assert_quantity_allclose(o_latc[0].xyz,
                                  [0., 0., np.pi/180./3600.]*u.one,
@@ -717,12 +759,13 @@ class TestUnitSphericalDifferential():
         s_lat2 = s + o_lat
         assert_representation_allclose(s_lat2, s_lat, atol=1e-10*u.one)
 
-    def test_differential_arithmetic(self):
+    def test_differential_arithmetic(self, omit_coslat):
+        self._setup(omit_coslat)
         s = self.s
 
-        o_lon = UnitSphericalDifferential(1.*u.arcsec, 0.*u.arcsec)
+        o_lon = self.USD_cls(1.*u.arcsec, 0.*u.arcsec)
         o_lon_by_2 = o_lon / 2.
-        assert type(o_lon_by_2) is UnitSphericalDifferential
+        assert type(o_lon_by_2) is self.USD_cls
         assert_representation_allclose(o_lon_by_2.to_cartesian(s) * 2.,
                                        o_lon.to_cartesian(s), atol=1e-10*u.one)
         s_lon = s + o_lon
@@ -730,16 +773,16 @@ class TestUnitSphericalDifferential():
         assert type(s_lon) is SphericalRepresentation
         assert_representation_allclose(s_lon, s_lon2, atol=1e-10*u.one)
         o_lon_rec = o_lon_by_2 + o_lon_by_2
-        assert type(o_lon_rec) is UnitSphericalDifferential
+        assert type(o_lon_rec) is self.USD_cls
         assert representation_equal(o_lon, o_lon_rec)
         assert_representation_allclose(s + o_lon, s + o_lon_rec,
                                        atol=1e-10*u.one)
         o_lon_0 = o_lon - o_lon
-        assert type(o_lon_0) is UnitSphericalDifferential
+        assert type(o_lon_0) is self.USD_cls
         for c in o_lon_0.components:
             assert np.all(getattr(o_lon_0, c) == 0.)
 
-        o_lon2 = UnitSphericalDifferential(1.*u.mas/u.yr, 0.*u.mas/u.yr)
+        o_lon2 = self.USD_cls(1.*u.mas/u.yr, 0.*u.mas/u.yr)
         kks = u.km/u.kpc/u.s
         assert_quantity_allclose(o_lon2.norm(s)[0], 4.74047*kks, atol=1e-4*kks)
         assert_representation_allclose(o_lon2.to_cartesian(s) * 1000.*u.yr,
@@ -748,30 +791,35 @@ class TestUnitSphericalDifferential():
         s_off2 = s + o_lon2 * 1000.*u.yr
         assert_representation_allclose(s_off, s_off2, atol=1e-10*u.one)
 
-        s_off_big = s + o_lon * 1e5 * u.radian/u.arcsec
+        factor = 1e5 * u.radian/u.arcsec
+        if not omit_coslat:
+            factor = factor / np.cos(s.lat)
+        s_off_big = s + o_lon * factor
 
         assert_representation_allclose(
-            s_off_big, SphericalRepresentation(s.lon + 90.*u.deg, 0.*u.deg,
-                                               1e5*np.cos(s.lat)),
+            s_off_big, SphericalRepresentation(s.lon + 90.*u.deg,
+                                               0.*u.deg, 1e5),
             atol=5.*u.one)
 
         o_lon3c = CartesianRepresentation(0., 4.74047, 0., unit=kks)
         # This looses information!!
-        o_lon3 = UnitSphericalDifferential.from_cartesian(o_lon3c, base=s)
-        assert_quantity_allclose(o_lon3.d_lon[0], 1.*u.mas/u.yr,
-                                 atol=1.*u.uas/u.yr)
+        o_lon3 = self.USD_cls.from_cartesian(o_lon3c, base=s)
+        expected0 = self.USD_cls(1.*u.mas/u.yr, 0.*u.mas/u.yr)
+        assert_differential_allclose(o_lon3[0], expected0)
         # Part of motion kept.
         part_kept = s.cross(CartesianRepresentation(0,1,0, unit=u.one)).norm()
         assert_quantity_allclose(o_lon3.norm(s), 4.74047*part_kept*kks,
                                  atol=1e-10*kks)
+        # (lat[0]=0, so works for both normal and CosLat differential)
         s_off_big2 = s + o_lon3 * 1e5 * u.yr * u.radian/u.mas
         expected0 = SphericalRepresentation(90.*u.deg, 0.*u.deg,
                                             1e5*u.one)
         assert_representation_allclose(s_off_big2[0], expected0, atol=5.*u.one)
 
-    def test_differential_init_errors(self):
+    def test_differential_init_errors(self, omit_coslat):
+        self._setup(omit_coslat)
         with pytest.raises(u.UnitsError):
-            UnitSphericalDifferential(0.*u.deg, 10.*u.deg/u.yr)
+            self.USD_cls(0.*u.deg, 10.*u.deg/u.yr)
 
 
 class TestRadialDifferential():
@@ -969,53 +1017,103 @@ class TestCartesianDifferential():
 
 class TestDifferentialConversion():
     def setup(self):
-        s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
-                                    lat=[0., -30., 85.] * u.deg,
-                                    distance=[1, 2, 3] * u.kpc)
-        self.s = s
-        self.e = s.unit_vectors()
-        self.sf = s.scale_factors()
+        self.s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
+                                         lat=[0., -30., 85.] * u.deg,
+                                         distance=[1, 2, 3] * u.kpc)
 
-    def test_represent_as_own_class(self):
-        so = SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
-        so2 = so.represent_as(SphericalDifferential)
+    @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
+                                        SphericalCosLatDifferential])
+    def test_represent_as_own_class(self, sd_cls):
+        so = sd_cls(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+        so2 = so.represent_as(sd_cls)
         assert so2 is so
 
+    def test_represent_other_coslat(self):
+        s = self.s
+        coslat = np.cos(s.lat)
+        so = SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+        so_coslat = so.represent_as(SphericalCosLatDifferential, base=s)
+        assert_quantity_allclose(so.d_lon * coslat,
+                                 so_coslat.d_lon_coslat)
+        so2 = so_coslat.represent_as(SphericalDifferential, base=s)
+        assert np.all(representation_equal(so2, so))
+        so3 = SphericalDifferential.from_representation(so_coslat, base=s)
+        assert np.all(representation_equal(so3, so))
+        so_coslat2 = SphericalCosLatDifferential.from_representation(so, base=s)
+        assert np.all(representation_equal(so_coslat2, so_coslat))
+        # Also test UnitSpherical
+        us = s.represent_as(UnitSphericalRepresentation)
+        uo = so.represent_as(UnitSphericalDifferential)
+        uo_coslat = so.represent_as(UnitSphericalCosLatDifferential, base=s)
+        assert_quantity_allclose(uo.d_lon * coslat,
+                                 uo_coslat.d_lon_coslat)
+        uo2 = uo_coslat.represent_as(UnitSphericalDifferential, base=us)
+        assert np.all(representation_equal(uo2, uo))
+        uo3 = UnitSphericalDifferential.from_representation(uo_coslat, base=us)
+        assert np.all(representation_equal(uo3, uo))
+        uo_coslat2 = UnitSphericalCosLatDifferential.from_representation(
+            uo, base=us)
+        assert np.all(representation_equal(uo_coslat2, uo_coslat))
+        uo_coslat3 = uo.represent_as(UnitSphericalCosLatDifferential, base=us)
+        assert np.all(representation_equal(uo_coslat3, uo_coslat))
+
+
+    @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
+                                        SphericalCosLatDifferential])
     @pytest.mark.parametrize('r_cls', (SphericalRepresentation,
                                        UnitSphericalRepresentation,
                                        PhysicsSphericalRepresentation,
                                        CylindricalRepresentation))
-    def test_represent_regular_class(self, r_cls):
-        so = SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+    def test_represent_regular_class(self, sd_cls, r_cls):
+        so = sd_cls(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
         r = so.represent_as(r_cls, base=self.s)
         c = so.to_cartesian(self.s)
         r_check = c.represent_as(r_cls)
         assert np.all(representation_equal(r, r_check))
-        so2 = SphericalDifferential.from_representation(r, base=self.s)
-        so3 = SphericalDifferential.from_cartesian(r.to_cartesian(), self.s)
+        so2 = sd_cls.from_representation(r, base=self.s)
+        so3 = sd_cls.from_cartesian(r.to_cartesian(), self.s)
         assert np.all(representation_equal(so2, so3))
 
-    def test_convert_physics(self):
-        so = SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
-        po = so.represent_as(PhysicsSphericalDifferential)
-        so2 = SphericalDifferential.from_representation(po)
-        assert representation_equal(so, so2)
-        po2 = PhysicsSphericalDifferential.from_representation(so)
-        assert representation_equal(po, po2)
-        so3 = po.represent_as(SphericalDifferential)
-        assert representation_equal(so, so3)
+    @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
+                                        SphericalCosLatDifferential])
+    def test_convert_physics(self, sd_cls):
+        # Conversion needs no base for SphericalDifferential, but does
+        # need one (to get the latitude) for SphericalCosLatDifferential.
+        if sd_cls is SphericalDifferential:
+            usd_cls = UnitSphericalDifferential
+            base_s = base_u = base_p = None
+        else:
+            usd_cls = UnitSphericalCosLatDifferential
+            base_s = self.s[1]
+            base_u = base_s.represent_as(UnitSphericalRepresentation)
+            base_p = base_s.represent_as(PhysicsSphericalRepresentation)
+
+        so = sd_cls(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+        po = so.represent_as(PhysicsSphericalDifferential, base=base_s)
+        so2 = sd_cls.from_representation(po, base=base_s)
+        assert_differential_allclose(so, so2)
+        po2 = PhysicsSphericalDifferential.from_representation(so, base=base_p)
+        assert_differential_allclose(po, po2)
+        so3 = po.represent_as(sd_cls, base=base_p)
+        assert_differential_allclose(so, so3)
 
         s = self.s
         p = s.represent_as(PhysicsSphericalRepresentation)
-        assert_representation_allclose(s + so, p + po)
+        cso = so.to_cartesian(s[1])
+        cpo = po.to_cartesian(p[1])
+        assert_representation_allclose(cso, cpo)
+        assert_representation_allclose(s[1] + so, p[1] + po)
+        po2 = so.represent_as(PhysicsSphericalDifferential,
+                              base=None if base_s is None else s)
+        assert_representation_allclose(s + so, p + po2)
 
-        suo = UnitSphericalDifferential.from_representation(so)
-        puo = UnitSphericalDifferential.from_representation(po)
-        assert representation_equal(suo, puo)
-        suo2 = so.represent_as(UnitSphericalDifferential)
-        puo2 = po.represent_as(UnitSphericalDifferential)
-        assert representation_equal(suo2, puo2)
-        assert representation_equal(puo, puo2)
+        suo = usd_cls.from_representation(so)
+        puo = usd_cls.from_representation(po, base=base_u)
+        assert_differential_allclose(suo, puo)
+        suo2 = so.represent_as(usd_cls)
+        puo2 = po.represent_as(usd_cls, base=base_p)
+        assert_differential_allclose(suo2, puo2)
+        assert_differential_allclose(puo, puo2)
 
         sro = RadialDifferential.from_representation(so)
         pro = RadialDifferential.from_representation(po)
@@ -1025,56 +1123,69 @@ class TestDifferentialConversion():
         assert representation_equal(sro2, pro2)
         assert representation_equal(pro, pro2)
 
-    def test_convert_unit_spherical_radial(self):
+    @pytest.mark.parametrize(
+        ('sd_cls', 'usd_cls'),
+        [(SphericalDifferential, UnitSphericalDifferential),
+         (SphericalCosLatDifferential, UnitSphericalCosLatDifferential)])
+    def test_convert_unit_spherical_radial(self, sd_cls, usd_cls):
         s = self.s
         us = s.represent_as(UnitSphericalRepresentation)
         rs = s.represent_as(RadialRepresentation)
         assert_representation_allclose(rs * us, s)
 
-        uo = UnitSphericalDifferential(2.*u.deg, 1.*u.deg)
-        so = uo.represent_as(SphericalDifferential, base=s)
+        uo = usd_cls(2.*u.deg, 1.*u.deg)
+        so = uo.represent_as(sd_cls, base=s)
         assert_quantity_allclose(so.d_distance, 0.*u.kpc, atol=1.*u.npc)
-        uo2 = so.represent_as(UnitSphericalDifferential)
+        uo2 = so.represent_as(usd_cls)
         assert_representation_allclose(uo.to_cartesian(us),
                                        uo2.to_cartesian(us))
-        so1 = SphericalDifferential(2.*u.deg, 1.*u.deg, 5.*u.pc)
-        uo_r = so1.represent_as(UnitSphericalDifferential)
+        so1 = sd_cls(2.*u.deg, 1.*u.deg, 5.*u.pc)
+        uo_r = so1.represent_as(usd_cls)
         ro_r = so1.represent_as(RadialDifferential)
         assert np.all(representation_equal(uo_r, uo))
         assert np.all(representation_equal(ro_r, RadialDifferential(5.*u.pc)))
 
-    def test_convert_cylindrial(self):
+    @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
+                                        SphericalCosLatDifferential])
+    def test_convert_cylindrial(self, sd_cls):
         s = self.s
-        so = SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+        so = sd_cls(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
         cyo = so.represent_as(CylindricalDifferential, base=s)
         cy = s.represent_as(CylindricalRepresentation)
-        so1 = cyo.represent_as(SphericalDifferential, base=cy)
+        so1 = cyo.represent_as(sd_cls, base=cy)
         assert_representation_allclose(so.to_cartesian(s),
                                        so1.to_cartesian(s))
         cyo2 = CylindricalDifferential.from_representation(so, base=cy)
         assert_representation_allclose(cyo2.to_cartesian(base=cy),
                                        cyo.to_cartesian(base=cy))
-        so2 = SphericalDifferential.from_representation(cyo2, base=s)
+        so2 = sd_cls.from_representation(cyo2, base=s)
         assert_representation_allclose(so.to_cartesian(s),
                                        so2.to_cartesian(s))
 
-    def test_combinations(self):
-        uo = UnitSphericalDifferential(2.*u.deg, 1.*u.deg)
+    @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
+                                        SphericalCosLatDifferential])
+    def test_combinations(self, sd_cls):
+        if sd_cls is SphericalDifferential:
+            uo = UnitSphericalDifferential(2.*u.deg, 1.*u.deg)
+            uo_d_lon = uo.d_lon
+        else:
+            uo = UnitSphericalCosLatDifferential(2.*u.deg, 1.*u.deg)
+            uo_d_lon = uo.d_lon_coslat
         ro = RadialDifferential(1.*u.mpc)
         so1 = uo + ro
-        so1c = SphericalDifferential(uo.d_lon, uo.d_lat, ro.d_distance)
+        so1c = sd_cls(uo_d_lon, uo.d_lat, ro.d_distance)
         assert np.all(representation_equal(so1, so1c))
 
         so2 = uo - ro
-        so2c = SphericalDifferential(uo.d_lon, uo.d_lat, -ro.d_distance)
+        so2c = sd_cls(uo_d_lon, uo.d_lat, -ro.d_distance)
         assert np.all(representation_equal(so2, so2c))
         so3 = so2 + ro
-        so3c = SphericalDifferential(uo.d_lon, uo.d_lat, 0.*u.kpc)
+        so3c = sd_cls(uo_d_lon, uo.d_lat, 0.*u.kpc)
         assert np.all(representation_equal(so3, so3c))
         so4 = so1 + ro
-        so4c = SphericalDifferential(uo.d_lon, uo.d_lat, 2*ro.d_distance)
+        so4c = sd_cls(uo_d_lon, uo.d_lat, 2*ro.d_distance)
         assert np.all(representation_equal(so4, so4c))
         so5 = so1 - uo
-        so5c = SphericalDifferential(0*u.deg, 0.*u.deg, ro.d_distance)
+        so5c = sd_cls(0*u.deg, 0.*u.deg, ro.d_distance)
         assert np.all(representation_equal(so5, so5c))
         assert_representation_allclose(self.s + (uo+ro), self.s+so1)

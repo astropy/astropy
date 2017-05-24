@@ -274,8 +274,41 @@ Often, one has just a proper motion or a radial velocity, but not both::
       ( 0.00239684,  0.,  2.02271798)>
 
 Note in the above that the proper motion is defined strictly as a change in
-longitude, i.e., it does not include a ``cos(latitude)`` term.
+longitude, i.e., it does not include a ``cos(latitude)`` term. There are
+special classes where that terms is included::
 
+  >>> from astropy.coordinates import UnitSphericalCosLatDifferential
+  >>> sph_lat60 = SphericalRepresentation(lon=0.*u.deg, lat=60.*u.deg,
+  ...                                     distance=1.*u.kpc)
+  >>> pm = UnitSphericalDifferential(1.*u.mas/u.yr, 0.*u.mas/u.yr)
+  >>> pm
+  <UnitSphericalDifferential (d_lon, d_lat) in mas / yr
+      ( 1.,  0.)>
+  >>> pm_coslat = UnitSphericalCosLatDifferential(1.*u.mas/u.yr, 0.*u.mas/u.yr)
+  >>> pm_coslat
+  <UnitSphericalCosLatDifferential (d_lon_coslat, d_lat) in mas / yr
+      ( 1.,  0.)>
+  >>> sph_lat60 + pm * 1. * u.Myr  # doctest: +FLOAT_CMP
+  <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
+      ( 0.0048481,  1.04719246,  1.00000294)>
+  >>> sph_lat60 + pm_coslat * 1. * u.Myr  # doctest: +FLOAT_CMP
+  <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
+      ( 0.00969597,  1.0471772,  1.00001175)>
+
+Close inspections shows that indeed the changes are as expected.  The systems
+with and without ``cos(latitute)`` can be converted to each other, provided one
+provides the ``base``::
+
+  >>> usph_lat60 = sph_lat60.represent_as(UnitSphericalRepresentation)
+  >>> pm_coslat2 = pm.represent_as(UnitSphericalCosLatDifferential,
+  ...                              base=usph_lat60)
+  >>> pm_coslat2  # doctest: +FLOAT_CMP
+  <UnitSphericalCosLatDifferential (d_lon_coslat, d_lat) in mas / yr
+      ( 0.5,  0.)>
+  >>> sph_lat60 + pm_coslat2 * 1. * u.Myr  # doctest: +FLOAT_CMP
+  <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
+      ( 0.0048481,  1.04719246,  1.00000294)>
+  
 .. _astropy-coordinates-create-repr:
 
 Creating your own representations
