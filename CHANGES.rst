@@ -102,8 +102,8 @@ New Features
     a ``Quantity`` angle or angular speed passed in to the argument ``x``.
     [#5653]
 
-  - Added a new equivalence between g/mol to atomic mass units.
-    [#6040, #6113]
+  - Added a new equivalence ``molar_mass_amu`` between g/mol to
+    atomic mass units. [#6040, #6113]
 
 - ``astropy.utils``
 

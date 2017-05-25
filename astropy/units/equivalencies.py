@@ -428,7 +428,7 @@ def doppler_relativistic(rest):
 
 def molar_mass_amu():
     """
-     Returns the equivalence between amu and molar mass.
+    Returns the equivalence between amu and molar mass.
     """
     return [
         (si.g/si.mol, astrophys.u)
