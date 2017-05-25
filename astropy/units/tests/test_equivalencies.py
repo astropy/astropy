@@ -5,6 +5,7 @@
 
 
 # THIRD-PARTY
+import warnings
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
@@ -530,6 +531,23 @@ def test_beam():
     new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
     np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
     assert new_beam.unit.is_equivalent(u.sr)
+
+def test_swapped_args_brightness_temperature():
+    """
+    #5173 changes the order of arguments but accepts the old (deprecated) args
+    """
+    omega_B = np.pi * (50 * u.arcsec) ** 2
+    nu = u.GHz * 5
+    tb = 7.05258885885 * u.K
+    # https://docs.pytest.org/en/latest/warnings.html#ensuring-function-triggers
+    with warnings.catch_warnings():
+        warnings.simplefilter('always')
+        with pytest.warns(DeprecationWarning) as warning_list:
+            result = (1*u.Jy).to(u.K,
+                                 equivalencies=u.brightness_temperature(omega_B,
+                                                                        nu))
+    assert len(warning_list) == 1
+    np.testing.assert_almost_equal(tb.value, result.value)
 
 def test_surfacebrightness():
     sb = 50*u.MJy/u.sr
