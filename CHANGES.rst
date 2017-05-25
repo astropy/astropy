@@ -102,6 +102,9 @@ New Features
     a ``Quantity`` angle or angular speed passed in to the argument ``x``.
     [#5653]
 
+  - Added a new equivalence ``molar_mass_amu`` between g/mol to
+    atomic mass units. [#6040, #6113]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
