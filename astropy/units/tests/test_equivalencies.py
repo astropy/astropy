@@ -520,16 +520,16 @@ def test_brightness_temperature():
     tb = 7.052590289134352 * u.K
     np.testing.assert_almost_equal(
         tb.value, (1 * u.Jy).to_value(
-            u.K, equivalencies=u.brightness_temperature(omega_B, nu)))
+            u.K, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
     np.testing.assert_almost_equal(
         1.0, tb.to_value(
-            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)))
+            u.Jy, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
 
 def test_beam():
     omega_B = np.pi * (50 * u.arcsec) ** 2
-    new_beam = (5*u.beam).to(u.sr, u.beam_angular_area(omega_B))
-    np.testing.assert_almost_equal(omega_B.value * 5, new_beam.value)
-    assert new_beam.is_equivalent(u.sr)
+    new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
+    assert new_beam.unit.is_equivalent(u.sr)
 
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
