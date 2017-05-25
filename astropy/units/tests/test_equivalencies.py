@@ -531,6 +531,12 @@ def test_beam():
     np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
     assert new_beam.unit.is_equivalent(u.sr)
 
+def test_surfacebrightness():
+    sb = 50*u.MJy/u.sr
+    k = sb.to(u.K, u.brightness_temperature(50*u.GHz))
+    np.testing.assert_almost_equal(k.value, 0.6509658203714207)
+    assert k.unit.is_equivalent(u.K)
+
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
         phase = u.Quantity(1., u.cycle)

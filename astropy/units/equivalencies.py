@@ -494,6 +494,12 @@ def brightness_temperature(disp, beam_area=None):
         >>> equiv = u.brightness_temperature(freq, beam_area)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
         217.2658703625732
+
+    Any generic surface brightness:
+
+        >>> surf_brightness = 1e6*u.MJy/u.sr
+        >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz))
+        <Quantity 130.19316407428414 K>
     """
     nu = disp.to(si.GHz, spectral())
 
@@ -519,7 +525,7 @@ def brightness_temperature(disp, beam_area=None):
             factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
             return (x_K / factor) # multiplied by 1x for 1 steradian
 
-        return [(astrophys.Jy/u.sr, si.K, convert_JySr_to_K, convert_K_to_JySr), ]
+        return [(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr), ]
 
 def beam_angular_area(beam_area):
     """
