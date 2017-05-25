@@ -252,6 +252,24 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     <Quantity 86.17332384960955 eV>
 
 
+Molar Mass AMU Equivalency
+--------------------------
+
+This equivalency allows conversion
+between the atomic mass unit and the equivalent g/mol.
+For reference to why this was added,
+refer to `NIST Mole Reference <http://physics.nist.gov/cuu/Units/mole.html>`_
+The following is an example of it's usage:
+
+    >>> import astropy.units as u
+    >>> import astropy.constants as const
+    >>> x = 1 * (u.g / u.mol)
+    >>> y = 1 * u.u
+    >>> x.to(u.u, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    <Quantity 1.0 u>
+    >>> y.to(u.g/u.mol, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    <Quantity 1.0 g / mol>
+
 Pixel and plate scale Equivalencies
 -----------------------------------
 
