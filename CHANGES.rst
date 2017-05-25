@@ -321,10 +321,10 @@ Bug Fixes
 
 - ``astropy.table``
 
-- ``astropy.tests``
+  - Fix problem with Table pprint/pformat raising an exception for
+    non-UTF-8 compliant bytestring data. [#6117]
 
-  - Fix problem with Table pprint/pformat raising an exception
-    for non-UTF-8 compliant bytestring data. [#6117]
+- ``astropy.tests``
 
 - ``astropy.time``
 
