@@ -265,9 +265,9 @@ The following is an example of it's usage:
     >>> import astropy.constants as const
     >>> x = 1 * (u.g / u.mol)
     >>> y = 1 * u.u
-    >>> x.to(u.u, equivalencies = u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    >>> x.to(u.u, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
     <Quantity 1.0 u>
-    >>> y.to(u.g/u.mol, equivalencies = u.molar_mass_amu()) # doctest: +FLOAT_CMP
+    >>> y.to(u.g/u.mol, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
     <Quantity 1.0 g / mol>
 
 Pixel and plate scale Equivalencies
