@@ -3,6 +3,7 @@
 
 # THIRD-PARTY
 import numpy as np
+import warnings
 
 # LOCAL
 from ..constants import si as _si
@@ -501,6 +502,16 @@ def brightness_temperature(disp, beam_area=None):
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz))
         <Quantity 130.19316407428414 K>
     """
+    if disp.unit.is_equivalent(si.sr):
+        if not beam_area.unit.is_equivalent(si.Hz):
+            raise ValueError("The inputs to `brightness_temperature` are "
+                             "frequency and angular area.")
+        warnings.warn("The inputs to `brightness_temperature` have changed. "
+                      "Frequency is now the first input, and angular area "
+                      "is the second, optional input.",
+                      DeprecationWarning)
+        disp, beam_area = beam_area, disp
+
     nu = disp.to(si.GHz, spectral())
 
     if beam_area is not None:
