@@ -684,6 +684,11 @@ class Model(object):
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True)
 
+        for index, tied in enumerate([self.tied[pname]
+                                      for pname in self.param_names]):
+            if tied is not False:
+                parameters[index] = tied(self)
+
         outputs = self.evaluate(*chain(inputs, parameters))
 
         if self.n_outputs == 1:
