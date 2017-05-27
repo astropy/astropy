@@ -684,3 +684,13 @@ def test_auto_format_func():
 
     qt = QTable(t)
     qt.pformat()  # Generates exception prior to #5802
+
+
+def test_decode_replace():
+    """
+    Test printing a bytestring column with a value that fails
+    decoding to utf-8 and gets replaced by U+FFFD.  See
+    https://docs.python.org/3/library/codecs.html#codecs.replace_errors
+    """
+    t = Table([[b'Z\xf0']])
+    assert t.pformat() == [u'col0', u'----', u'  Z\ufffd']
