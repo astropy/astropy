@@ -272,6 +272,8 @@ Bug Fixes
 - ``astropy.table``
 
   - Fix ``auto_download`` setting ignored in ``Time.ut1``. [#6033]
+  - Fix problem with Table pprint/pformat raising an exception for
+    non-UTF-8 compliant bytestring data. [#6117]
 
 - ``astropy.tests``
 
