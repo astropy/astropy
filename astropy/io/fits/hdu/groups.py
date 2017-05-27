@@ -569,7 +569,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
     def _summary(self):
         summary = super(GroupsHDU, self)._summary()
-        name, classname, length, shape, format, gcount = summary
+        name, ver, classname, length, shape, format, gcount = summary
 
         # Drop the first axis from the shape
         if shape:
@@ -581,7 +581,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # Update the GCOUNT report
         gcount = '{} Groups  {} Parameters'.format(self._gcount, self._pcount)
-        return (name, classname, length, shape, format, gcount)
+        return (name, ver, classname, length, shape, format, gcount)
 
 
 def _par_indices(names):

@@ -1622,7 +1622,7 @@ class CompImageHDU(BinTableHDU):
 
             _format = BITPIX2DTYPE[self.header['BITPIX']]
 
-        return (self.name, class_name, len(self.header), _shape,
+        return (self.name, self.ver, class_name, len(self.header), _shape,
                 _format)
 
     def _update_compressed_data(self):
