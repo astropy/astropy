@@ -77,7 +77,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert hdul.info(output=False) == info
 
         hdul.writeto(self.temp('test-append.fits'))
@@ -90,7 +90,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (100,), 'int32', '')]
         assert hdul.info(output=False) == info
 
         hdul.writeto(self.temp('test-append.fits'))
@@ -103,8 +103,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdul1 = fits.open(self.data('tb.fits'))
         hdul.append(hdul1[1])
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -119,7 +119,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.GroupsHDU()
         hdul.append(hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
@@ -135,8 +135,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.append(hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -150,9 +150,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.append(hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -176,7 +176,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -191,7 +191,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -206,8 +206,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdul1 = fits.open(self.data('tb.fits'))
         hdul.insert(0, hdul1[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -222,7 +222,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.GroupsHDU()
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
@@ -238,8 +238,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul.insert(1, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 7, (11, 10, 7), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         assert hdul.info(output=False) == info
 
@@ -253,9 +253,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.insert(1, hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 11, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 11, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -274,9 +274,9 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(ValueError):
             hdul.insert(1, hdu)
 
-        info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), '',
+        info = [(0, 'PRIMARY', 1, 'GroupsHDU', 8, (), '',
                  '1 Groups  0 Parameters'),
-                (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
+                (1, '', 1, 'ImageHDU', 6, (100,), 'int32', '')]
 
         hdul.insert(0, hdu)
 
@@ -303,10 +303,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('tb.fits'))
         hdul.insert(0, hdul[1])
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
-                (1, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
-                (2, '', 'ImageHDU', 12, (), '', ''),
-                (3, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', ''),
+                (2, '', 1, 'ImageHDU', 12, (), '', ''),
+                (3, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -324,9 +324,9 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', ''),
-                (1, '', 'ImageHDU', 12, (), '', ''),
-                (2, '', 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', ''),
+                (1, '', 1, 'ImageHDU', 12, (), '', ''),
+                (2, '', 1, 'BinTableHDU', 24, '2R x 4C', '[1J, 3A, 1E, 1L]', '')]
 
         assert hdul.info(output=False) == info
 
@@ -354,7 +354,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.writeto(tmpfile)
         tmpfile.close()
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
 
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
@@ -367,14 +367,14 @@ class TestHDUListFunctions(FitsTestCase):
         tmpfile.close()
         hdul.close()
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_file_like_3(self):
         tmpfile = open(self.temp('tmpfile.fits'), 'wb')
         fits.writeto(tmpfile, np.arange(100, dtype=np.int32))
         tmpfile.close()
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
+        info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 5, (100,), 'int32', '')]
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_new_hdu_extname(self):
