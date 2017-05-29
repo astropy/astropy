@@ -817,7 +817,7 @@ class Quantity(np.ndarray):
 
         See also
         --------
-        :meth:`Quantity.to_value` : get the numerical value in a given unit.
+        to_value : get the numerical value in a given unit.
         """
         # We don't use `to_value` below since we always want to make a copy
         # and don't want to slow down this method (esp. the scalar case).
@@ -830,7 +830,7 @@ class Quantity(np.ndarray):
 
     def to_value(self, unit=None, equivalencies=[]):
         """
-        The numerical value of the quantity, possibly in a different unit.
+        The numerical value, possibly in a different unit.
 
         Parameters
         ----------
@@ -854,7 +854,7 @@ class Quantity(np.ndarray):
 
         See also
         --------
-        :meth:`Quantity.to` : Get a new `Quantity` in a different unit.
+        to : Get a new instance in a different unit.
         """
         value = self.view(np.ndarray)
         if unit is not None:
@@ -866,11 +866,11 @@ class Quantity(np.ndarray):
         return value if self.shape else value.item()
 
     value = property(to_value,
-                     doc="""The numerical value of this quantity.
+                     doc="""The numerical value of this instance.
 
     See also
     --------
-    :meth:`Quantity.to_value` : Get the numerical value in a given unit.
+    to_value : Get the numerical value in a given unit.
     """)
 
     @property
