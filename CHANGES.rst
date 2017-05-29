@@ -2241,62 +2241,15 @@ Other Changes and Additions
   filtering mechanisms). [#3779]
 
 
-1.0.13 (unreleased)
+1.0.13 (2017-05-29)
 -------------------
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.extern``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
-  -  Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
+  - Fix use of quantize level parameter for ``CompImageHDU``. [#6029]
 
   - Prevent crash when a header contains non-ASCII (e.g. UTF-8) characters, to
     allow fixing the problematic cards. [#6084]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.0.12 (2017-03-05)
