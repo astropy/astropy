@@ -82,6 +82,13 @@ convert the |quantity| to base S.I. or c.g.s units:
     >>> q.cgs
     <Quantity 240.0 cm / s>
 
+If you want the value of the quantity in a different unit, you can use
+:meth:`~astropy.units.Quantity.to_value` as a short-cut:
+
+    >>> q = 2.5 * u.m
+    >>> q.to_value(u.cm)
+    250.0
+
 .. _plotting-quantities:
 
 Plotting quantities
