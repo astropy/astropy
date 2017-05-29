@@ -126,6 +126,7 @@ packages that use the full bugfix/maintenance branch approach.)
    following your default umask::
 
      $ umask 0022
+     $ chmod -R a+Xr .
 
 #. Create the source distribution by doing::
 
