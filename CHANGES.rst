@@ -55,6 +55,10 @@ New Features
 
   - Added ``biweight_midcovariance`` method. [#5777]
 
+  - ``median_absolute_deviation`` and ``mad_std`` have ``ignore_nan`` option
+    that will use ``np.ma.median`` with nans masked out or ``np.nanmedian``
+    instead of ``np.median`` when computing the median. [#5232]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
@@ -97,9 +101,6 @@ API Changes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
-
-  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
-    [#5929]
 
 - ``astropy.io.misc``
 
@@ -156,12 +157,6 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
-
-  - Fixed a bug where ``StaticMatrixTransform`` erroneously copied frame
-    attributes from the input coordinate to the output frame. In practice, this
-    didn't actually affect any transforms in Astropy but may change behavior for
-    users who explicitly used the ``StaticMatrixTransform`` in their own code.
-    [#6045]
 
 - ``astropy.cosmology``
 
@@ -241,6 +236,15 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where ``StaticMatrixTransform`` erroneously copied frame
+    attributes from the input coordinate to the output frame. In practice, this
+    didn't actually affect any transforms in Astropy but may change behavior for
+    users who explicitly used the ``StaticMatrixTransform`` in their own code.
+    [#6045]
+
+  - Fixed ``get_icrs_coordinates`` to loop through all the urls in case one
+    raises an exception. [#5864]
+
 - ``astropy.cosmology``
 
 - ``astropy.extern``
@@ -256,6 +260,9 @@ Bug Fixes
 
   - Extension headers are written out properly when the ``fits.update()``
     convenience function is used. [#6058]
+
+  - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
+    [#5929]
 
 - ``astropy.io.misc``
 
@@ -280,6 +287,8 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Allow strings 'nan' and 'inf' as Quantity inputs. [#5958]
 
   - Add support for ``positive`` and ``divmod`` ufuncs (new in numpy 1.13).
     [#5998, #6020, #6116]
