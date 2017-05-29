@@ -254,6 +254,18 @@ class TestInput():
         else:
             assert not np.all(isclose_m14(location.z.value, self.z.value))
 
+        def test_to_value(self):
+            loc = self.location
+            loc_ndarray = loc.view(np.ndarray)
+            assert np.all(loc.value == loc_ndarray)
+            loc2 = self.location.to(u.km)
+            loc2_ndarray = np.empty_like(loc_ndarray)
+            for coo in 'x', 'y', 'z':
+                loc2_ndarray[coo] = loc_ndarray[coo] / 1000.
+            assert np.all(loc2.value == loc2_ndarray)
+            loc2_value = self.location.to_value(u.km)
+            assert np.all(loc2_value == loc2_ndarray)
+
 
 def test_pickling():
     """Regression test against #4304."""

@@ -796,6 +796,13 @@ class Quantity(np.ndarray):
 
     info = QuantityInfo()
 
+    def _to_value(self, unit, equivalencies=[]):
+        """Helper method for to and to_value."""
+        if equivalencies == []:
+            equivalencies = self._equivalencies
+        return self.unit.to(unit, self.view(np.ndarray),
+                            equivalencies=equivalencies)
+
     def to(self, unit, equivalencies=[]):
         """
         Return a new `~astropy.units.Quantity` object with the specified unit.
@@ -822,11 +829,7 @@ class Quantity(np.ndarray):
         # We don't use `to_value` below since we always want to make a copy
         # and don't want to slow down this method (esp. the scalar case).
         unit = Unit(unit)
-        if equivalencies == []:
-            equivalencies = self._equivalencies
-        new_val = self.unit.to(unit, self.view(np.ndarray),
-                               equivalencies=equivalencies)
-        return self._new_view(new_val, unit)
+        return self._new_view(self._to_value(unit, equivalencies), unit)
 
     def to_value(self, unit=None, equivalencies=[]):
         """
@@ -860,9 +863,7 @@ class Quantity(np.ndarray):
         if unit is not None:
             unit = Unit(unit)
             if unit != self.unit:
-                if equivalencies == []:
-                    equivalencies = self._equivalencies
-                value = self.unit.to(unit, value, equivalencies=equivalencies)
+                value = self._to_value(unit, equivalencies)
         return value if self.shape else value.item()
 
     value = property(to_value,
