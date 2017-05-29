@@ -703,6 +703,16 @@ class TestQuantityComparison(object):
 
         assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
 
+    def test_quantity_is_equivalent(self):
+        assert u.Quantity(10, unit='m').is_equivalent(u.Quantity(1, unit='cm'))
+        assert u.Quantity(10, unit='m').is_equivalent(u.pc)
+        assert u.Quantity(10, unit='kg').is_equivalent('g')
+
+        assert not u.Quantity(10, unit='m').is_equivalent(u.Quantity(1, unit='mag'))
+        assert not u.Quantity(10, unit='m').is_equivalent(u.arcsec)
+
+        assert u.Quantity(10, unit='Hz').is_equivalent(u.m, equivalencies=(u.spectral()))
+
 
 class TestQuantityDisplay(object):
     scalarintq = u.Quantity(1, unit='m', dtype=int)
