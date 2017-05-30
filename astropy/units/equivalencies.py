@@ -112,7 +112,7 @@ def spectral_density(wav, factor=None):
                 'If `wav` is specified as a unit, `factor` should be set')
         wav = factor * wav   # Convert to Quantity
 
-    c_Aps = _si.c.to(si.AA / si.s).value  # Angstrom/s
+    c_Aps = _si.c.to_value(si.AA / si.s)  # Angstrom/s
     h_cgs = _si.h.cgs.value  # erg * s
     hc = c_Aps * h_cgs
 
@@ -133,49 +133,49 @@ def spectral_density(wav, factor=None):
     phot_L_nu = astrophys.photon / (si.s * si.Hz)
 
     def converter(x):
-        return x * (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
+        return x * (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
     def iconverter(x):
-        return x / (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
+        return x / (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
     def converter_f_nu_to_nu_f_nu(x):
-        return x * wav.to(si.Hz, spectral()).value
+        return x * wav.to_value(si.Hz, spectral())
 
     def iconverter_f_nu_to_nu_f_nu(x):
-        return x / wav.to(si.Hz, spectral()).value
+        return x / wav.to_value(si.Hz, spectral())
 
     def converter_f_la_to_la_f_la(x):
-        return x * wav.to(si.AA, spectral()).value
+        return x * wav.to_value(si.AA, spectral())
 
     def iconverter_f_la_to_la_f_la(x):
-        return x / wav.to(si.AA, spectral()).value
+        return x / wav.to_value(si.AA, spectral())
 
     def converter_phot_f_la_to_f_la(x):
-        return hc * x / wav.to(si.AA, spectral()).value
+        return hc * x / wav.to_value(si.AA, spectral())
 
     def iconverter_phot_f_la_to_f_la(x):
-        return x * wav.to(si.AA, spectral()).value / hc
+        return x * wav.to_value(si.AA, spectral()) / hc
 
     def converter_phot_f_la_to_f_nu(x):
-        return h_cgs * x * wav.to(si.AA, spectral()).value
+        return h_cgs * x * wav.to_value(si.AA, spectral())
 
     def iconverter_phot_f_la_to_f_nu(x):
-        return x / (wav.to(si.AA, spectral()).value * h_cgs)
+        return x / (wav.to_value(si.AA, spectral()) * h_cgs)
 
     def converter_phot_f_la_phot_f_nu(x):
-        return x * wav.to(si.AA, spectral()).value ** 2 / c_Aps
+        return x * wav.to_value(si.AA, spectral()) ** 2 / c_Aps
 
     def iconverter_phot_f_la_phot_f_nu(x):
-        return c_Aps * x / wav.to(si.AA, spectral()).value ** 2
+        return c_Aps * x / wav.to_value(si.AA, spectral()) ** 2
 
     converter_phot_f_nu_to_f_nu = converter_phot_f_la_to_f_la
     iconverter_phot_f_nu_to_f_nu = iconverter_phot_f_la_to_f_la
 
     def converter_phot_f_nu_to_f_la(x):
-        return x * hc * c_Aps / wav.to(si.AA, spectral()).value ** 3
+        return x * hc * c_Aps / wav.to_value(si.AA, spectral()) ** 3
 
     def iconverter_phot_f_nu_to_f_la(x):
-        return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
+        return x * wav.to_value(si.AA, spectral()) ** 3 / (hc * c_Aps)
 
     # for luminosity density
     converter_L_nu_to_nu_L_nu = converter_f_nu_to_nu_f_nu
@@ -247,33 +247,33 @@ def doppler_radio(rest):
 
     assert_is_spectral_unit(rest)
 
-    ckms = _si.c.to('km/s').value
+    ckms = _si.c.to_value('km/s')
 
     def to_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         return (restfreq-x) / (restfreq) * ckms
 
     def from_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         voverc = x/ckms
         return restfreq * (1-voverc)
 
 
     def to_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         return (x-restwav) / (x) * ckms
 
     def from_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         return restwav * ckms / (ckms-x)
 
 
     def to_vel_en(x):
-        resten = rest.to(si.eV, equivalencies=spectral()).value
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         return (resten-x) / (resten) * ckms
 
     def from_vel_en(x):
-        resten = rest.to(si.eV, equivalencies=spectral()).value
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         voverc = x/ckms
         return resten * (1-voverc)
 
@@ -314,34 +314,34 @@ def doppler_optical(rest):
 
     assert_is_spectral_unit(rest)
 
-    ckms = _si.c.to('km/s').value
+    ckms = _si.c.to_value('km/s')
 
     def to_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         return ckms * (restfreq-x) / x
 
     def from_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         voverc = x/ckms
         return restfreq / (1+voverc)
 
 
     def to_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         return ckms * (x/restwav-1)
 
     def from_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         voverc = x/ckms
         return restwav * (1+voverc)
 
 
     def to_vel_en(x):
-        resten = rest.to(si.eV, equivalencies=spectral()).value
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         return ckms * (resten-x) / x
 
     def from_vel_en(x):
-        resten = rest.to(si.eV, equivalencies=spectral()).value
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         voverc = x/ckms
         return resten / (1+voverc)
 
@@ -389,34 +389,34 @@ def doppler_relativistic(rest):
 
     assert_is_spectral_unit(rest)
 
-    ckms = _si.c.to('km/s').value
+    ckms = _si.c.to_value('km/s')
 
     def to_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         return (restfreq**2-x**2) / (restfreq**2+x**2) * ckms
 
     def from_vel_freq(x):
-        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         voverc = x/ckms
         return restfreq * ((1-voverc) / (1+(voverc)))**0.5
 
 
     def to_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         return (x**2-restwav**2) / (restwav**2+x**2) * ckms
 
     def from_vel_wav(x):
-        restwav = rest.to(si.AA, spectral()).value
+        restwav = rest.to_value(si.AA, spectral())
         voverc = x/ckms
         return restwav * ((1+voverc) / (1-voverc))**0.5
 
 
     def to_vel_en(x):
-        resten = rest.to(si.eV, spectral()).value
+        resten = rest.to_value(si.eV, spectral())
         return (resten**2-x**2) / (resten**2+x**2) * ckms
 
     def from_vel_en(x):
-        resten = rest.to(si.eV, spectral()).value
+        resten = rest.to_value(si.eV, spectral())
         voverc = x/ckms
         return resten * ((1-voverc) / (1+(voverc)))**0.5
 
@@ -501,15 +501,15 @@ def brightness_temperature(beam_area, disp):
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
         217.2658703625732
     """
-    beam = beam_area.to(si.sr).value
+    beam = beam_area.to_value(si.sr)
     nu = disp.to(si.GHz, spectral())
 
     def convert_Jy_to_K(x_jybm):
-        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
         return (x_jybm / beam / factor)
 
     def convert_K_to_Jy(x_K):
-        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to_value(si.K)
         return (x_K * beam / factor)
 
     return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
@@ -530,8 +530,8 @@ def temperature():
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
     return [
-        (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
-         lambda x: x * (_si.e.value / _si.k_B))]
+        (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B.value),
+         lambda x: x * (_si.e.value / _si.k_B.value))]
 
 
 def assert_is_spectral_unit(value):
@@ -553,9 +553,9 @@ def pixel_scale(pixscale):
         The pixel scale either in units of angle/pixel or pixel/angle.
     """
     if pixscale.unit.is_equivalent(si.arcsec/astrophys.pix):
-        pixscale_val = pixscale.to(si.radian/astrophys.pix).value
+        pixscale_val = pixscale.to_value(si.radian/astrophys.pix)
     elif pixscale.unit.is_equivalent(astrophys.pix/si.arcsec):
-        pixscale_val = (1/pixscale).to(si.radian/astrophys.pix).value
+        pixscale_val = (1/pixscale).to_value(si.radian/astrophys.pix)
     else:
         raise UnitsError("The pixel scale must be in angle/pixel or "
                          "pixel/angle")
@@ -574,9 +574,9 @@ def plate_scale(platescale):
         The pixel scale either in units of distance/pixel or distance/angle.
     """
     if platescale.unit.is_equivalent(si.arcsec/si.m):
-        platescale_val = platescale.to(si.radian/si.m).value
+        platescale_val = platescale.to_value(si.radian/si.m)
     elif platescale.unit.is_equivalent(si.m/si.arcsec):
-        platescale_val = (1/platescale).to(si.radian/si.m).value
+        platescale_val = (1/platescale).to_value(si.radian/si.m)
     else:
         raise UnitsError("The pixel scale must be in angle/distance or "
                          "distance/angle")
