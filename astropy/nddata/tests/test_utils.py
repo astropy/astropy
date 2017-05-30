@@ -336,8 +336,8 @@ class TestCutout2D(object):
         wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                         [scale*np.sin(rho), scale*np.cos(rho)]]
         wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-        wcs.wcs.crval = [self.position.ra.to(u.deg).value,
-                         self.position.dec.to(u.deg).value]
+        wcs.wcs.crval = [self.position.ra.to_value(u.deg),
+                         self.position.dec.to_value(u.deg)]
         wcs.wcs.crpix = [3, 3]
         self.wcs = wcs
 

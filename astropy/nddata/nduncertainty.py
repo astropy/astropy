@@ -449,7 +449,7 @@ class StdDevUncertainty(NDUncertainty):
             if self.unit is not None and self.unit != self.parent_nddata.unit:
                 # If the uncertainty has a different unit than the result we
                 # need to convert it to the results unit.
-                return (self.array * self.unit).to(result_data.unit).value
+                return self.unit.to(result_data.unit, self.array)
             else:
                 # Copy the result because _propagate will not copy it but for
                 # arithmetic operations users will expect copies.
@@ -482,12 +482,9 @@ class StdDevUncertainty(NDUncertainty):
 
             if isinstance(result, Quantity):
                 # In case we worked with quantities we need to return the
-                # uncertainty that has the same unit as the resulting data
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    # Convert it to the data's unit and then drop the unit.
-                    return result.to(result_data.unit).value
+                # uncertainty that has the same unit as the resulting data.
+                # Note that this call is fast if the units are the same.
+                return result.to_value(result_data.unit)
             else:
                 return result
 
@@ -504,7 +501,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(other_uncert.array)
         elif other_uncert.array is None:
             if self.unit is not None and self.unit != self.parent_nddata.unit:
-                return (self.array * self.unit).to(result_data.unit).value
+                return self.unit.to(result_data.unit, self.array)
             else:
                 return deepcopy(self.array)
         else:
@@ -523,10 +520,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 result = np.sqrt(this**2 + other**2)
             if isinstance(result, Quantity):
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    return result.to(result_data.unit).value
+                return result.to_value(result_data.unit)
             else:
                 return result
 
