@@ -863,6 +863,23 @@ def test_repr_latex():
     assert '...' in bigarrangle._repr_latex_()
 
 
+def test_rotation_matrix_deprecation():
+    with catch_warnings(AstropyDeprecationWarning):
+        m = rotation_matrix(0.*u.deg, 'x')
+    assert isinstance(m, np.matrix)
+    assert_array_equal(m, np.eye(3))
+
+
+def test_angle_axis_deprecation():
+    m = np.matrix([[0., 1., 0,],
+                   [-1, 0., 0.],
+                   [0., 0., 1.]])
+    with catch_warnings(AstropyDeprecationWarning):
+        an1, ax1 = angle_axis(m)
+    assert_allclose(an1.to_value(u.deg), 90.)
+    assert_allclose(ax1, [0., 0., 1.])
+
+
 def test_angle_with_cds_units_enabled():
     """Regression test for #5350
 

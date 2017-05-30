@@ -252,7 +252,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     kdt1 = _get_cartesian_kdtree(coords1, storekdtree, forceunit=cunit)
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
-    d = distlimit.to(cunit).value
+    d = distlimit.to_value(cunit)
 
     idxs1 = []
     idxs2 = []

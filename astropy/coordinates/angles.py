@@ -297,13 +297,13 @@ class Angle(u.SpecificTypeQuantity):
 
         elif unit.is_equivalent(u.radian):
             if decimal:
-                values = self.to(unit).value
+                values = self.to_value(unit)
                 if precision is not None:
                     func = ("{0:1." + str(precision) + "f}").format
                 else:
                     func = "{0:g}".format
             elif sep == 'fromunit':
-                values = self.to(unit).value
+                values = self.to_value(unit)
                 unit_string = unit.to_string(format=format)
                 if format == 'latex':
                     unit_string = unit_string[1:-1]
@@ -618,7 +618,7 @@ class Longitude(Angle):
         # this Angle, then do all the math on raw Numpy arrays rather
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = self.wrap_angle.to(self.unit).value
+        wrap_angle = self.wrap_angle.to_value(self.unit)
         wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
         # Do the wrapping, but only if any angles need to be wrapped
