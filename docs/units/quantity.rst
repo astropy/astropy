@@ -89,6 +89,14 @@ If you want the value of the quantity in a different unit, you can use
     >>> q.to_value(u.cm)
     250.0
 
+.. note:: You could get the value in ``cm`` also using ``q.to(u.cm).value``.
+          The difference is that :meth:`~astropy.units.Quantity.to_value` does
+          no conversion if the unit is already the correct one, instead just
+          returning an :meth:`~numpy.ndarray.view` of the data (just as if you
+          had done ``q.value``).  In contrast,
+          :meth:`~astropy.units.Quantity.to` always returns a copy (which also
+          means it is slower for the case where conversion is necessary).
+    
 .. _plotting-quantities:
 
 Plotting quantities
