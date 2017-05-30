@@ -153,11 +153,11 @@ class TimeFormat(object):
                             .format(self.name))
 
         if getattr(val1, 'unit', None) is not None:
-            # set possibly scaled unit any quantities should be converted to
+            # Possibly scaled unit any quantity-likes should be converted to
             _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
-            val1 = val1.to(_unit).value
+            val1 = u.Quantity(val1, copy=False).to_value(_unit)
             if val2 is not None:
-                val2 = val2.to(_unit).value
+                val2 = u.Quantity(val2, copy=False).to_value(_unit)
         elif getattr(val2, 'unit', None) is not None:
             raise TypeError('Cannot mix float and Quantity inputs')
 
@@ -653,9 +653,9 @@ class TimezoneInfo(datetime.tzinfo):
         """
         if utc_offset == 0 and dst == 0 and tzname is None:
             tzname = 'UTC'
-        self._utcoffset = datetime.timedelta(utc_offset.to(u.day).value)
+        self._utcoffset = datetime.timedelta(utc_offset.to_value(u.day))
         self._tzname = tzname
-        self._dst = datetime.timedelta(dst.to(u.day).value)
+        self._dst = datetime.timedelta(dst.to_value(u.day))
 
     def utcoffset(self, dt):
         return self._utcoffset
