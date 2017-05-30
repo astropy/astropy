@@ -183,8 +183,8 @@ class Distance(u.SpecificTypeQuantity):
     @property
     def distmod(self):
         """The distance modulus as a `~astropy.units.Quantity`"""
-        val = 5. * np.log10(self.to(u.pc).value) - 5.
-        return u.Quantity(val, u.mag)
+        val = 5. * np.log10(self.to_value(u.pc)) - 5.
+        return u.Quantity(val, u.mag, copy=False)
 
     @classmethod
     def _distmod_to_pc(cls, dm):

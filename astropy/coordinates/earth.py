@@ -232,9 +232,9 @@ class EarthLocation(u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
         # convert to float in units required for erfa routine, and ensure
         # all broadcast to same shape, and are at least 1-dimensional.
-        _lon, _lat, _height = np.broadcast_arrays(lon.to(u.radian).value,
-                                                  lat.to(u.radian).value,
-                                                  height.to(u.m).value)
+        _lon, _lat, _height = np.broadcast_arrays(lon.to_value(u.radian),
+                                                  lat.to_value(u.radian),
+                                                  height.to_value(u.m))
         # get geocentric coordinates. Have to give one-dimensional array.
         xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
                                  _lat.ravel(), _height.ravel())
@@ -476,9 +476,9 @@ class EarthLocation(u.Quantity):
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
         lon, lat, height = erfa.gc2gd(getattr(erfa, ellipsoid), self_array)
         return (Longitude(lon * u.radian, u.degree,
-                          wrap_angle=180.*u.degree),
-                Latitude(lat * u.radian, u.degree),
-                u.Quantity(height * u.meter, self.unit))
+                          wrap_angle=180.*u.degree, copy=False),
+                Latitude(lat * u.radian, u.degree, copy=False),
+                u.Quantity(height * u.meter, self.unit, copy=False))
 
     @property
     def longitude(self):

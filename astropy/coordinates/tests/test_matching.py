@@ -65,8 +65,8 @@ def test_matching_function_3d_and_sky():
 
 
     assert_allclose(d2d, [1, 1.9] * u.deg)
-    assert np.abs(d3d[0].to(u.kpc).value - np.radians(1)) < 1e-6
-    assert np.abs(d3d[1].to(u.kpc).value - 5*np.radians(1.9)) < 1e-5
+    assert np.abs(d3d[0].to_value(u.kpc) - np.radians(1)) < 1e-6
+    assert np.abs(d3d[1].to_value(u.kpc) - 5*np.radians(1.9)) < 1e-5
 
     idx, d2d, d3d = match_coordinates_sky(cmatch, ccatalog)
     npt.assert_array_equal(idx, [3, 1])
