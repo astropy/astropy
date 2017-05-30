@@ -552,11 +552,11 @@ class TestQuantityOperations(object):
         # dimensionless but scaled is OK, however
         q2 = u.Quantity(1.23, u.m / u.km)
 
-        assert float(q2) == float(q2.to(u.dimensionless_unscaled).value)
-        assert int(q2) == int(q2.to(u.dimensionless_unscaled).value)
+        assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
+        assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
 
         if six.PY2:
-            assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
+            assert long(q2) == long(q2.to_value(u.dimensionless_unscaled))
 
         with pytest.raises(TypeError) as exc:
             q2.__index__()
