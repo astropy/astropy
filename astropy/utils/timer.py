@@ -343,10 +343,10 @@ class RunTimePredictor(object):
         qmean = y_arr.mean() * u.second
         for cur_u in (u.minute, u.second, u.millisecond, u.microsecond,
                       u.nanosecond):
-            val = qmean.to(cur_u).value
+            val = qmean.to_value(cur_u)
             if 1000 > val >= 1:
                 break
-        y_arr = (y_arr * u.second).to(cur_u).value
+        y_arr = (y_arr * u.second).to_value(cur_u)
 
         fig, ax = plt.subplots()
         ax.plot(x_arr, y_arr, 'kx-', label='Actual')
@@ -355,12 +355,12 @@ class RunTimePredictor(object):
         if self._fit_func is not None:
             x_est = list(six.iterkeys(self._cache_est))
             y_est = (np.array(list(six.itervalues(self._cache_est))) *
-                     u.second).to(cur_u).value
+                     u.second).to_value(cur_u)
             ax.scatter(x_est, y_est, marker='o', c='r', label='Predicted')
 
             x_fit = np.array(sorted(x_arr + x_est))
             y_fit = (self._fit_func(x_fit**self._power) *
-                     u.second).to(cur_u).value
+                     u.second).to_value(cur_u)
             ax.plot(x_fit, y_fit, 'b--', label='Fit')
 
         ax.set_xscale(xscale)
