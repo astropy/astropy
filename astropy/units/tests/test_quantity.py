@@ -588,26 +588,55 @@ class TestQuantityOperations(object):
 
 def test_quantity_conversion():
     q1 = u.Quantity(0.1, unit=u.meter)
-
+    value = q1.value
+    assert value == 0.1
+    value_in_km = q1.to_value(u.kilometer)
+    assert value_in_km == 0.0001
     new_quantity = q1.to(u.kilometer)
     assert new_quantity.value == 0.0001
 
     with pytest.raises(u.UnitsError):
         q1.to(u.zettastokes)
+    with pytest.raises(u.UnitsError):
+        q1.to_value(u.zettastokes)
+
+
+def test_quantity_value_views():
+    q1 = u.Quantity([1., 2.], unit=u.meter)
+    # views if the unit is the same.
+    v1 = q1.value
+    v1[0] = 0.
+    assert np.all(q1 == [0., 2.] * u.meter)
+    v2 = q1.to_value()
+    v2[1] = 3.
+    assert np.all(q1 == [0., 3.] * u.meter)
+    v3 = q1.to_value('m')
+    v3[0] = 1.
+    assert np.all(q1 == [1., 3.] * u.meter)
+    v4 = q1.to_value('cm')
+    v4[0] = 0.
+    # copy if different unit.
+    assert np.all(q1 == [1., 3.] * u.meter)
 
 
 def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
+    v2 = q1.to_value(u.Hz, equivalencies=u.spectral())
+    assert_allclose(v2, 2997924580.0)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
-    assert_allclose(q2.value, 2997924580.0)
+    assert_allclose(q2.value, v2)
 
     q1 = u.Quantity(0.4, unit=u.arcsecond)
+    v2 = q1.to_value(u.au, equivalencies=u.parallax())
     q2 = q1.to(u.au, equivalencies=u.parallax())
+    v3 = q2.to_value(u.arcminute, equivalencies=u.parallax())
     q3 = q2.to(u.arcminute, equivalencies=u.parallax())
 
-    assert_allclose(q2.value, 515662.015)
+    assert_allclose(v2, 515662.015)
+    assert_allclose(q2.value, v2)
     assert q2.unit == u.au
-    assert_allclose(q3.value, 0.0066666667)
+    assert_allclose(v3, 0.0066666667)
+    assert_allclose(q3.value, v3)
     assert q3.unit == u.arcminute
 
 

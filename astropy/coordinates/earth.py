@@ -593,12 +593,16 @@ class EarthLocation(u.Quantity):
         else:
             return super(EarthLocation, self).__len__()
 
-    def to(self, unit, equivalencies=[]):
-        array_view = self.view(self._array_dtype, u.Quantity)
-        converted = array_view.to(unit, equivalencies)
-        return self._new_view(converted.view(self.dtype).reshape(self.shape),
-                              unit)
-    to.__doc__ = u.Quantity.to.__doc__
+    def _to_value(self, unit, equivalencies=[]):
+        """Helper method for to and to_value."""
+        # Conversion to another unit in both ``to`` and ``to_value`` goes
+        # via this routine. To make the regular quantity routines work, we
+        # temporarily turn the structured array into a regular one.
+        array_view = self.view(self._array_dtype, np.ndarray)
+        if equivalencies == []:
+            equivalencies = self._equivalencies
+        new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
+        return new_array.view(self.dtype).reshape(self.shape)
 
     if NUMPY_LT_1_12:
         def __repr__(self):
