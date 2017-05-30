@@ -1086,7 +1086,7 @@ def test_cache():
     t2 = Time('2010-09-03 00:00:00')
 
     # Time starts out without a cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
@@ -1097,11 +1097,30 @@ def test_cache():
     assert t.cache['scale']['tai'] == t2.tai
 
     # New Time object after scale transform does not have a cache yet
-    assert 'cache' not in t.tt.__dict__
+    assert 'cache' not in t.tt._time.__dict__
 
     # Clear the cache
     del t.cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
-    assert 'cache' in t.__dict__
+    assert 'cache' in t._time.__dict__
+
+
+def test_writeable_flag():
+    t = Time([1, 2, 3], format='cxcsec')
+    t[1] = 5.0
+    assert allclose_sec(t[1].value, 5.0)
+
+    t.writeable = False
+    with pytest.raises(ValueError) as err:
+        t[1] = 5.0
+    assert 'assignment destination is read-only' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        t[:] = 5.0
+    assert 'assignment destination is read-only' in str(err)
+
+    t.writeable = True
+    t[1] = 10.0
+    assert allclose_sec(t[1].value, 10.0)

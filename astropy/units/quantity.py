@@ -130,6 +130,7 @@ class QuantityInfo(ParentDtypeInfo):
     attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
     _supports_indexing = True
     _represent_as_dict_attrs = ('value', 'unit')
+    mask_val = np.nan
 
     @staticmethod
     def default_format(val):
@@ -271,6 +272,9 @@ class Quantity(np.ndarray):
 
     # Ensures views have an undefined unit.
     _unit = None
+
+    # Underlying variable for mask property which indicates NaN elements
+    _mask = None
 
     __array_priority__ = 10000
 
@@ -926,6 +930,13 @@ class Quantity(np.ndarray):
         """
         return not self.shape
 
+    @property
+    def mask(self):
+        if self._mask is None:
+            self._mask = np.isnan(self.value)
+            self._mask.flags.writeable = False
+        return self._mask
+
     # This flag controls whether convenience conversion members, such
     # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
     # not turned on on Quantity itself, but is on some subclasses of
@@ -1140,7 +1151,10 @@ class Quantity(np.ndarray):
         # to be the case if we're part of a table).
         if not self.isscalar and 'info' in self.__dict__:
             self.info.adjust_indices(i, value, len(self))
+        if value is np.ma.masked:
+            value = np.nan
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
+        self._mask = None  # Clear mask cache for any setitem
 
     if six.PY2:  # don't fall through to ndarray.__setslice__
         def __setslice__(self, i, j, value):

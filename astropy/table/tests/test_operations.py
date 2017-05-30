@@ -100,8 +100,6 @@ class TestJoin():
         assert t12.meta == self.meta_merge
 
     def test_both_unmasked_left_right_outer(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -167,8 +165,6 @@ class TestJoin():
                                        '  2 bar  L4 bar  R3'])
 
     def test_both_unmasked_single_key_left_right_outer(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -211,8 +207,6 @@ class TestJoin():
                                        '  4  --  -- bar  R4'])
 
     def test_masked_unmasked(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t1m = operation_table_type(self.t1, masked=True)
@@ -250,8 +244,6 @@ class TestJoin():
     def test_masked_masked(self, operation_table_type):
         self._setup(operation_table_type)
         """Two masked tables"""
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
         t1m = operation_table_type(self.t1, masked=True)
         t2 = self.t2
@@ -333,8 +325,6 @@ class TestJoin():
     def test_masked_key_column(self, operation_table_type):
         self._setup(operation_table_type)
         """Merge on a key column that has a masked element"""
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         t1 = self.t1
         t2 = operation_table_type(self.t2, masked=True)
         table.join(t1, t2)  # OK
@@ -417,9 +407,6 @@ class TestJoin():
         Test for outer join with multidimensional columns where masking is required.
         (Issue #4059).
         """
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
-
         a = table.MaskedColumn([1, 2, 3], name='a')
         a2 = table.Column([1, 3, 4], name='a')
         b = table.MaskedColumn([[1, 2],
@@ -572,8 +559,6 @@ class TestVStack():
                                   '1.0 bar']
 
     def test_stack_basic_outer(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -617,14 +602,11 @@ class TestVStack():
             table.vstack([self.t1, t1_reshape])
         assert "have different shape" in str(excinfo)
 
-
     def test_vstack_one_masked(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t4 = self.t4
-        t4['b'].mask[1] = True
+        t4['b'][1] = np.ma.masked
         assert table.vstack([t1, t4]).pformat() == [' a   b ',
                                                     '--- ---',
                                                     '0.0 foo',
@@ -702,8 +684,6 @@ class TestVStack():
         assert out['b'].info.meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
 
     def test_col_meta_merge_outer(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail('Quantity columns do not support masking.')
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -741,12 +721,13 @@ class TestVStack():
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='outer')
 
-        assert warning_lines[0].category == metadata.MergeConflictWarning
-        assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
-                in str(warning_lines[0].message))
-        assert warning_lines[1].category == metadata.MergeConflictWarning
-        assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
-                in str(warning_lines[1].message))
+        if operation_table_type is not QTable:
+            assert warning_lines[0].category == metadata.MergeConflictWarning
+            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
+                    in str(warning_lines[0].message))
+            assert warning_lines[1].category == metadata.MergeConflictWarning
+            assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
+                    in str(warning_lines[1].message))
         assert out['a'].unit == 'km'
         assert out['a'].info.format == '%0d'
         assert out['b'].info.description == 't1_b'
@@ -769,7 +750,7 @@ class TestVStack():
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        implemented_mixin_classes = ['Quantity']
+        implemented_mixin_classes = ['Quantity', 'Time']
         if cls_name in implemented_mixin_classes:
             table.vstack([t, t])
         else:
@@ -777,6 +758,15 @@ class TestVStack():
                 table.vstack([t, t])
             assert ('vstack unavailable for mixin column type(s): {}'
                     .format(cls_name) in str(err))
+
+        t2 = table.QTable([col], names='a')  # different from col0 name for t
+        if cls_name in implemented_mixin_classes:
+            table.vstack([t, t2], join_type='outer')
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.vstack([t, t2], join_type='outer')
+            assert ('vstack requires masking' in str(err) or
+                    'vstack unavailable' in str(err))
 
 
 class TestHStack():
@@ -920,16 +910,15 @@ class TestHStack():
             table.hstack([self.t1, self.t3], join_type='exact')
 
     def test_hstack_one_masked(self, operation_table_type):
-        if operation_table_type is QTable:
-            pytest.xfail()
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = operation_table_type(t1, copy=True, masked=True)
         t2.meta.clear()
-        t2['b'].mask[1] = True
+        t2['a'][0] = np.ma.masked
+        t2['b'][1] = np.ma.masked
         assert table.hstack([t1, t2]).pformat() == ['a_1 b_1 a_2 b_2',
                                                     '--- --- --- ---',
-                                                    '0.0 foo 0.0 foo',
+                                                    '0.0 foo  -- foo',
                                                     '1.0 bar 1.0  --']
 
     def test_table_col_rename(self, operation_table_type):
@@ -982,6 +971,23 @@ class TestHStack():
         """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
+
+    def test_check_for_mixin_functionality(self, mixin_cols):
+        col = mixin_cols['m']
+        t = table.QTable([col])
+        t2 = t[:2]  # shorter version of same table
+
+        cls_name = type(col).__name__
+
+        table.hstack([t, t2], join_type='inner')
+
+        implemented_mixin_classes = ['Time', 'Quantity']
+        if cls_name in implemented_mixin_classes:
+            table.hstack([t, t2], join_type='outer')
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.hstack([t, t2], join_type='outer')
+            assert 'hstack requires masking' in str(err)
 
 
 def test_unique(operation_table_type):
@@ -1124,25 +1130,3 @@ def test_get_out_class():
 
     with pytest.raises(ValueError):
         _get_out_class([q, c])
-
-
-def test_masking_required_exception():
-    """
-    Test that outer join, hstack and vstack fail for a mixin column which
-    does not support masking.
-    """
-    col = [1, 2, 3, 4] * u.m
-    t1 = table.QTable([[1, 2, 3, 4], col], names=['a', 'b'])
-    t2 = table.QTable([[1, 2], col[:2]], names=['a', 'c'])
-
-    with pytest.raises(NotImplementedError) as err:
-        table.vstack([t1, t2], join_type='outer')
-    assert 'vstack requires masking' in str(err)
-
-    with pytest.raises(NotImplementedError) as err:
-        table.hstack([t1, t2], join_type='outer')
-    assert 'hstack requires masking' in str(err)
-
-    with pytest.raises(NotImplementedError) as err:
-        table.join(t1, t2, join_type='outer')
-    assert 'join requires masking' in str(err)
