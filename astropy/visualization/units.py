@@ -81,7 +81,7 @@ def quantity_support(format='latex_inline'):
         @staticmethod
         def convert(val, unit, axis):
             if isinstance(val, u.Quantity):
-                return val.to(unit).value
+                return val.to_value(unit)
             else:
                 return val
 
