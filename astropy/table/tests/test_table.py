@@ -622,11 +622,11 @@ class TestAddRow(SetupData):
         t = table_types.Table(names=('a', 'b', 'c'), dtype=('(2,)i', 'S4', 'O'))
         t.add_row()
         assert np.all(t['a'][0] == [0, 0])
-        assert t['b'][0] == b''
+        assert t['b'][0] == ''
         assert t['c'][0] == 0
         t.add_row()
         assert np.all(t['a'][1] == [0, 0])
-        assert t['b'][1] == b''
+        assert t['b'][1] == ''
         assert t['c'][1] == 0
 
     def test_add_stuff_to_empty_table(self, table_types):
@@ -634,13 +634,13 @@ class TestAddRow(SetupData):
         t = table_types.Table(names=('a', 'b', 'obj'), dtype=('(2,)i', 'S8', 'O'))
         t.add_row([[1, 2], 'hello', 'world'])
         assert np.all(t['a'][0] == [1, 2])
-        assert t['b'][0] == b'hello'
+        assert t['b'][0] == 'hello'
         assert t['obj'][0] == 'world'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
         assert np.all(t['a'][1] == [0, 0])
-        assert t['b'][1] == b''
+        assert t['b'][1] == ''
         assert t['obj'][1] == 0
 
     def test_add_table_row(self, table_types):
@@ -1465,8 +1465,8 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'].dtype.kind == 'S'
     assert t1['col1'].dtype.kind == 'S'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == 'abc'.encode('ascii')
-    assert t1['col1'][0] == 'def'.encode('ascii')
+    assert t1['col0'][0] == 'abc'
+    assert t1['col1'][0] == 'def'
     assert t1['col2'][0] == 1
 
     t1 = t.copy()
@@ -1541,7 +1541,7 @@ class TestPandas(object):
                     t[endian + kind + byte] = x
 
         t['u'] = ['a','b','c']
-        t['s'] = [b'a', b'b', b'c']
+        t['s'] = ['a', 'b', 'c']
 
         d = t.to_pandas()
 
@@ -1550,7 +1550,7 @@ class TestPandas(object):
                 assert np.all(t['u'] == np.array(['a','b','c']))
                 assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             elif column == 's':
-                assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
+                assert np.all(t['s'] == np.array(['a','b','c']))
                 assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             else:
                 # We should be able to compare exact values here
@@ -1614,7 +1614,7 @@ class TestPandas(object):
         t['u'] = ['a','b','c']
         t['u'].mask = [False, True, False]
 
-        t['s'] = [b'a', b'b', b'c']
+        t['s'] = ['a', 'b', 'c']
         t['s'].mask = [False, True, False]
 
         d = t.to_pandas()

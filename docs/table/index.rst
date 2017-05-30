@@ -32,6 +32,10 @@ Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of Astropy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
+.. Warning:: Astropy 2.0 introduces an API change that affects comparison of
+   bytestring column elements in Python 3.  See
+   :ref:`bytestring-columns-python-3` for details.
+
 Getting Started
 ===============
 

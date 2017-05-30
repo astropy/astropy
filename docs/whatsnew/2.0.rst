@@ -14,6 +14,7 @@ the 1.3.x series of releases.
 
 In particular, this release includes:
 
+* `Easier use of efficient bytestring Table columns in Python 3`_
 *
 
 In addition to these major changes, Astropy 2.0 includes a large number of
@@ -24,6 +25,23 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v1.3
 * xxx distinct people have contributed code
 
+Easier use of efficient bytestring Table columns in Python 3
+============================================================
+
+Working with bytestring Table columns (numpy ``'S'`` dtype) in Python
+3 has been made more convenient because it is now possible to compare
+and set array elements with the natural Python string (``str``) type.
+Previously one had to use the Python ``bytes`` type and bytestring literals
+like ``b'hello'``.  This change allows working with ASCII data columns
+in Python 3 using only 1-byte per character instead of the default
+4-bytes per character for the numpy ``'U'`` unicode dtype.  For large
+datasets this improves memory performance.
+
+Please see :ref:`bytestring-columns-python-3` for details.  Note that no
+change has been made to behavior for Python 2.
+
+.. Note:: This introduces an API change that affects comparison of
+     bytestring column elements in Python 3.
 
 Other significant changes
 =========================
