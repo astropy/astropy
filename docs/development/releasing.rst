@@ -239,8 +239,13 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Notify the Conda Distribution Maintainer and the Continuous Integration
    maintainer about the new release.  Typically, you should wait to make sure
    ``conda-forge`` and possible ``conda`` works before sending out the public
-   announcement (so that users that want to try out the new version can do so on
-   conda).
+   announcement (so that users that want to try out the new version can do
+   so on conda).
+
+#. Update the ``LATEST_ASTROPY_STABLE`` or ``ASTROPY_LTS_VERSION`` variables
+   in the ``ci-helpers`` repository once the ``conda`` packages became
+   available.
+
 
 Modifications for a beta/release candidate release
 --------------------------------------------------
