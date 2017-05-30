@@ -109,6 +109,9 @@ New Features
   - Added a new equivalence ``molar_mass_amu`` between g/mol to
     atomic mass units. [#6040, #6113]
 
+  - ``Quantity`` has gained a new ``to_value`` method which returns the value
+    of the quantity in a given unit. [#6127]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``

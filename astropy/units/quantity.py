@@ -794,10 +794,18 @@ class Quantity(np.ndarray):
         super(Quantity, self).__setstate__(nd_state)
         self.__dict__.update(own_state)
 
+    info = QuantityInfo()
+
+    def _to_value(self, unit, equivalencies=[]):
+        """Helper method for to and to_value."""
+        if equivalencies == []:
+            equivalencies = self._equivalencies
+        return self.unit.to(unit, self.view(np.ndarray),
+                            equivalencies=equivalencies)
+
     def to(self, unit, equivalencies=[]):
         """
-        Returns a new `~astropy.units.Quantity` object with the specified
-        units.
+        Return a new `~astropy.units.Quantity` object with the specified unit.
 
         Parameters
         ----------
@@ -813,24 +821,58 @@ class Quantity(np.ndarray):
             (none for `~astropy.units.Quantity`, but may be set for subclasses)
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.
+
+        See also
+        --------
+        to_value : get the numerical value in a given unit.
         """
-        if equivalencies == []:
-            equivalencies = self._equivalencies
+        # We don't use `to_value` below since we always want to make a copy
+        # and don't want to slow down this method (esp. the scalar case).
         unit = Unit(unit)
-        new_val = self.unit.to(unit, self.view(np.ndarray),
-                               equivalencies=equivalencies)
-        return self._new_view(new_val, unit)
+        return self._new_view(self._to_value(unit, equivalencies), unit)
 
-    info = QuantityInfo()
+    def to_value(self, unit=None, equivalencies=[]):
+        """
+        The numerical value, possibly in a different unit.
 
-    @property
-    def value(self):
-        """ The numerical value of this quantity. """
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase` instance or str, optional
+            The unit in which the value should be given. If not given or `None`,
+            use the current unit.
+
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not directly
+            convertible (see :ref:`unit_equivalencies`). If not provided or
+            ``[]``, class default equivalencies will be used (none for
+            `~astropy.units.Quantity`, but may be set for subclasses).
+            If `None`, no equivalencies will be applied at all, not even any
+            set globally or within a context.
+
+        Returns
+        -------
+        value : `~numpy.ndarray` or scalar
+            The value in the units specified. For arrays, this will be a view
+            of the data if no unit conversion was necessary.
+
+        See also
+        --------
+        to : Get a new instance in a different unit.
+        """
         value = self.view(np.ndarray)
-        if self.shape:
-            return value
-        else:
-            return value.item()
+        if unit is not None:
+            unit = Unit(unit)
+            if unit != self.unit:
+                value = self._to_value(unit, equivalencies)
+        return value if self.shape else value.item()
+
+    value = property(to_value,
+                     doc="""The numerical value of this instance.
+
+    See also
+    --------
+    to_value : Get the numerical value in a given unit.
+    """)
 
     @property
     def unit(self):
