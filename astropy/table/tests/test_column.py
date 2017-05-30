@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
@@ -627,3 +628,147 @@ def test_string_truncation_warning_masked():
         assert len(w) == 1
         assert ('truncated right side string(s) longer than 2 character(s)'
                 in str(w[0].message))
+
+
+@pytest.mark.skipif('six.PY2')
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_create_from_str(Column):
+    """
+    Create a bytestring Column from strings (including unicode) in Py3.
+    """
+    # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
+    # Stress the system by injecting non-ASCII characters.
+    uba = u'bä'
+    c = Column([uba, 'def'], dtype='S')
+    assert c.dtype.char == 'S'
+    assert c[0] == uba
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_bytes(Column):
+    """
+    Create a bytestring Column from bytes and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
+    # Stress the system by injecting non-ASCII characters.
+    uba = 'ba' if six.PY2 else u'bä'
+    uba8 = uba.encode('utf-8')
+    c = Column([uba8, b'def'])
+    assert c.dtype.char == 'S'
+    assert c[0] == uba8 if six.PY2 else uba  # Can compare utf-8 directly only in PY3
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'S'
+
+    # Array / list comparisons
+    if not six.PY2:
+        assert np.all(c == [uba, 'def'])
+
+    ok = c == [uba8, b'def']
+    assert type(ok) is type(c.data)
+    assert ok.dtype.char == '?'
+    assert np.all(ok)
+
+    assert np.all(c == np.array([uba, u'def']))
+    if not six.PY2:
+        assert np.all(c == np.array([uba8, b'def']))
+
+    # Scalar compare
+    cmps = (uba8,) if six.PY2 else (uba, uba8)
+    for cmp in cmps:
+        ok = c == cmp
+        assert type(ok) is type(c.data)
+        assert np.all(ok == [True, False])
+
+
+def test_col_unicode_sandwich_unicode():
+    """
+    Sanity check that Unicode Column behaves normally.
+    """
+    # On Py2 the unicode must be ASCII-compatible, else the final test fails.
+    uba = 'ba' if six.PY2 else u'bä'
+    uba8 = uba.encode('utf-8')
+
+    c = table.Column([uba, 'def'], dtype='U')
+    assert c[0] == uba
+    assert isinstance(c[:0], table.Column)
+    assert isinstance(c[0], six.text_type)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'U'
+
+    ok = c == [uba, 'def']
+    assert type(ok) == np.ndarray
+    assert ok.dtype.char == '?'
+    assert np.all(ok)
+
+    # In PY2 unicode is equal to bytestrings but not in PY3
+    if six.PY2:
+        assert np.all(c == [uba8, b'def'])
+    else:
+        assert np.all(c != [uba8, b'def'])
+
+
+def test_masked_col_unicode_sandwich():
+    """
+    Create a bytestring MaskedColumn and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    c = table.MaskedColumn([b'abc', b'def'])
+    c[1] = np.ma.masked
+    assert isinstance(c[:0], table.MaskedColumn)
+    assert isinstance(c[0], str)
+
+    assert c[0] == 'abc'
+    assert c[1] is np.ma.masked
+
+    assert isinstance(c[:], table.MaskedColumn)
+    assert c[:].dtype.char == 'S'
+
+    ok = c == ['abc', 'def']
+    assert ok[0] == True
+    assert ok[1] is np.ma.masked
+    assert np.all(c == [b'abc', b'def'])
+    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c == np.array([b'abc', b'def']))
+
+    for cmp in (u'abc', b'abc'):
+        ok = c == cmp
+        assert type(ok) is np.ma.MaskedArray
+        assert ok[0] == True
+        assert ok[1] is np.ma.masked
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_unicode_sandwich_set(Column):
+    """
+    Test setting
+    """
+    uba = 'ba' if six.PY2 else u'bä'
+
+    c = Column([b'abc', b'def'])
+
+    c[0] = b'aa'
+    assert np.all(c == [u'aa', u'def'])
+
+    c[0] = uba  # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding
+    assert np.all(c == [uba, u'def'])
+    assert c.pformat() == [u'None', u'----', '  ' + uba, u' def']
+
+    c[:] = b'cc'
+    assert np.all(c == [u'cc', u'cc'])
+
+    c[:] = uba
+    assert np.all(c == [uba, uba])
+
+    c[:] = ''
+    c[:] = [uba, b'def']
+    assert np.all(c == [uba, b'def'])
