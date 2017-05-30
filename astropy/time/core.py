@@ -1227,9 +1227,9 @@ class Time(ShapedLikeNDArray):
         return self._delta_ut1_utc
 
     def _set_delta_ut1_utc(self, val):
-        val = self._match_shape(val)
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
+        val = self._match_shape(val)
         self._delta_ut1_utc = val
         del self.cache
 
@@ -1278,9 +1278,9 @@ class Time(ShapedLikeNDArray):
         return self._delta_tdb_tt
 
     def _set_delta_tdb_tt(self, val):
-        val = self._match_shape(val)
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
+        val = self._match_shape(val)
         self._delta_tdb_tt = val
         del self.cache
 
