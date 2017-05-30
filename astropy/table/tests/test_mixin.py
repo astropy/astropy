@@ -107,7 +107,7 @@ def test_io_ascii_write():
 def test_io_quantity_write(tmpdir):
     """
     Test that table with Quantity mixin column can be written by io.fits,
-    but not by io.votable and io.misc.hdf5. Validation of the output is done.
+    io.votable but not by io.misc.hdf5. Validation of the output is done.
     Test that io.fits writes a table containing Quantity mixin columns that can
     be round-tripped (metadata unit).
     """
@@ -123,6 +123,9 @@ def test_io_quantity_write(tmpdir):
             qt = QTable.read(filename, format=fmt)
             assert isinstance(qt['a'], u.Quantity)
             assert qt['a'].unit == 'Angstrom'
+            continue
+        if fmt == 'votable':
+            t.write(filename, format=fmt, overwrite=True)
             continue
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
