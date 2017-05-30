@@ -197,6 +197,11 @@ class TestDeltaAttributes():
         assert t.ut1.iso == '2010-01-01 00:00:00.400000'
         with pytest.raises(u.UnitsError):
             t.delta_ut1_utc = 0.4 * u.m
+        # Also check that a TimeDelta works.
+        t.delta_ut1_utc = TimeDelta(0.3, format='sec')
+        assert t.ut1.iso == '2010-01-01 00:00:00.300000'
+        t.delta_ut1_utc = TimeDelta(0.5/24./3600., format='jd')
+        assert t.ut1.iso == '2010-01-01 00:00:00.500000'
 
     def test_delta_tdb_tt(self):
         t = Time('2010-01-01 00:00:00', format='iso', scale='tt', precision=6)
@@ -206,3 +211,8 @@ class TestDeltaAttributes():
         assert t.tdb.iso == '2010-01-01 00:00:30.000000'
         with pytest.raises(u.UnitsError):
             t.delta_tdb_tt = 0.4 * u.m
+        # Also check that a TimeDelta works.
+        t.delta_tdb_tt = TimeDelta(40., format='sec')
+        assert t.tdb.iso == '2010-01-01 00:00:40.000000'
+        t.delta_tdb_tt = TimeDelta(50./24./3600., format='jd')
+        assert t.tdb.iso == '2010-01-01 00:00:50.000000'
