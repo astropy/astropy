@@ -287,17 +287,11 @@ Other Changes and Additions
   pytest is now a formal requirement for testing for both Astropy and
   for affiliated packages. [#5694]
 
-1.3.3 (unreleased)
+1.3.3 (2017-05-29)
 ------------------
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -309,12 +303,6 @@ Bug Fixes
 
   - Fixed ``get_icrs_coordinates`` to loop through all the urls in case one
     raises an exception. [#5864]
-
-- ``astropy.cosmology``
-
-- ``astropy.extern``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -329,26 +317,10 @@ Bug Fixes
   - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
     [#5929]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
 - ``astropy.table``
 
   - Fix problem with Table pprint/pformat raising an exception for
     non-UTF-8 compliant bytestring data. [#6117]
-
-- ``astropy.tests``
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -380,15 +352,6 @@ Bug Fixes
   - Fix a bug that caused labels to be missing from frames with labels that
     could change direction mid-axis, such as EllipticalFrame. Also ensure
     that empty tick labels do not cause any warnings. [#6063]
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Nothing changed yet.
 
 
 1.3.2 (2017-03-30)
