@@ -229,12 +229,12 @@ packages that use the full bugfix/maintenance branch approach.)
 #. If there are any issues in the Github issue tracker that are labeled
    ``affects-dev`` but are issues that apply to this release, update them to
    ``affects-release``.  Similarly, if any issues remain open for this release,
-   re-assign them to the next relevant mileston.
+   re-assign them to the next relevant milestone.
 
 #. Create a github milestone for the next bugfix version, move any remaining
    issues from the version you just released, and close the milestone. When
    releasing a major release, close the last milestone on the previous
-   maintanance branch, too.
+   maintenance branch, too.
 
 #. Notify the Conda Distribution Maintainer and the Continuous Integration
    maintainer about the new release.  Typically, you should wait to make sure
@@ -464,7 +464,7 @@ described in :ref:`release-procedure` (although be sure to provide the
 right version number).
 
 1. Any existing fixes to the issues assigned to a release milestone (and older
-   LTS releases, if there are any), must be included in the maintainence branch
+   LTS releases, if there are any), must be included in the maintenance branch
    before release.
 
 2. The Astropy changelog must be updated to list all issues--especially
@@ -485,7 +485,7 @@ recommended - see `this Stack Overflow post
 <http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github/18362082>`_
 for more on how to do that, or
 `a similar github help page <https://help.github.com/articles/caching-your-github-password-in-git>`_).
-The script to actually scheck consistency should be run like:
+The script to actually check consistency should be run like:
 
     $ python 4.check_consistency.py > consistency.html
 
@@ -497,9 +497,9 @@ want to correct those irregularities *first* before starting the backport
 process (re-running the scripts in order as needed).
 
 The end of the ``consistency.html`` page will then show a series of
-``git cherry-pick`` commands to update the maintainence branch with the PRs that
+``git cherry-pick`` commands to update the maintenance branch with the PRs that
 are needed to make the milestones and branches consistent.  Make sure you're in
-the correct maintainence branch with e.g.,
+the correct maintenance branch with e.g.,
 
     $ git checkout v1.3.x
     $ git pull upstream v1.3.x  # Or possibly a rebase if conflicts exist
@@ -507,7 +507,7 @@ the correct maintainence branch with e.g.,
 if you are doing bugfixes for the 1.3.x series. Go through the commands one at a
 time, following the cherry-picking procedure described above. If for some reason
 you determine the github milestone was in error and the backporting is
-impossible, re-label the issue on github and move on.  Also, whever you
+impossible, re-label the issue on github and move on.  Also, whenever you
 backport a PR, it's useful to leave a comment in the issue along the lines of
 "backported this to v1.3.x as <SHA>" so that it's clear that the backport
 happened to others who might later look.
