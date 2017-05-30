@@ -124,8 +124,7 @@ there is no solution, or that there is more than one solution between
 zmin and zmax satisfying fval = func(z).""")
 
     if isinstance(fval_zmin, Quantity):
-        unit = fval_zmin.unit
-        val = fval.to(unit).value
+        val = fval.to_value(fval_zmin.unit)
         f = lambda z: abs(func(z).value - val)
     else:
         f = lambda z: abs(func(z) - fval)
