@@ -248,22 +248,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     """
 
     def __init__(self, data=None, header=None, name=None, uint=False):
-        """
-        Parameters
-        ----------
-        header : Header instance
-            header to be used
-
-        data : array
-            data to be used
-
-        name : str
-            name to be populated in ``EXTNAME`` keyword
-
-        uint : bool, optional
-            set to `True` if the table contains unsigned integer columns.
-        """
-
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
 
@@ -702,6 +686,17 @@ class TableHDU(_TableBaseHDU):
         r'(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?')
 
     def __init__(self, data=None, header=None, name=None):
+        """
+        Parameters
+        ----------
+        header : `Header`
+            header to be used
+        data : array or `FITS_rec`
+            data to be used
+        name : str
+            name to be populated in ``EXTNAME`` keyword
+
+        """
         super(TableHDU, self).__init__(data, header, name=name)
 
     @classmethod
@@ -790,6 +785,30 @@ class BinTableHDU(_TableBaseHDU):
     _extension = 'BINTABLE'
     _ext_comment = 'binary table extension'
 
+    def __init__(self, data=None, header=None, name=None, uint=False):
+        """
+        Parameters
+        ----------
+        header : `Header`
+            header to be used
+        data : array, `FITS_rec` or `astropy.table.Table`
+            data to be used
+        name : str
+            name to be populated in ``EXTNAME`` keyword
+        uint : bool, optional
+            set to `True` if the table contains unsigned integer columns.
+
+        """
+        from ....table import Table
+        if isinstance(data, Table):
+            from ..convenience import table_to_hdu
+            hdu = table_to_hdu(data)
+            if header is not None:
+                hdu.header.update(header)
+            data = hdu.data
+            header = hdu.header
+
+        super(BinTableHDU, self).__init__(data, header, name=name, uint=uint)
 
     @classmethod
     def match_header(cls, header):
