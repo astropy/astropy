@@ -22,14 +22,14 @@ class TestTimeQuantity():
         assert t1.value == q.value
         q2 = q.to(u.second)
         t2 = Time(q2, format='jd', scale='utc')
-        assert t2.value == q.value == q2.to(u.day).value
+        assert t2.value == q.value == q2.to_value(u.day)
         q3 = q-2400000.5*u.day
         t3 = Time(q3, format='mjd', scale='utc')
         assert t3.value == q3.value
         # test we can deal with two quantity arguments, with different units
         qs = 24.*36.*u.second
         t4 = Time(q3, qs, format='mjd', scale='utc')
-        assert t4.value == (q3+qs).to(u.day).value
+        assert t4.value == (q3+qs).to_value(u.day)
 
         qy = 1990.*u.yr
         ty1 = Time(qy, format='jyear', scale='utc')
@@ -38,11 +38,11 @@ class TestTimeQuantity():
         assert ty2.value == qy.value
         qy2 = 10.*u.yr
         tcxc = Time(qy2, format='cxcsec')
-        assert tcxc.value == qy2.to(u.second).value
+        assert tcxc.value == qy2.to_value(u.second)
         tgps = Time(qy2, format='gps')
-        assert tgps.value == qy2.to(u.second).value
+        assert tgps.value == qy2.to_value(u.second)
         tunix = Time(qy2, format='unix')
-        assert tunix.value == qy2.to(u.second).value
+        assert tunix.value == qy2.to_value(u.second)
         qd = 2000.*365.*u.day
         tplt = Time(qd, format='plot_date', scale='utc')
         assert tplt.value == qd.value
@@ -82,15 +82,15 @@ class TestTimeQuantity():
         q1 = 10.*u.second
         t1 = t0 + q1
         assert isinstance(t1, Time)
-        assert t1.value == t0.value+q1.to(u.second).value
+        assert t1.value == t0.value+q1.to_value(u.second)
         q2 = 1.*u.day
         t2 = t0 - q2
-        assert allclose_sec(t2.value, t0.value-q2.to(u.second).value)
+        assert allclose_sec(t2.value, t0.value-q2.to_value(u.second))
         # check broadcasting
         q3 = np.arange(15.).reshape(3, 5) * u.hour
         t3 = t0 - q3
         assert t3.shape == q3.shape
-        assert allclose_sec(t3.value, t0.value-q3.to(u.second).value)
+        assert allclose_sec(t3.value, t0.value-q3.to_value(u.second))
 
     def test_invalid_quantity_operations(self):
         """Check that comparisons of Time with quantities does not work
@@ -109,7 +109,7 @@ class TestTimeDeltaQuantity():
         dt1 = TimeDelta(q, format='jd')
         assert dt1.value == q.value
         dt2 = TimeDelta(q, format='sec')
-        assert dt2.value == q.to(u.second).value
+        assert dt2.value == q.to_value(u.second)
         dt3 = TimeDelta(q)
         assert dt3.value == q.value
 
@@ -127,7 +127,7 @@ class TestTimeDeltaQuantity():
         q = 500.25*u.day
         dt = TimeDelta(q)
         assert dt.to(u.day) == q
-        assert dt.to(u.second).value == q.to(u.second).value
+        assert dt.to(u.second).value == q.to_value(u.second)
         with pytest.raises(u.UnitsError):
             dt.to(u.m)
 
@@ -138,10 +138,10 @@ class TestTimeDeltaQuantity():
         q1 = 10.*u.second
         t1 = t0 + q1
         assert isinstance(t1, TimeDelta)
-        assert t1.value == t0.value+q1.to(u.second).value
+        assert t1.value == t0.value+q1.to_value(u.second)
         q2 = 1.*u.day
         t2 = t0 - q2
-        assert allclose_sec(t2.value, t0.value-q2.to(u.second).value)
+        assert allclose_sec(t2.value, t0.value-q2.to_value(u.second))
         # now comparisons
         assert t0 > q1
         assert t0 < 1.*u.yr
@@ -149,7 +149,7 @@ class TestTimeDeltaQuantity():
         q3 = np.arange(12.).reshape(4, 3) * u.hour
         t3 = t0 + q3
         assert t3.shape == q3.shape
-        assert allclose_sec(t3.value, t0.value + q3.to(u.second).value)
+        assert allclose_sec(t3.value, t0.value + q3.to_value(u.second))
 
     def test_valid_quantity_operations2(self):
         """Check that TimeDelta is treated as a quantity where possible."""
