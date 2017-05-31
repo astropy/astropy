@@ -1871,32 +1871,23 @@ class _CompoundModelMeta(_ModelMeta):
 
     @property
     def submodel_names(cls):
-        if cls._submodel_names is not None:
-            return cls._submodel_names
+        if cls._submodel_names is None:
+            seen = {}
+            names = []
+            for idx, submodel in enumerate(cls._get_submodels()):
+                name = str(submodel.name)
+                if name in seen:
+                    names.append('{0}_{1}'.format(name, idx))
+                    if seen[name] >= 0:
+                        jdx = seen[name]
+                        names[jdx] = '{0}_{1}'.format(names[jdx], jdx)
+                        seen[name] = -1
+                else:
+                    names.append(name)
+                    seen[name] = idx
+            cls._submodel_names = tuple(names)
 
-        by_name = defaultdict(list)
-
-        for idx, submodel in enumerate(cls._get_submodels()):
-            # Keep track of the original sort order of the submodels
-            by_name[submodel.name].append(idx)
-
-        names = []
-        for basename, indices in six.iteritems(by_name):
-            if len(indices) == 1:
-                # There is only one model with this name, so it doesn't need an
-                # index appended to its name
-                names.append((basename, indices[0]))
-            else:
-                for idx in indices:
-                    names.append(('{0}_{1}'.format(basename, idx), idx))
-
-        # Sort according to the models' original sort orders
-        names.sort(key=lambda k: k[1])
-
-        names = tuple(k[0] for k in names)
-
-        cls._submodel_names = names
-        return names
+        return cls._submodel_names
 
     @property
     def param_names(cls):
