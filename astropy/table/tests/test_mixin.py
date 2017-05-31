@@ -118,14 +118,11 @@ def test_io_quantity_write(tmpdir):
     open(filename, 'w').close()
 
     for fmt in ('fits', 'votable', 'hdf5'):
-        if fmt == 'fits':
+        if fmt != 'hdf5':
             t.write(filename, format=fmt, overwrite=True)
             qt = QTable.read(filename, format=fmt)
             assert isinstance(qt['a'], u.Quantity)
             assert qt['a'].unit == 'Angstrom'
-            continue
-        if fmt == 'votable':
-            t.write(filename, format=fmt, overwrite=True)
             continue
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
