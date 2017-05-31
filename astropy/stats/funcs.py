@@ -812,7 +812,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version
         result = result.item()
-    elif np.ma.isMaskedArray(result) and is_masked == False:
+    elif np.ma.isMaskedArray(result) and not is_masked:
         # if the input array was not a masked array, we don't want to return a
         # masked array
         result = result.filled(fill_value=np.nan)
