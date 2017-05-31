@@ -686,6 +686,7 @@ def test_auto_format_func():
     qt.pformat()  # Generates exception prior to #5802
 
 
+@pytest.mark.xfail(not PY2, reason='Python3 fails before getting to pprint')
 def test_decode_replace():
     """
     Test printing a bytestring column with a value that fails
