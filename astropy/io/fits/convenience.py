@@ -76,6 +76,7 @@ from ...extern import six
 from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
+from ...time import Time
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -458,11 +459,16 @@ def table_to_hdu(table):
         from ...table.column import BaseColumn
 
         # Only those columns which are instances of BaseColumn or Quantity can be written
-        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity))
+        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
+
+    time_cols = table.columns.isinstance(Time)
+    if time_cols:
+        newtable = Table(table)
+        table = get_time_table(newtable)
 
     # Create a new HDU object
     if table.masked:
