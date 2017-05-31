@@ -77,6 +77,7 @@ from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
 from ...time import Time
+from ...table import QTable, Column
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -467,8 +468,12 @@ def table_to_hdu(table):
 
     time_cols = table.columns.isinstance(Time)
     if time_cols:
-        newtable = Table(table)
-        table = get_time_table(newtable)
+        newtable = QTable(table)
+        for col in time_cols:
+            newtable[col.info.name] = Column(np.empty(col.shape + (2,)))
+            newtable[col.info.name][...,0] = col.jd1
+            newtable[col.info.name][...,1] = col.jd2
+            table = newtable
 
     # Create a new HDU object
     if table.masked:
