@@ -137,13 +137,13 @@ def test_io_quantity_write(tmpdir):
 
 def test_io_write_fail(mixin_cols):
     """
-    Test that table with mixin column (excluding Quantity) cannot be written by io.votable,
-    io.fits, and io.misc.hdf5.
+    Test that table with mixin column (excluding Quantity and Time) cannot be written by
+    io.votable, io.fits, and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
-    # BaseColumn or Quantity subclasses.
-    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
+    # BaseColumn, Quantity and Time class instances).
+    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
     for fmt in ('fits', 'votable', 'hdf5'):
