@@ -59,7 +59,7 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
-def test_no_numpy_warnings():
+def test_no_numpy_warnings(tmpdir):
 
     # Make sure that no warnings are raised if some pixels are outside WCS
     # (since this is normal)
@@ -69,7 +69,7 @@ def test_no_numpy_warnings():
     ax.coords.grid(color='white')
 
     with catch_warnings(RuntimeWarning) as ws:
-        plt.savefig('test.png')
+        plt.savefig(tmpdir.join('test.png').strpath)
 
     # For debugging
     for w in ws:
