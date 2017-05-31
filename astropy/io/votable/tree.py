@@ -1547,11 +1547,12 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         `astropy.table.Column` instance.
         """
         kwargs = {}
-        meta = column.info.meta or {}
-        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
-            val = meta.get(key, None)
-            if val is not None:
-                kwargs[key] = val
+        meta = column.info.meta
+        if meta:
+            for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+                val = meta.get(key, None)
+                if val is not None:
+                    kwargs[key] = val
         # TODO: Use the unit framework when available
         if column.info.unit is not None:
             kwargs['unit'] = column.info.unit
@@ -1564,7 +1565,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         if column.info.description is not None:
             field.description = column.info.description
         field.values.from_table_column(column)
-        if 'links' in meta:
+        if meta and 'links' in meta:
             for link in meta['links']:
                 field.links.append(Link.from_table_column(link))
 
