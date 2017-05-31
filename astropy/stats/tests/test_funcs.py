@@ -7,8 +7,6 @@ import numpy as np
 from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
-from astropy.utils.compat import NUMPY_LT_1_10, NUMPY_LT_1_11
-from ...tests.helper import catch_warnings
 
 try:
     import scipy  # pylint: disable=W0611
@@ -24,17 +22,12 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from ...extern.six.moves import range
-
 from .. import funcs
-
-# These are not part of __all__ because they are just the lower level versions
-# of poisson_upper_limit
-# from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
-
+from ... import units as u
+from ...extern.six.moves import range
+from ...tests.helper import catch_warnings
 from ...utils.compat import NUMPY_LT_1_10  # pylint: disable=W0611
 from ...utils.misc import NumpyRNGContext
-from ... import units as u
 
 
 def test_median_absolute_deviation():
