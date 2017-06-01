@@ -38,6 +38,8 @@ New Features
 
 - ``astropy.io.misc``
 
+  - Yaml representer now accepting also numpy types
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
