@@ -122,7 +122,7 @@ Here, ``ST`` is a short-hand for the ST zero-point flux::
 .. note:: at present, only magnitudes defined in terms of luminosity or flux
 	  are implemented, since those that do not depend on the filter the
           measurement was made with.  They include absolute and apparent
-          bolometric [M+15]_, ST [H+95]_ and AB [OG83]_ magnitudes.
+          bolometric [M15]_, ST [H95]_ and AB [OG83]_ magnitudes.
 
 Now applying the calibration, we find (note the proper change in units)::
 
@@ -215,9 +215,9 @@ supported as logarithmic units.  For instance::
     <Decibel 80.0 dB(mW)>
 
 
-.. [M+15] Mamajek et al., 2015, `arXiv:1510.06262
+.. [M15] Mamajek et al., 2015, `arXiv:1510.06262
 	  <http://adsabs.harvard.edu/abs/2015arXiv151006262M>`_
-.. [H+95] E.g., Holtzman et al., 1995, `PASP 107, 1065
+.. [H95] E.g., Holtzman et al., 1995, `PASP 107, 1065
           <http://adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
 .. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
 	  <http://adsabs.harvard.edu/abs/1983ApJ...266..713O>`_
