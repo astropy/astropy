@@ -24,7 +24,8 @@ except ImportError:
 pytestmark = pytest.mark.skipif('not HAS_YAML')
 
 
-@pytest.mark.parametrize('c', [np.int32(1), np.int64(3)])
+@pytest.mark.parametrize('c', [np.int32(1), np.int64(3), np.float(2.0), 
+                               np.int16(4), np.bool(True), np.uint8(8), np.complex(3, 4)])
 def test_numpy_types(c):
     cy = load(dump(c))
     assert c == cy
