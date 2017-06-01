@@ -87,6 +87,9 @@ New Features
     Python 3 ``str`` object in a bytestring column (numpy ``'S'`` dtype).
     [#5700]
 
+  - Added functionality to allow ``astropy.units.Quantity`` to be read
+    from and written to a VOtable file. [#6132]
+
 - ``astropy.time``
 
 - ``astropy.units``
