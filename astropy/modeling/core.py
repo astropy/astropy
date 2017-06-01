@@ -383,7 +383,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
             args = ('self',) + inputs
             new_call = make_function_with_signature(
-                    __call__, args, [('model_set_axis', None)])
+                __call__, args, [('model_set_axis', None), ('with_bounding_box', False), ('fill_value', np.nan)])
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
@@ -680,12 +680,64 @@ class Model(object):
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
-
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True)
-
-        outputs = self.evaluate(*chain(inputs, parameters))
-
+        with_bbox = kwargs.pop('with_bounding_box', False)
+        fill_value = kwargs.pop('fill_value', np.nan)
+        bbox = None
+        if with_bbox:
+            try:
+                bbox = self.bounding_box
+            except NotImplementedError:
+                bbox = None
+            if self.n_inputs > 1 and bbox is not None:
+                # bounding_box is in python order - convert it to the order of the inputs
+                bbox = bbox[::-1]
+            if bbox is None:
+                outputs = self.evaluate(*chain(inputs, parameters))
+            else:
+                if self.n_inputs == 1:
+                    bbox = [bbox]
+                # indices where input is outside the bbox
+                # have a value of 1 in ``nan_ind``
+                nan_ind = np.zeros(inputs[0].shape, dtype=np.bool)
+                for ind, inp in enumerate(inputs):
+                    # Pass an ``out`` array so that ``axis_ind`` is array for scalars as well.
+                    axis_ind = np.zeros(inp.shape, dtype=np.bool)
+                    axis_ind = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1], out=axis_ind)
+                    nan_ind[axis_ind] = 1
+                # get an array with indices of valid inputs
+                valid_ind = np.logical_not(nan_ind).nonzero()
+                # inputs holds only inputs within the bbox
+                args = []
+                for input in inputs:
+                    if not input.shape:
+                        # shape is ()
+                        if nan_ind:
+                            outputs = [fill_value for a in args]
+                        else:
+                            args.append(input)
+                    else:
+                        args.append(input[valid_ind])
+                valid_result = self.evaluate(*chain(args, parameters))
+                if self.n_outputs == 1:
+                    valid_result = [valid_result]
+                # combine the valid results with the ``fill_value`` values
+                # outside the bbox
+                result = [np.zeros(inputs[0].shape) + fill_value for i in range(len(valid_result))]
+                for ind, r in enumerate(valid_result):
+                    if not result[ind].shape:
+                        # shape is ()
+                        result[ind] = r
+                    else:
+                        result[ind][valid_ind] = r
+                # format output
+                if self.n_outputs == 1:
+                    outputs = np.asarray(result[0])
+                else:
+                    outputs = [np.asarray(r) for r in result]
+        else:
+            outputs = self.evaluate(*chain(inputs, parameters))
         if self.n_outputs == 1:
             outputs = (outputs,)
 

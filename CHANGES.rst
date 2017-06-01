@@ -54,6 +54,10 @@ New Features
 
   - Added FWHM properties to Gaussian and Moffat models. [#6027]
 
+  - Added support for evaluating models and setting the results for inputs 
+    outside the bounding_box to a user specified ``fill_value``. This
+    is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
