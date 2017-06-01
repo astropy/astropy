@@ -223,19 +223,20 @@ AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
-AstropyDumper.add_representer(np.int32,
-                              yaml.representer.Representer.represent_int)
-try:
-    AstropyDumper.add_representer(np.int64,
-                                  yaml.representer.Representer.represent_long)
-except:
-    warnings.warn("This version of Pyyaml does not support long ints; using "
-                  "standard ints instead", AstropyUserWarning)
-    AstropyDumper.add_representer(np.int64,
-                                  yaml.representer.Representer.represent_int)
 
-AstropyDumper.add_representer(np.float64,
-                              yaml.representer.Representer.represent_float)
+# Numpy dtypes
+AstropyDumper.add_representer(np.bool_,
+                              yaml.representer.Representer.represent_bool)
+for np_type in [np.int_, np.intc, np.intp, np.int8, np.int16, np.int32, 
+                np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
+   AstropyDumper.add_representer(np_type,
+                                 yaml.representer.Representer.represent_int)
+for np_type in [np.float_, np.float16, np.float32, np.float64, np.longdouble]:
+   AstropyDumper.add_representer(np_type,
+                                 yaml.representer.Representer.represent_float)
+for np_type in [np.complex_, np.complex64, np.complex128]:
+   AstropyDumper.add_representer(np_type,
+                                 yaml.representer.Representer.represent_complex)
 
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)
