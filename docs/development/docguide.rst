@@ -97,19 +97,10 @@ Sphinx extensions
 Astropy-helpers includes a number of sphinx extensions (some via the
 `sphinx-automodapi`_ package) that are used in Astropy and its affiliated
 packages to facilitate easily documenting code in a homogeneous and readable
-way.
-
-
-automodapi Extension
---------------------
-
-.. automodule:: astropy_helpers.extern.automodapi.automodapi
-
-
-automodsumm Extension
----------------------
-
-.. automodule:: astropy_helpers.extern.automodapi.automodsumm
+way. The two main extensions are `~sphinx_automodapi.automodapi` for
+generating module documentation and `~sphinx_automodapi.automodsumm` for
+generating tables of module objects. Please see their documentation about
+usage.
 
 
 edit_on_github Extension
