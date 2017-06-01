@@ -178,7 +178,7 @@ class SLSQP(Optimization):
 
 class Simplex(Optimization):
     """
-    Neald-Mead (downhill simplex) algorithm [1].
+    Neald-Mead (downhill simplex) algorithm [1]_.
 
     This algorithm only uses function values, not derivatives.
     Uses `scipy.optimize.fmin`.
