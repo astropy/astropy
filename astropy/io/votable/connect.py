@@ -10,6 +10,8 @@ from . import parse, from_table
 from .tree import VOTableFile, Table as VOTable
 from .. import registry as io_registry
 from ...table import Table
+from ...table.column import BaseColumn
+from ...units import Quantity
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
@@ -139,12 +141,12 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
         ``tabledata``.  See :ref:`votable-serialization`.
     """
 
-    # Tables with mixin columns are not supported
-    if input.has_mixin_columns:
-        mixin_names = [name for name, col in input.columns.items()
-                       if not isinstance(col, input.ColumnClass)]
+    # Only those columns which are instances of BaseColumn or Quantity can be written
+    unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
+    if unsupported_cols:
+        unsupported_names = [col.info.name for col in unsupported_cols]
         raise ValueError('cannot write table with mixin column(s) {0} to VOTable'
-                         .format(mixin_names))
+                         .format(unsupported_names))
 
     # Check if output file already exists
     if isinstance(output, six.string_types) and os.path.exists(output):
