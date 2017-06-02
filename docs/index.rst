@@ -12,9 +12,9 @@
       h1 { display:none; }
     </style>
 
-##################################
+#####################
 Astropy Documentation
-##################################
+#####################
 
 .. |logo_svg| image:: _static/astropy_banner.svg
 
@@ -34,11 +34,9 @@ tools needed for performing astronomy and astrophysics with Python.
 
 .. _getting-started:
 
-******************
+***************
 Getting Started
-==================
-
-******************
+***************
 
 .. toctree::
    :maxdepth: 1
@@ -62,7 +60,7 @@ User Documentation
    importing_astropy
 
 Data structures and transformations
-----------------------------------------
+-----------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -78,7 +76,7 @@ Data structures and transformations
    analytic_functions/index
 
 Files and I/O
-----------------------------
+-------------
 
 .. toctree::
    :maxdepth: 1
@@ -91,7 +89,7 @@ Files and I/O
    vo/index
 
 Computations and utilities
-------------------------------------
+--------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -147,9 +145,9 @@ There are additional tools of use for developers in the
 
 .. _project-details:
 
-***********************
+***************
 Project details
-***********************
+***************
 
 .. toctree::
    :maxdepth: 1
@@ -160,9 +158,9 @@ Project details
    credits
    license
 
-******************
+*****
 Index
-******************
+*****
 
 * :ref:`genindex`
 * :ref:`modindex`
