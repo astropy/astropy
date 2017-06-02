@@ -11,7 +11,8 @@ Try the development version
     take a look at `Git Basics`_.
 
     If you have never used `git`_ before, allow one hour the first time you do
-    this. If you find this taking more than one hour, post in one of the `astropy forums <http://www.astropy.org/help.html>`_ to get help.
+    this. If you find this taking more than one hour, post in one of the
+    `astropy forums <http://www.astropy.org/help.html>`_ to get help.
 
 
 Trying out the development version of Astropy is useful in three ways:
