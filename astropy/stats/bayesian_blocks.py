@@ -119,7 +119,7 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     Regular event data:
 
-    >>> dt = 0.01
+    >>> dt = 0.05
     >>> t = dt * np.arange(1000)
     >>> x = np.zeros(len(t))
     >>> x[np.random.randint(0, len(t), len(t) // 10)] = 1
