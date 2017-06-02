@@ -124,6 +124,9 @@ New Features
   - ``Quantity`` has gained a new ``to_value`` method which returns the value
     of the quantity in a given unit. [#6127]
 
+  - ``Quantity`` now supports the ``@`` operator for matrix multiplication that
+    was introduced in Python 3.5, for all supported versions of numpy. [#6144]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``

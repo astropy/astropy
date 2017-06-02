@@ -7,6 +7,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import sys
 import copy
 import decimal
 from fractions import Fraction
@@ -18,6 +19,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
+from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import range
@@ -361,6 +363,32 @@ class TestQuantityOperations(object):
         new_quantity = self.q1 ** 3
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
+
+    @pytest.mark.skipif(sys.version_info[:2] < (3, 5),
+                        reason="__matmul__ only introduced in Python 3.5")
+    def test_matrix_multiplication(self):
+        # We cannot write @ as an operator since class gets parsed also on
+        # Python <3.5, so we use eval instead.
+        a = np.eye(3)
+        q = a * u.m
+        result1 = eval("q @ a")
+        assert np.all(result1 == q)
+        result2 = eval("a @ q")
+        assert np.all(result2 == q)
+        result3 = eval("q @ q")
+        assert np.all(result3 == a * u.m **2)
+        # less trivial case.
+        q2 = np.array([[[1., 0., 0.],
+                        [0., 1., 0.],
+                        [0., 0., 1.]],
+                       [[0., 1., 0.],
+                        [0., 0., 1.],
+                        [1., 0., 0.]],
+                       [[0., 0., 1.],
+                        [1., 0., 0.],
+                        [0., 1., 0.]]]) / u.s
+        result4 = eval("q @ q2")
+        assert np.all(result4 == matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
 
