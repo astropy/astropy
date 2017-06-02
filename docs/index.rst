@@ -41,23 +41,19 @@ Getting Started
 .. toctree::
    :maxdepth: 1
 
-   About <http://www.astropy.org/about.html>
    install
+   importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
    Get Help <http://www.astropy.org/help.html>
    Contribute and Report Problems <http://www.astropy.org/contribute.html>
+   About the astropy project <http://www.astropy.org/about.html>
 
 .. _user-docs:
 
 ******************
 User Documentation
 ******************
-
-.. toctree::
-   :maxdepth: 1
-
-   importing_astropy
 
 Data structures and transformations
 -----------------------------------
