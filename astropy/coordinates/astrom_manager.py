@@ -74,16 +74,16 @@ def get_astrom(frame, tcode, precision=None):
                 earth_pv_support, earth_heliocentric_support
                 ) = prepare_earth_position_vel(obstime_support)
             # do interpolation
-            earth_pv = np.empty((len(obstime), 2, 3))
-            earth_heliocentric = np.empty((len(obstime), 3))
+            earth_pv = np.empty(obstime.shape + (2, 3,))
+            earth_heliocentric = np.empty(obstime.shape + (3,))
             for dim in range(3):
                 for ipv in range(2):
-                    earth_pv[:, ipv, dim] = np.interp(
+                    earth_pv[..., ipv, dim] = np.interp(
                         obstime.mjd, obstime_support.mjd, earth_pv_support[:, ipv, dim]
                         )
-                earth_heliocentric[:, dim] = np.interp(
-                        obstime.mjd, obstime_support.mjd, earth_heliocentric_support[:, dim]
-                        )
+                earth_heliocentric[..., dim] = np.interp(
+                    obstime.mjd, obstime_support.mjd, earth_heliocentric_support[:, dim]
+                    )
 
         else:
             earth_pv, earth_heliocentric = prepare_earth_position_vel(obstime)
