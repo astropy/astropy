@@ -68,9 +68,22 @@ def _array2string(values, prefix=''):
 
 def _combine_xyz(x, y, z, xyz_axis=0):
     """
-    Combine the 3 input arrays, ``x``, ``y``, ``z``.
-    """
+    Combine components ``x``, ``y``, ``z`` into a single Quantity array.
 
+    Parameters
+    ----------
+    x, y, z : `~astropy.units.Quantity`
+        The individual x, y, and z components.
+    xyz_axis : int, optional
+        The axis in the final array along which the x, y, z components
+        should be stored (default: 0).
+
+    Returns
+    -------
+    xyz : `~astropy.units.Quantity`
+        With dimension 3 along ``xyz_axis``, i.e., using the default of ``0``,
+        the shape will be ``(3,) + x.shape``.
+    """
     # Add new axis in x, y, z so one can concatenate them around it.
     # NOTE: just use np.stack once our minimum numpy version is 1.10.
     result_ndim = x.ndim + 1
@@ -1519,9 +1532,11 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
 
 @six.add_metaclass(MetaBaseDifferential)
 class BaseDifferential(BaseRepresentationOrDifferential):
-    """A base class representing differentials of representations.  I.e.,
-    differences of points in a particular representation (numerical realizations
-    of derivatives).
+    r"""A base class representing differentials of representations.
+
+    These represent differences or derivatives along each component.
+    E.g., for physics spherical coordinates, these would be
+    :math:`\delta r, \delta \theta, \delta \phi`.
 
     Parameters
     ----------
