@@ -38,7 +38,7 @@ New Features
 
 - ``astropy.io.misc``
 
-  - Yaml representer now accepting also numpy types. [#6077]
+  - YAML representer now also accepts numpy types. [#6077]
 
 - ``astropy.io.registry``
 
