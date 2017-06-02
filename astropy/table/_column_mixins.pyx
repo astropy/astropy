@@ -61,7 +61,7 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
     if PYV != 2:
         try:
             if value.dtype.char == 'S' and not value.shape:
-                value = value.decode('utf-8')
+                value = value.decode('utf-8', errors='replace')
         except AttributeError:
             pass
 
