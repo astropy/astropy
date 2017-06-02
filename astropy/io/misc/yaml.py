@@ -234,7 +234,6 @@ class AstropyDumper(yaml.SafeDumper):
             if isinstance(data, six.string_types + (bool, int, float)):
                 return True
 
-
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)
 AstropyDumper.add_multi_representer(u.Unit, _unit_representer)
