@@ -24,6 +24,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
 from ..utils.compat.misc import override__dir__
+from ..utils.compat.numpy import matmul
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
@@ -1091,6 +1092,17 @@ class Quantity(np.ndarray):
                                   self.unit ** other)
 
         return super(Quantity, self).__pow__(other)
+
+    # For Py>=3.5
+    def __matmul__(self, other, reverse=False):
+        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
+        result_array = matmul(self.value, getattr(other, 'value', other))
+        return self._new_view(result_array, result_unit)
+
+    def __rmatmul__(self, other):
+        result_unit = self.unit * getattr(other, 'unit', dimensionless_unscaled)
+        result_array = matmul(getattr(other, 'value', other), self.value)
+        return self._new_view(result_array, result_unit)
 
     def __pos__(self):
         """
