@@ -212,12 +212,17 @@ To see how the operations work, consider the following examples::
         (  3.06161700e-16,  -5.00000000e+00,  12.),
         ( -4.00000000e+00,  -3.00000000e+00, -12.)]]>
 
-For coordinates, one also has to deal with proper motions, which describe
-velocities in spherical coordinates.  To support this, the representations
-all have corresponding ``Differential`` classes, which can holds offsets or
-derivatives in terms of the components of the representation class. Adding such
-an offset to a representation means the offset is taken in the direction of
-the corresponding coordinate.
+Differentials and derivatives of Representations
+================================================
+In addition to positions in 3D space, coordinates also deal with proper motions
+and radial velocities, which require a way to represent differentials of
+coordinates (i.e., finite realizations) of derivatives.  To support this, the
+representations all have corresponding ``Differential`` classes, which can hold
+offsets or derivatives in terms of the components of the representation class.
+Adding such an offset to a representation means the offset is taken in the
+direction of the corresponding coordinate. (Although for any representation
+other than Cartesian, this is only defined relative to a specific location, as
+the unit vectors are not invariant.)
 
 To see how this works, consider the following::
 
@@ -235,7 +240,7 @@ Note how the conversion to cartesian can only done using a ``base``, since
 otherwise the code cannot know what direction an increase in longitude
 corresponds to.  For ``lon=0``, this is in the ``y`` direction.  Now, to get
 the coordinates at two laters times::
-  
+
   >>> sph_coo + sph_derivative * [1., 3600*180/np.pi] * u.yr  # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       [(  4.84813681e-06,  0.,  1.        ),
@@ -308,7 +313,7 @@ provides the ``base``::
   >>> sph_lat60 + pm_coslat2 * 1. * u.Myr  # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       ( 0.0048481,  1.04719246,  1.00000294)>
-  
+
 .. _astropy-coordinates-create-repr:
 
 Creating your own representations
