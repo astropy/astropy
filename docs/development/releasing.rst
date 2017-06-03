@@ -66,7 +66,8 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
-   ``git clone`` or do ``git clean -dfx``.
+   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree, 
+   don't forget to clean the ``astropy_helpers`` submodule, too.
 
 #. Be sure you're on the branch appropriate for the version you're about to
    release.  For example, if releasing version 1.2.2 make sure to::
@@ -118,10 +119,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.2
 
-   Don't forget to remove any non-committed files with::
+   Don't forget to remove any non-committed files both from the main working tree 
+   and ``astropy_helpers`` submodules with::
 
       $ git clean -dfx
-
+      $ cd astropy_helpers; git clean -dfx; cd ..
+      
 #. Make sure the source distribution doesn't inherit limited permissions
    following your default umask::
 
@@ -164,6 +167,7 @@ packages that use the full bugfix/maintenance branch approach.)
    to make sure you didn't leave anything from the previous step::
 
       $ git clean -dfx
+      $ cd astropy_helpers; git clean -dfx; cd ..
 
 #. Upload the source distribution to PyPI; this is preceded by re-running
    the sdist command, which makes sure the source code is packaged up and ready
