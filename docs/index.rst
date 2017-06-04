@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-:tocdepth: 2
+:tocdepth: 3
 
 .. the "raw" directive below is used to hide the title in favor of just the logo being visible
 .. raw:: html
@@ -12,9 +12,9 @@
       h1 { display:none; }
     </style>
 
-**********************************
-Astropy Core Package Documentation
-**********************************
+#####################
+Astropy Documentation
+#####################
 
 .. |logo_svg| image:: _static/astropy_banner.svg
 
@@ -32,36 +32,31 @@ Welcome to the Astropy documentation! Astropy is a community-driven
 package intended to contain much of the core functionality and some common
 tools needed for performing astronomy and astrophysics with Python.
 
-.. _user-docs:
+.. _getting-started:
 
-==================
-User Documentation
-==================
-
-.. only:: html
-
-    :doc:`whatsnew/1.3`
-    -------------------
-
-.. only:: latex
-
-    .. toctree::
-       :maxdepth: 1
-
-       whatsnew/1.0
-
-**Astropy at a glance**
+***************
+Getting Started
+***************
 
 .. toctree::
    :maxdepth: 1
 
-   overview
    install
-   getting_started
-   Example gallery <generated/examples/index>
+   importing_astropy
+   Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
+   Get Help <http://www.astropy.org/help.html>
+   Contribute and Report Problems <http://www.astropy.org/contribute.html>
+   About the astropy project <http://www.astropy.org/about.html>
 
-**Core data structures and transformations**
+.. _user-docs:
+
+******************
+User Documentation
+******************
+
+Data structures and transformations
+-----------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -76,7 +71,8 @@ User Documentation
    modeling/index
    analytic_functions/index
 
-**Connecting up: Files and I/O**
+Files and I/O
+-------------
 
 .. toctree::
    :maxdepth: 1
@@ -88,7 +84,8 @@ User Documentation
    io/misc
    vo/index
 
-**Astronomy computations and utilities**
+Computations and utilities
+--------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -98,7 +95,8 @@ User Documentation
    visualization/index
    stats/index
 
-**Nuts and bolts of Astropy**
+Nuts and bolts
+--------------
 
 .. toctree::
    :maxdepth: 1
@@ -109,87 +107,7 @@ User Documentation
    warnings
    utils/index
    testhelpers
-
-**Astropy project details**
-
-.. toctree::
-   :maxdepth: 1
-
-   stability
-   whatsnew/index
-   known_issues
-   credits
-   license
-
-.. _getting_help:
-
-============
-Getting help
-============
-
-If you want to get help or discuss issues with other Astropy users, you can sign
-up for the `Astropy mailing list`_. Alternatively, the `astropy-dev mailing
-list`_ is where you should go to discuss more technical aspects of Astropy with
-the developers. You can also email the astropy developers privately at
-`feedback@astropy.org`_...but remember that questions you ask
-publicly serve as resources for other users!
-
-.. _reporting_issues:
-
-================
-Reporting Issues
-================
-
-If you have found a bug in Astropy please report it. The preferred way is to
-create a new issue on the Astropy `GitHub issue page
-<http://github.com/astropy/astropy/issues>`_; that requires `creating a free
-account <https://github.com>`_ on GitHub if you do not have one.
-
-If you prefer not to create a GitHub account, please report the issue to either
-the `Astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
-private email to the astropy core developers at
-`feedback@astropy.org <mailto:feedback@astropy.org>`_.
-
-Please include an example that demonstrates the issue that will allow the
-developers to reproduce and fix the problem. You may be asked to also provide
-information about your operating system and a full Python stack trace; the
-Astropy developers will walk you through obtaining a stack trace if it is
-necessary.
-
-
-For astropy-helpers
--------------------
-
-Astropy and many affiliated packages use a package of
-utilities called astropy-helpers during building and installation.  If you have
-any build/installation issue--particularly if you're getting a traceback
-mentioning the ``astropy_helpers`` or ``ah_bootstrap`` modules--please send a
-report to the `astropy-helpers issue tracker
-<https://github.com/astropy/astropy-helpers/issues>`_.  If you're not sure,
-however, it's fine to report via the main Astropy issue tracker or one of the
-other avenues described above.
-
-
-============
-Contributing
-============
-
-The Astropy project is made both by and for its users, so we highly encourage
-contributions at all levels.  This spans the gamut from sending an email
-mentioning a typo in the documentation or requesting a new feature all the way
-to developing a major new package.
-
-The full range of ways to be part of the Astropy project are described at
-`Contribute to Astropy <http://www.astropy.org/contribute.html>`_. To get
-started contributing code or documentation (no git or GitHub experience
-necessary):
-
-.. toctree::
-    :maxdepth: 1
-
-    development/workflow/get_devel_version
-    development/workflow/development_workflow
-
+   development/workflow/get_devel_version
 
 .. _developer-docs:
 
@@ -221,9 +139,24 @@ There are additional tools of use for developers in the
    development/affiliated-packages
    changelog
 
-==================
-Indices and Tables
-==================
+.. _project-details:
+
+***************
+Project details
+***************
+
+.. toctree::
+   :maxdepth: 1
+
+   stability
+   whatsnew/index
+   known_issues
+   credits
+   license
+
+*****
+Index
+*****
 
 * :ref:`genindex`
 * :ref:`modindex`

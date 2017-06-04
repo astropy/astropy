@@ -791,6 +791,26 @@ Using `astropy.io.fits`
    usage/scripts
    usage/misc
 
+Command-line utilities
+======================
+
+For convenience, several of Astropy's subpackages install utility programs
+on your system which allow common tasks to be performed without having
+to open a Python interpreter. These utilities include:
+
+- `~astropy.io.fits.scripts.fitsheader`: prints the headers of a FITS file.
+
+- `~astropy.io.fits.scripts.fitscheck`: verifies and optionally re-writes
+  the CHECKSUM and DATASUM keywords of a FITS file.
+
+- :ref:`fitsdiff`: compares two FITS files and reports the differences.
+
+- :ref:`fits2bitmap`: converts FITS images to bitmaps, including scaling and
+  stretching.
+
+- :ref:`wcslint <wcslint>`: checks the :ref:`WCS <astropy-wcs>` keywords in a
+  FITS file for compliance against the standards.
+
 Other Information
 =================
 
