@@ -95,13 +95,6 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
         del text[:]
 
-    if sys.version_info[:3] < (2, 6, 5):  # pragma py2
-        # Due to Python issue #4978, convert all keys to byte strings
-        _start = start
-        def start(name, attr):
-            attr = dict((k.encode('utf-8'), v) for (k, v) in six.iteritems(attr))
-            return _start(name, attr)
-
     def end(name):
         queue.append((False, name, ''.join(text).strip(),
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
