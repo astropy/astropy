@@ -45,6 +45,18 @@ with the Astropy Project, see http://dashboard.astropy.org.
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
 
+
+Contributing Code, Documentation or Feedback
+--------------------------------------------
+The Astropy project is made both by and for its users, so we welcome and encourage
+contributions of many kinds. Our goal is to keep this a positive, inclusive,
+successful, and growing community, by abiding with the
+`Astropy Community Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_.
+
+More detailed information on contributing to the project or submitting feedback
+can be found on the `contributions <http://www.astropy.org/contribute.html>`_ page.
+
+
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
