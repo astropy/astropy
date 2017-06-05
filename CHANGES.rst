@@ -210,6 +210,8 @@ API Changes
 
   - Removed the deprecated ``astropy.utils.compat.subprocess`` module. [#5975]
 
+  - Removed the deprecated ``astropy.utils.compat.odict`` module. [#6156]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
