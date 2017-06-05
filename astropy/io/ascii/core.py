@@ -141,9 +141,9 @@ class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
 
     We want to be able to put the generic term ``masked`` into a dictionary.
-    In python 2.7 we can just use ``numpy.ma.masked``, but in python 3.1 and 3.2 that
-    is not hashable, see https://github.com/numpy/numpy/issues/4660
-    So, we need to extend it here with a hash value.
+    The constant ``numpy.ma.masked`` is not hashable (see
+    https://github.com/numpy/numpy/issues/4660), so we need to extend it
+    here with a hash value.
     """
     def __hash__(self):
         '''All instances of this class shall have the same hash.'''

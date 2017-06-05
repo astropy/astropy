@@ -4,7 +4,6 @@
 
 import copy
 import functools
-import sys
 import datetime
 from copy import deepcopy
 
@@ -822,13 +821,7 @@ def test_now():
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.
 
-    # py < 2.7 doesn't have `total_seconds`
-    if sys.version_info[:2] < (2, 7):
-        total_secs = lambda td: (td.microseconds + (
-            td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
-    else:
-        total_secs = lambda td: td.total_seconds()
-    assert total_secs(dt) < 0.1
+    assert dt.total_seconds() < 0.1
 
 
 def test_decimalyear():
