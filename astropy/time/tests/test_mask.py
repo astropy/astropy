@@ -3,6 +3,7 @@
 import functools
 import numpy as np
 
+from ...tests.helper import pytest
 from .. import Time
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
@@ -13,6 +14,7 @@ is_masked = np.ma.is_masked
 def test_simple():
     t = Time([1, 2, 3], format='cxcsec')
     assert t.masked is False
+    assert np.all(t.mask == [False, False, False])
 
     # Before masking, format output is not a masked array (it is an ndarray
     # like always)
@@ -30,6 +32,24 @@ def test_simple():
     assert isinstance(t.value, np.ma.MaskedArray)
     assert isinstance(t.unix, np.ma.MaskedArray)
     # Todo : test all formats
+
+
+def test_scalar_init():
+    t = Time('2000:001')
+    assert t.masked is False
+    assert t.mask == np.array(False)
+
+
+def test_mask_not_writeable():
+    t = Time('2000:001')
+    with pytest.raises(AttributeError) as err:
+        t.mask = True
+    assert "can't set attribute" in str(err)
+
+    t = Time(['2000:001'])
+    with pytest.raises(ValueError) as err:
+        t.mask[0] = True
+    assert "assignment destination is read-only" in str(err)
 
 
 def test_str():
@@ -54,10 +74,49 @@ def test_transform():
     assert is_masked(t_ut1.value[1])
     assert not is_masked(t_ut1.value[0])
     assert np.all(t_ut1.mask == [False, True])
-    
+
     # Change format
     t_unix = t.unix
     assert is_masked(t_unix[1])
     assert not is_masked(t_unix[0])
     assert np.all(t_unix.mask == [False, True])
-    
+
+
+def test_masked_input():
+    v0 = np.ma.MaskedArray([[1, 2], [3, 4]])  # No masked elements
+    v1 = np.ma.MaskedArray([[1, 2], [3, 4]], mask=[[True, False], [False, False]])
+    v2 = np.ma.MaskedArray([[10, 20], [30, 40]], mask=[[False, False], [False, True]])
+
+    # Init from various combinations of masked arrays
+    t = Time(v0, format='cxcsec')
+    assert np.ma.allclose(t.value, v0)
+    assert np.all(t.mask == [[False, False], [False, False]])
+    assert t.masked is False
+
+    t = Time(v1, format='cxcsec')
+    assert np.ma.allclose(t.value, v1)
+    assert np.all(t.mask == v1.mask)
+    assert np.all(t.value.mask == v1.mask)
+    assert t.masked is True
+
+    t = Time(v1, v2, format='cxcsec')
+    assert np.ma.allclose(t.value, v1 + v2)
+    assert np.all(t.mask == (v1 + v2).mask)
+    assert t.masked is True
+
+    t = Time(v0, v1, format='cxcsec')
+    assert np.ma.allclose(t.value, v0 + v1)
+    assert np.all(t.mask == (v0 + v1).mask)
+    assert t.masked is True
+
+    t = Time(0, v2, format='cxcsec')
+    assert np.ma.allclose(t.value, v2)
+    assert np.all(t.mask == v2.mask)
+    assert t.masked is True
+
+    # Init from a string masked array
+    t_iso = t.iso
+    t2 = Time(t_iso)
+    assert np.all(t2.value == t_iso)
+    assert np.all(t2.mask == v2.mask)
+    assert t2.masked is True
