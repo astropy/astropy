@@ -12,6 +12,12 @@ from ..fitting import LevMarLSQFitter
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
 
 class TestBlackbody1D():
 
@@ -29,6 +35,7 @@ class TestBlackbody1D():
         assert_quantity_allclose(b(1.4 * u.micron), 4756726.111003904 * u.Jy)
         assert_quantity_allclose(b(214.13747 * u.THz), 4756726.111003904 * u.Jy)
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_fit(self):
 
         fitter = LevMarLSQFitter()
