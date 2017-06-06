@@ -32,7 +32,7 @@ def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
-         doc="Solar radius", prefixes=True,
+         doc="Nominal Solar radius(hence no uncertainty)", prefixes=True,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
 def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter'],
          _si.R_jup, namespace=_ns, prefixes=True, doc="Jupiter radius",
@@ -65,7 +65,7 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 # MASS
 
 def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
-         prefixes=True, doc="Solar mass",
+         prefixes=True, doc="Nominal Solar mass(hence no uncertainty)",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
 def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
          _si.M_jup, namespace=_ns, prefixes=True, doc="Jupiter mass",
@@ -103,7 +103,7 @@ def_unit(['Ry', 'rydberg'],
 # ILLUMINATION
 
 def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
-         prefixes=True, doc="Solar luminance",
+         prefixes=True, doc="Nominal Solar luminance(hence no uncertainty)",
          format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
 
