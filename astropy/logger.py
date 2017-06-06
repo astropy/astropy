@@ -81,6 +81,10 @@ class Conf(_config.ConfigNamespace):
         "%(asctime)r, "
         "%(origin)r, %(levelname)r, %(message)r",
         "Format for log file entries.")
+    propagate_log = _config.ConfigItem(
+        False,
+        "Whether messages logged to the Astropy logger "
+        "should be propagated to the root logger handler.")
 conf = Conf()
 
 
@@ -98,6 +102,8 @@ def _init_log():
         log._set_defaults()
     finally:
         logging.setLoggerClass(orig_logger_cls)
+
+    log.propagate = conf.propagate_log
 
     return log
 
