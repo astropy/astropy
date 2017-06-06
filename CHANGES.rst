@@ -56,7 +56,7 @@ New Features
 
   - Added FWHM properties to Gaussian and Moffat models. [#6027]
 
-  - Added support for evaluating models and setting the results for inputs 
+  - Added support for evaluating models and setting the results for inputs
     outside the bounding_box to a user specified ``fill_value``. This
     is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
 
@@ -210,9 +210,8 @@ API Changes
 
 - ``astropy.utils``
 
-  - Removed the deprecated ``astropy.utils.compat.subprocess`` module. [#5975]
-
-  - Removed the deprecated ``astropy.utils.compat.odict`` module. [#6157]
+  - Removed the deprecated compatibility modules for Python 2.6 (``argparse``,
+    ``fractions``, ``gzip``, ``odict``, ``subprocess``) [#5975,#6157,#6164]
 
 - ``astropy.visualization``
 
