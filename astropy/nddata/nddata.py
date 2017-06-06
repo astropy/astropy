@@ -61,7 +61,7 @@ class NDData(NDDataBase):
     unit : `~astropy.units.Unit`-like or str, optional
         Unit for the dataset. Strings that can be converted to a
         `~astropy.units.Unit` are allowed.
-        Default is ``None``.
+        Default is ``cm``.
 
     copy : `bool`, optional
         Indicates whether to save the arguments as copy. ``True`` copies
@@ -115,7 +115,7 @@ class NDData(NDDataBase):
     meta = MetaData(doc=_meta_doc, copy=False)
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None, copy=False):
+                 meta=None, unit=Unit("cm"), copy=False):
 
         # Rather pointless since the NDDataBase does not implement any setting
         # but before the NDDataBase did call the uncertainty
