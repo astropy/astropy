@@ -182,7 +182,7 @@ def test_boolean():
         None, name='c', datatype='boolean',
         config=config)
     c = converters.get_converter(field, config=config)
-    c.parse('YES')
+    c.parse('XXX')
 
 
 def test_boolean_array():
