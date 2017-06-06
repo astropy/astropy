@@ -338,7 +338,7 @@ Using `astropy.modeling`
    new
    bounding-boxes
    algorithms
-
+   units
 
 Reference/API
 =============
