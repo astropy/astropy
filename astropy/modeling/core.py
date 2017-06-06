@@ -1715,11 +1715,10 @@ class Model(object):
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
-                else:
-                    # We use quantity_asanyarray here instead of np.asanyarray because
-                    # if any of the arguments are quantities, we need to return a
-                    # Quantity object not a plain Numpy array.
-                    params[param_name] = quantity_asanyarray(value, dtype=np.float)
+                # We use quantity_asanyarray here instead of np.asanyarray because
+                # if any of the arguments are quantities, we need to return a
+                # Quantity object not a plain Numpy array.
+                params[param_name] = quantity_asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
