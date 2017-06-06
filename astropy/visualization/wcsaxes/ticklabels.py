@@ -189,6 +189,10 @@ class TickLabels(Text):
 
                     dist = np.hypot(dx, dy)
 
+                    # Avoid RuntimeWarning
+                    if dist == 0 or not np.isfinite(dist):
+                        dist = 1.0  # Is this a reasonable estimate?
+
                     ddx = dx / dist
                     ddy = dy / dist
 
@@ -205,7 +209,8 @@ class TickLabels(Text):
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
-                if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
+                if (not self._exclude_overlapping or
+                        bb.count_overlaps(bboxes) == 0):
                     super(TickLabels, self).draw(renderer)
                     bboxes.append(bb)
                     ticklabels_bbox.append(bb)

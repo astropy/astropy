@@ -290,6 +290,8 @@ Bug Fixes
 
 - ``astropy.visualization``
 
+  - Fix ``RuntimeWarning`` when ``wcsaxes`` tick labels are invalid. [#6002]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
