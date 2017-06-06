@@ -469,6 +469,7 @@ def table_to_hdu(table):
     time_cols = table.columns.isinstance(Time)
     if time_cols:
         newtable = QTable(table)
+        #table = replace_time_table(newtable)
         for col in time_cols:
             newtable[col.info.name] = Column(np.empty(col.shape + (2,)))
             newtable[col.info.name][...,0] = col.jd1
