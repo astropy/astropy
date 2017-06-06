@@ -114,10 +114,16 @@ file::
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> data = Table([x, y], names=['x', 'y'])
+  >>> data.meta['comments'] = ['First line of comment', 'Second line of comment']
   >>> ascii.write(data, 'values.dat')
 
-The ``values.dat`` file will then contain::
+The ``values.dat`` file will then contain the following.
+Note the table comment lines which result from setting ``data.meta['comments']``
+with a list of strings (for more detail see the comment parameter in the
+:ref:`io_ascii_write_parameters section`)::
 
+  # First line of comment
+  # Second line of comment
   x y
   1 1
   2 4
