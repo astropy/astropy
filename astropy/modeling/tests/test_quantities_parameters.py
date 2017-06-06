@@ -224,12 +224,18 @@ def test_parameter_defaults(unit, default):
     # quantity?
     assert m.a.default == 1.0
 
-    # Instantiating with incompatible units raises an error
+    # Initialize with a completely different unit
+    m = TestModel(2.0 * u.Jy)
+    assert m.a.unit == u.Jy
+    assert m.a.value == 2.0
+    # TODO: this illustrates why the default doesn't make sense anymore
+    assert m.a.default == 1.0
+
+    # Instantiating with different units works, and just replaces the original unit
     with pytest.raises(InputParameterError) as exc:
-        TestModel(1.0 * u.Jy)
-    assert exc.value.args[0] == ('TestModel.__init__() requires parameter \'a\' '
-                                 'to be in units equivalent to Unit("m") '
-                                 '(got Unit("Jy"))')
+        TestModel(1.0)
+    assert exc.value.args[0] == ("TestModel.__init__() requires a "
+                                 "Quantity for parameter 'a'")
 
 
 def test_parameter_quantity_arithmetic():

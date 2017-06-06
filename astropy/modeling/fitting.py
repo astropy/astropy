@@ -107,7 +107,9 @@ def fitter_unit_support(func):
                           isinstance(y, Quantity) or
                           isinstance(z, Quantity))
 
-        if data_has_units:
+        model_has_units = model._has_units
+
+        if data_has_units or model_has_units:
 
             if model._supports_unit_fitting:
 
