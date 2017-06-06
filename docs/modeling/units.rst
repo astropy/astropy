@@ -34,7 +34,7 @@ It is then possible to access the individual properties of the parameter::
     >>> g1.mean.value
     3.0
     >>> g1.mean.unit
-    m
+    Unit("m")
 
 If a parameter has been initialized as a Quantity, it should always be set to a
 quantity, but the units don't have to be compatible with the initial ones::
@@ -54,7 +54,8 @@ Setting a parameter which was originally set to a quantity to a scalar doesn't
 work because it's ambiguous whether the user means to change just the value and
 preserve the unit, or get rid of the unit::
 
-    >>> g1.mean = 2
+    >>> g1.mean = 2  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
     UnitsError : The 'mean' parameter should be given as a Quantity because it
     was originally initialized as a Quantity
@@ -74,9 +75,10 @@ Evaluating models with quantities
 Quantities can be passed to model during evaluation::
 
     >>> g2 = Gaussian1D(mean=3 * u.m, stddev=5 * u.cm)
-    >>> g2(2.9 * u.m)
-    0.13533528
-    >>> g2(2.9 * u.s)
+    >>> g2(2.9 * u.m)  # doctest: +FLOAT_CMP
+    <Quantity 0.1353352832366122>
+    >>> g2(2.9 * u.s)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', s (time), could not be converted to
     required input units of m (length)
@@ -84,7 +86,8 @@ Quantities can be passed to model during evaluation::
 In this case, since the mean and standard deviation have units, the value passed
 during evaluation also needs units::
 
-    >>> g2(3)
+    >>> g2(3)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', (dimensionless), could not be converted to
     required input units of m (length)
@@ -105,7 +108,8 @@ Let's consider a model that is Gaussian in wavelength space::
 
 By default, passing a frequency will not work:
 
-    >>> g3(1e2 * u.THz)
+    >>> g3(1e2 * u.THz)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', THz (frequency), could not be converted to
     required input units of micron (length)
@@ -113,8 +117,8 @@ By default, passing a frequency will not work:
 But you can pass a dictionary of equivalencies to the equivalencies argument
 (this needs to be a dictionary since some models can contain multiple inputs)::
 
-    >>> g3(110 * u.THz, equivalencies={'x': u.spectral()})
-    2.8889868 Jy
+    >>> g3(110 * u.THz, equivalencies={'x': u.spectral()})  # doctest: +FLOAT_CMP
+    <Quantity 2.888986819525229 Jy>
 
 The key of the dictionary should be the name of the inputs according to::
 
@@ -125,8 +129,8 @@ It is also possible to set default equivalencies for the input parameters using
 the input_units_equivalencies property::
 
     >>> g3.input_units_equivalencies = {'x': u.spectral()}
-    >>> g3(110 * u.THz)
-    2.8889868 Jy
+    >>> g3(110 * u.THz)  # doctest: +FLOAT_CMP
+    <Quantity 2.888986819525229 Jy>
 
 Fitting models with units to data
 =================================
@@ -242,7 +246,11 @@ It is actually possible to allow the input value(s) when
 evaluating the model to be dimensionless, which is done by setting
 input_units_allow_dimensionless::
 
-    >>> g2.input_units_allow_dimensionless = True
+    class MyModel(Model):
+
+        input_units_allow_dimensionless = True
+
+        ...
 
 But this requires the evaluate method to deal properly with dimensionless
 input.
