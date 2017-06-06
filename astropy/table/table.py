@@ -346,6 +346,13 @@ class Table(object):
             else:
                 n_cols = len(data)
 
+        elif data.__class__.__module__.startswith('lsst.afw.table'):
+            # returned data is a list of astropy Column objects
+            # meta is an OrderedDict
+            data, meta, copy = data.as_astropy_cols_meta(copy)
+            init_func = self._init_from_list
+            n_cols = len(data)
+
         elif isinstance(data, np.ndarray):
             if data.dtype.names:
                 init_func = self._init_from_ndarray  # _struct
