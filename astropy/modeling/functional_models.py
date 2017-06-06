@@ -18,7 +18,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
-           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
+           'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'Ramp1D']
 
 
 class BaseGaussian1D(Fittable1DModel):
@@ -1353,6 +1353,82 @@ class Delta2D(Fittable2DModel):
         raise ModelDefinitionError("Not implemented")
 
 
+class Ramp1D(Fittable1DModel):
+    """One dimensional Ramp model.
+
+    .. note:: Used for `Box1D` integration.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude, *A*
+    x_0 : float
+        Position of the center, :math:`x_0`
+    width : float
+        Width, *w*
+
+    See Also
+    --------
+    Box1D
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+              f(x) = \\left \\{
+                       \\begin{array}{ll}
+                         0 & : x < x_0 - w/2 \\\\
+                         A & : x > x_0 + w/2 \\\\
+                         A (0.5 + (x - x_0)/w) & : \\text{else}
+                       \\end{array}
+                     \\right.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Ramp1D
+
+        plt.figure()
+        s1 = Ramp1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            s1.width = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
+    """
+
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=0)
+    width = Parameter(default=1)
+
+    @staticmethod
+    def evaluate(x, amplitude, x_0, width):
+        return amplitude * np.clip((x - (x_0 - 0.5 * width)) / width, 0., 1.)
+
+    @property
+    def bounding_box(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``(x_low, x_high))``
+        """
+
+        dx = self.width / 2
+
+        return (self.x_0 - dx, self.x_0 + dx)
+
+
 class Box1D(Fittable1DModel):
     """
     One dimensional Box model.
@@ -1438,6 +1514,19 @@ class Box1D(Fittable1DModel):
         dx = self.width / 2
 
         return (self.x_0 - dx, self.x_0 + dx)
+
+    @property
+    def primitive(self):
+        """Primitive for one dimensional Box model.
+
+        Returns
+        -------
+        result : `Ramp1D`
+            Primitive integral (antiderivative) model.
+
+        """
+        return Ramp1D(amplitude=self.amplitude*self.width, x_0=self.x_0,
+                      width=self.width)
 
 
 class Box2D(Fittable2DModel):

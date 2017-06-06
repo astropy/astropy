@@ -44,7 +44,7 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     AliasDict, get_inputs_and_params,
-                    _BoundingBox)
+                    _BoundingBox, _Primitive)
 from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
@@ -129,6 +129,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
                 cls.param_names = tuple(cls._parameters_)
 
         cls._create_inverse_property(members)
+        cls._create_primitive_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
 
@@ -266,6 +267,73 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         cls._inverse = inverse
         del cls.inverse
 
+    def _create_primitive_property(cls, members):
+        """
+        Takes any primitive defined on a concrete Model subclass (either
+        as a property or method) and wraps it in the generic
+        getter/setter interface for the primitive attribute.
+        """
+
+        primitive = members.get('primitive')
+        if primitive is None or cls.__bases__[0] is object:
+            # The latter clause is the prevent the below code from running on
+            # the Model base class, which implements the default getter and
+            # setter for .primitive
+            return
+
+        if isinstance(primitive, property):
+            # We allow the @property decorator to be omitted entirely from
+            # the class definition, though its use should be encouraged for
+            # clarity
+            primitive = primitive.fget
+
+        if not callable(primitive):
+            raise ModelDefinitionError('Primitive must be callable')
+
+        sig = signature(primitive)
+        if len(sig.parameters) > 1:
+            primitive = cls._create_primitive_subclass(primitive, sig)
+
+        if six.PY2 and isinstance(primitive, types.MethodType):
+            primitive = primitive.__func__
+
+        # Store the primitive getter internally, then delete the given .primitive
+        # attribute so that cls.primitive resolves to Model.primitive instead
+        cls._primitive = primitive
+        del cls.primitive
+
+    def _create_primitive_subclass(cls, func, sig):
+        """
+        For Models that take optional arguments for defining their primitive,
+        we create a subclass of _Primitive with a ``__call__`` method
+        that supports those additional arguments.
+
+        Takes the function's Signature as an argument since that is already
+        computed in _create_primitive_property, so no need to duplicate that
+        effort.
+        """
+
+        def __call__(self, **kwargs):
+            return func(self._model, **kwargs)
+
+        # Already checked for sig.parameters > 1 in _create_primitive_property()
+        kwargs = []
+        for param in islice(sig.parameters.values(), 1, None):  # [0] = self
+            if param.default is param.empty:
+                raise ModelDefinitionError(
+                    'The primitive method for {0} is not correctly '
+                    'defined: If defined as a method all arguments to that '
+                    'method (besides self) must be keyword arguments with '
+                    'default values that can be used to compute a default '
+                    'primitive.'.format(cls.name))
+
+            kwargs.append((param.name, param.default))
+
+        __call__ = make_function_with_signature(__call__, ('self',), kwargs)
+
+        return type(str('_{0}Primitive'.format(cls.name)), (_Primitive,),
+                    {'__call__': __call__})
+
     def _create_bounding_box_property(cls, members):
         """
         Takes any bounding_box defined on a concrete Model subclass (either
@@ -336,12 +404,10 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         def __call__(self, **kwargs):
             return func(self._model, **kwargs)
 
+        # Already checked for sig.parameters > 1 in
+        # _create_bounding_box_property()
         kwargs = []
-        for idx, param in enumerate(sig.parameters.values()):
-            if idx == 0:
-                # Presumed to be a 'self' argument
-                continue
-
+        for param in islice(sig.parameters.values(), 1, None):  # [0] = self
             if param.default is param.empty:
                 raise ModelDefinitionError(
                     'The bounding_box method for {0} is not correctly '
@@ -644,6 +710,9 @@ class Model(object):
     # it to.
     _inverse = None
     _user_inverse = None
+
+    _primitive = None
+    _user_primitive = None
 
     _bounding_box = None
     _user_bounding_box = None
@@ -963,6 +1032,92 @@ class Model(object):
         """
 
         return self._user_inverse is not None
+
+    @property
+    def primitive(self):
+        """
+        Returns a new `~astropy.modeling.Model` instance which is the
+        primitive integral (antiderivative) defined for this model.
+
+        Even on models that don't have a primitive defined, this property can
+        be set with a manually-defined primitive, such a pre-computed or
+        experimentally determined integral, but it is not required.
+
+        A custom primitive can be deleted with ``del model.primitive``. In this
+        case the model's primitive is reset to its default, if a default exists
+        (otherwise the default is to raise `NotImplementedError`).
+
+        Note to authors of `~astropy.modeling.Model` subclasses:  To define a
+        primitive for a model simply override this property to return the
+        appropriate model representing the primitive.  The machinery that will
+        make the primitive manually-overridable is added automatically by the
+        base class.
+        """
+
+        if self._user_primitive is not None:
+            if self._user_primitive is NotImplemented:
+                raise NotImplementedError(
+                    "No primitive is defined for this model (note: the "
+                    "primitive was explicitly disabled for this model; "
+                    "use `del model.primitive` to restore the default "
+                    "primitive, if one is defined for this model).")
+            return self._user_primitive
+        elif self._primitive is None:
+            raise NotImplementedError(
+                    "No primitive is defined for this model.")
+        elif isinstance(self._primitive, _Primitive):
+            # This typically implies a hard-coded primitive.  This will
+            # probably be rare, but it is an option
+            return self._primitive
+        elif isinstance(self._primitive, types.MethodType):
+            return self._primitive()
+        else:
+            # The only other allowed possibility is that it's a _Primitive
+            # subclass, so we call it with its default arguments and return an
+            # instance of it (that can be called to recompute the primitive
+            # with any optional parameters)
+            # (In other words, in this case self._primitive is a *class*)
+            return self._primitive(_model=self)
+
+    @primitive.setter
+    def primitive(self, primitive):
+        if primitive is None:
+            # We use this to explicitly set an unimplemented primitive (as
+            # opposed to no user primitive defined)
+            primitive = NotImplemented
+
+        self._user_primitive = primitive
+
+    @primitive.deleter
+    def primitive(self):
+        """
+        Resets the model's primitive to its default (if one exists, otherwise
+        the model will have no primitive).
+        """
+
+        del self._user_primitive
+
+    @property
+    def has_user_primitive(self):
+        """
+        A flag indicating whether or not a custom primitive model has been
+        assigned to this model by a user, via assignment to
+        ``model.primitive``.
+        """
+
+        return self._user_primitive is not None
+
+    def integrate(self, start, stop):
+        """Perform integration on the model at given start and stop
+        values. This uses ``model.primitive``, if available, or
+        raise `NotImplementedError` if not.
+        """
+        try:
+            m = self.primitive
+        except NotImplementedError:
+            raise NotImplementedError('Define model.primitive first before'
+                                      'performing integration')
+        return m(stop) - m(start)
 
     @property
     def bounding_box(self):
@@ -2067,9 +2222,10 @@ class _CompoundModelMeta(_ModelMeta):
         new_cls = mcls(name, (_CompoundModel,), members)
 
         if isinstance(left, Model) and isinstance(right, Model):
-            # Both models used in the operator were already instantiated models,
-            # not model *classes*.  As such it's not particularly useful to return
-            # the class itself, but to instead produce a new instance:
+            # Both models used in the operator were already instantiated
+            # models, not model *classes*.  As such it's not particularly
+            # useful to return the class itself, but to instead produce a new
+            # instance:
             instance = new_cls()
 
             # Workaround for https://github.com/astropy/astropy/issues/3542

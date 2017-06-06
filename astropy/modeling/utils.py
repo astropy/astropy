@@ -12,7 +12,7 @@ from collections import deque, MutableMapping
 import numpy as np
 
 from ..extern import six
-from ..extern.six.moves import range, zip_longest, zip
+from ..extern.six.moves import range, zip
 
 from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature
@@ -348,6 +348,29 @@ class AliasDict(MutableMapping):
         store_copy.update(self._store)
 
         return repr(store_copy)
+
+
+class _Primitive(object):
+    """Base class for models with custom primitive templates.
+    This is similar concept as bounding box, except it does not return
+    a tuple.
+    """
+
+    _model = None
+
+    def __new__(cls, _model=None):
+        self = super(_Primitive, cls).__new__(cls)
+        if _model is not None:
+            # Bind this _Primitive (most likely a subclass) to a Model
+            # instance so that its __call__ can access the model
+            self._model = _model
+
+        return self
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError(
+            "This primitive is fixed by the model and does not have "
+            "adjustable parameters.")
 
 
 class _BoundingBox(tuple):
