@@ -26,6 +26,13 @@ try:
 except ImportError: # in python 3, the module is named queue
     import queue as Queue
 
+
+# Import off_t directly to avoid needing a recent version of Cython for
+# posix.types (Cython 0.21)
+cdef extern from "<sys/types.h>":
+    ctypedef long off_t
+
+
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
         START_LINE
