@@ -34,6 +34,8 @@ from .function import magnitude_zero_points
 
 del bases
 
+_ = dimensionless_unscaled
+
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
 
