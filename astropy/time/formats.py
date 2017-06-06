@@ -156,6 +156,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def mask(self):
         if 'mask' not in self.cache:
             self.cache['mask'] = np.isnan(self.jd2)
+            if self.cache['mask'].shape:
+                self.cache['mask'].flags.writeable = False
         return self.cache['mask']
 
     @property
