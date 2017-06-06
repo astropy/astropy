@@ -58,7 +58,8 @@ def _length(data, p=1, phi=0.0, axis=None, weights=None):
 
 
 def circmean(data, axis=None, weights=None):
-    """ Computes the circular mean angle of an array of circular data.
+    """ Computes the circular mean angle (effectively, the mean of the values
+    mod 360) of an array of circular data.
 
     Parameters
     ----------
@@ -85,6 +86,9 @@ def circmean(data, axis=None, weights=None):
     >>> from astropy.stats import circmean
     >>> from astropy import units as u
     >>> data = np.array([51, 67, 40, 109, 31, 358])*u.deg
+    >>> circmean(data) # doctest: +FLOAT_CMP
+    <Quantity 48.62718088722989 deg>
+    >>> data = np.array([411, 67, 400, -251, 751, 358])*u.deg
     >>> circmean(data) # doctest: +FLOAT_CMP
     <Quantity 48.62718088722989 deg>
 
