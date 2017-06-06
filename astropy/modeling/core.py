@@ -1245,6 +1245,15 @@ class Model(object):
         return model
 
     @property
+    def _has_units(self):
+        # Returns True if any of the parameters have units
+        for param in self.param_names:
+            if getattr(self, param).unit is not None:
+                return True
+        else:
+            return False
+
+    @property
     def _supports_unit_fitting(self):
         # If the model has a '_parameter_units_for_data_units' method, this
         # indicates that we have enough information to strip the units away
