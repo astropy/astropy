@@ -889,8 +889,12 @@ def convert_numpy(numpy_type):
             raise ValueError('bool input strings must be only False or True')
         return trues
 
-    def generic_converter(vals):
-        return numpy.array(vals, numpy_type)
+    def generic_converter(vals, **kwargs):
+        fast = kwargs.get('fast', False)
+        if fast:
+            return vals.astype(numpy_type, copy=False)
+        else:
+            return numpy.array(vals, numpy_type)
 
     converter = bool_converter if converter_type is BoolType else generic_converter
 
@@ -921,6 +925,7 @@ class BaseOutputter(object):
         except (ValueError, TypeError):
             raise ValueError('Error: invalid format for converters, see '
                              'documentation\n{}'.format(converters))
+
         return converters_out
 
     def _convert_vals(self, cols):
@@ -929,7 +934,6 @@ class BaseOutputter(object):
             # to set the defaults, otherwise use the generic defaults.
             default_converters = ([convert_numpy(col.dtype)] if col.dtype
                                   else self.default_converters)
-
             # If the user supplied a specific convert then that takes precedence over defaults
             converters = self.converters.get(col.name, default_converters)
 

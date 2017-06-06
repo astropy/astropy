@@ -344,13 +344,13 @@ def test_start_end():
     assert_equal(data.field('statname')[0], 'chi2xspecvar')
     assert_equal(data.field('statname')[-1], 'chi2gehrels')
 
-
-def test_set_converters():
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_set_converters(fast_reader):
     converters = {'zabs1.nh': [ascii.convert_numpy('int32'),
                                ascii.convert_numpy('float32')],
                   'p1.gamma': [ascii.convert_numpy('str')]
                   }
-    data = ascii.read('t/test4.dat', converters=converters)
+    data = ascii.read('t/test4.dat', fast_reader=fast_reader, converters=converters)
     assert_equal(str(data['zabs1.nh'].dtype), 'float32')
     assert_equal(data['p1.gamma'][0], '1.26764500000')
 
