@@ -27,21 +27,22 @@ except ImportError:
     HAS_BEAUTIFUL_SOUP = False
 
 test_defs = [
-    dict(kwargs=dict(),
+    dict(kwargs=dict(Writer=ascii.Basic),
          out="""\
 ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
-    dict(kwargs=dict(delimiter=None),
+    dict(kwargs=dict(Writer=ascii.Basic, delimiter=None),
          out="""\
 ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
-    dict(kwargs=dict(formats={'XCENTER': '%12.1f',
+    dict(kwargs=dict(Writer=ascii.Basic,
+                     formats={'XCENTER': '%12.1f',
                               'YCENTER': '{0:.1f}'},
                      include_names=['XCENTER', 'YCENTER'],
                      strip_whitespace=False),
@@ -351,7 +352,7 @@ a b c
          ),
 ]
 
-test_def_masked_fill_value = [
+test_defs_masked_fill_value = [
     dict(kwargs=dict(),
          out="""\
 a b c
@@ -446,7 +447,7 @@ def test_write_fill_masked_different(fast_writer):
     data['a'].mask = [True, False]
     data['c'].mask = [False, True]
 
-    for test_def in test_def_masked_fill_value:
+    for test_def in test_defs_masked_fill_value:
         check_write_table(test_def, data, fast_writer)
 
 
