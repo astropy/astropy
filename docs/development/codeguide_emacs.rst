@@ -143,6 +143,7 @@ configuration:
 
   ;; Script that flymake uses to check code. This script must be
   ;; present in the system path.
+  (defvar pycodechecker)
   (setq pycodechecker "pychecker")
 
   (when (load "flymake" t)
