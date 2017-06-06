@@ -2711,6 +2711,8 @@ Bug Fixes
   - Rename units -> unit and error -> uncertainty in the ``repr`` and ``str``
     of constants to match attribute names. [#4147]
 
+  - Raise Exception in ``convolve`` for kernels that sum to zero. [#4138]
+
 - ``astropy.coordinates``
 
   - Fix string representation of ``SkyCoord`` objects transformed into
