@@ -127,7 +127,7 @@ the type of information to return.  The built-in ``option`` choices are
 (basic column statistics).  The ``option`` argument can also be a list
 of available options::
 
-  >>> t.info('stats')  # doctest: +SKIP
+  >>> t.info('stats')  # doctest: +FLOAT_CMP
   <Table length=5>
   name mean      std      min max
   ---- ---- ------------- --- ---
@@ -135,7 +135,7 @@ of available options::
      b  7.0 4.24264068712   1  13
      c  8.0 4.24264068712   2  14
 
-  >>> t.info(['attributes', 'stats'])  # doctest: +SKIP
+  >>> t.info(['attributes', 'stats'])  # doctest: +FLOAT_CMP
   <Table length=5>
   name dtype   unit   format       description        mean      std      min max
   ---- ----- -------- ------ ------------------------ ---- ------------- --- ---
@@ -156,7 +156,7 @@ but provides information about a single column::
   n_bad = 0
   length = 5
 
-  >>> t['a'].info('stats')  # doctest: +SKIP
+  >>> t['a'].info('stats')  # doctest: +FLOAT_CMP
   name = a
   mean = 6.0
   std = 4.24264068712
