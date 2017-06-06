@@ -143,11 +143,7 @@ class PolynomialModel(PolynomialBase):
                 names.append('c{0}'.format(n))
         else:
             for i in range(self.degree + 1):
-                names.append('c{0}_{1}'.format(i, 0))
-            for i in range(1, self.degree + 1):
-                names.append('c{0}_{1}'.format(0, i))
-            for i in range(1, self.degree):
-                for j in range(1, self.degree):
+                for j in range(self.degree + 1):
                     if i + j < self.degree + 1:
                         names.append('c{0}_{1}'.format(i, j))
         return tuple(names)
@@ -1178,13 +1174,9 @@ class _SIP1D(PolynomialBase):
 
     def _generate_coeff_names(self, coeff_prefix):
         names = []
-        for i in range(2, self.order + 1):
-            names.append('{0}_{1}_{2}'.format(coeff_prefix, i, 0))
-        for i in range(2, self.order + 1):
-            names.append('{0}_{1}_{2}'.format(coeff_prefix, 0, i))
-        for i in range(1, self.order):
-            for j in range(1, self.order):
-                if i + j < self.order + 1:
+        for i in range(self.order + 1):
+            for j in range(self.order + 1):
+                if 1 < i + j < self.order + 1:
                     names.append('{0}_{1}_{2}'.format(coeff_prefix, i, j))
         return names
 
