@@ -41,11 +41,7 @@ def _find_home():
     # uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
-        if 'HOME' in os.environ:
-            homedir = decodepath(os.environ['HOME'])
-        else:
-            raise OSError('Could not find unix home directory to search for '
-                          'astropy config dir')
+        homedir = os.path.expanduser('~')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         if 'MSYSTEM' in os.environ and os.environ.get('HOME'):
             # Likely using an msys shell; use whatever it is using for its
