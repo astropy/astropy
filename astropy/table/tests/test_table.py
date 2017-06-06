@@ -70,6 +70,13 @@ class SetupData(object):
             return self._d
 
     @property
+    def e(self):
+        if self._column_type is not None:
+            if not hasattr(self, '_e'):
+                self._e = self._column_type(name='e', format='%d')
+            return self._e
+
+    @property
     def obj(self):
         if self._column_type is not None:
             if not hasattr(self, '_obj'):
@@ -122,6 +129,16 @@ class TestSetTableColumn(SetupData):
         t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
             t[1] = ('abc', 'def')
+
+    def test_set_new_col_none_data_table(self, table_types):
+        """Create a new column in none data table"""
+        self._setup(table_types)
+        t = table_types.Table([self.e])
+        t['e'] = 2
+        with pytest.raises(ValueError):
+            t['b'] = 1
+        with pytest.raises(ValueError):
+            t['b'] = (1, 3, 5)
 
     def test_set_new_col_new_table(self, table_types):
         """Create a new column in empty table using the item access syntax"""

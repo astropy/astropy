@@ -1258,6 +1258,14 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
+            # If data is None when creating a Table in that case we can't
+            # insert new column because we don't know in table we need
+            # howmany size column
+            if len(self) == 0:
+                for col in self.columns.values():
+                    if len(col.data) == 0:
+                        raise ValueError('The key "{}" does not match with column name'
+                        .format(item))
             NewColumn = self.MaskedColumn if self.masked else self.Column
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
