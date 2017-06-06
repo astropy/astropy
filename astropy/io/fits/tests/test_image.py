@@ -702,12 +702,11 @@ class TestImageFunctions(FitsTestCase):
             tmp_uint = fits.PrimaryHDU(arr)
             filename = 'unsigned_int.fits'
             tmp_uint.writeto(self.temp(filename))
-            f = fits.open(self.temp(filename),
-                          do_not_scale_image_data=do_not_scale)
-
-            uint_hdu = f[0]
-            # Force a read before we close.
-            _ = uint_hdu.data
+            with fits.open(self.temp(filename),
+                           do_not_scale_image_data=do_not_scale) as f:
+                uint_hdu = f[0]
+                # Force a read before we close.
+                _ = uint_hdu.data
         else:
             uint_hdu = fits.PrimaryHDU(arr,
                                        do_not_scale_image_data=do_not_scale)
