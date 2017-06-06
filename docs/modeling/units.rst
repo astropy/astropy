@@ -165,7 +165,7 @@ we would without any units:
 
     fitter = fitting.LevMarLSQFitter()
 
-    g5_fit = fitter(g4, x, y)
+    g5_fit = fitter(g5, x, y)
 
     plt.plot(x, y, 'ko')
     plt.plot(x, g5_fit(x), 'r-')
