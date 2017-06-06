@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
@@ -18,10 +20,10 @@ class BlackBody1D(Fittable1DModel):
     Parameters
     ----------
     temperature : :class:`~astropy.units.Quantity`
-        Blackbody temperature
+        Blackbody temperature.
     bolometric_flux : :class:`~astropy.units.Quantity`
         The bolometric flux of the blackbody (i.e. the integral over the
-        spectral axis)
+        spectral axis).
     """
 
     # We parametrize this model with a temperature and a bolometric flux. The
