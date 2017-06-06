@@ -116,8 +116,6 @@ def test_Sky2Pix_unit(code):
     wcs_pix = w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
     model = getattr(projections, 'Sky2Pix_' + code)
     tinv = model(*params)
-    print(tinv.input_units)
-    print(tinv.return_units)
     x, y = tinv(wcslibout['phi']*u.deg, wcslibout['theta']*u.deg)
     assert_quantity_allclose(x, wcs_pix[:, 0]*u.pix)
     assert_quantity_allclose(y, wcs_pix[:, 1]*u.pix)

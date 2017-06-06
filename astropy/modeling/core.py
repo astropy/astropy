@@ -725,8 +725,8 @@ class Model(object):
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
 
-        # Check whether all the inputs are quantities
-        inputs_are_quantity = all([isinstance(i, Quantity) for i in inputs])
+        # Check whether any of the inputs are quantities
+        inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
 
         parameters = self._param_sets(raw=True, units=True)
         with_bbox = kwargs.pop('with_bounding_box', False)
@@ -795,7 +795,7 @@ class Model(object):
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
-                return_units = {outputs[0]: self.return_units}
+                return_units = {self.outputs[0]: self.return_units}
             else:
                 return_units = self.return_units
 
@@ -1391,7 +1391,9 @@ class Model(object):
         not be overriden since it will return the input units based on the
         annotations.
         """
-        if hasattr(self.evaluate, '__annotations__'):
+        if hasattr(self, '_input_units'):
+            return self._input_units
+        elif hasattr(self.evaluate, '__annotations__'):
             annotations = self.evaluate.__annotations__.copy()
             annotations.pop('return', None)
             if annotations:
@@ -1400,6 +1402,10 @@ class Model(object):
         else:
             # None means any unit is accepted
             return None
+
+    @input_units.setter
+    def input_units(self, input_units):
+        self._input_units = input_units
 
     @property
     def return_units(self):
@@ -1413,11 +1419,17 @@ class Model(object):
         overriden since it will return the return units based on the
         annotations.
         """
-        if hasattr(self.evaluate, '__annotations__'):
+        if hasattr(self, '_return_units'):
+            return self._return_units
+        elif hasattr(self.evaluate, '__annotations__'):
             return self.evaluate.__annotations__.get('return', None)
         else:
             # None means any unit is accepted
             return None
+
+    @return_units.setter
+    def return_units(self, return_units):
+        self._return_units = return_units
 
     def prepare_inputs(self, *inputs, **kwargs):
         """
@@ -1452,9 +1464,6 @@ class Model(object):
 
         if self.input_units is not None:
 
-            if len(self.input_units) != self.n_inputs:
-                raise ValueError("Number of input units must match number of inputs")
-
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
             input_units_equivalencies = _combine_equivalency_dict(self.inputs,
@@ -1474,7 +1483,14 @@ class Model(object):
 
                     # We check for consistency of the units with input_units,
                     # taking into account any equivalencies
-                    if inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
+
+                    if input_unit is None:
+
+                        # We dont need to do anything since no restrictions were
+                        # placed on input_units for this parameter.
+                        pass
+
+                    elif inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
 
                         # If equivalencies have been specified, we need to
                         # convert the input to the input units - this is because
@@ -1511,7 +1527,7 @@ class Model(object):
                     # exception.
 
                     if (not self.input_units_allow_dimensionless and
-                       input_unit is not dimensionless_unscaled):
+                       input_unit is not dimensionless_unscaled and input_unit is not None):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
                                              "converted to required input units of "
