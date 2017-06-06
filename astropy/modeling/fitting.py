@@ -103,72 +103,79 @@ def fitter_unit_support(func):
 
     def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
 
-        if model._supports_unit_fitting:
+        data_has_units = (isinstance(x, Quantity) or
+                          isinstance(y, Quantity) or
+                          isinstance(z, Quantity))
 
-            # We now combine any instance-level input equivalencies with user
-            # specified ones at call-time.
+        if data_has_units:
 
-            input_units_equivalencies = _combine_equivalency_dict(model.inputs,
-                                                                  equivalencies,
-                                                                  model.input_units_equivalencies)
+            if model._supports_unit_fitting:
 
-            # If input_units is defined, we transform the input data into those
-            # expected by the model. We hard-code the input names 'x', and 'y'
-            # here since FittableModel instances have input names ('x',) or
-            # ('x', 'y')
+                # We now combine any instance-level input equivalencies with user
+                # specified ones at call-time.
 
-            if model.input_units is not None:
+                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
+                                                                      equivalencies,
+                                                                      model.input_units_equivalencies)
+
+                # If input_units is defined, we transform the input data into those
+                # expected by the model. We hard-code the input names 'x', and 'y'
+                # here since FittableModel instances have input names ('x',) or
+                # ('x', 'y')
+
+                if model.input_units is not None:
+                    if isinstance(x, Quantity):
+                        x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                    if isinstance(y, Quantity) and z is not None:
+                        y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
+
+                # We now strip away the units from the parameters, taking care to
+                # first convert any parameters to the units that correspond to the
+                # input units (to make sure that initial guesses on the parameters)
+                # are in the right unit system
+
+                model = model.without_units_for_data(x=x, y=y, z=z)
+
+                # We strip away the units from the input itself
+
+                add_back_units = False
+
                 if isinstance(x, Quantity):
-                    x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
-                if isinstance(y, Quantity) and z is not None:
-                    y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
+                    add_back_units = True
+                    xdata = x.value
+                else:
+                    xdata = np.asarray(x)
 
-            # We now strip away the units from the parameters, taking care to
-            # first convert any parameters to the units that correspond to the
-            # input units (to make sure that initial guesses on the parameters)
-            # are in the right unit system
-
-            model = model.without_units_for_data(x=x, y=y, z=z)
-
-            # We strip away the units from the input itself
-
-            add_back_units = False
-
-            if isinstance(x, Quantity):
-                add_back_units = True
-                xdata = x.value
-            else:
-                xdata = np.asarray(x)
-
-            if isinstance(y, Quantity):
-                add_back_units = True
-                ydata = y.value
-            else:
-                ydata = np.asarray(y)
-
-            if z is not None:
                 if isinstance(y, Quantity):
                     add_back_units = True
-                    zdata = z.value
+                    ydata = y.value
                 else:
-                    zdata = np.asarray(z)
+                    ydata = np.asarray(y)
 
-            # We run the fitting
-            if z is None:
-                model_new = func(self, model, xdata, ydata, **kwargs)
+                if z is not None:
+                    if isinstance(y, Quantity):
+                        add_back_units = True
+                        zdata = z.value
+                    else:
+                        zdata = np.asarray(z)
+
+                # We run the fitting
+                if z is None:
+                    model_new = func(self, model, xdata, ydata, **kwargs)
+                else:
+                    model_new = func(self, model, xdata, ydata, zdata, **kwargs)
+
+                # And finally we add back units to the parameters
+                if add_back_units:
+                    model_new = model_new.with_units_from_data(x=x, y=y, z=z)
+
+                return model_new
+
             else:
-                model_new = func(self, model, xdata, ydata, zdata, **kwargs)
 
-            # And finally we add back units to the parameters
-            if add_back_units:
-                model_new = model_new.with_units_from_data(x=x, y=y, z=z)
-
-            return model_new
+                raise NotImplementedError("This model does not support being fit to data with units")
 
         else:
-
-            if isinstance(x, Quantity) or isinstance(y, Quantity) or isinstance(z, Quantity):
-                raise NotImplementedError("This model does not support being fit to data with units")
 
             return func(self, model, x, y, z=z, **kwargs)
 
