@@ -1,5 +1,5 @@
 =======
-Astropy
+AAAAstropy
 =======
 
 .. image:: https://img.shields.io/pypi/v/astropy.svg
