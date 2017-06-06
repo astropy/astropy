@@ -231,6 +231,10 @@ API Changes
   - Deprecated ``GaussianAbsorption1D`` model, as it can be better represented
     by subtracting ``Gaussian1D`` from ``Const1D``. [#6200]
 
+  - Added method ``sum_of_implicit_terms`` to ``Model``, needed when performing
+    a linear fit to a model that has built-in terms with no corresponding
+    parameters (primarily the ``1*x`` term of ``Shift``). [#6174]
+
 - ``astropy.nddata``
 
   - Removed deprecated usage of parameter ``propagate_uncertainties`` as a
@@ -362,6 +366,10 @@ Bug Fixes
     original model), which in turn caused fitting to fail as a no-op. [#6085]
 
   - Allow ``Ring2D`` to be defined using ``r_out``. [#6192]
+
+  - Make ``LinearLSQFitter`` produce correct results with fixed model
+    parameters and allow ``Shift`` and ``Scale`` to be fitted with
+    ``LinearLSQFitter`` and ``LevMarLSQFitter``. [#6174]
 
 - ``astropy.nddata``
 

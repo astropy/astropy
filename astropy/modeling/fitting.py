@@ -284,7 +284,7 @@ class LinearLSQFitter(object):
         if model.col_fit_deriv:
             return d[param_indices]
         else:
-            return d[:, param_indices]
+            return d[..., param_indices]
 
     def _map_domain_window(self, model, x, y=None):
         """
@@ -358,18 +358,38 @@ class LinearLSQFitter(object):
         farg = _convert_input(x, y, z, n_models=len(model_copy),
                               model_set_axis=model_copy.model_set_axis)
 
+        has_fixed = any(model_copy.fixed.values())
+
+        if has_fixed:
+
+            # The list of fixed params is the complement of those being fitted:
+            fixparam_indices = [idx for idx in\
+                                range(len(model_copy.param_names))\
+                                if idx not in fitparam_indices]
+
+            # Construct matrix of user-fixed parameters that can be dotted with
+            # the corresponding fit_deriv() terms, to evaluate corrections to
+            # the dependent variable in order to fit only the remaining terms:
+            fixparams = np.asarray([getattr(model_copy,
+                                            model_copy.param_names[idx]).value\
+                                    for idx in fixparam_indices])
+
         if len(farg) == 2:
             x, y = farg
 
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
-            if any(model_copy.fixed.values()):
+            if has_fixed:
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices,
                                                    x=x)
+                fixderivs = self._deriv_with_constraints(model_copy,
+                                                         fixparam_indices,
+                                                         x=x)
             else:
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
+            sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x)
             rhs = y
         else:
             x, y, z = farg
@@ -378,11 +398,14 @@ class LinearLSQFitter(object):
             if hasattr(model_copy, 'x_domain'):
                 x, y = self._map_domain_window(model_copy, x, y)
 
-            if any(model_copy.fixed.values()):
+            if has_fixed:
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices, x=x, y=y)
+                fixderivs = self._deriv_with_constraints(model_copy,
+                                                    fixparam_indices, x=x, y=y)
             else:
                 lhs = model_copy.fit_deriv(x, y, *model_copy.parameters)
+            sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x, y)
 
             if len(model_copy) > 1:
                 if z.ndim > 2:
@@ -402,6 +425,26 @@ class LinearLSQFitter(object):
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
             lhs = np.asarray(lhs).T
+
+        # Subtract any terms fixed by the user from (a copy of) the RHS, in
+        # order to fit the remaining terms correctly:
+        if has_fixed:
+            if model_copy.col_fit_deriv:
+                fixderivs = np.asarray(fixderivs).T  # as for lhs above
+            rhs = rhs - fixderivs.dot(fixparams)  # evaluate user-fixed terms
+
+        # Subtract any terms implicit in the model from the RHS, which, like
+        # user-fixed terms, affect the dependent variable but are not fitted:
+        if sum_of_implicit_terms is not None:
+            # If we have a model set, the extra axis must be added to
+            # sum_of_implicit_terms as its innermost dimension, to match the
+            # dimensionality of rhs after _convert_input "rolls" it as needed
+            # by np.linalg.lstsq. The vector then gets broadcast to the right
+            # number of sets (columns). This assumes all the models share the
+            # same input co-ordinates, as is currently the case.
+            if len(model_copy) > 1:
+                sum_of_implicit_terms = sum_of_implicit_terms[..., np.newaxis]
+            rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
             weights = np.asarray(weights, dtype=np.float)
