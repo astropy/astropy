@@ -470,8 +470,8 @@ def test_equivalent_units():
 def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.kessel_run,
+         u.lyr, u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
          u.jupiterRad])
     assert units == match
 
@@ -481,15 +481,15 @@ def test_equivalent_units2():
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
              imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
-             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
-             imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-             imperial.nmi, u.k, u.earthRad, u.jupiterRad])
+             imperial.inch, imperial.kcal, u.kessel_run, u.lyr, u.m,
+             imperial.mi, imperial.mil, u.micron, u.pc, u.solRad, imperial.yd,
+             u.Bq, u.Ci, imperial.nmi, u.k, u.earthRad, u.jupiterRad])
         assert units == match
 
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.kessel_run,
+         u.lyr, u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
          u.jupiterRad])
     assert units == match
 

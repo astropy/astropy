@@ -100,6 +100,8 @@ New Features
 
   - The `~astropy.units.quantity_input` decorator will now convert the output to
     the unit specified as a return annotation under Python 3. [#5606]
+  - Added new time unit ``u.kessel_run``, which is less than 12 parsecs.
+    Yes, it is totally a time unit; Ask Han Solo. [#nnnn]
 
   - Passing a logarithmic unit to the ``Quantity`` constructor now returns the
     appropriate logarithmic quantity class if ``subok=True``. For instance,

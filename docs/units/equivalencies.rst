@@ -386,6 +386,7 @@ all kinds of things that ``Hz`` can be converted to::
     erg          | 1e-07 kg m2 / s2       |                       ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser        ,
+    kessel_run   | 3.70281e+17 m          |                                  ,
     lyr          | 9.46073e+15 m          | lightyear             ,
     m            | irreducible            | meter                 ,
     micron       | 1e-06 m                |                       ,
