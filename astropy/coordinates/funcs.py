@@ -122,6 +122,38 @@ def spherical_to_cartesian(r, lat, lon):
 
     return cart.x, cart.y, cart.z
 
+def get_moon(time):
+    """
+    Determines the location of the moon at a given time (or times, if the input
+    is an array `~astropy.time.Time` object), in geocentric coordinates.
+
+    Parameters
+    -----------
+    time : `~astropy.time.Time`
+        The time(s) at which to compute the location of the moon.
+
+    Returns
+    -------
+    newsc : `~astropy.coordinates.SkyCoord`
+        The location of the moon as a `~astropy.coordinates.SkyCoord` in the
+        `~astropy.coordinates.GCRS` frame.
+
+    """
+        ### WORK IN PROGRESS ####
+        #   This extracts mean coordinates of nodes from the
+        #   collection of Fundamental Arguments of Lunar Motion
+        #   provided by SOFA.
+        #   More study is yet to be done to compute SkyCoord
+        julianTime = *get_jd12(time, 'tdb')
+
+        ## mean longitude of the Moon minus mean longitude of the ascending node
+        mean_latitude = erfa.faf03(julianTime)
+        ## mean longitude of the Moon's ascending node
+        mean_longitude_asc = erfa.faom03(julianTime)
+
+        # A raw Estimate
+        return SkyCoord(ra = mean_longitude_asc*u.degree, dec = mean_latitude*u.degree, frame = 'gcrs')
+        # A proper computation is to be done incorporarting nuttation and wobble.
 
 def get_sun(time):
     """
