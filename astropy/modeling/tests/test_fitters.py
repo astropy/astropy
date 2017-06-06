@@ -250,6 +250,54 @@ class TestLinearLSQFitter(object):
         assert_allclose(fitted_model(x, y, model_set_axis=False), z_expected,
                         rtol=1e-1)
 
+    def test_linear_fit_fixed_parameter(self):
+        """
+        Tests fitting a polynomial model with a fixed parameter (issue #6135).
+        """
+        init_model = models.Polynomial1D(degree=2, c1=1)
+        init_model.c1.fixed = True
+
+        x = np.arange(10)
+        y = 2 + x + 0.5*x*x
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+        assert_allclose(fitted_model.parameters, [2., 1., 0.5], atol=1e-14)
+
+    def test_linear_fit_model_set_fixed_parameter(self):
+        """
+        Tests fitting a polynomial model set with a fixed parameter (#6135).
+        """
+        init_model = models.Polynomial1D(degree=2, c1=[1, -2], n_models=2)
+        init_model.c1.fixed = True
+
+        x = np.arange(10)
+        yy = np.array([2 + x + 0.5*x*x, -2*x])
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, yy)
+
+        assert_allclose(fitted_model.c0, [2., 0.], atol=1e-14)
+        assert_allclose(fitted_model.c1, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c2, [0.5, 0.], atol=1e-14)
+
+    def test_linear_fit_2d_model_set_fixed_parameters(self):
+        """
+        Tests fitting a 2d polynomial model set with fixed parameters (#6135).
+        """
+        init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                                         n_models=2,
+                                         fixed={'c1_0' : True, 'c0_1' : True})
+
+        x, y = np.mgrid[0:5, 0:5]
+        zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, zz)
+
+        assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                        atol=1e-14)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters(object):

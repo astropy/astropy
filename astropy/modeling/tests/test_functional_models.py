@@ -191,6 +191,49 @@ def test_Shift_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_Shift_model_levmar_fit():
+    """Test fitting Shift model with LevMarLSQFitter (issue #6103)."""
+
+    init_model = models.Shift()
+
+    x = np.arange(10)
+    y = x+0.1
+
+    fitter = fitting.LevMarLSQFitter()
+    fitted_model = fitter(init_model, x, y)
+
+    assert_allclose(fitted_model.parameters, [0.1], atol=1e-15)
+
+
+def test_Shift_model_set_linear_fit():
+    """Test linear fitting of Shift model (issue #6103)."""
+
+    init_model = models.Shift(offset=[0, 0], n_models=2)
+
+    x = np.arange(10)
+    yy = np.array([x+0.1, x-0.2])
+
+    fitter = fitting.LinearLSQFitter()
+    fitted_model = fitter(init_model, x, yy)
+
+    assert_allclose(fitted_model.parameters, [0.1, -0.2], atol=1e-15)
+
+
+def test_Scale_model_set_linear_fit():
+    """Test linear fitting of Scale model (#6103)."""
+
+    init_model = models.Scale(factor=[0, 0], n_models=2)
+
+    x = np.arange(-3, 7)
+    yy = np.array([1.15*x, 0.96*x])
+
+    fitter = fitting.LinearLSQFitter()
+    fitted_model = fitter(init_model, x, yy)
+
+    assert_allclose(fitted_model.parameters, [1.15, 0.96], atol=1e-15)
+
+
 # https://github.com/astropy/astropy/issues/6178
 def test_Ring2D_rout():
     m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
