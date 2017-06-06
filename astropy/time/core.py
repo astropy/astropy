@@ -324,10 +324,20 @@ class Time(ShapedLikeNDArray):
                                       "{1}".format(scale,
                                                    sorted(self.SCALES)))
 
+        # If either of the input val, val2 are masked arrays then
+        # find the masked elements and fill them.
+        mask, val, val2 = _check_for_masked_and_fill(val, val2)
+
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(val, val2, format, scale,
                                         precision, in_subfmt, out_subfmt)
         self._format = self._time.name
+
+        # If any inputs were masked then masked jd2 accordingly.  From above
+        # routine ``mask`` must be either Python bool False or an bool ndarray
+        # with shape broadcastable to jd2.
+        if mask is not False:
+            self._time.jd2[mask] = np.nan
 
     def _get_time_fmt(self, val, val2, format, scale,
                       precision, in_subfmt, out_subfmt):
@@ -1819,6 +1829,67 @@ def _make_array(val, copy=False):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
+
+
+def _check_for_masked_and_fill(val, val2):
+    """
+    If ``val`` or ``val2`` are masked arrays then fill them and cast
+    to ndarray.
+
+    Returns a mask corresponding to the logical-or of masked elements
+    in ``val`` and ``val2``.  If neither is masked then the return ``mask``
+    is ``None``.
+
+    If either ``val`` or ``val2`` are masked then they are replaced
+    with filled versions of themselves.
+
+    Parameters
+    ----------
+    val : ndarray or MaskedArray
+        Input val
+    val2 : ndarray or MaskedArray
+        Input val2
+
+    Returns
+    -------
+    mask, val, val2: ndarray or None
+        Mask: (None or bool ndarray), val, val2: ndarray
+    """
+    def get_as_filled_ndarray(mask, val):
+        """
+        Fill the given MaskedArray ``val`` from the first non-masked
+        element in the array.  This ensures that upstream Time initialization
+        will succeed.
+
+        Note that nothing happens if there are no masked elements.
+        """
+        fill_value = None
+
+        if np.any(val.mask):
+            # Final mask is the logical-or of inputs
+            mask = mask | val.mask
+
+            # First unmasked element.  If all elements are masked then
+            # use fill_value=None from above which will use val.fill_value.
+            # As long as the user has set this appropriately then all will
+            # be fine.
+            val_unmasked = val.compressed()  # 1-d ndarray of unmasked values
+            if len(val_unmasked) > 0:
+                fill_value = val_unmasked[0]
+
+        # Fill the input ``val``.  If fill_value is None then this just returns
+        # an ndarray view of val (no copy).
+        val = val.filled(fill_value)
+
+        return mask, val
+
+    mask = False
+    if isinstance(val, np.ma.MaskedArray):
+        mask, val = get_as_filled_ndarray(mask, val)
+    if isinstance(val2, np.ma.MaskedArray):
+        mask, val2 = get_as_filled_ndarray(mask, val2)
+
+    return mask, val, val2
 
 
 class OperandTypeError(TypeError):

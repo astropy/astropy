@@ -6,10 +6,9 @@ import functools
 import datetime
 from copy import deepcopy
 
-import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
+from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
