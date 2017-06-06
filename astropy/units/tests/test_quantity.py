@@ -1037,6 +1037,28 @@ def test_quantity_string_unit():
     assert q2.unit == ((u.m * u.m) / u.s)
 
 
+def test_unit_quantity_interface():
+    """
+    Check that Unit.value and Unit.unit exist to make Unit behave like a Quantity [#1201].
+    """
+
+    q1 = u.m  # Unit
+    assert q1.unit == u.m
+    assert q1.value == 1.
+
+    q2 = 1. * u.m  # Quantity
+    assert q2.unit == u.m
+    assert q2.value == 1.
+
+    q3 = u.m / u.s  # Unit
+    assert q3.unit == u.m / u.s
+    assert q3.value == 1.
+
+    q4 = 1. * u.m / u.s  # Quantity
+    assert q4.unit == u.m / u.s
+    assert q4.value == 1.
+
+
 @raises(ValueError)
 def test_quantity_invalid_unit_string():
     "foo" * u.m
