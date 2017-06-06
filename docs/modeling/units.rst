@@ -63,8 +63,8 @@ preserve the unit, or get rid of the unit::
 On the other hand, if a parameter previously defined without units is given a
 Quantity with a unit, this works because it is unambiguous::
 
-    >>> g0 = Gaussian1D(mean=3)
-    >>> g0.mean = 3 * u.m
+    >>> g2 = Gaussian1D(mean=3)
+    >>> g2.mean = 3 * u.m
 
 In other words, once units are attached to a parameter, they can't be removed
 due to ambiguous meaning.
@@ -74,10 +74,10 @@ Evaluating models with quantities
 
 Quantities can be passed to model during evaluation::
 
-    >>> g2 = Gaussian1D(mean=3 * u.m, stddev=5 * u.cm)
-    >>> g2(2.9 * u.m)  # doctest: +FLOAT_CMP
+    >>> g3 = Gaussian1D(mean=3 * u.m, stddev=5 * u.cm)
+    >>> g3(2.9 * u.m)  # doctest: +FLOAT_CMP
     <Quantity 0.1353352832366122>
-    >>> g2(2.9 * u.s)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> g3(2.9 * u.s)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', s (time), could not be converted to
@@ -86,7 +86,7 @@ Quantities can be passed to model during evaluation::
 In this case, since the mean and standard deviation have units, the value passed
 during evaluation also needs units::
 
-    >>> g2(3)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> g3(3)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', (dimensionless), could not be converted to
@@ -104,11 +104,11 @@ parameters).
 
 Let's consider a model that is Gaussian in wavelength space::
 
-    >>> g3 = Gaussian1D(mean=3 * u.micron, stddev=1 * u.micron, amplitude=3 * u.Jy)
+    >>> g4 = Gaussian1D(mean=3 * u.micron, stddev=1 * u.micron, amplitude=3 * u.Jy)
 
 By default, passing a frequency will not work:
 
-    >>> g3(1e2 * u.THz)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> g4(1e2 * u.THz)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnitsError : Units of input 'x', THz (frequency), could not be converted to
@@ -117,19 +117,19 @@ By default, passing a frequency will not work:
 But you can pass a dictionary of equivalencies to the equivalencies argument
 (this needs to be a dictionary since some models can contain multiple inputs)::
 
-    >>> g3(110 * u.THz, equivalencies={'x': u.spectral()})  # doctest: +FLOAT_CMP
+    >>> g4(110 * u.THz, equivalencies={'x': u.spectral()})  # doctest: +FLOAT_CMP
     <Quantity 2.888986819525229 Jy>
 
 The key of the dictionary should be the name of the inputs according to::
 
-    >>> g3.inputs
+    >>> g4.inputs
     ('x',)
 
 It is also possible to set default equivalencies for the input parameters using
 the input_units_equivalencies property::
 
-    >>> g3.input_units_equivalencies = {'x': u.spectral()}
-    >>> g3(110 * u.THz)  # doctest: +FLOAT_CMP
+    >>> g4.input_units_equivalencies = {'x': u.spectral()}
+    >>> g4(110 * u.THz)  # doctest: +FLOAT_CMP
     <Quantity 2.888986819525229 Jy>
 
 Fitting models with units to data
@@ -161,14 +161,14 @@ we would without any units:
 
     from astropy.modeling import models, fitting
 
-    g4 = models.Gaussian1D(mean=3 * u.micron, stddev=1 * u.micron, amplitude=1 * u.Jy)
+    g5 = models.Gaussian1D(mean=3 * u.micron, stddev=1 * u.micron, amplitude=1 * u.Jy)
 
     fitter = fitting.LevMarLSQFitter()
 
-    g4_fit = fitter(g4, x, y)
+    g5_fit = fitter(g4, x, y)
 
     plt.plot(x, y, 'ko')
-    plt.plot(x, g4_fit(x), 'r-')
+    plt.plot(x, g5_fit(x), 'r-')
     plt.xlabel('Wavelength (microns)')
     plt.ylabel('Flux density (mJy)')
 
@@ -184,11 +184,11 @@ evaluation examples:
    :context:
    :include-source:
 
-    g5 = models.Gaussian1D(mean=110 * u.THz, stddev=10 * u.THz, amplitude=1 * u.Jy)
+    g6 = models.Gaussian1D(mean=110 * u.THz, stddev=10 * u.THz, amplitude=1 * u.Jy)
 
-    g5_fit = fitter(g5, x, y, equivalencies={'x': u.spectral()})
+    g6_fit = fitter(g6, x, y, equivalencies={'x': u.spectral()})
 
-    plt.plot(x, g5_fit(x, equivalencies={'x': u.spectral()}), 'b-')
+    plt.plot(x, g6_fit(x, equivalencies={'x': u.spectral()}), 'b-')
     plt.xlabel('Wavelength (microns)')
     plt.ylabel('Flux density (mJy)')
 
@@ -197,8 +197,8 @@ frequency space (blue) is not a Gaussian in wavelength space (red). As mentioned
 previously, you can also set input_units_equivalencies on the model itself to
 avoid having to pass extra arguments to the fitter::
 
-    g5.input_units_equivalencies = {'x': u.spectral()}
-    g5_fit = fitter(g5, x, y)
+    g6.input_units_equivalencies = {'x': u.spectral()}
+    g6_fit = fitter(g6, x, y)
 
 Adding support for units in a model (Advanced)
 ==============================================
@@ -220,11 +220,24 @@ with the parameter units, they may get cryptic errors such as::
     when other argument is not a quantity (unless the latter is all
     zero/infinity/nan)
 
+There are several attributes or properties that can be set on models that adjust
+the behavior of models with units. These attributes can be changed from the
+defaults in the class definition, e.g.::
+
+    class MyModel(Model):
+        input_units = {'x': u.deg}
+        ...
+
+Note that these are all optional.
+
+``input_units``
+^^^^^^^^^^^^^^^
+
 You can easily add checking of the input units by adding an ``input_units``
-property on your model class. This should return either `None` (to indicate no
-constraints) or a dictionary where the keys are the input names (e.g. ``x`` for
-many 1D models) and the values are the units expected, which can be a function
-of the parameter units::
+property or attribute on your model class. This should return either `None` (to
+indicate no constraints) or a dictionary where the keys are the input names
+(e.g. ``x`` for many 1D models) and the values are the units expected, which can
+be a function of the parameter units::
 
     @property
     def input_units(self):
@@ -240,20 +253,42 @@ displayed::
     required input units of m (length)
 
 Note that the input units don't have to match exactly those returned by
-``input_units``, but be convertible to them.
+``input_units``, but be convertible to them. In addition, ``input_units`` can
+also be specified as an attribute rather than a property in simple cases::
 
-It is actually possible to allow the input value(s) when
-evaluating the model to be dimensionless, which is done by setting
-input_units_allow_dimensionless::
+    input_units = {'x': u.deg}
 
-    class MyModel(Model):
+``return_units``
+^^^^^^^^^^^^^^^^
 
-        input_units_allow_dimensionless = True
+Similarly to ``return_units``, this should be dictionary that maps the return
+values of a model to units. If :meth:`~astropy.modeling.Model.evaluate` was called
+with quantities but returns unitless values, the units are added to the output.
+If the return values are quantities in different units, they are converted to
+``return_units``.
 
-        ...
+``input_units_strict``
+^^^^^^^^^^^^^^^^^^^^^^
 
-But this requires the evaluate method to deal properly with dimensionless
-input.
+If set to `True`, values that are passed in compatible units will be converted
+to the exact units specified in ``input_units``.
+
+``input_units_equivalencies``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This can be set to a dictionary that maps the input names to a list of
+equivalencies, for example::
+
+    input_units_equivalencies = {'nu': u.spectral()}
+
+``input_units_allow_dimensionless``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If set to `True`, values that are plain scalars or Numpy arrays can be passed
+to evaluate even if ``input_units`` specifies that the input should have units.
+It is up to the :meth:`~astropy.modeling.Model.evaluate` to then decide how to
+handle these dimensionless values.
+
 
 Fitting
 -------
