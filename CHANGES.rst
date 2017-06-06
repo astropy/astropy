@@ -211,6 +211,7 @@ API Changes
   - Removed the deprecated ``astropy.utils.compat.subprocess`` module. [#5975]
 
 - ``astropy.visualization``
+  - Created param labelpad in set_xlabel and set_ylabel functions. It is directly passed to set_axislabel as minpad.
 
 - ``astropy.vo``
 
