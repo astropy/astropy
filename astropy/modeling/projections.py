@@ -896,8 +896,8 @@ class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
     @staticmethod
     def evaluate(x, y):
         # The intermediate variables are only used here for clarity
-        phi = x.copy()
-        theta = y.copy()
+        phi = np.array(x, copy=True)
+        theta = np.array(y, copy=True)
 
         return phi, theta
 
@@ -923,8 +923,8 @@ class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
     @staticmethod
     def evaluate(phi, theta):
         # The intermediate variables are only used here for clarity
-        x = phi.copy()
-        y = theta.copy()
+        x = np.array(phi, copy=True)
+        y = np.array(theta, copy=True)
 
         return x, y
 
