@@ -388,7 +388,7 @@ class EarthLocation(u.Quantity):
         return cls._get_site_registry().names
 
     @classmethod
-    def _get_site_registry(cls, force_download=False, force_builtin=False):
+    def _get_site_registry(cls, force_download=False, force_builtin=False, with_aliases=True):
         """
         Gets the site registry.  The first time this either downloads or loads
         from the data file packaged with astropy.  Subsequent calls will use the
@@ -412,15 +412,15 @@ class EarthLocation(u.Quantity):
             raise ValueError('Cannot have both force_builtin and force_download True')
 
         if force_builtin:
-            reg = cls._site_registry = get_builtin_sites()
+            reg = cls._site_registry = get_builtin_sites(with_aliases=with_aliases)
         else:
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
                     if isinstance(force_download, six.string_types):
-                        reg = get_downloaded_sites(force_download)
+                        reg = get_downloaded_sites(force_download, with_aliases=with_aliases)
                     else:
-                        reg = get_downloaded_sites()
+                        reg = get_downloaded_sites(with_aliases=with_aliases)
                 except six.moves.urllib.error.URLError:
                     if force_download:
                         raise
@@ -429,7 +429,7 @@ class EarthLocation(u.Quantity):
                            'limited. If you want to retry the download, do '
                            '{0}._get_site_registry(force_download=True)')
                     warn(AstropyUserWarning(msg.format(cls.__name__)))
-                    reg = get_builtin_sites()
+                    reg = get_builtin_sites(with_aliases=with_aliases)
                 cls._site_registry = reg
 
         return reg
