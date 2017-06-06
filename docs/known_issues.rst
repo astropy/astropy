@@ -351,6 +351,20 @@ acceptable.
 The IPython issue: https://github.com/ipython/ipython/pull/2738
 
 
+When trying to update all packages after updating ``astropy`` like so::
+
+    $ conda update astropy
+    $ conda update --all
+
+the following error occurs between the ``astropy`` package and the ``anaconda``
+meta package::
+
+    Error: Unsatisfiable package specifications.
+
+The recommended fix is to run::
+
+    $ conda remove anaconda
+
 Installation fails on Mageia-2 or Mageia-3 distributions
 --------------------------------------------------------
 
