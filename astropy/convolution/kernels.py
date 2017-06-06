@@ -147,11 +147,13 @@ class Gaussian2DKernel(Kernel2D):
     """
     _separable = True
     _is_bool = False
-
-    def __init__(self, stddev, **kwargs):
-        self._model = models.Gaussian2D(1. / (2 * np.pi * stddev ** 2), 0,
-                                        0, stddev, stddev)
-        self._default_size = _round_up_to_odd_integer(8 * stddev)
+   
+    def __init__(self, width, height=width, theta=0.0, support_scaling=8, **kwargs):
+        self._model = models.Gaussian2D(1. / (2 * np.pi * width * height), 0,
+                                        0, x_stddev=width, y_stddev=height,
+                                        theta=0)
+        self._default_size = _round_up_to_odd_integer(support_scaling *
+                                                      np.max([width,height]))
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - self._array.sum())
 
