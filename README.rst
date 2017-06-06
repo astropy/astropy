@@ -2,6 +2,9 @@
 Astropy
 =======
 
+.. image:: https://img.shields.io/gitter/room/astropy/astropy.svg
+    :target: https://gitter.im/astropy/astropy
+
 .. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
