@@ -457,6 +457,61 @@ PyWcsprm_init(
   }
 }
 
+// The following three functions are used to resolve the default
+// values for the RADESYS and EQUINOX based on the FITS-WCS standard.
+
+static const char *
+_determine_radesys(PyWcsprm* self)
+{
+  int lng, lat;
+
+  // Needed to make sure lng/lat get set
+  if (PyWcsprm_cset(self, 1)) {
+    return NULL;
+  }
+
+  lng = self->x.lng;
+  lat = self->x.lat;
+
+  if (lng > -1 && lat > -1 &&
+      ((strncmp(self->x.ctype[lng], "RA--", 4) == 0 &&
+        strncmp(self->x.ctype[lat], "DEC-", 4) == 0) ||
+       (strncmp(self->x.ctype[lng], "ELON", 4) == 0 &&
+        strncmp(self->x.ctype[lat], "ELAT", 4) == 0))) {
+    if (self->x.radesys == NULL || self->x.radesys[0] == 0) {
+      if (isnan64(self->x.equinox)) {
+	return "ICRS";
+      } else if (self->x.equinox < 1984.) {
+	return "FK4";
+      } else {
+	return "FK5";
+      }
+    }
+  }
+
+  return self->x.radesys;
+}
+
+static double
+_determine_equinox(PyWcsprm* self)
+{
+  char *radesys = _determine_radesys(self);
+
+  if (radesys != NULL && isnan64(self->x.equinox)) {
+    if (strncmp(radesys, "FK4", 4) == 0 ||
+        strncmp(radesys, "FK4-NO-E", 9) == 0) {
+      return 1950.;
+    } else if (strncmp(radesys, "FK5", 4) == 0) {
+      return 2000.;
+    } else {
+      return self->x.equinox;
+    }
+  } else {
+    return self->x.equinox;
+  }
+
+}
+
 /*@null@*/ static PyObject*
 PyWcsprm_bounds_check(
     PyWcsprm* self,
@@ -2567,7 +2622,7 @@ PyWcsprm_get_equinox(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  return get_double("equinox", self->x.equinox);
+  return get_double("equinox", _determine_equinox(self));
 }
 
 static int
@@ -2951,11 +3006,13 @@ PyWcsprm_get_radesys(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  if (is_null(self->x.radesys)) {
+  char *radesys = _determine_radesys(self);
+
+  if (is_null(radesys)) {
     return NULL;
   }
 
-  return get_string("radesys", self->x.radesys);
+  return get_string("radesys", radesys);
 }
 
 static int
