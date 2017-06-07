@@ -651,7 +651,6 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
-
     Parameters
     ----------
     table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
@@ -688,7 +687,6 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         (e.g., a file object).
     Writer : ``Writer``
         Writer class (DEPRECATED).
-
     """
     overwrite = kwargs.pop('overwrite', None)
     if isinstance(output, six.string_types):
@@ -731,7 +729,17 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     # Write the lines to output
     outstr = os.linesep.join(lines)
     if not hasattr(output, 'write'):
-        output = open(output, 'w')
+        if format is 'csv':
+            if sys.version_info[0] == 2:
+                access = 'wb'
+                kwargs = {}
+            else:
+                access = 'wt'
+                kwargs={'newline': ''}
+        else:
+            access = 'w'
+            kwargs = {}
+        output = open(output, access, **kwargs)
         output.write(outstr)
         output.write(os.linesep)
         output.close()

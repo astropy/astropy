@@ -8,6 +8,7 @@ from itertools import chain
 
 import pytest
 import numpy as np
+import csv
 
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
@@ -588,6 +589,24 @@ def test_commented_header_comments(fast_writer):
         ascii.write(t, out, format='commented_header', comment=False,
                     fast_writer=fast_writer)
     assert "for the commented_header writer you must supply a string" in str(err.value)
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_csv_line_termination(fast_writer):
+    """
+    Test the fix for #5299 where a file would end with newline characters \r\r\n on Windows. Fixed
+    for both Python 2.7 and 3.5.
+    """
+    t = table.Table([[1, 2]])
+    out = []
+    ascii.write(t, 'csvfile.csv', format = 'csv', comment = False,
+                fast_writer=fast_writer)
+    with open('csvfile.csv', 'r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        for row in csvreader:
+            out.append(row)
+        csvfile.close()
+    #assert not(out[1]) and not(out[3]) and not (out[5])
+    assert(out == [['col0'],['1'], ['2']])
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
