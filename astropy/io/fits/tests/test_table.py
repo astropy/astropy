@@ -2982,3 +2982,28 @@ def test_regression_5383():
     hdu = fits.BinTableHDU.from_columns([col])
     del hdu._header['TTYPE1']
     hdu.columns[0].name = 'b'
+
+
+def test_table_to_hdu():
+    from ....table import Table
+    table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                    names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+    table['a'].unit = 'm/s'
+    table['b'].unit = 'not-a-unit'
+    table.meta['foo'] = 'bar'
+
+    with catch_warnings() as w:
+        hdu = fits.BinTableHDU(table, header=fits.Header({'TEST': 1}))
+        assert len(w) == 1
+        assert str(w[0].message).startswith("'not-a-unit' did not parse as"
+                                            " fits unit")
+
+    for name in 'abc':
+        assert np.array_equal(table[name], hdu.data[name])
+
+    # Check that TUNITn cards appear in the correct order
+    # (https://github.com/astropy/astropy/pull/5720)
+    assert hdu.header.index('TUNIT1') < hdu.header.index('TTYPE2')
+
+    assert hdu.header['FOO'] == 'bar'
+    assert hdu.header['TEST'] == 1

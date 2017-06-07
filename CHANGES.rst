@@ -36,6 +36,9 @@ New Features
   - Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
     Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
 
+  - Allow to instantiate a ``BinTableHDU`` directly from a ``Table`` object.
+    [#6139]
+
 - ``astropy.io.misc``
 
   - YAML representer now also accepts numpy types. [#6077]
