@@ -61,7 +61,7 @@ class TestSingleTable(object):
         t1.meta['A'] = 1
         t1.meta['B'] = 2.3
         t1.meta['C'] = 'spam'
-        t1.meta['COMMENT'] = ['this', 'is', 'a', 'long', 'comment']
+        t1.meta['comments'] = ['this', 'is', 'a', 'long', 'comment']
         t1.meta['HISTORY'] = ['first', 'second', 'third']
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
@@ -329,3 +329,23 @@ def test_unit_warnings_read_write(tmpdir):
     with catch_warnings() as l:
         Table.read(filename, hdu=1)
     assert len(l) == 0
+
+
+def test_convert_comment_convention(tmpdir):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/6079
+    """
+    filename = os.path.join(DATA, 'stddata.fits')
+    t = Table.read(filename)
+
+    assert t.meta['comments'] == [
+        '',
+        ' *** End of mandatory fields ***',
+        '',
+        '',
+        ' *** Column names ***',
+        '',
+        '',
+        ' *** Column formats ***',
+        ''
+    ]

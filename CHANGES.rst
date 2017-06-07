@@ -162,6 +162,10 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
+    to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
+    headers are read into ``comments`` meta [#6097]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -246,6 +250,10 @@ Bug Fixes
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
+
+  - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
+    to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
+    headers are read into ``comments`` meta [#6097]
 
 - ``astropy.io.misc``
 

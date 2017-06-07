@@ -65,6 +65,19 @@ class TestConvenience(FitsTestCase):
         filename = self.temp('test_table_to_hdu.fits')
         hdu.writeto(filename, overwrite=True)
 
+    def test_table_to_hdu_convert_comment_convention(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/6079
+        """
+        table = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+                      names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+        table.meta['comments'] = ['This', 'is', 'a', 'comment']
+        hdu = fits.table_to_hdu(table)
+
+        assert hdu.header.get('comment') == ['This', 'is', 'a', 'comment']
+        with pytest.raises(ValueError):
+            hdu.header.index('comments')
+
     def test_table_writeto_header(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5988
