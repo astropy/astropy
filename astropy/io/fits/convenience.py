@@ -528,6 +528,10 @@ def table_to_hdu(table):
                 "Meta-data keyword {0} will be ignored since it conflicts "
                 "with a FITS reserved keyword".format(key), AstropyUserWarning)
 
+        # Convert to FITS format
+        if key == 'comments':
+            key = 'comment'
+
         if isinstance(value, list):
             for item in value:
                 try:
