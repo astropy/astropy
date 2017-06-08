@@ -453,7 +453,7 @@ class TestCartesianRepresentation(object):
 
     def test_init_singleunit(self):
 
-        s1 = CartesianRepresentation(x=1 * u.kpc, y=2* u.kpc, z=3* u.kpc)
+        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
 
         assert s1.x.unit is u.kpc
         assert s1.y.unit is u.kpc
