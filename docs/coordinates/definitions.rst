@@ -24,7 +24,9 @@ the IAU2000 resolutions on celestial coordinate systems):
   point in a vector space. (Here, this means three-dimensional space, but future
   extensions might have different dimensionality, particularly if relativistic
   effects are desired.)  Examples include Cartesian coordinates, cylindrical
-  polar, or latitude/longitude spherical polar coordinates.
+  polar, or latitude/longitude spherical polar coordinates.  Note that this term
+  applies to the positions, *not* their velocities or other derivatives (which
+  are represented as "differential" classes).
 
 * A "Reference System" is a scheme for orienting points in a space and
   describing how they transforms to other systems.Examples include the ICRS,

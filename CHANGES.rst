@@ -18,6 +18,10 @@ New Features
   - Caching of  all possible frame attributes was implemented. This greatly
     speeds up many ``SkyCoord`` operations. [#5703, #5751]
 
+  - A class hierarchy was added to allow the representation layer to store
+    differentials (i.e., finite derivatives) of coordinates.  This is intended
+    to enable support for velocities in coordinate frames down the road. [#5871]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
