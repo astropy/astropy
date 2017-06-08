@@ -191,8 +191,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             if diff.shape != self.shape:
                 # TODO: message of IncompatibleShapeError is not customizable,
                 #       so use a valueerror instead?
-                raise ValueError("Shape of differentials must be broadcastable "
-                                 "to the shape of the representation ({0} vs "
+                raise ValueError("Shape of differentials must be the same "
+                                 "as the shape of the representation ({0} vs "
                                  "{1})".format(diff.shape, self.shape))
 
         # store as a private name so users know this is not settable
