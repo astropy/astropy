@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from copy import deepcopy
+from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -16,13 +17,17 @@ from ...utils import isiterable
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
+                              BaseRepresentation,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
                               CartesianRepresentation,
                               CylindricalRepresentation,
-                              PhysicsSphericalRepresentation)
+                              PhysicsSphericalRepresentation,
+                              _combine_xyz)
 
 
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass (LogDRepresentation)
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
 
@@ -33,6 +38,10 @@ def teardown_function(func):
 
 
 class TestSphericalRepresentation(object):
+
+    def test_name(self):
+        assert SphericalRepresentation.get_name() == 'spherical'
+        assert SphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -139,26 +148,6 @@ class TestSphericalRepresentation(object):
                                          distance=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters lon, lat, and distance cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = SphericalRepresentation(lon='2h6m3.3s',
-                                         lat='0.1rad',
-                                         distance=1 * u.kpc)
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = SphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
-                                         lat=[5 * u.deg, (6 * np.pi / 180) * u.rad],
-                                         distance=1 * u.kpc)
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
     def test_readonly(self):
 
         s1 = SphericalRepresentation(lon=8 * u.hourangle,
@@ -203,6 +192,10 @@ class TestSphericalRepresentation(object):
 
 
 class TestUnitSphericalRepresentation(object):
+
+    def test_name(self):
+        assert UnitSphericalRepresentation.get_name() == 'unitspherical'
+        assert UnitSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -276,23 +269,6 @@ class TestUnitSphericalRepresentation(object):
                                              lat=[5, 6] * u.deg)
         assert exc.value.args[0] == "Input parameters lon and lat cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = UnitSphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
-                                             lat=[5 * u.deg, (6 * np.pi / 180) * u.rad])
-        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
-
     def test_readonly(self):
 
         s1 = UnitSphericalRepresentation(lon=8 * u.hourangle,
@@ -324,6 +300,10 @@ class TestUnitSphericalRepresentation(object):
 
 
 class TestPhysicsSphericalRepresentation(object):
+
+    def test_name(self):
+        assert PhysicsSphericalRepresentation.get_name() == 'physicsspherical'
+        assert PhysicsSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -412,24 +392,6 @@ class TestPhysicsSphericalRepresentation(object):
                                                 r=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters phi, theta, and r cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_init_str(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', r=1 * u.kpc)
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = PhysicsSphericalRepresentation(phi=[8 * u.hourangle, 135 * u.deg],
-                                                theta=[5 * u.deg, (6 * np.pi / 180) * u.rad],
-                                                r=[1. * u.kpc, 500 * u.pc])
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
-
     def test_readonly(self):
 
         s1 = PhysicsSphericalRepresentation(phi=[8, 9] * u.hourangle,
@@ -469,6 +431,10 @@ class TestPhysicsSphericalRepresentation(object):
 
 class TestCartesianRepresentation(object):
 
+    def test_name(self):
+        assert CartesianRepresentation.get_name() == 'cartesian'
+        assert CartesianRepresentation.get_name() in REPRESENTATION_CLASSES
+
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
             s = CartesianRepresentation()
@@ -487,7 +453,7 @@ class TestCartesianRepresentation(object):
 
     def test_init_singleunit(self):
 
-        s1 = CartesianRepresentation(x=1 * u.kpc, y=2* u.kpc, z=3* u.kpc)
+        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
 
         assert s1.x.unit is u.kpc
         assert s1.y.unit is u.kpc
@@ -608,18 +574,6 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
 
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
-                                         y=[3 * u.kpc, 4 * u.pc],
-                                         z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0].startswith("x should")
-
     def test_readonly(self):
 
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
@@ -709,6 +663,10 @@ class TestCartesianRepresentation(object):
 
 class TestCylindricalRepresentation(object):
 
+    def test_name(self):
+        assert CylindricalRepresentation.get_name() == 'cylindrical'
+        assert CylindricalRepresentation.get_name() in REPRESENTATION_CLASSES
+
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
             s = CylindricalRepresentation()
@@ -782,18 +740,6 @@ class TestCylindricalRepresentation(object):
         with pytest.raises(ValueError) as exc:
             s1 = CylindricalRepresentation(rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters rho, phi, and z cannot be broadcast"
-
-    # We deliberately disallow anything that is not directly a Quantity in
-    # these low-level classes, so we now check that initializing from a
-    # string or mixed unit lists raises a TypeError.
-
-    def test_mixed_units(self):
-
-        with pytest.raises(TypeError) as exc:
-            s1 = CylindricalRepresentation(rho=[1 * u.kpc, 2 * u.Mpc],
-                                           phi=[3 * u.deg, 4 * u.arcmin],
-                                           z=[5. * u.cm, 6 * u.m])
-        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_readonly(self):
 
@@ -1018,7 +964,6 @@ def test_representation_str_multi_d():
 
 
 def test_subclass_representation():
-    from collections import OrderedDict
     from ..builtin_frames import ICRS
 
     class Longitude180(Longitude):
@@ -1044,3 +989,87 @@ def test_subclass_representation():
     assert c.ra.unit is u.deg
     assert c.dec.value == -2
     assert c.dec.unit is u.deg
+
+
+def test_minimal_subclass():
+    # Basically to check what we document works;
+    # see doc/coordinates/representations.rst
+    class LogDRepresentation(BaseRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude),
+                                    ('lat', Latitude),
+                                    ('logd', u.Dex)])
+
+        def to_cartesian(self):
+            d = self.logd.physical
+            x = d * np.cos(self.lat) * np.cos(self.lon)
+            y = d * np.cos(self.lat) * np.sin(self.lon)
+            z = d * np.sin(self.lat)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+        @classmethod
+        def from_cartesian(cls, cart):
+            s = np.hypot(cart.x, cart.y)
+            r = np.hypot(s, cart.z)
+            lon = np.arctan2(cart.y, cart.x)
+            lat = np.arctan2(cart.z, s)
+            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
+
+    ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
+    ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
+    assert np.all(ld1.lon==ld2.lon)
+    assert np.all(ld1.lat==ld2.lat)
+    assert np.all(ld1.logd==ld2.logd)
+    c = ld1.to_cartesian()
+    assert_allclose_quantity(c.xyz, [0., 10., 0.] * u.kpc, atol=1.*u.npc)
+    ld3 = LogDRepresentation.from_cartesian(c)
+    assert np.all(ld3.lon==ld2.lon)
+    assert np.all(ld3.lat==ld2.lat)
+    assert np.all(ld3.logd==ld2.logd)
+    s = ld1.represent_as(SphericalRepresentation)
+    assert_allclose_quantity(s.lon, ld1.lon)
+    assert_allclose_quantity(s.distance, 10.*u.kpc)
+    assert_allclose_quantity(s.lat, ld1.lat)
+
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), lon=1.*u.deg)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), True, False)
+    with pytest.raises(TypeError):
+        LogDRepresentation(0.*u.deg, 1.*u.deg, 1.*u.dex(u.kpc), foo='bar')
+
+    with pytest.raises(ValueError):
+        # check we cannot redefine an existing class.
+        class LogDRepresentation(BaseRepresentation):
+            attr_classes = OrderedDict([('lon', Longitude),
+                                        ('lat', Latitude),
+                                        ('logr', u.Dex)])
+
+def test_combine_xyz():
+
+    x,y,z = np.arange(27).reshape(3, 9) * u.kpc
+    xyz = _combine_xyz(x, y, z, xyz_axis=0)
+    assert xyz.shape == (3, 9)
+    assert np.all(xyz[0] == x)
+    assert np.all(xyz[1] == y)
+    assert np.all(xyz[2] == z)
+
+    x,y,z = np.arange(27).reshape(3, 3, 3) * u.kpc
+    xyz = _combine_xyz(x, y, z, xyz_axis=0)
+    assert xyz.ndim == 3
+    assert np.all(xyz[0] == x)
+    assert np.all(xyz[1] == y)
+    assert np.all(xyz[2] == z)
+
+    xyz = _combine_xyz(x, y, z, xyz_axis=1)
+    assert xyz.ndim == 3
+    assert np.all(xyz[:,0] == x)
+    assert np.all(xyz[:,1] == y)
+    assert np.all(xyz[:,2] == z)
+
+    xyz = _combine_xyz(x, y, z, xyz_axis=-1)
+    assert xyz.ndim == 3
+    assert np.all(xyz[...,0] == x)
+    assert np.all(xyz[...,1] == y)
+    assert np.all(xyz[...,2] == z)
