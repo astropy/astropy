@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 from ... import units as u
 from ...tests.helper import (pytest, assert_quantity_allclose as
                              assert_allclose_quantity)
-from ...utils import isiterable
+from ...utils import isiterable, IncompatibleShapeError, check_broadcast
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
@@ -23,6 +23,8 @@ from ..representation import (REPRESENTATION_CLASSES,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation,
+                              CartesianDifferential,
+                              CylindricalDifferential,
                               _combine_xyz)
 
 
@@ -1004,7 +1006,8 @@ def test_minimal_subclass():
             x = d * np.cos(self.lat) * np.cos(self.lon)
             y = d * np.cos(self.lat) * np.sin(self.lon)
             z = d * np.sin(self.lat)
-            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False,
+                                           differentials=self.differentials)
 
         @classmethod
         def from_cartesian(cls, cart):
@@ -1012,7 +1015,8 @@ def test_minimal_subclass():
             r = np.hypot(s, cart.z)
             lon = np.arctan2(cart.y, cart.x)
             lat = np.arctan2(cart.z, s)
-            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
+            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False,
+                       differentials=cart.differentials)
 
     ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
@@ -1046,6 +1050,16 @@ def test_minimal_subclass():
                                         ('lat', Latitude),
                                         ('logr', u.Dex)])
 
+    # now try passing in a differential
+    diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                 d_y=2 * u.km/u.s,
+                                 d_z=3 * u.km/u.s)
+    ld = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc),
+                            differentials=diff)
+    assert ld.differentials[0] == diff
+    ld2 = ld.represent_as([CartesianRepresentation, CylindricalDifferential])
+    assert ld2.differentials[0].get_name() == 'cylindrical'
+
 def test_combine_xyz():
 
     x,y,z = np.arange(27).reshape(3, 9) * u.kpc
@@ -1073,3 +1087,152 @@ def test_combine_xyz():
     assert np.all(xyz[...,0] == x)
     assert np.all(xyz[...,1] == y)
     assert np.all(xyz[...,2] == z)
+
+class TestCartesianRepresentationWithDifferential(object):
+
+    def test_init_differential(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+
+        # can pass in a single differential, which gets turned into a
+        #   length-1 tuple
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                     differentials=diff)
+
+        assert s1.x.unit is u.kpc
+        assert s1.y.unit is u.kpc
+        assert s1.z.unit is u.kpc
+        assert len(s1.differentials) == 1
+        assert s1.differentials[0] is diff
+
+        # can also just pass in an iterable
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                     differentials=[diff])
+        assert len(s1.differentials) == 1
+        assert s1.differentials[0] is diff
+
+        # make sure other kwargs are handled properly
+        s1 = CartesianRepresentation(x=1, y=2, z=3,
+                                     differentials=diff, copy=False, unit=u.kpc)
+        assert len(s1.differentials) == 1
+        assert s1.differentials[0] is diff
+
+        with pytest.raises(TypeError): # invalid type passed to differentials
+            CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                    differentials='garmonbozia')
+
+    def test_init_array_broadcasting(self):
+
+        arr1 = np.arange(8).reshape(4,2) * u.km/u.s
+        diff = CartesianDifferential(d_x=arr1, d_y=arr1, d_z=arr1)
+
+        # shapes aren't compatible
+        arr2 = np.arange(27).reshape(3,9) * u.kpc
+        with pytest.raises(ValueError):
+            rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
+                                          differentials=diff)
+
+        arr2 = np.arange(2).reshape(1,2) * u.kpc
+        rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
+                                      differentials=diff)
+
+        assert rep.x.unit is u.kpc
+        assert rep.y.unit is u.kpc
+        assert rep.z.unit is u.kpc
+        assert len(rep.differentials) == 1
+        assert rep.differentials[0] is diff
+
+        assert rep.xyz.shape != rep.differentials[0].d_xyz.shape
+        assert check_broadcast(rep.xyz.shape, rep.differentials[0].d_xyz.shape)
+
+    def test_reprobj(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+
+        # make sure the differential gets carried along
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                     differentials=diff)
+
+        s2 = CartesianRepresentation.from_representation(s1)
+
+        assert s2.x == 1 * u.kpc
+        assert s2.y == 2 * u.kpc
+        assert s2.z == 3 * u.kpc
+        assert s2.differentials[0] is diff
+
+    def test_readonly(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        with pytest.raises(AttributeError): # attribute is not settable
+            s1.differentials = (diff,)
+
+    def test_represent_as(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+        rep1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                       differentials=diff)
+
+        # Only change the representation
+        new_rep = rep1.represent_as(SphericalRepresentation)
+        assert new_rep.get_name() == 'spherical'
+        assert new_rep.differentials[0].get_name() == 'cartesian'
+
+        # Pass in separate classes for representation, differential
+        new_rep = rep1.represent_as([SphericalRepresentation,
+                                     CylindricalDifferential])
+        assert new_rep.get_name() == 'spherical'
+        assert new_rep.differentials[0].get_name() == 'cylindrical'
+
+        with pytest.raises(ValueError): # too many classes
+            new_rep = rep1.represent_as([SphericalRepresentation,
+                                         CylindricalDifferential,
+                                         CylindricalDifferential])
+
+    # ---
+
+    def test_getitem(self):
+
+        s = CartesianRepresentation(x=np.arange(10) * u.m,
+                                    y=-np.arange(10) * u.m,
+                                    z=3 * u.km)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.x, [2, 4, 6] * u.m)
+        assert_allclose_quantity(s_slc.y, [-2, -4, -6] * u.m)
+        assert_allclose_quantity(s_slc.z, [3, 3, 3] * u.km)
+
+    def test_getitem_scalar(self):
+
+        s = CartesianRepresentation(x=1 * u.m,
+                                    y=-2 * u.m,
+                                    z=3 * u.km)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
+
+    def test_transform(self):
+
+        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6] * u.kpc)
+
+        matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
+
+        s2 = s1.transform(matrix)
+
+        assert_allclose(s2.x.value, [1 * 1 + 2 * 3 + 3 * 5, 1 * 2 + 2 * 4 + 3 * 6])
+        assert_allclose(s2.y.value, [4 * 1 + 5 * 3 + 6 * 5, 4 * 2 + 5 * 4 + 6 * 6])
+        assert_allclose(s2.z.value, [7 * 1 + 8 * 3 + 9 * 5, 7 * 2 + 8 * 4 + 9 * 6])
+
+        assert s2.x.unit is u.kpc
+        assert s2.y.unit is u.kpc
+        assert s2.z.unit is u.kpc
