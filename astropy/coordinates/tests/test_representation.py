@@ -1205,32 +1205,35 @@ class TestCartesianRepresentationWithDifferential(object):
             assert len(new_rep.differentials) == 1
             assert new_rep.differentials[0] == diff
 
-    # ---
-
     def test_getitem(self):
 
+        d = CartesianDifferential(d_x=np.arange(10) * u.m/u.s,
+                                  d_y=-np.arange(10) * u.m/u.s,
+                                  d_z=1. * u.m/u.s)
         s = CartesianRepresentation(x=np.arange(10) * u.m,
                                     y=-np.arange(10) * u.m,
-                                    z=3 * u.km)
+                                    z=3 * u.km,
+                                    differentials=d)
 
         s_slc = s[2:8:2]
+        s_dif = s_slc.differentials[0]
 
         assert_allclose_quantity(s_slc.x, [2, 4, 6] * u.m)
         assert_allclose_quantity(s_slc.y, [-2, -4, -6] * u.m)
         assert_allclose_quantity(s_slc.z, [3, 3, 3] * u.km)
 
-    def test_getitem_scalar(self):
-
-        s = CartesianRepresentation(x=1 * u.m,
-                                    y=-2 * u.m,
-                                    z=3 * u.km)
-
-        with pytest.raises(TypeError):
-            s_slc = s[0]
+        assert_allclose_quantity(s_dif.d_x, [2, 4, 6] * u.m/u.s)
+        assert_allclose_quantity(s_dif.d_y, [-2, -4, -6] * u.m/u.s)
+        assert_allclose_quantity(s_dif.d_z, [1, 1, 1] * u.m/u.s)
 
     def test_transform(self):
-
-        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6] * u.kpc)
+        d = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
+                                  d_y=[3, 4] * u.km/u.s,
+                                  d_z=[5, 6] * u.km/u.s)
+        s1 = CartesianRepresentation(x=[1,2] * u.kpc,
+                                     y=[3,4] * u.kpc,
+                                     z=[5,6] * u.kpc,
+                                     differentials=d)
 
         matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
 
@@ -1243,3 +1246,6 @@ class TestCartesianRepresentationWithDifferential(object):
         assert s2.x.unit is u.kpc
         assert s2.y.unit is u.kpc
         assert s2.z.unit is u.kpc
+
+        # make sure the differentials were dropped
+        assert s2.differentials == ()
