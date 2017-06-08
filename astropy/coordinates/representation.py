@@ -17,6 +17,7 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
+from .geometry import spherical_to_cartesian, cartesian_to_spherical
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.compat import NUMPY_LT_1_12
@@ -749,11 +750,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
-        x = u.one * np.cos(self.lat) * np.cos(self.lon)
-        y = u.one * np.cos(self.lat) * np.sin(self.lon)
-        z = u.one * np.sin(self.lat)
-
+        x, y, z = spherical_to_cartesian(self.lon, self.lat)
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
@@ -762,12 +759,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
+        lon, lat = cartesian_to_spherical(cart.x, cart.y, cart.z)[:2]
         return cls(lon=lon, lat=lat, copy=False)
 
     def represent_as(self, other_class):
@@ -955,17 +947,12 @@ class SphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
         # We need to convert Distance to Quantity to allow negative values.
         if isinstance(self.distance, Distance):
             d = self.distance.view(u.Quantity)
         else:
             d = self.distance
-
-        x = d * np.cos(self.lat) * np.cos(self.lon)
-        y = d * np.cos(self.lat) * np.sin(self.lon)
-        z = d * np.sin(self.lat)
-
+        x, y, z = spherical_to_cartesian(self.lon, self.lat, d)
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
@@ -974,13 +961,7 @@ class SphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        lon = np.arctan2(cart.y, cart.x)
-        lat = np.arctan2(cart.z, s)
-
+        lon, lat, r = cartesian_to_spherical(cart.x, cart.y, cart.z)
         return cls(lon=lon, lat=lat, distance=r, copy=False)
 
     def norm(self):
@@ -1098,17 +1079,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
         # We need to convert Distance to Quantity to allow negative values.
         if isinstance(self.r, Distance):
             d = self.r.view(u.Quantity)
         else:
             d = self.r
-
-        x = d * np.sin(self.theta) * np.cos(self.phi)
-        y = d * np.sin(self.theta) * np.sin(self.phi)
-        z = d * np.cos(self.theta)
-
+        x, y, z = spherical_to_cartesian(self.phi, self.theta, d)
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
@@ -1117,13 +1093,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
-        s = np.hypot(cart.x, cart.y)
-        r = np.hypot(s, cart.z)
-
-        phi = np.arctan2(cart.y, cart.x)
-        theta = np.arctan2(s, cart.z)
-
+        phi, theta, r = cartesian_to_spherical(cart.x, cart.y, cart.z)
         return cls(phi=phi, theta=theta, r=r, copy=False)
 
     def norm(self):
