@@ -22,6 +22,7 @@ from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
+from ..utils.misc import isiterable, check_broadcast, IncompatibleShapeError
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -135,6 +136,14 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise TypeError('__init__() missing 1 required positional '
                                 'argument: {0!r}'.format(component))
 
+        if args:
+            differentials = args.pop(0)
+        else:
+            differentials = kwargs.pop('differentials', tuple())
+
+        if differentials is None:
+            differentials = tuple()
+
         copy = args.pop(0) if args else kwargs.pop('copy', True)
 
         if args:
@@ -164,6 +173,30 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         # on the class, the metaclass will define properties to access these.)
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
+
+        # Now handle the actual validation of any specified differential classes
+        if isinstance(differentials, BaseDifferential):
+            differentials = (differentials, )
+
+        for diff in differentials:
+            if not isinstance(diff, BaseDifferential):
+                raise TypeError("'differentials' must be an iterable of "
+                                "BaseDifferential subclass instances. Got '{0}'"
+                                .format(type(diff)))
+
+            # Also check that the diff shape is broadcastable to the
+            # shape of the parent representation, but don't explicitly do the
+            # broadcasting
+            try:
+                check_broadcast(self.shape, diff.shape)
+            except IncompatibleShapeError:
+                raise ValueError( # TODO: message of IncompatibleShapeError is not customizable
+                    "Shape of differentials must be broadcastable to the shape "
+                    "of the representation ({0} vs {1})"
+                    .format(diff.shape, self.shape))
+
+        # store as a private name so users know this is not settable
+        self._differentials = tuple(differentials)
 
     @classmethod
     def get_name(cls):
@@ -197,6 +230,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def components(self):
         """A tuple with the in-order names of the coordinate components."""
         return tuple(self.attr_classes)
+
+    @property
+    def differentials(self):
+        """A tuple of differential class instances"""
+        return self._differentials
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation with ``method`` applied to the arrays.
@@ -483,7 +521,28 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self
         else:
             # The default is to convert via cartesian coordinates
-            return other_class.from_cartesian(self.to_cartesian())
+            if isiterable(other_class):
+                if (self.differentials is None or
+                        len(other_class) != 1+len(self.differentials)):
+                    raise ValueError("If multiple classes are passed in to "
+                                     "change the representations of attached "
+                                     "differentials, the number of classes must "
+                                     "be equal to 1 + the number of "
+                                     "differentials. (got {0})"
+                                     .format(len(other_class)))
+
+                new_rep = other_class[0].from_cartesian(self.to_cartesian())
+
+                new_diffs = []
+                for i,diff in enumerate(self.differentials):
+                    new_diffs.append(diff.represent_as(other_class[1+i],
+                                                       base=new_rep))
+                new_rep._differentials = tuple(new_diffs)
+
+            else:
+                new_rep = other_class.from_cartesian(self.to_cartesian())
+
+            return new_rep
 
     @classmethod
     def from_representation(cls, representation):
@@ -661,7 +720,8 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, differentials=None,
+                 xyz_axis=None, copy=True):
 
         if y is None and z is None:
             if xyz_axis is not None and xyz_axis != 0:
@@ -681,7 +741,8 @@ class CartesianRepresentation(BaseRepresentation):
             z = u.Quantity(z, unit, copy=copy, subok=True)
             copy = False
 
-        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy)
+        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy,
+                                                      differentials=differentials)
         if not (self._x.unit.physical_type ==
                 self._y.unit.physical_type == self._z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
@@ -897,9 +958,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def _dimensional_representation(cls):
         return SphericalRepresentation
 
-    def __init__(self, lon, lat, copy=True):
+    def __init__(self, lon, lat, differentials=None, copy=True):
         super(UnitSphericalRepresentation,
-              self).__init__(lon, lat, copy=copy)
+              self).__init__(lon, lat, copy=copy, differentials=differentials)
 
     # Could let the metaclass define these automatically, but good to have
     # a bit clearer docstrings.
@@ -940,7 +1001,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         y = np.cos(self.lat) * np.sin(self.lon)
         z = np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
+                                       differentials=self.differentials)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -954,7 +1016,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat, copy=False)
+        return cls(lon=lon, lat=lat, copy=False,
+                   differentials=cart.differentials)
 
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
@@ -1068,8 +1131,9 @@ class RadialRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
-    def __init__(self, distance, copy=True):
-        super(RadialRepresentation, self).__init__(distance, copy=copy)
+    def __init__(self, distance, differentials=None, copy=True):
+        super(RadialRepresentation, self).__init__(distance, copy=copy,
+                                                   differentials=differentials)
 
     @property
     def distance(self):
@@ -1097,7 +1161,8 @@ class RadialRepresentation(BaseRepresentation):
         """
         Converts 3D rectangular cartesian coordinates to radial coordinate.
         """
-        return cls(distance=cart.norm(), copy=False)
+        return cls(distance=cart.norm(), copy=False,
+                   differentials=cart.differentials)
 
     def _scale_operation(self, op, *args):
         return op(self.distance, *args)
@@ -1146,9 +1211,10 @@ class SphericalRepresentation(BaseRepresentation):
     recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
-    def __init__(self, lon, lat, distance, copy=True):
+    def __init__(self, lon, lat, distance, differentials=None, copy=True):
         super(SphericalRepresentation,
-              self).__init__(lon, lat, distance, copy=copy)
+              self).__init__(lon, lat, distance, copy=copy,
+                             differentials=differentials)
         if self._distance.unit.physical_type == 'length':
             self._distance = self._distance.view(Distance)
 
@@ -1218,7 +1284,8 @@ class SphericalRepresentation(BaseRepresentation):
         y = d * np.cos(self.lat) * np.sin(self.lon)
         z = d * np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
+                                       differentials=self.differentials)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1233,7 +1300,8 @@ class SphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat, distance=r, copy=False)
+        return cls(lon=lon, lat=lat, distance=r, copy=False,
+                   differentials=cart.differentials)
 
     def norm(self):
         """Vector norm.
@@ -1279,9 +1347,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                                 ('r', u.Quantity)])
     recommended_units = {'phi': u.deg, 'theta': u.deg}
 
-    def __init__(self, phi, theta, r, copy=True):
+    def __init__(self, phi, theta, r, differentials=None, copy=True):
         super(PhysicsSphericalRepresentation,
-              self).__init__(phi, theta, r, copy=copy)
+              self).__init__(phi, theta, r, copy=copy,
+                             differentials=differentials)
 
         # Wrap/validate phi/theta
         if copy:
@@ -1364,7 +1433,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         y = d * np.sin(self.theta) * np.sin(self.phi)
         z = d * np.cos(self.theta)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
+                                       differentials=self.differentials)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -1379,7 +1449,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return cls(phi=phi, theta=theta, r=r, copy=False)
+        return cls(phi=phi, theta=theta, r=r, copy=False,
+                   differentials=cart.differentials)
 
     def norm(self):
         """Vector norm.
@@ -1422,9 +1493,10 @@ class CylindricalRepresentation(BaseRepresentation):
                                 ('z', u.Quantity)])
     recommended_units = {'phi': u.deg}
 
-    def __init__(self, rho, phi, z, copy=True):
+    def __init__(self, rho, phi, z, differentials=None, copy=True):
         super(CylindricalRepresentation,
-              self).__init__(rho, phi, z, copy=copy)
+              self).__init__(rho, phi, z, copy=copy,
+                             differentials=differentials)
 
         if not self._rho.unit.is_equivalent(self._z.unit):
             raise u.UnitsError("rho and z should have matching physical types")
@@ -1476,7 +1548,8 @@ class CylindricalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
-        return cls(rho=rho, phi=phi, z=z, copy=False)
+        return cls(rho=rho, phi=phi, z=z, copy=False,
+                   differentials=cart.differentials)
 
     def to_cartesian(self):
         """
@@ -1487,7 +1560,8 @@ class CylindricalRepresentation(BaseRepresentation):
         y = self.rho * np.sin(self.phi)
         z = self.z
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
+                                       differentials=self.differentials)
 
 
 class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
