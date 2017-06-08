@@ -280,7 +280,7 @@ Often, one has just a proper motion or a radial velocity, but not both::
 
 Note in the above that the proper motion is defined strictly as a change in
 longitude, i.e., it does not include a ``cos(latitude)`` term. There are
-special classes where that terms is included::
+special classes where this term is included::
 
   >>> from astropy.coordinates import UnitSphericalCosLatDifferential
   >>> sph_lat60 = SphericalRepresentation(lon=0.*u.deg, lat=60.*u.deg,
@@ -301,8 +301,8 @@ special classes where that terms is included::
       ( 0.00969597,  1.0471772,  1.00001175)>
 
 Close inspections shows that indeed the changes are as expected.  The systems
-with and without ``cos(latitute)`` can be converted to each other, provided one
-provides the ``base``::
+with and without ``cos(latitude)`` can be converted to each other, provided one
+provides the ``base`` (representation)::
 
   >>> usph_lat60 = sph_lat60.represent_as(UnitSphericalRepresentation)
   >>> pm_coslat2 = pm.represent_as(UnitSphericalCosLatDifferential,
