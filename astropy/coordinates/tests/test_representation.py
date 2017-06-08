@@ -1198,6 +1198,14 @@ class TestCartesianRepresentationWithDifferential(object):
                                          CylindricalDifferential,
                                          CylindricalDifferential])
 
+        # make sure all of the to_cartesian() and from_cartesian() methods
+        # pass through the differentials
+        for name in REPRESENTATION_CLASSES:
+            new_rep = rep1.represent_as(REPRESENTATION_CLASSES[name])
+            assert new_rep.get_name() == REPRESENTATION_CLASSES[name].get_name()
+            assert len(new_rep.differentials) == 1
+            assert new_rep.differentials[0] == diff
+
     # ---
 
     def test_getitem(self):
