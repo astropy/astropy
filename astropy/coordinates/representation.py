@@ -19,10 +19,11 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
+from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
-__all__ = ["RepresentationBase", "BaseRepresentation",
+__all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
            "UnitSphericalRepresentation", "RadialRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation",
@@ -92,7 +93,8 @@ def _combine_xyz(x, y, z, xyz_axis=0):
                                axis=xyz_axis)
     return cls(xyz_value, unit=x.unit, copy=False)
 
-class RepresentationBase(ShapedLikeNDArray):
+
+class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     """3D coordinate representations and differentials.
 
     Parameters
@@ -357,11 +359,11 @@ def _make_getter(component):
     return get_component
 
 
-# Need to subclass ABCMeta rather than type, so that this meta class can be
-# combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
+# Need to also subclass ABCMeta rather than type, so that this meta class can
+# be combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
 # "TypeError: metaclass conflict: the metaclass of a derived class must be a
 #  (non-strict) subclass of the metaclasses of all its bases"
-class MetaBaseRepresentation(abc.ABCMeta):
+class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
@@ -391,7 +393,7 @@ class MetaBaseRepresentation(abc.ABCMeta):
 
 
 @six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(RepresentationBase):
+class BaseRepresentation(BaseRepresentationOrDifferential):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -410,13 +412,48 @@ class BaseRepresentation(RepresentationBase):
     define a ``to_cartesian`` method and a ``from_cartesian`` class method. By
     default, transformations are done via the cartesian system, but classes
     that want to define a smarter transformation path can overload the
-    ``represent_as`` method. Finally, classes can also define a
+    ``represent_as`` method. If one wants to use an associated differential
+    class, one should also define ``unit_vectors`` and ``scale_factors``
+    methods (see those methods for details). Finally, classes can also define a
     ``recommended_units`` dictionary, which maps component names to the units
     they are best presented to users in (this is used only in representations
     of coordinates, and may be overridden by frame classes).
     """
 
     recommended_units = {}  # subclasses can override
+
+    # We do not make unit_vectors and scale_factors abstract methods, since
+    # they are only necessary if one also defines an associated Differential.
+    # Also, doing so would break pre-differential representation subclasses.
+    def unit_vectors(self):
+        r"""Cartesian unit vectors in the direction of each component.
+
+        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`,
+        a change in one component of :math:`\delta c` corresponds to a change
+        in representation of :math:`\delta c \times f_c \times \hat{e}_c`.
+
+        Returns
+        -------
+        unit_vectors : dict of `CartesianRepresentation`
+            The keys are the component names.
+        """
+        raise NotImplementedError("{} has not implemented unit vectors"
+                                  .format(type(self)))
+
+    def scale_factors(self):
+        r"""Scale factors for each component's direction.
+
+        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`,
+        a change in one component of :math:`\delta c` corresponds to a change
+        in representation of :math:`\delta c \times f_c \times \hat{e}_c`.
+
+        Returns
+        -------
+        scale_factors : dict of `~astropy.units.Quantity`
+            The keys are the component names.
+        """
+        raise NotImplementedError("{} has not implemented scale factors."
+                                  .format(type(self)))
 
     def represent_as(self, other_class):
         """Convert coordinates to another representation.
@@ -637,13 +674,6 @@ class CartesianRepresentation(BaseRepresentation):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
-        """Cartesian unit vectors in the direction of each component.
-
-        Returns
-        -------
-        unit_vectors : dict of `CartesianRepresentation`
-            The keys are the component names.
-        """
         l = broadcast_to(1.*u.one, self.shape, subok=True)
         o = broadcast_to(0.*u.one, self.shape, subok=True)
         return OrderedDict(
@@ -652,13 +682,6 @@ class CartesianRepresentation(BaseRepresentation):
              ('z', CartesianRepresentation(o, o, l, copy=False))))
 
     def scale_factors(self):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         l = broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('x', l), ('y', l), ('z', l)))
 
@@ -882,13 +905,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return self._lat
 
     def unit_vectors(self):
-        """Cartesian unit vectors in the direction of each component.
-
-        Returns
-        -------
-        unit_vectors : dict of `CartesianRepresentation`
-            The keys are the component names.
-        """
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
         return OrderedDict(
@@ -897,13 +913,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                              coslat, copy=False))))
 
     def scale_factors(self, omit_coslat=False):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
         sf_lon  = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
@@ -1062,13 +1071,6 @@ class RadialRepresentation(BaseRepresentation):
                                   '{0} instances'.format(self.__class__))
 
     def scale_factors(self):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         l = broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('distance', l),))
 
@@ -1159,13 +1161,6 @@ class SphericalRepresentation(BaseRepresentation):
         return self._distance
 
     def unit_vectors(self):
-        """Cartesian unit vectors in the direction of each component.
-
-        Returns
-        -------
-        unit_vectors : dict of `CartesianRepresentation`
-            The keys are the component names.
-        """
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
         return OrderedDict(
@@ -1176,13 +1171,6 @@ class SphericalRepresentation(BaseRepresentation):
                                                   sinlat, copy=False))))
 
     def scale_factors(self, omit_coslat=False):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         sf_lat = self.distance / u.radian
         sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
         sf_distance = broadcast_to(1.*u.one, self.shape, subok=True)
@@ -1319,13 +1307,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return self._r
 
     def unit_vectors(self):
-        """Cartesian unit vectors in the direction of each component.
-
-        Returns
-        -------
-        unit_vectors : dict of `CartesianRepresentation`
-            The keys are the component names.
-        """
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
         return OrderedDict(
@@ -1337,13 +1318,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                                            costheta, copy=False))))
 
     def scale_factors(self):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         r = self.r / u.radian
         sintheta = np.sin(self.theta)
         l = broadcast_to(1.*u.one, self.shape, subok=True)
@@ -1464,13 +1438,6 @@ class CylindricalRepresentation(BaseRepresentation):
         return self._z
 
     def unit_vectors(self):
-        """Cartesian unit vectors in the direction of each component.
-
-        Returns
-        -------
-        unit_vectors : dict of `CartesianRepresentation`
-            The keys are the component names.
-        """
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = broadcast_to(1., self.shape)
         return OrderedDict(
@@ -1479,13 +1446,6 @@ class CylindricalRepresentation(BaseRepresentation):
              ('z', CartesianRepresentation(0, 0, l, unit=u.one, copy=False))))
 
     def scale_factors(self):
-        """Scale factors for each component's direction.
-
-        Returns
-        -------
-        scale_factors : dict of `~astropy.units.Quantity`
-            The keys are the component names.
-        """
         rho = self.rho / u.radian
         l = broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('rho', l),
@@ -1517,7 +1477,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class MetaBaseDifferential(abc.ABCMeta):
+class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
     """Set default ``attr_classes`` and component getters on a Differential.
 
     For these, the components are those of the base representation prefixed
@@ -1558,8 +1518,10 @@ class MetaBaseDifferential(abc.ABCMeta):
 
 
 @six.add_metaclass(MetaBaseDifferential)
-class BaseDifferential(RepresentationBase):
-    """Differentials from points on a base representation.
+class BaseDifferential(BaseRepresentationOrDifferential):
+    """A base class representing differentials of representations.  I.e.,
+    differences of points in a particular representation (numerical realizations
+    of derivatives).
 
     Parameters
     ----------
