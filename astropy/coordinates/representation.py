@@ -237,7 +237,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return self._differentials
 
     def _apply(self, method, *args, **kwargs):
-        """Create a new representation with ``method`` applied to the arrays.
+        """Create a new representation or differential with ``method`` applied
+        to the component data.
 
         In typical usage, the method is any of the shape-changing methods for
         `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
@@ -264,8 +265,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             apply_method = lambda array: method(array, *args, **kwargs)
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
-        return self.__class__( *[apply_method(getattr(self, component))
-                                 for component in self.components], copy=False)
+
+        return self.__class__(*[apply_method(getattr(self, component))
+                                for component in self.components], copy=False)
 
     @property
     def shape(self):
@@ -304,6 +306,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     raise
                 else:
                     reshaped.append(val)
+
+        # also perform shape-setting on any associated differentials
+        for diff in self.differentials:
+            diff.shape = shape
 
     # Required to support multiplication and division, and defined by the base
     # representation and differential classes.
@@ -554,6 +560,33 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             The presentation that should be converted to this class.
         """
         return representation.represent_as(cls)
+
+    def _apply(self, method, *args, **kwargs):
+        """Create a new representation with ``method`` applied to the component
+        data.
+
+        This is not a simple inherit from ``BaseRepresentationOrDifferential``
+        because we need to call ``._apply()`` on any associated differential
+        classes.
+
+        See docstring for `BaseRepresentationOrDifferential._apply`.
+
+        Parameters
+        ----------
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+
+        """
+        rep = super(BaseRepresentation, self)._apply(method, *args, **kwargs)
+        diffs = [diff._apply(method, *args, **kwargs)
+                 for diff in self.differentials]
+        rep._differentials = tuple(diffs)
+        return rep
 
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
