@@ -1134,7 +1134,7 @@ class TestCartesianRepresentationWithDifferential(object):
             rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
                                           differentials=diff)
 
-        arr2 = np.arange(2).reshape(1,2) * u.kpc
+        arr2 = np.arange(8).reshape(4,2) * u.kpc
         rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
                                       differentials=diff)
 
@@ -1144,8 +1144,7 @@ class TestCartesianRepresentationWithDifferential(object):
         assert len(rep.differentials) == 1
         assert rep.differentials[0] is diff
 
-        assert rep.xyz.shape != rep.differentials[0].d_xyz.shape
-        assert check_broadcast(rep.xyz.shape, rep.differentials[0].d_xyz.shape)
+        assert rep.xyz.shape == rep.differentials[0].d_xyz.shape
 
     def test_reprobj(self):
 

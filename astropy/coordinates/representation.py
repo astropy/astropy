@@ -184,16 +184,16 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                                 "BaseDifferential subclass instances. Got '{0}'"
                                 .format(type(diff)))
 
-            # Also check that the diff shape is broadcastable to the
-            # shape of the parent representation, but don't explicitly do the
-            # broadcasting
-            try:
-                check_broadcast(self.shape, diff.shape)
-            except IncompatibleShapeError:
-                raise ValueError( # TODO: message of IncompatibleShapeError is not customizable
-                    "Shape of differentials must be broadcastable to the shape "
-                    "of the representation ({0} vs {1})"
-                    .format(diff.shape, self.shape))
+            # For now, we are very rigid: differentials must have the same shape
+            # as the representation. This makes it easier to handle __getitem__
+            # and any other shape-changing operations on representations that
+            # have associated differentials
+            if diff.shape != self.shape:
+                # TODO: message of IncompatibleShapeError is not customizable,
+                #       so use a valueerror instead?
+                raise ValueError("Shape of differentials must be broadcastable "
+                                 "to the shape of the representation ({0} vs "
+                                 "{1})".format(diff.shape, self.shape))
 
         # store as a private name so users know this is not settable
         self._differentials = tuple(differentials)
