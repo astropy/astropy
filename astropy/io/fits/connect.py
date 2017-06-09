@@ -26,6 +26,10 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
                    'PCOUNT', 'GCOUNT', 'TFIELDS']
+                   
+# Global time reference coordinate keywords
+TIME_KEYWORDS = ['TIMESYS', 'MJDREF', 'JDREF', 'DATEREF', 'TREFPOS',
+                 'TREFDIR', 'TIMEUNIT', 'TIMEOFFS']
 
 # Column-specific keywords
 COLUMN_KEYWORDS = ['TFORM[0-9]+',
@@ -39,9 +43,22 @@ COLUMN_KEYWORDS = ['TFORM[0-9]+',
                    'TDIM[0-9]+',
                    'THEAP']
 
+# Column-specific time override keywords
+COLUMN_TIME_KEYWORDS = ['TCTYP[0-9]',
+                        'TRPOS[0-9]',
+                        'TCUNI[0-9]',
+                        'TCAPF[0-9]']
+
 
 def is_column_keyword(keyword):
     for c in COLUMN_KEYWORDS:
+        if re.match(c, keyword) is not None:
+            return True
+    return False
+
+
+def is_time_column_keyword(keyword):
+    for c in COLUMN_TIME_KEYWORDS:
         if re.match(c, keyword) is not None:
             return True
     return False
@@ -93,6 +110,9 @@ def read_table_fits(input, hdu=None):
     hdu : int or str, optional
         The HDU to read the table from.
     """
+
+    # Avoid circular imports
+    from .time import FitsTime
 
     if isinstance(input, HDUList):
 
@@ -162,6 +182,9 @@ def read_table_fits(input, hdu=None):
 
     # TODO: deal properly with unsigned integers
 
+    # Create a Time_fits object to facilitate reading in time
+    time_state = FitsTime(len(t.columns))
+
     for key, value, comment in table.header.cards:
 
         if key in ['COMMENT', 'HISTORY']:
@@ -186,9 +209,20 @@ def read_table_fits(input, hdu=None):
 
             pass
 
+        elif (key.upper() in TIME_KEYWORDS):
+
+            time_state.set_global_time(key, value, comment)
+
+        elif (is_time_column_keyword(key.upper())):
+
+            time_state.set_column_override(key, value, comment)
+
         else:
 
             t.meta[key] = value
+
+    # Convert time columns to astropy Time
+    time_state.convert_to_time(t)
 
     # TODO: implement masking
 
