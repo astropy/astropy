@@ -22,6 +22,7 @@ from .mixins.ndio import *
 
 from .compat import *
 from .utils import *
+from .ccddata import *
 
 from .. import config as _config
 
