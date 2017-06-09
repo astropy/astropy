@@ -541,6 +541,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         else:
             # The default is to convert via cartesian coordinates
             if isiterable(other_class):
+                if isinstance(other_class, six.string_types):
+                    raise ValueError('Input to a representation\'s represent_as'
+                                     ' must be a class, not a string. For '
+                                     'strings, use frame objects')
                 if (self.differentials is None or
                         len(other_class) != 1+len(self.differentials)):
                     raise ValueError("If multiple classes are passed in to "

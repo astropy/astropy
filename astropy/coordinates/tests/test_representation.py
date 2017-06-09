@@ -1205,6 +1205,10 @@ class TestCartesianRepresentationWithDifferential(object):
             assert len(new_rep.differentials) == 1
             assert new_rep.differentials[0] == diff
 
+        with pytest.raises(ValueError) as excinfo:
+            rep1.represent_as('name')
+        assert 'use frame object' in str(excinfo.value)
+
     def test_getitem(self):
 
         d = CartesianDifferential(d_x=np.arange(10) * u.m/u.s,
