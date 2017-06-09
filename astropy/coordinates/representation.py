@@ -483,6 +483,16 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                                  "{1})".format(diff.shape, self.shape))
         return tuple(differentials)
 
+    def _raise_if_has_differentials(self, op_name):
+        """
+        Used to raise a consistent exception for any operation that is not
+        supported when a representation has differentials attached.
+        """
+        if self.differentials:
+            raise TypeError("Operation '{0}' is not supported when "
+                            "differentials are attached to a {1}."
+                            .format(op_name, self.__class__.__name__))
+
     @property
     def differentials(self):
         """A tuple of differential class instances"""
@@ -653,6 +663,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Any arguments required for the operator (typically, what is to
             be multiplied with, divided by).
         """
+
+        self._raise_if_has_differentials(op.__name__)
+
         results = []
         for component, cls in self.attr_classes.items():
             value = getattr(self, component)
@@ -684,6 +697,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Whether the operands should be reversed (e.g., as we got here via
             ``self.__rsub__`` because ``self`` is a subclass of ``other``).
         """
+        self._raise_if_has_differentials(op.__name__)
+
         result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
             return NotImplemented
@@ -711,6 +726,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
+        self._raise_if_has_differentials('norm')
         return np.sqrt(functools.reduce(
             operator.add, (getattr(self, component)**2
                            for component, cls in self.attr_classes.items()
@@ -732,6 +748,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         mean : representation
             Vector mean, in the same representation as that of the input.
         """
+        self._raise_if_has_differentials('mean')
         return self.from_cartesian(self.to_cartesian().mean(*args, **kwargs))
 
     def sum(self, *args, **kwargs):
@@ -750,6 +767,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         sum : representation
             Vector sum, in the same representation as that of the input.
         """
+        self._raise_if_has_differentials('sum')
         return self.from_cartesian(self.to_cartesian().sum(*args, **kwargs))
 
     def dot(self, other):
@@ -769,6 +787,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             The sum of the product of the x, y, and z components of the
             cartesian representations of ``self`` and ``other``.
         """
+        self._raise_if_has_differentials('dot')
         return self.to_cartesian().dot(other)
 
     def cross(self, other):
@@ -789,6 +808,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             With vectors perpendicular to both ``self`` and ``other``, in the
             same type of representation as ``self``.
         """
+        self._raise_if_has_differentials('cross')
         return self.from_cartesian(self.to_cartesian().cross(other))
 
 
@@ -916,6 +936,8 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
+        self._raise_if_has_differentials('transform')
+
         # Avoid doing gratuitous np.array for things that look like arrays.
         try:
             matrix_shape = matrix.shape
@@ -946,6 +968,8 @@ class CartesianRepresentation(BaseRepresentation):
         return self.__class__(*newxyz, copy=False)
 
     def _combine_operation(self, op, other, reverse=False):
+        self._raise_if_has_differentials(op.__name__)
+
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -967,6 +991,7 @@ class CartesianRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('mean')
         return self._apply('mean', *args, **kwargs)
 
     def sum(self, *args, **kwargs):
@@ -979,6 +1004,7 @@ class CartesianRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('sum')
         return self._apply('sum', *args, **kwargs)
 
     def dot(self, other):
@@ -995,6 +1021,7 @@ class CartesianRepresentation(BaseRepresentation):
             The sum of the product of the x, y, and z components of ``self``
             and ``other``.
         """
+        self._raise_if_has_differentials('dot')
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -1019,6 +1046,7 @@ class CartesianRepresentation(BaseRepresentation):
         cross_product : `~astropy.coordinates.CartesianRepresentation`
             With vectors perpendicular to both ``self`` and ``other``.
         """
+        self._raise_if_has_differentials('cross')
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -1085,7 +1113,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def scale_factors(self, omit_coslat=False):
         sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
-        sf_lon  = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
+        sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
 
@@ -1127,14 +1155,17 @@ class UnitSphericalRepresentation(BaseRepresentation):
                          self).represent_as(other_class)
 
     def __mul__(self, other):
+        self._raise_if_has_differentials('multiplication')
         return self._dimensional_representation(lon=self.lon, lat=self.lat,
                                                 distance=1. * other)
 
     def __truediv__(self, other):
+        self._raise_if_has_differentials('division')
         return self._dimensional_representation(lon=self.lon, lat=self.lat,
                                                 distance=1. / other)
 
     def __neg__(self):
+        self._raise_if_has_differentials('negation')
         return self.__class__(self.lon + 180. * u.deg, -self.lat, copy=False)
 
     def norm(self):
@@ -1149,10 +1180,13 @@ class UnitSphericalRepresentation(BaseRepresentation):
         norm : `~astropy.units.Quantity`
             Dimensionless ones, with the same shape as the representation.
         """
+        self._raise_if_has_differentials('norm')
         return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
                           copy=False)
 
     def _combine_operation(self, op, other, reverse=False):
+        self._raise_if_has_differentials(op.__name__)
+
         result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
             return NotImplemented
@@ -1170,6 +1204,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('mean')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().mean(*args, **kwargs))
 
@@ -1184,6 +1219,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('sum')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().sum(*args, **kwargs))
 
@@ -1204,6 +1240,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         cross_product : `~astropy.coordinates.SphericalRepresentation`
             With vectors perpendicular to both ``self`` and ``other``.
         """
+        self._raise_if_has_differentials('cross')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().cross(other))
 
@@ -1256,9 +1293,13 @@ class RadialRepresentation(BaseRepresentation):
         """
         Converts 3D rectangular cartesian coordinates to radial coordinate.
         """
-        return cls(distance=cart.norm(), copy=False)
+        # We can't use .norm() here because it's not differentials-safe
+        s = np.hypot(cart.x, cart.y)
+        r = np.hypot(s, cart.z)
+        return cls(distance=r, copy=False)
 
     def _scale_operation(self, op, *args):
+        self._raise_if_has_differentials(op.__name__)
         return op(self.distance, *args)
 
     def norm(self):
@@ -1271,6 +1312,7 @@ class RadialRepresentation(BaseRepresentation):
         norm : `~astropy.units.Quantity`
             Dimensionless ones, with the same shape as the representation.
         """
+        self._raise_if_has_differentials('norm')
         return self.distance
 
     def _combine_operation(self, op, other, reverse=False):
@@ -1407,6 +1449,7 @@ class SphericalRepresentation(BaseRepresentation):
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
+        self._raise_if_has_differentials('norm')
         return np.abs(self.distance)
 
 
@@ -1554,6 +1597,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
+        self._raise_if_has_differentials('norm')
         return np.abs(self.r)
 
 
