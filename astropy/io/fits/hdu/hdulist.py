@@ -1019,9 +1019,14 @@ class HDUList(list, _Verify):
 
         # Make sure at least the PRIMARY HDU can be read
         read_one = hdulist._read_next_hdu()
+
         # If we're trying to read only and no header units were found,
-        # raise and exception
+        # raise an exception
         if not read_one and mode in ('readonly', 'denywrite'):
+            # Close the file if necessary (issue #6168)
+            if hdulist._file.close_on_error:
+                hdulist._file.close()
+
             raise IOError('Empty or corrupt FITS file')
 
         if not lazy_load_hdus:
@@ -1093,6 +1098,12 @@ class HDUList(list, _Verify):
                         self._read_all = True
                         return False
                     except IOError:
+                        # Close the file: see
+                        # https://github.com/astropy/astropy/issues/6168
+                        #
+                        if self._file.close_on_error:
+                            self._file.close()
+
                         if fileobj.writeonly:
                             self._read_all = True
                             return False

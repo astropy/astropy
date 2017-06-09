@@ -11,6 +11,7 @@ import numpy as np
 
 from ..verify import VerifyError
 from ....extern.six.moves import range
+from ....extern import six
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -913,3 +914,53 @@ class TestHDUListFunctions(FitsTestCase):
         # This should raise an IOError because there is no end card.
         with pytest.raises(IOError):
             fits.open(filename)
+
+    @pytest.mark.skipif(six.PY2,
+                        reason='ResourceWarning is not created in Python 2')
+    def test_no_resource_warning_raised_on_non_fits_file(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/6168
+
+        The ResourceWarning shows up when (in python 3+) you try to
+        open a non-FITS file when using a filename.
+        """
+
+        # To avoid creating the file multiple times the tests are
+        # all included in one test file. See the discussion to the
+        # PR at https://github.com/astropy/astropy/issues/6168
+        #
+        filename = self.temp('not-fits.fits')
+        with open(filename, mode='w') as f:
+            f.write('# header line\n')
+            f.write('0.1 0.2\n')
+
+        # Opening the file should raise an OSError however the file
+        # is opened (there are two distinct code paths, depending on
+        # whether ignore_missing_end is True or False).
+        #
+        # Explicit tests are added to make sure the file handle is not
+        # closed when passed in to fits.open. In this case the ResourceWarning
+        # was not raised, but a check is still included.
+        #
+        with catch_warnings(ResourceWarning) as ws:
+
+            # Make sure that files opened by the user are not closed
+            with open(filename, mode='rb') as f:
+                with pytest.raises(OSError):
+                    fits.open(f, ignore_missing_end=False)
+
+                assert not f.closed
+
+            with open(filename, mode='rb') as f:
+                with pytest.raises(OSError):
+                    fits.open(f, ignore_missing_end=True)
+
+                assert not f.closed
+
+            with pytest.raises(OSError):
+                fits.open(filename, ignore_missing_end=False)
+
+            with pytest.raises(OSError):
+                fits.open(filename, ignore_missing_end=True)
+
+        assert len(ws) == 0
