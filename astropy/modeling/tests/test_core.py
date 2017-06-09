@@ -11,9 +11,7 @@ from ..core import Model, custom_model
 from ..parameters import Parameter
 from .. import models
 
-from ...tests.helper import catch_warnings
 from ...utils.compat.funcsigs import signature
-from ...utils.exceptions import AstropyDeprecationWarning
 
 
 class NonFittableModel(Model):
@@ -197,11 +195,7 @@ def test_custom_inverse():
     assert_allclose(x, p(p.inverse(x)))
     assert_allclose(x, p.inverse(p(x)))
 
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        p.inverse = None
-
-    # TODO: This can be removed after Astropy v1.1 or so
-    assert len(w) == 1
+    p.inverse = None
 
     with pytest.raises(NotImplementedError):
         p.inverse

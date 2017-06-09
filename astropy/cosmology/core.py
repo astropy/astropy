@@ -15,7 +15,7 @@ from . import scalar_inv_efuncs
 
 from .. import constants as const
 from .. import units as u
-from ..utils import isiterable, deprecated
+from ..utils import isiterable
 from ..utils.compat.funcsigs import signature
 from ..utils.state import ScienceState
 
@@ -932,32 +932,6 @@ class FLRW(Cosmology):
         args = self._inv_efunc_scalar_args
         return self._inv_efunc_scalar(z, *args) / (1.0 + z)
 
-    @deprecated(since=1.1, alternative='lookback_time_integrand')
-    def _tfunc(self, z):
-        """ Integrand of the lookback time.
-
-        Parameters
-        ----------
-        z : float or array-like
-          Input redshift.
-
-        Returns
-        -------
-        I : float or array
-          The integrand for the lookback time
-
-        References
-        ----------
-        Eqn 30 from Hogg 1999.
-        """
-
-        if isiterable(z):
-            zp1 = 1.0 + np.asarray(z)
-        else:
-            zp1 = 1. + z
-
-        return self.inv_efunc(z) / zp1
-
     def lookback_time_integrand(self, z):
         """ Integrand of the lookback time.
 
@@ -1003,31 +977,6 @@ class FLRW(Cosmology):
 
         args = self._inv_efunc_scalar_args
         return (1.0 + z) ** 2 * self._inv_efunc_scalar(z, *args)
-
-    @deprecated(since=1.1, alternative='abs_distance_integrand')
-    def _xfunc(self, z):
-        """ Integrand of the absorption distance.
-
-        Parameters
-        ----------
-        z : float or array
-          Input redshift.
-
-        Returns
-        -------
-        X : float or array
-          The integrand for the absorption distance
-
-        References
-        ----------
-        See Hogg 1999 section 11.
-        """
-
-        if isiterable(z):
-            zp1 = 1.0 + np.asarray(z)
-        else:
-            zp1 = 1. + z
-        return zp1 ** 2 * self.inv_efunc(z)
 
     def abs_distance_integrand(self, z):
         """ Integrand of the absorption distance.

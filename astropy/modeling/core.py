@@ -23,7 +23,6 @@ import functools
 import operator
 import sys
 import types
-import warnings
 
 from collections import defaultdict, OrderedDict
 from itertools import chain, islice
@@ -34,7 +33,7 @@ from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg, zip
 from ..table import Table
-from ..units import Quantity, UnitBase, UnitsError, dimensionless_unscaled
+from ..units import Quantity, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray
 from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
@@ -42,7 +41,6 @@ from ..utils import (sharedmethod, find_current_module,
 from ..utils.codegen import make_function_with_signature
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
-from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
@@ -992,21 +990,8 @@ class Model(object):
         if not isinstance(value, (Model, type(None))):
             raise ValueError(
                 "The ``inverse`` attribute may be assigned a `Model` "
-                "instance or `None` (where `None` restores the default "
-                "inverse for this model if one is defined.")
-
-        if value is None:
-            warnings.warn(
-                "Currently setting `model.inverse = None` resets the inverse "
-                "to the default inverse (if one exists).  However, starting "
-                "in Astropy 1.2, setting `model.inverse = None` explicitly "
-                "forces a model to have no inverse (such that accessing "
-                "`model.inverse` raises a NotImplementedError) even if that "
-                "model's class has a default inverse.\n\n"
-                "Instead, call `del model.inverse` to reset the inverse to "
-                "its default (if a default exists for that model's class--"
-                "otherwise the model is reset to having no inverse.",
-                AstropyDeprecationWarning)
+                "instance or `None` (where `None` explicitly forces the "
+                "model to have no inverse.")
 
         self._user_inverse = value
 
