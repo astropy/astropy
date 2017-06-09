@@ -22,7 +22,7 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types, PY2
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 from ....extern.six.moves import range
 
@@ -147,13 +147,6 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         lazy_load_hdus = conf.lazy_load_hdus
     else:
         lazy_load_hdus = bool(lazy_load_hdus)
-
-    if 'uint16' in kwargs and 'uint' not in kwargs:
-        kwargs['uint'] = kwargs['uint16']
-        del kwargs['uint16']
-        warnings.warn(
-            'The uint16 keyword argument is deprecated since v1.1.0.  Use '
-            'the uint argument instead.', AstropyDeprecationWarning)
 
     if 'uint' not in kwargs:
         kwargs['uint'] = conf.enable_uint
