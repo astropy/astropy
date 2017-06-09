@@ -98,7 +98,7 @@ dimensionless sphere::
         ( 1.03037683,  0.60126422)>
 
 Converting back to cartesian, the absolute scaling information has been
-removed, and the points are still located on a unit sphere:
+removed, and the points are still located on a unit sphere::
 
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit.represent_as(CartesianRepresentation) # doctest: +FLOAT_CMP
