@@ -589,7 +589,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A copy of this representation, but with the ``differentials`` as
             its differentials.
         """
+        # Implemented this way for (1) performance (skips going through the
+        # initializer), and (2) will preserve any additional attributes a user
+        # may have set
+
         new_differentials = self._validate_differentials(differentials)
+
         # save the differentials, then strip them so that the copy doesn't do
         # an unneeded copy, then re-attach them to the right objects
         olddiffs = self._differentials
@@ -597,6 +602,32 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             self._differentials = None
             newrepr = deepcopy(self)
             newrepr._differentials = new_differentials
+            return newrepr
+        finally:
+            self._differentials = olddiffs
+
+    def without_differentials(self):
+        """
+        Create a new representation with the same positions as this
+        representation, but without any differentials.
+
+        Returns
+        -------
+        newrepr
+            A copy of this representation, but without the ``differentials``.
+        """
+
+        # Again, implemented this way for (1) performance (skips going through
+        # the initializer), and (2) will preserve any additional attributes a
+        # user may have set
+
+        # save the differentials, then strip them so that the copy doesn't do
+        # an unneeded copy, then re-attach them to the right objects
+        olddiffs = self._differentials
+        try:
+            self._differentials = None
+            newrepr = deepcopy(self)
+            newrepr._differentials = ()
             return newrepr
         finally:
             self._differentials = olddiffs
