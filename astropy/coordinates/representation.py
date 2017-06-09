@@ -175,6 +175,17 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
 
+        # store as a private name so users know this is not settable
+        self._differentials = self._validate_differentials(differentials)
+
+    def _validate_differentials(self, differentials):
+        """
+        Validate that the provided differentials are appropriate for this
+        representation and recast/reshape as necessary and then return.
+
+        Note that this does *not* set the differentials on
+        ``self._differentials``, but rather leaves that for the caller.
+        """
         # Now handle the actual validation of any specified differential classes
         if isinstance(differentials, BaseDifferential):
             differentials = (differentials, )
@@ -195,9 +206,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise ValueError("Shape of differentials must be the same "
                                  "as the shape of the representation ({0} vs "
                                  "{1})".format(diff.shape, self.shape))
-
-        # store as a private name so users know this is not settable
-        self._differentials = tuple(differentials)
+        return tuple(differentials)
 
     @classmethod
     def get_name(cls):
@@ -570,14 +579,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A copy of this representation, but with the ``differentials`` as
             its differentials.
         """
+        new_differentials = self._validate_differentials(differentials)
         # save the differentials, then strip them so that the copy doesn't do
         # an unneeded copy, then re-attach them to the right objects
         olddiffs = self._differentials
         try:
-
             self._differentials = None
             newrepr = deepcopy(self)
-            newrepr._differentials = differentials
+            newrepr._differentials = new_differentials
             return newrepr
         finally:
             self._differentials = olddiffs

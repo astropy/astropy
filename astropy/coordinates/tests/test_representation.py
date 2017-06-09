@@ -1270,3 +1270,8 @@ class TestCartesianRepresentationWithDifferential(object):
         cr4 = cr3.with_differentials((diff2,))
         assert cr4.differentials[0] != cr3.differentials[0]
         assert cr4.differentials[0] == diff2
+
+        # also ensure a *scalar* differential will works
+        cr5 = cr.with_differentials(diff)
+        assert len(cr5.differentials) == 1
+        assert cr5.differentials[0] == diff
