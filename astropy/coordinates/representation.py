@@ -271,10 +271,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 else:
                     reshaped.append(val)
 
-        # also perform shape-setting on any associated differentials
-        for diff in self.differentials:
-            diff.shape = shape
-
     # Required to support multiplication and division, and defined by the base
     # representation and differential classes.
     @abc.abstractmethod
@@ -682,6 +678,16 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return NotImplemented
         else:
             return self.from_cartesian(result)
+
+    # We need to override this setter to support differentials
+    @BaseRepresentationOrDifferential.shape.setter
+    def shape(self, shape):
+        # See: https://stackoverflow.com/questions/3336767/ for an example
+        BaseRepresentationOrDifferential.shape.fset(self, shape)
+
+        # also perform shape-setting on any associated differentials
+        for diff in self.differentials:
+            diff.shape = shape
 
     def norm(self):
         """Vector norm.
