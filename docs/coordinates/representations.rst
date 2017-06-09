@@ -327,6 +327,7 @@ to encapsulate information into a single object. ``Differential``'s can be
 passed in to the initializer of any of the built-in ``Representation`` classes.
 For example, to store a single velocity differential with a position::
 
+  >>> from astropy.coordinates import CartesianDifferential
   >>> dif = CartesianDifferential(d_x=1 * u.km/u.s,
   ...                             d_y=2 * u.km/u.s,
   ...                             d_z=3 * u.km/u.s)
@@ -354,40 +355,67 @@ but the differential is Cartesian). ``Differential``s can also be attached to a
 This also works for array data as well, as long as the shape of the
 ``Differential`` data is the same as that of the ``Representation``::
 
-  >>> xyz = np.arange(6).reshape(3, 2) * u.au
-  >>> d_xyz = np.arange(6).reshape(3, 2) * u.km/u.s
+  >>> xyz = np.arange(12).reshape(3, 4) * u.au
+  >>> d_xyz = np.arange(12).reshape(3, 4) * u.km/u.s
   >>> rep = CartesianRepresentation(*xyz)
   >>> dif = CartesianDifferential(*d_xyz)
   >>> rep = rep.with_differentials(dif)
   >>> rep
   <CartesianRepresentation (x, y, z) in AU
-      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]
+      [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]
    differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]>,)>
+      [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]>,)>
 
 As with a ``Representation`` instance without a differential, to convert the
 positional data to a new representation, use the ``.represent_as()``::
 
   >>> rep.represent_as(SphericalRepresentation) # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
-      [( 1.57079633,  1.10714872,  4.47213595),
-       ( 1.24904577,  1.00685369,  5.91607978)]
+      [( 1.57079633,  1.10714872,   8.94427191),
+       ( 1.37340077,  1.05532979,  10.34408043),
+       ( 1.24904577,  1.00685369,  11.83215957),
+       ( 1.16590454,  0.96522779,  13.37908816)]
    differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]>,)>
+      [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]>,)>
 
 However, by passing just the desired representation class, only the
 ``Representation`` has changed. To change both the ``Representation`` and any
-``Differential``s, you must specify target classes for each ``Differential``::
+``Differential``s, you must specify target classes for each ``Differential``
+as well::
 
   >>> rep.represent_as([SphericalRepresentation, SphericalDifferential]) # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
-      [( 1.57079633,  1.10714872,  4.47213595),
-       ( 1.24904577,  1.00685369,  5.91607978)]
+      [( 1.57079633,  1.10714872,   8.94427191),
+       ( 1.37340077,  1.05532979,  10.34408043),
+       ( 1.24904577,  1.00685369,  11.83215957),
+       ( 1.16590454,  0.96522779,  13.37908816)]
    differentials=(<SphericalDifferential (d_lon, d_lat, d_distance) in (km rad / (AU s), km rad / (AU s), km / s)
-      [(  6.12323400e-17,   1.11022302e-16,  4.47213595),
-       (  0.00000000e+00,   0.00000000e+00,  5.91607978)]>,)>
+      [(  6.12323400e-17,   1.11022302e-16,   8.94427191),
+       ( -5.55111512e-17,   0.00000000e+00,  10.34408043),
+       (  0.00000000e+00,   0.00000000e+00,  11.83215957),
+       (  5.55111512e-17,   0.00000000e+00,  13.37908816)]>,)>
 
-TODO: shape-changing operations (highlight getitem, reshape)
+Shape-changing operations (e.g., reshapes) are propagated to all
+``Differential``s because they are guaranteed to have the same shape as their
+host ``Representation`` object::
+
+  >>> rep.shape
+  (4,)
+  >>> rep.differentials[0].shape
+  (4,)
+  >>> new_rep = rep.reshape(2, 2)
+  >>> new_rep.shape
+  (2,2)
+  >>> new_rep.differentials[0].shape
+  (2,2)
+
+This also works for slicing::
+
+  >>> new_rep = rep[:2]
+  >>> new_rep.shape
+  (2,)
+  >>> new_rep.differentials[0].shape
+  (2,)
 
 TODO: combine, scale operations - drops differentials
 
