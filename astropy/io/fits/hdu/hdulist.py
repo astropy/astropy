@@ -271,15 +271,6 @@ class HDUList(list, _Verify):
         Get an HDU from the `HDUList`, indexed by number or name.
         """
 
-        def _better_index_error(exc):
-            # Raise a more helpful IndexError if the file was not fully read.
-            if self._read_all:
-                raise exc
-            else:
-                raise IndexError('HDU not found, possibly because the index '
-                                 'is out of range, or because the file was '
-                                 'closed before all HDUs were read')
-
         # If the key is a slice we need to make sure the necessary HDUs
         # have been loaded before passing the slice on to super.
         if isinstance(key, slice):
@@ -311,7 +302,13 @@ class HDUList(list, _Verify):
             try:
                 hdus = super(HDUList, self).__getitem__(key)
             except IndexError as e:
-                _better_index_error(e)
+                # Raise a more helpful IndexError if the file was not fully read.
+                if self._read_all:
+                    raise e
+                else:
+                    raise IndexError('HDU not found, possibly because the index '
+                                    'is out of range, or because the file was '
+                                    'closed before all HDUs were read')
             else:
                 return HDUList(hdus)
 
@@ -322,7 +319,13 @@ class HDUList(list, _Verify):
             return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
                                             self._positive_index_of(key))
         except IndexError as e:
-            _better_index_error(e)
+            # Raise a more helpful IndexError if the file was not fully read.
+            if self._read_all:
+                raise e
+            else:
+                raise IndexError('HDU not found, possibly because the index '
+                                 'is out of range, or because the file was '
+                                 'closed before all HDUs were read')
 
     def __contains__(self, item):
         """
