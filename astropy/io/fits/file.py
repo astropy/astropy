@@ -95,6 +95,7 @@ class _File(object):
             self.readonly = False
             self.writeonly = False
             self.simulateonly = True
+            self.close_on_error = False
             return
         else:
             self.simulateonly = False
@@ -131,6 +132,10 @@ class _File(object):
 
         # Underlying fileobj is a file-like object, but an actual file object
         self.file_like = False
+
+        # Should the object be closed on error: see
+        # https://github.com/astropy/astropy/issues/6168
+        self.close_on_error = False
 
         # More defaults to be adjusted below as necessary
         self.compression = None
@@ -358,6 +363,7 @@ class _File(object):
         self._mmap = None
 
         self.closed = True
+        self.close_on_error = False
 
     def _maybe_close_mmap(self, refcount_delta=0):
         """
@@ -497,6 +503,7 @@ class _File(object):
             self._file = bz2.BZ2File(self.name, bzip2_mode)
         else:
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
+            self.close_on_error = True
 
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
