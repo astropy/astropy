@@ -25,7 +25,7 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       _parse_tformat, _scalar_to_format, _convert_format,
                       _cmp_recformats, _get_index)
 from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
-from ..header import Header, _pad_length
+from ..header import Header, Card, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....extern import six
@@ -251,6 +251,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
 
+        # Column specific keywords are stored separately
+        self._header_column = Header()
+
         if header is not None and not isinstance(header, Header):
             raise ValueError('header must be a Header object.')
         self._uint = uint
@@ -276,6 +279,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 ('TFIELDS', 0, 'number of table fields')]
 
             if header is not None:
+                for key in header.keys():
+                    if re.search(r'\d+$', key):
+                        self._header_column.append(Card(keyword=key, value=header[key]))
+                        header.remove(key)
+
                 # Make a "copy" (not just a view) of the input header, since it
                 # may get modified.  the data is still a "view" (for now)
                 hcopy = header.copy(strip=True)
@@ -669,6 +677,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 if val is not None:
                     keyword = keyword + str(idx + 1)
                     self._header[keyword] = val
+            for key in self._header_column.keys():
+                if key.endswith(str(idx + 1)):
+                    self._header[key] = self._header_column[key]
+                    self._header_column.remove(key)
 
 
 class TableHDU(_TableBaseHDU):

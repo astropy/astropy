@@ -77,7 +77,6 @@ from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
 from ...time import Time
-from ...table import QTable, Column
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -452,6 +451,8 @@ def table_to_hdu(table):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
+    from .time import replace_time_table
+    from ...table import QTable, Column
 
     # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
@@ -469,12 +470,7 @@ def table_to_hdu(table):
     time_cols = table.columns.isinstance(Time)
     if time_cols:
         newtable = QTable(table)
-        #table = replace_time_table(newtable)
-        for col in time_cols:
-            newtable[col.info.name] = Column(np.empty(col.shape + (2,)))
-            newtable[col.info.name][...,0] = col.jd1
-            newtable[col.info.name][...,1] = col.jd2
-            table = newtable
+        table, hdr = replace_time_table(newtable)
 
     # Create a new HDU object
     if table.masked:
@@ -484,7 +480,7 @@ def table_to_hdu(table):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -501,7 +497,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
 
     # Set units for output HDU
     for col in table_hdu.columns:
