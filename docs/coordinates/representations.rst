@@ -314,6 +314,83 @@ provides the ``base`` (representation)::
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       ( 0.0048481,  1.04719246,  1.00000294)>
 
+Attaching ``Differential``'s to ``Representation``'s
+====================================================
+
+.. warning::
+
+    The API for this functionality may change in future versions and should be
+    viewed as experimental!
+
+``Differential`` objects can be attached to ``Representation`` objects as a way
+to encapsulate information into a single object. ``Differential``'s can be
+passed in to the initializer of any of the built-in ``Representation`` classes.
+For example, to store a single velocity differential with a position::
+
+  >>> dif = CartesianDifferential(d_x=1 * u.km/u.s,
+  ...                             d_y=2 * u.km/u.s,
+  ...                             d_z=3 * u.km/u.s)
+  >>> SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
+  ...                         distance=1.*u.kpc,
+  ...                         differentials=dif)
+  <SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)
+      ( 0.,  0.,  1.)
+   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
+      ( 1.,  2.,  3.)>,)>
+
+Implicit in the above is that the representation of a differential does not have
+to match the representation (i.e. in this case, the representation is spherical
+but the differential is Cartesian). ``Differential``s can also be attached to a
+``Representation`` after creation::
+
+  >>> rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+  >>> rep = rep.attach_differential(dif)
+  >>> rep
+  <CartesianRepresentation (x, y, z) in kpc
+      ( 1.,  2.,  3.)
+   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
+      ( 1.,  2.,  3.)>,)>
+
+This also works for array data as well, as long as the shape of the
+``Differential`` data is the same as that of the ``Representation``::
+
+  >>> xyz = np.arange(6).reshape(3, 2) * u.au
+  >>> d_xyz = np.arange(6).reshape(3, 2) * u.km/u.s
+  >>> rep = CartesianRepresentation(*xyz)
+  >>> dif = CartesianDifferential(*d_xyz)
+  >>> rep = rep.attach_differential(dif)
+  >>> rep
+  <CartesianRepresentation (x, y, z) in AU
+      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]
+   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
+      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]>,)>
+
+As with a ``Representation`` instance without a differential, to convert the
+positional data to a new representation, use the ``.represent_as()``::
+
+  >>> rep.represent_as(SphericalRepresentation) # doctest: +FLOAT_CMP
+  <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
+      [( 1.57079633,  1.10714872,  4.47213595),
+       ( 1.24904577,  1.00685369,  5.91607978)]
+   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
+      [( 0.,  2.,  4.), ( 1.,  3.,  5.)]>,)>
+
+However, by passing just the desired representation class, only the
+``Representation`` has changed. To change both the ``Representation`` and any
+``Differential``s, you must specify target classes for each ``Differential``::
+
+  >>> rep.represent_as([SphericalRepresentation, SphericalDifferential]) # doctest: +FLOAT_CMP
+  <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
+      [( 1.57079633,  1.10714872,  4.47213595),
+       ( 1.24904577,  1.00685369,  5.91607978)]
+   differentials=(<SphericalDifferential (d_lon, d_lat, d_distance) in (km rad / (AU s), km rad / (AU s), km / s)
+      [(  6.12323400e-17,   1.11022302e-16,  4.47213595),
+       (  0.00000000e+00,   0.00000000e+00,  5.91607978)]>,)>
+
+TODO: shape-changing operations (highlight getitem, reshape)
+
+TODO: combine, scale operations - drops differentials
+
 .. _astropy-coordinates-create-repr:
 
 Creating your own representations
