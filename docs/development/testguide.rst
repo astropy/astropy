@@ -547,7 +547,7 @@ These take one argument, which is the function being tested::
         """Second test."""
         # do test
 
-    def teardown_method(function):
+    def teardown_function(function):
         pass
 
 Parametrizing tests
