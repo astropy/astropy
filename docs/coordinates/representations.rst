@@ -341,7 +341,7 @@ For example, to store a single velocity differential with a position::
 
 Implicit in the above is that the representation of a differential does not have
 to match the representation (i.e. in this case, the representation is spherical
-but the differential is Cartesian). ``Differential``s can also be attached to a
+but the differential is Cartesian). ``Differential`` s can also be attached to a
 ``Representation`` after creation::
 
   >>> rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
@@ -380,7 +380,7 @@ positional data to a new representation, use the ``.represent_as()``::
 
 However, by passing just the desired representation class, only the
 ``Representation`` has changed. To change both the ``Representation`` and any
-``Differential``s, you must specify target classes for each ``Differential``
+``Differential`` s, you must specify target classes for each ``Differential``
 as well::
 
   >>> rep.represent_as([SphericalRepresentation, SphericalDifferential]) # doctest: +FLOAT_CMP
@@ -396,7 +396,7 @@ as well::
        (  5.55111512e-17,   0.00000000e+00,  13.37908816)]>,)>
 
 Shape-changing operations (e.g., reshapes) are propagated to all
-``Differential``s because they are guaranteed to have the same shape as their
+``Differential`` s because they are guaranteed to have the same shape as their
 host ``Representation`` object::
 
   >>> rep.shape
@@ -405,9 +405,9 @@ host ``Representation`` object::
   (4,)
   >>> new_rep = rep.reshape(2, 2)
   >>> new_rep.shape
-  (2,2)
+  (2, 2)
   >>> new_rep.differentials[0].shape
-  (2,2)
+  (2, 2)
 
 This also works for slicing::
 
@@ -427,9 +427,9 @@ raise an exception::
   ERROR: TypeError: Operation 'add' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
   ...
 
-If you have a ``Representation`` with attached ``Differential``s, you can easily
-retrieve a copy of the ``Representation`` without the ``Differential``s and
-use this ``Differential``-free object in arithmetic operations::
+If you have a ``Representation`` with attached ``Differential`` s, you can
+easily retrieve a copy of the ``Representation`` without the ``Differential`` s
+and use this ``Differential``-free object in arithmetic operations::
 
   >>> rep.without_differentials() * 15.
   <CartesianRepresentation (x, y, z) in AU
