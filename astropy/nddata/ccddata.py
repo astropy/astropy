@@ -70,8 +70,8 @@ class CCDData(NDDataArray):
 
     Parameters
     -----------
-    data : `~ccdproc.CCDData`-like or `numpy.ndarray`-like
-        The actual data contained in this `~ccdproc.CCDData` object.
+    data : `~astropy.nddata.CCDData`-like or `numpy.ndarray`-like
+        The actual data contained in this `~astropy.nddata.CCDData` object.
         Note that the data will always be saved by *reference*, so you should
         make a copy of the ``data`` before passing it in if that's the desired
         behavior.
@@ -136,12 +136,12 @@ class CCDData(NDDataArray):
 
     Notes
     -----
-    `~ccdproc.CCDData` objects can be easily converted to a regular
+    `~astropy.nddata.CCDData` objects can be easily converted to a regular
      Numpy array using `numpy.asarray`.
 
     For example::
 
-        >>> from ccdproc import CCDData
+        >>> from astropy.nddata import CCDData
         >>> import numpy as np
         >>> x = CCDData([1,2,3], unit='adu')
         >>> np.asarray(x)
@@ -150,7 +150,7 @@ class CCDData(NDDataArray):
     This is useful, for example, when plotting a 2D image using
     matplotlib.
 
-        >>> from ccdproc import CCDData
+        >>> from astropy.nddata import CCDData
         >>> from matplotlib import pyplot as plt   # doctest: +SKIP
         >>> x = CCDData([[1,2,3], [4,5,6]], unit='adu')
         >>> plt.imshow(x)   # doctest: +SKIP
@@ -392,7 +392,7 @@ class CCDData(NDDataArray):
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
             self.meta['HIERARCH {0}'.format(key.upper())] = (
-                short_name, "Shortened name for ccdproc command")
+                short_name, "Shortened name for {}".format(key))
             self.meta[short_name] = value
         else:
             self.meta[key] = value
@@ -445,8 +445,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     :mod:`astropy.io.fits` are disabled.
     """
     unsupport_open_keywords = {
-        'do_not_scale_image_data': ('Image data must be scaled to perform '
-                                    'ccdproc operations.'),
+        'do_not_scale_image_data': 'Image data must be scaled.',
         'scale_back': 'Scale information is not preserved.'
     }
     for key, msg in unsupport_open_keywords.items():
