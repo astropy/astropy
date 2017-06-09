@@ -1001,22 +1001,20 @@ def test_minimal_subclass():
                                     ('lat', Latitude),
                                     ('logd', u.Dex)])
 
-        def to_cartesian(self):
+        def _to_cartesian_helper(self):
             d = self.logd.physical
             x = d * np.cos(self.lat) * np.cos(self.lon)
             y = d * np.cos(self.lat) * np.sin(self.lon)
             z = d * np.sin(self.lat)
-            return CartesianRepresentation(x=x, y=y, z=z, copy=False,
-                                           differentials=self.differentials)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
         @classmethod
-        def from_cartesian(cls, cart):
+        def _from_cartesian_helper(cls, cart):
             s = np.hypot(cart.x, cart.y)
             r = np.hypot(s, cart.z)
             lon = np.arctan2(cart.y, cart.x)
             lat = np.arctan2(cart.z, s)
-            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False,
-                       differentials=cart.differentials)
+            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
 
     ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))

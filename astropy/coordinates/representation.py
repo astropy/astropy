@@ -188,11 +188,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     # The two methods that any subclass has to define.
     # Should be replaced by abstractclassmethod once we support only PY3
     @abc.abstractmethod
-    def from_cartesian(self):
+    def _from_cartesian_helper(self):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         raise NotImplementedError()
 
     @property
@@ -591,7 +591,18 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         finally:
             self._differentials = olddiffs
 
+    # We override these methods to support passing through differentials
+    # attached to a given representation
+    def to_cartesian(self):
+        repr = self._to_cartesian_helper()
+        repr._differentials = self._differentials
+        return repr
 
+    @classmethod
+    def from_cartesian(cls, other):
+        repr = cls._from_cartesian_helper(other)
+        repr._differentials = other._differentials
+        return repr
 
     @classmethod
     def from_representation(cls, representation):
@@ -864,10 +875,10 @@ class CartesianRepresentation(BaseRepresentation):
     xyz = property(get_xyz)
 
     @classmethod
-    def from_cartesian(cls, other):
+    def _from_cartesian_helper(cls, other):
         return other
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         return self
 
     def transform(self, matrix):
@@ -1078,7 +1089,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
@@ -1087,11 +1098,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
         y = np.cos(self.lat) * np.sin(self.lon)
         z = np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
-                                       differentials=self.differentials)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
-    def from_cartesian(cls, cart):
+    def _from_cartesian_helper(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
@@ -1102,8 +1112,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat, copy=False,
-                   differentials=cart.differentials)
+        return cls(lon=lon, lat=lat, copy=False)
 
     def represent_as(self, other_class):
         # Take a short cut if the other class is a spherical representation
@@ -1237,18 +1246,17 @@ class RadialRepresentation(BaseRepresentation):
         l = broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('distance', l),))
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         """Cannot convert radial representation to cartesian."""
         raise NotImplementedError('cannot convert {0} instance to cartesian.'
                                   .format(self.__class__))
 
     @classmethod
-    def from_cartesian(cls, cart):
+    def _from_cartesian_helper(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to radial coordinate.
         """
-        return cls(distance=cart.norm(), copy=False,
-                   differentials=cart.differentials)
+        return cls(distance=cart.norm(), copy=False)
 
     def _scale_operation(self, op, *args):
         return op(self.distance, *args)
@@ -1354,7 +1362,7 @@ class SphericalRepresentation(BaseRepresentation):
             return super(SphericalRepresentation,
                          self).represent_as(other_class)
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
@@ -1370,11 +1378,10 @@ class SphericalRepresentation(BaseRepresentation):
         y = d * np.cos(self.lat) * np.sin(self.lon)
         z = d * np.sin(self.lat)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
-                                       differentials=self.differentials)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
-    def from_cartesian(cls, cart):
+    def _from_cartesian_helper(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
@@ -1386,8 +1393,7 @@ class SphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return cls(lon=lon, lat=lat, distance=r, copy=False,
-                   differentials=cart.differentials)
+        return cls(lon=lon, lat=lat, distance=r, copy=False)
 
     def norm(self):
         """Vector norm.
@@ -1503,7 +1509,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
@@ -1519,11 +1525,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         y = d * np.sin(self.theta) * np.sin(self.phi)
         z = d * np.cos(self.theta)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
-                                       differentials=self.differentials)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
     @classmethod
-    def from_cartesian(cls, cart):
+    def _from_cartesian_helper(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
@@ -1535,8 +1540,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return cls(phi=phi, theta=theta, r=r, copy=False,
-                   differentials=cart.differentials)
+        return cls(phi=phi, theta=theta, r=r, copy=False)
 
     def norm(self):
         """Vector norm.
@@ -1624,7 +1628,7 @@ class CylindricalRepresentation(BaseRepresentation):
                             ('z', l)))
 
     @classmethod
-    def from_cartesian(cls, cart):
+    def _from_cartesian_helper(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to cylindrical polar
         coordinates.
@@ -1634,10 +1638,9 @@ class CylindricalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
-        return cls(rho=rho, phi=phi, z=z, copy=False,
-                   differentials=cart.differentials)
+        return cls(rho=rho, phi=phi, z=z, copy=False)
 
-    def to_cartesian(self):
+    def _to_cartesian_helper(self):
         """
         Converts cylindrical polar coordinates to 3D rectangular cartesian
         coordinates.
@@ -1646,8 +1649,7 @@ class CylindricalRepresentation(BaseRepresentation):
         y = self.rho * np.sin(self.phi)
         z = self.z
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False,
-                                       differentials=self.differentials)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
 class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
@@ -1749,6 +1751,13 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         return base.unit_vectors(), base.scale_factors()
 
     def to_cartesian(self, base):
+        return self._to_cartesian_helper(base)
+
+    @classmethod
+    def from_cartesian(cls, other, base):
+        return cls._from_cartesian_helper(other, base)
+
+    def _to_cartesian_helper(self, base):
         """Convert the differential to 3D rectangular cartesian coordinates.
 
         Parameters
@@ -1763,7 +1772,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                            for d_c, c in zip(self.components, base.components)))
 
     @classmethod
-    def from_cartesian(cls, other, base):
+    def _from_cartesian_helper(cls, other, base):
         """Interpret 3D rectangular cartesian coordinates as differentials.
 
         Parameters
@@ -1941,13 +1950,20 @@ class CartesianDifferential(BaseDifferential):
                 self._d_x.unit.is_equivalent(self._d_z.unit)):
             raise u.UnitsError('d_x, d_y and d_z should have equivalent units.')
 
-    def to_cartesian(self, base=None):
+    def _to_cartesian_helper(self, base=None):
         return CartesianRepresentation(*[getattr(self, c) for c
                                          in self.components])
 
     @classmethod
-    def from_cartesian(cls, other, base=None):
+    def _from_cartesian_helper(cls, other, base=None):
         return cls(*[getattr(other, c) for c in other.components])
+
+    def to_cartesian(self, base=None):
+        return self._to_cartesian_helper(base)
+
+    @classmethod
+    def from_cartesian(cls, other, base=None):
+        return cls._from_cartesian_helper(other, base)
 
     def get_d_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
@@ -2358,12 +2374,12 @@ class RadialDifferential(BaseDifferential):
     """
     base_representation = RadialRepresentation
 
-    def to_cartesian(self, base):
+    def _to_cartesian_helper(self, base):
         return self.d_distance * base.represent_as(
             UnitSphericalRepresentation).to_cartesian()
 
     @classmethod
-    def from_cartesian(cls, other, base):
+    def _from_cartesian_helper(cls, other, base):
         return cls(other.dot(base.represent_as(UnitSphericalRepresentation)),
                    copy=False)
 
