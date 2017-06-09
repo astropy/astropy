@@ -392,11 +392,14 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         prefixstr = '    '
         arrstr = _array2string(self._values, prefix=prefixstr)
 
+        diffstr = ''
+        if hasattr(self, 'differentials') and self.differentials:
+            diffstr = '\n differentials={0}'.format(repr(self.differentials))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
-        return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
+        return '<{0} ({1}) {2:s}\n{3}{4}{5}>'.format(
             self.__class__.__name__, ', '.join(self.components),
-            unitstr, prefixstr, arrstr)
+            unitstr, prefixstr, arrstr, diffstr)
 
 
 def _make_getter(component):
