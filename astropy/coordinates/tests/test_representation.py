@@ -1123,6 +1123,11 @@ class TestCartesianRepresentationWithDifferential(object):
             CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
                                     differentials='garmonbozia')
 
+        # make sure differentials can't accept differentials
+        with pytest.raises(TypeError):
+            CartesianDifferential(d_x=1 * u.km/u.s, d_y=2 * u.km/u.s,
+                                  d_z=3 * u.km/u.s, differentials=diff)
+
     def test_init_array_broadcasting(self):
 
         arr1 = np.arange(8).reshape(4,2) * u.km/u.s
