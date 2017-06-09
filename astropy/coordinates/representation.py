@@ -11,6 +11,7 @@ import abc
 import functools
 import operator
 from collections import OrderedDict
+from copy import deepcopy
 
 import numpy as np
 import astropy.units as u
@@ -552,6 +553,36 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 new_rep = other_class.from_cartesian(self.to_cartesian())
 
             return new_rep
+
+    def with_differentials(self, differentials):
+        """
+        Create a new representation with the same positions as this
+        representation, but with new differentials.
+
+        Parameters
+        ----------
+        differentials : Sequence of `~astropy.coordinates.BaseDifferential`
+            The differentials for the new representation to have.
+
+        Returns
+        -------
+        newrepr
+            A copy of this representation, but with the ``differentials`` as
+            its differentials.
+        """
+        # save the differentials, then strip them so that the copy doesn't do
+        # an unneeded copy, then re-attach them to the right objects
+        olddiffs = self._differentials
+        try:
+
+            self._differentials = None
+            newrepr = deepcopy(self)
+            newrepr._differentials = differentials
+            return newrepr
+        finally:
+            self._differentials = olddiffs
+
+
 
     @classmethod
     def from_representation(cls, representation):

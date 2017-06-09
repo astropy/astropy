@@ -1249,3 +1249,24 @@ class TestCartesianRepresentationWithDifferential(object):
 
         # make sure the differentials were dropped
         assert s2.differentials == ()
+
+    def test_with_differentials(self):
+        # make sure with_differential correctly creates a new copy with the same
+        # differential
+        cr = CartesianRepresentation([1, 2, 3]*u.kpc)
+        diff = CartesianDifferential([.1, .2, .3]*u.km/u.s)
+        cr2 = cr.with_differentials((diff,))
+        assert cr.differentials != cr2.differentials
+        assert cr2.differentials[0] is diff
+
+        # make sure its a copy and not a view
+        assert cr.x == cr2.x
+        cr2.x.ravel()[:] = 10*u.kpc
+        assert cr.x != cr2.x
+
+        # make sure it works even if a differential is present already
+        diff2 = CartesianDifferential([.1, .2, .3]*u.m/u.s)
+        cr3 = CartesianRepresentation([1, 2, 3]*u.kpc, differentials=diff)
+        cr4 = cr3.with_differentials((diff2,))
+        assert cr4.differentials[0] != cr3.differentials[0]
+        assert cr4.differentials[0] == diff2
