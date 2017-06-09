@@ -8,6 +8,7 @@ from numpy.testing.utils import assert_allclose, assert_array_equal
 
 from ..fitting import LevMarLSQFitter
 from ..models import Shift, Rotation2D, Gaussian1D, Identity, Mapping
+from ...utils import NumpyRNGContext
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -80,8 +81,10 @@ def test_fittable_compound():
     x = np.arange(10)
     y_real = m(x)
     dy = 0.005
-    y_noisy = y_real + np.random.normal(0., dy, x.shape)
+    with NumpyRNGContext(1234567):
+        n = np.random.normal(0., dy, x.shape)
+    y_noisy = y_real + n
     pfit = LevMarLSQFitter()
     new_model = pfit(m, x, y_noisy)
     y_fit = new_model(x)
-    assert_allclose(y_fit, y_real, rtol=dy)
+    assert_allclose(y_fit, y_real, atol=dy)
