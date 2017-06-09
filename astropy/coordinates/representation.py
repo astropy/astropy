@@ -137,14 +137,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise TypeError('__init__() missing 1 required positional '
                                 'argument: {0!r}'.format(component))
 
-        if args:
-            differentials = args.pop(0)
-        else:
-            differentials = kwargs.pop('differentials', tuple())
-
-        if differentials is None:
-            differentials = tuple()
-
         copy = args.pop(0) if args else kwargs.pop('copy', True)
 
         if args:
@@ -174,39 +166,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         # on the class, the metaclass will define properties to access these.)
         for component, attr in zip(components, attrs):
             setattr(self, '_' + component, attr)
-
-        # store as a private name so users know this is not settable
-        self._differentials = self._validate_differentials(differentials)
-
-    def _validate_differentials(self, differentials):
-        """
-        Validate that the provided differentials are appropriate for this
-        representation and recast/reshape as necessary and then return.
-
-        Note that this does *not* set the differentials on
-        ``self._differentials``, but rather leaves that for the caller.
-        """
-        # Now handle the actual validation of any specified differential classes
-        if isinstance(differentials, BaseDifferential):
-            differentials = (differentials, )
-
-        for diff in differentials:
-            if not isinstance(diff, BaseDifferential):
-                raise TypeError("'differentials' must be an iterable of "
-                                "BaseDifferential subclass instances. Got '{0}'"
-                                .format(type(diff)))
-
-            # For now, we are very rigid: differentials must have the same shape
-            # as the representation. This makes it easier to handle __getitem__
-            # and any other shape-changing operations on representations that
-            # have associated differentials
-            if diff.shape != self.shape:
-                # TODO: message of IncompatibleShapeError is not customizable,
-                #       so use a valueerror instead?
-                raise ValueError("Shape of differentials must be the same "
-                                 "as the shape of the representation ({0} vs "
-                                 "{1})".format(diff.shape, self.shape))
-        return tuple(differentials)
 
     @classmethod
     def get_name(cls):
@@ -240,11 +199,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def components(self):
         """A tuple with the in-order names of the coordinate components."""
         return tuple(self.attr_classes)
-
-    @property
-    def differentials(self):
-        """A tuple of differential class instances"""
-        return self._differentials
 
     def _apply(self, method, *args, **kwargs):
         """Create a new representation or differential with ``method`` applied
@@ -491,6 +445,52 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     """
 
     recommended_units = {}  # subclasses can override
+
+    def __init__(self, *args, **kwargs):
+        # now handle any differentials passed in
+        differentials = kwargs.pop('differentials', tuple())
+        if differentials is None or not differentials:
+            differentials = tuple()
+
+        super(BaseRepresentation, self).__init__(*args, **kwargs)
+
+        # store as a private name so users know this is not settable
+        self._differentials = self._validate_differentials(differentials)
+
+    def _validate_differentials(self, differentials):
+        """
+        Validate that the provided differentials are appropriate for this
+        representation and recast/reshape as necessary and then return.
+
+        Note that this does *not* set the differentials on
+        ``self._differentials``, but rather leaves that for the caller.
+        """
+        # Now handle the actual validation of any specified differential classes
+        if isinstance(differentials, BaseDifferential):
+            differentials = (differentials, )
+
+        for diff in differentials:
+            if not isinstance(diff, BaseDifferential):
+                raise TypeError("'differentials' must be an iterable of "
+                                "BaseDifferential subclass instances. Got '{0}'"
+                                .format(type(diff)))
+
+            # For now, we are very rigid: differentials must have the same shape
+            # as the representation. This makes it easier to handle __getitem__
+            # and any other shape-changing operations on representations that
+            # have associated differentials
+            if diff.shape != self.shape:
+                # TODO: message of IncompatibleShapeError is not customizable,
+                #       so use a valueerror instead?
+                raise ValueError("Shape of differentials must be the same "
+                                 "as the shape of the representation ({0} vs "
+                                 "{1})".format(diff.shape, self.shape))
+        return tuple(differentials)
+
+    @property
+    def differentials(self):
+        """A tuple of differential class instances"""
+        return self._differentials
 
     # We do not make unit_vectors and scale_factors abstract methods, since
     # they are only necessary if one also defines an associated Differential.
