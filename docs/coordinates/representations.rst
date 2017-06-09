@@ -344,7 +344,7 @@ but the differential is Cartesian). ``Differential``s can also be attached to a
 ``Representation`` after creation::
 
   >>> rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
-  >>> rep = rep.attach_differential(dif)
+  >>> rep = rep.with_differentials(dif)
   >>> rep
   <CartesianRepresentation (x, y, z) in kpc
       ( 1.,  2.,  3.)
@@ -358,7 +358,7 @@ This also works for array data as well, as long as the shape of the
   >>> d_xyz = np.arange(6).reshape(3, 2) * u.km/u.s
   >>> rep = CartesianRepresentation(*xyz)
   >>> dif = CartesianDifferential(*d_xyz)
-  >>> rep = rep.attach_differential(dif)
+  >>> rep = rep.with_differentials(dif)
   >>> rep
   <CartesianRepresentation (x, y, z) in AU
       [( 0.,  2.,  4.), ( 1.,  3.,  5.)]
