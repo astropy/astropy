@@ -417,7 +417,28 @@ This also works for slicing::
   >>> new_rep.differentials[0].shape
   (2,)
 
-TODO: combine, scale operations - drops differentials
+All other operations that involve scaling or combining representation data will
+raise an exception::
+
+  >>> rep.norm() # doctest: +SKIP
+  ERROR: TypeError: Operation 'norm' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
+  ...
+  >>> rep + rep # doctest: +SKIP
+  ERROR: TypeError: Operation 'add' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
+  ...
+
+If you have a ``Representation`` with attached ``Differential``s, you can easily
+retrieve a copy of the ``Representation`` without the ``Differential``s and
+use this ``Differential``-free object in arithmetic operations::
+
+  >>> rep.without_differentials() * 15.
+  <CartesianRepresentation (x, y, z) in AU
+      [(  0.,   60.,  120.), ( 15.,   75.,  135.), ( 30.,   90.,  150.),
+       ( 45.,  105.,  165.)]>
+  >>> rep.without_differentials() + rep.without_differentials()
+  <CartesianRepresentation (x, y, z) in AU
+      [( 0.,   8.,  16.), ( 2.,  10.,  18.), ( 4.,  12.,  20.),
+       ( 6.,  14.,  22.)]>
 
 .. _astropy-coordinates-create-repr:
 
