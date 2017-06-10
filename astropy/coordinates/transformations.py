@@ -784,16 +784,30 @@ class AffineTransform(CoordinateTransform):
         super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
                                               register_graph=register_graph)
 
-    def _apply_transform(self, fromcoord, matrix, vector):
+    def _apply_transform(self, fromcoord, matrix, vectors):
         from .representation import (CartesianRepresentation,
                                      UnitSphericalRepresentation)
 
         rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.transform(matrix)
+        newrep = rep.without_differentials().transform(matrix)
 
-        if vector is not None:
-            # TODO: something
-            pass
+        if vectors is not None:
+            pos_offset = CartesianRepresentation(vectors[0])
+            newrep = newrep + pos_offset
+
+        if rep.differentials:
+            # assume the 0th item is a velocity
+            # TODO: we only support velocities right now - elsewhere, we need to
+            # validate / make sure only 1 differential is attached
+            veldiff = rep.differentials[0]
+            newdiff = veldiff.represent_as(CartesianRepresentation, base=fromcoord.data)\
+                             .transform(matrix)
+
+            if vectors is not None:
+                vel_offset = CartesianRepresentation(vectors[1])
+                newdiff = newdiff + vel_offset
+
+            newrep._differentials = (newdiff,)
 
         if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             # need to special-case this because otherwise the new class will
