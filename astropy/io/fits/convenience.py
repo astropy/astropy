@@ -76,7 +76,6 @@ from ...extern import six
 from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
-from ...time import Time
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -451,14 +450,15 @@ def table_to_hdu(table):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
-    from .time import replace_time_table
-    from ...table import QTable, Column
 
     # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
         from ...table.column import BaseColumn
+        from ...table import QTable, Column
+        from ...time import Time
+        from .time import replace_time_table
 
         # Only those columns which are instances of BaseColumn or Quantity can be written
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
