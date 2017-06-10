@@ -228,8 +228,6 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        # to prevent circular import issues
-        from .representation import CartesianRepresentation
 
         if (isinstance(value, list) and len(value) == 3 and
                 all(v == 0 for v in value) and self.unit is not None):
@@ -350,8 +348,6 @@ class EarthLocationAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        # to prevent circular import issues
-        from .earth import EarthLocation
 
         if value is None:
             return None, False
@@ -423,3 +419,7 @@ class CoordinateAttribute(FrameAttribute):
             if hasattr(transformedobj, 'frame'):
                 transformedobj = transformedobj.frame
             return transformedobj, True
+
+# do this here to prevent a series of complicated circular imports
+from .earth import EarthLocation
+from .representation import CartesianRepresentation
