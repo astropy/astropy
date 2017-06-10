@@ -66,7 +66,7 @@ def test_frame_attribute_descriptor():
 
 def test_frame_subclass_attribute_descriptor():
     from ..builtin_frames import FK4
-    from ..baseframe import FrameAttribute, TimeFrameAttribute
+    from ..frame_attributes import FrameAttribute, TimeFrameAttribute
     from astropy.time import Time
 
     _EQUINOX_B1980 = Time('B1980', scale='tai')
