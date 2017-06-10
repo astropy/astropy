@@ -649,20 +649,37 @@ class Time(ShapedLikeNDArray):
             del self.cache
             return
 
-        if not isinstance(value, Time):
+        # If there is a vector location then broadcast to the Time shape
+        # and then select with ``item``
+        if self.location is not None and self.location.shape:
+            self_location = np.broadcast_to(self.location, self.shape, subok=True)[item]
+        else:
+            self_location = self.location
+
+        if isinstance(value, Time):
+            # Make sure locations are compatible.  Location can be either None or
+            # a Location object.
+            if self_location is None and value.location is None:
+                match = True
+            elif ((self_location is None and value.location is not None) or
+                  (self_location is not None and value.location is None)):
+                match = False
+            else:
+                match = np.all(self_location == value.location)
+            if not match:
+                raise ValueError('cannot set to Time with different location')
+        else:
             try:
-                value = self.__class__(value, scale=self.scale, location=self.location)
+                value = self.__class__(value, scale=self.scale, location=self_location)
             except Exception:
                 try:
                     value = self.__class__(value, scale=self.scale, format=self.format,
-                                           location=self.location)
-                except Exception:
-                    raise ValueError('cannot convert value to a compatible Time object')
+                                           location=self_location)
+                except Exception as err:
+                    raise ValueError('cannot convert value to a compatible Time object: {}'
+                                     .format(err))
 
-        if self.location != value.location:
-            raise ValueError('cannot set to Time with different location')
-
-        # Are there any cases where this would be incorrect?
+        # Finally directly set the jd1/2 values.  Locations are known to match.
         value = getattr(value, self.scale)
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2

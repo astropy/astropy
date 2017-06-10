@@ -1186,3 +1186,38 @@ def test_writeable_flag():
     t.writeable = True
     t[1] = 10.0
     assert allclose_sec(t[1].value, 10.0)
+
+
+def test_setitem_location():
+    loc = EarthLocation(x=[1, 2] * u.m, y=[3, 4] * u.m, z=[5, 6] * u.m)
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+
+    # Succeeds because the right hand side makes no implication about
+    # location and just inherits t.location
+    t[0, 0] = 0
+    assert allclose_sec(t.value, [[0, 2], [3, 4]])
+
+    # Fails because the right hand side has location=None
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-1, format='cxcsec')
+    assert 'cannot set to Time with different location' in str(err)
+
+    # Succeeds because the right hand side correctly sets location
+    t[0, 0] = Time(-2, format='cxcsec', location=loc[0])
+    assert allclose_sec(t.value, [[-2, 2], [3, 4]])
+
+    # Fails because the right hand side has different location
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert 'cannot set to Time with different location' in str(err)
+
+    # Fails because the Time has None location and RHS has defined location
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert 'cannot set to Time with different location' in str(err)
+    
+    # Broadcasting works
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+    t[0, :] = Time([-3, -4], format='cxcsec', location=loc)
+    assert allclose_sec(t.value, [[-3, -4], [3, 4]])
