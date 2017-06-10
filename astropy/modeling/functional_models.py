@@ -5,6 +5,8 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from collections import OrderedDict
+
 import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError)
@@ -12,6 +14,8 @@ from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
+from .. import units as u
+from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
@@ -60,7 +64,7 @@ class BaseGaussian1D(Fittable1DModel):
         (-4.0, 4.0)
         """
 
-        x0 = self.mean.value
+        x0 = self.mean
         dx = factor * self.stddev
 
         return (x0 - dx, x0 + dx)
@@ -170,6 +174,18 @@ class Gaussian1D(BaseGaussian1D):
         d_mean = amplitude * d_amplitude * (x - mean) / stddev ** 2
         d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev ** 3
         return [d_amplitude, d_mean, d_stddev]
+
+    @property
+    def input_units(self):
+        if self.mean.unit is None:
+            return None
+        else:
+            return {'x': self.mean.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('mean', inputs_unit['x']),
+                            ('stddev', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class GaussianAbsorption1D(BaseGaussian1D):

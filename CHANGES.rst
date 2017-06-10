@@ -67,6 +67,10 @@ New Features
     outside the bounding_box to a user specified ``fill_value``. This
     is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
 
+  - Added infrastructure support for units on parameters and during
+    model evaluation and fitting, added support for units on Gaussian1D
+    and added a new Blackbody1D model. [#4855]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
