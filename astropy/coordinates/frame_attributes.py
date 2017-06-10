@@ -11,7 +11,6 @@ import numpy as np
 from .. import units as u
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils import OrderedDescriptor, ShapedLikeNDArray
-from .representation import CartesianRepresentation
 
 __all__ = ['FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
@@ -229,6 +228,9 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
+        # to prevent circular import issues
+        from .representation import CartesianRepresentation
+
         if (isinstance(value, list) and len(value) == 3 and
                 all(v == 0 for v in value) and self.unit is not None):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
@@ -348,6 +350,9 @@ class EarthLocationAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
+        # to prevent circular import issues
+        from .earth import EarthLocation
+
         if value is None:
             return None, False
         elif isinstance(value, EarthLocation):
@@ -418,7 +423,3 @@ class CoordinateAttribute(FrameAttribute):
             if hasattr(transformedobj, 'frame'):
                 transformedobj = transformedobj.frame
             return transformedobj, True
-
-# doing this import at the bottom prevents a circular import issue that is
-# otherwise present due to EarthLocation needing to import ITRS
-from .earth import EarthLocation

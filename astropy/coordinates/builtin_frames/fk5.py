@@ -5,7 +5,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         TimeFrameAttribute, RepresentationMapping)
+                         RepresentationMapping)
+from ..frame_attributes import TimeFrameAttribute
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
