@@ -467,6 +467,9 @@ def table_to_hdu(table):
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
 
+    # Header to store Time related metadata
+    hdr = None
+
     time_cols = table.columns.isinstance(Time)
     if time_cols:
         newtable = QTable(table)

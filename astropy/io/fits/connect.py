@@ -29,7 +29,8 @@ REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
                    
 # Global time reference coordinate keywords
 TIME_KEYWORDS = ['TIMESYS', 'MJDREF', 'JDREF', 'DATEREF', 'TREFPOS',
-                 'TREFDIR', 'TIMEUNIT', 'TIMEOFFS']
+                 'TREFDIR', 'TIMEUNIT', 'TIMEOFFS', 'OBSGEO-X',
+                 'OBSGEO-Y', 'OBSGEO-Z']
 
 # Column-specific keywords
 COLUMN_KEYWORDS = ['TFORM[0-9]+',

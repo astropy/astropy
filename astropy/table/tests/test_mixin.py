@@ -21,6 +21,7 @@ import numpy as np
 
 from ...extern import six
 from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
+from ...coordinates import EarthLocation
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates
@@ -110,7 +111,7 @@ def test_io_ascii_write():
 
 def test_io_quantity_write(tmpdir):
     """
-    Test that table with Quantity mixin column can be written by io.fits,
+    Test that table with Quantity mixin column can be written by io.fits and
     io.votable but not by io.misc.hdf5. Validation of the output is done.
     Test that io.fits writes a table containing Quantity mixin columns that can
     be round-tripped (metadata unit).
@@ -135,10 +136,50 @@ def test_io_quantity_write(tmpdir):
         assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
+def test_io_time_write(tmpdir):
+    """
+    Test that table with Time mixin column can be written by io.fits but
+    not by io.votable and io.misc.hdf5. Validation of the output is done.
+    Test that io.fits writes a table containing Time mixin columns that can
+    be considerably round-tripped (metadata scale, format).
+    """
+    t = QTable()
+    t['a'] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(u.Quantity(-2446353.80003635, unit='m'),
+                       u.Quantity(4237209.07495215, unit='m'), u.Quantity(4077985.57220038, unit='m')))
+    t['b'] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc', location=EarthLocation(u.Quantity(-2446353.80003635, unit='m'),
+                       u.Quantity(4237209.07495215, unit='m'), u.Quantity(4077985.57220038, unit='m')))
+
+    filename = tmpdir.join("table-tmp").strpath
+    open(filename, 'w').close()
+
+    # Show that FITS format succeeds
+    t.write(filename, format='fits', overwrite=True)
+    tm = QTable.read(filename, format='fits')
+
+    # Assert that the time columns are read as Time
+    assert isinstance(tm['a'], time.Time)
+    assert isinstance(tm['b'], time.Time)
+
+    # Assert that the scales round-trip
+    assert tm['a'].scale == t['a'].scale
+    assert tm['b'].scale == t['b'].scale
+
+    # Assert that the formats round-trip
+    assert tm['a'].format == t['a'].format
+    assert tm['b'].format == t['b'].format
+
+    # Assert that the location round-trips
+    assert tm['a'].location == t['a'].location
+    
+    # Finally assert that the column data round-trips
+    assert (tm['a'] == t['a']).all()
+    assert (tm['b'] == t['b']).all()
+
+
 def test_io_write_fail(mixin_cols):
     """
     Test that table with mixin column (excluding Quantity and Time) cannot be written by
-    io.votable, io.fits, and io.misc.hdf5.
+    io.votable, io.fits and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
