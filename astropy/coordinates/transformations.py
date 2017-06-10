@@ -786,7 +786,8 @@ class AffineTransform(CoordinateTransform):
 
     def _apply_transform(self, fromcoord, matrix, vectors):
         from .representation import (CartesianRepresentation,
-                                     UnitSphericalRepresentation)
+                                     UnitSphericalRepresentation,
+                                     CartesianDifferential)
 
         rep = fromcoord.represent_as(CartesianRepresentation)
         newrep = rep.without_differentials().transform(matrix)
@@ -807,6 +808,7 @@ class AffineTransform(CoordinateTransform):
                 vel_offset = CartesianRepresentation(vectors[1])
                 newdiff = newdiff + vel_offset
 
+            newdiff = newdiff.represent_as(CartesianDifferential)
             newrep._differentials = (newdiff,)
 
         if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
