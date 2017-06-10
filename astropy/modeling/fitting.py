@@ -33,7 +33,8 @@ from functools import reduce
 
 import numpy as np
 
-from .utils import poly_map_domain
+from .utils import poly_map_domain, _combine_equivalency_dict
+from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
 from ..extern.six.moves import range
@@ -90,6 +91,97 @@ class _FitterMeta(abc.ABCMeta):
             mcls.registry.add(cls)
 
         return cls
+
+
+def fitter_unit_support(func):
+    """
+    This is a decorator that can be used to add support for dealing with
+    quantities to any __call__ method on a fitter which may not support
+    quantities itself. This is done by temporarily removing units from all
+    parameters then adding them back once the fitting has completed.
+    """
+
+    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
+
+        data_has_units = (isinstance(x, Quantity) or
+                          isinstance(y, Quantity) or
+                          isinstance(z, Quantity))
+
+        model_has_units = model._has_units
+
+        if data_has_units or model_has_units:
+
+            if model._supports_unit_fitting:
+
+                # We now combine any instance-level input equivalencies with user
+                # specified ones at call-time.
+
+                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
+                                                                      equivalencies,
+                                                                      model.input_units_equivalencies)
+
+                # If input_units is defined, we transform the input data into those
+                # expected by the model. We hard-code the input names 'x', and 'y'
+                # here since FittableModel instances have input names ('x',) or
+                # ('x', 'y')
+
+                if model.input_units is not None:
+                    if isinstance(x, Quantity):
+                        x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                    if isinstance(y, Quantity) and z is not None:
+                        y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
+
+                # We now strip away the units from the parameters, taking care to
+                # first convert any parameters to the units that correspond to the
+                # input units (to make sure that initial guesses on the parameters)
+                # are in the right unit system
+
+                model = model.without_units_for_data(x=x, y=y, z=z)
+
+                # We strip away the units from the input itself
+
+                add_back_units = False
+
+                if isinstance(x, Quantity):
+                    add_back_units = True
+                    xdata = x.value
+                else:
+                    xdata = np.asarray(x)
+
+                if isinstance(y, Quantity):
+                    add_back_units = True
+                    ydata = y.value
+                else:
+                    ydata = np.asarray(y)
+
+                if z is not None:
+                    if isinstance(y, Quantity):
+                        add_back_units = True
+                        zdata = z.value
+                    else:
+                        zdata = np.asarray(z)
+
+                # We run the fitting
+                if z is None:
+                    model_new = func(self, model, xdata, ydata, **kwargs)
+                else:
+                    model_new = func(self, model, xdata, ydata, zdata, **kwargs)
+
+                # And finally we add back units to the parameters
+                if add_back_units:
+                    model_new = model_new.with_units_from_data(x=x, y=y, z=z)
+
+                return model_new
+
+            else:
+
+                raise NotImplementedError("This model does not support being fit to data with units")
+
+        else:
+
+            return func(self, model, x, y, z=z, **kwargs)
+
+    return wrapper
 
 
 @six.add_metaclass(_FitterMeta)
@@ -220,6 +312,7 @@ class LinearLSQFitter(object):
             ynew = poly_map_domain(y, model.y_domain, model.y_window)
             return xnew, ynew
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
@@ -413,7 +506,7 @@ class FittingWithOutlierRemoval(object):
             Fitted model after outlier removal.
         """
 
-        fitted_model = self.fitter(model, x, y, z, weights, **kwargs)
+        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
         if z is None:
             filtered_data = y
             for n in range(self.niter):
@@ -504,6 +597,7 @@ class LevMarLSQFitter(object):
         else:
             return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
                  epsilon=DEFAULT_EPS, estimate_jacobian=False):
@@ -642,6 +736,7 @@ class SLSQPLSQFitter(Fitter):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.
@@ -708,6 +803,7 @@ class SimplexLSQFitter(Fitter):
                                                statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.

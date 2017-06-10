@@ -219,3 +219,11 @@ def resolve_fractions(a, b):
     elif not a_is_fraction and b_is_fraction:
         a = Fraction(a)
     return a, b
+
+
+def quantity_asanyarray(a, dtype=None):
+    from .quantity import Quantity
+    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
+        return Quantity(a, dtype=dtype)
+    else:
+        return np.asanyarray(a, dtype=dtype)

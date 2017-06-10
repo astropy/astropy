@@ -15,7 +15,7 @@ from .parameters import Parameter
 from .utils import poly_map_domain, comb
 from ..utils import indent, check_broadcast
 from ..extern.six.moves import range
-
+from ..units import Quantity
 
 __all__ = [
     'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',
@@ -755,7 +755,14 @@ class Polynomial1D(PolynomialModel):
 
     @staticmethod
     def horner(x, coeffs):
-        c0 = coeffs[-1] + x * 0
+        # If this is called with a quantity and a non-quantity, we need to
+        # take care because if x is not a quantity, then coeffs[-1] + x * 0
+        # will NOT fail if the units of x and coeffs[-1] are inconsistent.
+        # TODO: add a regression test for this
+        if isinstance(x, Quantity) != isinstance(coeffs[-1], Quantity):
+            c0 = Quantity(coeffs[-1]) + Quantity(x) * 0
+        else:
+            c0 = coeffs[-1] + x * 0
         for i in range(2, len(coeffs) + 1):
             c0 = coeffs[-i] + c0 * x
         return c0
