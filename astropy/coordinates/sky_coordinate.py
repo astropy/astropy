@@ -73,6 +73,24 @@ class SkyCoordInfo(MixinInfo):
     def _get_value_datatype(self):
         return 'string'
 
+    def _construct_from_col(self, col):
+        """Construct appropriate class object from ``col``.
+
+        Input ``col`` is a Table ``Column`` object with dtype=object (strings).
+        Called from astropy.io.ascii.core.TableOutputter.
+        """
+        attrs = col.info.meta['__object_attributes__']
+        map = copy.copy(attrs)
+        data_attrs = map.pop('data_attrs')
+        map.pop('class')
+        map.pop('datatype')
+
+        data = np.array([line.split(',') for line in col], dtype=np.float)
+        for ii, data_attr in enumerate(data_attrs):
+            map[data_attr] = data[:, ii]
+
+        return self._construct_from_dict(map)
+
     def _represent_as_dict(self, context='yaml'):
         obj = self._parent
         data_attrs = list(obj.representation_component_names)
@@ -89,6 +107,7 @@ class SkyCoordInfo(MixinInfo):
 
         out['representation'] = obj.representation.get_name()
         out['frame'] = obj.frame.name
+        out['unit'] = obj.info.unit
 
         return out
 

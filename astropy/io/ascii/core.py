@@ -1006,6 +1006,10 @@ class TableOutputter(BaseOutputter):
                 from ...time import Time
                 cls = Time
                 new_cols[name] = cls.info._construct_from_col(col)
+            elif cls_name == 'astropy.coordinates.sky_coordinate.SkyCoord':
+                from ...coordinates import SkyCoord
+                cls = SkyCoord
+                new_cols[name] = cls.info._construct_from_col(col)
             else:
                 raise ValueError('unsupported mixin class')
 
