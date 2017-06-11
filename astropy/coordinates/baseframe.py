@@ -488,7 +488,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def representation_component_names(self):
         out = OrderedDict()
-        if self._representation is None:
+        if self.representation is None:
             return out
         data_names = self.representation.attr_classes.keys()
         repr_names = self.representation_info[self.representation]['names']
@@ -499,7 +499,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def representation_component_units(self):
         out = OrderedDict()
-        if self._representation is None:
+        if self.representation is None:
             return out
         repr_attrs = self.representation_info[self.representation]
         repr_names = repr_attrs['names']
@@ -512,7 +512,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def differential_component_names(self):
         out = OrderedDict()
-        if self.representation is None or not self._data.differentials:
+        if (self.representation is None or
+            not getattr(self._data, 'differentials', None)):
             return out
 
         diff = self._data.differentials[0]
