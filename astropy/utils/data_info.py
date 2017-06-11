@@ -606,6 +606,15 @@ class MixinInfo(BaseColumnInfo):
         super(MixinInfo, self).__setattr__(attr, value)
 
 
+def get_type_name(typ):
+    type_name = typ.__name__
+    if not six.PY2 and type_name.startswith(('bytes', 'str')):
+        type_name = 'string'
+    if type_name.endswith('_'):
+        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+    return type_name
+
+
 class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""
 
@@ -616,9 +625,4 @@ class ParentDtypeInfo(MixinInfo):
         Get the ECSV datatype for the value that will be stored as a column in the
         table.
         """
-        type_name = self._parent.dtype.type.__name__
-        if not six.PY2 and type_name.startswith(('bytes', 'str')):
-            type_name = 'string'
-        if type_name.endswith('_'):
-            type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-        return type_name
+        return get_type_name(self._parent.dtype.type)

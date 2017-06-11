@@ -23,7 +23,7 @@ from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
 from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
-from ..utils.data_info import MixinInfo, data_info_factory
+from ..utils.data_info import MixinInfo, data_info_factory, get_type_name
 from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 from ..extern.six.moves import zip
@@ -122,13 +122,7 @@ class TimeInfo(MixinInfo):
         Get the ECSV datatype for the value that will be stored as a column in the
         table.
         """
-        value = self._parent.value
-        type_name = value.dtype.type.__name__
-        if not six.PY2 and type_name.startswith(('bytes', 'str')):
-            type_name = 'string'
-        if type_name.endswith('_'):
-            type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-        return type_name
+        return get_type_name(self._parent.value.dtype.type)
 
     def _represent_as_dict(self, context='yaml'):
         if context == 'column':
@@ -178,11 +172,13 @@ class TimeDeltaInfo(TimeInfo):
     _represent_as_dict_info_attrs = ['format', 'scale']
 
     def _construct_from_dict(self, map):
-        format = map.pop('format')
-
-        map['format'] = 'jd'
-        map['val'] = map.pop('jd1')
-        map['val2'] = map.pop('jd2')
+        if 'jd1' in map and 'jd2' in map:
+            format = map.pop('format')
+            map['format'] = 'jd'
+            map['val'] = map.pop('jd1')
+            map['val2'] = map.pop('jd2')
+        else:
+            format = map['format']
 
         out = self._parent_cls(**map)
         out.format = format
