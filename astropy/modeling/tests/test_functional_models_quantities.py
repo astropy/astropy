@@ -16,38 +16,49 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
 MODELS_1D = [
 {'class': Gaussian1D,
  'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
- 'evaluation':[(2600 * u.mm, 3 * u.Jy * np.exp(-2))]},
+ 'evaluation':[(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
+ 'bounding_box': True},
 {'class': Sersic1D,
  'parameters': {'amplitude': 3 * u.MJy / u.sr, 'r_eff': 2 * u.arcsec, 'n': 4},
- 'evaluation':[(3 * u.arcsec, 1.3237148119468918 * u.MJy/u.sr)]},
+ 'evaluation':[(3 * u.arcsec, 1.3237148119468918 * u.MJy/u.sr)],
+ 'bounding_box': False},
 {'class': Sine1D,
  'parameters': {'amplitude': 3 * u.km / u.s, 'frequency': 0.25 * u.Hz, 'phase': 0.5},
- 'evaluation':[(1 * u.s, -3 * u.km / u.s)]},
+ 'evaluation':[(1 * u.s, -3 * u.km / u.s)],
+ 'bounding_box': False},
 {'class': Linear1D,
  'parameters': {'slope': 3 * u.km / u.s, 'intercept': 5000 * u.m},
- 'evaluation':[(6000 * u.ms, 23 * u.km)]},
+ 'evaluation':[(6000 * u.ms, 23 * u.km)],
+ 'bounding_box': False},
 {'class': Lorentz1D,
  'parameters': {'amplitude': 2 * u.Jy, 'x_0': 505 * u.nm, 'fwhm': 100 * u.AA},
- 'evaluation':[(0.51 * u.micron, 1 * u.Jy)]},
+ 'evaluation':[(0.51 * u.micron, 1 * u.Jy)],
+ 'bounding_box': True},
 {'class': Voigt1D,
  'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
                 'fwhm_L': 100 * u.AA, 'fwhm_G': 50 * u.AA},
- 'evaluation':[(0.51 * u.micron, 1.06264568 * u.Jy)]},
+ 'evaluation':[(0.51 * u.micron, 1.06264568 * u.Jy)],
+ 'bounding_box': False},
 {'class': Const1D,
  'parameters': {'amplitude': 3 * u.Jy},
- 'evaluation':[(0.6 * u.micron, 3 * u.Jy)]},
+ 'evaluation':[(0.6 * u.micron, 3 * u.Jy)],
+ 'bounding_box': False},
 {'class': Box1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'width': 1 * u.um},
- 'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)]},
+ 'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)],
+ 'bounding_box': True},
 {'class': Trapezoid1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'width': 1 * u.um, 'slope': 5 * u.Jy / u.um},
- 'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)]},
+ 'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)],
+ 'bounding_box': True},
 {'class': MexicanHat1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'sigma': 1e-3 * u.mm},
- 'evaluation':[(1000 * u.nm, -0.09785050 * u.Jy)]},
+ 'evaluation':[(1000 * u.nm, -0.09785050 * u.Jy)],
+ 'bounding_box': True},
 {'class': Moffat1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'gamma': 1e-3 * u.mm, 'alpha':1},
- 'evaluation':[(1000 * u.nm, 0.238853503 * u.Jy)]},
+ 'evaluation':[(1000 * u.nm, 0.238853503 * u.Jy)],
+ 'bounding_box': False},
  ]
 
 @pytest.mark.parametrize('model', MODELS_1D)
@@ -79,6 +90,18 @@ def test_1d_models_evaluatate_with_units_param_array(model):
         result = m(x_arr)
         assert_quantity_allclose(result, u.Quantity([y, y]))
 
+
+@pytest.mark.parametrize('model', MODELS_1D)
+def test_1d_models_bounding_box(model):
+    m = model['class'](**model['parameters'])
+    if model['bounding_box']:
+        m.bounding_box
+    else:
+        # Check that NotImplementedError is raised, so that if bounding_box is
+        # implemented we remember to set bounding_box=True in the list of models
+        # above
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
 
 # class Const2D(Fittable2DModel):
 # class Ellipse2D(Fittable2DModel):
