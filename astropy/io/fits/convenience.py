@@ -450,6 +450,9 @@ def table_to_hdu(table):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
+    
+    # Header to store Time related metadata
+    hdr = None
 
     # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
@@ -466,14 +469,11 @@ def table_to_hdu(table):
             unsupported_names = [col.info.name for col in unsupported_cols]
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
-
-    # Header to store Time related metadata
-    hdr = None
-
-    time_cols = table.columns.isinstance(Time)
-    if time_cols:
-        newtable = QTable(table)
-        table, hdr = replace_time_table(newtable)
+        
+        time_cols = table.columns.isinstance(Time)
+        if time_cols:
+            newtable = QTable(table)
+            table, hdr = replace_time_table(newtable)
 
     # Create a new HDU object
     if table.masked:
