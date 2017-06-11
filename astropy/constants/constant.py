@@ -94,10 +94,11 @@ class Constant(Quantity):
         # initialized here, and we store the unit in string form.
         inst = np.array(value).view(cls)
 
-        if system in instances:
-            warnings.warn('Constant {0!r} already has a definition in the '
-                          '{1!r} system'.format(name, system),
-                          AstropyUserWarning)
+        if (system in instances):
+            if (reference in instances):
+                warnings.warn('Constant {0!r} already has a definition in the '
+                              '{1!r} system from {2!r} reference'.format(
+                              name, system, reference), AstropyUserWarning)
         else:
             for c in six.itervalues(instances):
                 if system is not None and not hasattr(c.__class__, system):
