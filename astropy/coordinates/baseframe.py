@@ -30,7 +30,12 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
-from .frame_attributes import FrameAttribute
+
+# Import all FrameAttributes so we don't break backwards-compatibility
+# (some people will rely on them being here)
+from .frame_attributes import (FrameAttribute, TimeFrameAttribute,
+                               QuantityFrameAttribute, EarthLocationAttribute,
+                               CartesianRepresentationFrameAttribute)
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'RepresentationMapping']
