@@ -15,6 +15,7 @@ from .utils import ellipse_extent
 from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
+from ..units import Quantity
 from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
@@ -23,6 +24,8 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
+
+TWOPI = 2 * np.pi
 
 
 class BaseGaussian1D(Fittable1DModel):
@@ -714,18 +717,20 @@ class Sine1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
-
-        return amplitude * np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
+        argument = TWOPI * (frequency * x + phase)
+        if isinstance(argument, Quantity):
+            argument *= u.rad
+        return amplitude * np.sin(argument)
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Sine model derivative"""
 
-        d_amplitude = np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
-        d_frequency = (2 * np.pi * x * amplitude *
-                       np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
-        d_phase = (2 * np.pi * amplitude *
-                   np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
+        d_amplitude = np.sin(TWOPI * frequency * x + TWOPI * phase)
+        d_frequency = (TWOPI * x * amplitude *
+                       np.cos(TWOPI * frequency * x + TWOPI * phase))
+        d_phase = (TWOPI * amplitude *
+                   np.cos(TWOPI * frequency * x + TWOPI * phase))
         return [d_amplitude, d_frequency, d_phase]
 
 
@@ -1052,13 +1057,17 @@ class Const1D(Fittable1DModel):
         """One dimensional Constant model function"""
 
         if amplitude.size == 1:
-            # This is slightly faster than using ones_like and multiplying
-            x = np.empty_like(x)
-            x.fill(amplitude.item())
+            if isinstance(amplitude, Quantity):
+                x = Quantity(amplitude.value * np.ones_like(x, subok=False),
+                             unit=amplitude.unit, copy=False)
+            else:
+                # This is slightly faster than using ones_like and multiplying
+                x = np.empty_like(x, subok=False)
+                x.fill(amplitude.item())
         else:
             # This case is less likely but could occur if the amplitude
             # parameter is given an array-like value
-            x = amplitude * np.ones_like(x)
+            x = amplitude * np.ones_like(x, subok=False)
 
         return x
 
@@ -1431,9 +1440,19 @@ class Box1D(Fittable1DModel):
     def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function"""
 
-        return np.select([np.logical_and(x >= x_0 - width / 2.,
-                                         x <= x_0 + width / 2.)],
-                         [amplitude], 0)
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
+        inside = np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)
+        result = np.select([inside], [amplitude], 0)
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @classmethod
     def fit_deriv(cls, x, amplitude, x_0, width):
@@ -1504,11 +1523,24 @@ class Box2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         x_range = np.logical_and(x >= x_0 - x_width / 2.,
                                  x <= x_0 + x_width / 2.)
         y_range = np.logical_and(y >= y_0 - y_width / 2.,
                                  y <= y_0 + y_width / 2.)
-        return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
+
+        result = np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
+
 
     @property
     def bounding_box(self):
@@ -1583,6 +1615,13 @@ class Trapezoid1D(Fittable1DModel):
         x1 = x2 - amplitude / slope
         x4 = x3 + amplitude / slope
 
+        # Note that we need to do this after computing x1 and x4 above
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         # Compute model values in pieces between the change points
         range_a = np.logical_and(x >= x1, x < x2)
         range_b = np.logical_and(x >= x2, x < x3)
@@ -1590,7 +1629,12 @@ class Trapezoid1D(Fittable1DModel):
         val_a = slope * (x - x1)
         val_b = amplitude
         val_c = slope * (x4 - x)
-        return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
+        result = np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @property
     def bounding_box(self):
@@ -1637,12 +1681,23 @@ class TrapezoidDisk2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
         range_2 = np.logical_and(r > R_0, r <= R_0 + amplitude / slope)
         val_1 = amplitude
         val_2 = amplitude + slope * (R_0 - r)
-        return np.select([range_1, range_2], [val_1, val_2])
+        result = np.select([range_1, range_2], [val_1, val_2])
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @property
     def bounding_box(self):
