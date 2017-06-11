@@ -14,15 +14,20 @@ from . import si
 # PHYSICAL CONSTANTS
 
 # Electron charge
-e_esu = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
-                   'statC', si.e.uncertainty * si.c.value * 10.0,
-                   si.e.reference, system='esu')
 
+for cver, cc in [(si.ASTROPYCONST20, si.CODATA2014),
+                    (si.ASTROPYCONST13, si.CODATA2010)]:
+    cver.e_esu = EMConstant(cc.e.abbrev, cc.e.name, cc.e.value * cc.c.value * 10.0,
+                   'statC', cc.e.uncertainty * cc.c.value * 10.0,
+                   cc.e.reference, system='esu')
+    cver.e_emu = EMConstant(cc.e.abbrev, cc.e.name, cc.e.value / 10, 'abC',
+                   cc.e.uncertainty / 10, cc.e.reference, system='emu')
+    cver.e_gauss = EMConstant(cc.e.abbrev, cc.e.name, cc.e.value * cc.c.value * 10.0,
+                     'Fr', cc.e.uncertainty * cc.c.value * 10.0,
+                     cc.e.reference, system='gauss')
 
-e_emu = EMConstant(si.e.abbrev, si.e.name, si.e.value / 10, 'abC',
-                   si.e.uncertainty / 10, si.e.reference, system='emu')
+e_esu = si.ASTROPYCONST20.e_esu
 
+e_emu = si.ASTROPYCONST20.e_emu
 
-e_gauss = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
-                     'Fr', si.e.uncertainty * si.c.value * 10.0,
-                     si.e.reference, system='gauss')
+e_gauss = si.ASTROPYCONST20.e_gauss
