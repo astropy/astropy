@@ -7,9 +7,9 @@ import numpy as np
 
 from ... import units as u
 from ..representation import SphericalRepresentation
-from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
-                         TimeFrameAttribute, QuantityFrameAttribute,
-                         RepresentationMapping, EarthLocationAttribute)
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..frame_attributes import (FrameAttribute, TimeFrameAttribute,
+                                QuantityFrameAttribute, EarthLocationAttribute)
 
 _90DEG = 90*u.deg
 

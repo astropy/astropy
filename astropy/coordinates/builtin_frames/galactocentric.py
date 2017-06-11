@@ -9,8 +9,8 @@ from ... import units as u
 from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
-                         frame_transform_graph)
+from ..baseframe import BaseCoordinateFrame, frame_transform_graph
+from ..frame_attributes import FrameAttribute
 from ..transformations import FunctionTransform
 from ..errors import ConvertError
 
