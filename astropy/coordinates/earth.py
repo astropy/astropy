@@ -89,7 +89,8 @@ class EarthLocationInfo(QuantityInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    _represent_as_dict_attrs = ('x', 'y', 'z', 'ellipsoid')
+    _represent_as_dict_data_attrs = ('x', 'y', 'z')
+    _represent_as_dict_info_attrs = ('ellipsoid',)
 
     def _construct_from_dict(self, map):
         # Need to pop ellipsoid off and update post-instantiation.  This is

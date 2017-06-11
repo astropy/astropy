@@ -14,7 +14,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import MixinInfo, _get_obj_attrs_map
+from ..utils.data_info import MixinInfo
 from ..utils import ShapedLikeNDArray
 
 from .distances import Distance
@@ -32,6 +32,7 @@ J_PREFIXED_RA_DEC_RE = re.compile(
     ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
     ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
     """, re.VERBOSE)
+
 
 class SkyCoordInfo(MixinInfo):
     """
@@ -69,11 +70,13 @@ class SkyCoordInfo(MixinInfo):
             repr_data = sc.represent_as(sc.representation, in_frame_units=True)
         return repr_data
 
-    def _represent_as_dict(self):
+    def _represent_as_dict(self, with_data=True):
         obj = self._parent
-        attrs = list(obj.representation_component_names)
-        attrs += list(frame_transform_graph.frame_attributes.keys())
-        out = _get_obj_attrs_map(obj, attrs)
+        data_attrs = tuple(obj.representation_component_names)
+        info_attrs = tuple(frame_transform_graph.frame_attributes)
+        self._represent_as_dict_data_attrs = data_attrs
+        self._represent_as_dict_info_attrs = info_attrs
+        out = super(SkyCoordInfo, self)._represent_as_dict(with_data)
 
         # Don't output distance if it is all unitless 1.0
         if 'distance' in out and np.all(out['distance'] == 1.0):

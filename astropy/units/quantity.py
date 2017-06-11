@@ -114,7 +114,8 @@ class QuantityInfo(ParentDtypeInfo):
     """
     attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
     _supports_indexing = True
-    _represent_as_dict_attrs = ('value', 'unit')
+    _represent_as_dict_data_attrs = ('value',)
+    _represent_as_dict_info_attrs = ('unit',)
 
     @staticmethod
     def default_format(val):
