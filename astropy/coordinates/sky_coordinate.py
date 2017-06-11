@@ -70,6 +70,9 @@ class SkyCoordInfo(MixinInfo):
             repr_data = sc.represent_as(sc.representation, in_frame_units=True)
         return repr_data
 
+    def _get_value_datatype(self):
+        return 'string'
+
     def _represent_as_dict(self, with_data=True):
         obj = self._parent
         data_attrs = tuple(obj.representation_component_names)

@@ -170,11 +170,16 @@ def _get_col_attributes(col):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
     attrs['datatype'] = type_name
 
+    # Mixins get additional attribute information encoded via a dict
+    # with key '__object_attributes__' in the column meta.
     if (hasattr(col, 'info') and isinstance(col.info, MixinInfo) and
             hasattr(col.info, '_represent_as_dict')):
         if col.info.meta is None:
             col.info.meta = {}
-        col.info.meta['__object_attributes__'] = col.info._represent_as_dict(with_data=False)
+        obj_attrs = col.info._represent_as_dict(with_data=False)
+        obj_attrs['class'] = col.__module__ + '.' + col.__class__.__name__
+        obj_attrs['datatype'] = col.info._get_value_datatype()
+        col.info.meta['__object_attributes__'] = obj_attrs
 
     # Set the output attributes
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
