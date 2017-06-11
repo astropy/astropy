@@ -910,7 +910,7 @@ class Lorentz1D(Fittable1DModel):
             central feature of interest.
 
         """
-        x0 = self.x_0.value
+        x0 = self.x_0
         dx = factor * self.fwhm
 
         return (x0 - dx, x0 + dx)
@@ -1783,7 +1783,7 @@ class MexicanHat1D(Fittable1DModel):
             The multiple of sigma used to define the limits.
 
         """
-        x0 = self.x_0.value
+        x0 = self.x_0
         dx = factor * self.sigma
 
         return (x0 - dx, x0 + dx)
