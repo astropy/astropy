@@ -2354,60 +2354,6 @@ class BaseSphericalDifferential(BaseDifferential):
         return super(BaseSphericalDifferential,
                      self)._combine_operation(op, other, reverse)
 
-
-class SphericalDifferential(BaseSphericalDifferential):
-    """Differential(s) of points in 3D spherical coordinates.
-
-    Parameters
-    ----------
-    d_lon, d_lat : `~astropy.units.Quantity`
-        The differential longitude and latitude.
-    d_distance : `~astropy.units.Quantity`
-        The differential distance.
-    copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
-    """
-    base_representation = SphericalRepresentation
-
-    def __init__(self, d_lon, d_lat, d_distance, copy=True):
-        super(SphericalDifferential, self).__init__(d_lon, d_lat, d_distance,
-                                                    copy=copy)
-        if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
-            raise u.UnitsError('d_lon and d_lat should have equivalent units.')
-
-    def represent_as(self, other_class, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude.
-        if issubclass(other_class, UnitSphericalDifferential):
-            return other_class(self.d_lon, self.d_lat)
-        elif issubclass(other_class, RadialDifferential):
-            return other_class(self.d_distance)
-        elif issubclass(other_class, SphericalCosLatDifferential):
-            return other_class(self._d_lon_coslat(base), self.d_lat,
-                               self.d_distance)
-        elif issubclass(other_class, UnitSphericalCosLatDifferential):
-            return other_class(self._d_lon_coslat(base), self.d_lat)
-        elif issubclass(other_class, PhysicsSphericalDifferential):
-            return other_class(self.d_lon, -self.d_lat, self.d_distance)
-        else:
-            return super(SphericalDifferential,
-                         self).represent_as(other_class, base)
-
-    @classmethod
-    def from_representation(cls, representation, base=None):
-        # Other spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude.
-        if isinstance(representation, SphericalCosLatDifferential):
-            d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
-            return cls(d_lon, representation.d_lat, representation.d_distance)
-        elif isinstance(representation, PhysicsSphericalDifferential):
-            return cls(representation.d_phi, -representation.d_theta,
-                       representation.d_r)
-
-        return super(SphericalDifferential,
-                     cls).from_representation(representation, base)
-
-
 class UnitSphericalDifferential(BaseSphericalDifferential):
     """Differential(s) of points on a unit sphere.
 
@@ -2459,6 +2405,59 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta)
 
         return super(UnitSphericalDifferential,
+                     cls).from_representation(representation, base)
+
+class SphericalDifferential(BaseSphericalDifferential):
+    """Differential(s) of points in 3D spherical coordinates.
+
+    Parameters
+    ----------
+    d_lon, d_lat : `~astropy.units.Quantity`
+        The differential longitude and latitude.
+    d_distance : `~astropy.units.Quantity`
+        The differential distance.
+    copy : bool, optional
+        If `True` (default), arrays will be copied rather than referenced.
+    """
+    base_representation = SphericalRepresentation
+    _unit_differential = UnitSphericalDifferential
+
+    def __init__(self, d_lon, d_lat, d_distance, copy=True):
+        super(SphericalDifferential, self).__init__(d_lon, d_lat, d_distance,
+                                                    copy=copy)
+        if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon and d_lat should have equivalent units.')
+
+    def represent_as(self, other_class, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude.
+        if issubclass(other_class, UnitSphericalDifferential):
+            return other_class(self.d_lon, self.d_lat)
+        elif issubclass(other_class, RadialDifferential):
+            return other_class(self.d_distance)
+        elif issubclass(other_class, SphericalCosLatDifferential):
+            return other_class(self._d_lon_coslat(base), self.d_lat,
+                               self.d_distance)
+        elif issubclass(other_class, UnitSphericalCosLatDifferential):
+            return other_class(self._d_lon_coslat(base), self.d_lat)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            return other_class(self.d_lon, -self.d_lat, self.d_distance)
+        else:
+            return super(SphericalDifferential,
+                         self).represent_as(other_class, base)
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        # Other spherical differentials can be done without going to Cartesian,
+        # though CosLat needs base for the latitude.
+        if isinstance(representation, SphericalCosLatDifferential):
+            d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
+            return cls(d_lon, representation.d_lat, representation.d_distance)
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            return cls(representation.d_phi, -representation.d_theta,
+                       representation.d_r)
+
+        return super(SphericalDifferential,
                      cls).from_representation(representation, base)
 
 
@@ -2553,64 +2552,6 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
                      self)._combine_operation(op, other, reverse)
 
 
-class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
-    """Differential(s) of points in 3D spherical coordinates.
-
-    Parameters
-    ----------
-    d_lon_coslat, d_lat : `~astropy.units.Quantity`
-        The differential longitude (with cos(lat) included) and latitude.
-    d_distance : `~astropy.units.Quantity`
-        The differential distance.
-    copy : bool, optional
-        If `True` (default), arrays will be copied rather than referenced.
-    """
-    base_representation = SphericalRepresentation
-    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
-                                ('d_lat', u.Quantity),
-                                ('d_distance', u.Quantity)])
-
-    def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
-        super(SphericalCosLatDifferential,
-              self).__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
-        if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
-            raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
-                               'units.')
-
-    def represent_as(self, other_class, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though some need base for the latitude to remove cos(lat).
-        if issubclass(other_class, UnitSphericalCosLatDifferential):
-            return other_class(self.d_lon_coslat, self.d_lat)
-        elif issubclass(other_class, RadialDifferential):
-            return other_class(self.d_distance)
-        elif issubclass(other_class, SphericalDifferential):
-            return other_class(self._d_lon(base), self.d_lat, self.d_distance)
-        elif issubclass(other_class, UnitSphericalDifferential):
-            return other_class(self._d_lon(base), self.d_lat)
-        elif issubclass(other_class, PhysicsSphericalDifferential):
-            return other_class(self._d_lon(base), -self.d_lat, self.d_distance)
-
-        return super(SphericalCosLatDifferential,
-                     self).represent_as(other_class, base)
-
-    @classmethod
-    def from_representation(cls, representation, base=None):
-        # Other spherical differentials can be done without going to Cartesian,
-        # though we need base for the latitude to remove coslat.
-        if isinstance(representation, SphericalDifferential):
-            d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
-            return cls(d_lon_coslat, representation.d_lat,
-                       representation.d_distance)
-        elif isinstance(representation, PhysicsSphericalDifferential):
-            d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
-            return cls(d_lon_coslat, -representation.d_theta,
-                       representation.d_r)
-
-        return super(SphericalCosLatDifferential,
-                     cls).from_representation(representation, base)
-
-
 class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     """Differential(s) of points on a unit sphere.
 
@@ -2668,6 +2609,65 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             return cls(d_lon_coslat, -representation.d_theta)
 
         return super(UnitSphericalDifferential,
+                     cls).from_representation(representation, base)
+
+
+class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
+    """Differential(s) of points in 3D spherical coordinates.
+
+    Parameters
+    ----------
+    d_lon_coslat, d_lat : `~astropy.units.Quantity`
+        The differential longitude (with cos(lat) included) and latitude.
+    d_distance : `~astropy.units.Quantity`
+        The differential distance.
+    copy : bool, optional
+        If `True` (default), arrays will be copied rather than referenced.
+    """
+    base_representation = SphericalRepresentation
+    _unit_differential = UnitSphericalCosLatDifferential
+    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
+                                ('d_lat', u.Quantity),
+                                ('d_distance', u.Quantity)])
+
+    def __init__(self, d_lon_coslat, d_lat, d_distance, copy=True):
+        super(SphericalCosLatDifferential,
+              self).__init__(d_lon_coslat, d_lat, d_distance, copy=copy)
+        if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
+            raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
+                               'units.')
+
+    def represent_as(self, other_class, base=None):
+        # All spherical differentials can be done without going to Cartesian,
+        # though some need base for the latitude to remove cos(lat).
+        if issubclass(other_class, UnitSphericalCosLatDifferential):
+            return other_class(self.d_lon_coslat, self.d_lat)
+        elif issubclass(other_class, RadialDifferential):
+            return other_class(self.d_distance)
+        elif issubclass(other_class, SphericalDifferential):
+            return other_class(self._d_lon(base), self.d_lat, self.d_distance)
+        elif issubclass(other_class, UnitSphericalDifferential):
+            return other_class(self._d_lon(base), self.d_lat)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            return other_class(self._d_lon(base), -self.d_lat, self.d_distance)
+
+        return super(SphericalCosLatDifferential,
+                     self).represent_as(other_class, base)
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        # Other spherical differentials can be done without going to Cartesian,
+        # though we need base for the latitude to remove coslat.
+        if isinstance(representation, SphericalDifferential):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
+            return cls(d_lon_coslat, representation.d_lat,
+                       representation.d_distance)
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
+            return cls(d_lon_coslat, -representation.d_theta,
+                       representation.d_r)
+
+        return super(SphericalCosLatDifferential,
                      cls).from_representation(representation, base)
 
 
