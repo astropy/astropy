@@ -28,8 +28,12 @@ from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
 from ..utils.misc import isiterable
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, BaseDifferential,
+                             BaseSphericalDifferential,
+                             BaseSphericalCosLatDifferential,
                              CartesianRepresentation,
                              SphericalRepresentation,
+                             SphericalDifferential,
+                             RadialDifferential,
                              UnitSphericalRepresentation,
                              SphericalCosLatDifferential,
                              REPRESENTATION_CLASSES,
@@ -244,8 +248,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if representation is not None:
             self.representation = representation
 
+        if 'differential' in kwargs:
+            self.differential = kwargs.pop('differential')
+
         # if not set below, this is a frame with no data
         representation_data = None
+        differential_data = None
 
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
@@ -257,10 +265,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     'other positional arguments')
 
         elif self.representation:
+            # Get any representation data passed in to the frame initializer
+            # using keyword or positional arguments for the component names
             repr_kwargs = {}
             for nmkw, nmrep in self.representation_component_names.items():
                 if len(args) > 0:
-                    #first gather up positional args
+                    # first gather up positional args
                     repr_kwargs[nmrep] = args.pop(0)
                 elif nmkw in kwargs:
                     repr_kwargs[nmrep] = kwargs.pop(nmkw)
@@ -271,6 +281,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
+
                 if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
                     representation = self.representation._unit_representation
@@ -278,12 +289,41 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     representation = self.representation
                 representation_data = representation(copy=copy, **repr_kwargs)
 
+            # Now we handle the Differential data:
+            # Get any differential data passed in to the frame initializer
+            # using keyword or positional arguments for the component names
+            diff_kwargs = {}
+            for nmkw, nmrep in self.differential_component_names.items():
+                if len(args) > 0:
+                    # first gather up positional args
+                    diff_kwargs[nmrep] = args.pop(0)
+                elif nmkw in kwargs:
+                    diff_kwargs[nmrep] = kwargs.pop(nmkw)
+
+            if diff_kwargs:
+                if ((issubclass(self.differential, BaseSphericalDifferential) or
+                     issubclass(self.differential, BaseSphericalCosLatDifferential)) and
+                        hasattr(self.differential, '_unit_differential') and
+                        'd_distance' not in diff_kwargs):
+                    differential = self.differential._unit_differential
+
+                elif ((issubclass(self.differential, BaseSphericalDifferential) or
+                       issubclass(self.differential, BaseSphericalCosLatDifferential)) and
+                        len(diff_kwargs) == 1 and 'd_distance' in diff_kwargs):
+                    differential = RadialDifferential
+
+                else:
+                    differential = self.differential
+                differential_data = differential(copy=copy, **diff_kwargs)
+
         if len(args) > 0:
             raise TypeError(
                 '{0}.__init__ had {1} remaining unhandled arguments'.format(
                     self.__class__.__name__, len(args)))
 
         self._data = representation_data
+        if self._data and differential_data is not None:
+            self._data = self._data.with_differentials(differential_data)
 
         values = {}
         for fnm, fdefault in self.get_frame_attr_names().items():
@@ -432,6 +472,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def representation(self, value):
         self._representation = _get_repr_cls(value)
 
+    @property
+    def differential(self):
+        """
+        The differential representation of the velocity data in this frame, as a
+        class that is subclassed from `~astropy.coordinates.BaseDifferential`.
+        Can also be *set* using the string name of the differential.
+        """
+        if not hasattr(self, '_differential'):
+            self._differential = self.default_differential
+        return self._differential
+
+    @differential.setter
+    def differential(self, value):
+        self._differential = _get_diff_cls(value)
+
     @classmethod
     def _get_representation_info(cls):
         # This exists as a class method only to support handling frame inputs
@@ -439,9 +494,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # moved into the representation_info property at that time.
 
         repr_attrs = {}
-        for repr_diff_cls in (list(REPRESENTATION_CLASSES.values())):
-        # for repr_diff_cls in (list(REPRESENTATION_CLASSES.values()) +
-        #                       list(DIFFERENTIAL_CLASSES.values())):
+        for repr_diff_cls in (list(REPRESENTATION_CLASSES.values()) +
+                              list(DIFFERENTIAL_CLASSES.values())):
             repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
             for c in repr_diff_cls.attr_classes.keys():
                 repr_attrs[repr_diff_cls]['names'].append(c)
@@ -512,15 +566,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def differential_component_names(self):
         out = OrderedDict()
-        if (self.representation is None or
-            not getattr(self._data, 'differentials', None)):
+        if self.differential is None:
             return out
 
-        diff = self._data.differentials[0]
-
-        # TODO: do we want a .differential attribute?
-        data_names = diff.attr_classes.keys()
-        repr_names = self.representation_info[diff.__class__]['names']
+        data_names = self.differential.attr_classes.keys()
+        repr_names = self.representation_info[self.differential]['names']
         for repr_name, data_name in zip(repr_names, data_names):
             out[repr_name] = data_name
         return out
@@ -528,12 +578,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def differential_component_units(self):
         out = OrderedDict()
-        if self.representation is None or not self._data.differentials:
+        if self.differential is None:
             return out
 
-        diff = self._data.differentials[0]
-
-        repr_attrs = self.representation_info[diff.__class__]
+        repr_attrs = self.representation_info[self.differential]
         repr_names = repr_attrs['names']
         repr_units = repr_attrs['units']
         for repr_name, repr_unit in zip(repr_names, repr_units):
@@ -1030,7 +1078,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # self.representation_component_names.
         #
         # Prevent infinite recursion here.
-        if (attr == '_representation' or
+        if (attr == '_representation' or attr == '_differential' or
                 (attr not in self.representation_component_names and
                  attr not in self.differential_component_names)):
             raise AttributeError("'{0}' object has no attribute '{1}'"
