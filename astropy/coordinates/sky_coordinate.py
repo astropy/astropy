@@ -75,8 +75,8 @@ class SkyCoordInfo(MixinInfo):
 
     def _represent_as_dict(self, context='yaml'):
         obj = self._parent
-        data_attrs = tuple(obj.representation_component_names)
-        info_attrs = tuple(frame_transform_graph.frame_attributes)
+        data_attrs = list(obj.representation_component_names)
+        info_attrs = list(frame_transform_graph.frame_attributes)
         self._represent_as_dict_data_attrs = data_attrs
         self._represent_as_dict_info_attrs = info_attrs
 

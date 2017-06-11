@@ -189,8 +189,8 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _represent_as_dict_data_attrs = ()
-    _represent_as_dict_info_attrs = ()
+    _represent_as_dict_data_attrs = []
+    _represent_as_dict_info_attrs = []
     _parent = None
 
     def __init__(self, bound=False):
@@ -294,7 +294,7 @@ class DataInfo(object):
         as a table column (probably ECSV) where this method is capturing non-data
         attributes needed to re-create the object later in a table.
         """
-        attrs = ()
+        attrs = []
         if context == 'yaml':
             attrs = attrs + self._represent_as_dict_data_attrs
         attrs = attrs + self._represent_as_dict_info_attrs
