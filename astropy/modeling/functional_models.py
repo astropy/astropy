@@ -1056,20 +1056,29 @@ class Const1D(Fittable1DModel):
     def evaluate(x, amplitude):
         """One dimensional Constant model function"""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         if amplitude.size == 1:
-            if isinstance(amplitude, Quantity):
-                x = Quantity(amplitude.value * np.ones_like(x, subok=False),
-                             unit=amplitude.unit, copy=False)
-            else:
-                # This is slightly faster than using ones_like and multiplying
-                x = np.empty_like(x, subok=False)
-                x.fill(amplitude.item())
+            # This is slightly faster than using ones_like and multiplying
+            x = np.empty_like(x, subok=False)
+            print(amplitude)
+            print(x)
+            x.fill(amplitude.item())
         else:
             # This case is less likely but could occur if the amplitude
             # parameter is given an array-like value
+            print(amplitude)
+            print(x)
             x = amplitude * np.ones_like(x, subok=False)
 
-        return x
+        if return_unit is None:
+            return x
+        else:
+            return Quantity(x, unit=return_unit, copy=False)
 
     @staticmethod
     def fit_deriv(x, amplitude):
@@ -1106,16 +1115,25 @@ class Const2D(Fittable2DModel):
     def evaluate(x, y, amplitude):
         """Two dimensional Constant model function"""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
-            x = np.empty_like(x)
+            x = np.empty_like(x, subok=False)
             x.fill(amplitude.item())
         else:
             # This case is less likely but could occur if the amplitude
             # parameter is given an array-like value
-            x = amplitude * np.ones_like(x)
+            x = amplitude * np.ones_like(x, subok=False)
 
-        return x
+        if return_unit is None:
+            return x
+        else:
+            return Quantity(x, unit=return_unit, copy=False)
 
 
 class Ellipse2D(Fittable2DModel):
@@ -1199,6 +1217,12 @@ class Ellipse2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
         """Two dimensional Ellipse model function."""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         xx = x - x_0
         yy = y - y_0
         cost = np.cos(theta)
@@ -1206,7 +1230,12 @@ class Ellipse2D(Fittable2DModel):
         numerator1 = (xx * cost) + (yy * sint)
         numerator2 = -(xx * sint) + (yy * cost)
         in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
-        return np.select([in_ellipse], [amplitude])
+        result = np.select([in_ellipse], [amplitude])
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @property
     def bounding_box(self):
@@ -1267,8 +1296,19 @@ class Disk2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
         """Two dimensional Disk model function"""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        return np.select([rr <= R_0 ** 2], [amplitude])
+        result = np.select([rr <= R_0 ** 2], [amplitude])
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @property
     def bounding_box(self):
@@ -1347,9 +1387,20 @@ class Ring2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
 
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
+
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
-        return np.select([r_range], [amplitude])
+        result = np.select([r_range], [amplitude])
+
+        if return_unit is None:
+            return result
+        else:
+            return Quantity(result, unit=return_unit, copy=False)
 
     @property
     def bounding_box(self):
@@ -1681,12 +1732,6 @@ class TrapezoidDisk2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
 
-        if isinstance(amplitude, Quantity):
-            return_unit = amplitude.unit
-            amplitude = amplitude.value
-        else:
-            return_unit = None
-
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
         range_2 = np.logical_and(r > R_0, r <= R_0 + amplitude / slope)
@@ -1694,10 +1739,10 @@ class TrapezoidDisk2D(Fittable2DModel):
         val_2 = amplitude + slope * (R_0 - r)
         result = np.select([range_1, range_2], [val_1, val_2])
 
-        if return_unit is None:
-            return result
+        if isinstance(amplitude, Quantity):
+            return Quantity(result, unit=amplitude.unit, copy=False)
         else:
-            return Quantity(result, unit=return_unit, copy=False)
+            return result
 
     @property
     def bounding_box(self):
@@ -1896,13 +1941,21 @@ class AiryDisk2D(Fittable2DModel):
                 raise ImportError('AiryDisk2D model requires scipy > 0.11.')
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
+
+        if isinstance(r, Quantity):
+            r = r.decompose().value
+
         # Since r can be zero, we have to take care to treat that case
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
         rt = np.pi * r[r > 0]
         z[r > 0] = (2.0 * cls._j1(rt) / rt) ** 2
         z *= amplitude
-        return z
+
+        if isinstance(amplitude, Quantity):
+            return Quantity(z, unit=amplitude.unit, copy=False)
+        else:
+            return z
 
 
 class Moffat1D(Fittable1DModel):
