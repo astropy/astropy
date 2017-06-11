@@ -744,7 +744,47 @@ class FunctionTransform(CoordinateTransform):
                 'should have been of type {1}'.format(res, self.tosys))
         return res
 
-class AffineTransform(CoordinateTransform):
+class BaseAffineTransform(CoordinateTransform):
+    """
+    Base class for common functionality between the ``AffineTransform``-type
+    subclasses.
+    """
+
+    def _apply_transform(self, fromcoord, matrix, vectors):
+        from .representation import (CartesianRepresentation,
+                                     UnitSphericalRepresentation,
+                                     CartesianDifferential)
+
+        rep = fromcoord.represent_as(CartesianRepresentation)
+        newrep = rep.without_differentials().transform(matrix)
+
+        if vectors is not None:
+            pos_offset = CartesianRepresentation(vectors[0])
+            newrep = newrep + pos_offset
+
+        if rep.differentials:
+            # assume the 0th item is a velocity
+            # TODO: we only support velocities right now - elsewhere, we need to
+            # validate / make sure only 1 differential is attached
+            veldiff = rep.differentials[0]
+            newdiff = veldiff.represent_as(CartesianRepresentation, base=fromcoord.data)\
+                             .transform(matrix)
+
+            if vectors is not None:
+                vel_offset = CartesianRepresentation(vectors[1])
+                newdiff = newdiff + vel_offset
+
+            newdiff = newdiff.represent_as(CartesianDifferential)
+            newrep._differentials = (newdiff,)
+
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
+            # need to special-case this because otherwise the new class will
+            # think it has a valid distance
+            newrep = newrep.represent_as(fromcoord.data.__class__)
+
+        return newrep
+
+class AffineTransform(BaseAffineTransform):
     """
     A coordinate transformation specified as a function that yields a 3 x 3
     cartesian transformation matrix and a tuple of displacement vectors.
@@ -784,40 +824,6 @@ class AffineTransform(CoordinateTransform):
         super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
                                               register_graph=register_graph)
 
-    def _apply_transform(self, fromcoord, matrix, vectors):
-        from .representation import (CartesianRepresentation,
-                                     UnitSphericalRepresentation,
-                                     CartesianDifferential)
-
-        rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.without_differentials().transform(matrix)
-
-        if vectors is not None:
-            pos_offset = CartesianRepresentation(vectors[0])
-            newrep = newrep + pos_offset
-
-        if rep.differentials:
-            # assume the 0th item is a velocity
-            # TODO: we only support velocities right now - elsewhere, we need to
-            # validate / make sure only 1 differential is attached
-            veldiff = rep.differentials[0]
-            newdiff = veldiff.represent_as(CartesianRepresentation, base=fromcoord.data)\
-                             .transform(matrix)
-
-            if vectors is not None:
-                vel_offset = CartesianRepresentation(vectors[1])
-                newdiff = newdiff + vel_offset
-
-            newdiff = newdiff.represent_as(CartesianDifferential)
-            newrep._differentials = (newdiff,)
-
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
-            # need to special-case this because otherwise the new class will
-            # think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
-
-        return newrep
-
     def __call__(self, fromcoord, toframe):
 
         M, vec = self.transform_func(fromcoord, toframe)
@@ -825,7 +831,7 @@ class AffineTransform(CoordinateTransform):
 
         return toframe.realize_frame(newrep)
 
-class StaticMatrixTransform(AffineTransform):
+class StaticMatrixTransform(BaseAffineTransform):
     """
     A coordinate transformation defined as a 3 x 3 cartesian
     transformation matrix.
@@ -865,16 +871,16 @@ class StaticMatrixTransform(AffineTransform):
         if self.matrix.shape != (3, 3):
             raise ValueError('Provided matrix is not 3 x 3')
 
-        def _transform_func(fromcoord, toframe):
-            return self.matrix, None
-
-        super(StaticMatrixTransform, self).__init__(_transform_func,
-                                                    fromsys, tosys,
+        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
                                                     priority=priority,
                                                     register_graph=register_graph)
 
+    def __call__(self, fromcoord, toframe):
+        newrep = self._apply_transform(fromcoord, self.matrix, None)
+        return toframe.realize_frame(newrep)
 
-class DynamicMatrixTransform(AffineTransform):
+
+class DynamicMatrixTransform(BaseAffineTransform):
     """
     A coordinate transformation specified as a function that yields a
     3 x 3 cartesian transformation matrix.
@@ -914,10 +920,14 @@ class DynamicMatrixTransform(AffineTransform):
         def _transform_func(fromcoord, toframe):
             return self.matrix_func(fromcoord, toframe), None
 
-        super(DynamicMatrixTransform, self).__init__(_transform_func,
-                                                     fromsys, tosys,
+        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
                                                      priority=priority,
                                                      register_graph=register_graph)
+
+    def __call__(self, fromcoord, toframe):
+        M = self.matrix_func(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, M, None)
+        return toframe.realize_frame(newrep)
 
 
 class CompositeTransform(CoordinateTransform):
