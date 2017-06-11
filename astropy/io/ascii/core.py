@@ -977,6 +977,8 @@ class TableOutputter(BaseOutputter):
                           convert_numpy(numpy.str)]
 
     def __call__(self, cols, meta):
+        # Sets col.data to numpy array and col.type to io.ascii Type class (e.g.
+        # FloatType) for each col.
         self._convert_vals(cols)
 
         # If there are any values that were filled and tagged with a mask bit then this
@@ -993,6 +995,22 @@ class TableOutputter(BaseOutputter):
                     setattr(out_col, attr, getattr(col, attr))
             if hasattr(col, 'meta'):
                 out_col.meta.update(col.meta)
+
+        # Handle instantiating mixin classes
+        new_cols = {}
+        for name, col in out.columns.items():
+            if '__object_attributes__' not in col.meta:
+                continue
+            cls_name = col.meta['__object_attributes__']['class']
+            if cls_name == 'astropy.time.core.Time':  # subclassing?
+                from ...time import Time
+                cls = Time
+                new_cols[name] = cls.info._construct_from_col(col)
+            else:
+                raise ValueError('unsupported mixin class')
+
+        for name, col in new_cols.items():
+            out[name] = col
 
         return out
 

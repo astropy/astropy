@@ -151,7 +151,9 @@ class EcsvHeader(basic.BasicHeader):
                              'match names from header line of CSV data {}'
                              .format(self.names, header_names))
 
-        self._set_cols_from_names()  # BaseHeader method to create self.cols
+        # BaseHeader method to create self.cols, which is a list of
+        # io.ascii.core.Column objects (*not* Table Column objects).
+        self._set_cols_from_names()
 
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.

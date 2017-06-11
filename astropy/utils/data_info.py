@@ -597,3 +597,15 @@ class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""
 
     attrs_from_parent = set(['dtype'])  # dtype and unit taken from parent
+
+    def _get_value_datatype(self):
+        """
+        Get the ECSV datatype for the value that will be stored as a column in the
+        table.
+        """
+        type_name = self._parent.dtype.type.__name__
+        if not six.PY2 and type_name.startswith(('bytes', 'str')):
+            type_name = 'string'
+        if type_name.endswith('_'):
+            type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+        return type_name

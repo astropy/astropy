@@ -117,14 +117,43 @@ class TimeInfo(MixinInfo):
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
+    def _get_value_datatype(self):
+        """
+        Get the ECSV datatype for the value that will be stored as a column in the
+        table.
+        """
+        value = self._parent.value
+        type_name = value.dtype.type.__name__
+        if not six.PY2 and type_name.startswith(('bytes', 'str')):
+            type_name = 'string'
+        if type_name.endswith('_'):
+            type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+        return type_name
+
+    def _construct_from_col(self, col):
+        """Construct appropriate class object from ``col``.
+
+        Input ``col`` is a Table ``Column`` object with dtype=object (strings).
+        Called from astropy.io.ascii.core.TableOutputter.
+        """
+        attrs = col.info.meta['__object_attributes__']
+        map = copy.copy(attrs)
+        map['val'] = col.astype(map.pop('datatype'))
+        map.pop('class')
+
+        return self._construct_from_dict(map)
+
     def _construct_from_dict(self, map):
-        format = map.pop('format')
         delta_ut1_utc = map.pop('_delta_ut1_utc', None)
         delta_tdb_tt = map.pop('_delta_tdb_tt', None)
 
-        map['format'] = 'jd'
-        map['val'] = map.pop('jd1')
-        map['val2'] = map.pop('jd2')
+        if 'jd1' in map and 'jd2' in map:
+            format = map.pop('format')
+            map['format'] = 'jd'
+            map['val'] = map.pop('jd1')
+            map['val2'] = map.pop('jd2')
+        else:
+            format = map['format']
 
         out = self._parent_cls(**map)
         out.format = format
