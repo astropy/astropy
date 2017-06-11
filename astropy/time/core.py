@@ -130,6 +130,11 @@ class TimeInfo(MixinInfo):
             type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
         return type_name
 
+    def _represent_as_dict(self, context='yaml'):
+        if context == 'column':
+            self._represent_as_dict_data_attrs = ('val',)
+        return super(TimeInfo, self)._represent_as_dict(context)
+
     def _construct_from_col(self, col):
         """Construct appropriate class object from ``col``.
 
@@ -138,8 +143,10 @@ class TimeInfo(MixinInfo):
         """
         attrs = col.info.meta['__object_attributes__']
         map = copy.copy(attrs)
-        map['val'] = col.astype(map.pop('datatype'))
+        data_attrs = map.pop('data_attrs')
+        datatype = map.pop('datatype')
         map.pop('class')
+        map[data_attrs[0]] = col.astype(datatype)
 
         return self._construct_from_dict(map)
 

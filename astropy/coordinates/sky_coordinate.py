@@ -73,13 +73,14 @@ class SkyCoordInfo(MixinInfo):
     def _get_value_datatype(self):
         return 'string'
 
-    def _represent_as_dict(self, with_data=True):
+    def _represent_as_dict(self, context='yaml'):
         obj = self._parent
         data_attrs = tuple(obj.representation_component_names)
         info_attrs = tuple(frame_transform_graph.frame_attributes)
         self._represent_as_dict_data_attrs = data_attrs
         self._represent_as_dict_info_attrs = info_attrs
-        out = super(SkyCoordInfo, self)._represent_as_dict(with_data)
+
+        out = super(SkyCoordInfo, self)._represent_as_dict(context)
 
         # Don't output distance if it is all unitless 1.0
         if 'distance' in out and np.all(out['distance'] == 1.0):

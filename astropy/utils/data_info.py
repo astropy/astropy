@@ -283,17 +283,30 @@ class DataInfo(object):
 
         self._attrs[attr] = value
 
-    def _represent_as_dict(self, with_data=True):
+    def _represent_as_dict(self, context='yaml'):
         """
         Get the values for the parent ``attrs`` and return as a dict.
-        This is typically used for serializing the parent.
+
+        If ``context=='yaml'`` then this is being used to serialize the parent
+        to a self-contained YAML structure (including the data).
+
+        If ``context=='column'` then this is being used to serialize the parent
+        as a table column (probably ECSV) where this method is capturing non-data
+        attributes needed to re-create the object later in a table.
         """
         attrs = ()
-        if with_data:
+        if context == 'yaml':
             attrs = attrs + self._represent_as_dict_data_attrs
         attrs = attrs + self._represent_as_dict_info_attrs
 
-        return _get_obj_attrs_map(self._parent, attrs)
+        out = _get_obj_attrs_map(self._parent, attrs)
+
+        if context == 'column':
+            out['data_attrs'] = self._represent_as_dict_data_attrs
+            out['class'] = self._parent.__module__ + '.' + self._parent.__class__.__name__
+            out['datatype'] = self._get_value_datatype()
+
+        return out
 
     def _construct_from_dict(self, map):
         return self._parent_cls(**map)

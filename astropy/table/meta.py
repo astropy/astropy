@@ -176,9 +176,7 @@ def _get_col_attributes(col):
             hasattr(col.info, '_represent_as_dict')):
         if col.info.meta is None:
             col.info.meta = {}
-        obj_attrs = col.info._represent_as_dict(with_data=False)
-        obj_attrs['class'] = col.__module__ + '.' + col.__class__.__name__
-        obj_attrs['datatype'] = col.info._get_value_datatype()
+        obj_attrs = col.info._represent_as_dict(context='column')
         col.info.meta['__object_attributes__'] = obj_attrs
 
     # Set the output attributes
