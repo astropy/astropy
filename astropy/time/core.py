@@ -102,10 +102,10 @@ class TimeInfo(MixinInfo):
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
     _supports_indexing = True
-    _represent_as_dict_data_attrs = ('jd1', 'jd2')
-    _represent_as_dict_info_attrs = ('format', 'scale', 'precision',
+    _represent_as_dict_data_attrs = ['jd1', 'jd2']
+    _represent_as_dict_info_attrs = ['format', 'scale', 'precision',
                                      'in_subfmt', 'out_subfmt', 'location',
-                                     '_delta_ut1_utc', '_delta_tdb_tt')
+                                     '_delta_ut1_utc', '_delta_tdb_tt']
 
     @property
     def unit(self):
@@ -132,7 +132,7 @@ class TimeInfo(MixinInfo):
 
     def _represent_as_dict(self, context='yaml'):
         if context == 'column':
-            self._represent_as_dict_data_attrs = ('val',)
+            self._represent_as_dict_data_attrs = ['val']
         return super(TimeInfo, self)._represent_as_dict(context)
 
     def _construct_from_col(self, col):
@@ -174,8 +174,8 @@ class TimeInfo(MixinInfo):
 
 
 class TimeDeltaInfo(TimeInfo):
-    _represent_as_dict_data_attrs = ('jd1', 'jd2')
-    _represent_as_dict_info_attrs = ('format', 'scale')
+    _represent_as_dict_data_attrs = ['jd1', 'jd2']
+    _represent_as_dict_info_attrs = ['format', 'scale']
 
     def _construct_from_dict(self, map):
         format = map.pop('format')
