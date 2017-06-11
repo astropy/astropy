@@ -14,12 +14,9 @@ from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
-from .builtin_frames import ITRS, GCRS
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
 from ..utils import data
-
-from .name_resolve import NameResolveError
 
 try:
     # Not guaranteed available at setup time.
@@ -51,6 +48,8 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     return ellipsoid
 
 def _get_json_result(url, err_str):
+    # need to do this here to prevent a series of complicated circular imports
+    from .name_resolve import NameResolveError
     try:
         # Retrieve JSON response from Google maps API
         resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
@@ -527,6 +526,8 @@ class EarthLocation(u.Quantity):
         if obstime and self.size == 1 and obstime.size > 1:
             self = broadcast_to(self, obstime.shape, subok=True)
 
+        # do this here to prevent a series of complicated circular imports
+        from .builtin_frames import ITRS
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
@@ -550,6 +551,9 @@ class EarthLocation(u.Quantity):
         obsgeovel : `~astropy.coordinates.CartesianRepresentation`
             The GCRS velocity of the object
         """
+        # do this here to prevent a series of complicated circular imports
+        from .builtin_frames import GCRS
+
         itrs = self.get_itrs(obstime)
         geocentric_frame = GCRS(obstime=obstime)
         # GCRS position
