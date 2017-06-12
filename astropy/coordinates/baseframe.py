@@ -32,7 +32,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              REPRESENTATION_CLASSES)
 
 # Import all FrameAttributes so we don't break backwards-compatibility
-# (some users rely on them being here, although that is not 
+# (some users rely on them being here, although that is not
 # encouraged, as this is not the public API location.)
 from .frame_attributes import *
 
