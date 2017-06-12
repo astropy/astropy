@@ -12,6 +12,7 @@ from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ...tests.helper import quantity_allclose
 from ...time import Time
 
 
@@ -55,7 +56,6 @@ def test_transform_classes():
     # be sure to unregister the second one - no need for trans1 because it
     # already got unregistered when trans2 was created.
     trans2.unregister(frame_transform_graph)
-
 
 def test_transform_decos():
     """
@@ -204,3 +204,64 @@ def test_obstime():
     # because the obstime is different
     assert icrs_50.ra.degree != icrs_75.ra.degree
     assert icrs_50.dec.degree != icrs_75.dec.degree
+
+def test_affine_transform():
+    # TODO:
+    # - test that a 4x4 matrix fails
+    # - test that a (4,) offset fails
+    # - test that None in matrix or offset succeeds (is ignored)
+
+    # These should all succeed
+    def transfunc_both(coo, fr):
+        # exchange x <-> z and offset
+        M = np.array([[0., 0., 1.],
+                      [0., 1., 0.],
+                      [1., 0., 0.]])
+        return M, (np.arange(3)*u.pc, np.arange(3, 6)*u.pc/u.Myr)
+
+    def transfunc_no_matrix(coo, fr):
+        return None, (np.arange(3)*u.pc, np.arange(3, 6)*u.pc/u.Myr)
+
+    def transfunc_no_pos(coo, fr):
+        return None, (None, np.arange(3, 6)*u.pc/u.Myr)
+
+    def transfunc_no_vel(coo, fr):
+        return None, (np.arange(3)*u.pc, None)
+
+    # with and without a differential
+    repr = r.CartesianRepresentation(5, 6, 7, unit=u.pc)
+    diff = r.CartesianDifferential(8, 9, 10, unit=u.pc/u.Myr)
+    c1 = TCoo1(repr)
+    c1_diff = TCoo1(repr.with_differentials(diff))
+
+    # ========================================================================
+    # Matrix & offset
+    #
+    trans = t.AffineTransform(transfunc_both, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    c2 = c1.transform_to(TCoo2)
+    assert quantity_allclose(c2.data.to_cartesian().xyz, [7, 7, 7]*u.pc)
+
+    c2 = c1_diff.transform_to(TCoo2)
+    assert quantity_allclose(c2.data.to_cartesian().xyz, [7, 7, 7]*u.pc)
+    diff = c2.data.differentials[0].to_cartesian(base=c2.data)
+    assert quantity_allclose(diff.xyz, [13, 13, 13]*u.pc/u.Myr)
+
+    trans.unregister(frame_transform_graph)
+
+    # ========================================================================
+    # Offset-only, both
+    #
+    trans = t.AffineTransform(transfunc_no_matrix, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    c2 = c1.transform_to(TCoo2)
+    assert quantity_allclose(c2.data.to_cartesian().xyz, [5, 7, 9]*u.pc)
+
+    c2 = c1_diff.transform_to(TCoo2)
+    assert quantity_allclose(c2.data.to_cartesian().xyz, [5, 7, 9]*u.pc)
+    diff = c2.data.differentials[0].to_cartesian(base=c2.data)
+    assert quantity_allclose(diff.xyz, [11, 13, 15]*u.pc/u.Myr)
+
+    trans.unregister(frame_transform_graph)
