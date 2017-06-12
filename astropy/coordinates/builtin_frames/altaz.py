@@ -6,7 +6,11 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ..representation import SphericalRepresentation
+from ..representation import (CartesianDifferential,
+                              SphericalRepresentation,
+                              UnitSphericalRepresentation,
+                              SphericalCosLatDifferential,
+                              UnitSphericalCosLatDifferential)
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..frame_attributes import (FrameAttribute, TimeFrameAttribute,
                                 QuantityFrameAttribute, EarthLocationAttribute)
@@ -77,13 +81,28 @@ class AltAz(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'az'),
-                      RepresentationMapping('lat', 'alt')],
+        SphericalRepresentation: [
+            RepresentationMapping('lon', 'az'),
+            RepresentationMapping('lat', 'alt')
+        ],
+        SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_az'),
+            RepresentationMapping('d_lat', 'pm_alt'),
+            RepresentationMapping('d_distance', 'radial_velocity'),
+        ],
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z'),
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[UnitSphericalRepresentation] = \
+        frame_specific_representation_info[SphericalRepresentation]
+    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[SphericalCosLatDifferential]
 
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     obstime = TimeFrameAttribute(default=None)
     location = EarthLocationAttribute(default=None)

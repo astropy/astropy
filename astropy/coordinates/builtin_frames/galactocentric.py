@@ -8,8 +8,11 @@ import numpy as np
 from ... import units as u
 from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, frame_transform_graph
+from ..representation import (CartesianRepresentation,
+                              CartesianDifferential,
+                              UnitSphericalRepresentation)
+from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                         RepresentationMapping)
 from ..frame_attributes import FrameAttribute
 from ..transformations import AffineTransform
 from ..errors import ConvertError
@@ -126,7 +129,16 @@ class Galactocentric(BaseCoordinateFrame):
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
 
     """
+    frame_specific_representation_info = {
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z'),
+        ],
+    }
+
     default_representation = CartesianRepresentation
+    default_differential = CartesianDifferential
 
     # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
     galcen_distance = FrameAttribute(default=8.3*u.kpc)

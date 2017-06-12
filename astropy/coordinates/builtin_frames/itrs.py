@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..representation import CartesianRepresentation
+from ..representation import CartesianRepresentation, CartesianDifferential
 from ..baseframe import BaseCoordinateFrame
 from ..frame_attributes import TimeFrameAttribute
 from .utils import DEFAULT_OBSTIME
@@ -19,6 +19,7 @@ class ITRS(BaseCoordinateFrame):
     """
 
     default_representation = CartesianRepresentation
+    default_differential = CartesianDifferential
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
