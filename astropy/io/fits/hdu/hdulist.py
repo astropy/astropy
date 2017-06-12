@@ -7,7 +7,6 @@ import gzip
 import os
 import shutil
 import sys
-import textwrap
 import warnings
 
 import numpy as np
@@ -216,10 +215,6 @@ class HDUList(list, _Verify):
         else:
             self._read_all = False
 
-        # This is used for book-keeping for backwards compatibility of
-        # accessing unread HDUs after the file has been closed.
-        self._total_read = None
-
         if hdus is None:
             hdus = []
 
@@ -304,14 +299,33 @@ class HDUList(list, _Verify):
                     if not self._read_next_hdu():
                         break
 
-            hdus = super(HDUList, self).__getitem__(key)
-            return HDUList(hdus)
+            try:
+                hdus = super(HDUList, self).__getitem__(key)
+            except IndexError as e:
+                # Raise a more helpful IndexError if the file was not fully read.
+                if self._read_all:
+                    raise e
+                else:
+                    raise IndexError('HDU not found, possibly because the index '
+                                     'is out of range, or because the file was '
+                                     'closed before all HDUs were read')
+            else:
+                return HDUList(hdus)
 
         # Originally this used recursion, but hypothetically an HDU with
         # a very large number of HDUs could blow the stack, so use a loop
         # instead
-        return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
-                                           self._positive_index_of(key))
+        try:
+            return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
+                                            self._positive_index_of(key))
+        except IndexError as e:
+            # Raise a more helpful IndexError if the file was not fully read.
+            if self._read_all:
+                raise e
+            else:
+                raise IndexError('HDU not found, possibly because the index '
+                                 'is out of range, or because the file was '
+                                 'closed before all HDUs were read')
 
     def __contains__(self, item):
         """
@@ -900,37 +914,8 @@ class HDUList(list, _Verify):
             When `True`, close the underlying file object.
         """
 
-        # If the underlying file object is not closed then we can still
-        # technically lazy-load HDUs
-
-        if closed:
-            # Get the actual current number of HDUs that have been loaded
-            total_read = list.__len__(self)
-
-            # Now read in any remaining HDUs
-            while self._read_next_hdu():
-                pass
-
         try:
-            self._close(output_verify=output_verify, verbose=verbose,
-                        closed=closed)
-        finally:
-            # This will cause deprecation warnings on any future attempt
-            # to access HDUs that were not loaded before closing
-            if closed:
-                self._total_read = total_read
-
-    def _close(self, output_verify='exception', verbose=False, closed=True):
-        """
-        Internal implementation of close() that does not allow further
-        HDUs to be loaded.
-
-        The HDU pre-loading behavior of the explicit close() is currently
-        maintained only for backwards-compatibility.
-        """
-
-        try:
-            if (self._file and self._file.mode in ['append', 'update']
+            if (self._file and self._file.mode in ('append', 'update')
                     and not self._file.closed):
                 self.flush(output_verify=output_verify, verbose=verbose)
         finally:
@@ -1057,45 +1042,17 @@ class HDUList(list, _Verify):
 
         return hdulist
 
-    def _try_while_unread_hdus(self, func, index, *args, **kwargs):
+    def _try_while_unread_hdus(self, func, *args, **kwargs):
         """
         Attempt an operation that accesses an HDU by index/name
         that can fail if not all HDUs have been read yet.  Keep
         reading HDUs until the operation succeeds or there are no
         more HDUs to read.
-
-        The first argument must always be the index of some HDU in the
-        HDUList, but additional arguments may be passed on.
         """
-
-        # TODO: This is a temporary hack for reporting the deprecation
-        # warning on the pre-lazy-loading behavior of allowing HDUs to
-        # be accessed after the file was closed.  It can be removed once
-        # the deprecation period has passed.
-        if self._file and self._file.closed and self._total_read is not None:
-            if index > self._total_read - 1:
-                warnings.warn(textwrap.dedent(
-                    """\
-                    Accessing an HDU after an HDUList is closed, where
-                    that HDU was no read while the HDUList was open
-                    is deprecated.  That is, you did something like:
-
-                        >>> hdulist.close()
-                        >>> print(hdulist[2].header)
-
-                    even though hdulist[2] had not been read yet.  Instead
-                    do:
-
-                        >>> print(hdulist[2].header)
-                        >>> hdulist.close()
-
-                    or open the file with lazy_load_hdus=False to read all
-                    the HDUs into memory immediately upon opening the file.
-                    """), AstropyDeprecationWarning)
 
         while True:
             try:
-                return func(index, *args, **kwargs)
+                return func(*args, **kwargs)
             except Exception:
                 if self._read_next_hdu():
                     continue
@@ -1115,6 +1072,9 @@ class HDUList(list, _Verify):
 
         saved_compression_enabled = compressed.COMPRESSION_ENABLED
         fileobj, data, kwargs = self._file, self._data, self._open_kwargs
+
+        if fileobj is not None and fileobj.closed:
+            return False
 
         try:
             self._in_read_next_hdu = True
@@ -1139,14 +1099,6 @@ class HDUList(list, _Verify):
                     except EOFError:
                         self._read_all = True
                         return False
-                    except ValueError:
-                        # A ValueError can occur when trying to perform I/O
-                        # on a closed file
-                        if fileobj.closed:
-                            self._read_all = True
-                            return False
-                        else:
-                            raise
                     except IOError:
                         if fileobj.writeonly:
                             self._read_all = True
