@@ -96,7 +96,7 @@ MODELS_2D = [
  'bounding_box': True},
 {'class': Box2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.s,
-                'x_width': 2 * u.cm, 'y_width': 3 * u.s},
+                'x_width': 4 * u.cm, 'y_width': 3 * u.s},
  'evaluation':[(301 * u.cm, 3 * u.s, 3 * u.Jy)],
  'bounding_box': True},
 {'class': MexicanHat2D,
@@ -186,10 +186,17 @@ def test_models_bounding_box(model):
             m.bounding_box
 
 
-@pytest.mark.parametrize('model', MODELS_1D)
-def test_1d_models_fitting(model):
+@pytest.mark.parametrize('model', MODELS)
+def test_models_fitting(model):
     m = model['class'](**model['parameters'])
-    x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
-    y = np.ones(100) * model['evaluation'][0][1].unit
+    if len(model['evaluation'][0]) == 2:
+        x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
+        y = np.ones(100) * model['evaluation'][0][1].unit
+        args = [x, y]
+    else:
+        x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
+        y = np.linspace(-3, 3, 100) * model['evaluation'][0][1].unit
+        z = np.ones(100) * model['evaluation'][0][2].unit
+        args = [x, y, z]
     fitter = LevMarLSQFitter()
-    m_new = fitter(m, x, y)
+    m_new = fitter(m, *args)
