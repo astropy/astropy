@@ -457,7 +457,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
-        may not have data). Roughly speaking, the converse of `copy_without_data`.
+        may not have data). Roughly speaking, the converse of
+        `copy_without_data` when ``copy`` is ``None``.
 
         Parameters
         ----------
@@ -475,28 +476,44 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         if attr not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
-    def copy_without_data(self, **kwargs):
+    def replicate(self, copy=False, **kwargs):
         """
-        Generates a new frame *without data* from this frame (which may or
-        may not have data).  Optinally, can override frame attributes.
-        Roughly speaking, the converse of `realize_frame`.
+        Generates a new frame object that is a copy of this one, but with some
+        frame attributes overriden, which may or may not have data.
+
+        If ``copy`` is set to `True` then a full copy of the internal arrays
+        will be made.  By default the replica will use a reference to the
+        original arrays when possible to save memory.  The internal arrays
+        are normally not changeable by the user so in most cases it should not
+        be necessary to set ``copy`` to `True`.
+
+        This method can also be set to drop the representation data entirely by
+        setting ``copy`` to ``None``.  In this mode, it is the converse of
+        `realize_frame`.
 
         Parameters
         ----------
-        Any keywords are treated as frame attributes to be set on the new frame
-        object.
+        copy : bool or None, optional
+            If True, the resulting object is a copy of the data.  When False,
+            references are used where  possible. When None, the data are dropped
+            entirely in the resulting object (i.e., it becomes a "bare" frame).
+
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object.
 
         Returns
         -------
         frameobj : same as this frame
-            A new object with the same frame attributes as this one, but
-            with no data and possibly new frame attributes.
+            Replica of this object, but possibly with no data and possibly new
+            frame attributes.
         """
-        frattrs = dict([(attr, getattr(self, attr))
-                        for attr in self.get_frame_attr_names()
-                        if attr not in self._attr_names_with_defaults])
-        frattrs.update(kwargs)
-        return self.__class__(**frattrs)
+        if copy is None:
+            method = 'replicatenodata'
+        elif copy:
+            method = 'copy'
+        else:
+            method = 'replicate'
+        return self._apply(method, **kwargs)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -784,6 +801,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
+        if method == 'replicatenodata':
+            data = None
+            method = 'replicate'
+        else:
+            data = self.data if self.has_data else None
+
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
                 return value._apply(method, *args, **kwargs)
@@ -793,13 +816,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 else:
                     return getattr(value, method)(*args, **kwargs)
 
-
-        data = apply_method(self.data) if self.has_data else None
+        if data is not None:
+            data = apply_method(data)
 
         frattrs = {}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
-                value = getattr(self, attr)
+                if (method == 'copy' or method == 'replicate') and attr in kwargs:
+                    value = kwargs[attr]
+                else:
+                    value = getattr(self, attr)
                 if getattr(value, 'size', 1) > 1:
                     value = apply_method(value)
                 elif method == 'copy' or method == 'flatten':
