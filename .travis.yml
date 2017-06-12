@@ -71,6 +71,9 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
+        - os: linux
+          env: NUMPY_VERSION=1.12
+               SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy). We also test the two latest matplotlib versions
