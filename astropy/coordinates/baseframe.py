@@ -457,7 +457,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
-        may not have data).
+        may not have data). Roughly speaking, the converse of `clone_frame`.
 
         Parameters
         ----------
@@ -474,6 +474,28 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         for attr in self.get_frame_attr_names()
                         if attr not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
+
+    def clone_frame(self, **kwargs):
+        """
+        Generates a new frame *without data* from this frame (which may or
+        may not have data).  Optinally, can override frame attributes.
+        Roughly speaking, the converse of `realize_frame`.
+
+        Parameters
+        ----------
+        Any keywords are treated as frame attributes to be set on the new frame
+        object.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            A new object with the same frame attributes as this one, but
+            with no data and possibly new frame attributes.
+        """
+        attrs_to_set = {nm:getattr(self, nm) for nm in self.frame_attributes}
+        for nm, val in kwargs.items():
+            attrs_to_set[nm] = val
+        return self.__class__(**attrs_to_set)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
