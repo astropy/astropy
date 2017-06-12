@@ -1094,9 +1094,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             self.data  # this raises the "no data" error by design - doing it
             # this way means we don't have to replicate the error message here
 
-        else:
+        elif attr in self.representation_component_names:
             rep = self.represent_as(self.representation, in_frame_units=True)
             val = getattr(rep, self.representation_component_names[attr])
+            return val
+
+        elif attr in self.differential_component_names:
+            # TODO: this is a temporary hack - should use self.represent_as...
+            diff = self.data.differentials[0].represent_as(self.differential_cls,
+                                                           base=self.data)
+            val = getattr(diff, self.differential_component_names[attr])
             return val
 
     def __setattr__(self, attr, value):
