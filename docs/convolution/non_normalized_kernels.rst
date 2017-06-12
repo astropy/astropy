@@ -80,7 +80,13 @@ before applying the peak-finding kernel.
    # apply peak-finding
    kernel = CustomKernel([[-1,-1,-1], [-1, 8, -1], [-1,-1,-1]])
 
-   peaked_image = convolve(img, kernel, normalize_kernel=False, nan_treatment='fill')
+   # Use the peak-finding kernel
+   # We have to turn off kernel normalization and set nan_treatment to "fill"
+   # here because `nan_treatment='interpolate'` is incompatible with non-
+   # normalized kernels
+   peaked_image = convolve(reconstructed_image, kernel,
+                           normalize_kernel=False,
+                           nan_treatment='fill')
 
    plt.figure(1, figsize=(12, 12)).clf()
    ax1 = plt.subplot(1, 3, 1)
