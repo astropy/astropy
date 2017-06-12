@@ -663,6 +663,17 @@ class Sersic1D(Fittable1DModel):
         return (amplitude * np.exp(
             -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
 
+    @property
+    def input_units(self):
+        if self.r_eff.unit is None:
+            return None
+        else:
+            return {'x': self.r_eff.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('r_eff', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class Sine1D(Fittable1DModel):
     """
@@ -733,6 +744,17 @@ class Sine1D(Fittable1DModel):
                    np.cos(TWOPI * frequency * x + TWOPI * phase))
         return [d_amplitude, d_frequency, d_phase]
 
+    @property
+    def input_units(self):
+        if self.frequency.unit is None:
+            return None
+        else:
+            return {'x': 1. / self.frequency.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('frequency', 1. / inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class Linear1D(Fittable1DModel):
     """
@@ -780,6 +802,17 @@ class Linear1D(Fittable1DModel):
         new_slope = self.slope ** -1
         new_intercept = -self.intercept / self.slope
         return self.__class__(slope=new_slope, intercept=new_intercept)
+
+    @property
+    def input_units(self):
+        if self.intercept.unit is None and self.slope.unit is None:
+            return None
+        else:
+            return {'x': self.intercept.unit / self.slope.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('intercept', outputs_unit['y']),
+                            ('slope', outputs_unit['y'] / inputs_unit['x'])])
 
 
 class Planar2D(Fittable2DModel):
@@ -915,6 +948,18 @@ class Lorentz1D(Fittable1DModel):
 
         return (x0 - dx, x0 + dx)
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('fwhm', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class Voigt1D(Fittable1DModel):
     """
@@ -1007,6 +1052,19 @@ class Voigt1D(Fittable1DModel):
                 -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('fwhm_L', inputs_unit['x']),
+                            ('fwhm_G', inputs_unit['x']),
+                            ('amplitude_L', outputs_unit['y'])])
+
 
 class Const1D(Fittable1DModel):
     """
@@ -1086,6 +1144,13 @@ class Const1D(Fittable1DModel):
 
         d_amplitude = np.ones_like(x)
         return [d_amplitude]
+
+    @property
+    def input_units(self):
+        return None
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('amplitude', outputs_unit['y'])])
 
 
 class Const2D(Fittable2DModel):
@@ -1526,6 +1591,18 @@ class Box1D(Fittable1DModel):
 
         return (self.x_0 - dx, self.x_0 + dx)
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('width', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class Box2D(Fittable2DModel):
     """
@@ -1699,6 +1776,19 @@ class Trapezoid1D(Fittable1DModel):
 
         return (self.x_0 - dx, self.x_0 + dx)
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('width', inputs_unit['x']),
+                            ('slope', outputs_unit['y'] / inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class TrapezoidDisk2D(Fittable2DModel):
     """
@@ -1832,6 +1922,19 @@ class MexicanHat1D(Fittable1DModel):
         dx = factor * self.sigma
 
         return (x0 - dx, x0 + dx)
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('sigma', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 
 class MexicanHat2D(Fittable2DModel):
@@ -2039,6 +2142,18 @@ class Moffat1D(Fittable1DModel):
                    (gamma ** 3 * d_A ** alpha))
         d_alpha = -amplitude * d_A * np.log(1 + (x - x_0) ** 2 / gamma ** 2)
         return [d_A, d_x_0, d_gamma, d_alpha]
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('gamma', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class Moffat2D(Fittable2DModel):
