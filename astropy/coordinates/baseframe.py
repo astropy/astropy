@@ -454,11 +454,63 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 out[repr_name] = repr_unit
         return out
 
+    def replicate(self, copy=False, **kwargs):
+        """
+        Generates a new frame object that is a copy of this one, but possibly
+        with frame attributes overriden and/or by reference.
+
+        If ``copy`` is set to `True` then a full copy of the internal arrays
+        will be made.  By default the replica will use a reference to the
+        original arrays when possible to save memory.  The internal arrays
+        are normally not changeable by the user so in most cases it should not
+        be necessary to set ``copy`` to `True`.
+
+        Parameters
+        ----------
+        copy : bool, optional
+            If True, the resulting object is a copy of the data.  When False,
+            references are used where  possible. This rule also applies to the
+            frame attributes.
+
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            Replica of this object, but possibly with new frame attributes.
+        """
+        return self._apply('copy' if copy else 'replicate', **kwargs)
+
+    def replicate_without_data(self, copy=False, **kwargs):
+        """
+        Generates a new frame object that is a copy of this one, but without
+        data, and possibly with new frame attributes.  Effectively, the converse
+        of `realize_frame`.
+
+        Parameters
+        ----------
+        copy : bool, optional
+            If True, the resulting object has copies of the frame attributes.
+            When False, references are used where  possible.
+
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            Replica of this object, but without data and possibly with new frame
+            attributes.
+        """
+        kwargs['_framedata'] = None
+        return self._apply('copy' if copy else 'replicate', **kwargs)
+
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
         may not have data). Roughly speaking, the converse of
-        `copy_without_data` when ``copy`` is ``None``.
+        `replicate_without_data`.
 
         Parameters
         ----------
@@ -471,49 +523,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        frattrs = dict([(attr, getattr(self, attr))
-                        for attr in self.get_frame_attr_names()
-                        if attr not in self._attr_names_with_defaults])
-        return self.__class__(representation, **frattrs)
-
-    def replicate(self, copy=False, **kwargs):
-        """
-        Generates a new frame object that is a copy of this one, but with some
-        frame attributes overriden, which may or may not have data.
-
-        If ``copy`` is set to `True` then a full copy of the internal arrays
-        will be made.  By default the replica will use a reference to the
-        original arrays when possible to save memory.  The internal arrays
-        are normally not changeable by the user so in most cases it should not
-        be necessary to set ``copy`` to `True`.
-
-        This method can also be set to drop the representation data entirely by
-        setting ``copy`` to ``None``.  In this mode, it is the converse of
-        `realize_frame`.
-
-        Parameters
-        ----------
-        copy : bool or None, optional
-            If True, the resulting object is a copy of the data.  When False,
-            references are used where  possible. When None, the data are dropped
-            entirely in the resulting object (i.e., it becomes a "bare" frame).
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object.
-
-        Returns
-        -------
-        frameobj : same as this frame
-            Replica of this object, but possibly with no data and possibly new
-            frame attributes.
-        """
-        if copy is None:
-            method = 'replicatenodata'
-        elif copy:
-            method = 'copy'
-        else:
-            method = 'replicate'
-        return self._apply(method, **kwargs)
+        return self._apply('replicate', _framedata=representation)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -801,9 +811,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
-        if method == 'replicatenodata':
-            data = None
-            method = 'replicate'
+        if '_framedata' in kwargs:
+            data = kwargs['_framedata']
         else:
             data = self.data if self.has_data else None
 
