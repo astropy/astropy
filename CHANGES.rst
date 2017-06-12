@@ -22,6 +22,10 @@ New Features
     differentials (i.e., finite derivatives) of coordinates.  This is intended
     to enable support for velocities in coordinate frames down the road. [#5871]
 
+  - A ``clone_frame`` method was added to coordinate frames that allows copying
+    an existing frame without the data (and possibly overriding frame
+    attributes). [#6182]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
