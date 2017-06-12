@@ -120,8 +120,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    renormalize_by_kernel = True
-
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
@@ -141,11 +139,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         if isinstance(array, Kernel):
             if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
                 new_array = convolve1d_boundary_fill(array.array, kernel.array,
-                                                     0, renormalize_by_kernel)
+                                                     0, True)
                 new_kernel = Kernel1D(array=new_array)
             elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
                 new_array = convolve2d_boundary_fill(array.array, kernel.array,
-                                                     0, renormalize_by_kernel)
+                                                     0, True)
                 new_kernel = Kernel2D(array=new_array)
             else:
                 raise Exception("Can't convolve 1D and 2D kernel.")
@@ -214,13 +212,19 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
+    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=1e-8)
 
-    if kernel_sum < 1. / MAX_NORMALIZATION and normalize_kernel:
+    if (kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero) and normalize_kernel:
         raise Exception("The kernel can't be normalized, because its sum is "
                         "close to zero. The sum of the given kernel is < {0}"
                         .format(1. / MAX_NORMALIZATION))
 
-    kernel_internal /= kernel_sum
+    if not kernel_sums_to_zero:
+        kernel_internal /= kernel_sum
+    else:
+        kernel_internal = kernel
+
+    renormalize_by_kernel = not kernel_sums_to_zero
 
     if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
@@ -288,7 +292,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     # If normalization was not requested, we need to scale the array (since
     # the kernel is effectively normalized within the cython functions)
-    if not normalize_kernel:
+    if not normalize_kernel and not kernel_sums_to_zero:
         result *= kernel_sum
 
     if preserve_nan:
@@ -496,7 +500,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if isinstance(kernel, Kernel):
         kernel = kernel.array
         if isinstance(array, Kernel):
-            raise TypeError("Can't convolve two kernels.")
+            raise TypeError("Can't convolve two kernels with convolve_fft.  "
+                            "Use convolve instead.")
 
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
@@ -560,11 +565,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         kernel_scale = kernel.sum()
         if np.abs(kernel_scale - 1) < 1e-8:
+            kernel_scale = 1
             normalized_kernel = kernel
         else:
-            if np.abs(kernel.sum()) < 1e-8 and nan_treatment == 'interpolate':
-                raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
-            normalized_kernel = kernel / kernel_scale
+            if np.abs(kernel.sum()) < 1e-8:
+                if nan_treatment == 'interpolate':
+                    raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
+                else:
+                    # the kernel's sum is near-zero, so it can't be scaled
+                    kernel_scale = 1
+                    normalized_kernel = kernel
+            else:
+                normalized_kernel = kernel / kernel_scale
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
