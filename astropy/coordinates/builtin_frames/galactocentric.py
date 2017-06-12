@@ -135,11 +135,6 @@ class Galactocentric(BaseCoordinateFrame):
     z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
 
-    # TODO: is this the best class for this frame attribute?
-    # TODO: what should the default be here? need to add citations too...
-    v_sun = CartesianRepresentationFrameAttribute(default=[11.1, 242., 7.25]*u.km/u.s,
-                                                  unit=u.km/u.s)
-
     @classmethod
     def get_roll0(cls):
         """
@@ -176,7 +171,10 @@ def get_matrix_vectors(galactocentric_frame):
     # compute total matrices
     A = matrix_product(H, R)
     pos_vec = matrix_product(H, -translation.xyz)
-    vel_vec = matrix_product(H, -gcf.v_sun.xyz)
+
+    # TODO: need to get the velocity offset
+    # vel_vec = matrix_product(H, -gcf.v_sun.xyz)
+    vel_vec = None # for now, this gets ignored
 
     return A, (pos_vec, vel_vec)
 
@@ -200,4 +198,5 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
 
     # the inverse of a rotation matrix is a transpose, which is much faster and
     #   more stable to compute
-    return matrix_transpose(A), [-x for x in vecs]
+    # TODO: this actually might not be right, because of order of operations
+    return matrix_transpose(A), [-x if x is not None else None for x in vecs]
