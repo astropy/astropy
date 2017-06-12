@@ -34,7 +34,9 @@ from ..extern.six.moves import range
 from .representation import REPRESENTATION_CLASSES
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
-           'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
+           'BaseAffineTransform', 'AffineTransform',
+           'StaticMatrixTransform', 'DynamicMatrixTransform',
+           'CompositeTransform']
 
 class TransformGraph(object):
     """
