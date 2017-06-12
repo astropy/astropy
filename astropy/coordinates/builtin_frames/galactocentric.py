@@ -10,7 +10,7 @@ from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from ..representation import CartesianRepresentation, UnitSphericalRepresentation
 from ..baseframe import BaseCoordinateFrame, frame_transform_graph
-from ..frame_attributes import FrameAttribute, CartesianRepresentationFrameAttribute
+from ..frame_attributes import FrameAttribute
 from ..transformations import AffineTransform
 from ..errors import ConvertError
 
