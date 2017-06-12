@@ -11,6 +11,7 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
                                  Moffat1D, Gaussian2D, Const2D, Ellipse2D,
                                  Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
                                  MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
+from ..fitting import LevMarLSQFitter
 
 # TODO: GaussianAbsorption1D doesn't work with units because the 1- part doesn't
 # have units. How do we want to deal with that?
@@ -123,14 +124,14 @@ MODELS_2D = [
 MODELS = MODELS_1D + MODELS_2D
 
 @pytest.mark.parametrize('model', MODELS)
-def test_1d_models_evaluatate_with_units(model):
+def test_models_evaluatate_with_units(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
         assert_quantity_allclose(m(*args[:-1]), args[-1])
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_1d_models_evaluatate_with_units_x_array(model):
+def test_models_evaluatate_with_units_x_array(model):
 
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
@@ -148,7 +149,7 @@ def test_1d_models_evaluatate_with_units_x_array(model):
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_1d_models_evaluatate_with_units_param_array(model):
+def test_models_evaluatate_with_units_param_array(model):
 
     params = {}
     for key, value in model['parameters'].items():
@@ -173,7 +174,7 @@ def test_1d_models_evaluatate_with_units_param_array(model):
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_1d_models_bounding_box(model):
+def test_models_bounding_box(model):
     m = model['class'](**model['parameters'])
     if model['bounding_box']:
         m.bounding_box
@@ -183,3 +184,12 @@ def test_1d_models_bounding_box(model):
         # above
         with pytest.raises(NotImplementedError):
             m.bounding_box
+
+
+@pytest.mark.parametrize('model', MODELS_1D)
+def test_1d_models_fitting(model):
+    m = model['class'](**model['parameters'])
+    x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
+    y = np.ones(100) * model['evaluation'][0][1].unit
+    fitter = LevMarLSQFitter()
+    m_new = fitter(m, x, y)
