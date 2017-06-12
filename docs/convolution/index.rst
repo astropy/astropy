@@ -347,6 +347,7 @@ eye).
    ax2.set_yticklabels([])
 
 
+
 Using `astropy.convolution`
 ===========================
 
@@ -355,6 +356,7 @@ Using `astropy.convolution`
 
    using.rst
    kernels.rst
+   non_normalized_kernels.rst
 
 Reference/API
 =============
