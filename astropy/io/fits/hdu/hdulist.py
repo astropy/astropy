@@ -307,8 +307,8 @@ class HDUList(list, _Verify):
                     raise e
                 else:
                     raise IndexError('HDU not found, possibly because the index '
-                                    'is out of range, or because the file was '
-                                    'closed before all HDUs were read')
+                                     'is out of range, or because the file was '
+                                     'closed before all HDUs were read')
             else:
                 return HDUList(hdus)
 
