@@ -10,6 +10,7 @@ import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
+from ..utils.decorators import deprecated_renamed_argument
 from .. import units as u
 from ..nddata import support_nddata
 
@@ -307,6 +308,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         return result
 
 
+@deprecated_renamed_argument('interpolate_nan', 'nan_treatment', 'v2.0.0')
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,
