@@ -32,7 +32,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              REPRESENTATION_CLASSES)
 
 # Import all FrameAttributes so we don't break backwards-compatibility
-# (some users rely on them being here, although that is not 
+# (some users rely on them being here, although that is not
 # encouraged, as this is not the public API location.)
 from .frame_attributes import *
 
@@ -492,10 +492,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with no data and possibly new frame attributes.
         """
-        attrs_to_set = {nm:getattr(self, nm) for nm in self.frame_attributes}
-        for nm, val in kwargs.items():
-            attrs_to_set[nm] = val
-        return self.__class__(**attrs_to_set)
+        frattrs = dict([(attr, getattr(self, attr))
+                        for attr in self.get_frame_attr_names()
+                        if attr not in self._attr_names_with_defaults])
+        frattrs.update(kwargs)
+        return self.__class__(**frattrs)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
