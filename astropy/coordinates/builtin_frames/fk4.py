@@ -6,8 +6,11 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                              UnitSphericalRepresentation)
+from ..representation import (CartesianRepresentation, CartesianDifferential,
+                              SphericalRepresentation,
+                              UnitSphericalRepresentation,
+                              SphericalCosLatDifferential,
+                              UnitSphericalCosLatDifferential)
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          RepresentationMapping)
 from ..frame_attributes import TimeFrameAttribute
@@ -49,13 +52,29 @@ class FK4(BaseCoordinateFrame):
         Can only be passed in as a keyword argument.
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
+        SphericalRepresentation: [
+            RepresentationMapping('lon', 'ra'),
+            RepresentationMapping('lat', 'dec')
+        ],
+        SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_ra'),
+            RepresentationMapping('d_lat', 'pm_dec'),
+            RepresentationMapping('d_distance', 'radial_velocity'),
+        ],
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z'),
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[UnitSphericalRepresentation] = \
+        frame_specific_representation_info[SphericalRepresentation]
+    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[SphericalCosLatDifferential]
 
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
+
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
@@ -95,13 +114,29 @@ class FK4NoETerms(BaseCoordinateFrame):
         Can only be passed in as a keyword argument.
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
+        SphericalRepresentation: [
+            RepresentationMapping('lon', 'ra'),
+            RepresentationMapping('lat', 'dec')
+        ],
+        SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_ra'),
+            RepresentationMapping('d_lat', 'pm_dec'),
+            RepresentationMapping('d_distance', 'radial_velocity'),
+        ],
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z'),
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[UnitSphericalRepresentation] = \
+        frame_specific_representation_info[SphericalRepresentation]
+    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[SphericalCosLatDifferential]
 
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
+
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 

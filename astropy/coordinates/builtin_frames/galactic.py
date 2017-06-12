@@ -5,7 +5,12 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ... import units as u
 from ..angles import Angle
-from ..representation import SphericalRepresentation
+from ..representation import (CartesianRepresentation,
+                              CartesianDifferential,
+                              SphericalRepresentation,
+                              SphericalCosLatDifferential,
+                              UnitSphericalRepresentation,
+                              UnitSphericalCosLatDifferential)
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 
 # these are needed for defining the NGP
@@ -35,16 +40,33 @@ class Galactic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'l'),
-                      RepresentationMapping('lat', 'b')],
-        'cartesian': [RepresentationMapping('x', 'w'),
-                      RepresentationMapping('y', 'u'),
-                      RepresentationMapping('z', 'v')]
+        SphericalRepresentation: [
+            RepresentationMapping('lon', 'l'),
+            RepresentationMapping('lat', 'b')
+        ],
+        CartesianRepresentation: [
+            RepresentationMapping('x', 'w'),
+            RepresentationMapping('y', 'u'),
+            RepresentationMapping('z', 'v')
+        ],
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'W'),
+            RepresentationMapping('d_y', 'U'),
+            RepresentationMapping('d_z', 'V')
+        ],
+        SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_l'),
+            RepresentationMapping('d_lat', 'pm_b'),
+            RepresentationMapping('d_distance', 'radial_velocity'),
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[UnitSphericalRepresentation] = \
+        frame_specific_representation_info[SphericalRepresentation]
+    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[SphericalCosLatDifferential]
 
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     # transformations to/from FK4/5

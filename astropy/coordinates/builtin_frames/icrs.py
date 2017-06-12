@@ -3,7 +3,8 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..representation import (SphericalRepresentation,
+from ..representation import (CartesianDifferential,
+                              SphericalRepresentation,
                               UnitSphericalRepresentation,
                               SphericalCosLatDifferential,
                               UnitSphericalCosLatDifferential)
@@ -51,7 +52,11 @@ class ICRS(BaseCoordinateFrame):
             RepresentationMapping('d_lat', 'pm_dec'),
             RepresentationMapping('d_distance', 'radial_velocity'),
         ],
-
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z'),
+        ],
     }
     frame_specific_representation_info[UnitSphericalRepresentation] = \
         frame_specific_representation_info[SphericalRepresentation]
