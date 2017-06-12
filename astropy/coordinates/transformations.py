@@ -31,13 +31,14 @@ from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..extern import six
 from ..extern.six.moves import range
+from .. import units as u
 
 from .representation import REPRESENTATION_CLASSES
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform',
-           'CompositeTransform']
+           'FunctionTransformWithFiniteDifference', 'CompositeTransform']
 
 class TransformGraph(object):
     """
@@ -747,6 +748,56 @@ class FunctionTransform(CoordinateTransform):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
         return res
+
+class FunctionTransformWithFiniteDifference(FunctionTransform):
+    """
+    A coordinate transformation that works like a `FunctionTransform`, but
+    computes velocity shifts based on the finite-difference relative to one of
+    the frame attributes.  Note that the transform function should *not* change
+    the differential at all in this case, as any differentials will be
+    overridden.
+
+    Parameters
+    ----------
+    finite_difference_frameattr_name : str
+        The name of the frame attribute on the *to* frame to use for the finite
+        difference
+
+    All other paramters are identical to the initializer for
+    `FunctionTransform`.
+
+    """
+    def __init__(self, func, fromsys, tosys, priority=1, register_graph=None,
+                 finite_difference_frameattr_name='obstime',
+                 finite_difference_dt=1*u.second):
+        super(FunctionTransformWithFiniteDifference, self).__init__(func,
+              fromsys, tosys, priority, register_graph)
+        self.finite_difference_frameattr_name = finite_difference_frameattr_name
+
+    def __call__(self, fromcoord, toframe):
+        supcall = super(FunctionTransformWithFiniteDifference, self).__call__
+        if getattr(fromcoord.data, 'differential', False):
+            # this is the finite difference case
+            attrname = self.finite_difference_frameattr_name
+            if callable(self.finite_difference_dt):
+                dt = self.finite_difference_dt(fromcoord, toframe)
+            else:
+                dt = self.finite_difference_dt
+
+            update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
+            fwd_frame = toframe.replicate_without_data(**update_keyword)
+            fwd = supcall(fromcoord, fwd_frame)
+            update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
+            back_frame =  toframe.replicate_without_data(**update_keyword)
+            back = supcall(fromcoord, back_frame)
+
+            newdiff = CartesianDifferential((fwd - back).to_cartesian().xyz / dt)
+
+            withoutdiff = supcall(self, new_frame)
+            withdiff = withoutdiff.data.with_differentials(newdiff)
+            return withoutdiff.realize_frame(withdiff)
+        else:
+            return supcall(fromcoord, toframe)
 
 class BaseAffineTransform(CoordinateTransform):
     """Base class for common functionality between the ``AffineTransform``-type
