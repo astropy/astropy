@@ -10,6 +10,8 @@ New Features
 
 - ``astropy.convolution``
 
+  - Major change in convolution behavior and keyword arguments (#5782)
+
 - ``astropy.coordinates``
 
   - Frame attributes set on ``SkyCoord`` are now always validated, and any
@@ -188,6 +190,11 @@ API Changes
 
 - ``astropy.convolution``
 
+  - Major change in convolution behavior and keyword arguments.
+    `astropy.convolution.convolve_fft`` replaced ``interpolate_nan`` with
+    ``nan_treatment``, and `astropy.convolution.convolve` received a new
+    ``nan_treatment`` argument.  (#5782)
+
 - ``astropy.coordinates``
 
   - Removed deprecated ``angles.rotation_matrix`` and
@@ -324,6 +331,10 @@ Bug Fixes
 - ``astropy.constants``
 
 - ``astropy.convolution``
+
+  - Major change in convolution behavior and keyword arguments: `convolve` was
+    not performing normalized convolution in earlier versions of astropy
+    (#5782)
 
 - ``astropy.coordinates``
 
