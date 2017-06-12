@@ -280,6 +280,23 @@ def test_realizing():
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
 
+def test_cloning():
+    from ..builtin_frames import ICRS, AltAz
+    from ...time import Time
+
+    i = ICRS(ra=1*u.deg, dec=2*u.deg)
+    iclone = i.clone_frame()
+    assert i.has_data
+    assert not iclone.has_data
+
+    aa = AltAz(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
+    aaclone = aa.clone_frame(obstime=Time('J2001'))
+    assert not aaclone.has_data
+    assert aa.obstime != aaclone.obstime
+    assert aa.pressure == aaclone.pressure
+    assert aa.obswl == aaclone.obswl
+
+
 def test_getitem():
     from ..builtin_frames import ICRS
 
