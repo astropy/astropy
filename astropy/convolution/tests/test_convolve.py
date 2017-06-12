@@ -657,3 +657,36 @@ class TestConvolve3D(object):
                                                        dtype='>f8')/kernsum, 10)
         else:
             raise ValueError("Invalid Boundary Option")
+
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_non_normalized_kernel():
+
+        x = np.array([[0., 0., 4.],
+                      [1., 2., 0.],
+                      [0., 3., 0.]], dtype='>f8')
+
+        y = np.array([[1., -1., 1.],
+                      [-1., 0., -1.],
+                      [1., -1., 1.]], dtype='>f8')
+
+        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+                     normalize_kernel=False)
+
+        if boundary is None:
+            assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
+                                                        [0., 0., 0.],
+                                                        [0., 0., 0.]], dtype='>f8'), 10)
+        elif boundary == 'fill':
+            assert_array_almost_equal_nulp(z, np.array([[1., -1., 2.],
+                                                        [1., 0., -3.],
+                                                        [-2., -1., -1.]], dtype='>f8'), 10)
+        elif boundary == 'wrap':
+            assert_array_almost_equal_nulp(z, np.array([[0., -8., 6.],
+                                                        [5., 0., -4.],
+                                                        [2., 3., -4.]], dtype='>f8'), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([[ 2., -1., -2.],
+                                                        [ 0.,  0.,  1.],
+                                                        [ 2., -4.,  2.]], dtype='>f8'), 10)
+        else:
+            raise ValueError("Invalid boundary specification")
