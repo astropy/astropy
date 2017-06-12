@@ -23,7 +23,7 @@ format, for example::
    >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
-   >>> data = astropy.io.ascii.read('t/tab_and_space.txt', delimiter='\s')  # doctest: +SKIP
+   >>> data = astropy.io.ascii.read('t/tab_and_space.txt', delimiter=r'\s')  # doctest: +SKIP
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different formats can define different defaults, so the
