@@ -31,6 +31,7 @@ from ..utils.compat.funcsigs import signature
 from ..extern import six
 from ..extern.six.moves import range
 
+from .representation import REPRESENTATION_CLASSES
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
@@ -758,7 +759,7 @@ class BaseAffineTransform(CoordinateTransform):
         rep = fromcoord.represent_as(CartesianRepresentation)
         newrep = rep.without_differentials().transform(matrix)
 
-        if vectors is not None:
+        if vectors is not None and vectors[0] is not None:
             pos_offset = CartesianRepresentation(vectors[0])
             newrep = newrep + pos_offset
 
@@ -767,10 +768,12 @@ class BaseAffineTransform(CoordinateTransform):
             # TODO: we only support velocities right now - elsewhere, we need to
             # validate / make sure only 1 differential is attached
             veldiff = rep.differentials[0]
-            newdiff = veldiff.represent_as(CartesianRepresentation, base=fromcoord.data)\
+
+            base = fromcoord.data.represent_as(veldiff.base_representation)
+            newdiff = veldiff.represent_as(CartesianRepresentation, base=base)\
                              .transform(matrix)
 
-            if vectors is not None:
+            if vectors is not None and vectors[1] is not None:
                 vel_offset = CartesianRepresentation(vectors[1])
                 newdiff = newdiff + vel_offset
 
