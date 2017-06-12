@@ -757,7 +757,13 @@ class BaseAffineTransform(CoordinateTransform):
                                      CartesianDifferential)
 
         rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.without_differentials().transform(matrix)
+
+        # Only do transform is matrix is specified. This is for speed in
+        # transformations that only specify an offset (e.g., LSR)
+        if matrix is not None:
+            newrep = rep.without_differentials().transform(matrix)
+        else:
+            newrep = rep
 
         if vectors is not None and vectors[0] is not None:
             pos_offset = CartesianRepresentation(vectors[0])
@@ -770,8 +776,11 @@ class BaseAffineTransform(CoordinateTransform):
             veldiff = rep.differentials[0]
 
             base = fromcoord.data.represent_as(veldiff.base_representation)
-            newdiff = veldiff.represent_as(CartesianRepresentation, base=base)\
-                             .transform(matrix)
+
+            # Only do transform is matrix is specified.
+            newdiff = veldiff.represent_as(CartesianRepresentation, base=base)
+            if matrix is not None:
+                newdiff = newdiff.transform(matrix)
 
             if vectors is not None and vectors[1] is not None:
                 vel_offset = CartesianRepresentation(vectors[1])
