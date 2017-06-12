@@ -759,13 +759,12 @@ class BaseAffineTransform(CoordinateTransform):
                                      CartesianDifferential)
 
         rep = fromcoord.represent_as(CartesianRepresentation)
+        newrep = rep.without_differentials()
 
         # Only do transform is matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)
         if matrix is not None:
-            newrep = rep.without_differentials().transform(matrix)
-        else:
-            newrep = rep
+            newrep = newrep.transform(matrix)
 
         if vectors is not None and vectors[0] is not None:
             pos_offset = CartesianRepresentation(vectors[0])
