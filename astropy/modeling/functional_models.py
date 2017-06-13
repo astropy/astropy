@@ -778,7 +778,7 @@ class Sine1D(Fittable1DModel):
             return {'x': 1. / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return OrderedDict([('frequency', 1. / inputs_unit['x']),
+        return OrderedDict([('frequency', inputs_unit['x'] ** -1),
                             ('amplitude', outputs_unit['y'])])
 
 
