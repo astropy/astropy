@@ -331,7 +331,7 @@ the `~astropy.coordinates.TransformGraph` class.  This graph (in the
 "graph theory" sense, not "plot"), stores all the transformations
 between all of the builtin frames, as well as tools for finding shortest
 paths through this graph to transform from any frame to any other.  All
-of the power of this graph is available to user-created frames, meaning
+of the power of this graph is available to user-created frames as well, meaning
 that once you define even one transform from your frame to some frame in
 the graph,  coordinates defined in your frame can be transformed to
 *any* other frame in the graph.
@@ -345,12 +345,19 @@ subclasses/types of transformations are:
     A transform that is defined as a function that takes a frame object
     of one frame class and returns an object of another class.
 
+* `~astropy.coordinates.AffineTransform`
+
+    A transformation that includes a linear matrix operation and a translation
+    (vector offset). These transformations are defined by a 3x3 matrix and a
+    3-vector for the offset. The transformation is applied to the Cartesian
+    representation of one frame and transforms into the Cartesian representation
+    of the target frame.
+
 * `~astropy.coordinates.StaticMatrixTransform`
 * `~astropy.coordinates.DynamicMatrixTransform`
 
-    These are both for transformations defined as a 3x3 matrix
-    transforming the Cartesian representation of one frame into the
-    target frame's Cartesian representation.  The static version is for
+    The matrix transforms are `~astropy.coordinates.AffineTransform`'s without
+    a translation, e.g., a rotation. The static version is for
     the case where the matrix is independent of the frame attributes
     (e.g., the ICRS->FK5 transformation, because ICRS has no frame
     attributes).  The dynamic case is for transformations where the
