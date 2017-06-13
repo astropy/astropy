@@ -252,7 +252,7 @@ The current planned and existing sub-packages are:
                 <span class="stable"></span>
             </td>
             <td>
-                New in v0.2. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality is likely to be added in future versions.
+                New in v0.2. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality, in particular to allow dealing with uncertainties, is likely to be added in future versions.
             </td>
         </tr>
         <tr>
