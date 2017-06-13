@@ -4,7 +4,12 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..representation import SphericalRepresentation
+from ..representation import (CartesianRepresentation,
+                              CartesianDifferential,
+                              SphericalRepresentation,
+                              UnitSphericalRepresentation,
+                              SphericalCosLatDifferential,
+                              UnitSphericalCosLatDifferential)
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from .galactic import Galactic
 
@@ -33,16 +38,33 @@ class Supergalactic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'sgl'),
-                      RepresentationMapping('lat', 'sgb')],
-        'cartesian': [RepresentationMapping('x', 'sgx'),
-                      RepresentationMapping('y', 'sgy'),
-                      RepresentationMapping('z', 'sgz')]
+        SphericalRepresentation: [
+            RepresentationMapping('lon', 'sgl'),
+            RepresentationMapping('lat', 'sgb')
+        ],
+        CartesianRepresentation: [
+            RepresentationMapping('x', 'sgx'),
+            RepresentationMapping('y', 'sgy'),
+            RepresentationMapping('z', 'sgz')
+        ],
+        SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_sgl'),
+            RepresentationMapping('d_lat', 'pm_sgb'),
+            RepresentationMapping('d_distance', 'radial_velocity'),
+        ],
+        CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x'),
+            RepresentationMapping('d_y', 'v_y'),
+            RepresentationMapping('d_z', 'v_z')
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[UnitSphericalRepresentation] = \
+        frame_specific_representation_info[SphericalRepresentation]
+    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[SphericalCosLatDifferential]
 
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     # North supergalactic pole in Galactic coordinates.
     # Needed for transformations to/from Galactic coordinates.

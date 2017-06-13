@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..representation import SphericalRepresentation
+from ..representation import SphericalRepresentation, SphericalCosLatDifferential
 from ..baseframe import BaseCoordinateFrame
 from ..frame_attributes import TimeFrameAttribute
 from .utils import EQUINOX_J2000
@@ -56,6 +56,7 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
         non-geocentric systems).
     """
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
@@ -78,6 +79,7 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
         x-axis and the location of the Earth and Sun.
     """
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
@@ -100,6 +102,7 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
         x-axis and the location of the Earth and Sun.
     """
     default_representation = SphericalRepresentation
+    default_differential = SphericalCosLatDifferential
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
