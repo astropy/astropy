@@ -238,6 +238,7 @@ def test_models_bounding_box(model):
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('model', MODELS)
 def test_models_fitting(model):
+
     m = model['class'](**model['parameters'])
     if len(model['evaluation'][0]) == 2:
         x = np.linspace(1, 3, 100) * model['evaluation'][0][0].unit
@@ -248,5 +249,18 @@ def test_models_fitting(model):
         y = np.linspace(1, 3, 100) * model['evaluation'][0][1].unit
         z = np.exp(-x.value**2 - y.value**2) * model['evaluation'][0][2].unit
         args = [x, y, z]
+
+    # Test that the model fits even if it has units on parameters
     fitter = LevMarLSQFitter()
     m_new = fitter(m, *args)
+
+    # Check that units have been put back correctly
+    for param_name in m.param_names:
+        par_bef = getattr(m, param_name)
+        par_aft = getattr(m_new, param_name)
+        if par_bef.unit is None:
+            # If the parameter used to not have a unit then had a radian unit
+            # for example, then we should allow that
+            assert par_aft.unit is None or par_aft.unit is u.rad
+        else:
+            assert par_aft.unit.is_equivalent(par_bef.unit)
