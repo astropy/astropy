@@ -314,6 +314,12 @@ provides the ``base`` (representation)::
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, kpc)
       ( 0.0048481,  1.04719246,  1.00000294)>
 
+.. Note:: At present, the differential classes are generally meant to work with
+   first derivatives, but they do not check the units of the inputs to enforce
+   this. Passing in 2nd derivatives, e.g., acceleration values (with
+   acceleration units), will succeed, but any transformations that occur through
+   re-representation of the differential will not necessarily be correct.
+
 Attaching ``Differential``'s to ``Representation``'s
 ====================================================
 
