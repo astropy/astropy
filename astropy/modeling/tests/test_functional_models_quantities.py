@@ -26,9 +26,9 @@ except ImportError:
 
 MODELS_1D = [
 {'class': Gaussian1D,
- 'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
- 'evaluation':[(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
- 'bounding_box': True},
+'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
+'evaluation':[(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
+'bounding_box': [0.35, 3.65] * u.m},
 {'class': Sersic1D,
  'parameters': {'amplitude': 3 * u.MJy / u.sr, 'r_eff': 2 * u.arcsec, 'n': 4},
  'evaluation':[(3 * u.arcsec, 1.3237148119468918 * u.MJy/u.sr)],
@@ -44,7 +44,7 @@ MODELS_1D = [
 {'class': Lorentz1D,
  'parameters': {'amplitude': 2 * u.Jy, 'x_0': 505 * u.nm, 'fwhm': 100 * u.AA},
  'evaluation':[(0.51 * u.micron, 1 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [255, 755] * u.nm},
 {'class': Voigt1D,
  'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
                 'fwhm_L': 100 * u.AA, 'fwhm_G': 50 * u.AA},
@@ -57,15 +57,15 @@ MODELS_1D = [
 {'class': Box1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'width': 1 * u.um},
  'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [3.9, 4.9] * u.um},
 {'class': Trapezoid1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'width': 1 * u.um, 'slope': 5 * u.Jy / u.um},
  'evaluation':[(4200 * u.nm, 3 * u.Jy), (1 * u.m, 0 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [3.3, 5.5] * u.um},
 {'class': MexicanHat1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'sigma': 1e-3 * u.mm},
  'evaluation':[(1000 * u.nm, -0.09785050 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [-5.6, 14.4] * u.um},
 {'class': Moffat1D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'gamma': 1e-3 * u.mm, 'alpha':1},
  'evaluation':[(1000 * u.nm, 0.238853503 * u.Jy)],
@@ -77,7 +77,7 @@ MODELS_2D = [
   'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
                  'x_stddev': 3 * u.m, 'y_stddev': 2 * u.m, 'theta': 45 * u.deg},
   'evaluation':[(412.1320343 * u.cm, 3.121320343 * u.m, 3 * u.Jy * np.exp(-0.5))],
-  'bounding_box': True},
+  'bounding_box': [[-14.18257445, 16.18257445], [-10.75693665, 14.75693665]] * u.m},
 {'class': Const2D,
  'parameters': {'amplitude': 3 * u.Jy},
  'evaluation':[(0.6 * u.micron, 0.2 * u.m, 3 * u.Jy)],
@@ -86,27 +86,27 @@ MODELS_2D = [
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.m,
                 'R_0': 300 * u.cm},
  'evaluation':[(5.8 * u.m, 201 * u.cm, 3 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [[-1, 5], [0, 6]] * u.m},
 {'class': TrapezoidDisk2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':1 * u.m, 'y_0': 2 * u.m,
                 'R_0': 100 * u.cm, 'slope':1 * u.Jy / u.m},
  'evaluation':[(3.5 * u.m, 2 * u.m, 1.5 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [[-2, 6], [-3, 5]] * u.m},
 {'class': Ellipse2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.m,
                 'a': 300 * u.cm, 'b': 200 * u.cm, 'theta': 45 * u.deg},
  'evaluation':[(4 * u.m, 300 * u.cm, 3 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [[-0.76046808, 4.76046808], [0.68055697, 5.31944302]] * u.m},
 {'class': Ring2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.m,
                 'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm, 'width': None},
  'evaluation':[(302.05 * u.cm, 2 * u.m + 10 * u.um, 3 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [[1.979, 2.021], [2.979, 3.021]] * u.m},
 {'class': Box2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.s,
                 'x_width': 4 * u.cm, 'y_width': 3 * u.s},
  'evaluation':[(301 * u.cm, 3 * u.s, 3 * u.Jy)],
- 'bounding_box': True},
+ 'bounding_box': [[0.5 * u.s, 3.5 * u.s], [2.98 * u.m, 3.02 * u.m]]},
 {'class': MexicanHat2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.m,
                 'sigma': 1 * u.m},
@@ -212,13 +212,21 @@ def test_models_evaluatate_with_units_param_array(model):
 @pytest.mark.parametrize('model', MODELS)
 def test_models_bounding_box(model):
 
+    # In some cases, having units in parameters caused bounding_box to break,
+    # so this is to ensure that it works correctly.
+
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
 
     m = model['class'](**model['parameters'])
 
     if model['bounding_box']:
-        m.bounding_box
+        # A bounding box may have inhomogeneous units so we need to check the
+        # values one by one.
+        for i in range(len(model['bounding_box'])):
+            bbox = m.bounding_box
+            print(bbox)
+            assert_quantity_allclose(bbox[i], model['bounding_box'][i])
     else:
         # Check that NotImplementedError is raised, so that if bounding_box is
         # implemented we remember to set bounding_box=True in the list of models
