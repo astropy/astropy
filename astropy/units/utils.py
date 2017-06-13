@@ -78,7 +78,7 @@ def _iter_unit_summary(namespace):
                 unit._represents.to_string('latex')[1:-1])
         aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
 
-        yield (unit, doc, represents, aliases, unit.name in has_prefixes)
+        yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')
 
 
 def generate_unit_summary(namespace):
@@ -118,7 +118,7 @@ def generate_unit_summary(namespace):
      - {1}
      - {2}
      - {3}
-     - {4!s:.1}
+     - {4}
 """.format(*unit_summary))
 
     return docstring.getvalue()
