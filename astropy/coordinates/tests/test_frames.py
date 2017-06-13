@@ -280,11 +280,19 @@ def test_realizing():
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
 
-def test_cloning():
+def test_replicating():
     from ..builtin_frames import ICRS, AltAz
     from ...time import Time
 
-    i = ICRS(ra=1*u.deg, dec=2*u.deg)
+    i = ICRS(ra=[1]*u.deg, dec=[2]*u.deg)
+
+    icopy = i.replicate(copy=True)
+    irepl = i.replicate(copy=False)
+    i.data._lat[:] = 0*u.deg
+    assert np.all(i.data.lat == irepl.data.lat)
+    assert np.all(i.data.lat != icopy.data.lat)
+
+
     iclone = i.replicate_without_data()
     assert i.has_data
     assert not iclone.has_data
