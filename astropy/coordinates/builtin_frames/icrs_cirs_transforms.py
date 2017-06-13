@@ -11,7 +11,7 @@ import numpy as np
 
 from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform
+from ..transformations import FunctionTransform, AffineTransform
 from ..representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
@@ -284,30 +284,48 @@ _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
                      "function in this case because there is an origin shift.")
 
 
-@frame_transform_graph.transform(FunctionTransform, HCRS, ICRS)
+@frame_transform_graph.transform(AffineTransform, HCRS, ICRS)
 def hcrs_to_icrs(hcrs_coo, icrs_frame):
     # this is just an origin translation so without a distance it cannot go ahead
     if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
-    # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
-    newrep = hcrs_coo.cartesian + bary_sun_pos
-    return icrs_frame.realize_frame(newrep)
+    bary_sun_vel = None
+    if hcrs_coo.data.differentials:
+        from ..solar_system import get_body_barycentric_posvel
+        bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
+                                                                 hcrs_coo.obstime)
+        dv = bary_sun_vel.xyz
 
+    else:
+        from ..solar_system import get_body_barycentric
+        bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
+        dv = None
 
-@frame_transform_graph.transform(FunctionTransform, ICRS, HCRS)
+    dx = bary_sun_pos.xyz
+
+    return None, (dx, dv)
+
+@frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
     # this is just an origin translation so without a distance it cannot go ahead
     if icrs_coo.data.__class__ == UnitSphericalRepresentation:
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
 
-    # this goes here to avoid circular import errors
-    from ..solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
-    newrep = icrs_coo.cartesian - bary_sun_pos
-    return hcrs_frame.realize_frame(newrep)
+    if icrs_coo.data.differentials:
+        from ..solar_system import get_body_barycentric_posvel
+        bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
+                                                                 hcrs_frame.obstime)
+        dv = -bary_sun_vel.xyz
+
+    else:
+        from ..solar_system import get_body_barycentric
+        bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
+        dv = None
+
+    dx = -bary_sun_pos.xyz
+
+    return None, (dx, dv)
 
 
 @frame_transform_graph.transform(FunctionTransform, HCRS, HCRS)
