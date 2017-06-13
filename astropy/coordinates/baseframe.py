@@ -812,18 +812,24 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             Any keyword arguments for ``method``.
         """
         if '_framedata' in kwargs:
-            data = kwargs['_framedata']
+            data = kwargs.pop('_framedata')
         else:
             data = self.data if self.has_data else None
 
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
-                return value._apply(method, *args, **kwargs)
+                if method=='replicate' and not hasattr(value, method):
+                    return value._apply('copy', *args, **kwargs)
+                else:
+                    return value._apply(method, *args, **kwargs)
             else:
                 if callable(method):
                     return method(value, *args, **kwargs)
                 else:
-                    return getattr(value, method)(*args, **kwargs)
+                    if method=='replicate' and not hasattr(value, method):
+                        return value.copy(*args, **kwargs)
+                    else:
+                        return getattr(value, method)(*args, **kwargs)
 
         if data is not None:
             data = apply_method(data)
