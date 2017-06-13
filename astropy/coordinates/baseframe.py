@@ -25,6 +25,7 @@ from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
+from ..utils.misc import isiterable
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -297,8 +298,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             else:
                 self._no_data_shape = ()
         else:
+            # This makes the cache keys backwards-compatible, but also adds
+            # support for having differentials attached to the frame data
+            # representation object.
+            if self._data.differentials:
+                key = (self._data.__class__.__name__,
+                       self._data.differentials[0].__class__.__name__,
+                       False)
+            else:
+                key = (self._data.__class__.__name__, False)
+
             # Set up representation cache.
-            self.cache['representation'][self._data.__class__.__name__, False] = self._data
+            self.cache['representation'][key] = self._data
 
     @lazyproperty
     def cache(self):
@@ -583,12 +594,63 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             ( 1.,  0.,  0.)>
         """
-        new_representation = _get_repr_cls(new_representation)
 
-        cached_repr = self.cache['representation'].get((new_representation.__name__,
-                                                        in_frame_units))
+        n_diffs = len(self.data.differentials)
+        has_diffs = n_diffs > 0
+
+        new_differential = None
+        if isinstance(new_representation, six.string_types):
+            # If `new_representation` is a single string and the frame data has
+            # attached differentials, we grab a differential and then get the
+            # `base_representation` from it to handle cases like, e.g.,
+            # `SphericalCosLatDifferential` that have no name-equivalent
+            # representation
+            if has_diffs:
+                new_differential = _get_diff_cls(new_representation)
+                new_representation = new_differential.base_representation
+
+            else:
+                new_representation = _get_repr_cls(new_representation)
+
+        elif isiterable(new_representation):
+            # a list of classes or strings
+            if not has_diffs:
+                raise TypeError('Frame data has no associated differentials '
+                                '(i.e. the frame has no velocity data); the '
+                                'must be a single representation name (string) '
+                                'or a representation class.')
+
+            elif len(new_representation) != (1 + n_diffs):
+                # right now we only support having 1 differential, but for
+                # future support...
+                raise ValueError('The number of representation/differential '
+                                 'names or classes must equal 1 + the number of '
+                                 'differentials associated with the frame data.')
+
+            new_differential = _get_diff_cls(new_representation[1])
+            new_representation = _get_repr_cls(new_representation[0])
+
+        elif has_diffs and isinstance(new_representation, BaseDifferential):
+            # a single differential class passed in
+            new_differential = new_representation
+            new_representation = new_representation.base_representation
+
+        if has_diffs and new_differential is not None:
+            cache_key = (new_representation.__name__,
+                         new_differential.__name__,
+                         in_frame_units)
+        else:
+            cache_key = (new_representation.__name__, in_frame_units)
+
+        cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
-            data = self.data.represent_as(new_representation)
+            if has_diffs and new_differential is not None:
+                # TODO NOTE: only supports a single differential
+                data = self.data.represent_as([new_representation,
+                                               new_differential])
+                diff = data.differentials[0]
+            else:
+                data = self.data.represent_as(new_representation)
 
             # If the new representation is known to this frame and has a defined
             # set of names and units, then use that.
@@ -601,9 +663,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            self.cache['representation'][new_representation.__name__, in_frame_units] = data
+            # If the new differential is known to this frame and has a defined
+            # set of names and units, then use that.
+            new_attrs = self.representation_info.get(new_differential)
+            if new_attrs and in_frame_units:
+                diffkwargs = dict((comp, getattr(diff, comp))
+                                  for comp in diff.components)
+                for comp, new_attr_unit in zip(diff.components, new_attrs['units']):
+                    if new_attr_unit:
+                        diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                diff = diff.__class__(copy=False, **diffkwargs)
+                data = data.with_differentials(diff)
 
-        return self.cache['representation'][new_representation.__name__, in_frame_units]
+            self.cache['representation'][cache_key] = data
+
+        return self.cache['representation'][cache_key]
 
     def transform_to(self, new_frame):
         """
