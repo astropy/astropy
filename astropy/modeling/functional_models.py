@@ -15,7 +15,7 @@ from .utils import ellipse_extent
 from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
-from ..units import Quantity
+from ..units import Quantity, UnitsError
 from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
@@ -491,7 +491,10 @@ class Gaussian2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_mean', inputs_unit['x']),
                             ('y_mean', inputs_unit['x']),
                             ('x_stddev', inputs_unit['x']),
@@ -1328,7 +1331,10 @@ class Ellipse2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('a', inputs_unit['x']),
@@ -1409,7 +1415,10 @@ class Disk2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('R_0', inputs_unit['x']),
@@ -1513,7 +1522,10 @@ class Ring2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('r_in', inputs_unit['x']),
@@ -1892,7 +1904,10 @@ class TrapezoidDisk2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('R_0', inputs_unit['x']),
@@ -2042,7 +2057,10 @@ class MexicanHat2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('sigma', inputs_unit['x']),
@@ -2138,7 +2156,10 @@ class AiryDisk2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('radius', inputs_unit['x']),
@@ -2317,7 +2338,10 @@ class Moffat2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('gamma', inputs_unit['x']),
@@ -2436,7 +2460,10 @@ class Sersic2D(Fittable2DModel):
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
-        # units, so we return inputs_unit['x'] for all independent variables.
+        # units otherwise this can lead to issues since rotation is not well
+        # defined.
+        if inputs_unit['x'] != inputs_unit['y']:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('y_0', inputs_unit['x']),
                             ('r_eff', inputs_unit['x']),
