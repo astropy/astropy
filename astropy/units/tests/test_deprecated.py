@@ -8,9 +8,10 @@ because they are required for VOUnit support but are not in common use."""
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import pytest
+
 from .. import deprecated, required_by_vounit
 from ... import units as u
-from ...tests.helper import pytest  # TODO: Stop using bundled pytest
 
 
 def test_emu():
@@ -45,7 +46,7 @@ def test_required_by_vounit():
     # the purposes of this test.
 
     with pytest.raises(AttributeError):
-        #nano-solar mass/rad/lum shouldn't be in the base unit namespace
+        # nano-solar mass/rad/lum shouldn't be in the base unit namespace
         u.nsolMass
         u.nsolRad
         u.nsolLum
