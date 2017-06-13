@@ -77,9 +77,10 @@ that the user has not explicitly requested.  This is a non-backwards
 compatible change, although the effects are small for most use cases.
 
 Convolution has undergone a significant overhaul.  They keyword arguments have
-changed and the behavior of `convolve` are no longer the same as in versions
-1.3 and earlier (however, `convolve_fft`'s behavior remains unchanged.
-The details are given on the <link to convolution> documentation page.
+changed and the behavior of `~astropy.convolution.convolve` are no longer the
+same as in versions 1.3 and earlier (however,
+`~astropy.convolution.convolve_fft`'s behavior remains unchanged.  The details
+are given on the convolution_ documentation page.
 
 .. _whatsnew-2.0-conesearch-astroquery:
 
