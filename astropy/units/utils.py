@@ -123,6 +123,44 @@ def generate_unit_summary(namespace):
 
     return docstring.getvalue()
 
+def generate_prefixonly_unit_summary(namespace):
+    """
+    Generates table entries for units in a namespace that are just prefixes
+    without the base unit.  Note that this is intended to be used *after*
+    `generate_unit_summary` and therefore does not include the table header.
+
+    Parameters
+    ----------
+    namespace : dict
+        A namespace containing units that are prefixes but do *not* have the
+        base unit in their namespace.
+
+    Returns
+    -------
+    docstring : str
+        A docstring containing a summary table of the units.
+    """
+    from . import PrefixUnit
+
+    faux_namespace = {}
+    for nm, unit in namespace.items():
+        if isinstance(unit, PrefixUnit):
+            base_unit = unit.represents.bases[0]
+            faux_namespace[base_unit.name] = base_unit
+
+    docstring = io.StringIO()
+
+    for unit_summary in _iter_unit_summary(faux_namespace):
+        docstring.write("""
+   * - Prefixes for ``{0}``
+     - {1} prefixes
+     - {2}
+     - {3}
+     - Only
+""".format(*unit_summary))
+
+    return docstring.getvalue()
+
 
 def is_effectively_unity(value):
     # value is *almost* always real, except, e.g., for u.mag**0.5, when
