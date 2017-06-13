@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# This module implements the base CCDData class.
+"""This module implements the base CCDData class."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -202,21 +202,6 @@ class CCDData(NDDataArray):
         self.meta = value
 
     @property
-    def meta(self):
-        return self._meta
-
-    @meta.setter
-    def meta(self, value):
-        if value is None:
-            self._meta = OrderedDict()
-        else:
-            if hasattr(value, 'keys'):
-                self._meta = value
-            else:
-                raise TypeError(
-                    'the meta attribute of CCDData must be dict-like.')
-
-    @property
     def uncertainty(self):
         return self._uncertainty
 
@@ -354,11 +339,7 @@ class CCDData(NDDataArray):
         """
         Return a copy of the CCDData object.
         """
-        try:
-            return self.__class__(self, copy=True)
-        except TypeError:
-            new = self.__class__(copy.deepcopy(self))
-        return new
+        return self.__class__(self, copy=True)
 
     add = _arithmetic(np.add)(NDDataArray.add)
     subtract = _arithmetic(np.subtract)(NDDataArray.subtract)
@@ -546,16 +527,10 @@ def fits_ccddata_writer(ccd_data, filename, hdu_mask='MASK',
     hdu.writeto(filename, **kwd)
 
 
-# This should be be a tuple to ensure it isn't inadvertently changed
-# elsewhere.
-_recognized_fits_file_extensions = ('fit', 'fits', 'fts')
-
-is_fits = fits.connect.is_fits
-
 with registry.delay_doc_updates(CCDData):
     registry.register_reader('fits', CCDData, fits_ccddata_reader)
     registry.register_writer('fits', CCDData, fits_ccddata_writer)
-    registry.register_identifier('fits', CCDData, is_fits)
+    registry.register_identifier('fits', CCDData, fits.connect.is_fits)
 
 try:
     CCDData.read.__doc__ = fits_ccddata_reader.__doc__
