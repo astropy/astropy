@@ -781,6 +781,6 @@ def test_unit_summary_prefixes():
         elif unit.name == 'barn':
             assert prefixes
         elif unit.name == 'cycle':
-            assert not prefixes
+            assert prefixes == 'No'
         elif unit.name == 'vox':
-            assert prefixes
+            assert prefixes == 'Yes'
