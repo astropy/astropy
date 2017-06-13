@@ -38,7 +38,7 @@ TIME_DELTA_FORMATS = OrderedDict()
 
 # Translations between deprecated FITS timescales defined by
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
-FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'TDT': 'tt', 'ET': 'tt',
+FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 
@@ -969,11 +969,20 @@ class TimeFITS(TimeString):
                 self._scale = scale
                 self._fits_scale = fits_scale
                 self._fits_realization = fits_realization
-            elif (scale != self.scale or fits_scale != self._fits_scale or
-                  fits_realization != self._fits_realization):
+            elif scale == self.scale:
+                if self._fits_scale != None or self._fits_realization != None:
+                    if fits_scale != self._fits_scale or fits_realization != self._fits_realization:
+                        raise ValueError("Input strings for {0} class must all "
+                                         "have consistent time scales."
+                                         .format(self.name))
+                else:
+                    self._fits_scale = fits_scale
+                    self._fits_realization = fits_realization
+            elif scale != self.scale:
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
+
         return [int(tm['year']), int(tm['mon']), int(tm['mday']),
                 int(tm.get('hour', 0)), int(tm.get('min', 0)),
                 float(tm.get('sec', 0.))]
