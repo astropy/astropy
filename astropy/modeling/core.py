@@ -50,40 +50,11 @@ from .parameters import Parameter, InputParameterError, param_repr_oneline
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
-from .altcompound import _AltCompoundModel
-
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'custom_model', 'ModelDefinitionError','set_compound_model']
 
 # global variable for which Compound Model class to use
 COMPOUND = "regular" # alternative is "lite"
-
-# xxx todo: need to make this thread safe
-def set_compound_model(ctype="regular"):
-    '''
-    Allow setting of the global state of which compound model class 
-    to use in constructing expressions of models. 
-
-    The two permitted values are "regular" and "lite", the 
-    latter being less filling (of memory).
-
-    It returns the previous state as a convenience for restoring in
-    a subsequent call
-    '''
-    global COMPOUND
-    if ctype not in  ['regular', 'lite']:
-        raise ValueError("argument value must be 'regular' or 'lite'")
-    previous = COMPOUND
-    COMPOUND = ctype
-    return previous
-
-def _compound_operator(oper, left, right, **kwargs):
-    if COMPOUND == 'regular':
-        return _CompoundModelMeta._from_operator(oper, left, right, **kwargs)
-    else:
-        return _AltCompoundModel(oper, left, right, **kwargs)
-
-
 
 
 def _model_oper(oper, **kwargs):
@@ -3372,6 +3343,35 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
+
+from .altcompound import _AltCompoundModel
+
+# xxx todo: need to make this thread safe
+def set_compound_model(ctype="regular"):
+    '''
+    Allow setting of the global state of which compound model class 
+    to use in constructing expressions of models. 
+
+    The two permitted values are "regular" and "lite", the 
+    latter being less filling (of memory).
+
+    It returns the previous state as a convenience for restoring in
+    a subsequent call
+    '''
+    global COMPOUND
+    if ctype not in  ['regular', 'lite']:
+        raise ValueError("argument value must be 'regular' or 'lite'")
+    previous = COMPOUND
+    COMPOUND = ctype
+    return previous
+
+def _compound_operator(oper, left, right, **kwargs):
+    if COMPOUND == 'regular':
+        return _CompoundModelMeta._from_operator(oper, left, right, **kwargs)
+    else:
+        return _AltCompoundModel(oper, left, right, **kwargs)
+
+
 
 
 copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)

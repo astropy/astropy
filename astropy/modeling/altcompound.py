@@ -78,6 +78,7 @@ Things that will never be supported:
 import operator
 from .core import ModelDefinitionError
 
+
 def _alt_model_oper(oper, **kwargs):
     """
     This is an alternate version of compound models intended to use
@@ -114,6 +115,10 @@ class _AltCompoundModel(object):
                     self.left.inverse, self.right.inverse, inverse=self)
         elif op == '|':
             if left.n_outputs != right.n_inputs:
+                print('>>>>>>>>', left.n_outputs, right.n_inputs)
+                print(left.name, right.name)
+                print(left)
+                print(right)
                 raise ModelDefinitionError(
                     'left operand number of outputs must match right operand number of inputs')
             self.n_inputs = left.n_inputs
@@ -123,7 +128,7 @@ class _AltCompoundModel(object):
                 self._inverse = _AltCompoundModel('|',
                     self.right.inverse, self.left.inverse, inverse=self)
         else:
-            raise ModelDefinitionError('Illegal operator')
+            raise ModelDefinitionError('Illegal operator: ', self.op)
         if inverse is not None:
             self._inverse = inverse
             self._has_inverse = True
@@ -181,8 +186,61 @@ class _AltCompoundModel(object):
         else:
             raise ModelDefinitionError('unrecognized operator')
 
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            model_list = tree_to_list(self, get_oper=True)
+            # now figure out which list indicies correspond to the requested ones
+            if index.step:
+                raise ValueError('Steps in slices not supported for compound models')
+            # Following won't work for negative indices
+            if index.start:
+                lstart = index.start * 2
+            else:
+                lstart = None
+            if index.stop:
+                lstop = indes.stop * 2
+            else:
+                lstop = None
+            sliced_model_list = model_list[slice(lstart, lstop)]
+            # Now create new compound model from sliced list
+            if len(sliced_model_list) < 1:
+                raise ValueError('must have at least one element in slice') 
+            if len(sliced_model_list) == 1:
+                return sliced_model_list[0]
+            else:
+                temp = _AltCompoundModel(sliced_model_list[1],
+                                         sliced_model_list[0],
+                                         sliced_model_list[2])
+                sliced_model_list = sliced_model_list[3:]
+                while sliced_model_list:
+                    temp = _AltCompoundModel( 
+                        sliced_model_list[0],
+                        temp,
+                        sliced_model_list[1])
+                    sliced_model_list = sliced_model_list[2:]
+                return temp
+        elif isinstance(index, type(0)):
+            model_list = tree_to_list(self)
+        else:
+            raise TypeError('index must be integer')
+        return model_list[index]
+
+
+
+    def rename(self, name):
+        self.name = name
+        return self
+
+    @property
+    def isleaf(self):
+        return False
+
     def has_inverse(self):
         return self._has_inverse
+
+    @property
+    def bounding_box(self):
+        raise NotImplementedError("no bounding box defined")
 
     @property
     def inverse(self):
@@ -192,6 +250,12 @@ class _AltCompoundModel(object):
             return self._inverse
         else:
             raise NotImplementedError("Inverse function not provided")
+
+    @inverse.setter
+    def inverse(self, invmodel):
+        if not (isinstance(invmodel, Model) or isinstance(invmodel, _AltCompoundModel)):
+            raise ValueError("Attempt to assign non model to inverse") 
+        self._inverse = invmodel
 
     __add__ =     _alt_model_oper('+')
     __sub__ =     _alt_model_oper('-')
@@ -210,3 +274,19 @@ def binary_operation(binoperator, left, right):
         return tuple([binoperator(item[0], item[1]) for item in zip(left, right)])
     else:
         return binoperator(left, right)
+
+def tree_to_list(tree, get_oper=False):
+    '''
+    Walk a tree and return a list of the leaves in order of traversal.
+    '''
+    if not hasattr(tree,'isleaf'):
+        return [tree]
+    else:
+        if not get_oper:
+            return tree_to_list(tree.left, get_oper) + tree_to_list(tree.right, get_oper)
+        else:
+            return tree_to_list(tree.left, get_oper) + [tree.op] + tree_to_list(tree.right, get_oper)
+ 
+
+
+from .core import Model
