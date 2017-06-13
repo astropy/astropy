@@ -231,10 +231,10 @@ API Changes
   - ``jupiterMass``, ``earthMass``, ``jupiterRad``, and ``earthRad`` no longer
     have their prefixed units included in the standard units.  If needed, they
     can still  be found in ``units.deprecated``. [#5661]
-    
+
   - ``solLum``,``solMass``, and ``solRad`` no longer have  their prefixed units
-    included in the standard units.  If needed, they can still be found in  
-    ``units.vounit_needed``, and are enabled by default. [#5661]
+    included in the standard units.  If needed, they can still be found in
+    ``units.required_by_vounit``, and are enabled by default. [#5661]
 
 - ``astropy.utils``
 
