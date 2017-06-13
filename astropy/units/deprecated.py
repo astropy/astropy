@@ -26,10 +26,14 @@ _ns = globals()
 def _initialize_module():
     # Local imports to avoid polluting top-level namespace
     from . import cgs
-    from .core import def_unit
+    from . import astrophys
+    from .core import def_unit, _add_prefixes
 
     def_unit(['emu'], cgs.Bi, namespace=_ns,
              doc='Biot: CGS (EMU) unit of current')
+
+    # add only some *prefixes* as deprecated units
+    _add_prefixes(astrophys.solMass, namespace=_ns, prefixes=True)
 
 
 _initialize_module()
