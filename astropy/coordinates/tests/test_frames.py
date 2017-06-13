@@ -285,12 +285,12 @@ def test_cloning():
     from ...time import Time
 
     i = ICRS(ra=1*u.deg, dec=2*u.deg)
-    iclone = i.replicate(copy=None)
+    iclone = i.replicate_without_data()
     assert i.has_data
     assert not iclone.has_data
 
     aa = AltAz(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
-    aaclone = aa.replicate(copy=None, obstime=Time('J2001'))
+    aaclone = aa.replicate_without_data(obstime=Time('J2001'))
     assert not aaclone.has_data
     assert aa.obstime != aaclone.obstime
     assert aa.pressure == aaclone.pressure
