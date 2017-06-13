@@ -198,5 +198,5 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
 
     # the inverse of a rotation matrix is a transpose, which is much faster and
     #   more stable to compute
-    # TODO: this actually might not be right, because of order of operations
-    return matrix_transpose(A), [-x if x is not None else None for x in vecs]
+    A_T = matrix_transpose(A)
+    return A_T, [-A_T.dot(x) if x is not None else None for x in vecs]
