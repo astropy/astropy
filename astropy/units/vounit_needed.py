@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines deprecated units.
-
-These units are not available in the top-level `astropy.units`
-namespace. To use these units, you must import the `astropy.units.deprecated`
-module::
-
-    >>> from astropy.units import deprecated
-    >>> q = 10. * deprecated.emu  # doctest: +SKIP
-
-To include them in `~astropy.units.UnitBase.compose` and the results of
-`~astropy.units.UnitBase.find_equivalent_units`, do::
-
-    >>> from astropy.units import deprecated
-    >>> deprecated.enable()  # doctest: +SKIP
+This package defines units required by the VOUnit standard but that are likely
+to clutter the top-level unit namespace.  They are enabled by default so that
+E.g. ``Unit('msolMass')`` will yield milli-solar mass, but are in a separate
+module so they must be accessed as ``astropy.units.vounit_needed.msolMass``
+instead of ``astropy.units.msolMass``.
 
 """
 from __future__ import (absolute_import, division, print_function,
@@ -29,14 +20,10 @@ def _initialize_module():
     from . import astrophys
     from .core import def_unit, _add_prefixes
 
-    def_unit(['emu'], cgs.Bi, namespace=_ns,
-             doc='Biot: CGS (EMU) unit of current')
+    _add_prefixes(astrophys.solMass, namespace=_ns, prefixes=True)
+    _add_prefixes(astrophys.solRad, namespace=_ns, prefixes=True)
+    _add_prefixes(astrophys.solLum, namespace=_ns, prefixes=True)
 
-    # Add only some *prefixes* as deprecated units.
-    _add_prefixes(astrophys.jupiterMass, namespace=_ns, prefixes=True)
-    _add_prefixes(astrophys.earthMass, namespace=_ns, prefixes=True)
-    _add_prefixes(astrophys.jupiterRad, namespace=_ns, prefixes=True)
-    _add_prefixes(astrophys.earthRad, namespace=_ns, prefixes=True)
 
 _initialize_module()
 
@@ -51,7 +38,7 @@ if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
 
 
-def enable():
+def _enable():
     """
     Enable deprecated units so they appear in results of
     `~astropy.units.UnitBase.find_equivalent_units` and
@@ -64,4 +51,8 @@ def enable():
     from .core import add_enabled_units
     # Local import to avoid polluting namespace
     import inspect
-    return add_enabled_units(inspect.getmodule(enable))
+    return add_enabled_units(inspect.getmodule(_enable))
+
+
+# For nounit_needed all start enabled (which is why the function is hidden).
+_enable()
