@@ -6,8 +6,8 @@ but that are rarely used in practice.  E.g. ``Unit('msolMass')`` will yield
 milli-solar mass, but are in a separate module so they must be accessed as
 ``astropy.units.required_by_vounit.msolMass`` instead of ``astropy.units.msolMass``.
 
-These units are in a separate modeule from `astropy.deprecated` because they
-need to be enabled by default for `astropy.units` to be able to compliantly
+These units are in a separate modeule from `astropy.units.deprecated` because
+they need to be enabled by default for `astropy.units` to be able to compliantly
 parse VOUnit strings.
 
 """
