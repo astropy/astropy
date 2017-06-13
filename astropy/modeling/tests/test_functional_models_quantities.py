@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import pytest
 import numpy as np
 
@@ -12,6 +14,12 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
                                  Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
                                  MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
 from ..fitting import LevMarLSQFitter
+
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 # TODO: GaussianAbsorption1D doesn't work with units because the 1- part doesn't
 # have units. How do we want to deal with that?
@@ -124,6 +132,21 @@ MODELS_2D = [
 MODELS = MODELS_1D + MODELS_2D
 
 @pytest.mark.parametrize('model', MODELS)
+def test_models_evaluatate_without_units(model):
+    m = model['class'](**model['parameters'])
+    for args in model['evaluation']:
+        if len(args) == 2:
+            kwargs = OrderedDict(zip(('x', 'y'), args))
+        else:
+            kwargs = OrderedDict(zip(('x', 'y', 'z'), args))
+            if kwargs['x'].unit.is_equivalent(kwargs['y'].unit):
+                kwargs['x'] = kwargs['x'].to(kwargs['y'].unit)
+        mnu = m.without_units_for_data(**kwargs)
+        args = [x.value for x in kwargs.values()]
+        assert_quantity_allclose(mnu(*args[:-1]), args[-1])
+
+
+@pytest.mark.parametrize('model', MODELS)
 def test_models_evaluatate_with_units(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
@@ -186,6 +209,7 @@ def test_models_bounding_box(model):
             m.bounding_box
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('model', MODELS)
 def test_models_fitting(model):
     m = model['class'](**model['parameters'])
