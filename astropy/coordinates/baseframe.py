@@ -754,7 +754,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 data = self.data.represent_as(new_representation,
                                               new_differential)
                 diff = data.differentials['s'] # TODO: assumes velocity
-
             else:
                 data = self.data.represent_as(new_representation)
 
