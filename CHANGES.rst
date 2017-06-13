@@ -230,7 +230,7 @@ API Changes
 
   - ``solLum``,``solMass``, ``jupiterMass``, and ``earthMass``, as well as
     ``solRad``, ``jupiterRad``, and ``earthRad`` no longer have their prefixed
-    units included in the standard units.  They can now be found in
+    units included in the standard units.  If needed, they can still be found in
     ``units.deprecated``. [#5661]
 
 - ``astropy.utils``
