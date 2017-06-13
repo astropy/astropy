@@ -1321,8 +1321,9 @@ class Ring2D(Fittable2DModel):
     def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
                  y_0=y_0.default, r_in=r_in.default, width=width.default,
                  r_out=None, **kwargs):
+        # If outer radius explicitly given, it overrides default width.
         if r_out is not None:
-            if width is not None:
+            if width != self.width.default:
                 raise InputParameterError(
                     "Cannot specify both width and outer radius separately.")
             width = r_out - r_in
