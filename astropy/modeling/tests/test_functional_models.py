@@ -187,6 +187,12 @@ def test_Shift_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+# https://github.com/astropy/astropy/issues/6178
+def test_Ring2D_rout():
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
+    assert m.width.value == 3
+
+
 @pytest.mark.skipif("not HAS_SCIPY")
 def test_Voigt1D():
     voi = models.Voigt1D(amplitude_L=-0.5, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
