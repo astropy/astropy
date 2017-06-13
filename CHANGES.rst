@@ -223,6 +223,11 @@ New Features
 API Changes
 ^^^^^^^^^^^
 
+- ``astropy.analytic_functions``
+
+  - This entire sub-package is deprecated because blackbody has been moved to
+    ``astropy.modeling.blackbody``. [#6191]
+
 - ``astropy.config``
 
 - ``astropy.constants``
