@@ -66,6 +66,7 @@ def make_skyoffset_cls(framecls):
             # SkyOffsetFrame class initially.
             members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
             members['_default_representation'] = framecls._default_representation
+            members['_default_differential'] = framecls._default_differential
 
             newname = name[:-5] if name.endswith('Frame') else name
             newname += framecls.__name__
@@ -77,7 +78,7 @@ def make_skyoffset_cls(framecls):
 
             lists_done = []
             for nm, component_list in res._frame_specific_representation_info.items():
-                if nm in ('spherical', 'unitspherical'):
+                if nm in ('spherical', 'unitspherical'): # TODO: change to classes
                     gotlatlon = []
                     for i, comp in enumerate(component_list):
                         if component_list in lists_done:
@@ -95,12 +96,15 @@ def make_skyoffset_cls(framecls):
                             dct['framename'] = comp.reprname
                             component_list[i] = type(comp)(**dct)
                             gotlatlon.append(comp.reprname)
+
                     if 'lon' not in gotlatlon:
                         rmlon = RepresentationMapping('lon', 'lon', 'recommended')
                         component_list.insert(0, rmlon)
+
                     if 'lat' not in gotlatlon:
                         rmlat = RepresentationMapping('lat', 'lat', 'recommended')
                         component_list.insert(0, rmlat)
+
                     lists_done.append(component_list)
 
             return res
