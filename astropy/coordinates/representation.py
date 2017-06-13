@@ -539,8 +539,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Parameters
         ----------
-        other_class : `~astropy.coordinates.BaseRepresentation` subclass
-            The type of representation to turn the coordinates into.
+        other_class : `~astropy.coordinates.BaseRepresentation` subclass, iterable
+            The type of representation to turn the coordinates into. If the
+            representation contains differential classes, the input may be an
+            iterable containing the desired classes for the representation and
+            each differential. That is, the iterable must be of length equal to
+            1 + the number of attached differentials.
         """
         if other_class is self.__class__:
             return self
