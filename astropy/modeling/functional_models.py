@@ -749,9 +749,14 @@ class Sine1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
+        # Note: If frequency and x are quantities, they should normally have
+        # inverse units, so that argument ends up being dimensionless. However,
+        # np.sin of a dimensionless quantity will crash, so we remove the
+        # quantity-ness from argument in this case (another option would be to
+        # multiply by * u.rad but this would be slower overall).
         argument = TWOPI * (frequency * x + phase)
         if isinstance(argument, Quantity):
-            argument *= u.rad
+            argument = argument.value
         return amplitude * np.sin(argument)
 
     @staticmethod
