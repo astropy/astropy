@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines units required by the VOUnit standard but that are likely
-to clutter the top-level unit namespace.  They are enabled by default so that
-E.g. ``Unit('msolMass')`` will yield milli-solar mass, but are in a separate
-module so they must be accessed as ``astropy.units.vounit_needed.msolMass``
-instead of ``astropy.units.msolMass``.
+This package defines SI prefix ed units that are required by the VOUnit standard
+but that are rarely used in practice.  E.g. ``Unit('msolMass')`` will yield
+milli-solar mass, but are in a separate module so they must be accessed as
+``astropy.units.vounit_needed.msolMass`` instead of ``astropy.units.msolMass``.
+
+These units are in a separate modeule from `astropy.deprecated` because they
+need to be enabled by default for `astropy.units` to be able to compliantly
+parse VOUnit strings.
 
 """
 from __future__ import (absolute_import, division, print_function,

@@ -73,8 +73,8 @@ class VOUnit(generic.Generic):
                     if keyword.iskeyword(key):
                         continue
 
-                    uwithekey = u if hasattr(u, key) else u_deprecated
-                    names[key] = getattr(uwithekey, key)
+                    uwithkey = u if hasattr(u, key) else u_deprecated
+                    names[key] = getattr(uwithkey, key)
                     if base in deprecated_units:
                         deprecated_names.add(key)
 
