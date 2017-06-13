@@ -456,14 +456,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def replicate(self, copy=False, **kwargs):
         """
-        Generates a new frame object that is a copy of this one, but possibly
-        with frame attributes overriden and/or by reference.
+        Return a replica of the frame, optionally with new frame attributes.
 
-        If ``copy`` is set to `True` then a full copy of the internal arrays
-        will be made.  By default the replica will use a reference to the
-        original arrays when possible to save memory.  The internal arrays
-        are normally not changeable by the user so in most cases it should not
-        be necessary to set ``copy`` to `True`.
+        The replica is a new frame object that has the same data as this frame
+        object and with frame attributes overriden if they are provided as extra
+        keyword arguments to this method. If ``copy`` is set to `True` then a
+        copy of the internal arrays will be made.  Otherwise the replica will
+        use a reference to the original arrays when possible to save memory. The
+        internal arrays are normally not changeable by the user so in most cases
+        it should not be necessary to set ``copy`` to `True`.
 
         Parameters
         ----------
@@ -484,9 +485,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def replicate_without_data(self, copy=False, **kwargs):
         """
-        Generates a new frame object that is a copy of this one, but without
-        data, and possibly with new frame attributes.  Effectively, the converse
-        of `realize_frame`.
+        Return a replica without data, optionally with new frame attributes.
+
+        The replica is a new frame object without data but with the same frame
+        attributes as this object, except where overriden by extra keyword
+        arguments to this method.  The ``copy`` keyword determines if the frame
+        attributes are truly copied vs being references (which saves memory for
+        cases where frame attributes are large).
+
+        This method is essentially the converse of `realize_frame`.
 
         Parameters
         ----------
