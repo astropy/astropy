@@ -232,13 +232,13 @@ def test_models_bounding_box(model):
 def test_models_fitting(model):
     m = model['class'](**model['parameters'])
     if len(model['evaluation'][0]) == 2:
-        x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
-        y = np.ones(100) * model['evaluation'][0][1].unit
+        x = np.linspace(1, 3, 100) * model['evaluation'][0][0].unit
+        y = np.exp(-x.value ** 2) * model['evaluation'][0][1].unit
         args = [x, y]
     else:
-        x = np.linspace(-3, 3, 100) * model['evaluation'][0][0].unit
-        y = np.linspace(-3, 3, 100) * model['evaluation'][0][1].unit
-        z = np.ones(100) * model['evaluation'][0][2].unit
+        x = np.linspace(1, 3, 100) * model['evaluation'][0][0].unit
+        y = np.linspace(1, 3, 100) * model['evaluation'][0][1].unit
+        z = np.exp(-x.value**2 - y.value**2) * model['evaluation'][0][2].unit
         args = [x, y, z]
     fitter = LevMarLSQFitter()
     m_new = fitter(m, *args)
