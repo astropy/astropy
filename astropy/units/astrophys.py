@@ -103,7 +103,7 @@ def_unit(['Ry', 'rydberg'],
 # ILLUMINATION
 
 def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
-         prefixes=True, doc="Solar luminance",
+         prefixes=False, doc="Solar luminance",
          format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
 

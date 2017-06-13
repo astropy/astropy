@@ -228,9 +228,9 @@ API Changes
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
     definition of "emu". [#4918, #5906]
 
-  - ``solMass``, ``jupiterMass``, and ``earthMass``, as well as  ``solRad``,
-    ``jupiterRad``, and ``earthRad`` no longer have their prefixed units
-    included in the standard units.  They can now be found in
+  - ``solLum``,``solMass``, ``jupiterMass``, and ``earthMass``, as well as
+    ``solRad``, ``jupiterRad``, and ``earthRad`` no longer have their prefixed
+    units included in the standard units.  They can now be found in
     ``units.deprecated``. [#5661]
 
 - ``astropy.utils``
