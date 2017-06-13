@@ -228,6 +228,11 @@ API Changes
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
     definition of "emu". [#4918, #5906]
 
+  - ``jupiterMass``, and ``earthMass``, as well as  ``solRad``,
+    ``jupiterRad``, and ``earthRad`` no longer have their prefixed units
+    included.  Prefixed versions of ``solMass`` are now in
+    ``units.deprecated``. [#5661]
+
 - ``astropy.utils``
 
   - Removed the deprecated compatibility modules for Python 2.6 (``argparse``,
@@ -312,10 +317,6 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
-
-  - ``solMass``, ``jupiterMass``, and ``earthMass``, as well as  ``solRad``,
-  ``jupiterRad``, and ``earthRad`` no longer have their prefixed units 
-  included. [#5661]
 
 - ``astropy.utils``
 
