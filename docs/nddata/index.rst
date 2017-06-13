@@ -7,26 +7,33 @@ N-dimensional datasets (`astropy.nddata`)
 Introduction
 ============
 
-The `~astropy.nddata` package provides classes to represent images and other gridded data, some essential functions for manipulating images, and the infrastructure for package developers who wish to include support for the image classes.
+The `~astropy.nddata` package provides classes to represent images and other
+gridded data, some essential functions for manipulating images, and the
+infrastructure for package developers who wish to include support for the
+image classes.
 
 Getting started
 ===============
 
-Though the `~astropy.nddata` package supports any kind of gridded data, this introduction will focus on the use of `~astropy.nddata` for two-dimensional images. To get started, we'll construct a two-dimensional image with a few sources, some Gaussian noise, and a cosmic ray which we will later mask out::
+Though the `~astropy.nddata` package supports any kind of gridded data, this
+introduction will focus on the use of `~astropy.nddata` for two-dimensional
+images. To get started, we'll construct a two-dimensional image with a few
+sources, some Gaussian noise, and a cosmic ray which we will later mask out::
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
     >>> y, x = np.mgrid[0:500, 0:600]
-    >>> data = (Gaussian2D(1, 50, 100, 20, 10, theta=0.5)(x, y) +
+    >>> data = (Gaussian2D(1, 150, 100, 20, 10, theta=0.5)(x, y) +
     ...         Gaussian2D(0.5, 400, 300, 8, 12, theta=1.2)(x,y) +
     ...         Gaussian2D(0.75, 250, 400, 5, 7, theta=0.23)(x,y) +
     ...         Gaussian2D(0.9, 525, 150, 3, 3)(x,y) +
     ...         Gaussian2D(0.6, 200, 225, 3, 3)(x,y))
     >>> data += 0.01 * np.random.randn(500, 600)
     >>> cosmic_ray_value = 0.997
-    >>> data[300:310, 100] = cosmic_ray_value
+    >>> data[100, 300:310] = cosmic_ray_value
 
-This image has a large "galaxy" in the lower left and the cosmic ray is the horizontal line in the lower middle of the image:
+This image has a large "galaxy" in the lower left and the cosmic ray is the
+horizontal line in the lower middle of the image:
 
 .. doctest-skip::
 
@@ -39,20 +46,218 @@ This image has a large "galaxy" in the lower left and the cosmic ray is the hori
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     y, x = np.mgrid[0:500, 0:600]
-    data = (Gaussian2D(1, 50, 100, 20, 10, theta=0.5)(x, y) +
+    data = (Gaussian2D(1, 150, 100, 20, 10, theta=0.5)(x, y) +
             Gaussian2D(0.5, 400, 300, 8, 12, theta=1.2)(x,y) +
             Gaussian2D(0.75, 250, 400, 5, 7, theta=0.23)(x,y) +
             Gaussian2D(0.9, 525, 150, 3, 3)(x,y) +
             Gaussian2D(0.6, 200, 225, 3, 3)(x,y))
+    np.random.seed(123456)
     data += 0.01 * np.random.randn(500, 600)
     cosmic_ray_value = 0.997
-    data[300:310, 100] = cosmic_ray_value
+    data[100, 300:310] = cosmic_ray_value
     plt.imshow(data, origin='lower')
 
 
-Foo!
+The `~astropy.nddata.CCDData` object, like the other objects in this package,
+can store the data, a mask, and metadata. The `~astropy.nddata.CCDData` object
+requires that a unit be specified::
+
+    >>> mask = (data == cosmic_ray_value)
+    >>> from ccdproc import CCDData   # doctest: +SKIP
+    >>> ccd = CCDData(data, mask=mask,
+    ...               meta={'object': 'fake galaxy', 'filter': 'R'},
+    ...               unit='adu')
+
+Slicing the works the way you would expect, with the mask and, if present,
+WCS, sliced appropriately also::
+
+    >>> ccd2 = ccd[:200, :]
+    >>> ccd2.data.shape
+    (200, 600)
+    >>> ccd2.mask.shape
+    (200, 600)
+
+Image arithmetic, including uncertainty
+---------------------------------------
+
+Methods are provided for basic arithmetic operations between images, including
+propagation of uncertainties. Support for uncertainties is currently limited
+to standard deviation. The example below creates an uncertainty that is simply
+Poisson error; note that the masked version of the square root is used::
+
+    >>> ccd.uncertainty = np.ma.sqrt(np.ma.abs(ccd.data))
+
+If we make a copy of the image and add that to the original, the uncertainty
+changes as expected::
+
+    >>> ccd2 = ccd.copy()
+    >>> added_ccds = ccd.add(ccd2, handle_meta='first_found')
+    >>> added_ccds.uncertainty.array[0, 0] / ccd.uncertainty.array[0, 0] / np.sqrt(2) # doctest: +FLOAT_CMP
+    0.99999999999999989
+
+Image utilities
+---------------
+
+Though slicing directly is one to extract a subframe,
+`~astropy.nddata.Cutout2D` provides more convenient access to cutouts from the
+data. The example below pulls out the large "galaxy" in the lower left of the
+image, with the center of the cutout at ``position``::
+
+    >>> from astropy.nddata import Cutout2D
+    >>> position = (149.7, 100.1)
+    >>> size = (80, 100)     # pixels
+    >>> cutout = Cutout2D(ccd, position, size)
+    >>> plt.imshow(cutout.data, origin='lower')
+
+.. plot::
+
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import Gaussian2D
+    from ccdproc import CCDData
+    from astropy.nddata import Cutout2D
+    y, x = np.mgrid[0:500, 0:600]
+    data = (Gaussian2D(1, 150, 100, 20, 10, theta=0.5)(x, y) +
+            Gaussian2D(0.5, 400, 300, 8, 12, theta=1.2)(x,y) +
+            Gaussian2D(0.75, 250, 400, 5, 7, theta=0.23)(x,y) +
+            Gaussian2D(0.9, 525, 150, 3, 3)(x,y) +
+            Gaussian2D(0.6, 200, 225, 3, 3)(x,y))
+    np.random.seed(123456)
+    data += 0.01 * np.random.randn(500, 600)
+    cosmic_ray_value = 0.997
+    data[100, 300:310] = cosmic_ray_value
+    mask = (data == cosmic_ray_value)
+    ccd = CCDData(data, mask=mask,
+                  meta={'object': 'fake galaxy', 'filter': 'R'},
+                  unit='adu')
+    position = (149.7, 100.1)
+    size = (80, 100)     # pixels
+    cutout = Cutout2D(ccd, position, size)
+    plt.imshow(cutout.data, origin='lower')
+
+This cutout can also plot itself on the original image::
+
+    >>> plt.imshow(ccd, origin='lower')
+    >>> cutout.plot_on_original(color='white')
+
+.. plot::
+
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import Gaussian2D
+    from ccdproc import CCDData
+    from astropy.nddata import Cutout2D
+    y, x = np.mgrid[0:500, 0:600]
+    data = (Gaussian2D(1, 150, 100, 20, 10, theta=0.5)(x, y) +
+            Gaussian2D(0.5, 400, 300, 8, 12, theta=1.2)(x,y) +
+            Gaussian2D(0.75, 250, 400, 5, 7, theta=0.23)(x,y) +
+            Gaussian2D(0.9, 525, 150, 3, 3)(x,y) +
+            Gaussian2D(0.6, 200, 225, 3, 3)(x,y))
+    np.random.seed(123456)
+    data += 0.01 * np.random.randn(500, 600)
+    cosmic_ray_value = 0.997
+    data[100, 300:310] = cosmic_ray_value
+    mask = (data == cosmic_ray_value)
+    ccd = CCDData(data, mask=mask,
+                  meta={'object': 'fake galaxy', 'filter': 'R'},
+                  unit='adu')
+    position = (149.7, 100.1)
+    size = (80, 100)     # pixels
+    cutout = Cutout2D(ccd, position, size)
+    plt.imshow(ccd, origin='lower')
+    cutout.plot_on_original(color='white')
+
+The cutout also provides methods for find pixel coordinates in the original or
+in the cutout; recall that ``position`` is the center of the cutout in the
+original image::
+
+    >>> cutout.to_cutout_position(position)
+    (49.7, 40.099999999999994)
+    >>> cutout.to_original_position((49.7, 40.099999999999994))
+    (49.7, 100.1)
+
+For more details, including constructing a cutout from world coordinates and
+the options for handling cutouts that go beyond the bounds of the original
+image, see :ref:`cutout_images`.
+
+The functions `~astropy.nddata.block_reduce` and
+`~astropy.nddata.block_replicate` resize images. The example below reduces the
+size of the image by a factor of 4. Note that the result is a `numpy.ndarray`;
+the mask, metadata, etc are discarded::
+
+    >>> from astropy.nddata import block_reduce, block_replicate
+    >>> smaller = block_reduce(ccd, 4)
+    >>> type(smaller)
+    numpy.ndarray
+    >>> plt.imshow(smaller, origin='lower')
+
+.. plot::
+
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import Gaussian2D
+    from astropy.nddata import block_reduce, block_replicate
+    from ccdproc import CCDData
+    from astropy.nddata import Cutout2D
+    y, x = np.mgrid[0:500, 0:600]
+    data = (Gaussian2D(1, 150, 100, 20, 10, theta=0.5)(x, y) +
+            Gaussian2D(0.5, 400, 300, 8, 12, theta=1.2)(x,y) +
+            Gaussian2D(0.75, 250, 400, 5, 7, theta=0.23)(x,y) +
+            Gaussian2D(0.9, 525, 150, 3, 3)(x,y) +
+            Gaussian2D(0.6, 200, 225, 3, 3)(x,y))
+    np.random.seed(123456)
+    data += 0.01 * np.random.randn(500, 600)
+    cosmic_ray_value = 0.997
+    data[100, 300:310] = cosmic_ray_value
+    mask = (data == cosmic_ray_value)
+    ccd = CCDData(data, mask=mask,
+                  meta={'object': 'fake galaxy', 'filter': 'R'},
+                  unit='adu')
+    smaller = block_reduce(ccd, 4)
+    plt.imshow(smaller, origin='lower')
+
+By default, both `~astropy.nddata.block_reduce` and
+`~astropy.nddata.block_replicate` conserve flux.
+
+Reading and writing
+-------------------
+
+A `~astropy.nddata.CCDData` can be saved to a FITS file::
+
+    >>> ccd.write('test_file.fits')
+
+and can also be read in from a FITS file::
+
+    >>> ccd2 = CCDData.read('test_file.fits')
+
+Note the unit is stored in the ``BUNIT`` keyword in the header on saving, and is
+read from the header if it is present.
+
+Other image classes
+-------------------
+
+There are two less restrictive classes, `~astropy.nddata.NDDataArray` and
+`~astropy.nddata.NDDataRef`, that can be used to hold image data. They are
+primarily of interest to those who may want to create their own image class by
+subclassing from one of the classes in the `~astropy.nddata` package. The main
+differences between them are:
+
++ `~astropy.nddata.NDDataRef` can be sliced and has methods for basic
+  arithmetic operations, but the user needs to use one of the uncertainty
+  classes to define an uncertainty. See :ref:`NDDataRef` for more detail.
+  Most of its properties must be set when the object is created because they
+  are not mutable.
++ `~astropy.nddata.NDDataArray` extends `~astropy.nddata.NDDataRef` by adding
+  the methods necessary to all it to behave like a numpy array in expressions
+  and adds setters for several properties. It lacks the ability to
+  automatically recognize and read data from FITS files and does not attempt
+  to automatically set the WCS property.
++ `~astropy.nddata.CCDData` extends `~astropy.nddata.NDDataArray` by setting
+  up a default uncertainty class, sets up straightforward read/write to FITS
+  files, automatically sets up a WCS property.
 
 
+More general gridded data class
+-------------------------------
+
+Document the container class and the ABC here.
 
 
 Using ``nddata``
@@ -70,5 +275,10 @@ Using ``nddata``
 Reference/API
 =============
 
+.. automodapi:: astropy.nddata
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.nddata.utils
+    :no-inheritance-diagram:
 
 .. _APE 7: https://github.com/astropy/astropy-APEs/blob/master/APE7.rst
