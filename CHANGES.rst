@@ -290,6 +290,8 @@ Bug Fixes
     incorrectly when part of a compound model (using the parameters from the
     original model), which in turn caused fitting to fail as a no-op. [#6085]
 
+  - Allow ``Ring2D`` to be defined using ``r_out``. [#6192]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
