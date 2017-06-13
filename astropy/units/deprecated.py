@@ -33,6 +33,9 @@ def _initialize_module():
              doc='Biot: CGS (EMU) unit of current')
 
     # add only some *prefixes* as deprecated units
+    # note that some of these (solMass, solRad, and solLum) are needed for
+    # VOUnit, but otherwise awkward, so these should be deprecated from the
+    #units namespace but not removed indefinitely
     _add_prefixes(astrophys.solMass, namespace=_ns, prefixes=True)
     _add_prefixes(astrophys.jupiterMass, namespace=_ns, prefixes=True)
     _add_prefixes(astrophys.earthMass, namespace=_ns, prefixes=True)
