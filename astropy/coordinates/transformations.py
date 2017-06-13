@@ -762,6 +762,10 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     finite_difference_frameattr_name : str
         The name of the frame attribute on the *to* frame to use for the finite
         difference
+    finite_difference_dt : Quantity or callable
+        If a quantity, this is the size of the differential used to do the
+        finite difference.  If a callable, should accept
+        ``(fromcoord, toframe)`` and return the ``dt`` value.
 
     All other paramters are identical to the initializer for
     `FunctionTransform`.
@@ -773,10 +777,13 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         super(FunctionTransformWithFiniteDifference, self).__init__(func,
               fromsys, tosys, priority, register_graph)
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
+        self.finite_difference_dt = finite_difference_dt
 
     def __call__(self, fromcoord, toframe):
+        from .representation import CartesianDifferential
+
         supcall = super(FunctionTransformWithFiniteDifference, self).__call__
-        if getattr(fromcoord.data, 'differential', False):
+        if getattr(fromcoord.data, 'differentials', False):
             # this is the finite difference case
             attrname = self.finite_difference_frameattr_name
             if callable(self.finite_difference_dt):
@@ -791,9 +798,9 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             back_frame =  toframe.replicate_without_data(**update_keyword)
             back = supcall(fromcoord, back_frame)
 
-            newdiff = CartesianDifferential((fwd - back).to_cartesian().xyz / dt)
+            newdiff = CartesianDifferential((fwd.cartesian - back.cartesian).xyz / dt)
 
-            withoutdiff = supcall(self, new_frame)
+            withoutdiff = supcall(fromcoord, toframe)
             withdiff = withoutdiff.data.with_differentials(newdiff)
             return withoutdiff.realize_frame(withdiff)
         else:
