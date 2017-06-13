@@ -8,12 +8,11 @@ from io import BytesIO, open
 from collections import OrderedDict
 import locale
 import platform
-import os
 
 import pytest
 import numpy as np
 
-from ....extern import six
+from ....extern import six  # noqa
 from ....extern.six.moves import zip, cStringIO as StringIO
 from ... import ascii
 from ....table import Table
@@ -160,57 +159,6 @@ def test_read_all_files_via_table(fast_reader):
                 test_opts['fast_reader'] = fast_reader
             table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
-            for colname in table.dtype.names:
-                assert_equal(len(table[colname]), testfile['nrows'])
-
-
-def test_read_all_files_with_encoding(tmpdir):
-
-    # Fast reader is not supported, make sure it raises an exception
-    with pytest.raises(ascii.ParameterError):
-        table = ascii.read('t/simple3.txt', guess=False, fast_reader='force',
-                           encoding='latin1', format='fast_csv')
-
-    from ....table import Column
-    formats = {v: k for k, v in core.FORMAT_CLASSES.items()}
-
-    for testfile in get_testfiles():
-        if testfile.get('skip'):
-            print('\n\n******** SKIPPING %s' % testfile['name'])
-            continue
-
-        if testfile['name'] == 't/nls1_stackinfo.dbout':
-            pass
-
-        tmpfile = str(tmpdir.join(os.path.basename(testfile['name'])))
-
-        table = ascii.read(testfile['name'], **testfile['opts'])
-        if table.columns[0].dtype.kind == 's':
-            name = u'à' if not six.PY2 else 'alpha'
-            col = Column(name=name, data=[six.u(x) for x in table.columns[0]])
-            table.add_column(col, 0)
-            table[0][0] = u"àéö"
-            cols = (name, ) + testfile['cols']
-        else:
-            cols = testfile['cols']
-
-        format = formats.get(testfile['opts'].get('Reader'))
-
-        with open(tmpfile, mode='w', encoding='latin1') as fout:
-            try:
-                ascii.write(table, fout, fast_writer=False, format=format)
-            except NotImplementedError:
-                # Skip formats which do not have a writer (Cds)
-                continue
-
-        print('\n\n******** READING %s' % testfile['name'])
-        for guess in (True, False):
-            test_opts = testfile['opts'].copy()
-            test_opts['encoding'] = 'latin1'
-            if 'guess' not in test_opts:
-                test_opts['guess'] = guess
-            table = ascii.read(tmpfile, **test_opts)
-            assert_equal(table.dtype.names, cols)
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
 
@@ -1298,3 +1246,42 @@ def text_aastex_no_trailing_backslash():
     assert dat.colnames == ['a', 'b', 'c']
     assert np.all(dat['a'] == ['1', r'3\%'])
     assert np.all(dat['c'] == ['c', 'e'])
+
+
+@pytest.mark.skipif('six.PY2')
+@pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
+def test_read_with_encoding(tmpdir, encoding):
+    data = {
+        'commented_header': u'# à b è \n 1 2 héllo',
+        'csv': u'à,b,è\n1,2,héllo'
+    }
+
+    testfile = str(tmpdir.join('test.txt'))
+    for fmt, content in data.items():
+        with open(testfile, 'w', encoding=encoding) as f:
+            f.write(content)
+
+        table = ascii.read(testfile, encoding=encoding)
+        assert table.pformat() == [' à   b    è  ',
+                                   '--- --- -----',
+                                   '  1   2 héllo']
+
+        table = ascii.read(testfile, format=fmt, fast_reader=False,
+                           encoding=encoding)
+        assert table['è'].dtype.kind == 'U'
+        assert table.pformat() == [' à   b    è  ',
+                                   '--- --- -----',
+                                   '  1   2 héllo']
+
+
+def test_unsupported_read_with_encoding(tmpdir):
+    # Fast reader is not supported, make sure it raises an exception
+    with pytest.raises(ascii.ParameterError):
+        ascii.read('t/simple3.txt', guess=False, fast_reader='force',
+                   encoding='latin1', format='fast_csv')
+
+    # Python 2 is not supported, make sure it raises an exception
+    if six.PY2:
+        with pytest.raises(ValueError):
+            ascii.read('t/simple3.txt', guess=False, fast_reader=False,
+                       encoding='latin1', format='csv')
