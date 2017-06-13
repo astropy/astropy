@@ -35,6 +35,14 @@ class CIRS(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
+    pm_ra : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Right Ascension for this object (``pm_dec`` must
+        also be given).
+    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_ra`` must also be
+        given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.

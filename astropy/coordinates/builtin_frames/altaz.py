@@ -64,6 +64,14 @@ class AltAz(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
+    pm_az : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in azimuth for this object (``pm_alt`` must also be
+        given).
+    pm_alt : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in altitude for this object (``pm_az`` must also be
+        given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
