@@ -749,23 +749,11 @@ def test_wcs(ccd_data):
     assert ccd_data.wcs == 5
 
 
-def test_recognized_fits_formats():
-    from ..ccddata import _recognized_fits_file_extensions
-
+def test_recognized_fits_formats_for_read_write(ccd_data, tmpdir):
     # These are the extensions that are supposed to be supported.
     supported_extensions = ['fit', 'fits', 'fts']
 
-    # Make sure they are actually supported.
-    assert len(set(_recognized_fits_file_extensions) -
-               set(supported_extensions)) == 0
-
-
-def test_recognized_fits_formats_for_read_write(ccd_data, tmpdir):
-    # Test that incorporates astropy/ccdproc#355, which asked that .fts
-    # be auto-identified as a FITS file extension.
-    from ..ccddata import _recognized_fits_file_extensions
-
-    for ext in _recognized_fits_file_extensions:
+    for ext in supported_extensions:
         path = tmpdir.join("test.{}".format(ext))
         ccd_data.write(path.strpath)
         from_disk = CCDData.read(path.strpath)

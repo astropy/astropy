@@ -42,7 +42,7 @@ A `~astropy.nddata.CCDData` object can also be initialized from a FITS file:
     >>> ccd = CCDData.read('my_file.fits', unit="adu")  # doctest: +SKIP
 
 If there is a unit in the FITS file (in the ``BUNIT`` keyword), that will be
-used, but a unit explicitly provided in ``read`` will override any unit in the
+used, but explicitly providing a unit in ``read`` will override any unit in the
 FITS file.
 
 There is no restriction at all on what the unit can be -- any unit in
@@ -50,7 +50,7 @@ There is no restriction at all on what the unit can be -- any unit in
 
 In addition, the user can specify the extension in a FITS file to use:
 
-    >>> ccd = ccdproc.CCDData.read('my_file.fits', hdu=1, unit="adu")  # doctest: +SKIP
+    >>> ccd = CCDData.read('my_file.fits', hdu=1, unit="adu")  # doctest: +SKIP
 
 If ``hdu`` is not specified, it will assume the data is in the primary
 extension.  If there is no data in the primary extension, the first extension
@@ -69,7 +69,7 @@ dictionary or dict-like object:
     >>> ccd_simple.header = my_meta  # or use ccd_simple.meta = my_meta
 
 Whether the metadata is case sensitive or not depends on how it is
-initialized. A FITS header, for example, is not case sensitive, but a python
+initialized. A FITS header, for example, is not case sensitive, but a Python
 dictionary is.
 
 Getting data out
@@ -119,7 +119,7 @@ included in arithmetic operations or aggregation.
 
 Flags are one or more additional arrays (of any type) whose shape matches the
 shape of the data. For more details on setting flags see
-`astropy.nddata.NDData`.
+`~astropy.nddata.NDData`.
 
 WCS
 +++
@@ -138,7 +138,6 @@ Either way, the ``wcs`` attribute is kept up to date if the
 
 Uncertainty
 -----------
-
 
 You can set the uncertainty directly, either by creating a
 `~astropy.nddata.StdDevUncertainty` object first:
@@ -185,7 +184,7 @@ is between two `~astropy.nddata.CCDData` objects.
     Unit("adu electron")
 
 .. note::
-    The affiliated package `ccdprco <https://ccdproc.readthedocs.io>`_ provides
+    The affiliated package `ccdproc <https://ccdproc.readthedocs.io>`_ provides
     functions for many common data reduction operations. Those functions try to
     construct a sensible header for the result and provide a mechanism for
     logging the action of the function in the header.
