@@ -486,8 +486,11 @@ class Gaussian2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        return {'x': self.x_mean.unit,
-                'y': self.y_mean.unit}
+        if self.x_mean.unit is None and self.y_mean.unit is None:
+            return None
+        else:
+            return {'x': self.x_mean.unit,
+                    'y': self.y_mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
