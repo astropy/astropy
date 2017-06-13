@@ -819,7 +819,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
                 if method=='replicate' and not hasattr(value, method):
-                    return value._apply('copy', *args, **kwargs)
+                    return value  # reference directly
                 else:
                     return value._apply(method, *args, **kwargs)
             else:
@@ -827,7 +827,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     return method(value, *args, **kwargs)
                 else:
                     if method=='replicate' and not hasattr(value, method):
-                        return value.copy(*args, **kwargs)
+                        return value  # reference directly
                     else:
                         return getattr(value, method)(*args, **kwargs)
 
