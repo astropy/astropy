@@ -1103,10 +1103,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return val
 
         elif attr in self.differential_component_names:
-            # TODO: assumes only one differential
-            diff = self.data.differentials[0].represent_as(self.differential_cls,
-                                                           base=self.data)
-            val = getattr(diff, self.differential_component_names[attr])
+            # TODO: this doesn't work for the case when there is only
+            # unitspherical information. The differential_cls gets set to the
+            # default_differential, which expects full information, so the units
+            # don't work out
+            rep = self.represent_as(self.differential_cls, in_frame_units=True)
+            val = getattr(rep.differentials[0],
+                          self.differential_component_names[attr])
             return val
 
     def __setattr__(self, attr, value):
