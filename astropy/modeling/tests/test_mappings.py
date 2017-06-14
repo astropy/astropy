@@ -84,4 +84,4 @@ def test_fittable_compound():
     pfit = LevMarLSQFitter()
     new_model = pfit(m, x, y_noisy)
     y_fit = new_model(x)
-    assert_allclose(y_fit, y_real, rtol=dy)
+    assert_allclose(y_fit, y_real, rtol=dy, atol=dy)
