@@ -53,7 +53,7 @@ def convolve1d_boundary_extend(np.ndarray[DTYPE_t, ndim=1] f,
                 if not npy_isnan(val):
                     top += val * ker
                     bot += ker
-            if normalize_by_kernel
+            if normalize_by_kernel:
                 if bot == 0:
                     conv[i] = f[i]
                 else:
