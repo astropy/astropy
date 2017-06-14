@@ -18,8 +18,6 @@ from ...extern import six
 import functools
 import sys
 
-from ..decorators import deprecated
-
 __all__ = ['invalidate_caches', 'override__dir__', 'suppress',
            'possible_filename', 'namedtuple_asdict']
 
@@ -91,33 +89,6 @@ def override__dir__(f):
             return sorted(members)
 
     return override__dir__wrapper
-
-
-try:
-    from contextlib import ignored
-except ImportError:
-    from contextlib import contextmanager
-    @deprecated('1.3', alternative='suppress')
-    @contextmanager
-    def ignored(*exceptions):
-        """A context manager for ignoring exceptions.  Equivalent to::
-
-            try:
-                <body>
-            except exceptions:
-                pass
-
-        Example::
-
-            >>> import os
-            >>> with ignored(OSError):
-            ...     os.remove('file-that-does-not-exist')
-
-        """
-        try:
-            yield
-        except exceptions:
-            pass
 
 
 try:

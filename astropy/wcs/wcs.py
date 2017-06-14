@@ -67,7 +67,6 @@ if _wcs is not None:
 
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
-from ..utils.decorators import deprecated
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -2704,15 +2703,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         elif len(_naxis) == 1:
             _naxis.append(0)
         self._naxis = _naxis
-
-    @deprecated('1.3')
-    def rotateCD(self, theta):
-        _theta = np.deg2rad(theta)
-        _mrot = np.zeros(shape=(2, 2), dtype=np.double)
-        _mrot[0] = (np.cos(_theta), np.sin(_theta))
-        _mrot[1] = (-np.sin(_theta), np.cos(_theta))
-        new_cd = np.dot(self.wcs.cd, _mrot)
-        self.wcs.cd = new_cd
 
     def printwcs(self):
         print(repr(self))

@@ -23,7 +23,6 @@ from ...extern.six import string_types, iteritems, PY2
 from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import suppress
-from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 

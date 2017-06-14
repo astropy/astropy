@@ -12,7 +12,7 @@ from ..verify import VerifyWarning
 
 from ....extern.six import string_types
 from ....extern.six.moves import range, zip
-from ....utils import isiterable, lazyproperty, classproperty
+from ....utils import isiterable, lazyproperty
 
 
 class _ImageBaseHDU(_ValidHDU):
