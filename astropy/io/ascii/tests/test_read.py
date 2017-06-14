@@ -1266,12 +1266,13 @@ def test_read_with_encoding(tmpdir, encoding):
                                    '--- --- -----',
                                    '  1   2 héllo']
 
-        table = ascii.read(testfile, format=fmt, fast_reader=False,
-                           encoding=encoding)
-        assert table['è'].dtype.kind == 'U'
-        assert table.pformat() == [' à   b    è  ',
-                                   '--- --- -----',
-                                   '  1   2 héllo']
+        for guess in (True, False):
+            table = ascii.read(testfile, format=fmt, fast_reader=False,
+                               encoding=encoding, guess=guess)
+            assert table['è'].dtype.kind == 'U'
+            assert table.pformat() == [' à   b    è  ',
+                                       '--- --- -----',
+                                       '  1   2 héllo']
 
 
 def test_unsupported_read_with_encoding(tmpdir):

@@ -31,7 +31,7 @@ New Features
 - ``astropy.io.ascii``
 
   - Allow to specify encoding in ``ascii.read``, only for Python 3 and with the
-    slow readers. [#5448]
+    pure-Python readers. [#5448]
 
 - ``astropy.io.fits``
 
