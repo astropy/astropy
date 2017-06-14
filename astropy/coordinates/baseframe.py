@@ -1099,7 +1099,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return val
 
         elif attr in self.differential_component_names:
-            # TODO: this is a temporary hack - should use self.represent_as...
+            # TODO: assumes only one differential
             diff = self.data.differentials[0].represent_as(self.differential_cls,
                                                            base=self.data)
             val = getattr(diff, self.differential_component_names[attr])
