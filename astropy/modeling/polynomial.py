@@ -334,6 +334,16 @@ class Chebyshev1D(PolynomialModel):
         Fitters will remap the domain to this window
     **params : dict
         keyword : value pairs, representing parameter_name: value
+
+    Notes
+    -----
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Chebyshev polynomials is a polynomial in x - since the
+    coefficients within each Chebyshev polynomial are fixed, we can't use
+    quantities for x since the units would not be compatible. For example, the
+    third Chebyshev polynomial (T2) is 2x^2-1, but if x was specified with
+    units, 2x^2 and -1 would have incompatible units.
     """
 
     inputs = ('x',)
@@ -407,6 +417,21 @@ class Chebyshev1D(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
+    @property
+    def input_units(self):
+        if self.degree == 0 or self.c1.unit is None:
+            return None
+        else:
+            return {'x': self.c0.unit / self.c1.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        mapping = []
+        for i in range(self.degree + 1):
+            par = getattr(self, 'c{0}'.format(i))
+            mapping.append((par.name, outputs_unit['y'] / inputs_unit['x'] ** i))
+        return OrderedDict(mapping)
+
+
 class Hermite1D(PolynomialModel):
     """
     1D Hermite Polynomials ("Physicist's kind")
@@ -421,6 +446,16 @@ class Hermite1D(PolynomialModel):
         Fitters will remap the domain to this window
     **params : dict
         keyword : value pairs, representing parameter_name: value
+
+    Notes
+    -----
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Hermite polynomials is a polynomial in x - since the
+    coefficients within each Hermite polynomial are fixed, we can't use
+    quantities for x since the units would not be compatible. For example, the
+    third Hermite polynomial (H2) is 4x^2-2, but if x was specified with units,
+    4x^2 and -2 would have incompatible units.
     """
 
     inputs = ('x')
@@ -520,6 +555,15 @@ class Hermite2D(OrthoPolynomialBase):
     **params : dict
         keyword: value pairs, representing parameter_name: value
 
+    Notes
+    -----
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Hermite polynomials is a polynomial in x and/or y - since the
+    coefficients within each Hermite polynomial are fixed, we can't use
+    quantities for x and/or y since the units would not be compatible. For
+    example, the third Hermite polynomial (H2) is 4x^2-2, but if x was
+    specified with units, 4x^2 and -2 would have incompatible units.
     """
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
@@ -619,6 +663,16 @@ class Legendre1D(PolynomialModel):
         Fitters will remap the domain to this window
     **params : dict
         keyword: value pairs, representing parameter_name: value
+
+    Notes
+    -----
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Legendre polynomials is a polynomial in x - since the
+    coefficients within each Legendre polynomial are fixed, we can't use
+    quantities for x since the units would not be compatible. For example, the
+    third Legendre polynomial (P2) is 1.5x^2-0.5, but if x was specified with
+    units, 1.5x^2 and -0.5 would have incompatible units.
     """
 
     inputs = ('x',)
@@ -955,6 +1009,15 @@ class Chebyshev2D(OrthoPolynomialBase):
     **params : dict
         keyword: value pairs, representing parameter_name: value
 
+    Notes
+    -----
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Chebyshev polynomials is a polynomial in x and/or y - since
+    the coefficients within each Chebyshev polynomial are fixed, we can't use
+    quantities for x and/or y since the units would not be compatible. For
+    example, the third Chebyshev polynomial (T2) is 2x^2-1, but if x was
+    specified with units, 2x^2 and -1 would have incompatible units.
     """
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],

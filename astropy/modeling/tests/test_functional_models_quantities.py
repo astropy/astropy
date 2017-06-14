@@ -17,7 +17,7 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
 from ..powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
                          ExponentialCutoffPowerLaw1D, LogParabola1D)
 
-from ..polynomial import (Polynomial1D)
+from ..polynomial import (Polynomial1D, Chebyshev1D, Legendre1D)
 
 from ..fitting import LevMarLSQFitter
 
@@ -163,15 +163,15 @@ POLY_MODELS = [
     {'class': Polynomial1D,
         'parameters': {'degree': 2, 'c0': 3 * u.one, 'c1': 2 / u.m , 'c2': 3 / u.m**2},
         'evaluation': [(3 * u.m, 36 * u.one)],
- 'bounding_box': False},
+        'bounding_box': False},
     {'class': Polynomial1D,
         'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg / u.m , 'c2': 3 * u.kg / u.m**2},
         'evaluation': [(3 * u.m, 36 * u.kg)],
- 'bounding_box': False},
+        'bounding_box': False},
     {'class': Polynomial1D,
         'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg, 'c2': 3 * u.kg},
         'evaluation': [(3 * u.one, 36 * u.kg)],
- 'bounding_box': False},
+        'bounding_box': False},
  ]
 
 
