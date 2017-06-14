@@ -5,13 +5,14 @@
 from __future__ import (absolute_import, division, print_function)
 
 from ... import units as u
+from ...utils.compat import namedtuple_asdict
+from .. import representation as r
 from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
 from ..frame_attributes import CoordinateAttribute, QuantityFrameAttribute
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
 
@@ -77,8 +78,9 @@ def make_skyoffset_cls(framecls):
             # instead of e.g. "ra" and "dec"
 
             lists_done = []
-            for nm, component_list in res._frame_specific_representation_info.items():
-                if nm in ('spherical', 'unitspherical'): # TODO: change to classes
+            for cls_, component_list in res._frame_specific_representation_info.items():
+                if cls_ in (r.SphericalRepresentation,
+                            r.UnitSphericalRepresentation):
                     gotlatlon = []
                     for i, comp in enumerate(component_list):
                         if component_list in lists_done:
