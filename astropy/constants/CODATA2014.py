@@ -15,6 +15,8 @@ from .constant import Constant
 
 class Codata2014(Constant):
     default_reference = 'CODATA 2014'
+    _registry = {}
+    _has_incompatible_units = set()
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
@@ -96,7 +98,7 @@ muB = Codata2014('muB', "Bohr magneton", 927.4009994e-26,
 alpha = Codata2014('alpha', "Fine-structure constant", 7.2973525664e-3,
                  '', 0.0000000017e-3, system='si')
 
-atm = Codata2014('atmosphere', "Atmosphere", 101325,
+atm = Codata2014('atm', "Standard atmosphere", 101325,
                  'Pa', 0.0, system='si')
 
 mu0 = Codata2014('mu0', "Magnetic constant", 4.0e-7 * np.pi, 'N/A2', 0.0,
