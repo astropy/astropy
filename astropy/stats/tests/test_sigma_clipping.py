@@ -16,7 +16,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ..sigma_clipping import sigma_clip, sigma_clipped_stats
+from ..sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
 from ...utils.misc import NumpyRNGContext
 
 
@@ -86,6 +86,15 @@ def test_sigma_clip_scalar_mask():
     data = np.arange(5)
     result = sigma_clip(data, sigma=100., iters=1)
     assert result.mask.shape != ()
+
+
+def test_sigma_clip_class():
+    with NumpyRNGContext(12345):
+        data = randn(100)
+        data[10] = 1.e5
+        sobj = SigmaClip(sigma=1, iters=2)
+        sfunc = sigma_clip(data, sigma=1, iters=2)
+        assert_equal(sobj(data), sfunc)
 
 
 def test_sigma_clipped_stats():
