@@ -224,7 +224,8 @@ class Latex(core.BaseReader):
 
                 ascii.write(data, sys.stdout, Writer = ascii.Latex,
                             latexdict = {'tabletype': 'table*'})
-            If ``None``, the table environment will be dropped keeping only
+
+            If ``None``, the table environment will be dropped, keeping only
             the ``tabular`` environment.
 
         * tablealign : positioning of table in text.
