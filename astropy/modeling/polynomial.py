@@ -7,6 +7,8 @@ This module contains predefined polynomial models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from collections import OrderedDict
+
 import numpy as np
 
 from .core import FittableModel, Model
@@ -762,6 +764,20 @@ class Polynomial1D(PolynomialModel):
             for i in range(2, len(coeffs) + 1):
                 c0 = coeffs[-i] + c0 * x
         return c0
+
+    @property
+    def input_units(self):
+        if self.degree == 0 or self.c1.unit is None:
+            return None
+        else:
+            return {'x': self.c0.unit / self.c1.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        mapping = []
+        for i in range(self.degree + 1):
+            par = getattr(self, 'c{0}'.format(i))
+            mapping.append((par.name, outputs_unit['y'] / inputs_unit['x'] ** i))
+        return OrderedDict(mapping)
 
 
 class Polynomial2D(PolynomialModel):
