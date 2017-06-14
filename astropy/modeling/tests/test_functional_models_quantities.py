@@ -99,7 +99,7 @@ MODELS_2D = [
  'bounding_box': [[-0.76046808, 4.76046808], [0.68055697, 5.31944302]] * u.m},
 {'class': Ring2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0':3 * u.m, 'y_0': 2 * u.m,
-                'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm, 'width': None},
+                'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm},
  'evaluation':[(302.05 * u.cm, 2 * u.m + 10 * u.um, 3 * u.Jy)],
  'bounding_box': [[1.979, 2.021], [2.979, 3.021]] * u.m},
 {'class': Box2D,
