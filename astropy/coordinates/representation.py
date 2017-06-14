@@ -640,22 +640,31 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         finally:
             self._differentials = olddiffs
 
-    # We override these methods to support passing through differentials
-    # attached to a given representation
-    def to_cartesian(self):
+    def to_cartesian(self, diffstocart=False):
         """
-        Convert the representation to its Cartesian form.
+        Convert the representation to its carteisan form.
 
         Note that subclasses should *not* override this - rather they should
         override the ``_to_cartesian_helper()`` method.
 
+        Parameters
+        ----------
+        diffstocart : bool
+          If True, any differentials this representation has are *also*
+          converted to their cartesian form.
+
         Returns
         -------
         cartrepr : CartesianRepresentation
-            The representation in Cartesian form.
+          The representation in Cartesian form.
         """
         repr = self._to_cartesian_helper()
-        repr._differentials = self._differentials
+        if diffstocart:
+            repr._differentials = tuple([
+                diff.represent_as(CartesianDifferential, base=self)
+                for diff in self._differentials])
+        else:
+            repr._differentials = self._differentials
         return repr
 
     @classmethod
