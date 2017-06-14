@@ -17,6 +17,8 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
 from ..powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
                          ExponentialCutoffPowerLaw1D, LogParabola1D)
 
+from ..polynomial import (Polynomial1D)
+
 from ..fitting import LevMarLSQFitter
 
 try:
@@ -157,8 +159,24 @@ POWERLAW_MODELS = [
  'bounding_box': False}
 ]
 
+POLY_MODELS = [
+    {'class': Polynomial1D,
+        'parameters': {'degree': 2, 'c0': 3 * u.one, 'c1': 2 / u.m , 'c2': 3 / u.m**2},
+        'evaluation': [(3 * u.m, 36 * u.one)],
+ 'bounding_box': False},
+    {'class': Polynomial1D,
+        'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg / u.m , 'c2': 3 * u.kg / u.m**2},
+        'evaluation': [(3 * u.m, 36 * u.kg)],
+ 'bounding_box': False},
+    {'class': Polynomial1D,
+        'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg, 'c2': 3 * u.kg},
+        'evaluation': [(3 * u.one, 36 * u.kg)],
+ 'bounding_box': False},
+ ]
 
-MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS
+
+# MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS
+MODELS = POLY_MODELS
 
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
@@ -218,8 +236,8 @@ def test_models_evaluate_with_units_param_array(model):
 
     params = {}
     for key, value in model['parameters'].items():
-        if value is None:
-            params[key] = None
+        if value is None or key == 'degree':
+            params[key] = value
         else:
             params[key] = np.repeat(value, 2)
 
