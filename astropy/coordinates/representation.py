@@ -190,10 +190,18 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     # Should be replaced by abstractclassmethod once we support only PY3
     @abc.abstractmethod
     def _from_cartesian_helper(self):
+        """
+        The implementation of `from_cartesian`, to be overriden by subclasses.
+        Arguments should be interpreted the same as `from_cartesian`
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def _to_cartesian_helper(self):
+        """
+        The implementation of `to_cartesian`, to be overriden by subclasses.
+        Arguments should be interpreted the same as `to_cartesian`
+        """
         raise NotImplementedError()
 
     @property
@@ -430,15 +438,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     All representation classes should subclass this base representation class,
     and define an ``attr_classes`` attribute, an `~collections.OrderedDict`
     which maps component names to the class that creates them. They must also
-    define a ``to_cartesian`` method and a ``from_cartesian`` class method. By
-    default, transformations are done via the cartesian system, but classes
-    that want to define a smarter transformation path can overload the
-    ``represent_as`` method. If one wants to use an associated differential
-    class, one should also define ``unit_vectors`` and ``scale_factors``
-    methods (see those methods for details). Finally, classes can also define a
-    ``recommended_units`` dictionary, which maps component names to the units
-    they are best presented to users in (this is used only in representations
-    of coordinates, and may be overridden by frame classes).
+    define a ``_to_cartesian_helper`` method and a ``_from_cartesian_helper``
+    class method. By default, transformations are done via the cartesian
+    system, but classes that want to define a smarter transformation path can
+    overload the ``represent_as`` method. If one wants to use an associated
+    differential class, one should also define ``unit_vectors`` and
+    ``scale_factors`` methods (see those methods for details). Finally, classes
+    can also define a ``recommended_units`` dictionary, which maps component
+    names to the units they are best presented to users in (this is used only in representations of coordinates, and may be overridden by frame classes).
     """
 
     recommended_units = {}  # subclasses can override
@@ -636,12 +643,40 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     # We override these methods to support passing through differentials
     # attached to a given representation
     def to_cartesian(self):
+        """
+        Convert the representation to its Cartesian form.
+
+        Note that subclasses should *not* override this - rather they should
+        override the ``_to_cartesian_helper()`` method.
+
+        Returns
+        -------
+        cartrepr : CartesianRepresentation
+            The representation in Cartesian form.
+        """
         repr = self._to_cartesian_helper()
         repr._differentials = self._differentials
         return repr
 
     @classmethod
     def from_cartesian(cls, other):
+        """
+        Create a new representation in this class from a supplied
+        `CartesianRepresentation`.
+
+        Note that subclasses should *not* override this - rather they should
+        override the ``_from_cartesian_helper()`` method.
+
+        Parameters
+        ----------
+        other : BaseRepresentation object
+            The representation to turn into this class
+
+        Returns
+        -------
+        newrepr : object of this class
+            A new representation of this class's type.
+        """
         repr = cls._from_cartesian_helper(other)
         repr._differentials = other._differentials
         return repr
@@ -1830,21 +1865,41 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         return base.unit_vectors(), base.scale_factors()
 
     def to_cartesian(self, base):
-        return self._to_cartesian_helper(base)
-
-    @classmethod
-    def from_cartesian(cls, other, base):
-        return cls._from_cartesian_helper(other, base)
-
-    def _to_cartesian_helper(self, base):
-        """Convert the differential to 3D rectangular cartesian coordinates.
+        """
+        Convert the differential to 3D rectangular cartesian coordinates.
 
         Parameters
         ----------
         base : instance of ``self.base_representation``
              The points for which the differentials are to be converted: each of
              the components is multiplied by its unit vectors and scale factors.
+
+        Returns
+        -------
+        This object as a `CartesianDifferential`
         """
+        return self._to_cartesian_helper(base)
+
+    @classmethod
+    def from_cartesian(cls, other, base):
+        """
+        Convert the differential to 3D rectangular cartesian coordinates.
+
+        Parameters
+        ----------
+        other :
+            The object to convert into this differential.
+        base : instance of ``self.base_representation``
+             The points for which the differentials are to be converted: each of
+             the components is multiplied by its unit vectors and scale factors.
+
+        Returns
+        -------
+        A new differential object that is this class' type.
+        """
+        return cls._from_cartesian_helper(other, base)
+
+    def _to_cartesian_helper(self, base):
         base_e, base_sf = self._get_base_vectors(base)
         return functools.reduce(
             operator.add, (getattr(self, d_c) * base_sf[c] * base_e[c]
@@ -1852,13 +1907,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     @classmethod
     def _from_cartesian_helper(cls, other, base):
-        """Interpret 3D rectangular cartesian coordinates as differentials.
-
-        Parameters
-        ----------
-        base : instance of ``self.base_representation``
-            Base relative to which the differentials are defined.
-        """
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
                      for component, e in six.iteritems(base_e)), copy=False)
