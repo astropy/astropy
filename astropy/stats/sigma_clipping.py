@@ -252,6 +252,20 @@ class SigmaClip(object):
         self.cenfunc = cenfunc
         self.stdfunc = stdfunc
 
+    def __repr__(self):
+        return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
+                'iters={3}, cenfunc={4}, stdfunc={5})'
+                .format(self.sigma, self.sigma_lower, self.sigma_upper,
+                        self.iters, self.cenfunc, self.stdfunc))
+
+    def __str__(self):
+        lines = ['<' + self.__class__.__name__ + '>']
+        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'iters', 'cenfunc',
+                 'stdfunc']
+        for attr in attrs:
+            lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
+        return '\n'.join(lines)
+
     def __call__(self, data, axis=None, copy=True):
         """
         Perform sigma clipping on the provided data.
