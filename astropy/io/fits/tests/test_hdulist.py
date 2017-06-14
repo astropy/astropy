@@ -795,11 +795,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
         with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
-            assert len(warning_lines) == 0
-            # assert warning_lines[0].category == AstropyDeprecationWarning
-            # assert (str(warning_lines[0].message) == '"clobber" was '
-            #         'deprecated in version 1.3 and will be removed in a '
-            #         'future version. Use argument "overwrite" instead.')
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert (str(warning_lines[0].message) == '"clobber" was '
+                    'deprecated in version 2.0 and will be removed in a '
+                    'future version. Use argument "overwrite" instead.')
 
     def test_invalid_hdu_key_in_contains(self):
         """
