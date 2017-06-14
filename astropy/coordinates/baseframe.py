@@ -1064,6 +1064,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         TODO: dynamic representation transforms (i.e. include cylindrical et al.).
         """
         dir_values = set(self.representation_component_names)
+        dir_values = dir_values.union(set(self.differential_component_names))
 
         return dir_values
 
