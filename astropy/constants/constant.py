@@ -38,17 +38,17 @@ class ConstantMeta(InheritDocstrings):
             @functools.wraps(meth)
             def wrapper(self, *args, **kwargs):
                 name_lower = self.name.lower()
-                instances = Constant._registry[name_lower]
+                instances = self._registry[name_lower]
                 if not self._checked_units:
                     for inst in six.itervalues(instances):
                         try:
                             self.unit.to(inst.unit)
                         except UnitsError:
-                            Constant._has_incompatible_units.add(name_lower)
+                            self._has_incompatible_units.add(name_lower)
                     self._checked_units = True
 
                 if (not self.system and
-                        name_lower in Constant._has_incompatible_units):
+                        name_lower in self._has_incompatible_units):
                     systems = sorted([x for x in instances if x])
                     raise TypeError(
                         'Constant {0!r} does not have physically compatible '
@@ -89,24 +89,22 @@ class Constant(Quantity):
     def __new__(cls, abbrev, name, value, unit, uncertainty, reference,
                 system=None):
         name_lower = name.lower()
-        instances = Constant._registry.setdefault(name_lower, {})
+        instances = cls._registry.setdefault(name_lower, {})
         # By-pass Quantity initialization, since units may not yet be
         # initialized here, and we store the unit in string form.
         inst = np.array(value).view(cls)
 
         if (system in instances):
-            if (reference in instances):
                 warnings.warn('Constant {0!r} already has a definition in the '
                               '{1!r} system from {2!r} reference'.format(
                               name, system, reference), AstropyUserWarning)
-        else:
-            for c in six.itervalues(instances):
-                if system is not None and not hasattr(c.__class__, system):
-                    setattr(c, system, inst)
-                if c.system is not None and not hasattr(inst.__class__, c.system):
-                    setattr(inst, c.system, c)
+        for c in six.itervalues(instances):
+            if system is not None and not hasattr(c.__class__, system):
+                setattr(c, system, inst)
+            if c.system is not None and not hasattr(inst.__class__, c.system):
+                setattr(inst, c.system, c)
 
-            instances[system] = inst
+        instances[system] = inst
 
         inst._abbrev = abbrev
         inst._name = name
@@ -135,7 +133,7 @@ class Constant(Quantity):
                                            self.reference))
 
     def __quantity_subclass__(self, unit):
-        return super(Constant, self).__quantity_subclass__(unit)[0], False
+        return super(self.__class__, self).__quantity_subclass__(unit)[0], False
 
     def copy(self):
         """
@@ -193,8 +191,8 @@ class Constant(Quantity):
         the constant, else convert to a Quantity in the appropriate SI units.
         """
 
-        instances = Constant._registry[self.name.lower()]
-        return instances.get('si') or super(Constant, self).si
+        instances = self.__class__._registry[self.name.lower()]
+        return instances.get('si') or super(self.__class__, self).si
 
     @property
     def cgs(self):
@@ -202,8 +200,8 @@ class Constant(Quantity):
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
 
-        instances = Constant._registry[self.name.lower()]
-        return instances.get('cgs') or super(Constant, self).cgs
+        instances = self.__class__._registry[self.name.lower()]
+        return instances.get('cgs') or super(self.__class__, self).cgs
 
     def __array_finalize__(self, obj):
         for attr in ('_abbrev', '_name', '_value', '_unit_string',
