@@ -26,11 +26,6 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
                    'PCOUNT', 'GCOUNT', 'TFIELDS']
-                   
-# Global time reference coordinate keywords
-TIME_KEYWORDS = ['TIMESYS', 'MJDREF', 'JDREF', 'DATEREF', 'TREFPOS',
-                 'TREFDIR', 'TIMEUNIT', 'TIMEOFFS', 'OBSGEO-X',
-                 'OBSGEO-Y', 'OBSGEO-Z']
 
 # Column-specific keywords
 COLUMN_KEYWORDS = ['TFORM[0-9]+',
@@ -44,22 +39,9 @@ COLUMN_KEYWORDS = ['TFORM[0-9]+',
                    'TDIM[0-9]+',
                    'THEAP']
 
-# Column-specific time override keywords
-COLUMN_TIME_KEYWORDS = ['TCTYP[0-9]',
-                        'TRPOS[0-9]',
-                        'TCUNI[0-9]',
-                        'TCAPF[0-9]']
-
 
 def is_column_keyword(keyword):
     for c in COLUMN_KEYWORDS:
-        if re.match(c, keyword) is not None:
-            return True
-    return False
-
-
-def is_time_column_keyword(keyword):
-    for c in COLUMN_TIME_KEYWORDS:
         if re.match(c, keyword) is not None:
             return True
     return False
@@ -113,7 +95,7 @@ def read_table_fits(input, hdu=None):
     """
 
     # Avoid circular imports
-    from .time import FitsTime
+    from .time import is_time_column_keyword, FitsTime, TIME_KEYWORDS
 
     if isinstance(input, HDUList):
 

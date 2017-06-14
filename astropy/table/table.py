@@ -293,7 +293,6 @@ class Table(object):
         self._copy_indices = True  # copy indices from this Table by default
         self._init_indices = copy_indices  # whether to copy indices in init
         self.primary_key = None
-        self.positions = None
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -2756,30 +2755,6 @@ class Table(object):
                 out[name] = Column(data=data, name=name)
 
         return cls(out)
-
-    def get_pos(self, name):
-        """
-        Get the position(index) of the specified column ``name`` in the Table.
-        
-        Parameters
-        ----------
-        name : str
-            Column name
-
-        Returns
-        -------
-        position : int
-            Position(index) of the specified column name
-        """
-
-        if self.positions is None:
-            self.positions = OrderedDict()
-            index = 1
-            for colname in self.columns:
-                self.positions[colname] = index
-                index += 1
-        
-        return self.positions[name]
 
     info = TableInfo()
 
