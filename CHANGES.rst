@@ -92,6 +92,7 @@ New Features
     instead of ``np.median`` when computing the median. [#5232]
 
   - Implemented statistical estimators for Ripley's K Function. [#5712]
+  - Added ``std_ddof`` keyword option to ``sigma_clipped_stats``. [#6207]
 
 - ``astropy.sphinx``
 
