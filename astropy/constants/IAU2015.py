@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from .constant import Constant
-import CODATA2014
+from .CODATA2014 import G
 
 # ASTRONOMICAL CONSTANTS
 
@@ -18,8 +18,8 @@ class Iau2015(Constant):
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
-        super().__new__(cls, abbrev, name, value, unit, uncertainty,
-                        reference, system)
+        return(super().__new__(cls, abbrev, name, value, unit, uncertainty,
+                        reference, system))
 
 
 # DISTANCE
@@ -56,9 +56,9 @@ GM_sun = Iau2015('GM_sun', 'Nominal solar mass parameter', 1.3271244e20,
                   'm3 / (s2)', 0.0, "IAU 2015 Resolution B 3", system='si')
 
 # Solar mass (derived from mass parameter and gravitational constant)
-M_sun = Iau2015('M_sun', "Solar mass", GM_sun.value / CODATA2014.G.value,
-                 'kg', ((CODATA2014.G.uncertainty / CODATA2014.G.value) *
-                        (GM_sun.value / CODATA2014.G.value)),
+M_sun = Iau2015('M_sun', "Solar mass", GM_sun.value / G.value,
+                 'kg', ((G.uncertainty / G.value) *
+                        (GM_sun.value / G.value)),
                  "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
 
 # Solar radius
@@ -73,9 +73,9 @@ GM_jup = Iau2015('GM_jup', 'Nominal Jupiter mass parameter', 1.2668653e17,
                   'm3 / (s2)', 0.0, "IAU 2015 Resolution B 3", system='si')
 
 # Jupiter mass (derived from mass parameter and gravitational constant)
-M_jup = Iau2015('M_jup', "Jupiter mass", GM_jup.value / CODATA2014.G.value,
-                 'kg', ((CODATA2014.G.uncertainty / CODATA2014.G.value) *
-                        (GM_jup.value / CODATA2014.G.value)),
+M_jup = Iau2015('M_jup', "Jupiter mass", GM_jup.value / G.value,
+                 'kg', ((G.uncertainty / G.value) *
+                        (GM_jup.value / G.value)),
                  "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
 
 # Jupiter equatorial radius
@@ -88,9 +88,9 @@ GM_earth = Iau2015('GM_earth', 'Nominal Earth mass parameter', 3.986004e14,
 
 # Earth mass (derived from mass parameter and gravitational constant)
 M_earth = Iau2015('M_earth', "Earth mass",
-                   GM_earth.value / CODATA2014.G.value,
-                 'kg', ((CODATA2014.G.uncertainty / CODATA2014.G.value) *
-                        (GM_earth.value / CODATA2014.G.value)),
+                   GM_earth.value / G.value,
+                 'kg', ((G.uncertainty / G.value) *
+                        (GM_earth.value / G.value)),
                  "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
 
 # Earth equatorial radius
