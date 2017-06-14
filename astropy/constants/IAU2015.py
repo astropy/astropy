@@ -15,6 +15,8 @@ from .CODATA2014 import G
 
 class Iau2015(Constant):
     default_reference = 'IAU 2015'
+    _registry = {}
+    _has_incompatible_units = set()
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
