@@ -203,7 +203,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=None, sigma_upper=None, iters=5,
-                        cenfunc=np.ma.median, stdfunc=np.std, axis=None):
+                        cenfunc=np.ma.median, stdfunc=np.std, std_ddof=0,
+                        axis=None):
     """
     Calculate sigma-clipped statistics on the provided data.
 
@@ -263,6 +264,12 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
         Defaults to the standard deviation (`numpy.std`).
 
+    std_ddof : int, optional
+        The delta degrees of freedom for the standard deviation
+        calculation.  The divisor used in the calculation is ``N -
+        std_ddof``, where ``N`` represents the number of elements.  The
+        default is zero.
+
     axis : int or `None`, optional
         If not `None`, clip along the given axis.  For this case,
         ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
@@ -288,7 +295,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     mean = np.ma.mean(data_clip, axis=axis)
     median = np.ma.median(data_clip, axis=axis)
-    std = np.ma.std(data_clip, axis=axis)
+    std = np.ma.std(data_clip, ddof=std_ddof, axis=axis)
 
     if axis is None and np.ma.isMaskedArray(median):
         # With Numpy 1.10 np.ma.median always return a MaskedArray, even with
