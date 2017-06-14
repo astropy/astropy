@@ -11,11 +11,6 @@ from .errors import SAMPHubError
 from .utils import ServerProxyPool
 from .lockfile_helpers import get_main_running_hub
 
-from .constants import SSL_SUPPORT
-
-if SSL_SUPPORT:
-    from .ssl_utils import SafeTransport
-
 
 __all__ = ['SAMPHubProxy']
 
@@ -37,9 +32,7 @@ class SAMPHubProxy(object):
         """
         return self._connected
 
-    def connect(self, hub=None, hub_params=None,
-                key_file=None, cert_file=None, cert_reqs=0,
-                ca_certs=None, ssl_version=None, pool_size=20):
+    def connect(self, hub=None, hub_params=None, pool_size=20):
         """
         Connect to the current SAMP Hub.
 
@@ -52,39 +45,6 @@ class SAMPHubProxy(object):
             Optional dictionary containing the lock-file content of the Hub
             with which to connect. This dictionary has the form
             ``{<token-name>: <token-string>, ...}``.
-
-        key_file : str, optional
-            The path to a file containing the private key for SSL connections.
-            If the certificate file (``cert_file``) contains the private key,
-            then ``key_file`` can be omitted.
-
-        cert_file : str, optional
-            The path to a file which contains a certificate to be used to
-            identify the local side of the secure connection.
-
-        cert_reqs : int, optional
-            Whether a certificate is required from the server side of the
-            connection, and whether it will be validated if provided. It must
-            be one of the three values `ssl.CERT_NONE` (certificates ignored),
-            `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
-            `ssl.CERT_REQUIRED` (required and validated). If the value of this
-            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter
-            must point to a file of CA certificates.
-
-        ca_certs : str, optional
-            The path to a file containing a set of concatenated "Certification
-            Authority" certificates, which are used to validate the
-            certificate passed from the Hub end of the connection.
-
-        ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the
-            server chooses a particular protocol version, and the
-            client must adapt to the server's choice. Most of the
-            versions are not interoperable with the other versions. If
-            not specified, the default SSL version is taken from the
-            default in the installed version of the Python standard
-            `ssl` library.  See the `ssl` documentation for more
-            information.
 
         pool_size : int, optional
             The number of socket connections opened to communicate with the
@@ -111,19 +71,8 @@ class SAMPHubProxy(object):
 
             url = hub_params["samp.hub.xmlrpc.url"].replace("\\", "")
 
-            if SSL_SUPPORT and url[0:5] == "https":
-
-                transport = SafeTransport(key_file, cert_file, cert_reqs,
-                                          ca_certs, ssl_version)
-
-                self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                             url, transport=transport,
-                                             allow_none=1)
-
-            else:
-
-                self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                             url, allow_none=1)
+            self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
+                                         url, allow_none=1)
 
             self.ping()
 

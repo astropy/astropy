@@ -26,11 +26,6 @@ from .lockfile_helpers import read_lockfile, create_lock_file
 from .standard_profile import ThreadingXMLRPCServer
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 
-from .constants import SSL_SUPPORT
-
-if SSL_SUPPORT:
-    from .ssl_utils import (SafeTransport, SecureXMLRPCServer,
-                            get_ssl_version_name)
 
 __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
@@ -40,10 +35,6 @@ __doctest_skip__ = ['.', 'SAMPHubServer.*']
 class SAMPHubServer(object):
     """
     SAMP Hub Server.
-
-    The SSL parameters are usable only if Python has been compiled with SSL
-    support and/or `ssl <http://docs.python.org/dev/library/ssl.html>`_ module
-    is installed (available by default since Python 2.6).
 
     Parameters
     ----------
@@ -85,44 +76,6 @@ class SAMPHubServer(object):
         A string used to label the Hub with a human readable name. This string
         is written in the lock-file assigned to the ``hub.label`` token.
 
-    https : bool, optional
-        Set the Hub running on a Secure Sockets Layer connection (HTTPS). By
-        default SSL is disabled.
-
-    key_file : str, optional
-        The path to a file containing the private key for SSL connections. If
-        the certificate file (``cert_file``) contains the private key, then
-        ``key_file`` can be omitted.
-
-    cert_file : str, optional
-        The path to a file containing a certificate to be used to identify the
-        local side of the secure connection.
-
-    cert_reqs : int, optional
-        The parameter ``cert_reqs`` specifies whether a certificate is
-        required from the client side of the connection, and whether it will
-        be validated if provided. It must be one of the three values
-        `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL` (not
-        required, but validated if provided), or `ssl.CERT_REQUIRED` (required
-        and validated). If the value of this parameter is not `ssl.CERT_NONE`,
-        then the ``ca_certs`` parameter must point to a file of CA
-        certificates.
-
-    ca_certs : str, optional
-        The path to a file containing a set of concatenated "Certification
-        Authority" certificates, which are used to validate the certificate
-        passed from the Hub end of the connection.
-
-    ssl_version : int, optional
-        The ``ssl_version`` option specifies which version of the SSL
-        protocol to use. Typically, the server chooses a particular
-        protocol version, and the client must adapt to the server's
-        choice. Most of the versions are not interoperable with the
-        other versions. If not specified, the default SSL version is
-        taken from the default in the installed version of the Python
-        standard `ssl` library.  See the `ssl` documentation for more
-        information.
-
     web_profile : bool, optional
         Enables or disables the Web Profile support.
 
@@ -146,9 +99,8 @@ class SAMPHubServer(object):
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None,
                  timeout=0, client_timeout=0, mode='single', label="",
-                 https=False, key_file=None, cert_file=None, cert_reqs=0,
-                 ca_certs=None, ssl_version=None, web_profile=True,
-                 web_profile_dialog=None, web_port=21012, pool_size=20):
+                 web_profile=True, web_profile_dialog=None, web_port=21012,
+                 pool_size=20):
 
         # Generate random ID for the hub
         self._id = str(uuid.uuid1())
@@ -176,14 +128,6 @@ class SAMPHubServer(object):
         self._web_profile_requests_result = None
         self._web_profile_requests_semaphore = None
 
-        # SSL general settings
-        self._https = https
-        self._key_file = key_file
-        self._cert_file = cert_file
-        self._cert_reqs = cert_reqs
-        self._ca_certs = ca_certs
-        self._ssl_version = ssl_version
-
         self._host_name = "127.0.0.1"
         if internet_on():
             try:
@@ -192,16 +136,6 @@ class SAMPHubServer(object):
                                    self._port or 0)
             except socket.error:
                 self._host_name = "127.0.0.1"
-
-        # XML-RPC server settings
-        if https:
-            if key_file is not None and not os.path.isfile(key_file):
-                raise SAMPHubError("Unable to load SSL private key file!")
-
-            if cert_file is None or not os.path.isfile(cert_file):
-                raise SAMPHubError("Unable to load SSL cert file!")
-
-            log.info("Hub set for using SSL.")
 
         # Threading stuff
         self._thread_lock = threading.Lock()
@@ -302,19 +236,11 @@ class SAMPHubServer(object):
         server.register_function(self._web_profile_pullCallbacks, 'samp.webhub.pullCallbacks')
 
     def _start_standard_server(self):
-        if self._https:
-            self._server = SecureXMLRPCServer(
-                (self._addr or self._host_name, self._port or 0),
-                self._key_file, self._cert_file, self._cert_reqs,
-                self._ca_certs, self._ssl_version, log,
-                logRequests=False, allow_none=True)
 
-            prot = 'https'
-        else:
-            self._server = ThreadingXMLRPCServer(
-                    (self._addr or self._host_name, self._port or 0),
-                    log, logRequests=False, allow_none=True)
-            prot = 'http'
+        self._server = ThreadingXMLRPCServer(
+                (self._addr or self._host_name, self._port or 0),
+                log, logRequests=False, allow_none=True)
+        prot = 'http'
 
         self._port = self._server.socket.getsockname()[1]
         addr = "{0}:{1}".format(self._addr or self._host_name, self._port)
@@ -499,16 +425,6 @@ class SAMPHubServer(object):
 
         params['hub.id'] = self.id
         params['hub.label'] = self._label or "Hub {0}".format(self.id)
-
-        if SSL_SUPPORT and self._https:
-
-            # Certificate request
-            cert_reqs_types = ["NONE", "OPTIONAL", "REQUIRED"]
-            params['hub.ssl.certificate'] = cert_reqs_types[self._cert_reqs]
-
-            # SSL protocol version
-            params['hub.ssl.protocol'] = get_ssl_version_name(
-                self._ssl_version)
 
         return params
 
@@ -761,24 +677,11 @@ class SAMPHubServer(object):
                                                           xmlrpc_addr))
 
             server_proxy_pool = None
-            if SSL_SUPPORT and xmlrpc_addr[0:5] == "https":
 
-                transport = SafeTransport(key_file=self._key_file,
-                                          cert_file=self._cert_file,
-                                          cert_reqs=self._cert_reqs,
-                                          ca_certs=self._ca_certs,
-                                          ssl_version=self._ssl_version)
 
-                server_proxy_pool = ServerProxyPool(self._pool_size,
-                                                    xmlrpc.ServerProxy,
-                                                    xmlrpc_addr,
-                                                    transport=transport,
-                                                    allow_none=1)
-            else:
-
-                server_proxy_pool = ServerProxyPool(self._pool_size,
-                                                    xmlrpc.ServerProxy,
-                                                    xmlrpc_addr, allow_none=1)
+            server_proxy_pool = ServerProxyPool(self._pool_size,
+                                                xmlrpc.ServerProxy,
+                                                xmlrpc_addr, allow_none=1)
 
             public_id = self._private_keys[private_key][0]
             self._xmlrpc_endpoints[public_id] = (xmlrpc_addr,
