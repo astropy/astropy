@@ -973,14 +973,34 @@ class Polynomial2D(PolynomialModel):
         r1 = r0 * 0.0
         r2 = r0 * 0.0
         karr = np.diff(alpha, axis=0)
+
         for n in range(len(karr)):
             if karr[n, 1] != 0:
                 r2 = y * (r0 + r1 + r2)
-                r1 = coeffs[0] * 0.
+                r1 = np.zeros_like(coeffs[0], subok=False)
             else:
                 r1 = x * (r0 + r1)
             r0 = coeffs[n + 1]
         return r0 + r1 + r2
+
+    @property
+    def input_units(self):
+        if self.degree == 0 or (self.c1_0.unit is None and self.c0_1.unit is None):
+            return None
+        else:
+            return {'x': self.c0_0.unit / self.c1_0.unit,
+                    'y': self.c0_0.unit / self.c0_1.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        mapping = []
+        for i in range(self.degree + 1):
+            for j in range(self.degree + 1):
+                if i + j > 2:
+                    continue
+                par = getattr(self, 'c{0}_{1}'.format(i, j))
+                mapping.append((par.name, outputs_unit['z'] / inputs_unit['x'] ** i / inputs_unit['y'] ** j))
+        return OrderedDict(mapping)
+
 
 
 class Chebyshev2D(OrthoPolynomialBase):
