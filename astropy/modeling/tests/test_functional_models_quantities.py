@@ -134,7 +134,7 @@ MODELS = MODELS_1D + MODELS_2D
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
 @pytest.mark.parametrize('model', MODELS)
-def test_models_evaluatate_without_units(model):
+def test_models_evaluate_without_units(model):
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
     m = model['class'](**model['parameters'])
@@ -151,7 +151,7 @@ def test_models_evaluatate_without_units(model):
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_models_evaluatate_with_units(model):
+def test_models_evaluate_with_units(model):
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
     m = model['class'](**model['parameters'])
@@ -160,7 +160,7 @@ def test_models_evaluatate_with_units(model):
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_models_evaluatate_with_units_x_array(model):
+def test_models_evaluate_with_units_x_array(model):
 
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
@@ -182,7 +182,7 @@ def test_models_evaluatate_with_units_x_array(model):
 
 
 @pytest.mark.parametrize('model', MODELS)
-def test_models_evaluatate_with_units_param_array(model):
+def test_models_evaluate_with_units_param_array(model):
 
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
@@ -225,7 +225,6 @@ def test_models_bounding_box(model):
         # values one by one.
         for i in range(len(model['bounding_box'])):
             bbox = m.bounding_box
-            print(bbox)
             assert_quantity_allclose(bbox[i], model['bounding_box'][i])
     else:
         # Check that NotImplementedError is raised, so that if bounding_box is
