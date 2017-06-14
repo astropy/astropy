@@ -25,11 +25,10 @@ try:
 except ImportError:
     pass
 
-from .constant import Constant, EMConstant
-from . import si
-from . import cgs
-from .si import (CODATA2010, CODATA2014, ASTRON_V2_0, ASTRON_V1_3,
-                 ASTROPYCONST20, ASTROPYCONST13)
+from .constant import Constant
+#from . import si
+#from . import cgs
+from . import CODATA2014, IAU2015
 
 # for updating the constants module docstring
 _lines = [
@@ -39,8 +38,8 @@ _lines = [
     '========== ============== ================ =========================',
 ]
 
-for _nm, _c in itertools.chain(sorted(vars(si).items()),
-                               sorted(vars(cgs).items())):
+for _nm, _c in itertools.chain(sorted(vars(CODATA2014).items()),
+                               sorted(vars(IAU2015).items())):
     if isinstance(_c, Constant) and _c.abbrev not in locals():
         locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
                                            _c._unit_string, _c.uncertainty,
