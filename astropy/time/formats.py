@@ -978,7 +978,7 @@ class TimeFITS(TimeString):
                 else:
                     self._fits_scale = fits_scale
                     self._fits_realization = fits_realization
-            elif scale != self.scale:
+            else:
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
