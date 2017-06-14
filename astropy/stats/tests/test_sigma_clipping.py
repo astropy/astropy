@@ -119,6 +119,17 @@ def test_sigma_clipped_stats():
     assert_equal(stddev, np.zeros_like(_data))
 
 
+def test_sigma_clipped_stats_ddof():
+    with NumpyRNGContext(12345):
+        data = randn(10000)
+        data[10] = 1.e5
+        mean1, median1, stddev1 = sigma_clipped_stats(data)
+        mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
+        assert mean1 == mean2
+        assert median1 == median2
+        assert stddev1 < stddev2
+
+
 def test_invalid_sigma_clip():
     """Test sigma_clip of data containing invalid values."""
 
