@@ -12,7 +12,7 @@ from ...extern import six
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
-from .. import representation
+from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
 
 
@@ -92,8 +92,8 @@ def test_create_data_frames():
     from ..builtin_frames import ICRS
 
     #from repr
-    i1 = ICRS(representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
-    i2 = ICRS(representation.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
+    i1 = ICRS(r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
+    i2 = ICRS(r.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
 
     #from preferred name
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
@@ -136,7 +136,7 @@ def test_create_orderered_data():
         ICRS(1*u.deg, 2*u.deg, 1*u.deg, 2*u.deg)
 
     with pytest.raises(TypeError):
-        sph = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+        sph = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
         ICRS(sph, 1*u.deg, 2*u.deg)
 
 
@@ -262,7 +262,7 @@ def test_realizing():
     from ..builtin_frames import ICRS, FK5
     from ...time import Time
 
-    rep = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+    rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
 
     i = ICRS()
     i2 = i.realize_frame(rep)
@@ -308,7 +308,7 @@ def test_replicating():
 def test_getitem():
     from ..builtin_frames import ICRS
 
-    rep = representation.SphericalRepresentation(
+    rep = r.SphericalRepresentation(
         [1, 2, 3]*u.deg, [4, 5, 6]*u.deg, [7, 8, 9]*u.kpc)
 
     i = ICRS(rep)
@@ -332,7 +332,7 @@ def test_transform():
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ == representation.UnitSphericalRepresentation
+    assert i2.data.__class__ == r.UnitSphericalRepresentation
 
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
@@ -342,7 +342,7 @@ def test_transform():
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ != representation.UnitSphericalRepresentation
+    assert i2.data.__class__ != r.UnitSphericalRepresentation
 
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
@@ -450,8 +450,8 @@ def test_is_frame_attr_default():
     assert not c2.is_frame_attr_default('equinox')
     assert not c3.is_frame_attr_default('equinox')
 
-    c4 = c1.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
-    c5 = c2.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c4 = c1.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c5 = c2.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
 
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
@@ -487,9 +487,9 @@ def test_representation():
     icrs_spher = icrs.spherical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
-    icrs.representation = representation.CartesianRepresentation
+    icrs.representation = r.CartesianRepresentation
 
-    assert icrs.representation == representation.CartesianRepresentation
+    assert icrs.representation == r.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
@@ -502,15 +502,15 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
-    icrs.representation = representation.CylindricalRepresentation
+    icrs.representation = r.CylindricalRepresentation
 
-    assert icrs.representation == representation.CylindricalRepresentation
+    assert icrs.representation == r.CylindricalRepresentation
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
 
-    assert icrs.representation is representation.SphericalRepresentation
+    assert icrs.representation is r.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -525,7 +525,7 @@ def test_representation():
     # Testing setter input using text argument for cylindrical.
     icrs.representation = 'cylindrical'
 
-    assert icrs.representation is representation.CylindricalRepresentation
+    assert icrs.representation is r.CylindricalRepresentation
     assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
@@ -543,12 +543,49 @@ def test_represent_as():
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
 
     cart1 = icrs.represent_as('cartesian')
-    cart2 = icrs.represent_as(representation.CartesianRepresentation)
+    cart2 = icrs.represent_as(r.CartesianRepresentation)
 
     cart1.x == cart2.x
     cart1.y == cart2.y
     cart1.z == cart2.z
 
+    # now try with velocities
+    icrs = ICRS(ra=0*u.deg, dec=0*u.deg, distance=10*u.kpc,
+                pm_ra=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                radial_velocity=1*u.km/u.s)
+
+    # single string
+    rep2 = icrs.represent_as('cylindrical')
+    assert isinstance(rep2, r.CylindricalRepresentation)
+    assert isinstance(rep2.differentials[0], r.CylindricalDifferential)
+
+    # single differential class
+    rep2 = icrs.represent_as(r.SphericalCosLatDifferential)
+    assert isinstance(rep2, r.SphericalRepresentation)
+    assert isinstance(rep2.differentials[0],
+                      r.SphericalCosLatDifferential)
+
+    # two classes
+    rep2 = icrs.represent_as([r.CartesianRepresentation,
+                              r.SphericalCosLatDifferential])
+    assert isinstance(rep2, r.CartesianRepresentation)
+    assert isinstance(rep2.differentials[0],
+                      r.SphericalCosLatDifferential)
+
+    # single string - only diff name
+    rep2 = icrs.represent_as('sphericalcoslat')
+    assert isinstance(rep2, r.SphericalRepresentation)
+    assert isinstance(rep2.differentials[0],
+                      r.SphericalCosLatDifferential)
+
+    with pytest.raises(ValueError):
+        # 3 classes
+        icrs.represent_as([r.CartesianRepresentation,
+                           r.SphericalCosLatDifferential,
+                           r.SphericalCosLatDifferential])
+
+    with pytest.raises(ValueError):
+        icrs.represent_as('odaigahara')
 
 def test_dynamic_attrs():
     from ..builtin_frames import ICRS
