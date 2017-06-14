@@ -17,8 +17,8 @@ class Iau2012(Constant):
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
-        super().__new__(cls, abbrev, name, value, unit, uncertainty,
-                        reference, system)
+        return(super().__new__(cls, abbrev, name, value, unit, uncertainty,
+                        reference, system))
 
 
 
