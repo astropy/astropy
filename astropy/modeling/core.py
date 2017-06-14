@@ -1460,22 +1460,17 @@ class Model(object):
             for i in range(len(inputs)):
 
                 input_name = self.inputs[i]
+                input_unit = self.input_units.get(input_name, None)
 
-                if self.input_units is not None:
-                    input_unit = self.input_units.get(input_name, None)
+                if input_unit is None:
+                    continue
 
                 if isinstance(inputs[i], Quantity):
 
                     # We check for consistency of the units with input_units,
                     # taking into account any equivalencies
 
-                    if input_unit is None:
-
-                        # We dont need to do anything since no restrictions were
-                        # placed on input_units for this parameter.
-                        pass
-
-                    elif inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
+                    if inputs[i].unit.is_equivalent(input_unit, equivalencies=input_units_equivalencies[input_name]):
 
                         # If equivalencies have been specified, we need to
                         # convert the input to the input units - this is because
