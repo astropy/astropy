@@ -20,7 +20,7 @@ class Codata2010(Constant):
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
-        return(super().__new__(cls, abbrev, name, value, unit, uncertainty,
+        return(super(Codata2010, cls).__new__(cls, abbrev, name, value, unit, uncertainty,
                         reference, system))
 
 
