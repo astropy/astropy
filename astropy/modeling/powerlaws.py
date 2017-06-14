@@ -7,6 +7,8 @@ Power law model variants
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from collections import OrderedDict
+
 import numpy as np
 
 from .core import Fittable1DModel
@@ -49,7 +51,6 @@ class PowerLaw1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
-
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
@@ -64,6 +65,17 @@ class PowerLaw1D(Fittable1DModel):
         d_alpha = -amplitude * d_amplitude * np.log(xx)
 
         return [d_amplitude, d_x_0, d_alpha]
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class BrokenPowerLaw1D(Fittable1DModel):
@@ -127,6 +139,17 @@ class BrokenPowerLaw1D(Fittable1DModel):
         d_alpha_2 = np.where(x >= x_break, d_alpha, 0)
 
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
+
+    @property
+    def input_units(self):
+        if self.x_break.unit is None:
+            return None
+        else:
+            return {'x': self.x_break.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_break', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
@@ -398,6 +421,18 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
         return [d_amplitude, d_x_0, d_alpha, d_x_cutoff]
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('x_cutoff', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class LogParabola1D(Fittable1DModel):
     """
@@ -452,3 +487,14 @@ class LogParabola1D(Fittable1DModel):
         d_x_0 = amplitude * d_amplitude * (beta * log_xx / x_0 - exponent / x_0)
         d_alpha = -amplitude * d_amplitude * log_xx
         return [d_amplitude, d_x_0, d_alpha, d_beta]
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])

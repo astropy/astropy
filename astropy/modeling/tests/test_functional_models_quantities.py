@@ -13,6 +13,10 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
                                  Moffat1D, Gaussian2D, Const2D, Ellipse2D,
                                  Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
                                  MexicanHat2D, AiryDisk2D, Moffat2D, Sersic2D)
+
+from ..powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
+                         ExponentialCutoffPowerLaw1D, LogParabola1D)
+
 from ..fitting import LevMarLSQFitter
 
 try:
@@ -24,7 +28,7 @@ except ImportError:
 # TODO: GaussianAbsorption1D doesn't work with units because the 1- part doesn't
 # have units. How do we want to deal with that?
 
-MODELS_1D = [
+FUNC_MODELS_1D = [
 {'class': Gaussian1D,
 'parameters': {'amplitude': 3 * u.Jy, 'mean': 2 * u.m, 'stddev': 30 * u.cm},
 'evaluation':[(2600 * u.mm, 3 * u.Jy * np.exp(-2))],
@@ -72,7 +76,7 @@ MODELS_1D = [
  'bounding_box': False},
  ]
 
-MODELS_2D = [
+FUNC_MODELS_2D = [
  {'class': Gaussian2D,
   'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
                  'x_stddev': 3 * u.m, 'y_stddev': 2 * u.m, 'theta': 45 * u.deg},
@@ -129,7 +133,31 @@ MODELS_2D = [
  'bounding_box': False},
 ]
 
-MODELS = MODELS_1D + MODELS_2D
+POWERLAW_MODELS = [
+{'class': PowerLaw1D,
+ 'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1},
+ 'evaluation':[(1 * u.m, 500 * u.g)],
+ 'bounding_box': False},
+{'class': BrokenPowerLaw1D,
+ 'parameters': {'amplitude': 5 * u.kg, 'x_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1},
+ 'evaluation':[(1 * u.m, 50 * u.kg), (1 * u.cm, 50 * u.kg)],
+ 'bounding_box': False},
+# {'class': SmoothlyBrokenPowerLaw1D,
+#  'parameters': {'amplitude': 5 * u.kg, 'log_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1},
+#  'evaluation':[(1 * u.m, 50 * u.kg), (1 * u.cm, 50 * u.kg)],
+#  'bounding_box': False},
+{'class': ExponentialCutoffPowerLaw1D,
+ 'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1, 'x_cutoff': 1 * u.m},
+ 'evaluation':[(1 * u.um, 499999.5 * u.kg), (10 * u.m, 50 * np.exp(-10) * u.g)],
+ 'bounding_box': False},
+{'class': LogParabola1D,
+ 'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1, 'beta': 2},
+ 'evaluation':[(1 * u.cm, 5 * 0.1 ** (-1 - 2 * np.log(0.1)) * u.kg)],
+ 'bounding_box': False}
+]
+
+
+MODELS = MODELS_1D + MODELS_2D + POWERLAW_MODELS
 
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
