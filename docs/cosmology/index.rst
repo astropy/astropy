@@ -310,8 +310,8 @@ as unit Quantities.  All three have standard default values (0 K,
 has to do with a small bump in the neutrino energy spectrum due to
 electron-positron annihilation, but is also affected by weak
 interaction physics).  Setting the CMB temperature to zero removes
-the contribution of both neutrinos and photons.  This is the default
-so that users do not include components by default that they did not request.
+the contribution of both neutrinos and photons. This is the default to ensure
+these components are excluded unless the user explicitly requests them.
 
 Massive neutrinos are treated using the approach described in the
 WMAP 7-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section 3.3).
