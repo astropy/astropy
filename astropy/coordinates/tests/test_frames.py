@@ -9,9 +9,11 @@ import numpy as np
 
 from ... import units as u
 from ...extern import six
-from ...tests.helper import (pytest, quantity_allclose as allclose,
+from ...tests.helper import (catch_warnings,
+                             pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
+from ...utils.exceptions import AstropyWarning
 from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
 
@@ -638,7 +640,7 @@ def test_eloc_attributes():
     from .. import AltAz, ITRS, GCRS, EarthLocation
 
     el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
-    it = ITRS(representation.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
+    it = ITRS(r.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
     gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
 
     el1 = AltAz(location=el).location
@@ -710,17 +712,17 @@ def test_representation_subclass():
     # Normally when instantiating a frame without a distance the frame will try
     # and use UnitSphericalRepresentation internally instead of
     # SphericalRepresentation.
-    frame = FK5(representation=representation.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
-    assert frame.representation == representation.SphericalRepresentation
+    frame = FK5(representation=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    assert type(frame._data) == r.UnitSphericalRepresentation
+    assert frame.representation == r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
-    class NewSphericalRepresentation(representation.SphericalRepresentation):
-        attr_classes = representation.SphericalRepresentation.attr_classes
+    class NewSphericalRepresentation(r.SphericalRepresentation):
+        attr_classes = r.SphericalRepresentation.attr_classes
 
     frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
+    assert type(frame._data) == r.UnitSphericalRepresentation
     assert frame.representation == NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
@@ -732,8 +734,8 @@ def test_representation_subclass():
     # UnitSphericalRepresentation subclass for the data and
     # SphericalRepresentation or a subclass for the representation.
 
-    class NewUnitSphericalRepresentation(representation.UnitSphericalRepresentation):
-        attr_classes = representation.UnitSphericalRepresentation.attr_classes
+    class NewUnitSphericalRepresentation(r.UnitSphericalRepresentation):
+        attr_classes = r.UnitSphericalRepresentation.attr_classes
         def __repr__(self):
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
@@ -751,7 +753,7 @@ def test_getitem_representation():
     from ..builtin_frames import ICRS
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
     c.representation = 'cartesian'
-    assert c[0].representation is representation.CartesianRepresentation
+    assert c[0].representation is r.CartesianRepresentation
 
 
 def test_component_error_useful():
@@ -832,3 +834,18 @@ def test_inplace_change():
     # This will use a second (potentially cached rep)
     assert i.ra == 10 * u.deg
     assert i.dec == 2 * u.deg
+
+
+def test_pass_representation_with_differentials():
+    from ..builtin_frames import ICRS
+
+    dif = r.CartesianDifferential(1*u.km/u.s, 2*u.km/u.s, 3*u.km/u.s)
+    rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc,
+                                    differentials=[dif, dif])
+
+    # check warning is raised for a scalar
+    with catch_warnings() as w:
+        ICRS(rep)
+        assert len(w) == 1
+        assert w[0].category == AstropyWarning
+        assert 'Multiple differentials are associated' in str(w[0].message)

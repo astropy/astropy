@@ -13,6 +13,7 @@ import abc
 import copy
 import inspect
 from collections import namedtuple, OrderedDict, defaultdict
+import warnings
 
 # Dependencies
 import numpy as np
@@ -20,6 +21,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty
+from ..utils.exceptions import AstropyWarning
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
@@ -264,9 +266,19 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     'Cannot create a frame with both a representation and '
                     'other positional arguments')
 
-            # TODO: check whether the representation has a differential
-            if representation_data.differentials:
-                differential_data = representation_data.differentials[0]
+            if representation_data is not None:
+                n_diffs = len(representation_data.differentials)
+
+                if n_diffs > 0:
+                    if n_diffs > 1:
+                        warnings.warn('Multiple differentials are associated '
+                                      'with the representation object passed in'
+                                      ' to the frame initializer. The velocity '
+                                      'differential is assumed to be at index 0 '
+                                      'of the differentials list.',
+                                      AstropyWarning)
+
+                    differential_data = representation_data.differentials[0]
 
         elif self.representation:
             # Get any representation data passed in to the frame initializer
