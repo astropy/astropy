@@ -16,4 +16,3 @@ for _nm, _c in itertools.chain(sorted(vars(CODATA2014).items()),
     if (isinstance(_c, Constant) and _c.abbrev not in locals()
          and _c.system in ['esu', 'gauss', 'emu']):
         locals()[_c.abbrev] = _c
-
