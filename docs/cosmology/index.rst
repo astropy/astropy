@@ -355,7 +355,7 @@ setting ``Tcmb0`` to be non-zero (2.725 K is the standard value for our
 Universe) but setting ``Neff`` to 0::
 
   >>> from astropy.cosmology import FlatLambdaCDM
-  >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
+  >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725, Neff=0)
   >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
   array([  4.98586899e-05,   2.74632798e-04,   5.00069284e-04])
   >>> cos.Onu([0, 1, 2])  # But not neutrinos
