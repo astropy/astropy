@@ -13,7 +13,7 @@ import numpy as np
 
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
-
+from ..units import Quantity
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
            'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
@@ -271,7 +271,13 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         xx = x / x_break
 
         #Initialize the return value
-        f = np.zeros_like(xx)
+        f = np.zeros_like(xx, subok=False)
+
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
 
         #The quantity `t = (x / x_b)^(1 / delta)` can become quite
         #large.  To avoid overflow errors we will start by calculating
@@ -308,7 +314,10 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f[i] = amplitude * xx[i] ** (-alpha_1) \
                    * r ** ((alpha_1 - alpha_2) * delta)
 
-        return f
+        if return_unit:
+            return Quantity(f, unit=return_unit, copy=False)
+        else:
+            return f
 
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
@@ -366,6 +375,17 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                          * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
 
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2, d_delta]
+
+    @property
+    def input_units(self):
+        if self.x_break.unit is None:
+            return None
+        else:
+            return {'x': self.x_break.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_break', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
