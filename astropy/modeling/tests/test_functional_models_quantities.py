@@ -17,7 +17,7 @@ from ..functional_models import (Gaussian1D, GaussianAbsorption1D,
 from ..powerlaws import (PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
                          ExponentialCutoffPowerLaw1D, LogParabola1D)
 
-from ..polynomial import (Polynomial1D, Chebyshev1D, Legendre1D)
+from ..polynomial import Polynomial1D, Polynomial2D
 
 from ..fitting import LevMarLSQFitter
 
@@ -171,6 +171,21 @@ POLY_MODELS = [
     {'class': Polynomial1D,
         'parameters': {'degree': 2, 'c0': 3 * u.kg, 'c1': 2 * u.kg, 'c2': 3 * u.kg},
         'evaluation': [(3 * u.one, 36 * u.kg)],
+        'bounding_box': False},
+    {'class': Polynomial2D,
+        'parameters': {'degree': 2, 'c0_0': 3 * u.one, 'c1_0': 2 / u.m , 'c2_0': 3 / u.m**2,
+                       'c0_1': 3 / u.s, 'c0_2': -2 / u.s**2, 'c1_1': 5 / u.m / u.s},
+        'evaluation': [(3 * u.m, 2 * u.s, 64 * u.one)],
+        'bounding_box': False},
+    {'class': Polynomial2D,
+        'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg / u.m , 'c2_0': 3 * u.kg / u.m**2,
+                       'c0_1': 3 * u.kg / u.s, 'c0_2': -2 * u.kg / u.s**2, 'c1_1': 5 * u.kg / u.m / u.s},
+        'evaluation': [(3 * u.m, 2 * u.s, 64 * u.kg)],
+        'bounding_box': False},
+    {'class': Polynomial2D,
+        'parameters': {'degree': 2, 'c0_0': 3 * u.kg, 'c1_0': 2 * u.kg , 'c2_0': 3 * u.kg,
+                       'c0_1': 3 * u.kg, 'c0_2': -2 * u.kg, 'c1_1': 5 * u.kg},
+        'evaluation': [(3 * u.one, 2 * u.one, 64 * u.kg)],
         'bounding_box': False},
  ]
 
