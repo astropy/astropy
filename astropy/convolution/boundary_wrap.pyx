@@ -25,7 +25,6 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
     cdef int nx = f.shape[0]
     cdef int nkx = g.shape[0]
     cdef int wkx = nkx // 2
-    cdef np.ndarray[DTYPE_t, ndim=1] fixed = np.empty([nx], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] conv = np.empty([nx], dtype=DTYPE)
     cdef unsigned int i, iii
     cdef int ii
@@ -36,8 +35,6 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
 
     # release the GIL
     with nogil:
-        for i in range(nx):
-            fixed[i] = f[i]
 
         # Now run the proper convolution
         for i in range(nx):
@@ -47,15 +44,16 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
             iimax = i + wkx + 1
             for ii in range(iimin, iimax):
                 iii = ii % nx
-                val = fixed[iii]
+                val = f[iii]
                 ker = g[<unsigned int>(wkx + ii - i)]
                 if not npy_isnan(val):
                     top += val * ker
                     bot += ker
-            if normalize_by_kernel and bot != 0:
-                conv[i] = top / bot
-            elif normalize_by_kernel and bot == 0:
-                conv[i] = fixed[i]
+            if normalize_by_kernel:
+                if bot == 0:
+                    conv[i] = f[i]
+                else:
+                    conv[i] = top / bot
             else:
                 conv[i] = top
     # GIL acquired again here
@@ -78,7 +76,6 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
     cdef int nky = g.shape[1]
     cdef int wkx = nkx // 2
     cdef int wky = nky // 2
-    cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.empty([nx, ny], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] conv = np.empty([nx, ny], dtype=DTYPE)
     cdef unsigned int i, j, iii, jjj
     cdef int ii, jj
@@ -89,9 +86,6 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
 
     # release the GIL
     with nogil:
-        for i in range(nx):
-            for j in range(ny):
-                fixed[i, j] = f[i, j]
 
         # Now run the proper convolution
         for i in range(nx):
@@ -106,16 +100,17 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                     for jj in range(jjmin, jjmax):
                         iii = ii % nx
                         jjj = jj % ny
-                        val = fixed[iii, jjj]
+                        val = f[iii, jjj]
                         ker = g[<unsigned int>(wkx + ii - i),
                                 <unsigned int>(wky + jj - j)]
                         if not npy_isnan(val):
                             top += val * ker
                             bot += ker
-                if normalize_by_kernel and bot != 0:
-                    conv[i, j] = top / bot
-                elif normalize_by_kernel and bot == 0:
-                    conv[i, j] = fixed[i, j]
+                if normalize_by_kernel:
+                    if bot == 0:
+                        conv[i, j] = f[i, j]
+                    else:
+                        conv[i, j] = top / bot
                 else:
                     conv[i, j] = top
     # GIl acquired again here
@@ -141,7 +136,6 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
     cdef int wkx = nkx // 2
     cdef int wky = nky // 2
     cdef int wkz = nkz // 2
-    cdef np.ndarray[DTYPE_t, ndim=3] fixed = np.empty([nx, ny, nz], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=3] conv = np.empty([nx, ny, nz], dtype=DTYPE)
     cdef unsigned int i, j, k, iii, jjj, kkk
     cdef int ii, jj, kk
@@ -152,10 +146,6 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
 
     # release the GIL
     with nogil:
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    fixed[i, j, k] = f[i, j, k]
 
         # Now run the proper convolution
         for i in range(nx):
@@ -175,17 +165,18 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                                 iii = ii % nx
                                 jjj = jj % ny
                                 kkk = kk % nz
-                                val = fixed[iii, jjj, kkk]
+                                val = f[iii, jjj, kkk]
                                 ker = g[<unsigned int>(wkx + ii - i),
                                         <unsigned int>(wky + jj - j),
                                         <unsigned int>(wkz + kk - k)]
                                 if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
-                    if normalize_by_kernel and bot != 0:
-                        conv[i, j, k] = top / bot
-                    elif normalize_by_kernel and bot == 0:
-                        conv[i, j, k] = fixed[i, j, k]
+                    if normalize_by_kernel:
+                        if bot == 0:
+                            conv[i, j, k] = f[i, j, k]
+                        else:
+                            conv[i, j, k] = top / bot
                     else:
                         conv[i, j, k] = top
     # GIL acquired again here
