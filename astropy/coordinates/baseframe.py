@@ -264,6 +264,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     'Cannot create a frame with both a representation and '
                     'other positional arguments')
 
+            # TODO: check whether the representation has a differential
+            if representation_data.differentials:
+                differential_data = representation_data.differentials[0]
+
         elif self.representation:
             # Get any representation data passed in to the frame initializer
             # using keyword or positional arguments for the component names

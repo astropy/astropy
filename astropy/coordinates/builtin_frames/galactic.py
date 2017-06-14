@@ -50,14 +50,14 @@ class Galactic(BaseCoordinateFrame):
             RepresentationMapping('z', 'v')
         ],
         CartesianDifferential: [
-            RepresentationMapping('d_x', 'W'),
-            RepresentationMapping('d_y', 'U'),
-            RepresentationMapping('d_z', 'V')
+            RepresentationMapping('d_x', 'W', u.km/u.s),
+            RepresentationMapping('d_y', 'U', u.km/u.s),
+            RepresentationMapping('d_z', 'V', u.km/u.s)
         ],
         SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_l'),
-            RepresentationMapping('d_lat', 'pm_b'),
-            RepresentationMapping('d_distance', 'radial_velocity'),
+            RepresentationMapping('d_lon_coslat', 'pm_l', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ],
     }
     frame_specific_representation_info[UnitSphericalRepresentation] = \
