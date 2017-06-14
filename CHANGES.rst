@@ -75,8 +75,9 @@ New Features
     is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
 
   - Added infrastructure support for units on parameters and during
-    model evaluation and fitting, added support for units on most
-    functional models and added a new BlackBody1D model. [#4855, #6183]
+    model evaluation and fitting, added support for units on all
+    functional, power-law, and polynomial models where this is appropriate,
+    and added a new BlackBody1D model. [#4855, #6183, #6204]
 
 - ``astropy.nddata``
 
