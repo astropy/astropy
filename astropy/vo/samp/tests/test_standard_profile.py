@@ -14,11 +14,6 @@ from .. import conf
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
-try:
-    OPENSSL_VERSION_LT_1_1 = ssl.OPENSSL_VERSION_INFO[:2] < (1, 1)
-except Exception:
-    OPENSSL_VERSION_LT_1_1 = True
-
 
 def setup_module(module):
     conf.use_internet = False
