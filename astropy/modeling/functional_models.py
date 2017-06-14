@@ -374,14 +374,10 @@ class Gaussian2D(Fittable2DModel):
 
         # Ensure stddev makes sense if its bounds are not explicitly set.
         # stddev must be non-zero and positive.
-        if 'bounds' not in kwargs:
-            kwargs['bounds'] = {'x_stddev': (FLOAT_EPSILON, None),
-                                'y_stddev': (FLOAT_EPSILON, None)}
-        else:
-            kwargs['bounds']['x_stddev'] = kwargs['bounds'].get(
-                'x_stddev', (FLOAT_EPSILON, None))
-            kwargs['bounds']['y_stddev'] = kwargs['bounds'].get(
-                'y_stddev', (FLOAT_EPSILON, None))
+        # Setting this in Parameter above causes convolution tests to hang.
+        kwargs.setdefault('bounds', {})
+        kwargs['bounds'].setdefault('x_stddev', (FLOAT_EPSILON, None))
+        kwargs['bounds'].setdefault('y_stddev', (FLOAT_EPSILON, None))
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
