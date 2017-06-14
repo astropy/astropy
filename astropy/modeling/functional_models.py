@@ -16,7 +16,6 @@ from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError
-from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
@@ -374,7 +373,8 @@ class Gaussian2D(Fittable2DModel):
 
         # Ensure stddev makes sense if its bounds are not explicitly set.
         # stddev must be non-zero and positive.
-        # Setting this in Parameter above causes convolution tests to hang.
+        # TODO: Investigate why setting this in Parameter above causes
+        #       convolution tests to hang.
         kwargs.setdefault('bounds', {})
         kwargs['bounds'].setdefault('x_stddev', (FLOAT_EPSILON, None))
         kwargs['bounds'].setdefault('y_stddev', (FLOAT_EPSILON, None))

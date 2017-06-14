@@ -309,6 +309,8 @@ Bug Fixes
 
   - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
 
+  - Gaussian models now impose positive ``stddev`` in fitting. [#6019]
+
   - OrthoPolynomialBase (Chebyshev2D / Legendre2D) models were being evaluated
     incorrectly when part of a compound model (using the parameters from the
     original model), which in turn caused fitting to fail as a no-op. [#6085]
@@ -395,19 +397,6 @@ Bug Fixes
 
   - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
     [#5929]
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-  - Gaussian models now impose positive ``stddev`` in fitting. [#6019]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 

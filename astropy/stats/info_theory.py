@@ -387,7 +387,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the
-    difference in AIC is about 6.5. We should reject the model g1_fit.
+    difference in AIC is about 2.4. We should reject the model g1_fit.
 
     References
     ----------

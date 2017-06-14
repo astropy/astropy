@@ -23,9 +23,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-# Module level random state for reproducible results.
-rsn = RandomState(1234567890)
-
 
 class TestNonLinearConstraints(object):
 
@@ -35,6 +32,7 @@ class TestNonLinearConstraints(object):
         self.x = np.arange(10, 20, .1)
         self.y1 = self.g1(self.x)
         self.y2 = self.g2(self.x)
+        rsn = RandomState(1234567890)
         self.n = rsn.randn(100)
         self.ny1 = self.y1 + 2 * self.n
         self.ny2 = self.y2 + 2 * self.n
