@@ -196,8 +196,7 @@ class Gaussian1D(BaseGaussian1D):
 
 
 # TODO: Don't need BaseGaussian1D anymore when this is removed.
-@deprecated(
-    '2.0', alternative='Gaussian1D and subtract it off continuum model')
+@deprecated('2.0', alternative='Gaussian1D and subtract it off Const1D')
 class GaussianAbsorption1D(BaseGaussian1D):
     """
     One dimensional Gaussian absorption line model.
