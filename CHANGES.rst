@@ -28,6 +28,10 @@ New Features
     differentials (i.e., finite derivatives) of coordinates.  This is intended
     to enable support for velocities in coordinate frames down the road. [#5871]
 
+  - ``replicate_without_data`` and ``replicate`` methods were added to
+    coordinate frames that allow copying an existing frame object with various
+    reference or copy behaviors and possibly overriding frame attributes. [#6182]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -74,8 +78,8 @@ New Features
     is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
 
   - Added infrastructure support for units on parameters and during
-    model evaluation and fitting, added support for units on Gaussian1D
-    and added a new Blackbody1D model. [#4855]
+    model evaluation and fitting, added support for units on most
+    functional models and added a new BlackBody1D model. [#4855, #6183]
 
 - ``astropy.nddata``
 
@@ -170,7 +174,15 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Removed deprecated ``angles.rotation_matrix`` and
+    ``angles.angle_axis``. Use the routines in
+    ``coordinates.matrix_utilities`` instead. [#6170]
+
 - ``astropy.cosmology``
+
+  - Cosmological models do not include any contribution from neutrinos or photons
+    by default -- that is, the default value of Tcmb0 is 0.  This does not affect
+    built in models (such as WMAP or Planck). [#6122]
 
 - ``astropy.io.ascii``
 
@@ -179,6 +191,11 @@ API Changes
   - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
     to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
     headers are read into ``comments`` meta [#6097]
+
+  - Remove compatibility code which forced loading all HDUs on close. The old
+    behavior can be used with ``lazy_load_hdus=False``. Because of this change,
+    trying to access the ``.data`` attribute from an HDU which is not loaded
+    now raises a ``IndexError`` instead of a ``ValueError``. [#6082]
 
 - ``astropy.io.misc``
 
@@ -190,7 +207,18 @@ API Changes
 
   - Removed deprecated ``Redshift`` model; Use ``RedshiftScaleFactor``. [#6053]
 
+  - Removed deprecated ``Pix2Sky_AZP.check_mu`` and ``Pix2Sky_SZP.check_mu``
+    methods. [#6170]
+
 - ``astropy.nddata``
+
+  - Removed deprecated usage of parameter ``propagate_uncertainties`` as a
+    positional keyword. [#6170]
+
+  - Removed deprecated ``support_correlated`` attribute. [#6170]
+
+  - Removed deprecated ``propagate_add``, ``propagate_subtract``,
+    ``propagate_multiply`` and ``propagate_divide`` methods. [#6170]
 
 - ``astropy.stats``
 
@@ -199,8 +227,6 @@ API Changes
 
   - Added ``modify_sample_size`` keyword to ``biweight_midvariance``
     function. [#5991]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -229,12 +255,16 @@ API Changes
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
     definition of "emu". [#4918, #5906]
 
+  - Removed deprecated ``Unit.get_converter``. [#6170]
+
 - ``astropy.utils``
 
   - Removed the deprecated compatibility modules for Python 2.6 (``argparse``,
     ``fractions``, ``gzip``, ``odict``, ``subprocess``) [#5975,#6157,#6164]
 
 - ``astropy.visualization``
+
+  - Removed the deprecated ``scale_image`` function. [#6170]
 
 - ``astropy.vo``
 
@@ -243,6 +273,8 @@ API Changes
     [#5558, #5904]
 
 - ``astropy.wcs``
+
+  - Removed deprecated ``wcs.rotateCD``. [#6170]
 
 - ``astropy.extern``
 
@@ -286,6 +318,8 @@ Bug Fixes
   - OrthoPolynomialBase (Chebyshev2D / Legendre2D) models were being evaluated
     incorrectly when part of a compound model (using the parameters from the
     original model), which in turn caused fitting to fail as a no-op. [#6085]
+
+  - Allow ``Ring2D`` to be defined using ``r_out``. [#6192]
 
 - ``astropy.nddata``
 

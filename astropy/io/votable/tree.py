@@ -3403,10 +3403,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         return self
 
-    def to_xml(self, fd, write_null_values=False,
-               compressed=False, tabledata_format=None,
-               _debug_python_based_parser=False,
-               _astropy_version=None):
+    def to_xml(self, fd, compressed=False, tabledata_format=None,
+               _debug_python_based_parser=False, _astropy_version=None):
         """
         Write to an XML file.
 
@@ -3414,12 +3412,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         ----------
         fd : str path or writable file-like object
             Where to write the file.
-
-        write_null_values : bool, optional
-            Deprecated and retained for backward compatibility.  When
-            ``write_null_values`` was `False`, invalid VOTable files
-            could be generated, so the option has just been removed
-            entirely.
 
         compressed : bool, optional
             When `True`, write to a gzip-compressed file.  (Default:
@@ -3432,11 +3424,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             in each `Table` object as it was created or read in.  See
             :ref:`votable-serialization`.
         """
-        if write_null_values:
-            warnings.warn(
-                "write_null_values has been deprecated and has no effect",
-                AstropyDeprecationWarning)
-
         if tabledata_format is not None:
             if tabledata_format.lower() not in (
                     'tabledata', 'binary', 'binary2'):

@@ -7,10 +7,8 @@ import sys
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
 from ... import table
 from ...table import Row
-from ...utils.exceptions import AstropyDeprecationWarning
 from ...extern.six.moves import zip
 from .conftest import MaskedTable
 
