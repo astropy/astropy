@@ -144,10 +144,9 @@ def test_io_time_write(tmpdir):
     be considerably round-tripped (metadata scale, format).
     """
     t = QTable()
-    t['a'] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(u.Quantity(-2446353.80003635, unit='m'),
-                       u.Quantity(4237209.07495215, unit='m'), u.Quantity(4077985.57220038, unit='m')))
-    t['b'] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc', location=EarthLocation(u.Quantity(-2446353.80003635, unit='m'),
-                       u.Quantity(4237209.07495215, unit='m'), u.Quantity(4077985.57220038, unit='m')))
+    t['a'] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(-2446353.80003635, 4237209.07495215, 4077985.57220038, unit='m'))
+    t['b'] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc')
+    t['c'] = [3.7,4.2]
 
     filename = tmpdir.join("table-tmp").strpath
     open(filename, 'w').close()
@@ -159,6 +158,7 @@ def test_io_time_write(tmpdir):
     # Assert that the time columns are read as Time
     assert isinstance(tm['a'], time.Time)
     assert isinstance(tm['b'], time.Time)
+    assert isinstance(tm['c'], Column)
 
     # Assert that the scales round-trip
     assert tm['a'].scale == t['a'].scale
@@ -170,10 +170,19 @@ def test_io_time_write(tmpdir):
 
     # Assert that the location round-trips
     assert tm['a'].location == t['a'].location
+    assert tm['b'].location == t['b'].location
     
     # Finally assert that the column data round-trips
     assert (tm['a'] == t['a']).all()
     assert (tm['b'] == t['b']).all()
+    assert (tm['c'] == t['c']).all()
+    
+    for fmt in ('votable', 'hdf5'):
+        if fmt == 'hdf5' and not HAS_H5PY:
+            continue
+        with pytest.raises(ValueError) as err:
+            t.write(filename, format=fmt, overwrite=True)
+        assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
 def test_io_write_fail(mixin_cols):
