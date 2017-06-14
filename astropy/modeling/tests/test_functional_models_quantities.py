@@ -128,7 +128,8 @@ FUNC_MODELS_2D = [
  'bounding_box': False},
 {'class': Sersic2D,
  'parameters': {'amplitude': 3 * u.MJy / u.sr, 'x_0': 1 * u.arcsec,
-                'y_0': 2 * u.arcsec, 'r_eff': 2 * u.arcsec, 'n': 4},
+                'y_0': 2 * u.arcsec, 'r_eff': 2 * u.arcsec, 'n': 4,
+                'ellip': 0, 'theta': 0},
  'evaluation':[(3 * u.arcsec, 2.5 * u.arcsec, 2.829990489 * u.MJy/u.sr)],
  'bounding_box': False},
 ]
@@ -142,10 +143,10 @@ POWERLAW_MODELS = [
  'parameters': {'amplitude': 5 * u.kg, 'x_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1},
  'evaluation':[(1 * u.m, 50 * u.kg), (1 * u.cm, 50 * u.kg)],
  'bounding_box': False},
-# {'class': SmoothlyBrokenPowerLaw1D,
-#  'parameters': {'amplitude': 5 * u.kg, 'log_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1},
-#  'evaluation':[(1 * u.m, 50 * u.kg), (1 * u.cm, 50 * u.kg)],
-#  'bounding_box': False},
+{'class': SmoothlyBrokenPowerLaw1D,
+ 'parameters': {'amplitude': 5 * u.kg, 'x_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1, 'delta':1},
+ 'evaluation':[(1 * u.m, 15.125 * u.kg), (1 * u.cm, 15.125 * u.kg)],
+ 'bounding_box': False},
 {'class': ExponentialCutoffPowerLaw1D,
  'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1, 'x_cutoff': 1 * u.m},
  'evaluation':[(1 * u.um, 499999.5 * u.kg), (10 * u.m, 50 * np.exp(-10) * u.g)],
@@ -157,7 +158,7 @@ POWERLAW_MODELS = [
 ]
 
 
-MODELS = MODELS_1D + MODELS_2D + POWERLAW_MODELS
+MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS
 
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
@@ -222,7 +223,10 @@ def test_models_evaluate_with_units_param_array(model):
         else:
             params[key] = np.repeat(value, 2)
 
+    params['n_models'] = 2
+
     m = model['class'](**params)
+
     for args in model['evaluation']:
         if len(args) == 2:
             x, y = args
