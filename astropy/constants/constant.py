@@ -133,7 +133,7 @@ class Constant(Quantity):
                                            self.reference))
 
     def __quantity_subclass__(self, unit):
-        return super(self.__class__, self).__quantity_subclass__(unit)[0], False
+        return super(Constant, self).__quantity_subclass__(unit)[0], False
 
     def copy(self):
         """
@@ -192,7 +192,7 @@ class Constant(Quantity):
         """
 
         instances = self.__class__._registry[self.name.lower()]
-        return instances.get('si') or super(self.__class__, self).si
+        return instances.get('si') or super(Constant, self).si
 
     @property
     def cgs(self):
@@ -201,7 +201,7 @@ class Constant(Quantity):
         """
 
         instances = self.__class__._registry[self.name.lower()]
-        return instances.get('cgs') or super(self.__class__, self).cgs
+        return instances.get('cgs') or super(Constant, self).cgs
 
     def __array_finalize__(self, obj):
         for attr in ('_abbrev', '_name', '_value', '_unit_string',
