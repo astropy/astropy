@@ -280,6 +280,31 @@ def test_realizing():
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
 
+def test_replicating():
+    from ..builtin_frames import ICRS, AltAz
+    from ...time import Time
+
+    i = ICRS(ra=[1]*u.deg, dec=[2]*u.deg)
+
+    icopy = i.replicate(copy=True)
+    irepl = i.replicate(copy=False)
+    i.data._lat[:] = 0*u.deg
+    assert np.all(i.data.lat == irepl.data.lat)
+    assert np.all(i.data.lat != icopy.data.lat)
+
+
+    iclone = i.replicate_without_data()
+    assert i.has_data
+    assert not iclone.has_data
+
+    aa = AltAz(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
+    aaclone = aa.replicate_without_data(obstime=Time('J2001'))
+    assert not aaclone.has_data
+    assert aa.obstime != aaclone.obstime
+    assert aa.pressure == aaclone.pressure
+    assert aa.obswl == aaclone.obswl
+
+
 def test_getitem():
     from ..builtin_frames import ICRS
 

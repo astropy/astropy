@@ -23,6 +23,7 @@ format, for example::
    >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('t/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
+   >>> data = astropy.io.ascii.read('t/tab_and_space.txt', delimiter=r'\s')  # doctest: +SKIP
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different formats can define different defaults, so the
@@ -431,7 +432,7 @@ character instead of the standard ``'e'`` for exponential formats in
 the input file, to read for example Fortran-style double precision
 numbers like ``'1.495978707D+13'``:
 
-  >>> ascii.read('double.dat', format='basic', guess=False, 
+  >>> ascii.read('double.dat', format='basic', guess=False,
   ...            fast_reader={'exponent_style': 'D'})  # doctest: +SKIP
 
 The special setting ``'fortran'`` is provided to allow for the

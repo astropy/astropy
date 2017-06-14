@@ -909,38 +909,6 @@ class UnitBase(object):
 
             raise exc
 
-    @deprecated('1.0')
-    def get_converter(self, other, equivalencies=[]):
-        """
-        Return the conversion function to convert values from ``self``
-        to the specified unit.
-
-        Parameters
-        ----------
-        other : unit object or string
-            The unit to convert to.
-
-        equivalencies : list of equivalence pairs, optional
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        func : callable
-            A callable that normally expects a single argument that is
-            a scalar value or an array of values (or anything that may
-            be converted to an array).
-
-        Raises
-        ------
-        UnitsError
-            If units are inconsistent
-        """
-        return self._get_converter(other, equivalencies=equivalencies)
-
     def _to(self, other):
         """
         Returns the scale to the specified unit.

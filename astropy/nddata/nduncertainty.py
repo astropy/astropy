@@ -9,7 +9,6 @@ from copy import deepcopy
 import weakref
 
 # from ..utils.compat import ignored
-from ..utils import deprecated
 from .. import log
 from ..units import Unit, Quantity
 from ..extern import six
@@ -117,11 +116,6 @@ class NDUncertainty(object):
         .. versionadded:: 1.2
         """
         return False
-
-    @property
-    @deprecated('1.2', alternative=':attr:`supports_correlated`')
-    def support_correlated(self):
-        return self.supports_correlated
 
     @property
     def array(self):
@@ -432,26 +426,6 @@ class StdDevUncertainty(NDUncertainty):
             return other_uncert
         else:
             raise IncompatibleUncertaintiesException
-
-# TODO: These 4 methods were part of the pre-astropy 1.2 version. Remove
-# them at some point. It's unlikely they were used directly but in any case
-# better keep them around for now.
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_add(self, other_nddata, result_data):
-        return self.propagate(np.add, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_subtract(self, other_nddata, result_data):
-        return self.propagate(np.subtract, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_multiply(self, other_nddata, result_data):
-        return self.propagate(np.multiply, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_divide(self, other_nddata, result_data):
-        return self.propagate(np.divide, other_nddata, result_data, 0)
 
     def _propagate_add(self, other_uncert, result_data, correlation):
 
