@@ -6,14 +6,11 @@ from the installed astropy.  It makes use of the `pytest` testing framework.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import base64
-import errno
 import functools
 import os
 import sys
 import types
 import warnings
-import zlib
 
 import pytest
 

@@ -168,6 +168,10 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Removed deprecated ``angles.rotation_matrix`` and
+    ``angles.angle_axis``. Use the routines in
+    ``coordinates.matrix_utilities`` instead. [#6170]
+
 - ``astropy.cosmology``
 
   - Cosmological models do not include any contribution from neutrinos or photons
@@ -197,7 +201,18 @@ API Changes
 
   - Removed deprecated ``Redshift`` model; Use ``RedshiftScaleFactor``. [#6053]
 
+  - Removed deprecated ``Pix2Sky_AZP.check_mu`` and ``Pix2Sky_SZP.check_mu``
+    methods. [#6170]
+
 - ``astropy.nddata``
+
+  - Removed deprecated usage of parameter ``propagate_uncertainties`` as a
+    positional keyword. [#6170]
+
+  - Removed deprecated ``support_correlated`` attribute. [#6170]
+
+  - Removed deprecated ``propagate_add``, ``propagate_subtract``,
+    ``propagate_multiply`` and ``propagate_divide`` methods. [#6170]
 
 - ``astropy.stats``
 
@@ -206,8 +221,6 @@ API Changes
 
   - Added ``modify_sample_size`` keyword to ``biweight_midvariance``
     function. [#5991]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -236,12 +249,16 @@ API Changes
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
     definition of "emu". [#4918, #5906]
 
+  - Removed deprecated ``Unit.get_converter``. [#6170]
+
 - ``astropy.utils``
 
   - Removed the deprecated compatibility modules for Python 2.6 (``argparse``,
     ``fractions``, ``gzip``, ``odict``, ``subprocess``) [#5975,#6157,#6164]
 
 - ``astropy.visualization``
+
+  - Removed the deprecated ``scale_image`` function. [#6170]
 
 - ``astropy.vo``
 
@@ -250,6 +267,8 @@ API Changes
     [#5558, #5904]
 
 - ``astropy.wcs``
+
+  - Removed deprecated ``wcs.rotateCD``. [#6170]
 
 - ``astropy.extern``
 
