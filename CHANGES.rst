@@ -212,7 +212,7 @@ API Changes
     methods. [#6170]
 
   - Deprecated ``GaussianAbsorption1D`` model, as it can be better represented
-    by subtracting ``Gaussian1D`` from a continuum model. [#6200]
+    by subtracting ``Gaussian1D`` from ``Const1D``. [#6200]
 
 - ``astropy.nddata``
 
