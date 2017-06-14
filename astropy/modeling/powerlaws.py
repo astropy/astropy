@@ -136,12 +136,12 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     ----------
     amplitude : float
         Model amplitude at the break point.
-    log_break : float
-        logarithm (base 10) of break point.
+    x_break : float
+        Break point
     alpha_1 : float
-        Power law index for ``x << 10 ** log_break``.
+        Power law index for ``x << x_break``.
     alpha_2 : float
-        Power law index for ``x >> 10 ** log_break``.
+        Power law index for ``x >> x_break``.
     delta : float
         Smoothness parameter.
 
@@ -152,7 +152,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     Notes
     -----
     Model formula (with :math:`A` for ``amplitude``, :math:`x_b` for
-    ``10 ** log_break``, :math:`\\alpha_1` for ``alpha_1``,
+    ``x_break``, :math:`\\alpha_1` for ``alpha_1``,
     :math:`\\alpha_2` for ``alpha_2`` and :math:`\\Delta` for
     ``delta``):
 
@@ -200,11 +200,11 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         from astropy.modeling import models
 
         x = np.logspace(0.7, 2.3, 500)
-        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5,
+        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, x_break=20,
                                             alpha_1=-2, alpha_2=2)
 
         plt.figure()
-        plt.title("amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2")
+        plt.title("amplitude=1, x_break=20, alpha_1=-2, alpha_2=2")
 
         f.delta = 0.5
         plt.loglog(x, f(x), '--', label='delta=0.5')
@@ -223,7 +223,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     """
 
     amplitude = Parameter(default=1, min=0)
-    log_break = Parameter(default=1)
+    x_break = Parameter(default=1)
     alpha_1 = Parameter(default=-2)
     alpha_2 = Parameter(default=2)
     delta = Parameter(default=1, min=1.e-3)
@@ -241,12 +241,11 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                 "delta parameter must be >= 0.001")
 
     @staticmethod
-    def evaluate(x, amplitude, log_break, alpha_1, alpha_2, delta):
+    def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law model function"""
 
-        #Pre-calculate `x_b` and `x/x_b`
-        x_b = 10. ** log_break
-        xx = x / x_b
+        #Pre-calculate `x/x_b`
+        xx = x / x_break
 
         #Initialize the return value
         f = np.zeros_like(xx)
@@ -289,20 +288,19 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         return f
 
     @staticmethod
-    def fit_deriv(x, amplitude, log_break, alpha_1, alpha_2, delta):
+    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law derivative with respect
            to parameters"""
 
         #Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
         #SmoothlyBrokenPowerLaw1D.evaluate)
-        x_b = 10. ** log_break
-        xx = x / x_b
+        xx = x / x_break
         logt = np.log(xx) / delta
 
         #Initialize the return values
         f = np.zeros_like(xx)
         d_amplitude = np.zeros_like(xx)
-        d_log_break = np.zeros_like(xx)
+        d_x_break = np.zeros_like(xx)
         d_alpha_1 = np.zeros_like(xx)
         d_alpha_2 = np.zeros_like(xx)
         d_delta = np.zeros_like(xx)
@@ -314,7 +312,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] * alpha_2 * np.log(10)
+            d_x_break[i] = f[i] * alpha_2 / x_break
             d_alpha_1[i] = f[i] * (-delta * np.log(2))
             d_alpha_2[i] = f[i] * (-np.log(xx[i]) + delta * np.log(2))
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
@@ -325,7 +323,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] * alpha_1 * np.log(10)
+            d_x_break[i] = f[i] * alpha_1 / x_break
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) - delta * np.log(2))
             d_alpha_2[i] = f[i] * delta * np.log(2)
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
@@ -338,15 +336,13 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    * r ** ((alpha_1 - alpha_2) * delta)
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] \
-                             * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) \
-                             * np.log(10)
+            d_x_break[i] = f[i] * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) / x_break
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
             d_alpha_2[i] = f[i] * (-delta * np.log(r))
             d_delta[i] = f[i] * (alpha_1 - alpha_2) \
                          * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
 
-        return [d_amplitude, d_log_break, d_alpha_1, d_alpha_2, d_delta]
+        return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2, d_delta]
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
