@@ -982,7 +982,6 @@ class TimeFITS(TimeString):
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
-
         return [int(tm['year']), int(tm['mon']), int(tm['mday']),
                 int(tm.get('hour', 0)), int(tm.get('min', 0)),
                 float(tm.get('sec', 0.))]
