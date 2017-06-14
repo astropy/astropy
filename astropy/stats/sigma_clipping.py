@@ -8,7 +8,7 @@ from ..utils.exceptions import AstropyUserWarning
 from ..extern.six.moves import range
 
 
-__all__ = ['sigma_clip', 'sigma_clipped_stats']
+__all__ = ['sigma_clip', 'SigmaClip', 'sigma_clipped_stats']
 
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
@@ -199,6 +199,90 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         filtered_data.mask = False   # .mask shape will now match .data shape
 
     return filtered_data
+
+
+class SigmaClip(object):
+    """
+    Class to perform sigma clipping.
+
+    Parameters
+    ----------
+    sigma : float, optional
+        The number of standard deviations to use for both the lower and
+        upper clipping limit. These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input. Defaults to 3.
+    sigma_lower : float or `None`, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. Defaults to `None`.
+    sigma_upper : float or `None`, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. Defaults to `None`.
+    iters : int or `None`, optional
+        The number of iterations to perform sigma clipping, or `None` to
+        clip until convergence is achieved (i.e., continue until the
+        last iteration clips nothing). Defaults to 5.
+    cenfunc : callable, optional
+        The function used to compute the center for the clipping. Must
+        be a callable that takes in a masked array and outputs the
+        central value. Defaults to the median (`numpy.ma.median`).
+    stdfunc : callable, optional
+        The function used to compute the standard deviation about the
+        center. Must be a callable that takes in a masked array and
+        outputs a width estimator. Masked (rejected) pixels are those
+        where::
+
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
+
+        where::
+
+            deviation = data - cenfunc(data [,axis=int])
+
+        Defaults to the standard deviation (`numpy.std`).
+    """
+
+    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
+                 cenfunc=np.ma.median, stdfunc=np.std):
+        self.sigma = sigma
+        self.sigma_lower = sigma_lower
+        self.sigma_upper = sigma_upper
+        self.iters = iters
+        self.cenfunc = cenfunc
+        self.stdfunc = stdfunc
+
+    def __call__(self, data, axis=None, copy=True):
+        """
+        Perform sigma clipping on the provided data.
+
+        Parameters
+        ----------
+        data : array-like
+            The data to be sigma clipped.
+        axis : int or `None`, optional
+            If not `None`, clip along the given axis.  For this case,
+            ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``,
+            which are expected to return an array with the axis
+            dimension removed (like the numpy functions).  If `None`,
+            clip over all axes.  Defaults to `None`.
+        copy : bool, optional
+            If `True`, the ``data`` array will be copied.  If `False`,
+            the returned masked array data will contain the same array
+            as ``data``.  Defaults to `True`.
+
+        Returns
+        -------
+        filtered_data : `numpy.ma.MaskedArray`
+            A masked array with the same shape as ``data`` input, where
+            the points rejected by the algorithm have been masked.
+        """
+
+        return sigma_clip(data, sigma=self.sigma,
+                          sigma_lower=self.sigma_lower,
+                          sigma_upper=self.sigma_upper, iters=self.iters,
+                          cenfunc=self.cenfunc, stdfunc=self.stdfunc,
+                          axis=axis, copy=copy)
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
