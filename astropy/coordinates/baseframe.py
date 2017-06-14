@@ -732,7 +732,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 raise TypeError('Frame data has no associated differentials '
                                 '(i.e. the frame has no velocity data) - '
                                 'represent_as() only accepts a new '
-                                'representation class.')
+                                'representation.')
 
             if isinstance(new_differential, six.string_types):
                 new_differential = _get_diff_cls(new_differential)
