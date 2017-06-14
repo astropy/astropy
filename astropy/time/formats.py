@@ -965,20 +965,13 @@ class TimeFITS(TimeString):
             # so we can round-trip (as long as no scale changes are made).
             fits_realization = (tm['realization'].upper()
                                 if tm['realization'] else None)
-            if self._scale is None:
-                self._scale = scale
+            if self._fits_scale is None:
                 self._fits_scale = fits_scale
                 self._fits_realization = fits_realization
-            elif scale == self.scale:
-                if self._fits_scale != None or self._fits_realization != None:
-                    if fits_scale != self._fits_scale or fits_realization != self._fits_realization:
-                        raise ValueError("Input strings for {0} class must all "
-                                         "have consistent time scales."
-                                         .format(self.name))
-                else:
-                    self._fits_scale = fits_scale
-                    self._fits_realization = fits_realization
-            else:
+                if self._scale is None:
+                    self._scale = scale
+            if (scale != self.scale or fits_scale != self._fits_scale or
+                fits_realization != self._fits_realization):
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
