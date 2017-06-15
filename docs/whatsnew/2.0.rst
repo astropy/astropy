@@ -53,6 +53,21 @@ models).  The justification is to avoid including mass-energy components
 that the user has not explicitly requested.  This is a non-backwards
 compatible change, although the effects are small for most use cases.
 
+Cone search module (``astropy.vo.conesearch``) moved to astroquery
+==================================================================
+
+The cone search module has been moved to `Astroquery
+<http://astroquery.readthedocs.io>`_ (0.3.5 and later) and will be removed from
+Astropy in a future version. The API here will be preserved as "classic" API in
+Astroquery, however some configuration behavior might change; See the Astroquery
+documentation for new usage details.
+
+SAMP module moved to `astropy.samp`
+===================================
+
+The SAMP (Simple Application Messaging Protocol) module, formerly available
+in ``astropy.samp``, has now been moved to `astropy.samp`, so you should
+update any imports to this module.
 
 Full change log
 ===============
