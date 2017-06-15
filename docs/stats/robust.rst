@@ -1,0 +1,105 @@
+.. _stats-robust:
+
+******************************
+Robust Statistical Estimators
+******************************
+
+Robust statistics provide reliable estimates of basic statistics for complex
+distributions.  The statistics package includes several robust statistical 
+functions that are commonly used in astronomy.  This includes methods for 
+rejecting outliers as well as statistical description of the underlying 
+distributions.  
+
+In addition to the functions mentioned here, models can be fit with outlier 
+rejection using :func:`~astropy.modeling.fitting.FittingWithOutlierRemoval`.
+
+Sigma Clipping
+==============
+
+Sigma clipping provides a fast method to identify outliers in a distribution.  For a distribution of points, a center and a standard deviation
+are calculated.   Values which are a set number of sigma times the standard deviation away from the center are rejected.  The process can be iterated to further reject outliers.
+
+In the stats package, there is the :func:`~astropy.stats.sigma_clip` function for sigma clipping a distribution.  The function returns a masked array
+where the rejected points are masked.   Sigma clipping can be applied as follows::
+
+     import numpy as np
+     from astropy.stats import sigma_clip
+     import scipy.stats as stats
+
+     # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
+     np.random.seed(0)
+     x = np.arange(200)
+     y = np.zeros(200)
+     c = stats.bernoulli.rvs(0.35, size=x.shape)
+     y += (np.random.normal(0., 0.2, x.shape) +
+           c*np.random.normal(3.0, 5.0, x.shape))
+
+     # filter the data
+     filtered_data = sigma_clip(y, sigma=3, iters=10)
+
+The array then can be used to calculate statistics on the data, fit models to the data, or otherwise explore the data.   For basic statistics, :func:`~astropy.stats.sigma_clipped_stats` is a convenience function to calculated the mean, median, and standard deviation of the function.   As can be seen, rejecting the outliers returns accurate values for the underlying distribution::
+   
+     >>> from astropy.stats import sigma_clipped_stats
+     >>> y.mean(), np.median(y), y.std()
+     (0.86586417693378226, 0.03265864495523732, 3.2913811977676444)
+     >>> sigma_clipped_stats(y, sigma=3, iters=10)
+     (-0.0020337793767186202, -0.023632809025713953, 0.19514652532636906)
+
+The :func:`~astropy.stats.sigma_clip` can be combined with other robust statistics to provide improved outlier reject as well.
+
+.. plot::
+    :include-source:
+    
+     import numpy as np
+     import scipy.stats as stats
+     from matplotlib import pyplot as plt
+
+     from astropy.stats import sigma_clip, mad_std 
+
+     # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
+     np.random.seed(0)
+     x = np.arange(200)
+     y = np.zeros(200)
+     c = stats.bernoulli.rvs(0.35, size=x.shape)
+     y += (np.random.normal(0., 0.2, x.shape) +
+           c*np.random.normal(3.0, 5.0, x.shape))
+
+     
+     filtered_data = sigma_clip(y, sigma=3, iters=1, stdfunc=mad_std )
+
+     # plot data and fitted models
+     plt.figure(figsize=(8,5))
+     plt.plot(x, y, 'g+', label="original data")
+     plt.plot(x[filtered_data.mask], y[filtered_data.mask], 'rx', label="rejected data")
+     plt.legend(loc=2, numpoints=1)
+
+
+
+Median Absolute Deviation
+=========================
+
+The median abosolute deviation (MAD) is a measure of the spread of a distribution and is defined
+as ``median(abs(a - median(a)))``.  The MAD can be calculated using `~astropy.stats.median_absolute_deviation`.   For a normal 
+distribution, the MAD is related to the standard deviation by a factor of 1.4826, and a convenience function, `~astropy.stats.mad_std` is
+available to apply the conversion.  
+
+.. note:: 
+  
+   A function can be supplied to the `~astropy.stats.median_absolute_deviation` to specify  the median function to be used in the calculation.  
+   Depending on the version of numpy and whether the array is masked or contains irregular values, significant performance increases can be had 
+   by pre-selecting the median function.  If the median function is not specified, `~astropy.stats.median_absolute_deviation` will attempt
+   to select the most relevant function according to the input data. 
+
+
+Biweight Estimators
+===================
+
+A set of functions are included in the `astropy.stats` package that use the biweight formalism.  These functions have long been used in astronomy, particularly to calculate the velocity dispersion of galaxy clusters [1]_.   The following set of tasks are available for biweight measurements:
+
+.. automodapi:: astropy.stats.biweight
+
+
+References
+----------
+
+.. [1] Beers, Flynn, and Gebhardt (1990; AJ 100, 32) (http://adsabs.harvard.edu/abs/1990AJ....100...32B)
