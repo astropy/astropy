@@ -11,7 +11,7 @@ import numpy as np
 
 from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform, AffineTransform
+from ..transformations import FunctionTransformWithFiniteDifference, AffineTransform
 from ..representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
@@ -24,7 +24,7 @@ from .utils import get_jd12, aticq, atciqz, get_cip, prepare_earth_position_vel
 
 
 # First the ICRS/CIRS related transforms
-@frame_transform_graph.transform(FunctionTransform, ICRS, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
     jd1, jd2 = get_jd12(cirs_frame.obstime, 'tdb')
@@ -63,7 +63,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     return cirs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransform, CIRS, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
     srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = srepr.lon.to_value(u.radian)
@@ -101,7 +101,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     return icrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransform, CIRS, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)
@@ -117,7 +117,7 @@ def cirs_to_cirs(from_coo, to_frame):
 
 # Now the GCRS-related transforms to/from ICRS
 
-@frame_transform_graph.transform(FunctionTransform, ICRS, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
     # get the position and velocity arrays for the observatory.  Need to
@@ -166,7 +166,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     return gcrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
     gcrs_ra = srepr.lon.to_value(u.radian)
@@ -210,7 +210,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     return icrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
     if (np.all(from_coo.obstime == to_frame.obstime)
         and np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
@@ -220,7 +220,7 @@ def gcrs_to_gcrs(from_coo, to_frame):
         return from_coo.transform_to(ICRS).transform_to(to_frame)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, HCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, HCRS)
 def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
     if np.any(gcrs_coo.obstime != hcrs_frame.obstime):
@@ -323,7 +323,7 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
     return None, bary_sun_pos
 
 
-@frame_transform_graph.transform(FunctionTransform, HCRS, HCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HCRS, HCRS)
 def hcrs_to_hcrs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)
