@@ -111,6 +111,8 @@ New Features
   - Allow unicode strings to be stored in a Table bytestring column in
     Python 3 using UTF-8 encoding.  Allow comparison and assignment of
     Python 3 ``str`` object in a bytestring column (numpy ``'S'`` dtype).
+    If comparison with ``str`` instead of ``bytes`` is a problem
+    (and ``bytes`` is really more logical), please open an issue on GitHub.
     [#5700]
 
   - Added functionality to allow ``astropy.units.Quantity`` to be read
