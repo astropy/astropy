@@ -73,13 +73,13 @@ class BrokenPowerLaw1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Model amplitude at the break point
+        Model amplitude at the break point.
     x_break : float
-        Break point
+        Break point.
     alpha_1 : float
-        Power law index for x < x_break
+        Power law index for x < x_break.
     alpha_2 : float
-        Power law index for x > x_break
+        Power law index for x > x_break.
 
     See Also
     --------
@@ -137,7 +137,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     amplitude : float
         Model amplitude at the break point.
     x_break : float
-        Break point
+        Break point.
     alpha_1 : float
         Power law index for ``x << x_break``.
     alpha_2 : float
