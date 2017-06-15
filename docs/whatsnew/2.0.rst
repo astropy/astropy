@@ -15,7 +15,8 @@ the 1.3.x series of releases.
 In particular, this release includes:
 
 * `Easier use of efficient bytestring Table columns in Python 3`_
-*
+* A :ref:`new "std_ddof" keyword <whatsnew-2.0-ddof>` option was added
+  to :func:`~astropy.stats.sigma_clipped_stats`.
 
 In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -52,6 +53,19 @@ does not affect built in literature models (such as the WMAP or Planck
 models).  The justification is to avoid including mass-energy components
 that the user has not explicitly requested.  This is a non-backwards
 compatible change, although the effects are small for most use cases.
+
+
+.. _whatsnew-2.0-ddof:
+
+New ``std_ddof`` keyword to :func:`~astropy.stats.sigma_clipped_stats`
+======================================================================
+
+A new ``std_ddof`` keyword option was added to
+:func:`~astropy.stats.sigma_clipped_stats`.  This keyword represents
+the delta degrees of freedom for the standard deviation calculation.
+Specifically, the divisor used in the calculation is ``N - std_ddof``,
+where ``N`` represents the number of array elements.  The ``std_ddof``
+default value is zero.
 
 
 Full change log
