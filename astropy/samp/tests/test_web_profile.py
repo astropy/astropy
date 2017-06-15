@@ -9,9 +9,9 @@ import os
 import threading
 import tempfile
 
-from ....extern import six
-from ....extern.six.moves.urllib.request import Request, urlopen
-from ....utils.data import get_readable_fileobj
+from ...extern import six
+from ...extern.six.moves.urllib.request import Request, urlopen
+from ...utils.data import get_readable_fileobj
 
 from .. import SAMPIntegratedClient, SAMPHubServer
 from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,

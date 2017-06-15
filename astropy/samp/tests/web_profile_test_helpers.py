@@ -1,7 +1,7 @@
 import time
 import threading
 
-from ....extern.six.moves import xmlrpc_client as xmlrpc
+from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 from ..hub import WebProfileDialog
 from ..hub_proxy import SAMPHubProxy
