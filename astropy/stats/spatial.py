@@ -283,8 +283,9 @@ class RipleysKEstimator(object):
                             dist = math.sqrt((diff * diff).sum())
                             if dist < radii[r] and lt_dist[i] > radii[r]:
                                 ripley[r] = ripley[r] + 1
-                if not (lt_dist > radii[r]).sum() == 0:
-                    ripley[r] = ripley[r] / (lt_dist > radii[r]).sum()
+                lt_dist_sum = (lt_dist > radii[r]).sum()
+                if not lt_dist_sum == 0:
+                    ripley[r] = ripley[r] / lt_dist_sum
 
             ripley = self.area * ripley / npts
         # Cressie book eq 8.4.22 page 640
