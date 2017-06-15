@@ -16,7 +16,6 @@ from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError
-from ..utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
@@ -26,6 +25,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 TWOPI = 2 * np.pi
+FLOAT_EPSILON = np.float(np.finfo(np.float32).tiny)
 
 
 class BaseGaussian1D(Fittable1DModel):
@@ -38,7 +38,10 @@ class BaseGaussian1D(Fittable1DModel):
 
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
-    stddev = Parameter(default=1)
+
+    # Ensure stddev makes sense if its bounds are not explicitly set.
+    # stddev must be non-zero and positive.
+    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
 
     def bounding_box(self, factor=5.5):
         """
@@ -367,6 +370,14 @@ class Gaussian2D(Fittable2DModel):
                 x_stddev, y_stddev = np.sqrt(eig_vals)
                 y_vec = eig_vecs[:, 0]
                 theta = np.arctan2(y_vec[1], y_vec[0])
+
+        # Ensure stddev makes sense if its bounds are not explicitly set.
+        # stddev must be non-zero and positive.
+        # TODO: Investigate why setting this in Parameter above causes
+        #       convolution tests to hang.
+        kwargs.setdefault('bounds', {})
+        kwargs['bounds'].setdefault('x_stddev', (FLOAT_EPSILON, None))
+        kwargs['bounds'].setdefault('y_stddev', (FLOAT_EPSILON, None))
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,

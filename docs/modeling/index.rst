@@ -69,8 +69,8 @@ Model parameters can be accessed as attributes::
     Parameter('amplitude', value=1.2)
     >>> g.mean
     Parameter('mean', value=0.9)
-    >>> g.stddev
-    Parameter('stddev', value=0.5)
+    >>> g.stddev  # doctest: +FLOAT_CMP
+    Parameter('stddev', value=0.5, bounds=(1.1754943508222875e-38, None))
 
 and can also be updated via those attributes::
 
