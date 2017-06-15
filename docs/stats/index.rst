@@ -62,6 +62,7 @@ listed below.
    :maxdepth: 2
 
    robust.rst
+   circ.rst
    lombscargle.rst
    ripley.rst
    ../visualization/histogram.rst
