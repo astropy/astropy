@@ -50,3 +50,13 @@ def test_faux_lsr():
     change = (ldiff.d_xyz - idiff.d_xyz).to(u.km/u.s)
     totchange = np.sum(change**2)**0.5
     assert quantity_allclose(totchange, lsrc.v_bary.distance)
+
+
+    ic2 = ICRS(ra=120.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
+              pm_ra=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
+              radial_velocity=1000*u.km/u.s)
+    lsrc2 = ic2.transform_to(LSR2())
+
+    tot = np.sum(lsrc2.data.to_cartesian(True).differentials[0].d_xyz**2)**0.5
+    assert tot > 980*u.km/u.s
+    assert tot < 1000*u.km/u.s
