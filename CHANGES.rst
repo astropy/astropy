@@ -162,6 +162,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - Upgraded the included wcslib to version 5.16. [#6225]
+
 - ``astropy.extern``
 
 API Changes
