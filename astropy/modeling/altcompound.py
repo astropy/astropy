@@ -97,6 +97,7 @@ class _AltCompoundModel(object):
         self.op = op
         self.left = left
         self.right = right
+        self.bounding_box = None
         self._has_inverse = False # may be set to True in following code
         if op in ['+', '-', '*', '/', '**']:
             if (left.n_inputs != right.n_inputs) or \
@@ -187,45 +188,35 @@ class _AltCompoundModel(object):
             raise ModelDefinitionError('unrecognized operator')
 
     def __getitem__(self, index):
+        tdict = {}
+        leaflist = []
+        make_subtree_dict(self, '', tdict, leaflist)
         if isinstance(index, slice):
-            model_list = tree_to_list(self, get_oper=True)
-            # now figure out which list indicies correspond to the requested ones
             if index.step:
                 raise ValueError('Steps in slices not supported for compound models')
             # Following won't work for negative indices
             if index.start:
-                lstart = index.start * 2
+                start = index.start
             else:
-                lstart = None
+                start = 0
             if index.stop:
-                lstop = indes.stop * 2
+                stop = index.stop
             else:
-                lstop = None
-            sliced_model_list = model_list[slice(lstart, lstop)]
-            # Now create new compound model from sliced list
-            if len(sliced_model_list) < 1:
-                raise ValueError('must have at least one element in slice') 
-            if len(sliced_model_list) == 1:
-                return sliced_model_list[0]
-            else:
-                temp = _AltCompoundModel(sliced_model_list[1],
-                                         sliced_model_list[0],
-                                         sliced_model_list[2])
-                sliced_model_list = sliced_model_list[3:]
-                while sliced_model_list:
-                    temp = _AltCompoundModel( 
-                        sliced_model_list[0],
-                        temp,
-                        sliced_model_list[1])
-                    sliced_model_list = sliced_model_list[2:]
-                return temp
+                stop = len(leaflist) - 1
+            if start < 0:
+                start = len(leaflist) + start
+            if stop < 0:
+                stop = len(leaflist) +  stop
+            # now search for matching node:
+            for key in tdict:
+                node, leftind, rightind = tdict[key]
+                if leftind == start and rightind == stop:
+                    return node
+            raise IndexError("No appropriate subtree matches slice")
         elif isinstance(index, type(0)):
-            model_list = tree_to_list(self)
+            return leaflist[index]
         else:
-            raise TypeError('index must be integer')
-        return model_list[index]
-
-
+            raise TypeError('index must be integer or slice')
 
     def rename(self, name):
         self.name = name
@@ -240,7 +231,11 @@ class _AltCompoundModel(object):
 
     @property
     def bounding_box(self):
-        raise NotImplementedError("no bounding box defined")
+        return self._bounding_box
+
+    @bounding_box.setter
+    def bounding_box(self, bounding_box):
+        self._bounding_box = bounding_box
 
     @property
     def inverse(self):
@@ -254,7 +249,8 @@ class _AltCompoundModel(object):
     @inverse.setter
     def inverse(self, invmodel):
         if not (isinstance(invmodel, Model) or isinstance(invmodel, _AltCompoundModel)):
-            raise ValueError("Attempt to assign non model to inverse") 
+            raise ValueError("Attempt to assign non model to inverse")
+        self._has_inverse = True 
         self._inverse = invmodel
 
     __add__ =     _alt_model_oper('+')
@@ -275,18 +271,35 @@ def binary_operation(binoperator, left, right):
     else:
         return binoperator(left, right)
 
-def tree_to_list(tree, get_oper=False):
+def tree_to_list(tree):
     '''
     Walk a tree and return a list of the leaves in order of traversal.
     '''
-    if not hasattr(tree,'isleaf'):
+    if not hasattr(tree, 'isleaf'):
         return [tree]
     else:
-        if not get_oper:
-            return tree_to_list(tree.left, get_oper) + tree_to_list(tree.right, get_oper)
-        else:
-            return tree_to_list(tree.left, get_oper) + [tree.op] + tree_to_list(tree.right, get_oper)
- 
+        return tree_to_list(tree.left, get_oper) + tree_to_list(tree.right, get_oper)
+
+def make_subtree_dict(tree, nodepath, tdict, leaflist):
+    '''
+    Traverse a tree noting each node by a key that indicates all the left/right choices
+    necessary to reach that node. Each key will reference a tuple that contains:
+
+    - reference to the compound model for that node.
+    - left most index contained within that subtree
+       (relative to all indices for the whole tree)
+    - right most index contained within that subtree
+    '''
+    # if this is a leaf, just append it to the leaflist
+    if not hasattr(tree, 'isleaf'):
+        leaflist.append(tree)
+    else:
+        leftmostind = len(leaflist)
+        make_subtree_dict(tree.left, nodepath+'l', tdict, leaflist)
+        make_subtree_dict(tree.right, nodepath+'r', tdict, leaflist)
+        rightmostind = len(leaflist)-1
+        tdict[nodepath] = (tree, leftmostind, rightmostind)
+
 
 
 from .core import Model
