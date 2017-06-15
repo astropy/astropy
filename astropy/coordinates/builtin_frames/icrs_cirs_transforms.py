@@ -63,7 +63,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     return cirs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS,
+                                 finite_difference_frameattr_name=None)
 def cirs_to_icrs(cirs_coo, icrs_frame):
     srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = srepr.lon.to_value(u.radian)
@@ -166,7 +167,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     return gcrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, ICRS,
+                                 finite_difference_frameattr_name=None)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
     gcrs_ra = srepr.lon.to_value(u.radian)
