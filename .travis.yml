@@ -89,7 +89,7 @@ matrix:
                SETUP_CMD='test --open-files'
         - os: linux
           env: NUMPY_VERSION=1.12
-               SETUP_CMD='test --open-files'
+               SETUP_CMD='test --open-files -a "--durations=50"'
 
         # Now try with all optional dependencies the latest 3.x and on 2.7.
         # (with latest numpy). We also test the two latest matplotlib versions
@@ -146,6 +146,7 @@ install:
     - source ci-helpers/travis/setup_conda.sh
 
 script:
+    - echo "$MAIN_CMD $SETUP_CMD"
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
