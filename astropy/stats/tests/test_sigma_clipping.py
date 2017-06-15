@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 
 from numpy.random import randn
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_allclose
 
 try:
     from scipy import stats  # used in testing
@@ -117,6 +117,18 @@ def test_sigma_clipped_stats():
     assert_equal(mean, _data)
     assert_equal(median, _data)
     assert_equal(stddev, np.zeros_like(_data))
+
+
+def test_sigma_clipped_stats_ddof():
+    with NumpyRNGContext(12345):
+        data = randn(10000)
+        data[10] = 1.e5
+        mean1, median1, stddev1 = sigma_clipped_stats(data)
+        mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
+        assert mean1 == mean2
+        assert median1 == median2
+        assert_allclose(stddev1, 0.98156805711673156)
+        assert_allclose(stddev2, 0.98161731654802831)
 
 
 def test_invalid_sigma_clip():
