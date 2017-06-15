@@ -262,6 +262,7 @@ API Changes
     definition of "emu". [#4918, #5906]
 
   - Removed deprecated ``Unit.get_converter``. [#6170]
+
   - Internally, astropy replaced use of ``.to(unit).value`` with the new
     ``to_value(unit)`` method, since this is somewhat faster. Any subclasses
     that overwrote ``.to``, should also overwrite ``.to_value`` (or
