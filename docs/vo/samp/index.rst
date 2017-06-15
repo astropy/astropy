@@ -10,41 +10,31 @@ SAMP (Simple Application Messaging Protocol (`astropy.vo.samp`)
 
 `astropy.vo.samp` is a Python implementation of the SAMP messaging system.
 
-SAMP (Simple Application Messaging Protocol)
-is an inter-process communication system
-that allows different client programs,
-usually running on the same computer,
-to communicate with each other, by exchanging
-short messages that may reference external data files.
-The protocol has been developed within the IVOA 
-(International Virtual Observatory Alliance) 
-and is understood by many desktop astronomy tools, including
-`TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
-`SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_,
-and `Aladin <http://aladin.u-strasbg.fr>`_.
+SAMP (Simple Application Messaging Protocol) is an inter-process communication
+system that allows different client programs, usually running on the same
+computer, to communicate with each other, by exchanging short messages that may
+reference external data files. The protocol has been developed within the IVOA
+(International Virtual Observatory Alliance)  and is understood by many desktop
+astronomy tools, including `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
+`SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
+<http://aladin.u-strasbg.fr>`_.
 
-So by using the classes in `astropy.vo.samp`, Python code can
-interact with other running desktop clients, for instance
-display a named FITS file in Ds9,
-cause Aladin to re-center on a given sky position, or
-receive a message identifying the row 
-when a user highlights a plotted point in TOPCAT.
+So by using the classes in `astropy.vo.samp`, Python code can interact with
+other running desktop clients, for instance display a named FITS file in Ds9,
+cause Aladin to re-center on a given sky position, or receive a message
+identifying the row  when a user highlights a plotted point in TOPCAT.
 
-The way the protocol works is that a SAMP 'Hub' process must be running
-on the local host, and then various client programs can connect to it.
-Once connected, these clients can send messages to each other
-via the hub.
-The details are described in the
-`SAMP standard <http://www.ivoa.net/documents/SAMP/>`_.
+The way the protocol works is that a SAMP 'Hub' process must be running on the
+local host, and then various client programs can connect to it. Once connected,
+these clients can send messages to each other via the hub. The details are
+described in the `SAMP standard <http://www.ivoa.net/documents/SAMP/>`_.
 
-`astropy.vo.samp` provides classes both to set up such a hub process,
-and to help implement a client that can send and receive messages.
-It also provides a stand-alone program ``samp_hub`` which can
-run a persistent hub in its own process.
-Note that setting up the hub from Python is not always necessary,
-since various other SAMP-aware applications may start up a hub
-independently;
-in most cases, only one running hub is used during a SAMP session.
+`astropy.vo.samp` provides classes both to set up such a hub process, and to
+help implement a client that can send and receive messages. It also provides a
+stand-alone program ``samp_hub`` which can run a persistent hub in its own
+process. Note that setting up the hub from Python is not always necessary, since
+various other SAMP-aware applications may start up a hub independently; in most
+cases, only one running hub is used during a SAMP session.
 
 The following classes are available in `astropy.vo.samp`:
 
@@ -57,13 +47,11 @@ The following classes are available in `astropy.vo.samp`:
 * |SAMPIntegratedClient|, which is the same as |SAMPClient| except that it has
   a self-contained |SAMPHubProxy| to provide a simpler user interface.
 
-`astropy.vo.samp` is a full implementation of 
-`SAMP V1.3 <http://www.ivoa.net/documents/SAMP/20120411/>`_.
-As well as the Standard Profile, it supports the Web Profile,
-which means that it can be used also to communicate
-with Web SAMP clients; see the
-`sampjs <http://astrojs.github.io/sampjs/>`_ library 
-examples for more details.
+`astropy.vo.samp` is a full implementation of `SAMP V1.3
+<http://www.ivoa.net/documents/SAMP/20120411/>`_. As well as the Standard
+Profile, it supports the Web Profile, which means that it can be used also to
+communicate with Web SAMP clients; see the `sampjs
+<http://astrojs.github.io/sampjs/>`_ library examples for more details.
 
 .. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/Documents/latest/SAMP.html
 
