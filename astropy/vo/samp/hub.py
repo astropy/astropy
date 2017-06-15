@@ -476,7 +476,7 @@ class SAMPHubServer(object):
 
         self._is_running = False
 
-        if (os.path.isfile(self._lockfile)):
+        if self._lockfile and os.path.isfile(self._lockfile):
             lockfiledict = read_lockfile(self._lockfile)
             if lockfiledict['samp.secret'] == self._hub_secret:
                 os.remove(self._lockfile)
