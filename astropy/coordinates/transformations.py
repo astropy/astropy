@@ -766,6 +766,12 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
         ``(fromcoord, toframe)`` and return the ``dt`` value.
+    symmetric_finite_difference : bool
+        If True, the finite difference is computed as
+        :math:`\frac{x(t + \Delta t / 2) - x(t + \Delta t / 2)}{\Delta t}`, or
+        if False, :math:`\frac{x(t + \Delta t) - x(t)}{\Delta t}`.  The latter
+        case has slightly better performance (and more stable finite difference
+        behavior).
 
     All other paramters are identical to the initializer for
     `FunctionTransform`.
@@ -773,11 +779,13 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     """
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None,
                  finite_difference_frameattr_name='obstime',
-                 finite_difference_dt=1*u.second):
+                 finite_difference_dt=1*u.second,
+                 symmetric_finite_difference=True):
         super(FunctionTransformWithFiniteDifference, self).__init__(func,
               fromsys, tosys, priority, register_graph)
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
         self.finite_difference_dt = finite_difference_dt
+        self.symmetric_finite_difference = symmetric_finite_difference
 
     def __call__(self, fromcoord, toframe):
         from .representation import CartesianDifferential
@@ -791,18 +799,25 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             else:
                 dt = self.finite_difference_dt
 
-            update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
-            fwd_frame = toframe.replicate_without_data(**update_keyword)
-            fwd = supcall(fromcoord, fwd_frame)
-            update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
-            back_frame =  toframe.replicate_without_data(**update_keyword)
-            back = supcall(fromcoord, back_frame)
+            reprwithoutdiff = supcall(fromcoord, toframe)
+
+            if self.symmetric_finite_difference:
+                update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
+                fwd_frame = toframe.replicate_without_data(**update_keyword)
+                fwd = supcall(fromcoord, fwd_frame)
+                update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
+                back_frame =  toframe.replicate_without_data(**update_keyword)
+                back = supcall(fromcoord, back_frame)
+            else:
+                update_keyword = {attrname: getattr(toframe, attrname) + dt}
+                fwd_frame = toframe.replicate_without_data(**update_keyword)
+                fwd = supcall(fromcoord, fwd_frame)
+                back = reprwithoutdiff
 
             newdiff = CartesianDifferential((fwd.cartesian - back.cartesian).xyz / dt)
 
-            withoutdiff = supcall(fromcoord, toframe)
-            withdiff = withoutdiff.data.with_differentials(newdiff)
-            return withoutdiff.realize_frame(withdiff)
+            reprwithdiff = reprwithoutdiff.data.with_differentials(newdiff)
+            return reprwithoutdiff.realize_frame(reprwithdiff)
         else:
             return supcall(fromcoord, toframe)
 
