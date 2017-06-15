@@ -808,8 +808,8 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             if self.symmetric_finite_difference:
                 fwdxyz = (fromcoord.data.to_cartesian().xyz +
                           fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
-                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
-                backxyz = (fromcoord.data.to_cartesian().xyz +
+                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
+                backxyz = (fromcoord.data.to_cartesian().xyz -
                           fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
                 back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
             else:
@@ -1230,5 +1230,6 @@ class CompositeTransform(CoordinateTransform):
 trans_to_color = OrderedDict()
 trans_to_color[AffineTransform] = '#555555' # gray
 trans_to_color[FunctionTransform] = '#d95f02' # red-ish
+trans_to_color[FunctionTransformWithFiniteDifference] = '#d92f02' # darker red-ish
 trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
 trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish

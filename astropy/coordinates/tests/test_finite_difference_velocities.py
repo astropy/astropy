@@ -17,14 +17,18 @@ from .. import (EarthLocation, TimeFrameAttribute,
 
 J2000 = Time('J2000')
 
-def test_faux_lsr():
+@pytest.mark.parametrize("dt, symmetric", [(1*u.second, True),
+                                           (1*u.year, True),
+                                           (1*u.second, False),
+                                           (1*u.year, False)])
+def test_faux_lsr(dt, symmetric):
     class LSR2(LSR):
         obstime = TimeFrameAttribute(default=J2000)
 
     dt = 1*u.s
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                      ICRS, LSR2, finite_difference_dt=dt,
-                                     symmetric_finite_difference=True)
+                                     symmetric_finite_difference=symmetric)
     def icrs_to_lsr(icrs_coo, lsr_frame):
         dt = lsr_frame.obstime - J2000
         offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
@@ -32,11 +36,12 @@ def test_faux_lsr():
 
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                      LSR2, ICRS, finite_difference_dt=dt,
-                                     symmetric_finite_difference=False)
+                                     symmetric_finite_difference=symmetric)
     def lsr_to_icrs(lsr_coo, icrs_frame):
         dt = lsr_frame.obstime - J2000
         offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
         return icrs_frame.realize_frame(lsr_coo.data - offset)
+
 
     ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
               pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
@@ -58,5 +63,6 @@ def test_faux_lsr():
     lsrc2 = ic2.transform_to(LSR2())
 
     tot = np.sum(lsrc2.data.to_cartesian(True).differentials[0].d_xyz**2)**0.5
+    print(tot.to(u.km/u.s))
     assert tot > 980*u.km/u.s
     assert tot < 1000*u.km/u.s
