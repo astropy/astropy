@@ -61,6 +61,7 @@ listed below.
 .. toctree::
    :maxdepth: 2
 
+   robust.rst
    lombscargle.rst
    ripley.rst
    ../visualization/histogram.rst
