@@ -83,6 +83,7 @@ Files, I/O, and Communication
    io/votable/index
    io/misc
    samp/index
+   vo/index
 
 Computations and utilities
 --------------------------
