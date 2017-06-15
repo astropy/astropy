@@ -20,7 +20,7 @@ Getting Started
 ===============
 
 A number of different tools are contained in the stats package, and 
-they can be access by import them::
+they can be accessed by importing them::
 
      from astropy import stats
 
@@ -30,21 +30,21 @@ clipping, which is common way to estimate the background of an image,
 can be run following with the :func:`~astropy.stats.sigma_clip`
 function::
  
-     stats.sigma_clip([stats.sigma_clip([1,5,6,8,100,5,3,2], sigma=2, iters=5)
+     stats.sigma_clip([stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
      masked_array(data = [1 5 6 8 -- 5 3 2],
              mask = [False False False False  True False False False],
        fill_value = 999999), sigma=2, iters=5)
   
-This will return a masked array where outlyiers are masked.  In
+This will return a masked array where outliers are masked.  In
 addition, there are also several convenience functions for making the
 calculation of statistics even
 easier. :func:`~astropy.stats.sigma_clipped_stats` will return the
-mean, median, and standard deviation for an array::
+mean, median, and standard deviation for a sigma-clipped array::
 
-     stats.sigma_clipped_stats([1,5,6,8,100,5,3,2], sigma=2, iters=5)
+     stats.sigma_clipped_stats([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
      (4.2857142857142856, 5.0, 2.2497165354319457)
     
-There are also tools for calculating median absolute deviation,
+There are also tools for calculating robust statistics,
 sampling the data, circular statistics, confidence limits, spatial
 statistics, and adaptive histograms.
 
@@ -63,6 +63,7 @@ listed below.
 
    lombscargle.rst
    ripley.rst
+   ../visualization/histogram.rst
 
 Constants
 =========
