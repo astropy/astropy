@@ -25,11 +25,3 @@ SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
 
 with open(get_pkg_data_filename('data/astropy_icon.png'), 'rb') as f:
     SAMP_ICON = f.read()
-
-try:
-    import ssl
-except ImportError:
-    SSL_SUPPORT = False
-else:
-    SSL_SUPPORT = True
-    del ssl

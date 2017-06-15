@@ -273,6 +273,8 @@ API Changes
     Astroquery 0.3.5 and will be removed from Astropy in a future version.
     [#5558, #5904]
 
+  - The `astropy.vo.samp` package no longer supports SSL. [#6201]
+
 - ``astropy.wcs``
 
   - Removed deprecated ``wcs.rotateCD``. [#6170]
