@@ -15,6 +15,8 @@ from ..nddata import support_nddata
 
 from ..extern.six.moves import range, zip
 
+from astropy import log
+
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -524,25 +526,27 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    # find ideal size (power of 2) for fft.
-    # Can add shapes because they are tuples
+    # find ideal size (power of 2, 3, and/or 5) for fft.
+    shapestack = np.vstack([arrayshape, kernshape])
     if fft_pad: # default=True
         if psf_pad: # default=False
-            # add the dimensions and then take the max (bigger)
-            fsize = 2 ** np.ceil(np.log2(
-                np.max(np.array(arrayshape) + np.array(kernshape))))
+            # add the dimensions (does not make shape square)
+            biggestdim = np.sum(shapestack,
+                                          axis=0)
+            newshape = [_next_regular(x) for x in biggestdim]
         else:
-            # add the shape lists (max of a list of length 4) (smaller)
-            # also makes the shapes square
-            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+            # concatenate the shape lists (max of a list of length 4) (smaller)
+            biggestdim = np.max(shapestack, axis=0)
+            newshape = [_next_regular(x) for x in biggestdim]
     else:
         if psf_pad:
             # just add the biggest dimensions
-            newshape = np.array(arrayshape) + np.array(kernshape)
+            newshape = np.sum(shapestack, axis=0)
         else:
-            newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in zip(arrayshape, kernshape)])
+            # bigger of the two in each dimension
+            newshape = np.max(shapestack, axis=0)
+    log.debug("Input array shape: {0}  Kernel shape: {1}  New shape: {2}"
+              .format(arrayshape, kernshape, newshape))
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
@@ -641,3 +645,54 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         return result
     else:
         return rifft.real
+
+def _next_regular(target):
+    """
+    Find the next regular number greater than or equal to target.
+    Regular numbers are composites of the prime factors 2, 3, and 5.
+    Also known as 5-smooth numbers or Hamming numbers, these are the optimal
+    size for inputs to FFTPACK.
+
+    Target must be a positive integer.
+
+    Copied from `scipy.signal.signaltools`
+    """
+    if target <= 6:
+        return target
+
+    # Quickly check if it's already a power of 2
+    if not (target & (target-1)):
+        return target
+
+    match = float('inf')  # Anything found will be smaller
+    p5 = 1
+    while p5 < target:
+        p35 = p5
+        while p35 < target:
+            # Ceiling integer division, avoiding conversion to float
+            # (quotient = ceil(target / p35))
+            quotient = -(-target // p35)
+
+            # Quickly find next power of 2 >= quotient
+            try:
+                p2 = 2**((quotient - 1).bit_length())
+            except AttributeError:
+                # Fallback for Python <2.7
+                p2 = 2**(len(bin(quotient - 1)) - 2)
+
+            N = p2 * p35
+            if N == target:
+                return N
+            elif N < match:
+                match = N
+            p35 *= 3
+            if p35 == target:
+                return p35
+        if p35 < match:
+            match = p35
+        p5 *= 5
+        if p5 == target:
+            return p5
+    if p5 < match:
+        match = p5
+    return match
