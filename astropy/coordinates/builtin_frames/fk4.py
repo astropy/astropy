@@ -9,7 +9,8 @@ from ...extern.six.moves import range
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..frame_attributes import TimeFrameAttribute
-from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..transformations import (FunctionTransformWithFiniteDifference,
+                               FunctionTransform, DynamicMatrixTransform)
 from ..representation import (CartesianRepresentation,
                               UnitSphericalRepresentation)
 from .. import earth_orientation as earth
@@ -43,7 +44,7 @@ class FK4(BaseRADecFrame):
 FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
-@frame_transform_graph.transform(FunctionTransform, FK4, FK4)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4)
 def fk4_to_fk4(fk4coord1, fk4frame2):
     # deceptively complicated: need to transform to No E-terms FK4, precess, and
     # then come back, because precession is non-trivial with E-terms
@@ -136,7 +137,7 @@ def fk4_e_terms(equinox):
            -e * k * np.cos(g) * np.sin(o)
 
 
-@frame_transform_graph.transform(FunctionTransform, FK4, FK4NoETerms)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4NoETerms)
 def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # Extract cartesian vector
     rep = fk4coord.cartesian
@@ -173,7 +174,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     return fk4noe
 
 
-@frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4NoETerms, FK4)
 def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     #first precess, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
