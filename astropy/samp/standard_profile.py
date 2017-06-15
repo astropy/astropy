@@ -7,9 +7,9 @@ import sys
 import traceback
 import warnings
 
-from ...extern.six.moves import xmlrpc_client as xmlrpc
-from ...extern.six.moves import socketserver
-from ...extern import six
+from ..extern.six.moves import xmlrpc_client as xmlrpc
+from ..extern.six.moves import socketserver
+from ..extern import six
 
 if six.PY2:
     from SimpleXMLRPCServer import (SimpleXMLRPCRequestHandler,

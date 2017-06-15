@@ -6,8 +6,8 @@ import os
 
 def get_package_data():
     return {
-            'astropy.vo.samp': [os.path.join('data', '*')],
-            'astropy.vo.samp.tests': [os.path.join('data', '*')]
+            'astropy.samp': [os.path.join('data', '*')],
+            'astropy.samp.tests': [os.path.join('data', '*')]
            }
 
 

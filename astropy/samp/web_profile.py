@@ -3,10 +3,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern.six.moves.urllib.parse import parse_qs
-from ...extern.six.moves.urllib.request import urlopen
-from ...extern.six.moves import input
-from ...utils.data import get_pkg_data_contents
+from ..extern.six.moves.urllib.parse import parse_qs
+from ..extern.six.moves.urllib.request import urlopen
+from ..extern.six.moves import input
+from ..utils.data import get_pkg_data_contents
 
 from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
                                ThreadingXMLRPCServer)
