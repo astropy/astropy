@@ -171,6 +171,11 @@ API Changes
 
 - ``astropy.convolution``
 
+  - The parameter names of ``Gaussian2DKernel`` are now same as that of
+    ``Gaussian2DModel``. The ``__init__`` method of Gaussian2DKernel gives a
+    deprecation warning if ``stddev`` is used instead of ``x_stddev`` and
+    ``y_stddev``. [#3605]
+
 - ``astropy.coordinates``
 
   - Removed deprecated ``angles.rotation_matrix`` and
