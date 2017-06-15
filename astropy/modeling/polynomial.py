@@ -417,20 +417,6 @@ class Chebyshev1D(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
-    @property
-    def input_units(self):
-        if self.degree == 0 or self.c1.unit is None:
-            return None
-        else:
-            return {'x': self.c0.unit / self.c1.unit}
-
-    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        mapping = []
-        for i in range(self.degree + 1):
-            par = getattr(self, 'c{0}'.format(i))
-            mapping.append((par.name, outputs_unit['y'] / inputs_unit['x'] ** i))
-        return OrderedDict(mapping)
-
 
 class Hermite1D(PolynomialModel):
     """
