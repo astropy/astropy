@@ -13,7 +13,8 @@ from ...time import Time
 from ..builtin_frames import ICRS, AltAz, LSR
 from ..baseframe import frame_transform_graph
 from .. import (EarthLocation, TimeFrameAttribute,
-                FunctionTransformWithFiniteDifference)
+                FunctionTransformWithFiniteDifference,
+                get_sun)
 
 J2000 = Time('J2000')
 
@@ -63,6 +64,25 @@ def test_faux_lsr(dt, symmetric):
     lsrc2 = ic2.transform_to(LSR2())
 
     tot = np.sum(lsrc2.data.to_cartesian(True).differentials[0].d_xyz**2)**0.5
-    print(tot.to(u.km/u.s))
     assert tot > 980*u.km/u.s
     assert tot < 1000*u.km/u.s
+
+def test_altaz_diffs():
+    time = Time('J2017')
+    loc = acoo.EarthLocation.of_site('greenwich')  #built-in
+    aa = AltAz(obstime=time, location=loc)
+
+    sun = get_sun(time).transform_to(aa).frame  # should have very little vhelio
+
+    # qtr-year off sun location should be the direction of ~ maximal vhelio
+    aaqtr = AltAz(obstime=time-.25*u.year, location=loc)
+    sunqtr = get_sun(time-.25*u.year).transform_to(aaqtr)
+    offsun = aa.realize_frame(sunqtr.data)
+
+    zerodiff = CartesianDifferential([0, 0, 0]*u.km/u.s)
+    sundiff = sun.realize_frame(sun.data.with_differentials(zerodiff))
+    offsundiff = offsun.realize_frame(sun.data.with_differentials(zerodiff))
+
+    # sanity-check heliocentric velocity
+    assert (np.sum(offsundiff.data.differentials[0].d_xyz**2)**0.5 > 1*u.km/u.s
+    assert (np.sum(sundiff.data.differentials[0].d_xyz**2)**0.5 < 1*u.km/u.s
