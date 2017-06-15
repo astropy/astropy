@@ -801,7 +801,8 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             else:
                 dt = self.finite_difference_dt
 
-            reprwithoutdiff = supcall(fromcoord, toframe)
+            fromdiffless = fromcoord.realize_frame(fromcoord.data.without_differentials())
+            reprwithoutdiff = supcall(fromdiffless, toframe)
 
             # first we use the existing differential to compute an offset due to
             # the already-existing velocity, but in the new frame
@@ -826,14 +827,14 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                 if self.symmetric_finite_difference:
                     update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
                     fwd_frame = toframe.replicate_without_data(**update_keyword)
-                    fwd = supcall(fromcoord, fwd_frame)
+                    fwd = supcall(fromdiffless, fwd_frame)
                     update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
                     back_frame =  toframe.replicate_without_data(**update_keyword)
-                    back = supcall(fromcoord, back_frame)
+                    back = supcall(fromdiffless, back_frame)
                 else:
                     update_keyword = {attrname: getattr(toframe, attrname) + dt}
                     fwd_frame = toframe.replicate_without_data(**update_keyword)
-                    fwd = supcall(fromcoord, fwd_frame)
+                    fwd = supcall(fromdiffless, fwd_frame)
                     back = reprwithoutdiff
 
                 diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
