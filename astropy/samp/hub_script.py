@@ -8,7 +8,7 @@ import time
 import sys
 import argparse
 
-from ... import log, __version__
+from .. import log, __version__
 
 from .hub import SAMPHubServer
 

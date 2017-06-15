@@ -18,19 +18,19 @@ from .integrated_client import *
 from .hub_proxy import *
 
 
-from ... import config as _config
+from .. import config as _config
 
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration parameters for `astropy.vo.samp`.
+    Configuration parameters for `astropy.samp`.
     """
 
     use_internet = _config.ConfigItem(
         True,
-        "Whether to allow `astropy.vo.samp` to use "
+        "Whether to allow `astropy.samp` to use "
         "the internet, if available.",
-        aliases=['astropy.vo.samp.utils.use_internet'])
+        aliases=['astropy.samp.utils.use_internet'])
 
     n_retries = _config.ConfigItem(10,
         "How many times to retry communications when they fail")

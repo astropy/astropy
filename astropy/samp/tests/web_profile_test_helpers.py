@@ -101,8 +101,8 @@ class SAMPWebClient(SAMPClient):
 
     Parameters
     ----------
-    hub : :class:`~astropy.vo.samp.hub_proxy.SAMPWebHubProxy`
-        An instance of :class:`~astropy.vo.samp.hub_proxy.SAMPWebHubProxy` to
+    hub : :class:`~astropy.samp.hub_proxy.SAMPWebHubProxy`
+        An instance of :class:`~astropy.samp.hub_proxy.SAMPWebHubProxy` to
         be used for messaging with the SAMP Hub.
 
     name : str, optional
@@ -220,8 +220,8 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
     a means of testing a hub's support for the web profile from Python.
 
     This class is meant to simplify the client usage providing a proxy class
-    that merges the :class:`~astropy.vo.samp.client.SAMPWebClient` and
-    :class:`~astropy.vo.samp.hub_proxy.SAMPWebHubProxy` functionalities in a
+    that merges the :class:`~astropy.samp.client.SAMPWebClient` and
+    :class:`~astropy.samp.hub_proxy.SAMPWebHubProxy` functionalities in a
     simplified API.
 
     Parameters
