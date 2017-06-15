@@ -33,13 +33,15 @@ def test_faux_lsr():
             offset = lsr_frame.v_bary.cartesian * dt
             return icrs_frame.realize_frame(lsr_coo.data - offset)
 
-    ic = ICRS(ra=0*u.deg, dec=0*u.deg, distance=10*u.kpc,
+    ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.kpc,
               pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
               radial_velocity=0*u.km/u.s)
     lsrc = ic.transform_to(LSR2())
 
     assert quantity_allclose(ic.cartesian.xyz, lsrc.cartesian.xyz)
-    print(ic.data.differentials)
-    print(lsrc.data.differentials)
-    assert quantity_allclose(ic.data.to_cartesian(True).differentials[0],
-                             lsrc.data.to_cartesian(True).differentials[0])
+
+    idiff = ic.data.to_cartesian(True).differentials[0]
+    ldiff = lsrc.data.to_cartesian(True).differentials[0]
+    change = (ldiff.d_xyz - idiff.d_xyz).to(u.km/u.s)
+    print(change)
+    assert quantity_allclose(np.sum(change**2)**0.5, lsrc.v_bary.distance)
