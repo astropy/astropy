@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from ....utils.data import get_pkg_data_filename
+from ...utils.data import get_pkg_data_filename
 
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
