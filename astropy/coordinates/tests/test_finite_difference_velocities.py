@@ -21,19 +21,24 @@ def test_faux_lsr():
     class LSR2(LSR):
         obstime = TimeFrameAttribute(default=J2000)
 
-    @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, LSR2)
+    dt = 1*u.s
+    @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                     ICRS, LSR2, finite_difference_dt=dt,
+                                     symmetric_finite_difference=True)
     def icrs_to_lsr(icrs_coo, lsr_frame):
         dt = lsr_frame.obstime - J2000
-        offset = lsr_frame.v_bary.cartesian * dt
-        return lsr_frame.realize_frame(icrs_coo.data.without_differentials() + offset)
+        offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
+        return  lsr_frame.realize_frame(icrs_coo.data.without_differentials() + offset)
 
-        @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, LSR2)
-        def lsr_to_icrs(lsr_coo, icrs_frame):
-            dt = lsr_frame.obstime - J2000
-            offset = lsr_frame.v_bary.cartesian * dt
-            return icrs_frame.realize_frame(lsr_coo.data - offset)
+    @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                     LSR2, ICRS, finite_difference_dt=dt,
+                                     symmetric_finite_difference=False)
+    def lsr_to_icrs(lsr_coo, icrs_frame):
+        dt = lsr_frame.obstime - J2000
+        offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
+        return icrs_frame.realize_frame(lsr_coo.data - offset)
 
-    ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.kpc,
+    ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
               pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
               radial_velocity=0*u.km/u.s)
     lsrc = ic.transform_to(LSR2())
@@ -43,5 +48,5 @@ def test_faux_lsr():
     idiff = ic.data.to_cartesian(True).differentials[0]
     ldiff = lsrc.data.to_cartesian(True).differentials[0]
     change = (ldiff.d_xyz - idiff.d_xyz).to(u.km/u.s)
-    print(change)
-    assert quantity_allclose(np.sum(change**2)**0.5, lsrc.v_bary.distance)
+    totchange = np.sum(change**2)**0.5
+    assert quantity_allclose(totchange, lsrc.v_bary.distance)
