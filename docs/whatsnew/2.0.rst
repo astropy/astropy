@@ -40,11 +40,18 @@ datasets this improves memory performance.
 Please see :ref:`bytestring-columns-python-3` for details.  Note that no
 change has been made to behavior for Python 2.
 
-.. Note:: This introduces an API change that affects comparison of
+.. note::
+
+     This introduces an API change that affects comparison of
      bytestring column elements in Python 3.
+
+     If comparison with ``str`` instead of ``bytes`` is a problem
+     (and ``bytes`` is really more logical), please open an issue
+     on GitHub.
 
 No relativistic species by default in cosmological models
 =========================================================
+
 For all of the built in cosmological model types (e.g., FlatLambdaCDM)
 the default CMB temperature at z=0 is now 0K, which corresponds to no
 contributions from photons or neutrinos (massive or otherwise).  This
