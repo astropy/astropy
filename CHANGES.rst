@@ -30,6 +30,9 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Allow to specify encoding in ``ascii.read``, only for Python 3 and with the
+    pure-Python readers. [#5448]
+
 - ``astropy.io.fits``
 
   - Checking available disk space before writing out file. [#5550, #4065]

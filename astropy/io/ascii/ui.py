@@ -246,6 +246,8 @@ def read(table, guess=None, **kwargs):
             all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED)
+    encoding: str
+        Allow to specify encoding to read the file (default= ``None``).
 
     Returns
     -------
@@ -293,8 +295,9 @@ def read(table, guess=None, **kwargs):
         # which case the original `table` as the data filename must be left
         # intact.
         if 'readme' not in new_kwargs:
+            encoding = kwargs.get('encoding')
             try:
-                with get_readable_fileobj(table) as fileobj:
+                with get_readable_fileobj(table, encoding=encoding) as fileobj:
                     table = fileobj.read()
             except ValueError:  # unreadable or invalid binary file
                 raise
