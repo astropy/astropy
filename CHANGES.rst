@@ -91,6 +91,8 @@ New Features
     that will use ``np.ma.median`` with nans masked out or ``np.nanmedian``
     instead of ``np.median`` when computing the median. [#5232]
 
+  - Implemented statistical estimators for Ripley's K Function. [#5712]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``

@@ -26,6 +26,7 @@ listed below.
    :maxdepth: 2
 
    lombscargle.rst
+   ripley.rst
 
 Constants
 =========
