@@ -759,9 +759,10 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
     Parameters
     ----------
-    finite_difference_frameattr_name : str
+    finite_difference_frameattr_name : str or None
         The name of the frame attribute on the *to* frame to use for the finite
-        difference
+        difference.  If None, only the re-orientation of the existing
+        differential itself will be computed.
     finite_difference_dt : Quantity or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
@@ -788,12 +789,13 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         self.symmetric_finite_difference = symmetric_finite_difference
 
     def __call__(self, fromcoord, toframe):
-        from .representation import CartesianDifferential
+        from .representation import (CartesianRepresentation,
+                                     CartesianDifferential)
 
         supcall = super(FunctionTransformWithFiniteDifference, self).__call__
         if getattr(fromcoord.data, 'differentials', False):
             # this is the finite difference case
-            attrname = self.finite_difference_frameattr_name
+
             if callable(self.finite_difference_dt):
                 dt = self.finite_difference_dt(fromcoord, toframe)
             else:
@@ -801,21 +803,42 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
             reprwithoutdiff = supcall(fromcoord, toframe)
 
+            # first we use the existing differential to compute an offset due to
+            # the already-existing velocity, but in the new frame
             if self.symmetric_finite_difference:
-                update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
-                fwd_frame = toframe.replicate_without_data(**update_keyword)
-                fwd = supcall(fromcoord, fwd_frame)
-                update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
-                back_frame =  toframe.replicate_without_data(**update_keyword)
-                back = supcall(fromcoord, back_frame)
+                fwdxyz = (fromcoord.data.to_cartesian().xyz +
+                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
+                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
+                backxyz = (fromcoord.data.to_cartesian().xyz +
+                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
+                back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
             else:
-                update_keyword = {attrname: getattr(toframe, attrname) + dt}
-                fwd_frame = toframe.replicate_without_data(**update_keyword)
-                fwd = supcall(fromcoord, fwd_frame)
+                fwdxyz = (fromcoord.data.to_cartesian().xyz +
+                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt)
+                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
                 back = reprwithoutdiff
+            diffxyz = (back.cartesian - fwd.cartesian).xyz / dt
 
-            newdiff = CartesianDifferential((fwd.cartesian - back.cartesian).xyz / dt)
+            # now we compute the "induced" velocities due to any movement in the
+            # frame itself over time
+            attrname = self.finite_difference_frameattr_name
+            if attrname is not None:
+                if self.symmetric_finite_difference:
+                    update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
+                    fwd_frame = toframe.replicate_without_data(**update_keyword)
+                    fwd = supcall(fromcoord, fwd_frame)
+                    update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
+                    back_frame =  toframe.replicate_without_data(**update_keyword)
+                    back = supcall(fromcoord, back_frame)
+                else:
+                    update_keyword = {attrname: getattr(toframe, attrname) + dt}
+                    fwd_frame = toframe.replicate_without_data(**update_keyword)
+                    fwd = supcall(fromcoord, fwd_frame)
+                    back = reprwithoutdiff
 
+                diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
+
+            newdiff = CartesianDifferential(diffxyz)
             reprwithdiff = reprwithoutdiff.data.with_differentials(newdiff)
             return reprwithoutdiff.realize_frame(reprwithdiff)
         else:
