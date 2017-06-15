@@ -359,6 +359,9 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Fixed a bug in vo.samp when stopping a hub for which a lockfile was
+    not created. [#6211]
+
 - ``astropy.wcs``
 
 - ``astropy.extern``
