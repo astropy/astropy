@@ -16,6 +16,7 @@ from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError
+from ..utils.decorators import deprecated
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
@@ -194,6 +195,8 @@ class Gaussian1D(BaseGaussian1D):
                             ('amplitude', outputs_unit['y'])])
 
 
+# TODO: Don't need BaseGaussian1D anymore when this is removed.
+@deprecated('2.0', alternative='Gaussian1D and subtract it off Const1D')
 class GaussianAbsorption1D(BaseGaussian1D):
     """
     One dimensional Gaussian absorption line model.
@@ -221,10 +224,14 @@ class GaussianAbsorption1D(BaseGaussian1D):
 
         import numpy as np
         import matplotlib.pyplot as plt
+        import warnings
         from astropy.modeling.models import GaussianAbsorption1D
+        from astropy.utils.exceptions import AstropyDeprecationWarning
 
         plt.figure()
-        s1 = GaussianAbsorption1D()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyDeprecationWarning)
+            s1 = GaussianAbsorption1D()
         r = np.arange(-5, 5, .01)
         for factor in range(1, 4):
             s1.amplitude = factor
@@ -237,6 +244,10 @@ class GaussianAbsorption1D(BaseGaussian1D):
     --------
     Gaussian1D
     """
+
+    # Need this so deprecated decorator works.
+    def __init__(self, *args, **kwargs):
+        super(GaussianAbsorption1D, self).__init__(*args, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):

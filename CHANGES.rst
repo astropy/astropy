@@ -213,6 +213,9 @@ API Changes
   - Removed deprecated ``Pix2Sky_AZP.check_mu`` and ``Pix2Sky_SZP.check_mu``
     methods. [#6170]
 
+  - Deprecated ``GaussianAbsorption1D`` model, as it can be better represented
+    by subtracting ``Gaussian1D`` from ``Const1D``. [#6200]
+
 - ``astropy.nddata``
 
   - Removed deprecated usage of parameter ``propagate_uncertainties`` as a
