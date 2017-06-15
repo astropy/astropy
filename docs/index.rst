@@ -71,8 +71,8 @@ Data structures and transformations
    modeling/index
    analytic_functions/index
 
-Files and I/O
--------------
+Files, I/O, and Communication
+-----------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -82,7 +82,7 @@ Files and I/O
    io/ascii/index
    io/votable/index
    io/misc
-   vo/index
+   samp/index
 
 Computations and utilities
 --------------------------
