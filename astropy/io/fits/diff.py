@@ -136,7 +136,7 @@ class _BaseDiff(object):
         return not any(getattr(self, attr) for attr in self.__dict__
                        if attr.startswith('diff_'))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def report(self, fileobj=None, indent=0, overwrite=False):
         """
         Generates a text report on the differences (if any) between two

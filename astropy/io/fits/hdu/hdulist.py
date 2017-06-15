@@ -823,7 +823,7 @@ class HDUList(list, _Verify):
                 n = hdr['NAXIS']
                 hdr.set('EXTEND', True, after='NAXIS' + str(n))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def writeto(self, fileobj, output_verify='exception', overwrite=False,
                 checksum=False):
         """
