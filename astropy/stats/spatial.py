@@ -272,12 +272,8 @@ class RipleysKEstimator(object):
             ripley = (self.area**2 / (npts * (npts - 1))) * 2 * ripley
         # Cressie book eq 8.2.20 page 616
         elif mode == 'var-width':
-            lt_dist = np.zeros(npts, dtype=np.double)
-            for k in range(npts):
-                lt_dist[k] = min(self.x_max - data[k][0],
-                                 self.y_max - data[k][1],
-                                 data[k][0] - self.x_min,
-                                 data[k][1] - self.y_min)
+            lt_dist = np.minimum(np.minimum(self.x_max - data[:, 0], self.y_max - data[:, 1]),
+                                 np.minimum(data[:, 0] - self.x_min, data[:, 1] - self.y_min))
 
             for r in range(len(radii)):
                 for i in range(npts):
