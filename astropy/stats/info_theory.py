@@ -379,7 +379,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    -656.32589850659224
+    -660.41075962620482
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
     -662.83834510232043
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
@@ -387,7 +387,7 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the
-    difference in AIC is about 6.5. We should reject the model g1_fit.
+    difference in AIC is about 2.4. We should reject the model g1_fit.
 
     References
     ----------
