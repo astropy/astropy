@@ -56,6 +56,8 @@ New Features
 
 - ``astropy.io.registry``
 
+  - New functions to unregister readers, writers, and identifiers. [#6217]
+
 - ``astropy.io.votable``
 
 - ``astropy.modeling``

@@ -241,6 +241,28 @@ def register_reader(data_format, data_class, function, force=False):
         _update__doc__(data_class, 'read')
 
 
+def unregister_reader(data_format, data_class):
+    """
+    Unregister a reader function
+
+    Parameters
+    ----------
+    data_format : str
+        The data format identifier.
+    data_class : classobj
+        The class of the object that the reader produces.
+    """
+
+    if (data_format, data_class) in _readers:
+        _readers.pop((data_format, data_class))
+    else:
+        raise IORegistryError("No reader defined for format '{0}' and class '{1}'"
+                              ''.format(data_format, data_class.__name__))
+
+    if data_class not in _delayed_docs_classes:
+        _update__doc__(data_class, 'read')
+
+
 def register_writer(data_format, data_class, function, force=False):
     """
     Register a table writer function.
@@ -264,6 +286,28 @@ def register_writer(data_format, data_class, function, force=False):
     else:
         raise IORegistryError("Writer for format '{0}' and class '{1}' is "
                               'already defined'
+                              ''.format(data_format, data_class.__name__))
+
+    if data_class not in _delayed_docs_classes:
+        _update__doc__(data_class, 'write')
+
+
+def unregister_writer(data_format, data_class):
+    """
+    Unregister a writer function
+
+    Parameters
+    ----------
+    data_format : str
+        The data format identifier.
+    data_class : classobj
+        The class of the object that can be written.
+    """
+
+    if (data_format, data_class) in _writers:
+        _writers.pop((data_format, data_class))
+    else:
+        raise IORegistryError("No writer defined for format '{0}' and class '{1}'"
                               ''.format(data_format, data_class.__name__))
 
     if data_class not in _delayed_docs_classes:
@@ -322,6 +366,25 @@ def register_identifier(data_format, data_class, identifier, force=False):
         raise IORegistryError("Identifier for format '{0}' and class '{1}' is "
                               'already defined'.format(data_format,
                                                        data_class.__name__))
+
+
+def unregister_identifier(data_format, data_class):
+    """
+    Unregister an identifier function
+
+    Parameters
+    ----------
+    data_format : str
+        The data format identifier.
+    data_class : classobj
+        The class of the object that can be read/written.
+    """
+
+    if (data_format, data_class) in _identifiers:
+        _identifiers.pop((data_format, data_class))
+    else:
+        raise IORegistryError("No identifier defined for format '{0}' and class '{1}'"
+                              ''.format(data_format, data_class.__name__))
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
