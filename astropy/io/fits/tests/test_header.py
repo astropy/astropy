@@ -1517,7 +1517,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         with ignore_warnings():
             hdu.writeto(self.temp('test.fits'), output_verify='ignore',
-                        clobber=True)
+                        overwrite=True)
         hdul2 = fits.open(self.temp('test.fits'))
         assert len(hdul2) == 2
         assert 'MYKEY' in hdul2[1].header

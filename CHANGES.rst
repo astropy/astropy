@@ -196,6 +196,8 @@ API Changes
     trying to access the ``.data`` attribute from an HDU which is not loaded
     now raises a ``IndexError`` instead of a ``ValueError``. [#6082]
 
+  - Deprecated ``clobber`` keyword; use ``overwrite``. [#6203]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
