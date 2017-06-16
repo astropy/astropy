@@ -10,7 +10,10 @@ New Features
 
 - ``astropy.convolution``
 
-  - Major change in convolution behavior and keyword arguments (#5782)
+  - Major change in convolution behavior and keyword arguments.   Additional
+    details are in the API section. (#5782)
+  - Convolution with un-normalized and un-normalizable kernels is now possible.
+    (#5782)
 
 - ``astropy.coordinates``
 
@@ -334,7 +337,8 @@ Bug Fixes
 
   - Major change in convolution behavior and keyword arguments:
     `~astropy.convolution.convolve` was not performing normalized convolution
-    in earlier versions of astropy (#5782)
+    in earlier versions of astropy.
+    (#5782)
 
 - ``astropy.coordinates``
 
