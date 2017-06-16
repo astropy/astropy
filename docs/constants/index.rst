@@ -67,11 +67,12 @@ cannot be used in expressions without specifying a system::
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
 
-Versions of Constants
-=====================
+Collections of constants (and prior versions)
+=============================================
 
-Versions of constants from earlier versions of Astropy, as well as the
-current version, are accessible by importing modules, for example:
+Constants are organized into version modules. The constants for
+Astropy 1.3 can be accessed in the ``astropyconst13`` module.
+For example:
 
     >>> from astropy.constants import astropyconst13 as const
     >>> print(const.e)
@@ -81,7 +82,7 @@ current version, are accessible by importing modules, for example:
       Unit  = C
       Reference = CODATA 2010
 
-Physical constants are in modules with names like ``codata2010`` or
+Physical CODATA constants are in modules with names like ``codata2010`` or
 ``codata2014``:
 
     >>> from astropy.constants import codata2010 as const
@@ -92,8 +93,8 @@ Physical constants are in modules with names like ``codata2010`` or
       Unit  = J s
       Reference = CODATA 2010
 
-Astronomical constants are in modules with names like ``iau2012`` or
-``iau2015``:
+Astronomical constants defined (primarily) by the IAU are collected in 
+modules with names like ``iau2012`` or ``iau2015``:
 
     >>> from astropy.constants import iau2012 as const
     >>> print(const.L_sun)
