@@ -25,7 +25,9 @@ process can be iterated to further reject outliers.
 In the stats package, there is the :func:`~astropy.stats.sigma_clip`
 function for sigma clipping a distribution.  The function returns a
 masked array where the rejected points are masked.   Sigma clipping
-can be applied as follows::
+can be applied as follows:
+
+.. doctest-requires:: scipy
 
      >>> import numpy as np
      >>> from astropy.stats import sigma_clip
@@ -48,13 +50,15 @@ models to the data, or otherwise explore the data.   For basic
 statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
 convenience function to calculated the mean, median, and standard
 deviation of the function.   As can be seen, rejecting the outliers
-returns accurate values for the underlying distribution::
+returns accurate values for the underlying distribution:
+
+.. doctest-requires:: scipy
 
      >>> from astropy.stats import sigma_clipped_stats
-     >>> y.mean(), np.median(y), y.std()
+     >>> y.mean(), np.median(y), y.std()  # doctest: +FLOAT_CMP
      (0.86586417693378226, 0.03265864495523732, 3.2913811977676444)
-     >>> sigma_clipped_stats(y, sigma=3, iters=10)
-     (-0.0020337793767186202, -0.023632809025713953, 0.19514652532636906)
+     >>> sigma_clipped_stats(y, sigma=3, iters=10)  # doctest: +FLOAT_CMP
+     (-0.0020337793767186197, -0.023632809025713953, 0.19514652532636906)
 
 The :func:`~astropy.stats.sigma_clip` can be combined with other
 robust statistics to provide improved outlier rejection as well.
