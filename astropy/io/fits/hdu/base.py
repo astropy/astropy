@@ -15,7 +15,7 @@ from ..file import _File
 from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check)
+                    _free_space_check, _extract_number)
 from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, add_metaclass
@@ -999,9 +999,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         naxis = self._header.get('NAXIS', 0)
         if naxis < 1000:
             for ax in range(3, naxis + 3):
-                self.req_cards('NAXIS' + str(ax - 2), ax,
-                               lambda v: (_is_int(v) and v >= 0), 1, option,
-                               errs)
+                key = 'NAXIS' + str(ax - 2)
+                self.req_cards(key, ax,
+                               lambda v: (_is_int(v) and v >= 0),
+                               _extract_number(self._header[key], default=1),
+                               option, errs)
 
             # Remove NAXISj cards where j is not in range 1, naxis inclusive.
             for keyword in self._header:

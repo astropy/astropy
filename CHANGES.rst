@@ -326,6 +326,8 @@ Bug Fixes
     to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
     headers are read into ``comments`` meta [#6097]
 
+  - Use more sensible fix values for invalid NAXISj header values. [#5935]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
