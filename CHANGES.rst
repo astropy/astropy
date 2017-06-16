@@ -197,7 +197,10 @@ API Changes
   - Major change in convolution behavior and keyword arguments.
     `astropy.convolution.convolve_fft` replaced ``interpolate_nan`` with
     ``nan_treatment``, and `astropy.convolution.convolve` received a new
-    ``nan_treatment`` argument.  (#5782)
+    ``nan_treatment`` argument. `astropy.convolution.convolve` no longer 
+    automatically interpolates over NaNs, but that is now available as a
+    separate `astropy.convolution.interpolate_replace_nans` 
+    function. [#5782]
 
 - ``astropy.coordinates``
 
