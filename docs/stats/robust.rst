@@ -18,25 +18,23 @@ Sigma Clipping
 
 Sigma clipping provides a fast method to identify outliers in a
 distribution.  For a distribution of points, a center and a standard
-deviation are calculated.   Values which are a set number of sigma
+deviation are calculated.  Values which are a set number of sigma
 times the standard deviation away from the center are rejected.  The
 process can be iterated to further reject outliers.
 
-In the stats package, there is the :func:`~astropy.stats.sigma_clip`
-function for sigma clipping a distribution.  The function returns a
-masked array where the rejected points are masked.   Sigma clipping
-can be applied as follows:
+The `astropy.stats` package provides both a functional and
+object-oriented interface for sigma clipping.  The function is called
+:func:`~astropy.stats.sigma_clip` and the class is called
+:class:`~astropy.stats.SigmaClip`.  They both return a masked array
+where the rejected points are masked.
+
+First, let's generate some data that has a mean of 0 and standard
+deviation of 0.2, but with outliers:
 
 .. doctest-requires:: scipy
 
      >>> import numpy as np
-     >>> from astropy.stats import sigma_clip
      >>> import scipy.stats as stats
-
-.. doctest-requires:: scipy
-
-     >>> # Generate fake data that has a mean of 0 and standard deviation
-     >>> # of 0.2 with outliers
      >>> np.random.seed(0)
      >>> x = np.arange(200)
      >>> y = np.zeros(200)
@@ -44,17 +42,42 @@ can be applied as follows:
      >>> y += (np.random.normal(0., 0.2, x.shape) +
      ...       c*np.random.normal(3.0, 5.0, x.shape))
 
+Now, let's use :func:`~astropy.stats.sigma_clip` to perform sigma
+clipping on the data:
+
 .. doctest-requires:: scipy
 
-     >>> # filter the data
+     >>> from astropy.stats import sigma_clip
      >>> filtered_data = sigma_clip(y, sigma=3, iters=10)
 
-The array then can be used to calculate statistics on the data, fit
-models to the data, or otherwise explore the data.   For basic
-statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
-convenience function to calculated the mean, median, and standard
-deviation of the function.   As can be seen, rejecting the outliers
-returns accurate values for the underlying distribution:
+The output masked array then can be used to calculate statistics on
+the data, fit models to the data, or otherwise explore the data.
+
+To perform the same sigma clipping with the
+:class:`~astropy.stats.SigmaClip` class:
+
+.. doctest-requires:: scipy
+
+     >>> from astropy.stats import SigmaClip
+     >>> sigclip = SigmaClip(sigma=3, iters=10)
+     >>> print(sigclip)  # doctest: +SKIP
+     <SigmaClip>
+        sigma: 3
+        sigma_lower: None
+        sigma_upper: None
+        iters: 10
+        cenfunc: <function median at 0x108dbde18>
+        stdfunc: <function std at 0x103ab52f0>
+     >>> filtered_data = sigclip(y)
+
+Note that once the ``sigclip`` instance is defined above, it can be
+applied to other data, using the same, already-defined, sigma-clipping
+parameters.
+
+For basic statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
+convenience function to calculate the sigma-clipped mean, median, and
+standard deviation of an array.   As can be seen, rejecting the
+outliers returns accurate values for the underlying distribution:
 
 .. doctest-requires:: scipy
 
@@ -64,35 +87,36 @@ returns accurate values for the underlying distribution:
      >>> sigma_clipped_stats(y, sigma=3, iters=10)  # doctest: +FLOAT_CMP
      (-0.0020337793767186197, -0.023632809025713953, 0.19514652532636906)
 
-The :func:`~astropy.stats.sigma_clip` can be combined with other
-robust statistics to provide improved outlier rejection as well.
+:func:`~astropy.stats.sigma_clip` and
+:class:`~astropy.stats.SigmaClip` can be combined with other robust
+statistics to provide improved outlier rejection as well.
 
 .. plot::
     :include-source:
 
-     import numpy as np
-     import scipy.stats as stats
-     from matplotlib import pyplot as plt
+    import numpy as np
+    import scipy.stats as stats
+    from matplotlib import pyplot as plt
+    from astropy.stats import sigma_clip, mad_std
 
-     from astropy.stats import sigma_clip, mad_std
+    # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
+    np.random.seed(0)
+    x = np.arange(200)
+    y = np.zeros(200)
+    c = stats.bernoulli.rvs(0.35, size=x.shape)
+    y += (np.random.normal(0., 0.2, x.shape) +
+          c*np.random.normal(3.0, 5.0, x.shape))
 
-     # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
-     np.random.seed(0)
-     x = np.arange(200)
-     y = np.zeros(200)
-     c = stats.bernoulli.rvs(0.35, size=x.shape)
-     y += (np.random.normal(0., 0.2, x.shape) +
-           c*np.random.normal(3.0, 5.0, x.shape))
+    filtered_data = sigma_clip(y, sigma=3, iters=1, stdfunc=mad_std)
 
-
-     filtered_data = sigma_clip(y, sigma=3, iters=1, stdfunc=mad_std )
-
-     # plot data and fitted models
-     plt.figure(figsize=(8,5))
-     plt.plot(x, y, 'g+', label="original data")
-     plt.plot(x[filtered_data.mask], y[filtered_data.mask], 'rx', label="rejected data")
-     plt.legend(loc=2, numpoints=1)
-
+    # plot the original and rejected data
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, '+', color='#1f77b4', label="original data")
+    plt.plot(x[filtered_data.mask], y[filtered_data.mask], 'x',
+             color='#d62728', label="rejected data")
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend(loc=2, numpoints=1)
 
 
 Median Absolute Deviation

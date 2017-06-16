@@ -18,8 +18,8 @@ In particular, this release includes:
 * :ref:`whatsnew-2.0-cosmo-def`
 * :ref:`whatsnew-2.0-conesearch-astroquery`
 * :ref:`whatsnew-2.0-samp-moved`
-* A :ref:`new "std_ddof" keyword <whatsnew-2.0-ddof>` option was added
-  to :func:`~astropy.stats.sigma_clipped_stats`.
+* :ref:`whatsnew-2.0-SigmaClip`
+* :ref:`whatsnew-2.0-ddof`
 * :ref:`whatsnew-2.0-stats-biweight-midcov`
 * :ref:`whatsnew-2.0-stats-k-func`
 * :ref:`whatsnew-2.0-bintablehdu-from_table`
@@ -95,6 +95,34 @@ SAMP module moved to `astropy.samp`
 The SAMP (Simple Application Messaging Protocol) module, formerly available
 in ``astropy.samp``, has now been moved to `astropy.samp`, so you should
 update any imports to this module.
+
+.. _whatsnew-2.0-SigmaClip:
+
+New `~astropy.stats.SigmaClip` class
+====================================
+
+A new :class:`~astropy.stats.SigmaClip` class was added as an
+object-oriented interface for sigma clipping::
+
+    >>> from astropy.stats import SigmaClip
+    >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
+    >>> sigclip = SigmaClip(sigma=2, iters=5)
+    >>> print(sigclip)  # doctest: +SKIP
+    <SigmaClip>
+        sigma: 3
+        sigma_lower: None
+        sigma_upper: None
+        iters: 10
+        cenfunc: <function median at 0x108dbde18>
+        stdfunc: <function std at 0x103ab52f0>
+    >>> sigclip(data)
+    masked_array(data = [1 5 6 8 -- 5 3 2],
+                 mask = [False False False False  True False False False],
+           fill_value = 999999)
+
+Note that once the ``sigclip`` instance is defined above, it can be
+applied to other data, using the same, already-defined, sigma-clipping
+parameters.
 
 .. _whatsnew-2.0-ddof:
 
