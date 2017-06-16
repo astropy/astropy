@@ -776,6 +776,8 @@ class BaseAffineTransform(CoordinateTransform):
             if offset.differentials:
                 veldiff = veldiff + offset.differentials[0]
 
+            veldiff = veldiff.represent_as(rep.differentials[0].__class__,
+                                           newrep)
             newrep._differentials = (veldiff,)
 
         if isinstance(fromcoord.data, UnitSphericalRepresentation):
