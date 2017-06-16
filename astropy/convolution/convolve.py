@@ -802,6 +802,9 @@ def convolve_models(kernel, model, mode='convolve_fft', **kwargs):
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use convolve_fft function.
             * 'convolve' : use convolve function.
+    kwargs : dict
+        Keyword arguments to me passed either to `~astropy.convolution.convolve`
+        or `~astropy.convolution.convolve_fft` depending on ``mode``.
 
     Returns
     -------
