@@ -48,14 +48,14 @@ class Supergalactic(BaseCoordinateFrame):
             RepresentationMapping('z', 'sgz')
         ],
         SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_sgl'),
-            RepresentationMapping('d_lat', 'pm_sgb'),
-            RepresentationMapping('d_distance', 'radial_velocity'),
+            RepresentationMapping('d_lon_coslat', 'pm_sgl', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ],
         CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x'),
-            RepresentationMapping('d_y', 'v_y'),
-            RepresentationMapping('d_z', 'v_z')
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)
         ],
     }
     frame_specific_representation_info[UnitSphericalRepresentation] = \

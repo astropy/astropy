@@ -144,9 +144,9 @@ class Galactocentric(BaseCoordinateFrame):
     """
     frame_specific_representation_info = {
         CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x'),
-            RepresentationMapping('d_y', 'v_y'),
-            RepresentationMapping('d_z', 'v_z'),
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s),
         ],
     }
 
