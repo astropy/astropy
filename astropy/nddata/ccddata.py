@@ -375,6 +375,48 @@ class CCDData(NDDataArray):
         else:
             self.meta[key] = value
 
+# This needs to be importable by the tests...
+_KEEP_THESE_KEYWORDS_IN_HEADER = [
+    'JD-OBS',
+    'MJD-OBS',
+    'DATE-OBS'
+]
+
+
+def _generate_wcs_and_update_header(hdr):
+    """
+    Generate a WCS object from a header and remove the WCS-specific
+    keywords from the header.
+
+    Parameters
+    ----------
+
+    hdr : astropy.io.fits.header or other dict-like
+
+    Returns
+    -------
+
+    new_header, wcs
+    """
+
+    # Try constructing a WCS object. This may generate a warning, but never
+    # an error.
+    wcs = WCS(hdr)
+    # Test for success by checking to see if the wcs ctype has a non-empty
+    # value, return None for wcs if ctype is empty.
+    if not wcs.wcs.ctype[0]:
+        return (hdr, None)
+
+    new_hdr = hdr.copy()
+    # If the keywords below are in the header they are also added to WCS.
+    # It seems like they should *not* be removed from the header, though.
+
+    wcs_header = wcs.to_header(relax=True)
+    for k in wcs_header:
+        if k not in _KEEP_THESE_KEYWORDS_IN_HEADER:
+            del new_hdr[k]
+    return (new_hdr, wcs)
+
 
 def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         hdu_mask='MASK', hdu_flags=None, **kwd):
@@ -474,12 +516,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                                                              fits_unit_string))
 
         use_unit = unit or fits_unit_string
-        # Try constructing a WCS object. This may generate a warning, but never
-        # an error.
-        wcs = WCS(hdr)
-        # Test for success by checking to see if the wcs ctype has a non-empty
-        # value.
-        wcs = wcs if wcs.wcs.ctype[0] else None
+        hdr, wcs = _generate_wcs_and_update_header(hdr)
         ccd_data = CCDData(hdus[hdu].data, meta=hdr, unit=use_unit,
                            mask=mask, uncertainty=uncertainty, wcs=wcs)
 
