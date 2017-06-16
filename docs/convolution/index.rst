@@ -233,8 +233,8 @@ images.
 
 The interpolation tool is implemented and used as::
 
-    from astropy.convolution import interpolate_and_replace_nans
-    result = interpolate_and_replace_nans(image, kernel)
+    from astropy.convolution import interpolate_replace_nans
+    result = interpolate_replace_nans(image, kernel)
 
 Some contexts in which you might want to use kernel-based interpolation include:
 
@@ -379,8 +379,8 @@ function, you can interpolate and then convolve, e.g.:
 
 .. code-block:: python
 
-    from astropy.convolution import interpolate_and_replace_nans, convolve
-    interped_result = interpolate_and_replace_nans(image, kernel)
+    from astropy.convolution import interpolate_replace_nans, convolve
+    interped_result = interpolate_replace_nans(image, kernel)
     result = convolve(interped_image, kernel)
 
 Using `astropy.convolution`
