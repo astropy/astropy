@@ -62,7 +62,7 @@ def get_polar_motion(time):
 
         warnings.warn(wmsg, AstropyWarning)
 
-    return xp.to(u.radian).value, yp.to(u.radian).value
+    return xp.to_value(u.radian), yp.to_value(u.radian)
 
 
 def _warn_iers(ierserr):
@@ -283,7 +283,7 @@ def prepare_earth_position_vel(time):
     # get heliocentric position of earth, preparing it for passing to erfa.
     sun = get_body_barycentric('sun', time)
     earth_heliocentric = (earth_pv[0] -
-                          sun).get_xyz(xyz_axis=-1).to(u.au).value
+                          sun).get_xyz(xyz_axis=-1).to_value(u.au)
 
     # Also prepare earth_pv for passing to erfa, which wants xyz in last
     # dimension, and pos/vel in one-but-last.

@@ -8,8 +8,33 @@ from ..baseframe import BaseCoordinateFrame
 from ..frame_attributes import TimeFrameAttribute
 from .utils import EQUINOX_J2000
 
+__all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
+           'HeliocentricTrueEcliptic']
 
-__all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic']
+_PARAMS_DOC = """
+    .. warning::
+        In the current version of astropy, the ecliptic frames do not yet have
+        stringent accuracy tests.  We recommend you test to "known-good" cases
+        to ensure this frames are what you are looking for. (and then ideally
+        you would contribute these tests to Astropy!)
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    lon : `Angle`, optional, must be keyword
+        The ecliptic longitude for this object (``lat`` must also be given and
+        ``representation`` must be None).
+    lat : `Angle`, optional, must be keyword
+        The ecliptic latitude for this object (``lon`` must also be given and
+        ``representation`` must be None).
+    distance : `~astropy.units.Quantity`, optional, must be keyword
+        The distance for this object from the {0}.
+        (``representation`` must be None).
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
+"""
 
 
 class GeocentricTrueEcliptic(BaseCoordinateFrame):
@@ -29,33 +54,13 @@ class GeocentricTrueEcliptic(BaseCoordinateFrame):
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth (necessary for transformation to
         non-geocentric systems).
-
-    .. warning::
-        In the current version of astropy, the ecliptic frames do not yet have
-        stringent accuracy tests.  We recommend you test to "known-good" cases
-        to ensure this frames are what you are looking for. (and then ideally
-        you would contribute these tests to Astropy!)
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    lon : `Angle`, optional, must be keyword
-        The ecliptic longitude for this object (``lat`` must also be given and
-        ``representation`` must be None).
-    lat : `Angle`, optional, must be keyword
-        The ecliptic latitude for this object (``lon`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object from the geocenter.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+
+
+GeocentricTrueEcliptic.__doc__ += _PARAMS_DOC.format("geocenter")
 
 
 class BarycentricTrueEcliptic(BaseCoordinateFrame):
@@ -71,33 +76,13 @@ class BarycentricTrueEcliptic(BaseCoordinateFrame):
     * ``equinox``
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
-
-    .. warning::
-        In the current version of astropy, the ecliptic frames do not yet have
-        stringent accuracy tests.  We recommend you test to "known-good" cases
-        to ensure this frames are what you are looking for. (and then ideally
-        you would contribute these tests to Astropy!)
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    l : `Angle`, optional, must be keyword
-        The ecliptic longitude for this object (``b`` must also be given and
-        ``representation`` must be None).
-    b : `Angle`, optional, must be keyword
-        The ecliptic latitude for this object (``l`` must also be given and
-        ``representation`` must be None).
-    r : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object from the sun's center.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+
+
+BarycentricTrueEcliptic.__doc__ += _PARAMS_DOC.format("sun's center")
 
 
 class HeliocentricTrueEcliptic(BaseCoordinateFrame):
@@ -113,30 +98,10 @@ class HeliocentricTrueEcliptic(BaseCoordinateFrame):
     * ``equinox``
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
-
-    .. warning::
-        In the current version of astropy, the ecliptic frames do not yet have
-        stringent accuracy tests.  We recommend you test to "known-good" cases
-        to ensure this frames are what you are looking for. (and then ideally
-        you would contribute these tests to Astropy!)
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    l : `Angle`, optional, must be keyword
-        The ecliptic longitude for this object (``b`` must also be given and
-        ``representation`` must be None).
-    b : `Angle`, optional, must be keyword
-        The ecliptic latitude for this object (``l`` must also be given and
-        ``representation`` must be None).
-    r : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object from the sun's center.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
     default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+
+
+HeliocentricTrueEcliptic.__doc__ += _PARAMS_DOC.format("sun's center")

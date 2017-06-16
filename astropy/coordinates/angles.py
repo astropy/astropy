@@ -297,13 +297,13 @@ class Angle(u.SpecificTypeQuantity):
 
         elif unit.is_equivalent(u.radian):
             if decimal:
-                values = self.to(unit).value
+                values = self.to_value(unit)
                 if precision is not None:
                     func = ("{0:1." + str(precision) + "f}").format
                 else:
                     func = "{0:g}".format
             elif sep == 'fromunit':
-                values = self.to(unit).value
+                values = self.to_value(unit)
                 unit_string = unit.to_string(format=format)
                 if format == 'latex':
                     unit_string = unit_string[1:-1]
@@ -618,7 +618,7 @@ class Longitude(Angle):
         # this Angle, then do all the math on raw Numpy arrays rather
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = self.wrap_angle.to(self.unit).value
+        wrap_angle = self.wrap_angle.to_value(self.unit)
         wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
         # Do the wrapping, but only if any angles need to be wrapped
@@ -649,70 +649,3 @@ class Longitude(Angle):
             return obj.view(Angle)
 
         return obj
-
-#<----------------------------------Rotations--------------------------------->
-# The main routines have been moved to matrix_utilities.  The definitions here
-# are for backward compatibility.
-from . import matrix_utilities
-from ..utils.decorators import deprecated
-
-_DEPRECATION_MESSAGE="""
-Numpy matrix instances are no longer used to represent rotation matrices, since
-they do not allow one to represent stacks of matrices. Instead, plain arrays
-are used. Instead of %(func)s, use %(alternative)s.
-For matrix multiplication and tranposes, it is suggested to use
-:func:`~astropy.coordinates.matrix_utilities.matrix_product` and
-:func:`~astropy.coordinates.matrix_utilities.matrix_transpose`, respectively.
-"""
-@deprecated(since='1.3', message=_DEPRECATION_MESSAGE, alternative=':func:'
-            '`~astropy.coordinates.matrix_utilities.rotation_matrix`')
-def rotation_matrix(angle, axis='z', unit=None):
-    """
-    Generate a 3x3 cartesian rotation matrix in for rotation about
-    a particular axis.
-
-    Parameters
-    ----------
-    angle : convertible to `Angle`
-        The amount of rotation this matrix should represent.
-
-    axis : str or 3-sequence
-        Either ``'x'``, ``'y'``, ``'z'``, or a (x,y,z) specifying an
-        axis to rotate about. If ``'x'``, ``'y'``, or ``'z'``, the
-        rotation sense is counterclockwise looking down the + axis
-        (e.g. positive rotations obey left-hand-rule).
-
-    unit : UnitBase, optional
-        If ``angle`` does not have associated units, they are in this
-        unit.  If neither are provided, it is assumed to be degrees.
-
-    Returns
-    -------
-    rmat : `numpy.matrix`
-        A unitary rotation matrix.
-    """
-    return matrix_utilities.rotation_matrix(angle, axis, unit).view(np.matrix)
-
-
-@deprecated(since='1.3', message=_DEPRECATION_MESSAGE, alternative=':func:'
-            '`~astropy.coordinates.matrix_utilities.angle_axis`')
-def angle_axis(matrix):
-    """
-    Computes the angle of rotation and the rotation axis for a given rotation
-    matrix.
-
-    Parameters
-    ----------
-    matrix : array-like
-        A 3 x 3 unitary rotation matrix.
-
-    Returns
-    -------
-    angle : `Angle`
-        The angle of rotation for this matrix.
-
-    axis : array (length 3)
-        The (normalized) axis of rotation for this matrix.
-    """
-    m = np.asmatrix(matrix)
-    return matrix_utilities.angle_axis(m.view(np.ndarray))

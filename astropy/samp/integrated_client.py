@@ -16,8 +16,8 @@ class SAMPIntegratedClient(object):
     A Simple SAMP client.
 
     This class is meant to simplify the client usage providing a proxy class
-    that merges the :class:`~astropy.vo.samp.SAMPClient` and
-    :class:`~astropy.vo.samp.SAMPHubProxy` functionalities in a
+    that merges the :class:`~astropy.samp.SAMPClient` and
+    :class:`~astropy.samp.SAMPHubProxy` functionalities in a
     simplified API.
 
     Parameters
@@ -40,42 +40,6 @@ class SAMPIntegratedClient(object):
         Listening XML-RPC server socket port. If left set to 0 (the default),
         the operating system will select a free port.
 
-    https : bool, optional
-        If `True`, set the callable client running on a Secure Sockets Layer
-        (SSL) connection (HTTPS). By default SSL is disabled.
-
-    key_file : str, optional
-        The path to a file containing the private key for SSL connections. If
-        the certificate file (``cert_file``) contains the private key, then
-        ``key_file`` can be omitted.
-
-    cert_file : str, optional
-        The path to a file which contains a certificate to be used to identify
-        the local side of the secure connection.
-
-    cert_reqs : int, optional
-        Whether a certificate is required from the server side of the
-        connection, and whether it will be validated if provided. It must be
-        one of the three values `ssl.CERT_NONE` (certificates ignored),
-        `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
-        `ssl.CERT_REQUIRED` (required and validated). If the value of this
-        parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
-        point to a file of CA certificates.
-
-    ca_certs : str, optional
-        The path to a file containing a set of concatenated "Certification
-        Authority" certificates, which are used to validate the certificate
-        passed from the Hub end of the connection.
-
-    ssl_version : int, optional
-        Which version of the SSL protocol to use. Typically, the
-        server chooses a particular protocol version, and the client
-        must adapt to the server's choice. Most of the versions are
-        not interoperable with the other versions. If not specified,
-        the default SSL version is taken from the default in the
-        installed version of the Python standard `ssl` library.  See
-        the `ssl` documentation for more information.
-
     callable : bool, optional
         Whether the client can receive calls and notifications. If set to
         `False`, then the client can send notifications and calls, but can not
@@ -83,8 +47,7 @@ class SAMPIntegratedClient(object):
     """
 
     def __init__(self, name=None, description=None, metadata=None,
-                 addr=None, port=0, https=False, key_file=None, cert_file=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=None, callable=True):
+                 addr=None, port=0, callable=True):
 
         self.hub = SAMPHubProxy()
 
@@ -94,12 +57,6 @@ class SAMPIntegratedClient(object):
             'metadata': metadata,
             'addr': addr,
             'port': port,
-            'https': https,
-            'key_file': key_file,
-            'cert_file': cert_file,
-            'cert_reqs': cert_reqs,
-            'ca_certs': ca_certs,
-            'ssl_version': ssl_version,
             'callable': callable,
         }
         """
@@ -126,16 +83,14 @@ class SAMPIntegratedClient(object):
         """
         return self.hub.is_connected and self.client.is_running
 
-    def connect(self, hub=None, hub_params=None,
-                key_file=None, cert_file=None, cert_reqs=0,
-                ca_certs=None, ssl_version=None, pool_size=20):
+    def connect(self, hub=None, hub_params=None, pool_size=20):
         """
         Connect with the current or specified SAMP Hub, start and register the
         client.
 
         Parameters
         ----------
-        hub : `~astropy.vo.samp.SAMPHubServer`, optional
+        hub : `~astropy.samp.SAMPHubServer`, optional
             The hub to connect to.
 
         hub_params : dict, optional
@@ -143,45 +98,11 @@ class SAMPIntegratedClient(object):
             with which to connect. This dictionary has the form
             ``{<token-name>: <token-string>, ...}``.
 
-        key_file : str, optional
-            The path to a file containing the private key for SSL connections.
-            If the certificate file (``cert_file``) contains the private key,
-            then ``key_file`` can be omitted.
-
-        cert_file : str, optional
-            The path to a file which contains a certificate to be used to
-            identify the local side of the secure connection.
-
-        cert_reqs : int, optional
-            Whether a certificate is required from the server side of the
-            connection, and whether it will be validated if provided. It must
-            be one of the three values `ssl.CERT_NONE` (certificates ignored),
-            `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
-            `ssl.CERT_REQUIRED` (required and validated). If the value of this
-            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter
-            must point to a file of CA certificates.
-
-        ca_certs : str, optional
-            The path to a file containing a set of concatenated "Certification
-            Authority" certificates, which are used to validate the
-            certificate passed from the Hub end of the connection.
-
-        ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the
-            server chooses a particular protocol version, and the
-            client must adapt to the server's choice. Most of the
-            versions are not interoperable with the other versions. If
-            not specified, the default SSL version is taken from the
-            default in the installed version of the Python standard
-            `ssl` library.  See the `ssl` documentation for more
-            information.
-
         pool_size : int, optional
             The number of socket connections opened to communicate with the
             Hub.
         """
-        self.hub.connect(hub, hub_params, key_file, cert_file,
-                         cert_reqs, ca_certs, ssl_version, pool_size)
+        self.hub.connect(hub, hub_params, pool_size)
 
         # The client has to be instantiated here and not in __init__() because
         # this allows disconnecting and reconnecting to the HUB. Nonetheless,
@@ -269,7 +190,7 @@ class SAMPIntegratedClient(object):
 
     def enotify(self, recipient_id, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify`.
 
         This is a proxy to ``notify`` method that allows to send the
         notification message in a simplified way.
@@ -292,7 +213,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> from astropy.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization",
@@ -308,7 +229,7 @@ class SAMPIntegratedClient(object):
 
     def enotify_all(self, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify_all`.
 
         This is a proxy to ``notifyAll`` method that allows to send the
         notification message in a simplified way.
@@ -328,7 +249,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> from astropy.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify_all("samp.msg.progress", txt = "initialization",
@@ -345,7 +266,7 @@ class SAMPIntegratedClient(object):
 
     def ecall(self, recipient_id, msg_tag, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.call`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call`.
 
         This is a proxy to ``call`` method that allows to send a call message
         in a simplified way.
@@ -371,7 +292,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> from astropy.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress",
@@ -389,7 +310,7 @@ class SAMPIntegratedClient(object):
 
     def ecall_all(self, msg_tag, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.call_all`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call_all`.
 
         This is a proxy to ``callAll`` method that allows to send the call
         message in a simplified way.
@@ -412,7 +333,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> from astropy.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall_all("xyz", "samp.msg.progress",
@@ -429,7 +350,7 @@ class SAMPIntegratedClient(object):
 
     def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.call_and_wait`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call_and_wait`.
 
         This is a proxy to ``callAndWait`` method that allows to send the call
         message in a simplified way.
@@ -455,7 +376,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> from astropy.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5",
@@ -482,7 +403,7 @@ class SAMPIntegratedClient(object):
 
     def ereply(self, msg_id, status, result=None, error=None):
         """
-        Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.reply`.
+        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.reply`.
 
         This is a proxy to ``reply`` method that allows to send a reply
         message in a simplified way.
@@ -503,7 +424,7 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
+        >>> from astropy.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.ereply("abd", SAMP_STATUS_ERROR, result={},

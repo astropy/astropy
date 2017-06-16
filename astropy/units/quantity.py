@@ -344,7 +344,7 @@ class Quantity(np.ndarray):
                 # Convert all quantities to the same unit.
                 if unit is None:
                     unit = value[0].unit
-                value = [q.to(unit).value for q in value]
+                value = [q.to_value(unit) for q in value]
                 value_unit = unit  # signal below that conversion has been done
 
         if value_unit is None:
@@ -486,7 +486,7 @@ class Quantity(np.ndarray):
                 if units[1] is None:
                     p = args[1]
                 else:
-                    p = args[1].to(dimensionless_unscaled).value
+                    p = args[1].to_value(dimensionless_unscaled)
 
                 try:
                     result_unit = units[0] ** p
@@ -928,7 +928,7 @@ class Quantity(np.ndarray):
         return not self.shape
 
     # This flag controls whether convenience conversion members, such
-    # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
+    # as `q.m` equivalent to `q.to_value(u.m)` are available.  This is
     # not turned on on Quantity itself, but is on some subclasses of
     # Quantity, such as `astropy.coordinates.Angle`.
     _include_easy_conversion_members = False
@@ -1178,14 +1178,14 @@ class Quantity(np.ndarray):
     # Numerical types
     def __float__(self):
         try:
-            return float(self.to(dimensionless_unscaled).value)
+            return float(self.to_value(dimensionless_unscaled))
         except (UnitsError, TypeError):
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
 
     def __int__(self):
         try:
-            return int(self.to(dimensionless_unscaled).value)
+            return int(self.to_value(dimensionless_unscaled))
         except (UnitsError, TypeError):
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
@@ -1203,7 +1203,7 @@ class Quantity(np.ndarray):
     if six.PY2:
         def __long__(self):
             try:
-                return long(self.to(dimensionless_unscaled).value)
+                return long(self.to_value(dimensionless_unscaled))
             except (UnitsError, TypeError):
                 raise TypeError('Only dimensionless scalar quantities can be '
                                 'converted to Python scalars')
@@ -1367,8 +1367,7 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            # for speed, "unit.to(...)" instead of "value.to(self.unit).value
-            _value = value.unit.to(self.unit, value.value)
+            _value = value.to_value(self.unit)
         except AttributeError:
             try:
                 _value = dimensionless_unscaled.to(self.unit, value)

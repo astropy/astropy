@@ -20,3 +20,4 @@ from .bayesian_blocks import *
 from .histogram import *
 from .info_theory import *
 from .lombscargle import *
+from .spatial import *

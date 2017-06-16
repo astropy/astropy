@@ -551,7 +551,7 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     if uncert1 is not None:
         uncert1 = StdDevUncertainty(uncert1)
         if isinstance(uncert1, Quantity):
-            uncert1_ref = uncert1.to(data1.unit).value
+            uncert1_ref = uncert1.to_value(data1.unit)
         else:
             uncert1_ref = uncert1
         uncert_ref1 = StdDevUncertainty(uncert1_ref, copy=True)
@@ -562,7 +562,7 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     if uncert2 is not None:
         uncert2 = StdDevUncertainty(uncert2)
         if isinstance(uncert2, Quantity):
-            uncert2_ref = uncert2.to(data2.unit).value
+            uncert2_ref = uncert2.to_value(data2.unit)
         else:
             uncert2_ref = uncert2
         uncert_ref2 = StdDevUncertainty(uncert2_ref, copy=True)
@@ -832,139 +832,3 @@ def test_arithmetics_unknown_uncertainties():
 
     ndd4 = ndd1.add(ndd2, propagate_uncertainties=None)
     assert ndd4.uncertainty is None
-
-
-# TODO: Remove this as soon as the old uncertainty methods are removed.
-def test_deprecated_functions_still_working():
-    from astropy.wcs import WCS
-    from astropy.units import dimensionless_unscaled
-    from copy import deepcopy
-    from astropy import log
-    from astropy.nddata import conf
-
-    class OldNDArithmetic(NDData):
-
-        def _arithmetic(self, operand, propagate_uncertainties, name, operation):
-
-            if isinstance(self.wcs, WCS):
-                if not self.wcs.wcs.compare(operand.wcs.wcs):
-                    raise ValueError("WCS properties do not match")
-            else:
-                if self.wcs != operand.wcs:
-                    raise ValueError("WCS properties do not match")
-
-            self_unit = self.unit or dimensionless_unscaled
-            operand_unit = operand.unit or dimensionless_unscaled
-
-            try:
-                result_unit = operation(1 * self_unit, 1 * operand_unit).unit
-            except UnitsError:
-                raise ValueError("operand units do not match")
-            if self.data.shape != operand.data.shape:
-                raise ValueError("operand shapes do not match")
-            data = operation(self.data * self_unit, operand.data * operand_unit)
-
-            result_unit = data.unit
-            if self.unit is None and operand.unit is None:
-                if result_unit is dimensionless_unscaled:
-                    result_unit = None
-                else:
-                    raise ValueError("arithmetic result was not unitless even "
-                                     "though operands were unitless")
-            data = data.value
-            new_wcs = deepcopy(self.wcs)
-            result = self.__class__(data, uncertainty=None,mask=None, wcs=new_wcs,
-                                    meta=None, unit=result_unit)
-            if operand.uncertainty:
-                operand_uncert_value = operand.uncertainty.array
-            if (operation in [np.add, np.subtract] and
-                    self.unit != operand.unit):
-                operand_data = operand.unit.to(self.unit, operand.data)
-                if operand.uncertainty:
-                    operand_uncert_value = operand.unit.to(self.unit, operand_uncert_value)
-            else:
-                operand_data = operand.data
-            if operand.uncertainty:
-                operand_uncertainty = operand.uncertainty.__class__(operand_uncert_value, copy=True)
-            else:
-                operand_uncertainty = None
-            if propagate_uncertainties is None:
-                result.uncertainty = None
-            elif self.uncertainty is None and operand.uncertainty is None:
-                result.uncertainty = None
-            elif self.uncertainty is None:
-                result.uncertainty = operand_uncertainty
-            elif operand.uncertainty is None:
-                result.uncertainty = self.uncertainty.__class__(self.uncertainty, copy=True)
-            else:
-                if (conf.warn_unsupported_correlated and
-                    (not self.uncertainty.support_correlated or
-                     not operand.uncertainty.support_correlated)):
-                    log.info("The uncertainty classes used do not support the "
-                             "propagation of correlated errors, so uncertainties"
-                             " will be propagated assuming they are uncorrelated")
-                operand_scaled = operand.__class__(operand_data,
-                                                   uncertainty=operand_uncertainty,
-                                                   unit=operand.unit, wcs=operand.wcs,
-                                                   mask=operand.mask, meta=operand.meta)
-                try:
-                    method = getattr(self.uncertainty, propagate_uncertainties)
-                    result.uncertainty = method(operand_scaled, result.data)
-                except IncompatibleUncertaintiesException:
-                    raise IncompatibleUncertaintiesException(
-                        "Cannot propagate uncertainties of type {0:s} with "
-                        "uncertainties of type {1:s} for {2:s}".format(
-                            self.uncertainty.__class__.__name__,
-                            operand.uncertainty.__class__.__name__, name))
-            if self.mask is None and operand.mask is None:
-                result.mask = None
-            elif self.mask is None:
-                result.mask = operand.mask.copy()
-            elif operand.mask is None:
-                result.mask = self.mask.copy()
-            else:
-                result.mask = self.mask | operand.mask
-            return result
-
-        def add(self, operand, propagate_uncertainties=True):
-            if propagate_uncertainties:
-                propagate_uncertainties = "propagate_add"
-            else:
-                propagate_uncertainties = None
-            return self._arithmetic(operand, propagate_uncertainties, "addition", np.add)
-
-        def subtract(self, operand, propagate_uncertainties=True):
-            if propagate_uncertainties:
-                propagate_uncertainties = "propagate_subtract"
-            else:
-                propagate_uncertainties = None
-            return self._arithmetic(operand, propagate_uncertainties, "subtraction", np.subtract)
-
-        def multiply(self, operand, propagate_uncertainties=True):
-            if propagate_uncertainties:
-                propagate_uncertainties = "propagate_multiply"
-            else:
-                propagate_uncertainties = None
-            return self._arithmetic(operand, propagate_uncertainties, "multiplication", np.multiply)
-
-        def divide(self, operand, propagate_uncertainties=True):
-            if propagate_uncertainties:
-                propagate_uncertainties = "propagate_divide"
-            else:
-                propagate_uncertainties = None
-            return self._arithmetic(operand, propagate_uncertainties, "division", np.divide)
-
-    ndd1_new = NDDataArithmetic(np.ones((3, 3)),
-                      uncertainty=StdDevUncertainty(np.ones((3, 3))))
-    ndd2_new = NDDataArithmetic(np.ones((3, 3)),
-                      uncertainty=StdDevUncertainty(np.ones((3, 3))))
-    ndd1_old = OldNDArithmetic(np.ones((3, 3)),
-                               uncertainty=StdDevUncertainty(np.ones((3, 3))))
-    ndd2_old = OldNDArithmetic(np.ones((3, 3)),
-                               uncertainty=StdDevUncertainty(np.ones((3, 3))))
-
-    for method in ['add', 'subtract', 'multiply', 'divide']:
-        ndd3_old = getattr(ndd1_old, method)(ndd2_old)
-        ndd3_new = getattr(ndd1_new, method)(ndd2_new)
-        np.testing.assert_array_almost_equal(ndd3_old.uncertainty.array,
-                                             ndd3_new.uncertainty.array)

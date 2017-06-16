@@ -7,12 +7,10 @@ from __future__ import (absolute_import, division, print_function,
 from copy import deepcopy
 
 import numpy as np
-import warnings
 
 from ..nduncertainty import NDUncertainty
 from ...units import dimensionless_unscaled
 from ...utils import format_doc, sharedmethod
-from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['NDArithmeticMixin']
 
@@ -578,27 +576,6 @@ class NDArithmeticMixin(object):
             is the NDData-subclass that is used as wrapper for the result.
         """
         # DO NOT OVERRIDE THIS METHOD IN SUBCLASSES.
-
-        # TODO: Remove this in astropy 1.3 or 1.4:
-
-        # Before 1.2 propagate_uncertainties could be given as positional
-        # keyword, this is now deprecated:
-        if (isinstance(operand2, bool) and
-                'propagate_uncertainties' not in kwargs):
-            # No explicit propagate_uncertainties was given but the second
-            # operand was given as boolean. I'll assume that most don't want
-            # to do arithmetics with a boolean operand, print a deprecation
-            # warning. If someone really wanted to do arithmetics with a
-            # boolean he should have set propagate_uncertainties. :-/
-            warnings.warn('propagate_uncertainties should be given as keyword '
-                          'parameter, i.e. "propagate_uncertainties={0}".'
-                          ''.format(operand2), AstropyDeprecationWarning)
-            # Set the kwarg and reset operand2.
-            kwargs['propagate_uncertainties'] = operand2
-            operand2 = None
-
-        # TODO: The following parts must remain here if the above part is
-        # removed.
 
         if isinstance(self_or_cls, NDArithmeticMixin):
             # True means it was called on the instance, so self_or_cls is

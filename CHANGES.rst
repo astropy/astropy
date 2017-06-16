@@ -22,9 +22,16 @@ New Features
     differentials (i.e., finite derivatives) of coordinates.  This is intended
     to enable support for velocities in coordinate frames down the road. [#5871]
 
+  - ``replicate_without_data`` and ``replicate`` methods were added to
+    coordinate frames that allow copying an existing frame object with various
+    reference or copy behaviors and possibly overriding frame attributes. [#6182]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - Allow to specify encoding in ``ascii.read``, only for Python 3 and with the
+    pure-Python readers. [#5448]
 
 - ``astropy.io.fits``
 
@@ -68,8 +75,9 @@ New Features
     is controlled by a new optional boolean keyword ``with_bounding_box``. [#6081]
 
   - Added infrastructure support for units on parameters and during
-    model evaluation and fitting, added support for units on Gaussian1D
-    and added a new Blackbody1D model. [#4855]
+    model evaluation and fitting, added support for units on all
+    functional, power-law, and polynomial models where this is appropriate,
+    and added a new BlackBody1D model. [#4855, #6183, #6204]
 
 - ``astropy.nddata``
 
@@ -83,6 +91,11 @@ New Features
   - ``median_absolute_deviation`` and ``mad_std`` have ``ignore_nan`` option
     that will use ``np.ma.median`` with nans masked out or ``np.nanmedian``
     instead of ``np.median`` when computing the median. [#5232]
+
+  - Implemented statistical estimators for Ripley's K Function. [#5712]
+
+  - Added ``std_ddof`` keyword option to ``sigma_clipped_stats``.
+    [#6066, #6207]
 
 - ``astropy.sphinx``
 
@@ -102,10 +115,17 @@ New Features
   - Allow unicode strings to be stored in a Table bytestring column in
     Python 3 using UTF-8 encoding.  Allow comparison and assignment of
     Python 3 ``str`` object in a bytestring column (numpy ``'S'`` dtype).
+    If comparison with ``str`` instead of ``bytes`` is a problem
+    (and ``bytes`` is really more logical), please open an issue on GitHub.
     [#5700]
 
   - Added functionality to allow ``astropy.units.Quantity`` to be read
     from and written to a VOtable file. [#6132]
+
+- ``astropy.tests``
+
+  - ``enable_deprecations_as_exceptions`` function now accepts additional
+    user-defined module imports and warning messages to ignore. [#6223]
 
 - ``astropy.time``
 
@@ -151,6 +171,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - Upgraded the included wcslib to version 5.16. [#6225]
+
 - ``astropy.extern``
 
 API Changes
@@ -164,7 +186,15 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Removed deprecated ``angles.rotation_matrix`` and
+    ``angles.angle_axis``. Use the routines in
+    ``coordinates.matrix_utilities`` instead. [#6170]
+
 - ``astropy.cosmology``
+
+  - Cosmological models do not include any contribution from neutrinos or photons
+    by default -- that is, the default value of Tcmb0 is 0.  This does not affect
+    built in models (such as WMAP or Planck). [#6122]
 
 - ``astropy.io.ascii``
 
@@ -179,6 +209,8 @@ API Changes
     trying to access the ``.data`` attribute from an HDU which is not loaded
     now raises a ``IndexError`` instead of a ``ValueError``. [#6082]
 
+  - Deprecated ``clobber`` keyword; use ``overwrite``. [#6203]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -189,7 +221,21 @@ API Changes
 
   - Removed deprecated ``Redshift`` model; Use ``RedshiftScaleFactor``. [#6053]
 
+  - Removed deprecated ``Pix2Sky_AZP.check_mu`` and ``Pix2Sky_SZP.check_mu``
+    methods. [#6170]
+
+  - Deprecated ``GaussianAbsorption1D`` model, as it can be better represented
+    by subtracting ``Gaussian1D`` from ``Const1D``. [#6200]
+
 - ``astropy.nddata``
+
+  - Removed deprecated usage of parameter ``propagate_uncertainties`` as a
+    positional keyword. [#6170]
+
+  - Removed deprecated ``support_correlated`` attribute. [#6170]
+
+  - Removed deprecated ``propagate_add``, ``propagate_subtract``,
+    ``propagate_multiply`` and ``propagate_divide`` methods. [#6170]
 
 - ``astropy.stats``
 
@@ -198,8 +244,6 @@ API Changes
 
   - Added ``modify_sample_size`` keyword to ``biweight_midvariance``
     function. [#5991]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -235,6 +279,14 @@ API Changes
   - ``solLum``,``solMass``, and ``solRad`` no longer have  their prefixed units
     included in the standard units.  If needed, they can still be found in
     ``units.required_by_vounit``, and are enabled by default. [#5661]
+    
+  - Removed deprecated ``Unit.get_converter``. [#6170]
+
+  - Internally, astropy replaced use of ``.to(unit).value`` with the new
+    ``to_value(unit)`` method, since this is somewhat faster. Any subclasses
+    that overwrote ``.to``, should also overwrite ``.to_value`` (or
+    possibly just the private ``._to_value`` method.  (If you did this,
+    please let us know what was lacking that made this necessary!). [#6136]
 
 - ``astropy.utils``
 
@@ -243,13 +295,20 @@ API Changes
 
 - ``astropy.visualization``
 
+  - Removed the deprecated ``scale_image`` function. [#6170]
+
 - ``astropy.vo``
 
   - Cone Search now issues deprecation warning because it is moved to
     Astroquery 0.3.5 and will be removed from Astropy in a future version.
     [#5558, #5904]
 
+  - The ``astropy.vo.samp`` package has been moved to ``astropy.samp``, and no
+    longer supports HTTPS/SSL. [#6201, #6213]
+
 - ``astropy.wcs``
+
+  - Removed deprecated ``wcs.rotateCD``. [#6170]
 
 - ``astropy.extern``
 
@@ -276,6 +335,8 @@ Bug Fixes
     to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
     headers are read into ``comments`` meta [#6097]
 
+  - Use more sensible fix values for invalid NAXISj header values. [#5935]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -290,9 +351,13 @@ Bug Fixes
 
   - Allow ``Mapping`` and ``Identity`` to be fittable. [#6018]
 
+  - Gaussian models now impose positive ``stddev`` in fitting. [#6019]
+
   - OrthoPolynomialBase (Chebyshev2D / Legendre2D) models were being evaluated
     incorrectly when part of a compound model (using the parameters from the
     original model), which in turn caused fitting to fail as a no-op. [#6085]
+
+  - Allow ``Ring2D`` to be defined using ``r_out``. [#6192]
 
 - ``astropy.nddata``
 
@@ -326,6 +391,9 @@ Bug Fixes
 - ``astropy.visualization``
 
 - ``astropy.vo``
+
+  - Fixed a bug in vo.samp when stopping a hub for which a lockfile was
+    not created. [#6211]
 
 - ``astropy.wcs``
 

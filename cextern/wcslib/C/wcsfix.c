@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.14 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2016, Mark Calabretta
+  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
+  $Id: wcsfix.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -512,11 +512,13 @@ int spcfix(struct wcsprm *wcs)
         if (status == 0) {
           /* ...and specsys was also. */
           wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
-            "Changed CTYPE%d from '%s' to '%s', and SPECSYS to '%s'",
-            i+1, wcs->ctype[i], ctype, wcs->specsys);
+            "Changed CTYPE%d from '%s' to '%s', and SPECSYS to '%s' "
+            "(VELREF=%d)", i+1, wcs->ctype[i], ctype, wcs->specsys,
+            wcs->velref);
         } else {
           wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
-            "Changed CTYPE%d from '%s' to '%s'", i+1, wcs->ctype[i], ctype);
+            "Changed CTYPE%d from '%s' to '%s' (VELREF=%d)", i+1,
+            wcs->ctype[i], ctype, wcs->velref);
           status = 0;
         }
 

@@ -348,7 +348,7 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     ps = non_celestial_pixel_scales(mywcs)
 
-    assert_almost_equal(ps.to(u.deg).value, np.array([0.1,0.2]))
+    assert_almost_equal(ps.to_value(u.deg), np.array([0.1,0.2]))
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel(mode):

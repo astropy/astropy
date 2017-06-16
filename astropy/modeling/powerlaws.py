@@ -7,11 +7,13 @@ Power law model variants
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from collections import OrderedDict
+
 import numpy as np
 
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
-
+from ..units import Quantity
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
            'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
@@ -49,7 +51,6 @@ class PowerLaw1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
-
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
@@ -65,6 +66,17 @@ class PowerLaw1D(Fittable1DModel):
 
         return [d_amplitude, d_x_0, d_alpha]
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class BrokenPowerLaw1D(Fittable1DModel):
     """
@@ -73,13 +85,13 @@ class BrokenPowerLaw1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Model amplitude at the break point
+        Model amplitude at the break point.
     x_break : float
-        Break point
+        Break point.
     alpha_1 : float
-        Power law index for x < x_break
+        Power law index for x < x_break.
     alpha_2 : float
-        Power law index for x > x_break
+        Power law index for x > x_break.
 
     See Also
     --------
@@ -128,6 +140,17 @@ class BrokenPowerLaw1D(Fittable1DModel):
 
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
 
+    @property
+    def input_units(self):
+        if self.x_break.unit is None:
+            return None
+        else:
+            return {'x': self.x_break.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_break', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     """One dimensional smoothly broken power law model.
@@ -136,12 +159,12 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     ----------
     amplitude : float
         Model amplitude at the break point.
-    log_break : float
-        logarithm (base 10) of break point.
+    x_break : float
+        Break point.
     alpha_1 : float
-        Power law index for ``x << 10 ** log_break``.
+        Power law index for ``x << x_break``.
     alpha_2 : float
-        Power law index for ``x >> 10 ** log_break``.
+        Power law index for ``x >> x_break``.
     delta : float
         Smoothness parameter.
 
@@ -152,7 +175,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     Notes
     -----
     Model formula (with :math:`A` for ``amplitude``, :math:`x_b` for
-    ``10 ** log_break``, :math:`\\alpha_1` for ``alpha_1``,
+    ``x_break``, :math:`\\alpha_1` for ``alpha_1``,
     :math:`\\alpha_2` for ``alpha_2`` and :math:`\\Delta` for
     ``delta``):
 
@@ -200,11 +223,11 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         from astropy.modeling import models
 
         x = np.logspace(0.7, 2.3, 500)
-        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, log_break=1.5,
+        f = models.SmoothlyBrokenPowerLaw1D(amplitude=1, x_break=20,
                                             alpha_1=-2, alpha_2=2)
 
         plt.figure()
-        plt.title("amplitude=1, log_break=1.5, alpha_1=-2, alpha_2=2")
+        plt.title("amplitude=1, x_break=20, alpha_1=-2, alpha_2=2")
 
         f.delta = 0.5
         plt.loglog(x, f(x), '--', label='delta=0.5')
@@ -223,7 +246,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     """
 
     amplitude = Parameter(default=1, min=0)
-    log_break = Parameter(default=1)
+    x_break = Parameter(default=1)
     alpha_1 = Parameter(default=-2)
     alpha_2 = Parameter(default=2)
     delta = Parameter(default=1, min=1.e-3)
@@ -241,15 +264,20 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                 "delta parameter must be >= 0.001")
 
     @staticmethod
-    def evaluate(x, amplitude, log_break, alpha_1, alpha_2, delta):
+    def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law model function"""
 
-        #Pre-calculate `x_b` and `x/x_b`
-        x_b = 10. ** log_break
-        xx = x / x_b
+        #Pre-calculate `x/x_b`
+        xx = x / x_break
 
         #Initialize the return value
-        f = np.zeros_like(xx)
+        f = np.zeros_like(xx, subok=False)
+
+        if isinstance(amplitude, Quantity):
+            return_unit = amplitude.unit
+            amplitude = amplitude.value
+        else:
+            return_unit = None
 
         #The quantity `t = (x / x_b)^(1 / delta)` can become quite
         #large.  To avoid overflow errors we will start by calculating
@@ -286,23 +314,25 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f[i] = amplitude * xx[i] ** (-alpha_1) \
                    * r ** ((alpha_1 - alpha_2) * delta)
 
-        return f
+        if return_unit:
+            return Quantity(f, unit=return_unit, copy=False)
+        else:
+            return f
 
     @staticmethod
-    def fit_deriv(x, amplitude, log_break, alpha_1, alpha_2, delta):
+    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law derivative with respect
            to parameters"""
 
         #Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
         #SmoothlyBrokenPowerLaw1D.evaluate)
-        x_b = 10. ** log_break
-        xx = x / x_b
+        xx = x / x_break
         logt = np.log(xx) / delta
 
         #Initialize the return values
         f = np.zeros_like(xx)
         d_amplitude = np.zeros_like(xx)
-        d_log_break = np.zeros_like(xx)
+        d_x_break = np.zeros_like(xx)
         d_alpha_1 = np.zeros_like(xx)
         d_alpha_2 = np.zeros_like(xx)
         d_delta = np.zeros_like(xx)
@@ -314,7 +344,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] * alpha_2 * np.log(10)
+            d_x_break[i] = f[i] * alpha_2 / x_break
             d_alpha_1[i] = f[i] * (-delta * np.log(2))
             d_alpha_2[i] = f[i] * (-np.log(xx[i]) + delta * np.log(2))
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
@@ -325,7 +355,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] * alpha_1 * np.log(10)
+            d_x_break[i] = f[i] * alpha_1 / x_break
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) - delta * np.log(2))
             d_alpha_2[i] = f[i] * delta * np.log(2)
             d_delta[i] = f[i] * (-(alpha_1 - alpha_2) * np.log(2))
@@ -338,15 +368,24 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                    * r ** ((alpha_1 - alpha_2) * delta)
 
             d_amplitude[i] = f[i] / amplitude
-            d_log_break[i] = f[i] \
-                             * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) \
-                             * np.log(10)
+            d_x_break[i] = f[i] * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) / x_break
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
             d_alpha_2[i] = f[i] * (-delta * np.log(r))
             d_delta[i] = f[i] * (alpha_1 - alpha_2) \
                          * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
 
-        return [d_amplitude, d_log_break, d_alpha_1, d_alpha_2, d_delta]
+        return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2, d_delta]
+
+    @property
+    def input_units(self):
+        if self.x_break.unit is None:
+            return None
+        else:
+            return {'x': self.x_break.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_break', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
 
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
@@ -402,6 +441,18 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
         return [d_amplitude, d_x_0, d_alpha, d_x_cutoff]
 
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('x_cutoff', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])
+
 
 class LogParabola1D(Fittable1DModel):
     """
@@ -456,3 +507,14 @@ class LogParabola1D(Fittable1DModel):
         d_x_0 = amplitude * d_amplitude * (beta * log_xx / x_0 - exponent / x_0)
         d_alpha = -amplitude * d_amplitude * log_xx
         return [d_amplitude, d_x_0, d_alpha, d_beta]
+
+    @property
+    def input_units(self):
+        if self.x_0.unit is None:
+            return None
+        else:
+            return {'x': self.x_0.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('x_0', inputs_unit['x']),
+                            ('amplitude', outputs_unit['y'])])

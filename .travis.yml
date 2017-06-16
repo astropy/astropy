@@ -31,6 +31,21 @@ env:
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
 
+        # PEP8 errors/warnings:
+        # E101 - mix of tabs and spaces
+        # W191 - use of tabs
+        # W291 - trailing whitespace
+        # W292 - no newline at end of file
+        # W293 - trailing whitespace
+        # W391 - blank line at end of file
+        # E111 - 4 spaces per indentation level
+        # E112 - 4 spaces per indentation level
+        # E113 - 4 spaces per indentation level
+        # E722 - do not use bare except
+        # E901 - SyntaxError or IndentationError
+        # E902 - IOError
+        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E722,E901,E902 --exclude=extern,sphinx,*parsetab.py"
+
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
@@ -100,7 +115,7 @@ matrix:
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
-          env: MAIN_CMD='flake8 astropy --count' SETUP_CMD=''
+          env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
         # run all remote tests. Since both cases will be potentially

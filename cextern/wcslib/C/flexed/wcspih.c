@@ -16863,8 +16863,8 @@ char *wcspihtext;
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 5.14 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2016, Mark Calabretta
+  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -16885,7 +16885,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 5.14 2016/02/07 10:49:31 mcalabre Exp $
+  $Id: wcspih.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -17128,7 +17128,7 @@ static int input (void );
 #ifndef YY_INPUT
 #define YY_INPUT(buf,result,max_size) \
 	errno=0; \
-	while ( (result = read( fileno(wcspihin), (char *) buf, max_size )) < 0 ) \
+	while ( (result = read( fileno(wcspihin), (char *) buf, (yy_size_t) max_size )) < 0 ) \
 	{ \
 		if( errno != EINTR) \
 		{ \
@@ -19804,7 +19804,7 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			yy_size_t num_to_read =
+			int num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )

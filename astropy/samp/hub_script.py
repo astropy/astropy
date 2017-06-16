@@ -8,13 +8,9 @@ import time
 import sys
 import argparse
 
-from ... import log, __version__
+from .. import log, __version__
 
-from .constants import SSL_SUPPORT
 from .hub import SAMPHubServer
-
-if SSL_SUPPORT:
-    import ssl
 
 __all__ = ['main']
 
@@ -101,85 +97,9 @@ def hub_script(timeout=0):
 
     parser.add_argument_group(adv_group)
 
-    if SSL_SUPPORT:
-
-        ssl_group = parser.add_argument_group("SSL group", "Additional options to launch "
-                                              "the Hub instance using the Secure Sockets Layer (HTTPS). "
-                                              "The --key-file and --cert-file parameters specify optional "
-                                              "files which contain a certificate to be used to identify "
-                                              "the local side of the connection. "
-                                              "Often the private key is stored in the same file as the "
-                                              "certificate; in this case, only the --cert-file parameter need "
-                                              "be passed. If the private key is stored in a separate file, "
-                                              "both parameters must be used. If the private key is stored "
-                                              "in the certificate file, it should come before the first certificate "
-                                              "in the certificate chain.")
-
-        ssl_group.add_argument("-s", "--https", dest="https", action="store_true",
-                               help="run the Hub using the Secure Sockets Layer.", default=False)
-
-        ssl_group.add_argument("-C", "--cert-file", dest="cert_file", metavar="FILE",
-                               help="set the certificate file.", default=None)
-
-        ssl_group.add_argument("-K", "--key-file", dest="key_file", metavar="FILE",
-                               help="set the key file. By default this option is ignored, "
-                               "assuming that the private key is stored in the certificate file.", default=None)
-
-        ssl_group.add_argument("--cert-reqs", dest="cert_reqs", metavar="STRING",
-                               help="this option specifies whether a certificate "
-                               "is required from the client side of the connection, and whether "
-                               "it will be validated if provided. It must be one of the three "
-                               "values NONE (certificates ignored, default), OPTIONAL (not "
-                               "required, but validated if provided), or REQUIRED (required "
-                               "and validated). If the value of this option is not NONE, "
-                               "then the --ca-certs option must point to a file of CA certificates.",
-                               type=str, choices=["NONE", "OPTIONAL", "REQUIRED"], default="NONE")
-
-        ssl_group.add_argument("--ca-certs", dest="ca_certs", metavar="FILE",
-                               help="the --ca-certs file contains a set of concatenated "
-                               "\"certification authority\" certificates, which are used to "
-                               "validate certificates passed from the client end of the "
-                               "connection.", default=None)
-
-        ssl_group.add_argument("--ssl-version", dest="ssl_version", metavar="STRING",
-                               help="the --ssl-version option specifies which version of the "
-                               "SSL protocol to use. Typically, the server chooses a particular "
-                               "protocol version, and the client must adapt to the server's choice. "
-                               "Most of the versions are not interoperable with the other versions. "
-                               "If not specified the default SSL version is taken from the default in "
-                               "the Python standard `ssl` library for the version of Python that is "
-                               "installed. Other SSL protocol versions are: SSLv2, SSLv3, SSLv23, "
-                               "TLSv1, TLSv1_1, TLSv1_2 but not all of them may be available on all "
-                               "versions of Python.",
-                               type=str,
-                               choices=["SSLv23", "SSLv2", "SSLv3", "TLSv1", "TLSv1_1", "TLSv1_2"],
-                               default=None)
-
-        parser.add_argument_group(ssl_group)
-
     options = parser.parse_args()
 
     try:
-
-        if SSL_SUPPORT:
-
-            # Set ssl options properly
-
-            if options.cert_reqs == "OPTIONAL":
-                options.cert_reqs = ssl.CERT_OPTIONAL
-            elif options.cert_reqs == "REQUIRED":
-                options.cert_reqs = ssl.CERT_REQUIRED
-            else:
-                options.cert_reqs = ssl.CERT_NONE
-
-            if options.ssl_version is not None:
-                if hasattr(ssl, 'PROTOCOL_' + options.ssl_version):
-                    options.ssl_version = getattr(
-                        ssl, 'PROTOCOL_' + options.ssl_version)
-                else:
-                    raise ValueError(
-                        "SSL protocol '{0}' not supported on this version of "
-                        "Python".format(options.ssl_version))
 
         if options.loglevel in ("OFF", "ERROR", "WARNING", "DEBUG", "INFO"):
             log.setLevel(options.loglevel)

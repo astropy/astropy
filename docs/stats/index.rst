@@ -7,14 +7,53 @@ Astrostatistics Tools (`astropy.stats`)
 Introduction
 ============
 
-The `astropy.stats` package holds statistical functions or algorithms used
-in astronomy and astropy.
+The `astropy.stats` package holds statistical functions or algorithms
+used in astronomy and astropy.  While the `scipy.stats` and
+`statsmodel <http://www.statsmodels.org/stable/index.html>`_ packages
+contains a wide range of statistical tools, they are general-purpose
+packages and are missing some tools that are particularly useful or
+specific to astronomy.  This package is intended to provide such
+functionality, but *not* to replace `scipy.stats` if its
+implementation satisfies astronomers' needs.
+
 
 Getting Started
 ===============
 
+A number of different tools are contained in the stats package, and
+they can be accessed by importing them::
+
+    >>> from astropy import stats
+
+A full list of the different tools are provided below and please see
+the documentation for their different usage.  For example, sigma
+clipping, which is common way to estimate the background of an image,
+can be run following with the :func:`~astropy.stats.sigma_clip`
+function::
+
+    >>> stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)  # doctest: +FLOAT_CMP
+    masked_array(data = [1 5 6 8 -- 5 3 2],
+                 mask = [False False False False  True False False False],
+           fill_value = 999999)
+
+This will return a masked array where outliers are masked.  In
+addition, there are also several convenience functions for making the
+calculation of statistics even
+easier. :func:`~astropy.stats.sigma_clipped_stats` will return the
+mean, median, and standard deviation for a sigma-clipped array::
+
+     >>> stats.sigma_clipped_stats([1, 5, 6, 8, 100, 5, 3, 2], sigma=2,
+     ...                           iters=5)  # doctest: +FLOAT_CMP
+     (4.2857142857142856, 5.0, 2.2497165354319457)
+
+There are also tools for calculating :ref:`robust statistics
+<stats-robust>`, sampling the data, :ref:`circular statistics
+<stats-circular>`, confidence limits, spatial statistics, and adaptive
+histograms.
+
 Most tools are fairly self-contained, and include relevant examples in
 their docstrings.
+
 
 Using `astropy.stats`
 =====================
@@ -25,7 +64,12 @@ listed below.
 .. toctree::
    :maxdepth: 2
 
+   robust.rst
+   circ.rst
    lombscargle.rst
+   ripley.rst
+   ../visualization/histogram.rst
+
 
 Constants
 =========
@@ -40,7 +84,7 @@ converting between Gaussian sigma and full width at half maximum
     to convert it to full width at half maximum (FWHM).
 
     >>> from astropy.stats import gaussian_sigma_to_fwhm
-    >>> gaussian_sigma_to_fwhm
+    >>> gaussian_sigma_to_fwhm  # doctest: +FLOAT_CMP
     2.3548200450309493
 
 .. data:: gaussian_fwhm_to_sigma
@@ -49,8 +93,9 @@ converting between Gaussian sigma and full width at half maximum
     (FWHM) to convert it to 1-sigma standard deviation.
 
     >>> from astropy.stats import gaussian_fwhm_to_sigma
-    >>> gaussian_fwhm_to_sigma
+    >>> gaussian_fwhm_to_sigma  # doctest: +FLOAT_CMP
     0.42466090014400953
+
 
 See Also
 ========
@@ -59,6 +104,17 @@ See Also
     This scipy package contains a variety of useful statistical functions and
     classes.  The functionality in `astropy.stats` is intended to supplement
     this, *not* replace it.
+
+* `statsmodel <http://www.statsmodels.org/stable/index.html>`_
+    The statsmodel package provides functionality for estimating
+    different statistical models, tests, and data exploration.
+
+* `astroML <http://www.astroml.org/>`_
+    The astroML package is a Python module for machine learning and
+    data mining.  Some of the tools from this package have been
+    migrated here, but there are still a number of tools there that
+    are useful for astronomy and statistical analysis.
+
 
 * :func:`astropy.visualization.hist`
     The :func:`~astropy.stats.histogram` routine and related functionality

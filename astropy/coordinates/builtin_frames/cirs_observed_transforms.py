@@ -38,16 +38,16 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     if is_unitspherical:
         usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
-        cirs_ra = usrepr.lon.to(u.radian).value
-        cirs_dec = usrepr.lat.to(u.radian).value
+        cirs_ra = usrepr.lon.to_value(u.radian)
+        cirs_dec = usrepr.lat.to_value(u.radian)
     else:
         # compute an "astrometric" ra/dec -i.e., the direction of the
         # displacement vector from the observer to the target in CIRS
         loccirs = altaz_frame.location.get_itrs(cirs_coo.obstime).transform_to(cirs_coo)
         diffrepr = (cirs_coo.cartesian - loccirs.cartesian).represent_as(UnitSphericalRepresentation)
 
-        cirs_ra = diffrepr.lon.to(u.radian).value
-        cirs_dec = diffrepr.lat.to(u.radian).value
+        cirs_ra = diffrepr.lon.to_value(u.radian)
+        cirs_dec = diffrepr.lat.to_value(u.radian)
 
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(obstime)
@@ -56,8 +56,8 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     jd1, jd2 = get_jd12(obstime, 'utc')
     astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(obstime),
-                         lon.to(u.radian).value, lat.to(u.radian).value,
-                         height.to(u.m).value,
+                         lon.to_value(u.radian), lat.to_value(u.radian),
+                         height.to_value(u.m),
                          xp, yp,  # polar motion
                          # all below are already in correct units because they are QuantityFrameAttribues
                          altaz_frame.pressure.value,
@@ -86,8 +86,8 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 @frame_transform_graph.transform(FunctionTransform, AltAz, CIRS)
 def altaz_to_cirs(altaz_coo, cirs_frame):
     usrepr = altaz_coo.represent_as(UnitSphericalRepresentation)
-    az = usrepr.lon.to(u.radian).value
-    zen = PIOVER2 - usrepr.lat.to(u.radian).value
+    az = usrepr.lon.to_value(u.radian)
+    zen = PIOVER2 - usrepr.lat.to_value(u.radian)
 
     lon, lat, height = altaz_coo.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(altaz_coo.obstime)
@@ -96,8 +96,8 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     jd1, jd2 = get_jd12(altaz_coo.obstime, 'utc')
     astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(altaz_coo.obstime),
-                         lon.to(u.radian).value, lat.to(u.radian).value,
-                         height.to(u.m).value,
+                         lon.to_value(u.radian), lat.to_value(u.radian),
+                         height.to_value(u.m),
                          xp, yp,  # polar motion
                          # all below are already in correct units because they are QuantityFrameAttribues
                          altaz_coo.pressure.value,

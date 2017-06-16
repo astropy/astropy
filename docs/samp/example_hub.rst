@@ -37,7 +37,7 @@ Starting a hub programmatically (advanced)
 You can start up a hub by creating a |SAMPHubServer| instance and starting it,
 either from the interactive Python prompt, or from a Python script::
 
-    >>> from astropy.vo.samp import SAMPHubServer
+    >>> from astropy.samp import SAMPHubServer
     >>> hub = SAMPHubServer()
     >>> hub.start()
 

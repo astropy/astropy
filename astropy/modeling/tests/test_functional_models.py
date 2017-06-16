@@ -10,6 +10,8 @@ from numpy.testing import assert_allclose, assert_array_equal
 from .. import models, InputParameterError
 from ...coordinates import Angle
 from .. import fitting
+from ...tests.helper import catch_warnings
+from ...utils.exceptions import AstropyDeprecationWarning
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -30,7 +32,9 @@ def test_Trapezoid1D():
 
 def test_GaussianAbsorption1D():
     g_em = models.Gaussian1D(0.8, 3000, 20)
-    g_ab = models.GaussianAbsorption1D(0.8, 3000, 20)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        g_ab = models.GaussianAbsorption1D(0.8, 3000, 20)
+        assert len(w) == 1
     xx = np.arange(2900, 3100, 2)
     assert_allclose(g_ab(xx), 1 - g_em(xx))
     assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
@@ -185,6 +189,12 @@ def test_Scale_inverse():
 def test_Shift_inverse():
     m = models.Shift(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
+# https://github.com/astropy/astropy/issues/6178
+def test_Ring2D_rout():
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
+    assert m.width.value == 3
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
