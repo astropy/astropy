@@ -33,6 +33,8 @@ can be applied as follows:
      >>> from astropy.stats import sigma_clip
      >>> import scipy.stats as stats
 
+.. doctest-requires:: scipy
+
      >>> # Generate fake data that has a mean of 0 and standard deviation
      >>> # of 0.2 with outliers
      >>> np.random.seed(0)
@@ -41,6 +43,8 @@ can be applied as follows:
      >>> c = stats.bernoulli.rvs(0.35, size=x.shape)
      >>> y += (np.random.normal(0., 0.2, x.shape) +
      ...       c*np.random.normal(3.0, 5.0, x.shape))
+
+.. doctest-requires:: scipy
 
      >>> # filter the data
      >>> filtered_data = sigma_clip(y, sigma=3, iters=10)

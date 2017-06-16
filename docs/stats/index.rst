@@ -31,7 +31,7 @@ clipping, which is common way to estimate the background of an image,
 can be run following with the :func:`~astropy.stats.sigma_clip`
 function::
 
-    >>> stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
+    >>> stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)  # doctest: +FLOAT_CMP
     masked_array(data = [1 5 6 8 -- 5 3 2],
                  mask = [False False False False  True False False False],
            fill_value = 999999)
@@ -43,7 +43,7 @@ easier. :func:`~astropy.stats.sigma_clipped_stats` will return the
 mean, median, and standard deviation for a sigma-clipped array::
 
      >>> stats.sigma_clipped_stats([1, 5, 6, 8, 100, 5, 3, 2], sigma=2,
-     ...                           iters=5)
+     ...                           iters=5)  # doctest: +FLOAT_CMP
      (4.2857142857142856, 5.0, 2.2497165354319457)
 
 There are also tools for calculating :ref:`robust statistics
@@ -84,7 +84,7 @@ converting between Gaussian sigma and full width at half maximum
     to convert it to full width at half maximum (FWHM).
 
     >>> from astropy.stats import gaussian_sigma_to_fwhm
-    >>> gaussian_sigma_to_fwhm
+    >>> gaussian_sigma_to_fwhm  # doctest: +FLOAT_CMP
     2.3548200450309493
 
 .. data:: gaussian_fwhm_to_sigma
@@ -93,7 +93,7 @@ converting between Gaussian sigma and full width at half maximum
     (FWHM) to convert it to 1-sigma standard deviation.
 
     >>> from astropy.stats import gaussian_fwhm_to_sigma
-    >>> gaussian_fwhm_to_sigma
+    >>> gaussian_fwhm_to_sigma  # doctest: +FLOAT_CMP
     0.42466090014400953
 
 
