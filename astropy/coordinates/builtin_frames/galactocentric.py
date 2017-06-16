@@ -170,13 +170,16 @@ def get_matrix_vectors(galactocentric_frame):
 
     # compute total matrices
     A = matrix_product(H, R)
-    pos_vec = matrix_product(H, -translation.xyz)
 
-    # TODO: need to get the velocity offset
+    # Now we re-align the translation vector to account for the Sun's height
+    # above the midplane
+    offset = -translation.transform(H)
+
+    # TODO: need to get the velocity offset and save as a differential on
+    #       `offset` - leaving this to the next PR
     # vel_vec = matrix_product(H, -gcf.v_sun.xyz)
-    vel_vec = None # for now, this gets ignored
 
-    return A, (pos_vec, vel_vec)
+    return A, offset
 
 @frame_transform_graph.transform(AffineTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
@@ -194,9 +197,9 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
                            "a 3D coordinate, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
-    A, vecs = get_matrix_vectors(galactocentric_coord)
+    A, offset = get_matrix_vectors(galactocentric_coord)
 
     # the inverse of a rotation matrix is a transpose, which is much faster and
     #   more stable to compute
     A_T = matrix_transpose(A)
-    return A_T, [-A_T.dot(x) if x is not None else None for x in vecs]
+    return A_T, -offset.transform(A_T, apply_to_diffs=True)

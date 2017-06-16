@@ -290,21 +290,20 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
     if isinstance(hcrs_coo.data, UnitSphericalRepresentation):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
-    bary_sun_vel = None
     if hcrs_coo.data.differentials:
         from ..solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_coo.obstime)
-        dv = bary_sun_vel.xyz
 
     else:
         from ..solar_system import get_body_barycentric
         bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
-        dv = None
+        bary_sun_vel = None
 
-    dx = bary_sun_pos.xyz
+    if bary_sun_vel is not None:
+        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
-    return None, (dx, dv)
+    return None, bary_sun_pos
 
 @frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
@@ -316,16 +315,17 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
         from ..solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_frame.obstime)
-        dv = -bary_sun_vel.xyz
 
     else:
         from ..solar_system import get_body_barycentric
         bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
-        dv = None
+        bary_sun_vel = None
 
-    dx = -bary_sun_pos.xyz
+    bary_sun_pos = -bary_sun_pos
+    if bary_sun_vel is not None:
+        bary_sun_pos = bary_sun_pos.with_differentials(-bary_sun_vel)
 
-    return None, (dx, dv)
+    return None, bary_sun_pos
 
 
 @frame_transform_graph.transform(FunctionTransform, HCRS, HCRS)
