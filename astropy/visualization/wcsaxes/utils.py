@@ -45,7 +45,7 @@ def select_step_degree(dv):
 
     else:
 
-        return select_step_scalar(dv.to(u.arcsec).value) * u.arcsec
+        return select_step_scalar(dv.to_value(u.arcsec)) * u.arcsec
 
 
 def select_step_hour(dv):
@@ -80,7 +80,7 @@ def select_step_hour(dv):
 
     else:
 
-        return select_step_scalar(dv.to(15. * u.arcsec).value) * (15. * u.arcsec)
+        return select_step_scalar(dv.to_value(15. * u.arcsec)) * (15. * u.arcsec)
 
 
 def select_step_scalar(dv):

@@ -551,7 +551,7 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     if uncert1 is not None:
         uncert1 = StdDevUncertainty(uncert1)
         if isinstance(uncert1, Quantity):
-            uncert1_ref = uncert1.to(data1.unit).value
+            uncert1_ref = uncert1.to_value(data1.unit)
         else:
             uncert1_ref = uncert1
         uncert_ref1 = StdDevUncertainty(uncert1_ref, copy=True)
@@ -562,7 +562,7 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
     if uncert2 is not None:
         uncert2 = StdDevUncertainty(uncert2)
         if isinstance(uncert2, Quantity):
-            uncert2_ref = uncert2.to(data2.unit).value
+            uncert2_ref = uncert2.to_value(data2.unit)
         else:
             uncert2_ref = uncert2
         uncert_ref2 = StdDevUncertainty(uncert2_ref, copy=True)
