@@ -12,6 +12,7 @@ New Features
 
   - Major change in convolution behavior and keyword arguments.   Additional
     details are in the API section. (#5782)
+
   - Convolution with un-normalized and un-normalizable kernels is now possible.
     (#5782)
 
