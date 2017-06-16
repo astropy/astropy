@@ -78,7 +78,7 @@ def _iter_unit_summary(namespace):
                 unit._represents.to_string('latex')[1:-1])
         aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
 
-        yield (unit, doc, represents, aliases, unit.name in has_prefixes)
+        yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')
 
 
 def generate_unit_summary(namespace):
@@ -118,7 +118,45 @@ def generate_unit_summary(namespace):
      - {1}
      - {2}
      - {3}
-     - {4!s:.1}
+     - {4}
+""".format(*unit_summary))
+
+    return docstring.getvalue()
+
+def generate_prefixonly_unit_summary(namespace):
+    """
+    Generates table entries for units in a namespace that are just prefixes
+    without the base unit.  Note that this is intended to be used *after*
+    `generate_unit_summary` and therefore does not include the table header.
+
+    Parameters
+    ----------
+    namespace : dict
+        A namespace containing units that are prefixes but do *not* have the
+        base unit in their namespace.
+
+    Returns
+    -------
+    docstring : str
+        A docstring containing a summary table of the units.
+    """
+    from . import PrefixUnit
+
+    faux_namespace = {}
+    for nm, unit in namespace.items():
+        if isinstance(unit, PrefixUnit):
+            base_unit = unit.represents.bases[0]
+            faux_namespace[base_unit.name] = base_unit
+
+    docstring = io.StringIO()
+
+    for unit_summary in _iter_unit_summary(faux_namespace):
+        docstring.write("""
+   * - Prefixes for ``{0}``
+     - {1} prefixes
+     - {2}
+     - {3}
+     - Only
 """.format(*unit_summary))
 
     return docstring.getvalue()
