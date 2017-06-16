@@ -760,9 +760,10 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     Parameters
     ----------
     finite_difference_frameattr_name : str or None
-        The name of the frame attribute on the *to* frame to use for the finite
-        difference.  If None, only the re-orientation of the existing
-        differential itself will be computed.
+        The name of the frame attribute on the frames to use for the finite
+        difference.  Both the to and the from frame will be checked for this
+        attribute, but only one needs to have it. If None, only the
+        re-orientation of the existing differential will be computed.
     finite_difference_dt : Quantity or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
@@ -787,6 +788,26 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
         self.finite_difference_dt = finite_difference_dt
         self.symmetric_finite_difference = symmetric_finite_difference
+
+    @property
+    def finite_difference_frameattr_name(self):
+        return self._finite_difference_frameattr_name
+    @finite_difference_frameattr_name.setter
+    def finite_difference_frameattr_name(self, value):
+        if value is None:
+            self._diff_attr_in_fromsys = self._diff_attr_in_tosys = False
+        else:
+            diff_attr_in_fromsys = value in self.fromsys.frame_attributes
+            diff_attr_in_tosys = value in self.tosys.frame_attributes
+            if diff_attr_in_fromsys or diff_attr_in_tosys:
+                self._diff_attr_in_fromsys = diff_attr_in_fromsys
+                self._diff_attr_in_tosys = diff_attr_in_tosys
+            else:
+                raise ValueError('Frame attribute name {} is not a frame '
+                                 'attribute of {} or {}'.format(value,
+                                                                self.fromsys,
+                                                                self.tosys))
+        self._finite_difference_frameattr_name = value
 
     def __call__(self, fromcoord, toframe):
         from .representation import (CartesianRepresentation,
@@ -818,23 +839,48 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                           fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
                 back = reprwithoutdiff
-            diffxyz = (back.cartesian - fwd.cartesian).xyz / dt
+            diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
 
             # now we compute the "induced" velocities due to any movement in the
             # frame itself over time
             attrname = self.finite_difference_frameattr_name
             if attrname is not None:
                 if self.symmetric_finite_difference:
-                    update_keyword = {attrname: getattr(toframe, attrname) + dt/2}
-                    fwd_frame = toframe.replicate_without_data(**update_keyword)
-                    fwd = supcall(fromdiffless, fwd_frame)
-                    update_keyword = {attrname: getattr(toframe, attrname) - dt/2}
-                    back_frame =  toframe.replicate_without_data(**update_keyword)
-                    back = supcall(fromdiffless, back_frame)
+                    if self._diff_attr_in_fromsys:
+                        kws = {attrname: getattr(fromdiffless, attrname) + dt/2}
+                        fromdifflessfwd = fromdiffless.replicate(**kws)
+                    else:
+                        fromdifflessfwd = fromdiffless
+                    if self._diff_attr_in_tosys:
+                        kws = {attrname: getattr(toframe, attrname) + dt/2}
+                        fwd_frame = toframe.replicate_without_data(**kws)
+                    else:
+                        fwd_frame = toframe
+                    fwd = supcall(fromdifflessfwd, fwd_frame)
+
+                    if self._diff_attr_in_fromsys:
+                        kws = {attrname: getattr(fromdiffless, attrname) - dt/2}
+                        fromdifflessback = fromdiffless.replicate(**kws)
+                    else:
+                        fromdifflessback = fromdiffless
+                    if self._diff_attr_in_tosys:
+                        kws = {attrname: getattr(toframe, attrname) - dt/2}
+                        back_frame = toframe.replicate_without_data(**kws)
+                    else:
+                        back_frame = toframe
+                    back = supcall(fromdifflessback, back_frame)
                 else:
-                    update_keyword = {attrname: getattr(toframe, attrname) + dt}
-                    fwd_frame = toframe.replicate_without_data(**update_keyword)
-                    fwd = supcall(fromdiffless, fwd_frame)
+                    if self._diff_attr_in_fromsys:
+                        kws = {attrname: getattr(fromdiffless, attrname) + dt}
+                        fromdifflessfwd = fromdiffless.replicate(**kws)
+                    else:
+                        fromdifflessfwd = fromdiffless
+                    if self._diff_attr_in_tosys:
+                        kws = {attrname: getattr(toframe, attrname) + dt}
+                        fwd_frame = toframe.replicate_without_data(**kws)
+                    else:
+                        fwd_frame = toframe
+                    fwd = supcall(fromdifflessfwd, fwd_frame)
                     back = reprwithoutdiff
 
                 diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
@@ -1230,7 +1276,7 @@ class CompositeTransform(CoordinateTransform):
 # map class names to colorblind-safe colors
 trans_to_color = OrderedDict()
 trans_to_color[AffineTransform] = '#555555' # gray
-trans_to_color[FunctionTransform] = '#d95f02' # red-ish
-trans_to_color[FunctionTransformWithFiniteDifference] = '#d92f02' # darker red-ish
+trans_to_color[FunctionTransform] = '#783001' # dark red-ish/brown
+trans_to_color[FunctionTransformWithFiniteDifference] = '#d95f02' # red-ish
 trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
 trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish

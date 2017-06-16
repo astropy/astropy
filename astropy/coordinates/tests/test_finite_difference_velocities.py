@@ -64,8 +64,7 @@ def test_faux_lsr(dt, symmetric):
     lsrc2 = ic2.transform_to(LSR2())
 
     tot = np.sum(lsrc2.data.to_cartesian(True).differentials[0].d_xyz**2)**0.5
-    assert tot > 980*u.km/u.s
-    assert tot < 1000*u.km/u.s
+    assert np.abs(tot.to('km/s') - 1000*u.km/u.s) < 20*u.km/u.s
 
 def test_gcrs_diffs():
     time = Time('J2017')
@@ -91,3 +90,8 @@ def test_gcrs_diffs():
     assert np.abs(qtrsung.radial_velocity) > 30*u.km/u.s
     assert np.abs(qtrsung.radial_velocity) < 40*u.km/u.s
     assert np.abs(sung.radial_velocity) < 1*u.km/u.s
+
+    suni2 = sung.transform_to(ICRS)
+    assert np.all(suni2.data.differentials[0].d_xyz < 1e-5*u.km/u.s)
+    qtrisun2 = qtrsung.transform_to(ICRS)
+    assert np.all(qtrisun2.data.differentials[0].d_xyz < 1e-5*u.km/u.s)
