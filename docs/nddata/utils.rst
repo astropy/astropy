@@ -342,6 +342,236 @@ position, and ``wcs`` object from above to create a cutout with size
     plt.imshow(cutout.data, origin='lower')
 
 
+Extracting a subset from a larger array
+---------------------------------------
+
+It is often necessary to extract a patch from a much larger ndarray and
+in some cases, a subsampled patch (for example when performing PSF
+photometry).
+
+.. note::
+
+    The `~scipy` package is required to extract a subsampled patch.
+
+First we create a test array::
+
+    >>> # Initialize the package and create a test array
+    >>> from astropy.nddata.utils import extract_array
+    >>> import numpy as np
+    >>> import matplotlib
+    >>> import matplotlib.pyplot as plt
+    >>> 
+    >>> x,y = np.indices((10,10), dtype=float)
+    >>> test_arr = x+y
+    >>> vmin = np.min(test_arr)
+    >>> vmax = np.max(test_arr)
+    >>> test_arr
+    >>> # Plot the array
+    >>> plt.imshow(test_arr, interpolation='none')
+    array([[  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.],
+           [  1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.],
+           [  2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.],
+           [  3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,  12.],
+           [  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,  12.,  13.],
+           [  5.,   6.,   7.,   8.,   9.,  10.,  11.,  12.,  13.,  14.],
+           [  6.,   7.,   8.,   9.,  10.,  11.,  12.,  13.,  14.,  15.],
+           [  7.,   8.,   9.,  10.,  11.,  12.,  13.,  14.,  15.,  16.],
+           [  8.,   9.,  10.,  11.,  12.,  13.,  14.,  15.,  16.,  17.],
+           [  9.,  10.,  11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.]])
+    
+.. plot::
+
+    from astropy.nddata.utils import extract_array
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    vmin = np.min(test_arr)
+    vmax = np.max(test_arr)
+    plt.imshow(test_arr, interpolation='none')
+
+If the dataset is 2D, we can subdivide each pixel to create a subsampled image.
+We can also set ``return_slices=True`` to return the indices of the large array
+and the extracted array::
+
+    >>> shape = (3,3)
+    >>> position = 4,3
+    >>> subset, slices = extract_array(test_arr, shape, position, return_slices=True, subsampling=3)
+    >>> large_slices, small_slices = slices
+    >>> print(subset)
+    >>> print(large_slices)
+    >>> print(small_slices)
+    >>> plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+    >>>     extent=[large_slices[1][0],large_slices[1][-1],
+                   large_slices[0][0],large_slices[0][-1]])
+    [[ 4.33333333  4.66666667  5.          5.33333333  5.66666667  6.
+       6.33333333  6.66666667  7.        ]
+     [ 4.66666667  5.          5.33333333  5.66666667  6.          6.33333333
+       6.66666667  7.          7.33333333]
+     [ 5.          5.33333333  5.66666667  6.          6.33333333  6.66666667
+       7.          7.33333333  7.66666667]
+     [ 5.33333333  5.66666667  6.          6.33333333  6.66666667  7.
+       7.33333333  7.66666667  8.        ]
+     [ 5.66666667  6.          6.33333333  6.66666667  7.          7.33333333
+       7.66666667  8.          8.33333333]
+     [ 6.          6.33333333  6.66666667  7.          7.33333333  7.66666667
+       8.          8.33333333  8.66666667]
+     [ 6.33333333  6.66666667  7.          7.33333333  7.66666667  8.
+       8.33333333  8.66666667  9.        ]
+     [ 6.66666667  7.          7.33333333  7.66666667  8.          8.33333333
+       8.66666667  9.          9.33333333]
+     [ 7.          7.33333333  7.66666667  8.          8.33333333  8.66666667
+       9.          9.33333333  9.66666667]]
+    (array([ 2.66666667,  3.        ,  3.33333333,  3.66666667,  4.        ,
+            4.33333333,  4.66666667,  5.        ,  5.33333333]), 
+     array([ 1.66666667,  2.        ,  2.33333333,  2.66666667,  3.        ,
+            3.33333333,  3.66666667,  4.        ,  4.33333333]))
+    (array([0, 1, 2, 3, 4, 5, 6, 7, 8]), array([0, 1, 2, 3, 4, 5, 6, 7, 8]))
+    
+.. plot::
+
+    from astropy.nddata.utils import extract_array
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    shape = (3,3)
+    position = (4,3)
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    vmin = np.min(test_arr)
+    vmax = np.max(test_arr)
+    subset, slices = extract_array(test_arr, shape, position, return_slices=True, subsampling=3)
+    large_slices, small_slices = slices
+    plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+        extent=[large_slices[1][0],large_slices[1][-1],
+                large_slices[0][0],large_slices[0][-1]])
+
+Notice that although the x and y slices are [2,3,4] and [3,4,5] respectively, 
+since each subsampled pixel is at the center of the 9x9 subdivided pixel, the
+subsampled x and y indices range from 1.67 to 4.33 and 2.67 to 5.33 
+respectively.
+
+Edge Modes
+^^^^^^^^^^
+
+As with the regular array extraction, we can choose whether or not to trim the
+regions of the extracted array outside the bounds of the original array::
+
+    >>> subset, slices = extract_array(test_arr, shape, position, return_slices=True, 
+    >>>     subsampling=3, order=2, mode='trim')
+    >>> large_slices, small_slices = slices
+    >>> print(large_slices)
+    >>> print(small_slices)
+    >>> plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+    >>>     extent=[large_slices[1][0],large_slices[1][-1],
+    >>>             large_slices[0][0],large_slices[0][-1]])
+    (array([ 0.        ,  0.33333333,  0.66666667,  1.        ,  1.33333333]), 
+     array([ 0.        ,  0.33333333,  0.66666667,  1.        ,  1.33333333,
+            1.66666667,  2.        ,  2.33333333]))
+    (array([0, 1, 2, 3, 4]), array([0, 1, 2, 3, 4, 5, 6, 7]))
+    
+.. plot::
+
+    from astropy.nddata.utils import extract_array
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    shape = (3,3)
+    position = (0,1)
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    vmin = np.min(test_arr)
+    vmax = np.max(test_arr)
+    subset, slices = extract_array(test_arr, shape, position, return_slices=True, 
+        subsampling=3, order=2, mode='trim')
+    large_slices, small_slices = slices
+    plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+        extent=[large_slices[1][0],large_slices[1][-1],
+               large_slices[0][0],large_slices[0][-1]])
+
+.. warning::
+
+    Notice that the preceding example changed the order of the interpolating
+    polynomial to 2. This is required because there are not enough entries
+    in the extracted array to fit a 3rd order polynomial. The best practice for
+    most cases is to use the same order for all patches you extract from an
+    image, so it is best to ignore patches close enough to the edges to 
+    prohibit them from interpolating with your chosen order.
+
+The default behavior is to return an extracted array with ``mode='partial'``
+and ``fill_value=np.nan`` to fill the regions of the extracted array outside
+the boundaries with ``NaN``::
+
+    >>> subset, slices = extract_array(test_arr, shape, position, return_slices=True, 
+    >>>     subsampling=3, order=2, mode='partial')
+    >>> large_slices, small_slices = slices
+    >>> print(large_slices)
+    >>> print(small_slices)
+    >>> plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+    >>>     extent=[large_slices[1][0],large_slices[1][-1],
+                    large_slices[0][0],large_slices[0][-1]])
+    (array([-1.33333333, -1.        , -0.66666667, -0.33333333,  0.        ,
+            0.33333333,  0.66666667,  1.        ,  1.33333333]), 
+     array([-0.33333333,  0.        ,  0.33333333,  0.66666667,  1.        ,
+            1.33333333,  1.66666667,  2.        ,  2.33333333]))
+    (array([0, 1, 2, 3, 4, 5, 6, 7, 8]), array([0, 1, 2, 3, 4, 5, 6, 7, 8]))
+
+.. plot::
+
+    from astropy.nddata.utils import extract_array
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    shape = (3,3)
+    position = (0,1)
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    vmin = np.min(test_arr)
+    vmax = np.max(test_arr)
+    subset, slices = extract_array(test_arr, shape, position, return_slices=True, 
+        subsampling=3, order=2, mode='partial')
+    large_slices, small_slices = slices
+    plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax,
+        extent=[large_slices[1][0],large_slices[1][-1],
+               large_slices[0][0],large_slices[0][-1]])
+    
+Notice that since the pixel at index 0 is subdivided into [-.33, 0.0, .33],
+the lowest subsampled pixel is out of bounds and is clipped from the result.
+
+Masking Pixels
+^^^^^^^^^^^^^^
+
+Using ``mode='mask'`` is the same as partial except instead of filling the 
+array with a value, it creates a mask. This does not make a difference for 
+displaying the image but certain operations are easier with masked arrays::
+
+    >>> position = (9,8)
+    >>> shape=(5,5)
+    >>> subset = extract_array(test_arr, shape, position, mode='mask')
+    >>> print(subset)
+    >>> plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax)
+    [[13.0 14.0 15.0 16.0 --]
+     [14.0 15.0 16.0 17.0 --]
+     [15.0 16.0 17.0 18.0 --]
+     [-- -- -- -- --]
+     [-- -- -- -- --]]
+
+.. plot::
+
+    from astropy.nddata.utils import extract_array
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    shape = (5,5)
+    position = (9,8)
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    vmin = np.min(test_arr)
+    vmax = np.max(test_arr)
+    subset = extract_array(test_arr, shape, position, mode='mask')
+    plt.imshow(subset, interpolation='none', vmin=vmin, vmax=vmax)
+
 Reference/API
 =============
 

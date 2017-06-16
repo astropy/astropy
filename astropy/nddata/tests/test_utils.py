@@ -22,6 +22,11 @@ try:
 except ImportError:
     HAS_SKIMAGE = False
 
+try:
+    import scipy
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]
@@ -178,6 +183,98 @@ def test_extract_array_return_pos():
                                            mode='trim', return_position=True)
         assert new_pos == (expected, )
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_default():
+    # Create an array to test subpixel extraction
+    test_result = np.array([
+        [ 4.33333333,  4.66666667,  5.        ,  5.33333333],
+        [ 4.66666667,  5.        ,  5.33333333,  5.66666667],
+        [ 5.        ,  5.33333333,  5.66666667,  6.        ]])
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    
+    result = extract_array(test_arr, (3,3),(1,3), subsampling=3)
+    assert result.shape==(9,9)
+    assert result[4,4]-test_arr[1,3]<10**-5
+    assert ~np.any(result[6:9,3:7]-test_result>10**-5)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_trim():
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    shape = (3,3)
+    pos = (0,1)
+    result = extract_array(test_arr, shape, pos, subsampling=3, 
+        mode='trim', return_slices=True, order=2)
+    subset, (large_slices, small_slices) = result
+    assert subset.shape==(5,8)
+    assert large_slices[0][0]<10**-5
+    assert (large_slices[0][1]-1.3333333333333)<10**-5
+    assert large_slices[1][0]<10**-5
+    assert (large_slices[1][1]-2.3333333333333)<10**-5
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_partial():
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    shape = (3,3)
+    pos = (0,1)
+    result = extract_array(test_arr, shape, pos, subsampling=3, 
+        mode='partial', return_slices=True, order=2)
+    subset, (large_slices, small_slices) = result
+    assert subset.shape==(9,9)
+    assert (large_slices[0][0]-(-1.3333333333333))<10**-5
+    assert (large_slices[0][1]-1.3333333333333)<10**-5
+    assert (large_slices[1][0]-(-.333333333333))<10**-5
+    assert (large_slices[1][1]-2.3333333333333)<10**-5
+    assert np.sum(np.isnan(subset))==41
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_mask():
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    shape = (3,3)
+    pos = (0,1)
+    result = extract_array(test_arr, shape, pos, subsampling=3, 
+        mode='mask', return_slices=True, order=2)
+    subset, (large_slices, small_slices) = result
+    assert subset.shape==(9,9)
+    assert (large_slices[0][0]-(-1.3333333333333))<10**-5
+    assert (large_slices[0][1]-1.3333333333333)<10**-5
+    assert (large_slices[1][0]-(-.333333333333))<10**-5
+    assert (large_slices[1][1]-2.3333333333333)<10**-5
+    assert np.sum(subset.mask)==41
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_upper_bound():
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    shape = (5,5)
+    pos = (9,8)
+    result = extract_array(test_arr, shape, pos, subsampling=3, 
+        mode='mask', return_slices=True, order=2)
+    subset, (large_slices, small_slices) = result
+    assert subset.shape==(15,15)
+    assert (large_slices[0][0]-6.6666666666666)<10**-5
+    assert (large_slices[0][1]-11.3333333333333)<10**-5
+    assert (large_slices[1][0]-5.6666666666666)<10**-5
+    assert (large_slices[1][1]-10.3333333333333)<10**-5
+    assert np.sum(subset.mask)==155
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_extract_array_subsample_upper_bound_trim():
+    x,y = np.indices((10,10), dtype=float)
+    test_arr = x+y
+    shape = (5,5)
+    pos = (9,8)
+    result = extract_array(test_arr, shape, pos, subsampling=3, 
+        mode='trim', return_slices=True, order=2)
+    subset, (large_slices, small_slices) = result
+    assert subset.shape==(7,10)
+    assert (large_slices[0][0]-6.6666666666666)<10**-5
+    assert (large_slices[0][1]-8.6666666666666)<10**-5
+    assert (large_slices[1][0]-5.6666666666666)<10**-5
+    assert (large_slices[1][1]-8.6666666666666)<10**-5
 
 def test_add_array_odd_shape():
     """

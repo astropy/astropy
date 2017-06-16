@@ -158,11 +158,14 @@ def overlap_slices(large_array_shape, small_array_shape, position,
 
 
 def extract_array(array_large, shape, position, mode='partial',
-                  fill_value=np.nan, return_position=False):
+                  fill_value=np.nan, return_position=False,
+                  subsampling=None, order=3, smoothing=0,
+                  return_slices=False):
     """
     Extract a smaller array of the given shape and position from a
-    larger array.
-
+    larger array. If a subsampling size is entered, the result will
+    be an array that subdivides each pixel using 
+    `~scipy.interpolate.RectBivariateSpline`. 
     Parameters
     ----------
     array_large : `~numpy.ndarray`
@@ -175,9 +178,9 @@ def extract_array(array_large, shape, position, mode='partial',
         large array.  The pixel coordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers
         (for 1D arrays, this can be a number).
-    mode : {'partial', 'trim', 'strict'}, optional
+    mode : {'partial', 'trim', 'strict', 'mask'}, optional
         The mode used for extracting the small array.  For the
-        ``'partial'`` and ``'trim'`` modes, a partial overlap of the
+        ``'partial'``,``'mask'``, and``'trim'`` modes, a partial overlap of the
         small array and the large array is sufficient.  For the
         ``'strict'`` mode, the small array has to be fully contained
         within the large array, otherwise an
@@ -188,6 +191,8 @@ def extract_array(array_large, shape, position, mode='partial',
         array will be filled with ``fill_value``.  In ``'trim'`` mode
         only the overlapping elements are returned, thus the resulting
         small array may be smaller than the requested ``shape``.
+        ``'mask'`` mode works the same as ``'partial'`` except entries
+        equal to ``fill_value`` will be masked.
     fill_value : number, optional
         If ``mode='partial'``, the value to fill pixels in the extracted
         small array that do not overlap with the input ``array_large``.
@@ -196,7 +201,20 @@ def extract_array(array_large, shape, position, mode='partial',
     return_position : boolean, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
-
+    subsampling: int, optional
+        Number of subdivisions for each pixel. The default value is ``None``,
+        which does not subdivide the pixels.
+    order: int, optional
+        If ``subsampling is not None`` this is the order of the spline used to
+        interpolate the subdivided pixels (``kx`` and ``ky`` in 
+        `~scipy.interpolate.RectBivariateSpline`). The default is 3.
+    smoothing: number, optional
+        If ``subsampling is not None`` this is the positive smoothing factor
+        of the spline (``s`` in `~scipy.interpolate.RectBivariateSpline`). 
+        The default is 0.
+    return_indices: boolean, optional
+        If `True`, return the large and small indices or slices 
+        used to extract the array.
     Returns
     -------
     array_small : `~numpy.ndarray`
@@ -208,12 +226,15 @@ def extract_array(array_large, shape, position, mode='partial',
         ``new_position`` might actually be outside of the
         ``array_small``; ``array_small[new_position]`` might give wrong
         results if any element in ``new_position`` is negative.
-
+    slices: tuple
+        If ``return_slices`` is true, this tuple contains
+        (large_slices, small_slices). If ``subampling is None`` 
+        this is the result of `overlap_slices`, otherwise these are 
+        indices to the coordinates in the subsampled arrays.
     Examples
     --------
     We consider a large array with the shape 11x10, from which we extract
     a small array of shape 3x5:
-
     >>> import numpy as np
     >>> from astropy.nddata.utils import extract_array
     >>> large_array = np.arange(110).reshape((11, 10))
@@ -228,25 +249,100 @@ def extract_array(array_large, shape, position, mode='partial',
     if np.isscalar(position):
         position = (position, )
 
-    if mode not in ['partial', 'trim', 'strict']:
+    if mode not in ['partial', 'trim', 'strict', 'mask']:
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
-    large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position, mode=mode)
-    extracted_array = array_large[large_slices]
-    if return_position:
-        new_position = [i - s.start for i, s in zip(position, large_slices)]
-    # Extracting on the edges is presumably a rare case, so treat special here
-    if (extracted_array.shape != shape) and (mode == 'partial'):
-        extracted_array = np.zeros(shape, dtype=array_large.dtype)
-        extracted_array[:] = fill_value
-        extracted_array[small_slices] = array_large[large_slices]
-        if return_position:
-            new_position = [i + s.start for i, s in zip(new_position,
-                                                        small_slices)]
-    if return_position:
-        return extracted_array, tuple(new_position)
+    if mode=='mask':
+        slice_mode = 'partial'
     else:
-        return extracted_array
+        slice_mode = mode
+    
+    # Extract the array
+    if subsampling is None:
+        large_slices, small_slices = overlap_slices(array_large.shape,
+                                                    shape, position, 
+                                                    mode=slice_mode)
+        extracted_array = array_large[large_slices]
+        if return_position:
+            new_position = [i - s.start for i, s in zip(position, large_slices)]
+        
+        # Extracting on the edges is presumably a rare case, 
+        # so treat special here
+        if (extracted_array.shape != shape) and (mode in ['partial','mask']):
+            extracted_array = np.zeros(shape, dtype=array_large.dtype)
+            extracted_array[:] = fill_value
+            extracted_array[small_slices] = array_large[large_slices]
+            if return_position:
+                new_position = [i + s.start for i, s in zip(new_position,
+                                                            small_slices)]
+    else:
+        # Subsample the array, centered on the position
+        try:
+            from scipy import interpolate
+        except ImportError:
+            raise ImportError(
+                "You must have scipy installed to use the subpixel method")
+        if len(array_large.shape)!=2:
+            raise ValueError("Subsampling only works with 2d arrays")
+        # Extract  slightly larger patch of the array to allow for 
+        # interpolation at the edges
+        large_slices, small_slices = overlap_slices(
+            array_large.shape, (shape[0]+2,shape[1]+2), position, 
+            mode=slice_mode)
+        extracted_array = array_large[large_slices]
+        # Create indices from the slices of the large array
+        x_indices = np.arange(array_large.shape[1])[large_slices[1]]
+        y_indices = np.arange(array_large.shape[0])[large_slices[0]]
+        # Build an interpolating function
+        data_func = interpolate.RectBivariateSpline(
+            y_indices, x_indices, 
+            extracted_array, kx=order, ky=order, s=smoothing)
+        # Get the positions in the subsampled array
+        scale = np.floor(subsampling/2.)/subsampling
+        xradius = .5*(shape[1]-1)
+        yradius = .5*(shape[0]-1)
+        sub_x = np.linspace(
+            position[1]-scale-xradius, 
+            position[1]+scale+xradius, 
+            shape[1]*subsampling)
+        sub_y = np.linspace(
+            position[0]-scale-yradius, 
+            position[0]+scale+yradius, 
+            shape[0]*subsampling)
+        extracted_array = data_func(sub_y, sub_x)
+        if mode in ['partial', 'mask']:
+            # Set values outside array_large to fill_value
+            extracted_array[:,sub_x<0] = fill_value
+            extracted_array[sub_y<0,:] = fill_value
+            extracted_array[:,sub_x>=array_large.shape[1]-1] = fill_value
+            extracted_array[sub_y>=array_large.shape[0]-1,:] = fill_value
+        else:
+            cuts = (sub_x>=0)&(sub_x<array_large.shape[1]-1)
+            extracted_array = extracted_array[:,cuts]
+            sub_x = sub_x[cuts]
+            cuts = (sub_y>=0)&(sub_y<array_large.shape[0]-1)
+            extracted_array = extracted_array[cuts,:]
+            sub_y = sub_y[cuts]
+        large_slices = (sub_y, sub_x)
+        small_slices = (np.arange(extracted_array.shape[0]),
+                        np.arange(extracted_array.shape[1]))
+        
+    # Only create a mask if there are any entries to mask
+    if mode=='mask' and (np.any(extracted_array==fill_value) or
+            np.any(np.isnan(extracted_array))):
+        extracted_array = np.ma.array(extracted_array)
+        if np.isnan(fill_value):
+            extracted_array.mask = np.isnan(extracted_array)
+        else:
+            extracted_array.mask = extracted_array==fill_value
+    # Create the result
+    result = [extracted_array]
+    if return_position:
+        result.append(tuple(new_position))
+    if return_slices:
+        result.append((large_slices, small_slices))
+    if len(result)==1:
+        result = result[0]
+    return result
 
 
 def add_array(array_large, array_small, position):
