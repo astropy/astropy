@@ -11,7 +11,8 @@ Introduction
 improvements compared to the scipy `scipy.ndimage` convolution routines,
 including:
 
-* Proper treatment of NaN values
+* Proper treatment of NaN values (ignoring them during convolution and
+  replacing NaN pixels with interpolated values)
 
 * A single function for 1-D, 2-D, and 3-D convolution
 
@@ -72,7 +73,7 @@ within a kernel of any NaN value, which is often not the desired result.
     # have NaNs, but will have some very low value zones where the NaNs were
     # (see panel 3 below)
     scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same',
-    method='direct')
+                                      method='direct')
 
     # astropy's convolution replaces the NaN pixels with a kernel-weighted
     # interpolation from their neighbors
@@ -375,13 +376,23 @@ A note on backward compatibility
 --------------------------------
 
 To get the behavior of the old (astropy version <=1.3) direct convolution
-function, you can interpolate and then convolve, e.g.:
+function (which you probably do not want unless you are explicitly comparing to
+data convolved with direct convolution in old versions of astropy), you can
+interpolate and then convolve, e.g.:
 
 .. code-block:: python
 
     from astropy.convolution import interpolate_replace_nans, convolve
     interped_result = interpolate_replace_nans(image, kernel)
     result = convolve(interped_image, kernel)
+
+Note that the default behavior of both `~astropy.convolution.convolve` and
+`~astropy.convolution.convolve_fft` is to perform *normalized convolution* and
+interpolate NaNs during that process.  The example given in this note, and what
+was previously done only in direct convolution in old versions of astropy, does
+a two-step process: first, it replaces the NaNs with their interpolated values
+while leaving all non-NaN values unchanged, then it convolves the resulting
+image with the specified kernel.
 
 Using `astropy.convolution`
 ===========================
