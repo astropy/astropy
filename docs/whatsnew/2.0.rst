@@ -14,9 +14,20 @@ the 1.3.x series of releases.
 
 In particular, this release includes:
 
-* `Easier use of efficient bytestring Table columns in Python 3`_
+* :ref:`whatsnew-2.0-table-uni-sandwich`
+* :ref:`whatsnew-2.0-cosmo-def`
+* :ref:`whatsnew-2.0-conesearch-astroquery`
+* :ref:`whatsnew-2.0-samp-moved`
 * A :ref:`new "std_ddof" keyword <whatsnew-2.0-ddof>` option was added
   to :func:`~astropy.stats.sigma_clipped_stats`.
+* :ref:`whatsnew-2.0-stats-biweight-midcov`
+* :ref:`whatsnew-2.0-stats-k-func`
+* :ref:`whatsnew-2.0-bintablehdu-from_table`
+* :ref:`whatsnew-2.0-fits-printdiff`
+* :ref:`whatsnew-2.0-molar-mass`
+* :ref:`whatsnew-2.0-models-units`
+* :ref:`whatsnew-2.0-n-submodels`
+* :ref:`whatsnew-2.0-no-bundled-pytest`
 
 In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -25,6 +36,8 @@ smaller improvements and bug fixes, which are described in the
 * xxx issues have been closed since v1.3
 * xxx pull requests have been merged since v1.3
 * xxx distinct people have contributed code
+
+.. _whatsnew-2.0-table-uni-sandwich:
 
 Easier use of efficient bytestring Table columns in Python 3
 ============================================================
@@ -50,6 +63,8 @@ change has been made to behavior for Python 2.
      (and ``bytes`` is really more logical), please open an issue
      on GitHub.
 
+.. _whatsnew-2.0-cosmo-def:
+
 No relativistic species by default in cosmological models
 =========================================================
 
@@ -61,6 +76,8 @@ models).  The justification is to avoid including mass-energy components
 that the user has not explicitly requested.  This is a non-backwards
 compatible change, although the effects are small for most use cases.
 
+.. _whatsnew-2.0-conesearch-astroquery:
+
 Cone search module (``astropy.vo.conesearch``) moved to astroquery
 ==================================================================
 
@@ -69,6 +86,8 @@ The cone search module has been moved to `Astroquery
 Astropy in a future version. The API here will be preserved as "classic" API in
 Astroquery, however some configuration behavior might change; See the Astroquery
 documentation for new usage details.
+
+.. _whatsnew-2.0-samp-moved:
 
 SAMP module moved to `astropy.samp`
 ===================================
@@ -88,6 +107,153 @@ the delta degrees of freedom for the standard deviation calculation.
 Specifically, the divisor used in the calculation is ``N - std_ddof``,
 where ``N`` represents the number of array elements.  The ``std_ddof``
 default value is zero.
+
+.. _whatsnew-2.0-stats-biweight-midcov:
+
+New ``biweight_midcovariance`` function in `astropy.stats`
+==========================================================
+
+A new ``biweight_midcovariance`` function was added to `astropy.stats`.
+This is a robust and resistant estimator of the covariance matrix.
+For example::
+
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_midcovariance
+    >>> # Generate 2D normal sampling of points
+    >>> rng = np.random.RandomState(1)
+    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
+    >>> # Introduce an obvious outlier
+    >>> d[0,0] = 30.0
+    >>> # Calculate biweight covariances
+    >>> bw_cov = biweight_midcovariance(d)
+    >>> # Print out recovered standard deviations
+    >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
+    [ 0.9  3.1]
+
+.. _whatsnew-2.0-stats-k-func:
+
+New statistical estimators for Ripley's K Function
+==================================================
+
+New statistical estimators for Ripley's K Function, ``RipleysKEstimator``,
+in `astropy.stats`. For example:
+
+.. plot::
+
+    import numpy as np
+    from matplotlib import pyplot as plt
+    from astropy.stats import RipleysKEstimator
+    z = np.random.uniform(low=5, high=10, size=(100, 2))
+    Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
+    r = np.linspace(0, 2.5, 100)
+    plt.plot(r, Kest.poisson(r), label='poisson')
+    plt.plot(r, Kest(data=z, radii=r, mode='none'), label='none')
+    plt.plot(r, Kest(data=z, radii=r, mode='translation'), label='translation')
+    plt.plot(r, Kest(data=z, radii=r, mode='ohser'), label='ohser')
+    plt.plot(r, Kest(data=z, radii=r, mode='var-width'), label='var-width')
+    plt.plot(r, Kest(data=z, radii=r, mode='ripley'), label='ripley')
+    plt.legend(loc='upper left')
+
+.. _whatsnew-2.0-bintablehdu-from_table:
+
+New way to instantiate a ``BinTableHDU`` directly from a ``Table``
+==================================================================
+
+A new way to instantiate a FITS ``BinTableHDU`` directly from a ``Table``
+object. For example::
+
+    >>> from astropy.io import fits
+    >>> from astropy.table import Table
+    >>> tab = Table([[1, 2, 3], ['a', 'b', 'c'], [2.3, 4.5, 6.7]],
+    ...             names=['a', 'b', 'c'], dtype=['i', 'U1', 'f'])
+    >>> hdu = fits.BinTableHDU(tab)
+
+.. _whatsnew-2.0-fits-printdiff:
+
+New ``printdiff`` convenience function for FITS
+===============================================
+
+A new ``printdiff`` convenience function was added for comparison between
+FITS files. For example::
+
+    >>> from astropy.io import fits
+    >>> hdu1 = fits.ImageHDU([1, 2, 3])
+    >>> hdu2 = fits.ImageHDU([1, 2.1, 3])
+    >>> fits.printdiff(hdu1, hdu2)
+
+    Headers contain differences:
+      Keyword BITPIX   has different values:
+         a> 64
+         b> -64
+          ? +
+
+    Data contains differences:
+      Data differs at [2]:
+           (int64) a> 2
+         (float64) b> 2.1000000000000001
+      1 different pixels found (33.33% different).
+
+.. _whatsnew-2.0-molar-mass:
+
+New ``molar_mass_amu`` unit equivalency
+=======================================
+
+A new equivalency named ``molar_mass_amu`` to convert between ``g/mol`` unit
+to atomic mass unit (amu). For example::
+
+    >>> from astropy import constants as const
+    >>> from astropy import units as u
+    >>> x = 1 * (u.g / u.mol)
+    >>> y = 1 * u.u
+    >>> x.to(u.u, equivalencies=u.molar_mass_amu())
+    <Quantity 1.0 u>
+    >>> y.to(u.g/u.mol, equivalencies=u.molar_mass_amu())
+    <Quantity 1.0 g / mol>
+
+.. _whatsnew-2.0-models-units:
+
+New unit support for most models
+================================
+
+Most Astropy models now can handle inputs with units, and produce the
+appropriate outputs with units as well. Some models cannot support this due
+to their definitions (e.g., Legendre, Hermite, etc), while some will have
+this capability added in a future release. Example usage::
+
+    >>> from astropy import units as u
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> g = Gaussian1D(amplitude=1*u.J, mean=1*u.m, stddev=0.1*u.m)
+    >>> g([3, 4, 5.5] * u.cm)
+    <Quantity [  3.70353198e-21,  9.72098502e-21,  4.05703276e-20] J>
+
+.. _whatsnew-2.0-n-submodels:
+
+New ``n_submodels`` shared method in single and compound models
+===============================================================
+
+A new ``n_submodels`` shared method in single and compound models.
+This enables accurate reporting of number of sub-models in a given model.
+For example::
+
+    >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
+    >>> g1 = Gaussian1D()
+    >>> g1.n_submodels()
+    1
+    >>> g2 = g1 + Gaussian1D()
+    >>> g2.n_submodels()
+    2
+
+.. _whatsnew-2.0-no-bundled-pytest:
+
+No more bundled ``pytest`` with Astropy distribution
+====================================================
+
+The bundled version of ``pytest`` has now been removed, but the
+``astropy.tests.helper.pytest`` import will continue to work properly.
+Affiliated packages should nevertheless transition to importing ``pytest``
+directly rather than from `astropy.tests.helper`. This also means that
+``pytest`` is now a formal requirement for testing for both Astropy and
+for affiliated packages.
 
 
 Full change log
