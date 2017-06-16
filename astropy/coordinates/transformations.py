@@ -790,7 +790,7 @@ class BaseAffineTransform(CoordinateTransform):
             newdiff = newdiff.represent_as(CartesianDifferential)
             newrep._differentials = (newdiff,)
 
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
+        if isinstance(fromcoord.data, UnitSphericalRepresentation):
             # need to special-case this because otherwise the new class will
             # think it has a valid distance
             newrep = newrep.represent_as(fromcoord.data.__class__)

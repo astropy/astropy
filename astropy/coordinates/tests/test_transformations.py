@@ -58,6 +58,7 @@ def test_transform_classes():
     # already got unregistered when trans2 was created.
     trans2.unregister(frame_transform_graph)
 
+
 def test_transform_decos():
     """
     Tests the decorator syntax for creating transforms

@@ -165,7 +165,7 @@ def get_matrix_vectors(galactocentric_frame):
     # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
     translation = CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
-    z_d = (gcf.z_sun / gcf.galcen_distance).decompose()
+    z_d = (gcf.z_sun / gcf.galcen_distance)
     H = rotation_matrix(-np.arcsin(z_d), 'y')
 
     # compute total matrices

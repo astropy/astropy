@@ -287,7 +287,7 @@ _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
 @frame_transform_graph.transform(AffineTransform, HCRS, ICRS)
 def hcrs_to_icrs(hcrs_coo, icrs_frame):
     # this is just an origin translation so without a distance it cannot go ahead
-    if hcrs_coo.data.__class__ == UnitSphericalRepresentation:
+    if isinstance(hcrs_coo.data, UnitSphericalRepresentation):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
     bary_sun_vel = None
@@ -309,7 +309,7 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
 @frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
     # this is just an origin translation so without a distance it cannot go ahead
-    if icrs_coo.data.__class__ == UnitSphericalRepresentation:
+    if isinstance(icrs_coo.data, UnitSphericalRepresentation):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
 
     if icrs_coo.data.differentials:
