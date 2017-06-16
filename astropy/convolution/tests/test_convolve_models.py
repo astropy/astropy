@@ -63,4 +63,4 @@ class TestConvolve1DModels(object):
         fitted_model = fitter(init_model, x, fake_data)
 
         me = np.mean(fitted_model(x) - fake_data)
-        assert_almost_equal(1e-2, me, decimal=2)
+        assert_almost_equal(me, 0.0, decimal=2)
