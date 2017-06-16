@@ -10,8 +10,8 @@ import socket
 import threading
 import warnings
 
-from ... import log
-from ...extern.six.moves.urllib.parse import urlunparse
+from .. import log
+from ..extern.six.moves.urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
@@ -31,8 +31,8 @@ class SAMPClient(object):
 
     Parameters
     ----------
-    hub : :class:`~astropy.vo.samp.SAMPHubProxy`
-        An instance of :class:`~astropy.vo.samp.SAMPHubProxy` to be
+    hub : :class:`~astropy.samp.SAMPHubProxy`
+        An instance of :class:`~astropy.samp.SAMPHubProxy` to be
         used for messaging with the SAMP Hub.
 
     name : str, optional
@@ -239,10 +239,10 @@ class SAMPClient(object):
         Standard callable client ``receive_notification`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_notification`
         method is used to bind distinct operations to MTypes. In case of a
         customized callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -290,10 +290,10 @@ class SAMPClient(object):
         Standard callable client ``receive_call`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call` method is
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_call` method is
         used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -332,10 +332,10 @@ class SAMPClient(object):
         Standard callable client ``receive_response`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_response` method
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_response` method
         is used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -392,12 +392,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
 
         self.bind_receive_call(mtype, function, declare=declare,
@@ -432,12 +432,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -475,12 +475,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -530,7 +530,7 @@ class SAMPClient(object):
         declare : bool
             Specify whether the client must be automatically declared as
             unsubscribed from the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._notification_bindings[mtype]
@@ -552,7 +552,7 @@ class SAMPClient(object):
         declare : bool
             Specify whether the client must be automatically declared as
             unsubscribed from the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._call_bindings[mtype]
@@ -579,11 +579,11 @@ class SAMPClient(object):
         """
         Declares the MTypes the client wishes to subscribe to, implicitly
         defined with the MType binding methods
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
-        and :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call`.
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_notification`
+        and :meth:`~astropy.samp.client.SAMPClient.bind_receive_call`.
 
         An optional ``subscriptions`` map can be added to the final map passed
-        to the :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
+        to the :meth:`~astropy.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
         method.
 
         Parameters
@@ -591,7 +591,7 @@ class SAMPClient(object):
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to, with the
             same format of the ``subscriptions`` map passed to the
-            :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
+            :meth:`~astropy.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
             method.
         """
         if self._callable:

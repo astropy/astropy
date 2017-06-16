@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import copy
 
-from ...extern.six.moves import xmlrpc_client as xmlrpc
+from ..extern.six.moves import xmlrpc_client as xmlrpc
 
 from .errors import SAMPHubError
 from .utils import ServerProxyPool
@@ -38,7 +38,7 @@ class SAMPHubProxy(object):
 
         Parameters
         ----------
-        hub : `~astropy.vo.samp.SAMPHubServer`, optional
+        hub : `~astropy.samp.SAMPHubServer`, optional
             The hub to connect to.
 
         hub_params : dict, optional
