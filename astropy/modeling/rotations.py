@@ -31,6 +31,8 @@ from .parameters import Parameter
 from ..extern.six.moves import zip
 from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
+from ..utils.decorators import deprecated
+
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
@@ -40,18 +42,28 @@ class _EulerRotation(object):
     """
     Base class which does the actual computation.
     """
+
+    # We allow values without units to be passed when evaluating the model, and
+    # in this case the input (alpha, delta) values are assumed to be deg.
+    input_units_allow_dimensionless = True
+
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
         for angle, axis in zip([phi, theta, psi], axes_order):
-            # We use float here to coerce the angle to a scalar value, otherwise
-            # rotation_matrix would return a (1,3,3) matrix.
-            matrices.append(rotation_matrix(float(angle), axis, unit=u.rad))
+            angle = np.asscalar(angle)
+            matrices.append(rotation_matrix(angle, axis, unit=u.rad))
         return matrix_product(*matrices[::-1])
 
     @staticmethod
     def spherical2cartesian(alpha, delta):
-        alpha = np.deg2rad(alpha)
-        delta = np.deg2rad(delta)
+        if isinstance(alpha, u.Quantity):
+            alpha = alpha.to(u.rad)
+        else:
+            alpha = np.deg2rad(alpha)
+        if isinstance(delta, u.Quantity):
+            delta = delta.to(u.rad)
+        else:
+            delta = np.deg2rad(delta)
         x = np.cos(alpha) * np.cos(delta)
         y = np.cos(delta) * np.sin(alpha)
         z = np.sin(delta)
@@ -64,6 +76,7 @@ class _EulerRotation(object):
         delta = np.rad2deg(np.arctan2(z, h))
         return alpha, delta
 
+    @deprecated(2.0)
     @staticmethod
     def rotation_matrix_from_angle(angle):
         """
@@ -97,25 +110,37 @@ class EulerAngleRotation(_EulerRotation, Model):
     """
     Implements Euler angle intrinsic rotations.
 
+    Notes
+    -----
     Rotates one coordinate system into another (fixed) coordinate system.
     All coordinate systems are right-handed. The sign of the angles is
-    determined by the right-hand rule..
+    determined by the right-hand rule.
+    The result has the same units as the initializing Euler angles.
+    If the initializing Euler angles are numbers they should be in units of deg,
+    in which case the output units are degrees.
 
     Parameters
     ----------
-    phi, theta, psi : float
-        "proper" Euler angles in deg
+    phi, theta, psi : float or `~astropy.units.Quantity`
+        "proper" Euler angles
     axes_order : str
         A 3 character string, a combination of 'x', 'y' and 'z',
         where each character denotes an axis in 3D space.
+
+    Returns
+    -------
+    alpha, delta : float or `~astropy.units.Quantity`
+        Rotated angles in the units of the Euler angles.
+        Default units are degrees.
+
     """
 
-    inputs = ('alpha', 'delta')
+    inputs = ('x', 'y')
     outputs = ('alpha', 'delta')
 
-    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter(default=0)
+    theta = Parameter(default=0)
+    psi = Parameter(default=0)
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
         self.axes = ['x', 'y', 'z']
@@ -128,6 +153,23 @@ class EulerAngleRotation(_EulerRotation, Model):
             raise ValueError("Unrecognized axis label {0}; "
                              "should be one of {1} ".format(unrecognized, self.axes))
         self.axes_order = axes_order
+
+        qs = [isinstance(par, u.Quantity) for par in [phi, theta, psi]]
+        if any(qs) and not all(qs):
+            raise TypeError("All parameters should be of the same type - float or Quantity.")
+
+        if not isinstance(phi, u.Quantity):
+            phi = np.deg2rad(phi)
+        else:
+            phi = phi.to(u.rad)
+        if not isinstance(psi, u.Quantity):
+            psi = np.deg2rad(psi)
+        else:
+            psi = psi.to(u.rad)
+        if not isinstance(theta, u.Quantity):
+            theta = np.deg2rad(theta)
+        else:
+            theta = theta.to(u.rad)
         super(EulerAngleRotation, self).__init__(phi=phi, theta=theta, psi=psi, **kwargs)
 
     def inverse(self):
@@ -137,18 +179,15 @@ class EulerAngleRotation(_EulerRotation, Model):
                               axes_order=self.axes_order[::-1])
 
     def evaluate(self, alpha, delta, phi, theta, psi):
-        shape = None
-        if isinstance(alpha, np.ndarray) and alpha.ndim == 2:
-            alpha = alpha.flatten()
-            delta = delta.flatten()
-            shape = alpha.shape
-        inp = self.spherical2cartesian(alpha, delta)
-        matrix = self._create_matrix(phi, theta, psi, self.axes_order)
-        result = np.dot(matrix, inp)
-        a, b = self.cartesian2spherical(*result)
-        if shape is not None:
-            a.shape = shape
-            b.shape = shape
+        a, b = super(EulerAngleRotation, self).evaluate(alpha, delta, phi, theta, psi, self.axes_order)
+        if isinstance(alpha, u.Quantity):
+            if isinstance(a, u.Quantity):
+                a = a.to(alpha.unit)
+                b = b.to(alpha.unit)
+            else:
+                # it's in deg
+                a = u.Quantity(a, unit=u.deg).to(alpha.unit)
+                b = u.Quantity(b, unit=u.deg).to(alpha.unit)
         return a, b
 
 
@@ -157,24 +196,63 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    lat = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    lon_pole = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    lon = Parameter(default=0)
+    lat = Parameter(default=0)
+    lon_pole = Parameter(default=0)
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
-        super(_SkyRotation, self).__init__(lon, lat, lon_pole, **kwargs)
+
         self.axes_order = 'zxz'
+
+        qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
+        if any(qs) and not all(qs):
+            raise TypeError("All parameters should be of the same type - float or Quantity.")
+
+        if not isinstance(lon, u.Quantity):
+            lon = np.deg2rad(lon)
+        else:
+            lon = lon.to(u.rad)
+        if not isinstance(lon_pole, u.Quantity):
+            lon_pole = np.deg2rad(lon_pole)
+        else:
+            lon_pole = lon_pole.to(u.rad)
+        if not isinstance(lat, u.Quantity):
+            lat = np.deg2rad(lat)
+        else:
+            lat = lat.to(u.rad)
+
+        super(_SkyRotation, self).__init__(lon, lat, lon_pole, **kwargs)
 
     def _evaluate(self, phi, theta, lon, lat, lon_pole):
         alpha, delta = super(_SkyRotation, self).evaluate(phi, theta, lon, lat,
                                                           lon_pole, self.axes_order)
-        mask = alpha < 0
-        if isinstance(mask, np.ndarray):
-            alpha[mask] += 360
+        if isinstance(alpha, u.Quantity):
+            avalue = alpha.value
         else:
-            alpha += 360
+            avalue = alpha
+        mask = avalue < 0
+        if isinstance(mask, np.ndarray):
+            avalue[mask] += 360
+        else:
+            avalue += 360
+        if isinstance(alpha, u.Quantity):
+            alpha = u.Quantity(avalue, alpha.unit)
         return alpha, delta
 
+    def _convert_parameters(self):
+        if self.lon.unit is None:
+            lon = np.rad2deg(self.lon)
+        else:
+            lon = self.lon
+        if self.lat.unit is None:
+            lat = np.rad2deg(self.lat)
+        else:
+            lat = self.lat
+        if self.lon_pole.unit is None:
+            lon_pole = np.rad2deg(self.lon_pole)
+        else:
+            lon_pole = self.lon_pole
+        return lon, lat, lon_pole
 
 class RotateNative2Celestial(_SkyRotation):
     """
@@ -199,17 +277,23 @@ class RotateNative2Celestial(_SkyRotation):
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
         # Convert to Euler angles
-        phi = lon_pole - np.pi / 2
-        theta = - (np.pi / 2 - lat)
-        psi = -(np.pi / 2 + lon)
+        if isinstance(lon, u.Quantity):
+            phi = lon_pole.value - np.pi / 2
+            theta = - (np.pi / 2 - lat.value)
+            psi = -(np.pi / 2 + lon.value)
+        else:
+            phi = lon_pole - np.pi / 2
+            theta = - (np.pi / 2 - lat)
+            psi = -(np.pi / 2 + lon)
         alpha_C, delta_C = super(RotateNative2Celestial, self)._evaluate(phi_N, theta_N,
                                                                          phi, theta, psi)
         return alpha_C, delta_C
 
     @property
     def inverse(self):
-        # convert to angles on the celestial sphere
-        return RotateCelestial2Native(self.lon, self.lat, self.lon_pole)
+        # convert to deg
+        lon, lat, lon_pole  = self._convert_parameters()
+        return RotateCelestial2Native(lon, lat, lon_pole)
 
 
 class RotateCelestial2Native(_SkyRotation):
@@ -237,16 +321,23 @@ class RotateCelestial2Native(_SkyRotation):
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
         # Convert to Euler angles
-        phi = (np.pi / 2 + lon)
-        theta =  (np.pi / 2 - lat)
-        psi = -(lon_pole - np.pi / 2)
+        if isinstance(lon, u.Quantity):
+            phi = (np.pi / 2 + lon.value)
+            theta =  (np.pi / 2 - lat.value)
+            psi = -(lon_pole.value - np.pi / 2)
+        else:
+            phi = (np.pi / 2 + lon)
+            theta =  (np.pi / 2 - lat)
+            psi = -(lon_pole - np.pi / 2)
         phi_N, theta_N = super(RotateCelestial2Native, self)._evaluate(alpha_C, delta_C,
                                                                        phi, theta, psi)
         return phi_N, theta_N
 
     @property
     def inverse(self):
-        return RotateNative2Celestial(self.lon, self.lat, self.lon_pole)
+        # convert to deg
+        lon, lat, lon_pole  = self._convert_parameters()
+        return RotateNative2Celestial(lon, lat, lon_pole)
 
 
 class Rotation2D(Model):
@@ -264,13 +355,27 @@ class Rotation2D(Model):
     inputs = ('x', 'y')
     outputs = ('x', 'y')
 
-    angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
+    angle = Parameter(default=0.0)
+
+    # We allow values without units to be passed when evaluating the model, and
+    # in this case the input (x, y) values are assumed to be deg.
+    input_units_allow_dimensionless = True
+
+    def __init__(self, angle, **kwargs):
+        if isinstance(angle, u.Quantity):
+            angle = angle.to(u.rad)
+        else:
+            angle = np.deg2rad(angle)
+
+        super(Rotation2D, self).__init__(angle=angle, **kwargs)
 
     @property
     def inverse(self):
         """Inverse rotation."""
-
-        return self.__class__(angle=-self.angle)
+        if self.angle.unit is not None:
+            return self.__class__(angle=-self.angle)
+        else:
+            return self.__class__(angle=-np.rad2deg(self.angle))
 
     @classmethod
     def evaluate(cls, x, y, angle):
@@ -279,21 +384,26 @@ class Rotation2D(Model):
         lists--one for the x coordinates and one for a y coordinates--or a
         single coordinate pair.
         """
-
+        unit = None
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-
+        if isinstance(x, u.Quantity):
+            unit = x.unit
         inarr = np.array([x.flatten(), y.flatten()])
-        result = np.dot(cls._compute_matrix(angle), inarr)
+        if isinstance(angle, u.Quantity):
+            angle = angle.value
 
+        result = np.dot(cls._compute_matrix(angle), inarr)
         x, y = result[0], result[1]
         x.shape = y.shape = orig_shape
-
-        return x, y
+        if unit is not None:
+            return u.Quantity(x, unit=unit), u.Quantity(y, unit=unit)
+        else:
+            return x, y
 
     @staticmethod
     def _compute_matrix(angle):
