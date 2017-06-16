@@ -16,7 +16,7 @@ from ...units import Quantity as Q
 
 def test_c():
 
-    from ..CODATA2010 import c
+    from ..codata2010 import c
 
     # c is an exactly defined constant, so it shouldn't be changing
     assert c.value == 2.99792458e8  # default is S.I.
@@ -32,13 +32,16 @@ def test_c():
 
 def test_h():
 
-    from ..CODATA2010 import h
+    from ..codata2010 import h
+    from .. import h as h_current
 
-    # check that the value is fairly close to what it should be (not exactly
-    # checking because this might get updated in the future)
-    assert abs(h.value - 6.626e-34) < 1e-38
-    assert abs(h.si.value - 6.626e-34) < 1e-38
-    assert abs(h.cgs.value - 6.626e-27) < 1e-31
+    # check that the value is the CODATA2010 value
+    assert abs(h.value - 6.62606957e-34) < 1e-43
+    assert abs(h.si.value - 6.62606957e-34) < 1e-43
+    assert abs(h.cgs.value - 6.62606957e-27) < 1e-36
+
+    # Check it is different than the current value
+    assert abs(h.value - h_current.value) > 4e-42
 
     # make sure it has the necessary attributes and they're not blank
     assert h.uncertainty
@@ -49,13 +52,14 @@ def test_h():
 
 def test_e():
 
-    from ..ASTROPYCONST13 import e
+    from ..astropyconst13 import e
 
     # A test quantity
     E = Q(100.00000348276221, 'V/m')
 
     # e.cgs is too ambiguous and should not work at all
-    pytest.raises(TypeError, lambda: e.cgs * E)
+    with pytest.raises(TypeError):
+        e.cgs * E
 
     assert isinstance(e.si, Q)
     assert isinstance(e.gauss, Q)
@@ -68,7 +72,7 @@ def test_e():
 
 def test_g0():
     """Tests for #1263 demonstrating how g0 constant should behave."""
-    from ..ASTROPYCONST13 import g0
+    from ..astropyconst13 import g0
 
     # g0 is an exactly defined constant, so it shouldn't be changing
     assert g0.value == 9.80665  # default is S.I.
@@ -90,7 +94,7 @@ def test_b_wien():
     given blackbody temperature. The Sun is used in this test.
 
     """
-    from ..ASTROPYCONST13 import b_wien
+    from ..astropyconst13 import b_wien
     from ... import units as u
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
@@ -101,7 +105,7 @@ def test_unit():
 
     from ... import units as u
 
-    from .. import ASTROPYCONST13 as const
+    from .. import astropyconst13 as const
 
     for key, val in six.iteritems(vars(const)):
         if isinstance(val, Constant):
