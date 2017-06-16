@@ -1,4 +1,4 @@
-.. _stats-robust:
+.. _stats-circular:
 
 *******************
 Circular Statistics
