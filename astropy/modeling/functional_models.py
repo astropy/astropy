@@ -528,7 +528,7 @@ class Gaussian2D(Fittable2DModel):
                             ('amplitude', outputs_unit['z'])])
 
 
-class Shift(Model):
+class Shift(Fittable1DModel):
     """
     Shift a coordinate.
 
@@ -542,20 +542,34 @@ class Shift(Model):
     outputs = ('x',)
 
     offset = Parameter(default=0)
-    fittable = True
+    linear = True
 
     @property
     def inverse(self):
+        """One dimensional inverse Shift model function"""
         inv = self.copy()
         inv.offset *= -1
         return inv
 
     @staticmethod
     def evaluate(x, offset):
+        """One dimensional Shift model function"""
         return x + offset
 
+    @staticmethod
+    def sum_of_implicit_terms(x):
+        """Evaluate the implicit term (x) of one dimensional Shift model"""
+        return x
 
-class Scale(Model):
+    @staticmethod
+    def fit_deriv(x, *params):
+        """One dimensional Shift model derivative with respect to parameter"""
+
+        d_offset = np.ones_like(x)
+        return [d_offset]
+
+
+class Scale(Fittable1DModel):
     """
     Multiply a model by a factor.
 
@@ -574,13 +588,22 @@ class Scale(Model):
 
     @property
     def inverse(self):
+        """One dimensional inverse Scale model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
         return inv
 
     @staticmethod
     def evaluate(x, factor):
+        """One dimensional Scale model function"""
         return factor * x
+
+    @staticmethod
+    def fit_deriv(x, *params):
+        """One dimensional Scale model derivative with respect to parameter"""
+
+        d_factor = x
+        return [d_factor]
 
 
 class RedshiftScaleFactor(Fittable1DModel):
