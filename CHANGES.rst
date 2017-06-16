@@ -94,6 +94,8 @@ New Features
 
   - Implemented statistical estimators for Ripley's K Function. [#5712]
 
+  - Added ``SigmaClip`` class. [#6206]
+
   - Added ``std_ddof`` keyword option to ``sigma_clipped_stats``.
     [#6066, #6207]
 
