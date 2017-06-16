@@ -197,7 +197,7 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False):
 
     See Also
     --------
-    biweight_midvariance, biweight_midcovariance, biweight_location, mad_std, median_absolute_deviation
+    biweight_midvariance, biweight_midcovariance, biweight_location, astropy.stats.mad_std, astropy.stats.median_absolute_deviation
 
     References
     ----------
@@ -305,7 +305,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     See Also
     --------
-    biweight_midcovariance, biweight_midcorrelation, mad_std, median_absolute_deviation
+    biweight_midcovariance, biweight_midcorrelation, astropy.stats.mad_std, astropy.stats.median_absolute_deviation
 
     References
     ----------
