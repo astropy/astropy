@@ -216,8 +216,8 @@ here is an example::
     >>> beam_sigma = 50*u.arcsec
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    3.526295...
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
+    3.526295144567176
 
 .. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
           the conversion factor from Jy/beam to K (because ``u.beam`` cannot
