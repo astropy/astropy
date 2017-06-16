@@ -1249,6 +1249,19 @@ class Model(object):
     def evaluate(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
 
+    def sum_of_implicit_terms(self, *args, **kwargs):
+        """
+        Evaluate the sum of any implicit model terms on some input variables.
+        This includes any fixed terms used in evaluating a linear model that
+        do not have corresponding parameters exposed to the user. The
+        prototypical case is `astropy.modeling.functional_models.Shift`, which
+        corresponds to a function y = a + bx, where b=1 is intrinsically fixed
+        by the type of model, such that sum_of_implicit_terms(x) == x. This
+        method is needed by linear fitters to correct the dependent variable
+        for the implicit term(s) when solving for the remaining terms
+        (ie. a = y - bx).
+        """
+
     def render(self, out=None, coords=None):
         """
         Evaluate a model at fixed positions, respecting the ``bounding_box``.
