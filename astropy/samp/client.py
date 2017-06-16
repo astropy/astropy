@@ -10,19 +10,16 @@ import socket
 import threading
 import warnings
 
-from ... import log
-from ...extern.six.moves.urllib.parse import urlunparse
+from .. import log
+from ..extern.six.moves.urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
 from .errors import SAMPClientError, SAMPWarning
 from .utils import internet_on, get_num_args
 
-from .constants import SSL_SUPPORT
 from .standard_profile import ThreadingXMLRPCServer
 
-if SSL_SUPPORT:
-    from .ssl_utils import SecureXMLRPCServer
 
 __all__ = ['SAMPClient']
 
@@ -34,8 +31,8 @@ class SAMPClient(object):
 
     Parameters
     ----------
-    hub : :class:`~astropy.vo.samp.SAMPHubProxy`
-        An instance of :class:`~astropy.vo.samp.SAMPHubProxy` to be
+    hub : :class:`~astropy.samp.SAMPHubProxy`
+        An instance of :class:`~astropy.samp.SAMPHubProxy` to be
         used for messaging with the SAMP Hub.
 
     name : str, optional
@@ -56,42 +53,6 @@ class SAMPClient(object):
         Listening XML-RPC server socket port. If left set to 0 (the default),
         the operating system will select a free port.
 
-    https : bool, optional
-        If `True`, set the callable client running on a Secure Sockets Layer
-        (SSL) connection (HTTPS). By default SSL is disabled.
-
-    key_file : str, optional
-        The path to a file containing the private key for SSL connections. If
-        the certificate file (``cert_file``) contains the private key, then
-        ``key_file`` can be omitted.
-
-    cert_file : str, optional
-        The path to a file which contains a certificate to be used to identify
-        the local side of the secure connection.
-
-    cert_reqs : int, optional
-        Whether a certificate is required from the server side of the
-        connection, and whether it will be validated if provided. It must be
-        one of the three values `ssl.CERT_NONE` (certificates ignored),
-        `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
-        `ssl.CERT_REQUIRED` (required and validated). If the value of this
-        parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
-        point to a file of CA certificates.
-
-    ca_certs : str, optional
-        The path to a file containing a set of concatenated "Certification
-        Authority" certificates, which are used to validate the certificate
-        passed from the Hub end of the connection.
-
-    ssl_version : int, optional
-        Which version of the SSL protocol to use. Typically, the
-        server chooses a particular protocol version, and the client
-        must adapt to the server's choice. Most of the versions are
-        not interoperable with the other versions. If not specified,
-        the default SSL version is taken from the default in the
-        installed version of the Python standard `ssl` library.  See
-        the `ssl` documentation for more information.
-
     callable : bool, optional
         Whether the client can receive calls and notifications. If set to
         `False`, then the client can send notifications and calls, but can not
@@ -101,8 +62,7 @@ class SAMPClient(object):
     # TODO: define what is meant by callable
 
     def __init__(self, hub, name=None, description=None, metadata=None,
-                 addr=None, port=0, https=False, key_file=None, cert_file=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=None, callable=True):
+                 addr=None, port=0, callable=True):
 
         # GENERAL
         self._is_running = False
@@ -149,13 +109,8 @@ class SAMPClient(object):
             self._thread = threading.Thread(target=self._serve_forever)
             self._thread.daemon = True
 
-            if SSL_SUPPORT and https:
-                self.client = SecureXMLRPCServer((self._addr or self._host_name, self._port),
-                                                 key_file, cert_file, cert_reqs, ca_certs, ssl_version,
-                                                 log, logRequests=False, allow_none=True)
-            else:
-                self.client = ThreadingXMLRPCServer((self._addr or self._host_name,
-                                                     self._port), logRequests=False, allow_none=True)
+            self.client = ThreadingXMLRPCServer((self._addr or self._host_name,
+                                                 self._port), logRequests=False, allow_none=True)
 
             self.client.register_introspection_functions()
             self.client.register_function(self.receive_notification, 'samp.client.receiveNotification')
@@ -167,10 +122,7 @@ class SAMPClient(object):
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
 
-            if SSL_SUPPORT and https:
-                protocol = 'https'
-            else:
-                protocol = 'http'
+            protocol = 'http'
 
             self._xmlrpcAddr = urlunparse((protocol,
                                            '{0}:{1}'.format(self._addr or self._host_name,
@@ -287,10 +239,10 @@ class SAMPClient(object):
         Standard callable client ``receive_notification`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_notification`
         method is used to bind distinct operations to MTypes. In case of a
         customized callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -338,10 +290,10 @@ class SAMPClient(object):
         Standard callable client ``receive_call`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call` method is
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_call` method is
         used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -380,10 +332,10 @@ class SAMPClient(object):
         Standard callable client ``receive_response`` method.
 
         This method is automatically handled when the
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_response` method
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_response` method
         is used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.SAMPClient` class this method should be
+        :class:`~astropy.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -440,12 +392,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
 
         self.bind_receive_call(mtype, function, declare=declare,
@@ -480,12 +432,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -523,12 +475,12 @@ class SAMPClient(object):
         declare : bool, optional
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -578,7 +530,7 @@ class SAMPClient(object):
         declare : bool
             Specify whether the client must be automatically declared as
             unsubscribed from the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._notification_bindings[mtype]
@@ -600,7 +552,7 @@ class SAMPClient(object):
         declare : bool
             Specify whether the client must be automatically declared as
             unsubscribed from the MType (see also
-            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._call_bindings[mtype]
@@ -627,11 +579,11 @@ class SAMPClient(object):
         """
         Declares the MTypes the client wishes to subscribe to, implicitly
         defined with the MType binding methods
-        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
-        and :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call`.
+        :meth:`~astropy.samp.client.SAMPClient.bind_receive_notification`
+        and :meth:`~astropy.samp.client.SAMPClient.bind_receive_call`.
 
         An optional ``subscriptions`` map can be added to the final map passed
-        to the :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
+        to the :meth:`~astropy.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
         method.
 
         Parameters
@@ -639,7 +591,7 @@ class SAMPClient(object):
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to, with the
             same format of the ``subscriptions`` map passed to the
-            :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
+            :meth:`~astropy.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
             method.
         """
         if self._callable:

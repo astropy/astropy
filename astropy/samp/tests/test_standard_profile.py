@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from ....utils.data import get_pkg_data_filename
+from ...utils.data import get_pkg_data_filename
 
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
@@ -14,25 +14,12 @@ from .. import conf
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
-try:
-    OPENSSL_VERSION_LT_1_1 = ssl.OPENSSL_VERSION_INFO[:2] < (1, 1)
-except Exception:
-    OPENSSL_VERSION_LT_1_1 = True
-
 
 def setup_module(module):
     conf.use_internet = False
 
-TEST_CERT1 = get_pkg_data_filename('data/test1.crt')
-TEST_KEY1 = get_pkg_data_filename('data/test1.key')
-
-TEST_CERT2 = get_pkg_data_filename('data/test2.crt')
-TEST_KEY2 = get_pkg_data_filename('data/test2.key')
-
 
 class TestStandardProfile(object):
-
-    conf = 'no_https'
 
     @property
     def hub_init_kwargs(self):
@@ -246,47 +233,3 @@ class TestStandardProfile(object):
                       self.client1_id, params, timeout=60)
 
         # TODO: check that receive_response received the right data
-
-
-# Note: The TestStandardProfileHTTPSHub and / or TestStandardProfileHTTPSHubClient
-# tests are "randomly" failing from time to time
-# on travis-ci, so for now we mark them xfail and skip them
-# We have the following issues to make sure this is not forgotten:
-# https://github.com/astropy/astropy/issues/2064
-# https://github.com/astropy/astropy/issues/2126
-# https://github.com/astropy/astropy/issues/2321
-
-@pytest.mark.skipif(not OPENSSL_VERSION_LT_1_1,
-                    reason='test fails with openssl 1.1')
-class TestStandardProfileHTTPSHub(TestStandardProfile):
-
-    conf = 'https_hub'
-
-    @property
-    def hub_init_kwargs(self):
-        return {
-                'https': True,
-                'cert_file': TEST_CERT1,
-                'key_file': TEST_KEY1,
-               }
-
-
-class TestStandardProfileHTTPSHubClient(TestStandardProfile):
-
-    conf = 'https_hub_client'
-
-    @property
-    def hub_init_kwargs(self):
-        return {
-                'https': True,
-                'cert_file': TEST_CERT1,
-                'key_file': TEST_KEY1,
-               }
-
-    @property
-    def client_init_kwargs(self):
-        return {
-                'https': True,
-                'cert_file': TEST_CERT2,
-                'key_file': TEST_KEY2,
-               }

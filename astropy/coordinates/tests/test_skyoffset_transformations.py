@@ -289,4 +289,4 @@ def test_skyoffset_origindata():
 def test_skyoffset_lonwrap():
     origin = ICRS(45*u.deg, 45*u.deg)
     sc = SkyCoord(190*u.deg, -45*u.deg, frame=SkyOffsetFrame(origin=origin))
-    assert sc.lon.to(u.deg).value < 180
+    assert sc.lon < 180 * u.deg

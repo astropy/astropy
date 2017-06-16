@@ -12,25 +12,18 @@ import socket
 import stat
 import warnings
 
-from ...config.paths import _find_home
+from ..config.paths import _find_home
 
-from ...extern.six.moves.urllib.parse import urlparse
-from ...extern.six.moves import xmlrpc_client as xmlrpc
-from ...extern import six
+from ..extern.six.moves.urllib.parse import urlparse
+from ..extern.six.moves import xmlrpc_client as xmlrpc
+from ..extern import six
 
-from ... import log
+from .. import log
 
-from ...utils.compat import suppress
-from ...utils.data import get_readable_fileobj
+from ..utils.compat import suppress
+from ..utils.data import get_readable_fileobj
 
-from .constants import SSL_SUPPORT
 from .errors import SAMPHubError, SAMPWarning
-
-if SSL_SUPPORT:
-    import ssl
-    SSL_EXCEPTIONS = (ssl.SSLError,)
-else:
-    SSL_EXCEPTIONS = ()
 
 
 def read_lockfile(lockfilename):
@@ -239,10 +232,6 @@ def check_running_hub(lockfilename):
         except xmlrpc.ProtocolError:
             # There is a protocol error (e.g. for authentication required),
             # but the server is alive
-            is_running = True
-        except SSL_EXCEPTIONS:
-            # SSL connection refused for certificate reasons...
-            # anyway the server is alive
             is_running = True
         except socket.error:
             pass

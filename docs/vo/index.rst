@@ -6,19 +6,20 @@ Virtual Observatory Access (``astropy.vo``)
 
 .. module:: astropy.vo
 
-Introduction
-============
+.. warning::
+
+    The ``astropy.vo`` module has been deprecated and will be removed
+    in a future version. The SAMP functionality has been moved
+    to ``astropy.samp``, and the conesearch functionality has been
+    moved to `Astroquery <http://astroquery.readthedocs.io>`_.
 
 The ``astropy.vo`` subpackage handles simple access for Virtual Observatory
 (VO) services.
-
-Current services include:
 
 .. toctree::
    :maxdepth: 1
 
    conesearch/index
-   samp/index
 
 Other third-party Python packages and tools related to ``astropy.vo``:
 

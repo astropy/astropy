@@ -337,7 +337,7 @@ class HTML(core.BaseReader):
         """
 
         self.outputter = HTMLOutputter()
-        return core.BaseReader.read(self, table)
+        return super(HTML, self).read(table)
 
     def write(self, table):
         """
