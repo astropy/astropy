@@ -371,6 +371,17 @@ eye).
    ax2.set_yticklabels([])
 
 
+A note on backward compatibility
+--------------------------------
+
+To get the behavior of the old (astropy version <=1.3) direct convolution
+function, you can interpolate and then convolve, e.g.:
+
+.. code-block:: python
+
+    from astropy.convolution import interpolate_and_replace_nans, convolve
+    interped_result = interpolate_and_replace_nans(image, kernel)
+    result = convolve(interped_image, kernel)
 
 Using `astropy.convolution`
 ===========================
