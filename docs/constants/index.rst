@@ -67,6 +67,53 @@ cannot be used in expressions without specifying a system::
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
 
+Versions of Constants
+=====================
+
+Versions of constants from earlier versions of Astropy, as well as the
+current version, are accessible by importing modules, for example:
+
+    >>> from astropy.constants import astropyconst13 as const
+    >>> print(const.e)
+      Name   = Electron charge
+      Value  = 1.602176565e-19
+      Uncertainty  = 3.5e-27
+      Unit  = C
+      Reference = CODATA 2010
+
+Physical constants are in modules with names like ``codata2010`` or
+``codata2014``:
+
+    >>> from astropy.constants import codata2010 as const
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+
+Astronomical constants are in modules with names like ``iau2012`` or
+``iau2015``:
+
+    >>> from astropy.constants import iau2012 as const
+    >>> print(const.L_sun)
+      Name   = Solar luminosity
+      Value  = 3.846e+26
+      Uncertainty  = 5e+22
+      Unit  = W
+      Reference = Allen's Astrophysical Quantities 4th Ed.
+
+    >>> from astropy.constants import iau2015 as const
+    >>> print(const.L_sun)
+      Name   = Nominal solar luminosity
+      Value  = 3.828e+26
+      Uncertainty  = 0.0
+      Unit  = W
+      Reference = IAU 2015 Resolution B 3
+
+The astronomical and physical constants are combined into modules with
+names like ``astropyconst13`` and ``astropyconst20``.
+
 Reference/API
 =============
 
