@@ -16,13 +16,14 @@ specific to astronomy.  This package is intended to provide such
 functionality, but *not* to replace `scipy.stats` if its
 implementation satisfies astronomers' needs.
 
+
 Getting Started
 ===============
 
 A number of different tools are contained in the stats package, and
 they can be accessed by importing them::
 
-     from astropy import stats
+    >>> from astropy import stats
 
 A full list of the different tools are provided below and please see
 the documentation for their different usage.  For example, sigma
@@ -30,10 +31,10 @@ clipping, which is common way to estimate the background of an image,
 can be run following with the :func:`~astropy.stats.sigma_clip`
 function::
 
-     stats.sigma_clip([stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
-     masked_array(data = [1 5 6 8 -- 5 3 2],
-             mask = [False False False False  True False False False],
-       fill_value = 999999), sigma=2, iters=5)
+    >>> stats.sigma_clip([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
+    masked_array(data = [1 5 6 8 -- 5 3 2],
+                 mask = [False False False False  True False False False],
+           fill_value = 999999)
 
 This will return a masked array where outliers are masked.  In
 addition, there are also several convenience functions for making the
@@ -41,7 +42,8 @@ calculation of statistics even
 easier. :func:`~astropy.stats.sigma_clipped_stats` will return the
 mean, median, and standard deviation for a sigma-clipped array::
 
-     stats.sigma_clipped_stats([1, 5, 6, 8, 100, 5, 3, 2], sigma=2, iters=5)
+     >>> stats.sigma_clipped_stats([1, 5, 6, 8, 100, 5, 3, 2], sigma=2,
+     ...                           iters=5)
      (4.2857142857142856, 5.0, 2.2497165354319457)
 
 There are also tools for calculating :ref:`robust statistics
@@ -68,6 +70,7 @@ listed below.
    ripley.rst
    ../visualization/histogram.rst
 
+
 Constants
 =========
 
@@ -92,6 +95,7 @@ converting between Gaussian sigma and full width at half maximum
     >>> from astropy.stats import gaussian_fwhm_to_sigma
     >>> gaussian_fwhm_to_sigma
     0.42466090014400953
+
 
 See Also
 ========

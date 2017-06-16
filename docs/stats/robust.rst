@@ -16,28 +16,39 @@ rejection using :func:`~astropy.modeling.fitting.FittingWithOutlierRemoval`.
 Sigma Clipping
 ==============
 
-Sigma clipping provides a fast method to identify outliers in a distribution.  For a distribution of points, a center and a standard deviation
-are calculated.   Values which are a set number of sigma times the standard deviation away from the center are rejected.  The process can be iterated to further reject outliers.
+Sigma clipping provides a fast method to identify outliers in a
+distribution.  For a distribution of points, a center and a standard
+deviation are calculated.   Values which are a set number of sigma
+times the standard deviation away from the center are rejected.  The
+process can be iterated to further reject outliers.
 
-In the stats package, there is the :func:`~astropy.stats.sigma_clip` function for sigma clipping a distribution.  The function returns a masked array
-where the rejected points are masked.   Sigma clipping can be applied as follows::
+In the stats package, there is the :func:`~astropy.stats.sigma_clip`
+function for sigma clipping a distribution.  The function returns a
+masked array where the rejected points are masked.   Sigma clipping
+can be applied as follows::
 
-     import numpy as np
-     from astropy.stats import sigma_clip
-     import scipy.stats as stats
+     >>> import numpy as np
+     >>> from astropy.stats import sigma_clip
+     >>> import scipy.stats as stats
 
-     # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
-     np.random.seed(0)
-     x = np.arange(200)
-     y = np.zeros(200)
-     c = stats.bernoulli.rvs(0.35, size=x.shape)
-     y += (np.random.normal(0., 0.2, x.shape) +
-           c*np.random.normal(3.0, 5.0, x.shape))
+     >>> # Generate fake data that has a mean of 0 and standard deviation
+     >>> # of 0.2 with outliers
+     >>> np.random.seed(0)
+     >>> x = np.arange(200)
+     >>> y = np.zeros(200)
+     >>> c = stats.bernoulli.rvs(0.35, size=x.shape)
+     >>> y += (np.random.normal(0., 0.2, x.shape) +
+     ...       c*np.random.normal(3.0, 5.0, x.shape))
 
-     # filter the data
-     filtered_data = sigma_clip(y, sigma=3, iters=10)
+     >>> # filter the data
+     >>> filtered_data = sigma_clip(y, sigma=3, iters=10)
 
-The array then can be used to calculate statistics on the data, fit models to the data, or otherwise explore the data.   For basic statistics, :func:`~astropy.stats.sigma_clipped_stats` is a convenience function to calculated the mean, median, and standard deviation of the function.   As can be seen, rejecting the outliers returns accurate values for the underlying distribution::
+The array then can be used to calculate statistics on the data, fit
+models to the data, or otherwise explore the data.   For basic
+statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
+convenience function to calculated the mean, median, and standard
+deviation of the function.   As can be seen, rejecting the outliers
+returns accurate values for the underlying distribution::
 
      >>> from astropy.stats import sigma_clipped_stats
      >>> y.mean(), np.median(y), y.std()
