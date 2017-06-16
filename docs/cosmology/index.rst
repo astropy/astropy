@@ -49,7 +49,7 @@ redshifts as input:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
-  <Quantity [ 1916.0694236 , 3363.07064333, 4451.74756242] Mpc>
+  <Quantity [ 1916.06942039, 3363.0706321 , 4451.74754107] Mpc>
 
 You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
@@ -128,7 +128,7 @@ They also accept arrays of redshifts:
 .. doctest-requires:: scipy
 
   >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([ 8.42128047,  5.74698053,  4.19645402])
+  array([ 8.4212803 ,  5.74698037,  4.19645387])
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all the
@@ -338,8 +338,8 @@ can be found as a function of redshift::
   (4.985694972799396e-05, 3.442154948307989e-05)
   >>> z = [0, 1.0, 2.0]
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)
-  (array([  4.98569497e-05,   2.74574409e-04,   4.99881391e-04]),
-   array([  3.44215495e-05,   1.89567887e-04,   3.45121234e-04]))
+  (array([  4.98586899e-05,   2.74583989e-04,   4.99898824e-04]),
+   array([  3.44227509e-05,   1.89574501e-04,   3.45133270e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
 simply set ``Tcmb0`` to 0 (which is also the default)::
@@ -356,8 +356,8 @@ Universe) but setting ``Neff`` to 0::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725, Neff=0)
-  >>> cos.Ogamma([0, 1, 2])  # Photons are present  # doctest: +FLOAT_CMP
-  array([  4.98569497e-05,   2.74623215e-04,   5.00051839e-04])
+  >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
+  array([  4.98586899e-05,   2.74632798e-04,   5.00069284e-04])
   >>> cos.Onu([0, 1, 2])  # But not neutrinos
   array([ 0.,  0.,  0.])
 
@@ -385,7 +385,7 @@ value is provided, all the species are assumed to have the same mass.
   >>> cosmo.m_nu
   <Quantity [ 0.  , 0.05, 0.1 ] eV>
   >>> cosmo.Onu([0, 1.0, 15.0])  # doctest: +FLOAT_CMP
-  array([ 0.00326988,  0.00896783,  0.0125786 ])
+  array([ 0.00327   ,  0.00896814,  0.01257904])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP
   <Quantity 2.444380380370406e-31 g / cm3>
 
