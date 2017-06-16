@@ -29,7 +29,7 @@ from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
 from .galactocentric import Galactocentric
-from .lsr import LSR
+from .lsr import LSR, GalacticLSR
 from .supergalactic import Supergalactic
 from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
@@ -50,10 +50,10 @@ from . import ecliptic_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS', 'LSR',
+           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame']
+           'SkyOffsetFrame', 'GalacticLSR', 'LSR']
 
 
 def _make_transform_graph_docs():
