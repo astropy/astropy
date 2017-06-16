@@ -383,8 +383,8 @@ def unregister_identifier(data_format, data_class):
     if (data_format, data_class) in _identifiers:
         _identifiers.pop((data_format, data_class))
     else:
-        raise IORegistryError("No identifier defined for format '{0}' and class '{1}'"
-                              ''.format(data_format, data_class.__name__))
+        raise IORegistryError("No identifier defined for format '{0}' and class"
+                              " '{1}'".format(data_format, data_class.__name__))
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
