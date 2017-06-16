@@ -28,6 +28,7 @@ except ImportError:
 from .constant import Constant, EMConstant
 from . import si
 from . import cgs
+from . import codata2014, iau2015
 
 # for updating the constants module docstring
 _lines = [
@@ -37,8 +38,8 @@ _lines = [
     '========== ============== ================ =========================',
 ]
 
-for _nm, _c in itertools.chain(sorted(vars(si).items()),
-                               sorted(vars(cgs).items())):
+for _nm, _c in itertools.chain(sorted(vars(codata2014).items()),
+                               sorted(vars(iau2015).items())):
     if isinstance(_c, Constant) and _c.abbrev not in locals():
         locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
                                            _c._unit_string, _c.uncertainty,
