@@ -283,28 +283,12 @@ class DataInfo(object):
 
         self._attrs[attr] = value
 
-    def _represent_as_dict(self, context='yaml'):
+    def _represent_as_dict(self):
         """
         Get the values for the parent ``attrs`` and return as a dict.
-
-        If ``context=='yaml'`` then this is being used to serialize the parent
-        to a self-contained YAML structure (including the data).
-
-        If ``context=='column'` then this is being used to serialize the parent
-        as a table column (probably ECSV) where this method is capturing non-data
-        attributes needed to re-create the object later in a table.
         """
-        attrs = []
-        if context == 'yaml':
-            attrs = attrs + self._represent_as_dict_data_attrs
-        attrs = attrs + self._represent_as_dict_info_attrs
-
+        attrs = self._represent_as_dict_data_attrs + self._represent_as_dict_info_attrs
         out = _get_obj_attrs_map(self._parent, attrs)
-
-        if context == 'column':
-            out['data_attrs'] = self._represent_as_dict_data_attrs
-            out['class'] = self._parent.__module__ + '.' + self._parent.__class__.__name__
-            out['datatype'] = self._get_value_datatype()
 
         return out
 
@@ -606,23 +590,7 @@ class MixinInfo(BaseColumnInfo):
         super(MixinInfo, self).__setattr__(attr, value)
 
 
-def get_type_name(typ):
-    type_name = typ.__name__
-    if not six.PY2 and type_name.startswith(('bytes', 'str')):
-        type_name = 'string'
-    if type_name.endswith('_'):
-        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-    return type_name
-
-
 class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""
 
     attrs_from_parent = set(['dtype'])  # dtype and unit taken from parent
-
-    def _get_value_datatype(self):
-        """
-        Get the ECSV datatype for the value that will be stored as a column in the
-        table.
-        """
-        return get_type_name(self._parent.dtype.type)

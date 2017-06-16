@@ -3,7 +3,6 @@ import copy
 from collections import OrderedDict
 
 from ..extern import six
-from ..utils.data_info import MixinInfo
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
@@ -169,15 +168,6 @@ def _get_col_attributes(col):
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
     attrs['datatype'] = type_name
-
-    # Mixins get additional attribute information encoded via a dict
-    # with key '__object_attributes__' in the column meta.
-    if (hasattr(col, 'info') and isinstance(col.info, MixinInfo) and
-            hasattr(col.info, '_represent_as_dict')):
-        if col.info.meta is None:
-            col.info.meta = {}
-        obj_attrs = col.info._represent_as_dict(context='column')
-        col.info.meta['__object_attributes__'] = obj_attrs
 
     # Set the output attributes
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),

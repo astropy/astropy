@@ -18,7 +18,6 @@ import operator
 import os
 import re
 import warnings
-from importlib import import_module
 
 from collections import OrderedDict
 
@@ -972,12 +971,6 @@ class TableOutputter(BaseOutputter):
     """
     Output the table as an astropy.table.Table object.
     """
-    # Mixin classes that support direct construction if the appropriate
-    # __object_attributes__ is set in col.meta.  This is expected when
-    # reading an ECSV table.
-    __construct_mixin_classes = ('astropy.time.core.Time',
-                                 'astropy.time.core.TimeDelta',
-                                 'astropy.coordinates.sky_coordinate.SkyCoord')
 
     default_converters = [convert_numpy(numpy.int),
                           convert_numpy(numpy.float),
@@ -1002,26 +995,6 @@ class TableOutputter(BaseOutputter):
                     setattr(out_col, attr, getattr(col, attr))
             if hasattr(col, 'meta'):
                 out_col.meta.update(col.meta)
-
-        # Handle instantiating mixin columns for those columns which have
-        # an __object_attributes__ dict in the meta dictionary.  This provides the
-        # required attributes to re-create the original object.
-        new_cols = {}
-        for name, col in out.columns.items():
-            if '__object_attributes__' in col.meta:
-                cls_full_name = col.meta['__object_attributes__']['class']
-
-                # If this is a supported class then import the class and run
-                # the _construct_from_col method.  Prevent accidentally running
-                # untrusted code by only importing known astropy classes.
-                if cls_full_name in self.__construct_mixin_classes:
-                    mod_name, cls_name = re.match(r'(.+)\.(\w+)', cls_full_name).groups()
-                    module = import_module(mod_name)
-                    cls = getattr(module, cls_name)
-                    new_cols[name] = cls.info._construct_from_col(col)
-
-        for name, col in new_cols.items():
-            out[name] = col
 
         return out
 

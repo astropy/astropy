@@ -23,7 +23,7 @@ from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
 from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
-from ..utils.data_info import MixinInfo, data_info_factory, get_type_name
+from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 from ..extern.six.moves import zip
@@ -116,33 +116,6 @@ class TimeInfo(MixinInfo):
                           funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
-
-    def _get_value_datatype(self):
-        """
-        Get the ECSV datatype for the value that will be stored as a column in the
-        table.
-        """
-        return get_type_name(self._parent.value.dtype.type)
-
-    def _represent_as_dict(self, context='yaml'):
-        if context == 'column':
-            self._represent_as_dict_data_attrs = ['val']
-        return super(TimeInfo, self)._represent_as_dict(context)
-
-    def _construct_from_col(self, col):
-        """Construct appropriate class object from ``col``.
-
-        Input ``col`` is a Table ``Column`` object with dtype=object (strings).
-        Called from astropy.io.ascii.core.TableOutputter.
-        """
-        attrs = col.info.meta['__object_attributes__']
-        map = copy.copy(attrs)
-        data_attrs = map.pop('data_attrs')
-        datatype = map.pop('datatype')
-        map.pop('class')
-        map[data_attrs[0]] = col.astype(datatype)
-
-        return self._construct_from_dict(map)
 
     def _construct_from_dict(self, map):
         delta_ut1_utc = map.pop('_delta_ut1_utc', None)
