@@ -115,9 +115,11 @@ modules with names like ``iau2012`` or ``iau2015``:
 The astronomical and physical constants are combined into modules with
 names like ``astropyconst13`` and ``astropyconst20``.
 
-**Warning:** units such as ``u.M_sun`` will use the current version of the
-corresponding constant. When using prior versions of the constants,
-quantities should be constructed with constants instead of units.
+.. warning:: 
+
+    Units such as ``u.M_sun`` will use the current version of the
+    corresponding constant. When using prior versions of the constants,
+    quantities should be constructed with constants instead of units.
 
 Reference/API
 =============
