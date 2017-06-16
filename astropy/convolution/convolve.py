@@ -788,7 +788,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     return newarray
 
 
-def convolve_models(model_a, model_b, mode='convolve_fft'):
+def convolve_models(model_a, model_b, mode='convolve_fft', **kwargs):
     """
     Convolve two models using `~astropy.convolution.convolve_fft`.
 
@@ -816,4 +816,4 @@ def convolve_models(model_a, model_b, mode='convolve_fft'):
     else:
         raise ValueError('Mode ' + mode + ' is not supported.')
 
-    return _CompoundModelMeta._from_operator(mode, model_a, model_b)
+    return _CompoundModelMeta._from_operator(mode, model_a, model_b, **kwargs)
