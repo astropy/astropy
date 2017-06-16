@@ -530,7 +530,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        return self._apply('replicate', _framedata=representation)
+        return self._apply('replicate', propagate_representation=False,
+                           _framedata=representation)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -793,7 +794,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
                           for attrnm in self.get_frame_attr_names()])
 
-    def _apply(self, method, *args, **kwargs):
+    def _apply(self, method, *args, propagate_representation=True, **kwargs):
         """Create a new instance, applying a method to the underlying data.
 
         In typical usage, the method is any of the shape-changing methods for
@@ -859,7 +860,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 frattrs[attr] = value
 
         out = self.__class__(data, **frattrs)
-        out.representation = self.representation
+        if propagate_representation:
+            out.representation = self.representation
         return out
 
     @override__dir__
