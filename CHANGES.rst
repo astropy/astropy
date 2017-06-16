@@ -272,6 +272,14 @@ API Changes
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
     definition of "emu". [#4918, #5906]
 
+  - ``jupiterMass``, ``earthMass``, ``jupiterRad``, and ``earthRad`` no longer
+    have their prefixed units included in the standard units.  If needed, they
+    can still  be found in ``units.deprecated``. [#5661]
+
+  - ``solLum``,``solMass``, and ``solRad`` no longer have  their prefixed units
+    included in the standard units.  If needed, they can still be found in
+    ``units.required_by_vounit``, and are enabled by default. [#5661]
+    
   - Removed deprecated ``Unit.get_converter``. [#6170]
 
   - Internally, astropy replaced use of ``.to(unit).value`` with the new
