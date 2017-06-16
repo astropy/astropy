@@ -1034,6 +1034,7 @@ def _is_number(x):
         return True
     return False
 
+
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """
     Apply names, include_names and exclude_names to a table.
@@ -1239,6 +1240,26 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
+    def update_table_data(self, table):
+        """
+        Update table columns in place if needed.
+
+        This is a hook to allow updating the table columns after name
+        filtering but before setting up to write the data.  This is currently
+        only used by ECSV and is otherwise just a pass-through.
+
+        Parameters
+        ----------
+        table : `astropy.table.Table`
+            Input table for writing
+
+        Returns
+        -------
+        table : `astropy.table.Table`
+            Output table for writing
+        """
+        return table
+
     def write_header(self, lines, meta):
         self.header.write_comments(lines, meta)
         self.header.write(lines)
@@ -1263,7 +1284,15 @@ class BaseReader(object):
         self.header.cols = list(six.itervalues(table.columns))
         self.header.check_column_names(self.names, self.strict_names, False)
 
+        # In-place update of columns in input ``table`` to reflect column
+        # filtering.  Note that ``table`` is guaranteed to be a copy of the
+        # original user-supplied table.
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+
+        # This is a hook to allow updating the table columns after name
+        # filtering but before setting up to write the data.  This is currently
+        # only used by ECSV and is otherwise just a pass-through.
+        table = self.update_table_data(table)
 
         # Now use altered columns
         new_cols = list(six.itervalues(table.columns))
