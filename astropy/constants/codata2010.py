@@ -20,8 +20,8 @@ class CODATA2010(Constant):
 
     def __new__(cls, abbrev, name, value, unit, uncertainty,
                 reference=default_reference, system=None):
-        return(super(CODATA2010, cls).__new__(cls, abbrev, name, value, unit, uncertainty,
-                        reference, system))
+        return(super(CODATA2010, cls).__new__(cls, abbrev, name, value, unit,
+                        uncertainty, reference, system))
 
 
 class EMCODATA2010(CODATA2010, EMConstant):
