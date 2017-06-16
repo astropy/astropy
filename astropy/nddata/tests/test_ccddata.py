@@ -3,16 +3,19 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
+
 import numpy as np
 import pytest
 
+from ...extern import six
 from ...io import fits
 from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
 from ... import units as u
 from ... import log
 from ...wcs import WCS
 from ...utils import NumpyRNGContext
-from ...utils.data import get_pkg_data_filename
+from ...utils.data import get_pkg_data_filename, get_pkg_data_filenames, get_pkg_data_contents
 
 from ..ccddata import CCDData
 
@@ -576,7 +579,7 @@ def test_wcs_attribute(ccd_data, tmpdir):
     tmpfile = tmpdir.join('temp.fits')
     # This wcs example is taken from the astropy.wcs docs.
     wcs = WCS(naxis=2)
-    wcs.wcs.crpix = np.array(ccd_data.shape)/2
+    wcs.wcs.crpix = np.array(ccd_data.shape) / 2
     wcs.wcs.cdelt = np.array([-0.066667, 0.066667])
     wcs.wcs.crval = [0, -90]
     wcs.wcs.ctype = ["RA---AIR", "DEC--AIR"]
@@ -584,8 +587,11 @@ def test_wcs_attribute(ccd_data, tmpdir):
     ccd_data.header = ccd_data.to_hdu()[0].header
     ccd_data.header.extend(wcs.to_header(), useblanks=False)
     ccd_data.write(tmpfile.strpath)
+
+    # Get the header length after it has been extended by the WCS keywords
+    original_header_length = len(ccd_data.header)
+
     ccd_new = CCDData.read(tmpfile.strpath)
-    original_header_length = len(ccd_new.header)
     # WCS attribute should be set for ccd_new
     assert ccd_new.wcs is not None
     # WCS attribute should be equal to wcs above.
@@ -621,6 +627,53 @@ def test_wcs_attribute(ccd_data, tmpdir):
     ccd_new_hdu_mod_wcs = ccd_new.to_hdu()[0]
     assert ccd_new_hdu_mod_wcs.header['CDELT1'] == ccd_new.wcs.wcs.cdelt[0]
     assert ccd_new_hdu_mod_wcs.header['CDELT2'] == ccd_new.wcs.wcs.cdelt[1]
+
+
+def test_wcs_keywords_removed_from_header():
+    """
+    Test, for the file included with the nddata tests, that WCS keywords are
+    properly removed from header.
+    """
+    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+    keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
+    data_file = get_pkg_data_filename('data/sip-wcs.fits')
+    ccd = CCDData.read(data_file)
+    wcs_header = ccd.wcs.to_header()
+    assert not (set(wcs_header) & set(ccd.meta) - keepers)
+
+
+def test_wcs_keyword_removal_for_wcs_test_files():
+    """
+    Test, for the WCS test files, that keyword removall works as
+    expected. Those cover a much broader range of WCS types than
+    test_wcs_keywords_removed_from_header
+    """
+    from ..ccddata import _generate_wcs_and_update_header
+    from ..ccddata import _KEEP_THESE_KEYWORDS_IN_HEADER
+
+    keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
+    wcs_headers = get_pkg_data_filenames('../../wcs/tests/data',
+                                         pattern='*.hdr')
+
+    for hdr in wcs_headers:
+        # Skip the files that are expected to be bad...
+        if 'invalid' in hdr or 'nonstandard' in hdr or 'segfault' in hdr:
+            continue
+        header_string = get_pkg_data_contents(hdr)
+        wcs = WCS(header_string)
+        header = wcs.to_header(relax=True)
+        new_header, new_wcs = _generate_wcs_and_update_header(header)
+        # Make sure all of the WCS-related keywords have been removed.
+        assert not (set(new_header) &
+                    set(new_wcs.to_header(relax=True)) -
+                    keepers)
+        # Check that the new wcs is the same as the old.
+        new_wcs_header = new_wcs.to_header(relax=True)
+        for k, v in new_wcs_header.items():
+            if isinstance(v, six.string_types):
+                assert header[k] == v
+            else:
+                np.testing.assert_almost_equal(header[k], v)
 
 
 def test_header(ccd_data):
@@ -662,7 +715,10 @@ def test_wcs_sip_handling():
         return [header[k] == v for k, v in expected_wcs_ctypes.items()]
 
     ccd_original = CCDData.read(data_file)
-    good_ctype = check_wcs_ctypes(ccd_original.meta)
+    # After initialization the keywords should be in the WCS, not in the
+    # meta.
+    with fits.open(data_file) as raw:
+        good_ctype = check_wcs_ctypes(raw[0].header)
     assert all(good_ctype)
 
     ccd_new = ccd_original.to_hdu()
@@ -678,7 +734,6 @@ def test_wcs_sip_handling():
     assert not any(good_ctype)
     assert ccd_no_relax[0].header['CTYPE1'] == 'RA---TAN'
     assert ccd_no_relax[0].header['CTYPE2'] == 'DEC--TAN'
-
 
 
 @pytest.mark.parametrize('operation',
