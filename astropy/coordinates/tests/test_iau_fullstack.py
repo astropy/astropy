@@ -109,19 +109,19 @@ def test_iau_fullstack(fullstack_icrs,  fullstack_fiducial_altaz,
     assert np.all(addecs < tol), 'largest Dec change is {0} mas, > {1}'.format(np.max(addecs.arcsec*1000), tol)
 
     # check that we're consistent with the ERFA alt/az result
-    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to(u.radian).value
-    lon = fullstack_locations.geodetic[0].to(u.radian).value
-    lat = fullstack_locations.geodetic[1].to(u.radian).value
-    height = fullstack_locations.geodetic[2].to(u.m).value
+    xp, yp = u.Quantity(iers.IERS_Auto.open().pm_xy(fullstack_times)).to_value(u.radian)
+    lon = fullstack_locations.geodetic[0].to_value(u.radian)
+    lat = fullstack_locations.geodetic[1].to_value(u.radian)
+    height = fullstack_locations.geodetic[2].to_value(u.m)
     jd1, jd2 = get_jd12(fullstack_times, 'utc')
     astrom, eo = erfa.apco13(jd1, jd2,
                              fullstack_times.delta_ut1_utc,
                              lon, lat, height,
                              xp, yp,
-                             fullstack_obsconditions[0].to(u.hPa).value,
-                             fullstack_obsconditions[1].to(u.deg_C).value,
+                             fullstack_obsconditions[0].to_value(u.hPa),
+                             fullstack_obsconditions[1].to_value(u.deg_C),
                              fullstack_obsconditions[2],
-                             fullstack_obsconditions[3].to(u.micron).value)
+                             fullstack_obsconditions[3].to_value(u.micron))
     erfadct = _erfa_check(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, astrom)
     npt.assert_allclose(erfadct['alt'], aacoo.alt.radian, atol=1e-7)
     npt.assert_allclose(erfadct['az'], aacoo.az.radian, atol=1e-7)

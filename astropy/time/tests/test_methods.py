@@ -386,9 +386,9 @@ def test_regression():
     t = Time(49580.0, scale='tai', format='mjd')
     t_ut1 = t.ut1
     t_ut1_copy = copy.deepcopy(t_ut1)
-    assert type(t_ut1_copy.delta_ut1_utc) is float
+    assert type(t_ut1_copy.delta_ut1_utc) is np.ndarray
     t_ut1_flatten = t_ut1.flatten()
-    assert type(t_ut1_flatten.delta_ut1_utc) is float
+    assert type(t_ut1_flatten.delta_ut1_utc) is np.ndarray
     t_ut1_ravel = t_ut1.ravel()
-    assert type(t_ut1_ravel.delta_ut1_utc) is float
+    assert type(t_ut1_ravel.delta_ut1_utc) is np.ndarray
     assert t_ut1_copy.delta_ut1_utc == t_ut1.delta_ut1_utc

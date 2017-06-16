@@ -247,7 +247,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if self.spacing is not None:
 
                 # spacing was manually specified
-                spacing_deg = self.spacing.to(u.degree).value
+                spacing_deg = self.spacing.to_value(u.degree)
 
             elif self.number is not None:
 
@@ -259,15 +259,15 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 if self.format is not None and dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
-                    spacing_deg = self.base_spacing.to(u.degree).value
+                    spacing_deg = self.base_spacing.to_value(u.degree)
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
                     if self._unit is u.degree:
                         from .utils import select_step_degree
-                        spacing_deg = select_step_degree(dv).to(u.degree).value
+                        spacing_deg = select_step_degree(dv).to_value(u.degree)
                     else:
                         from .utils import select_step_hour
-                        spacing_deg = select_step_hour(dv).to(u.degree).value
+                        spacing_deg = select_step_hour(dv).to_value(u.degree)
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.
@@ -281,7 +281,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if len(values) > 0:
             if self.format is None:
-                spacing = spacing.to(u.arcsec).value
+                spacing = spacing.to_value(u.arcsec)
                 if spacing > 3600:
                     fields = 1
                     precision = 0
@@ -424,7 +424,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             if self.spacing is not None:
 
                 # spacing was manually specified
-                spacing = self.spacing.to(self._unit).value
+                spacing = self.spacing.to_value(self._unit)
 
             elif self.number is not None:
 
@@ -436,7 +436,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 if self.format is not None and (not self.format.startswith('%')) and dv < self.base_spacing.value:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
-                    spacing = self.base_spacing.to(self._unit).value
+                    spacing = self.base_spacing.to_value(self._unit)
                 else:
                     from .utils import select_step_scalar
                     spacing = select_step_scalar(dv)
@@ -460,7 +460,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             else:
                 precision = self._precision
 
-            return [("{0:." + str(precision) + "f}").format(x.to(self._format_unit).value) for x in values]
+            return [("{0:." + str(precision) + "f}").format(x.to_value(self._format_unit)) for x in values]
 
         else:
             return []

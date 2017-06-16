@@ -225,7 +225,7 @@ class CoordinateHelper(object):
             if self.coord_type == 'longitude':
                 value = wrap_angle_at(value, self.coord_wrap)
             value = value * u.degree
-            value = value.to(fl._unit).value
+            value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
         string = fl.formatter(values=[value] * fl._unit, spacing=spacing)

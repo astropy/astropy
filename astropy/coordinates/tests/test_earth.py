@@ -136,9 +136,9 @@ class TestInput():
         assert np.all(geocentric2 == self.location)
         geodetic = EarthLocation(self.lon, self.lat, self.h)
         assert np.all(geodetic == self.location)
-        geodetic2 = EarthLocation(self.lon.to(u.degree).value,
-                                  self.lat.to(u.degree).value,
-                                  self.h.to(u.m).value)
+        geodetic2 = EarthLocation(self.lon.to_value(u.degree),
+                                  self.lat.to_value(u.degree),
+                                  self.h.to_value(u.m))
         assert np.all(geodetic2 == self.location)
         geodetic3 = EarthLocation(self.lon, self.lat)
         assert allclose_m14(geodetic3.longitude.value,
@@ -161,12 +161,12 @@ class TestInput():
         assert geocentric5.unit is u.pc
         assert geocentric5.x.unit is u.pc
         assert geocentric5.height.unit is u.pc
-        assert allclose_m14(geocentric5.x.to(self.x.unit).value, self.x.value)
+        assert allclose_m14(geocentric5.x.to_value(self.x.unit), self.x.value)
         geodetic5 = EarthLocation(self.lon, self.lat, self.h.to(u.pc))
         assert geodetic5.unit is u.pc
         assert geodetic5.x.unit is u.pc
         assert geodetic5.height.unit is u.pc
-        assert allclose_m14(geodetic5.x.to(self.x.unit).value, self.x.value)
+        assert allclose_m14(geodetic5.x.to_value(self.x.unit), self.x.value)
 
     def test_invalid_input(self):
         """Check invalid input raises exception"""

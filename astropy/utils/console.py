@@ -475,7 +475,7 @@ def human_file_size(size):
         # Import units only if necessary because the import takes a
         # significant time [#4649]
         from .. import units as u
-        size = size.to(u.byte).value
+        size = u.Quantity(size, u.byte).value
 
     suffixes = ' kMGTPEZY'
     if size == 0:

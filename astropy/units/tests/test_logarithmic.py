@@ -465,8 +465,8 @@ class TestLogQuantityCreation(object):
         q2 = unit * pv
         assert q2.unit == unit
         assert q2.unit.physical_unit == pv.unit
-        assert q2.to(unit.physical_unit).value == 100.
-        assert (q2._function_view / u.mag).to(1).value == -5.
+        assert q2.to_value(unit.physical_unit) == 100.
+        assert (q2._function_view / u.mag).to_value(1) == -5.
         q3 = unit / 0.4
         assert q3 == q1
 

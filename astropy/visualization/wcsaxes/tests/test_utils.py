@@ -8,10 +8,8 @@ from .... import units as u
 
 from ..utils import (select_step_degree, select_step_hour, select_step_scalar,
                      coord_type_from_ctype)
-
-
-def assert_almost_equal_quantity(q1, q2):
-    assert_almost_equal(q1.value, q2.to(q1.unit).value)
+from ....tests.helper import (assert_quantity_allclose as
+                              assert_almost_equal_quantity)
 
 
 def test_select_step_degree():

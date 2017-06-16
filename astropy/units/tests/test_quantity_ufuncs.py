@@ -123,7 +123,7 @@ class TestQuantityTrigonometricFuncs(object):
 
     def test_arctan_array(self):
         q = np.array([10., 30., 70., 80.]) * u.degree
-        assert_allclose(np.arctan(np.tan(q)).to(q.unit).value, q.value)
+        assert_allclose(np.arctan(np.tan(q)).to_value(q.unit), q.value)
 
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -142,11 +142,11 @@ class TestQuantityTrigonometricFuncs(object):
         q2 = 2.0 * u.km
         assert np.arctan2(q1, q2).unit == u.radian
         assert_allclose(np.arctan2(q1, q2).value,
-                        np.arctan2(q1.value, q2.to(q1.unit).value))
+                        np.arctan2(q1.value, q2.to_value(q1.unit)))
         q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
-        assert_allclose(at2.value, np.arctan2(q3.to(1).value, q4))
+        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
@@ -363,7 +363,7 @@ class TestQuantityMathFuncs(object):
         # Test also against different types of exponent
         for cls in (list, tuple, np.array, np.ma.array, u.Quantity):
             res2 = np.power(q2, cls(powers))
-            assert np.all(res2.value == q2.to(1).value ** powers)
+            assert np.all(res2.value == q2.to_value(1) ** powers)
             assert res2.unit == u.dimensionless_unscaled
         # Though for single powers, we keep the composite unit.
         res3 = q2 ** 2
@@ -443,7 +443,7 @@ class TestQuantityMathFuncs(object):
     def test_modf_array(self):
         v = np.arange(10.) * u.m / (500. * u.cm)
         q = np.modf(v)
-        n = np.modf(v.to(1).value)
+        n = np.modf(v.to_value(u.dimensionless_unscaled))
         assert q[0].unit == u.dimensionless_unscaled
         assert q[1].unit == u.dimensionless_unscaled
         assert all(q[0].value == n[0])
@@ -525,7 +525,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
@@ -537,7 +537,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
@@ -574,11 +574,12 @@ class TestComparisonUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert not isinstance(q_o, u.Quantity)
         assert q_o.dtype == np.bool
-        assert np.all(q_o == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert np.all(q_o == ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
         q_o2 = ufunc(q_i1 / q_i2, 2.)
         assert not isinstance(q_o2, u.Quantity)
         assert q_o2.dtype == np.bool
-        assert np.all(q_o2 == ufunc((q_i1 / q_i2).to(1).value, 2.))
+        assert np.all(q_o2 == ufunc((q_i1 / q_i2)
+                                    .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities
         for arbitrary_unit_value in (0., np.inf, np.nan):
             ufunc(q_i1, arbitrary_unit_value)
@@ -646,13 +647,13 @@ class TestInplaceUfuncs(object):
         np.modf(v, tmp, v)  # cannot use out1,out2 keywords with numpy 1.7
         assert check is v
         assert check.unit == u.dimensionless_unscaled
-        v2 = v_copy.to(1)
+        v2 = v_copy.to(u.dimensionless_unscaled)
         check2 = v2
         np.modf(v2, tmp, v2)
         assert check2 is v2
         assert check2.unit == u.dimensionless_unscaled
         # can also replace in last position if no scaling is needed
-        v3 = v_copy.to(1)
+        v3 = v_copy.to(u.dimensionless_unscaled)
         check3 = v3
         np.modf(v3, v3, tmp)
         assert check3 is v3
