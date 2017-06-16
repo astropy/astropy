@@ -6,8 +6,8 @@ instance, mean, variance, standard deviation, correlation coefficient, and so
 on. This module also cover tests of uniformity, e.g., the Rayleigh and V tests.
 The Maximum Likelihood Estimator for the Von Mises distribution along with the
 Cramer-Rao Lower Bounds are also implemented. Almost all of the implementations
-are based on reference [1], which is also the basis for the R package
-'CircStats' [2].
+are based on reference [1]_, which is also the basis for the R package
+'CircStats' [2]_.
 """
 
 from __future__ import (absolute_import, division, print_function,
