@@ -1943,7 +1943,7 @@ class Model(object):
             if len(self) == 1:
                 # Add a single param set axis to the parameter's value (thus
                 # converting scalars to shape (1,) array values) for
-                # consistenc
+                # consistency
                 value = np.array([value])
 
             if units and param.unit is not None:
