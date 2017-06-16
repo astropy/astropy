@@ -310,17 +310,12 @@ class TestConvolve1D(object):
         assert_allclose(result, [3, 6, 5], atol=1E-10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_normalization_tolerance_and_warnings(self, boundary,
-                                                  interpolate_nan,
-                                                  normalize_kernel,
-                                                  ignore_edge_zeros):
+    def test_normalization_tolerance(self, boundary,
+                                     nan_treatment,
+                                     normalize_kernel):
         """
-        Check that appropriate warning is raised if kernel is not properly
-        normalized and interpolate_nan or ignore_edge_zeros is True, and
-        normalize_kernel is False.
-
-        Expected outcomes here are either that the correct value is calculated
-        or the appropriate warning is issued.
+        Check that if normalize_kernel is False then the normalization
+        tolerance is respected.
         """
         array = np.array([1, 2, 3])
         # A simple identity kernel to which a non-zero normalization is added.
@@ -332,34 +327,18 @@ class TestConvolve1D(object):
         # Add the error below to the kernel.
         norm_error = [normalization_rtol / 10, normalization_rtol * 10]
 
-        # In the first case we expect no warnings because the normalization
-        # error is less than nromalization_rtol. In the second case we do
-        # expect an erro, at least when interpolate_nan or
-        # ignore_edge_zeros is True.
-        expect_warnings = [False, True]
-
-        for err, expect_warn in zip(norm_error, expect_warnings):
+        for err in norm_error:
             kernel = base_kernel + err
-            with catch_warnings(AstropyUserWarning) as warns:
-                result = convolve_fft(array, kernel,
-                                      normalize_kernel=normalize_kernel,
-                                      ignore_edge_zeros=ignore_edge_zeros,
-                                      interpolate_nan=interpolate_nan,
-                                      normalization_rtol=normalization_rtol)
-                if normalize_kernel:
-                    assert_allclose(result, array)
-                    assert len(warns) == 0
-                else:
-                    if expect_warn and (ignore_edge_zeros or interpolate_nan):
-                        assert len(warns) == 1
-                        w = warns[0]
-                        assert str(w.message).startswith("Kernel is not "
-                                                         "normalized, therefore")
-                    else:
-                        assert len(warns) == 0
-                    # Whether we got warnings or not the result should be
-                    # correct.
-                    assert_allclose(result, array * kernel)
+            result = convolve_fft(array, kernel,
+                                  normalize_kernel=normalize_kernel,
+                                  nan_treatment=nan_treatment,
+                                  normalization_rtol=normalization_rtol)
+            if normalize_kernel:
+                # Kernel has been normalized to 1.
+                assert_allclose(result, array)
+            else:
+                # Kernel should not have been normalized...
+                assert_allclose(result, array * kernel)
 
 
 class TestConvolve2D(object):

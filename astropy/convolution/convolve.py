@@ -316,11 +316,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,
+                 normalization_rtol=1e-8,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, quiet=False,
                  min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=np.complex, ):
+                 complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -379,6 +380,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
         ``normalize_kernel = np.sum``.
+    normalization_rtol: float, optional
+        The upper limit on the deviation of the kernel sum from unity; in other
+        words, the relative tolerance for errors in the kernel normalization.
+        Will be used only if ``normalize_kernel`` is False. Default is "1e-8".
     preserve_nan : bool
         After performing convolution, should pixels that were originally NaN
         again become NaN?
@@ -426,10 +431,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         256.
     quiet : bool, optional
         Silence warning message about NaN interpolation
-    normalization_rtol: float, optional
-        The upper limit on the deviation of the kernel sum from unity; in other
-        words, the relative tolerance for errors in the kernel normalization.
-        Will be checked only if ``normalize_kernel`` is False. Default is "1e-8".
     allow_huge : bool, optional
         Allow huge arrays in the FFT?  If False, will raise an exception if the
         array or kernel size is >1 GB
@@ -568,7 +569,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         normalized_kernel = kernel / kernel_scale
     else:
         kernel_scale = kernel.sum()
-        if np.abs(kernel_scale - 1) < 1e-8:
+        if np.abs(kernel_scale - 1) < normalization_rtol:
             kernel_scale = 1
             normalized_kernel = kernel
         else:
