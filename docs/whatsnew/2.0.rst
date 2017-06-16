@@ -28,6 +28,7 @@ In particular, this release includes:
 * :ref:`whatsnew-2.0-models-units`
 * :ref:`whatsnew-2.0-n-submodels`
 * :ref:`whatsnew-2.0-no-bundled-pytest`
+* :ref:`whatsnew-2.0-ccddata-class`
 
 In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -254,6 +255,15 @@ Affiliated packages should nevertheless transition to importing ``pytest``
 directly rather than from `astropy.tests.helper`. This also means that
 ``pytest`` is now a formal requirement for testing for both Astropy and
 for affiliated packages.
+
+.. _whatsnew-2.0-ccddata-class:
+
+New image class ``CCDData`` added
+=================================
+
+A new class, ``CCDData``, has been added to the ``nddata`` package. It can
+read from/write to FITS files, provides methods for arithmetic operations
+with propagation of uncertainty, and support for binary masks.
 
 
 Full change log
