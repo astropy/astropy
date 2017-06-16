@@ -753,42 +753,30 @@ class BaseAffineTransform(CoordinateTransform):
     subclasses.
     """
 
-    def _apply_transform(self, fromcoord, matrix, vectors):
+    def _apply_transform(self, fromcoord, matrix, offset):
         from .representation import (CartesianRepresentation,
                                      UnitSphericalRepresentation,
                                      CartesianDifferential)
 
-        rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.without_differentials()
+        rep = fromcoord.data.to_cartesian(diffstocart=True)
 
         # Only do transform is matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)
         if matrix is not None:
-            newrep = newrep.transform(matrix)
+            rep = rep.transform(matrix, apply_to_diffs=True)
 
-        if vectors is not None and vectors[0] is not None:
-            pos_offset = CartesianRepresentation(vectors[0])
-            newrep = newrep + pos_offset
+        newrep = rep.without_differentials()
+        if offset is not None:
+            newrep = newrep + offset.without_differentials()
 
         if rep.differentials:
             # assume the 0th item is a velocity
-            # TODO: we only support velocities right now - elsewhere, we need to
-            # validate / make sure only 1 differential is attached
-            veldiff = rep.differentials[0]
+            veldiff = rep.differentials[0] # already Cartesian
 
-            base = fromcoord.data.represent_as(veldiff.base_representation)
+            if offset.differentials:
+                veldiff = veldiff + offset.differentials[0]
 
-            # Only do transform is matrix is specified.
-            newdiff = veldiff.represent_as(CartesianRepresentation, base=base)
-            if matrix is not None:
-                newdiff = newdiff.transform(matrix)
-
-            if vectors is not None and vectors[1] is not None:
-                vel_offset = CartesianRepresentation(vectors[1])
-                newdiff = newdiff + vel_offset
-
-            newdiff = newdiff.represent_as(CartesianDifferential)
-            newrep._differentials = (newdiff,)
+            newrep._differentials = (veldiff,)
 
         if isinstance(fromcoord.data, UnitSphericalRepresentation):
             # need to special-case this because otherwise the new class will
