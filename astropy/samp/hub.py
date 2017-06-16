@@ -12,10 +12,10 @@ import time
 import uuid
 import warnings
 
-from ...extern.six.moves import queue, range
-from ...extern.six.moves import xmlrpc_client as xmlrpc
-from ...extern.six.moves.urllib.parse import urlunparse
-from ... import log
+from ..extern.six.moves import queue, range
+from ..extern.six.moves import xmlrpc_client as xmlrpc
+from ..extern.six.moves.urllib.parse import urlunparse
+from .. import log
 
 from .constants import SAMP_STATUS_OK
 from .constants import __profile_version__
@@ -919,7 +919,7 @@ class SAMPHubServer(object):
 
         Examples
         --------
-        >>> from astropy.vo.samp import SAMPHubServer
+        >>> from astropy.samp import SAMPHubServer
         >>> SAMPHubServer.get_mtype_subtypes("samp.app.ping")
         ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
         """

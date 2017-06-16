@@ -11,14 +11,14 @@ Overview
 If you wish to embed a SAMP hub in your Python GUI tool, you will need to start
 the hub programmatically using::
 
-    from astropy.vo.samp import SAMPHubServer
+    from astropy.samp import SAMPHubServer
     hub = SAMPHubServer()
     hub.start()
 
 This launches the hub in a thread and is non-blocking. If you are not
 interested in connections from web SAMP clients, then you can simply use::
 
-    from astropy.vo.samp import SAMPHubServer
+    from astropy.samp import SAMPHubServer
     hub = SAMPHubServer(web_profile=False)
     hub.start()
 
@@ -32,7 +32,7 @@ instead likely want to open a GUI dialog.
 To do this, you will need to define a class that handles the dialog,
 and you should then pass an **instance** of the class to
 |SAMPHubServer| (not the class itself).  This class should inherit
-from `astropy.vo.samp.WebProfileDialog` and add the following:
+from `astropy.samp.WebProfileDialog` and add the following:
 
     1) It should have a GUI timer callback that periodically calls
        ``WebProfileDialog.handle_queue`` (available as
@@ -68,8 +68,8 @@ for web SAMP connections and opens the appropriate dialog::
     import Tkinter as tk
     import tkMessageBox
 
-    from astropy.vo.samp import SAMPHubServer
-    from astropy.vo.samp.hub import WebProfileDialog
+    from astropy.samp import SAMPHubServer
+    from astropy.samp.hub import WebProfileDialog
 
     MESSAGE = """
     A Web application which declares to be

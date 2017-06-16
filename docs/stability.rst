@@ -298,13 +298,13 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
-                astropy.vo.samp
+                astropy.samp
             </td>
             <td align='center'>
                 <span class="stable"></span>
             </td>
             <td>
-                Virtual Observatory service access: SAMP.
+                Virtual Observatory service access: SAMP. This was renamed from astropy.vo.samp to astropy.samp in 2.0.
             </td>
         </tr>
         <tr>

@@ -12,16 +12,16 @@ import socket
 import stat
 import warnings
 
-from ...config.paths import _find_home
+from ..config.paths import _find_home
 
-from ...extern.six.moves.urllib.parse import urlparse
-from ...extern.six.moves import xmlrpc_client as xmlrpc
-from ...extern import six
+from ..extern.six.moves.urllib.parse import urlparse
+from ..extern.six.moves import xmlrpc_client as xmlrpc
+from ..extern import six
 
-from ... import log
+from .. import log
 
-from ...utils.compat import suppress
-from ...utils.data import get_readable_fileobj
+from ..utils.compat import suppress
+from ..utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
 
