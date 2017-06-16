@@ -56,6 +56,8 @@ successful, and growing community, by abiding with the
 More detailed information on contributing to the project or submitting feedback
 can be found on the `contributions <http://www.astropy.org/contribute.html>`_ page.
 
+A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be used as a quick
+reference when you're ready to start writing or validating code for submission.
 
 License
 -------
