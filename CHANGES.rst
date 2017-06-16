@@ -103,6 +103,8 @@ New Features
 
 - ``astropy.nddata``
 
+  - Added an image class, ``CCDData``. [#6173]
+
 - ``astropy.stats``
 
   - Added ``biweight_midcovariance`` function. [#5777]
