@@ -1,8 +1,8 @@
 .. _stats-robust:
 
-******************************
-Circular Statistical 
-******************************
+*******************
+Circular Statistics
+*******************
 
 .. automodapi:: astropy.stats.circstats
 
@@ -13,4 +13,3 @@ References
        Series on Multivariate Analysis, Vol. 5, 2001.
 .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
        Circular Statistics (2001)'". 2015.
-
