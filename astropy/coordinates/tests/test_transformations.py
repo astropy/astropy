@@ -210,24 +210,34 @@ def test_obstime():
 # ------------------------------------------------------------------------------
 # Affine transform tests and helpers:
 
-def transfunc_both(coo, fr):
-    # exchange x <-> z and offset
-    M = np.array([[0., 0., 1.],
-                  [0., 1., 0.],
-                  [1., 0., 0.]])
-    return M, (np.arange(3)*u.pc, np.arange(3, 6)*u.pc/u.Myr)
+# just acting as a namespace
+class transfunc(object):
+    rep = r.CartesianRepresentation(np.arange(3)*u.pc)
+    dif = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
+    rep0 = r.CartesianRepresentation(np.zeros(3)*u.pc)
 
-def transfunc_no_matrix(coo, fr):
-    return None, (np.arange(3)*u.pc, np.arange(3, 6)*u.pc/u.Myr)
+    @classmethod
+    def both(cls, coo, fr):
+        # exchange x <-> z and offset
+        M = np.array([[0., 0., 1.],
+                      [0., 1., 0.],
+                      [1., 0., 0.]])
+        return M, cls.rep.with_differentials(cls.dif)
 
-def transfunc_no_pos(coo, fr):
-    return None, (None, np.arange(3, 6)*u.pc/u.Myr)
+    @classmethod
+    def no_matrix(cls, coo, fr):
+        return None, cls.rep.with_differentials(cls.dif)
 
-def transfunc_no_vel(coo, fr):
-    return None, (np.arange(3)*u.pc, None)
+    @classmethod
+    def no_pos(cls, coo, fr):
+        return None, cls.rep0.with_differentials(cls.dif)
 
-@pytest.mark.parametrize('transfunc', [transfunc_both, transfunc_no_matrix,
-                                       transfunc_no_pos, transfunc_no_vel])
+    @classmethod
+    def no_vel(cls, coo, fr):
+        return None, cls.rep
+
+@pytest.mark.parametrize('transfunc', [transfunc.both, transfunc.no_matrix,
+                                       transfunc.no_pos, transfunc.no_vel])
 @pytest.mark.parametrize('rep', [
     r.CartesianRepresentation(5, 6, 7, unit=u.pc),
     r.CartesianRepresentation(5, 6, 7, unit=u.pc,
@@ -238,13 +248,13 @@ def test_affine_transform_succeed(transfunc, rep):
     c = TCoo1(rep)
 
     # compute expected output
-    M, vecs = transfunc(c, TCoo2)
+    M, offset = transfunc(c, TCoo2)
 
     expected_pos = c.cartesian.transform(M) if M is not None else c.cartesian
-    if (vecs is not None and vecs[0] is not None):
-        expected_pos = expected_pos.xyz + vecs[0]
+    if offset is not None:
+        expected_pos = expected_pos + offset
     else:
-        expected_pos = expected_pos.xyz
+        expected_pos = expected_pos
 
     expected_vel = None
     if c.data.differentials:
@@ -252,23 +262,23 @@ def test_affine_transform_succeed(transfunc, rep):
                                                     c.data)
         expected_vel = diff.transform(M) if M is not None else diff
 
-        if (vecs is not None and vecs[1] is not None):
-            expected_vel = expected_vel.xyz + vecs[1]
+        if offset.differentials:
+            expected_vel = expected_vel + offset.differentials[0]
         else:
-            expected_vel = expected_vel.xyz
+            expected_vel = expected_vel
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     c2 = c.transform_to(TCoo2)
-    assert quantity_allclose(c2.data.to_cartesian().xyz, expected_pos)
+    assert quantity_allclose(c2.data.to_cartesian().xyz, expected_pos.xyz)
 
     if expected_vel is not None:
         # TODO: clean this up when there is a shorthand for accessing
         # differentials from the frames
         diff = c2.data.differentials[0].to_cartesian(base=c2.data)
-        assert quantity_allclose(diff.xyz, expected_vel)
+        assert quantity_allclose(diff.xyz, expected_vel.xyz)
 
     trans.unregister(frame_transform_graph)
 
@@ -276,15 +286,8 @@ def test_affine_transform_succeed(transfunc, rep):
 def transfunc_invalid_matrix(coo, fr):
     return np.eye(4), None
 
-def transfunc_invalid_pos(coo, fr):
-    return None, (np.arange(4)*u.pc, np.arange(3, 6)*u.pc/u.Myr)
-
-def transfunc_invalid_vel(coo, fr):
-    return None, (np.arange(3)*u.pc, np.arange(3, 7)*u.pc/u.Myr)
-
-@pytest.mark.parametrize('transfunc', [transfunc_invalid_matrix,
-                                       transfunc_invalid_pos,
-                                       transfunc_invalid_vel])
+# Leaving this open in case we want to add more functions to check for failures
+@pytest.mark.parametrize('transfunc', [transfunc_invalid_matrix])
 def test_affine_transform_fail(transfunc):
     diff = r.CartesianDifferential(8, 9, 10, unit=u.pc/u.Myr)
     rep = r.CartesianRepresentation(5, 6, 7, unit=u.pc, differentials=diff)
