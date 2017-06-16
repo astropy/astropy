@@ -372,13 +372,15 @@ eye).
    ax2.set_yticklabels([])
 
 
-A note on backward compatibility
---------------------------------
+.. _astropy_convolve_compat:
 
-To get the behavior of the old (astropy version <=1.3) direct convolution
-function (which you probably do not want unless you are explicitly comparing to
-data convolved with direct convolution in old versions of astropy), you can
-interpolate and then convolve, e.g.:
+A note on backward compatibility (pre v2.0)
+-------------------------------------------
+
+While you probably do not want unless you are explicitly comparing to
+data convolved with direct convolution in old versions of astropy (see below),
+to get the behavior of the old (astropy version <2.0) direct convolution
+function you can interpolate and then convolve, e.g.:
 
 .. code-block:: python
 
