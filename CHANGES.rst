@@ -121,6 +121,11 @@ New Features
   - Added functionality to allow ``astropy.units.Quantity`` to be read
     from and written to a VOtable file. [#6132]
 
+- ``astropy.tests``
+
+  - ``enable_deprecations_as_exceptions`` function now accepts additional
+    user-defined module imports and warning messages to ignore. [#6223]
+
 - ``astropy.time``
 
 - ``astropy.units``
