@@ -226,3 +226,23 @@ class Ecsv(basic.Basic):
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter
+
+    def update_table_data(self, table):
+        """
+        Update table columns in place if mixin columns are present.
+
+        This is a hook to allow updating the table columns after name
+        filtering but before setting up to write the data.  This is currently
+        only used by ECSV and is otherwise just a pass-through.
+
+        Parameters
+        ----------
+        table : `astropy.table.Table`
+            Input table for writing
+
+        Returns
+        -------
+        table : `astropy.table.Table`
+            Output table for writing
+        """
+        return serialize._represent_mixins_as_columns(table)
