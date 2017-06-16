@@ -76,6 +76,12 @@ models).  The justification is to avoid including mass-energy components
 that the user has not explicitly requested.  This is a non-backwards
 compatible change, although the effects are small for most use cases.
 
+Convolution has undergone a significant overhaul to make fft and direct
+convolution consistent.  They keyword arguments have changed and the behavior
+of `~astropy.convolution.convolve` is no longer the same as in versions prior to
+2.0 (although `~astropy.convolution.convolve_fft`'s behavior remains unchanged).
+The details are given on the :ref:`astropy convolution <astropy_convolve>`.
+
 .. _whatsnew-2.0-conesearch-astroquery:
 
 Cone search module (``astropy.vo.conesearch``) moved to astroquery
