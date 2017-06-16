@@ -51,6 +51,42 @@ class SigmaClip(object):
             deviation = data - cenfunc(data [,axis=int])
 
         Defaults to the standard deviation (`numpy.std`).
+
+    Examples
+    --------
+    This example generates random variates from a Gaussian distribution
+    and returns a masked array in which all points that are more than 2
+    sample standard deviations from the median are masked::
+
+        >>> from astropy.stats import SigmaClip
+        >>> from numpy.random import randn
+        >>> randvar = randn(10000)
+        >>> sigclip = SigmaClip(sigma=2, iters=5)
+        >>> filtered_data = sigclip(randvar)
+
+    This example sigma clips on a similar distribution, but uses 3 sigma
+    relative to the sample *mean*, clips until convergence, and does not
+    copy the data::
+
+        >>> from astropy.stats import SigmaClip
+        >>> from numpy.random import randn
+        >>> from numpy import mean
+        >>> randvar = randn(10000)
+        >>> sigclip = SigmaClip(sigma=3, iters=None, cenfunc=mean)
+        >>> filtered_data = sigclip(randvar, copy=False)
+
+    This example sigma clips along one axis on a similar distribution
+    (with bad points inserted)::
+
+        >>> from astropy.stats import SigmaClip
+        >>> from numpy.random import normal
+        >>> from numpy import arange, diag, ones
+        >>> data = arange(5) + normal(0., 0.05, (5, 5)) + diag(ones(5))
+        >>> sigclip = SigmaClip(sigma=2.3)
+        >>> filtered_data = sigclip(data, axis=0)
+
+    Note that along the other axis, no points would be masked, as the
+    variance is higher.
     """
 
     def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
