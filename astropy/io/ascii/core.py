@@ -1190,9 +1190,9 @@ class BaseReader(object):
                 col.str_vals.append(str_vals[j])
 
         self.data.masks(cols)
-        table = self.outputter(cols, self.meta)
         if hasattr(self.header, 'table_meta'):
-            table.meta.update(self.header.table_meta)
+            self.meta['table'].update(self.header.table_meta)
+        table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
