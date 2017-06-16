@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Contains the transofrmation functions for getting from ICRS to CIRS and anything
-in between (currently that means GCRS)
+Contains the transofrmation functions for getting from ICRS/HCRS to CIRS and
+anything in between (currently that means GCRS)
 """
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
@@ -63,8 +63,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     return cirs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS,
-                                 finite_difference_frameattr_name=None)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
     srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = srepr.lon.to_value(u.radian)
@@ -167,8 +166,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     return gcrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, ICRS,
-                                 finite_difference_frameattr_name=None)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
     srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
     gcrs_ra = srepr.lon.to_value(u.radian)

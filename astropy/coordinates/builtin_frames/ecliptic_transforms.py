@@ -88,7 +88,9 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HeliocentricTrueEcliptic, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 HeliocentricTrueEcliptic, ICRS,
+                                 finite_difference_frameattr_name='equinox')
 def helioecliptic_to_icrs(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
