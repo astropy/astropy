@@ -8,12 +8,15 @@ New Features
 
 - ``astropy.constants``
 
-  - Constants are now organized into version modules, with updated physical
-    constants in the ``codata2014`` module and astronomical constants in the
-    ``iau2015`` module. These updated constants are available in the
-    ``astropy.constants`` namespace, as well as the ``astropyconst20`` module.
-    The constants for astropy v1.3 are retained in separate version modules
-    ``codata2010``, ``iau2012`` and ``astropyconst13``. [#6083]
+  - Constants are now organized into version modules, with physical CODATA
+    constants in the ``codata2010`` and ``codata2014`` sub-modules,
+    and astronomical constants defined by the IAU in the ``iau2012`` and
+    ``iau2015`` sub-modules. The default constants in ``astropy.constants``
+    in Astropy 2.0 have been updated from ``iau2012`` to ``iau2015`` and
+    from ``codata2010`` to ``codata2014``. The constants for 1.3 can be
+    accessed in the ``astropyconst13`` sub-module and the constants for 2.0
+    (the default in ``astropy.constants``) can also be accessed in the
+    ``astropyconst20`` sub-module [#6083]
 
   - The GM mass parameters recommended by IAU 2015 Resolution B 3 have been
     added as ``GM_sun``, ``GM_jup``, and ``GM_earth``, for the Sun,
