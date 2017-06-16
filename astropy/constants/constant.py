@@ -86,15 +86,19 @@ class Constant(Quantity):
     _registry = {}
     _has_incompatible_units = set()
 
-    def __new__(cls, abbrev, name, value, unit, uncertainty, reference,
-                system=None):
+    def __new__(cls, abbrev, name, value, unit, uncertainty,
+                reference=None, system=None):
+        if reference is None:
+            reference = getattr(cls, 'default_reference', None)
+            if reference is None:
+                raise TypeError("{} requires a reference.".format(cls))
         name_lower = name.lower()
         instances = cls._registry.setdefault(name_lower, {})
         # By-pass Quantity initialization, since units may not yet be
         # initialized here, and we store the unit in string form.
         inst = np.array(value).view(cls)
 
-        if (system in instances):
+        if system in instances:
                 warnings.warn('Constant {0!r} already has a definition in the '
                               '{1!r} system from {2!r} reference'.format(
                               name, system, reference), AstropyUserWarning)
@@ -119,7 +123,7 @@ class Constant(Quantity):
 
     def __repr__(self):
         return ('<{0} name={1!r} value={2} uncertainty={3} unit={4!r} '
-                'reference={5!r}>'.format(self.__class__,self.name, self.value,
+                'reference={5!r}>'.format(self.__class__, self.name, self.value,
                                           self.uncertainty, str(self.unit),
                                           self.reference))
 
@@ -191,7 +195,7 @@ class Constant(Quantity):
         the constant, else convert to a Quantity in the appropriate SI units.
         """
 
-        instances = self.__class__._registry[self.name.lower()]
+        instances = self._registry[self.name.lower()]
         return instances.get('si') or super(Constant, self).si
 
     @property
@@ -200,7 +204,7 @@ class Constant(Quantity):
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
 
-        instances = self.__class__._registry[self.name.lower()]
+        instances = self._registry[self.name.lower()]
         return instances.get('cgs') or super(Constant, self).cgs
 
     def __array_finalize__(self, obj):
