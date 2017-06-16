@@ -10,7 +10,7 @@ from collections import OrderedDict
 from ...extern import six
 
 from . import core, basic
-from ...table import meta
+from ...table import meta, serialize
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -171,11 +171,25 @@ class EcsvHeader(basic.BasicHeader):
 
 class EcsvOutputter(core.TableOutputter):
     """
-    Output the table as an astropy.table.Table object.  This overrides the
-    default converters to be an empty list because there is no "guessing"
-    of the conversion function.
+    After reading the input lines and processing, convert the Reader columns
+    and metadata to an astropy.table.Table object.  This overrides the default
+    converters to be an empty list because there is no "guessing" of the
+    conversion function.
     """
     default_converters = []
+
+    def __call__(self, cols, meta):
+        # Convert to a Table with all plain Column subclass columns
+        out = super(EcsvOutputter, self).__call__(cols, meta)
+
+        # If mixin columns exist (based on the special '__mixin_columns__'
+        # key in the table ``meta``), then use that information to construct
+        # appropriate mixin columns and remove the original data columns.
+        # If no __mixin_columns__ exists then this function just passes back
+        # the input table.
+        out = serialize._construct_mixins_from_columns(out)
+
+        return out
 
 
 class Ecsv(basic.Basic):
