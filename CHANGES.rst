@@ -273,7 +273,7 @@ API Changes
     Astroquery 0.3.5 and will be removed from Astropy in a future version.
     [#5558, #5904]
 
-  - The `astropy.vo.samp` package has been moved to `astropy.samp`, and no
+  - The ``astropy.vo.samp`` package has been moved to ``astropy.samp``, and no
     longer supports HTTPS/SSL. [#6201, #6213]
 
 - ``astropy.wcs``
