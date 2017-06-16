@@ -15,6 +15,20 @@ class SigmaClip(object):
     """
     Class to perform sigma clipping.
 
+    The data will be iterated over, each time rejecting points that are
+    discrepant by more than a specified number of standard deviations
+    from a center value. If the data contains invalid values (NaNs or
+    infs), they are automatically masked before performing the sigma
+    clipping.
+
+    For a functional interface to sigma clipping, see
+    :func:`sigma_clip`.
+
+    .. note::
+        `scipy.stats.sigmaclip
+        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        provides a subset of the functionality in this class.
+
     Parameters
     ----------
     sigma : float, optional
@@ -51,6 +65,10 @@ class SigmaClip(object):
             deviation = data - cenfunc(data [,axis=int])
 
         Defaults to the standard deviation (`numpy.std`).
+
+    See Also
+    --------
+    sigma_clip
 
     Examples
     --------
@@ -208,6 +226,9 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     center value. If the data contains invalid values (NaNs or infs),
     they are automatically masked before performing the sigma clipping.
 
+    For an object-oriented interface to sigma clipping, see
+    :func:`SigmaClip`.
+
     .. note::
         `scipy.stats.sigmaclip
         <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
@@ -292,6 +313,10 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         However, for multidimensional data, this flattens the array,
         which may not be what one wants (especially if filtering was
         done along an axis).
+
+    See Also
+    --------
+    SigmaClip
 
     Examples
     --------
