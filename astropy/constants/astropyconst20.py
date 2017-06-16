@@ -11,9 +11,9 @@ from __future__ import (absolute_import, division, print_function,
 import itertools
 
 from .constant import Constant
-from . import CODATA2014, IAU2015
+from . import codata2014, iau2015
 
-for _nm, _c in itertools.chain(sorted(vars(CODATA2014).items()),
-                               sorted(vars(IAU2015).items())):
+for _nm, _c in itertools.chain(sorted(vars(codata2014).items()),
+                               sorted(vars(iau2015).items())):
     if (isinstance(_c, Constant) and _c.abbrev not in locals()):
         locals()[_c.abbrev] = _c
