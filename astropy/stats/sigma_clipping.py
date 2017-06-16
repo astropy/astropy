@@ -76,6 +76,36 @@ class SigmaClip(object):
             lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
         return '\n'.join(lines)
 
+    def _perform_clip(self, _filtered_data, axis=None):
+        """
+        Perform sigma clip by comparing the data to the minimum and
+        maximum values (median + sig * standard deviation). Use
+        sigma_lower and sigma_upper to get the correct limits. Data
+        values less or greater than the minimum / maximum values
+        will have True set in the mask array.
+        """
+
+        if _filtered_data.size == 0:
+            return _filtered_data
+
+        max_value = self.cenfunc(_filtered_data, axis=axis)
+        std = self.stdfunc(_filtered_data, axis=axis)
+        min_value = max_value - std * self.sigma_lower
+        max_value += std * self.sigma_upper
+
+        if axis is not None:
+            if axis != 0:
+                min_value = np.expand_dims(min_value, axis=axis)
+                max_value = np.expand_dims(max_value, axis=axis)
+        if max_value is np.ma.masked:
+            max_value = np.ma.MaskedArray(np.nan, mask=True)
+            min_value = np.ma.MaskedArray(np.nan, mask=True)
+
+        _filtered_data.mask |= _filtered_data > max_value
+        _filtered_data.mask |= _filtered_data < min_value
+
+        return _filtered_data
+
     def __call__(self, data, axis=None, copy=True):
         """
         Perform sigma clipping on the provided data.
@@ -102,43 +132,10 @@ class SigmaClip(object):
             the points rejected by the algorithm have been masked.
         """
 
-        def perform_clip(_filtered_data, _kwargs):
-            """
-            Perform sigma clip by comparing the data to the minimum and
-            maximum values (median + sig * standard deviation). Use
-            sigma_lower and sigma_upper to get the correct limits. Data
-            values less or greater than the minimum / maximum values
-            will have True set in the mask array.
-            """
-
-            if _filtered_data.size == 0:
-                return _filtered_data
-
-            max_value = self.cenfunc(_filtered_data, **_kwargs)
-            std = self.stdfunc(_filtered_data, **_kwargs)
-            min_value = max_value - std * self.sigma_lower
-            max_value += std * self.sigma_upper
-
-            if axis is not None:
-                if axis != 0:
-                    min_value = np.expand_dims(min_value, axis=axis)
-                    max_value = np.expand_dims(max_value, axis=axis)
-            if max_value is np.ma.masked:
-                max_value = np.ma.MaskedArray(np.nan, mask=True)
-                min_value = np.ma.MaskedArray(np.nan, mask=True)
-
-            _filtered_data.mask |= _filtered_data > max_value
-            _filtered_data.mask |= _filtered_data < min_value
-
         if self.sigma_lower is None:
             self.sigma_lower = self.sigma
         if self.sigma_upper is None:
             self.sigma_upper = self.sigma
-
-        kwargs = dict()
-
-        if axis is not None:
-            kwargs['axis'] = axis
 
         if np.any(~np.isfinite(data)):
             data = np.ma.masked_invalid(data)
@@ -152,10 +149,10 @@ class SigmaClip(object):
             lastrej = filtered_data.count() + 1
             while filtered_data.count() != lastrej:
                 lastrej = filtered_data.count()
-                perform_clip(filtered_data, kwargs)
+                self._perform_clip(filtered_data, axis=axis)
         else:
             for i in range(self.iters):
-                perform_clip(filtered_data, kwargs)
+                self._perform_clip(filtered_data, axis=axis)
 
         # prevent filtered_data.mask = False (scalar) if no values are clipped
         if filtered_data.mask.shape == ():
