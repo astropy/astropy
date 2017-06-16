@@ -8,7 +8,161 @@ from ..utils.exceptions import AstropyUserWarning
 from ..extern.six.moves import range
 
 
-__all__ = ['sigma_clip', 'SigmaClip', 'sigma_clipped_stats']
+__all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
+
+
+class SigmaClip(object):
+    """
+    Class to perform sigma clipping.
+
+    Parameters
+    ----------
+    sigma : float, optional
+        The number of standard deviations to use for both the lower and
+        upper clipping limit. These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input. Defaults to 3.
+    sigma_lower : float or `None`, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. Defaults to `None`.
+    sigma_upper : float or `None`, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. Defaults to `None`.
+    iters : int or `None`, optional
+        The number of iterations to perform sigma clipping, or `None` to
+        clip until convergence is achieved (i.e., continue until the
+        last iteration clips nothing). Defaults to 5.
+    cenfunc : callable, optional
+        The function used to compute the center for the clipping. Must
+        be a callable that takes in a masked array and outputs the
+        central value. Defaults to the median (`numpy.ma.median`).
+    stdfunc : callable, optional
+        The function used to compute the standard deviation about the
+        center. Must be a callable that takes in a masked array and
+        outputs a width estimator. Masked (rejected) pixels are those
+        where::
+
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
+
+        where::
+
+            deviation = data - cenfunc(data [,axis=int])
+
+        Defaults to the standard deviation (`numpy.std`).
+    """
+
+    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
+                 cenfunc=np.ma.median, stdfunc=np.std):
+        self.sigma = sigma
+        self.sigma_lower = sigma_lower
+        self.sigma_upper = sigma_upper
+        self.iters = iters
+        self.cenfunc = cenfunc
+        self.stdfunc = stdfunc
+
+    def __repr__(self):
+        return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
+                'iters={3}, cenfunc={4}, stdfunc={5})'
+                .format(self.sigma, self.sigma_lower, self.sigma_upper,
+                        self.iters, self.cenfunc, self.stdfunc))
+
+    def __str__(self):
+        lines = ['<' + self.__class__.__name__ + '>']
+        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'iters', 'cenfunc',
+                 'stdfunc']
+        for attr in attrs:
+            lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
+        return '\n'.join(lines)
+
+    def __call__(self, data, axis=None, copy=True):
+        """
+        Perform sigma clipping on the provided data.
+
+        Parameters
+        ----------
+        data : array-like
+            The data to be sigma clipped.
+        axis : int or `None`, optional
+            If not `None`, clip along the given axis.  For this case,
+            ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``,
+            which are expected to return an array with the axis
+            dimension removed (like the numpy functions).  If `None`,
+            clip over all axes.  Defaults to `None`.
+        copy : bool, optional
+            If `True`, the ``data`` array will be copied.  If `False`,
+            the returned masked array data will contain the same array
+            as ``data``.  Defaults to `True`.
+
+        Returns
+        -------
+        filtered_data : `numpy.ma.MaskedArray`
+            A masked array with the same shape as ``data`` input, where
+            the points rejected by the algorithm have been masked.
+        """
+
+        def perform_clip(_filtered_data, _kwargs):
+            """
+            Perform sigma clip by comparing the data to the minimum and
+            maximum values (median + sig * standard deviation). Use
+            sigma_lower and sigma_upper to get the correct limits. Data
+            values less or greater than the minimum / maximum values
+            will have True set in the mask array.
+            """
+
+            if _filtered_data.size == 0:
+                return _filtered_data
+
+            max_value = self.cenfunc(_filtered_data, **_kwargs)
+            std = self.stdfunc(_filtered_data, **_kwargs)
+            min_value = max_value - std * self.sigma_lower
+            max_value += std * self.sigma_upper
+
+            if axis is not None:
+                if axis != 0:
+                    min_value = np.expand_dims(min_value, axis=axis)
+                    max_value = np.expand_dims(max_value, axis=axis)
+            if max_value is np.ma.masked:
+                max_value = np.ma.MaskedArray(np.nan, mask=True)
+                min_value = np.ma.MaskedArray(np.nan, mask=True)
+
+            _filtered_data.mask |= _filtered_data > max_value
+            _filtered_data.mask |= _filtered_data < min_value
+
+        if self.sigma_lower is None:
+            self.sigma_lower = self.sigma
+        if self.sigma_upper is None:
+            self.sigma_upper = self.sigma
+
+        kwargs = dict()
+
+        if axis is not None:
+            kwargs['axis'] = axis
+
+        if np.any(~np.isfinite(data)):
+            data = np.ma.masked_invalid(data)
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically masked.',
+                          AstropyUserWarning)
+
+        filtered_data = np.ma.array(data, copy=copy)
+
+        if self.iters is None:
+            lastrej = filtered_data.count() + 1
+            while filtered_data.count() != lastrej:
+                lastrej = filtered_data.count()
+                perform_clip(filtered_data, kwargs)
+        else:
+            for i in range(self.iters):
+                perform_clip(filtered_data, kwargs)
+
+        # prevent filtered_data.mask = False (scalar) if no values are clipped
+        if filtered_data.mask.shape == ():
+            # make .mask shape match .data shape
+            filtered_data.mask = False
+
+        return filtered_data
 
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
@@ -141,162 +295,10 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     variance is higher.
     """
 
-    def perform_clip(_filtered_data, _kwargs):
-        """
-        Perform sigma clip by comparing the data to the minimum and maximum
-        values (median + sig * standard deviation). Use sigma_lower and
-        sigma_upper to get the correct limits. Data values less or greater
-        than the minimum / maximum values will have True set in the mask array.
-        """
-
-        if _filtered_data.size == 0:
-            return _filtered_data
-
-        max_value = cenfunc(_filtered_data, **_kwargs)
-        std = stdfunc(_filtered_data, **_kwargs)
-        min_value = max_value - std * sigma_lower
-        max_value += std * sigma_upper
-
-        if axis is not None:
-            if axis != 0:
-                min_value = np.expand_dims(min_value, axis=axis)
-                max_value = np.expand_dims(max_value, axis=axis)
-        if max_value is np.ma.masked:
-            max_value = np.ma.MaskedArray(np.nan, mask=True)
-            min_value = np.ma.MaskedArray(np.nan, mask=True)
-
-        _filtered_data.mask |= _filtered_data > max_value
-        _filtered_data.mask |= _filtered_data < min_value
-
-    if sigma_lower is None:
-        sigma_lower = sigma
-    if sigma_upper is None:
-        sigma_upper = sigma
-
-    kwargs = dict()
-
-    if axis is not None:
-        kwargs['axis'] = axis
-
-    if np.any(~np.isfinite(data)):
-        data = np.ma.masked_invalid(data)
-        warnings.warn("Input data contains invalid values (NaNs or infs), "
-                      "which were automatically masked.", AstropyUserWarning)
-
-    filtered_data = np.ma.array(data, copy=copy)
-
-    if iters is None:
-        lastrej = filtered_data.count() + 1
-        while filtered_data.count() != lastrej:
-            lastrej = filtered_data.count()
-            perform_clip(filtered_data, kwargs)
-    else:
-        for i in range(iters):
-            perform_clip(filtered_data, kwargs)
-
-    # prevent filtered_data.mask = False (scalar) if no values are clipped
-    if filtered_data.mask.shape == ():
-        filtered_data.mask = False   # .mask shape will now match .data shape
-
-    return filtered_data
-
-
-class SigmaClip(object):
-    """
-    Class to perform sigma clipping.
-
-    Parameters
-    ----------
-    sigma : float, optional
-        The number of standard deviations to use for both the lower and
-        upper clipping limit. These limits are overridden by
-        ``sigma_lower`` and ``sigma_upper``, if input. Defaults to 3.
-    sigma_lower : float or `None`, optional
-        The number of standard deviations to use as the lower bound for
-        the clipping limit. If `None` then the value of ``sigma`` is
-        used. Defaults to `None`.
-    sigma_upper : float or `None`, optional
-        The number of standard deviations to use as the upper bound for
-        the clipping limit. If `None` then the value of ``sigma`` is
-        used. Defaults to `None`.
-    iters : int or `None`, optional
-        The number of iterations to perform sigma clipping, or `None` to
-        clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing). Defaults to 5.
-    cenfunc : callable, optional
-        The function used to compute the center for the clipping. Must
-        be a callable that takes in a masked array and outputs the
-        central value. Defaults to the median (`numpy.ma.median`).
-    stdfunc : callable, optional
-        The function used to compute the standard deviation about the
-        center. Must be a callable that takes in a masked array and
-        outputs a width estimator. Masked (rejected) pixels are those
-        where::
-
-             deviation < (-sigma_lower * stdfunc(deviation))
-             deviation > (sigma_upper * stdfunc(deviation))
-
-        where::
-
-            deviation = data - cenfunc(data [,axis=int])
-
-        Defaults to the standard deviation (`numpy.std`).
-    """
-
-    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None, iters=5,
-                 cenfunc=np.ma.median, stdfunc=np.std):
-        self.sigma = sigma
-        self.sigma_lower = sigma_lower
-        self.sigma_upper = sigma_upper
-        self.iters = iters
-        self.cenfunc = cenfunc
-        self.stdfunc = stdfunc
-
-    def __repr__(self):
-        return ('SigmaClip(sigma={0}, sigma_lower={1}, sigma_upper={2}, '
-                'iters={3}, cenfunc={4}, stdfunc={5})'
-                .format(self.sigma, self.sigma_lower, self.sigma_upper,
-                        self.iters, self.cenfunc, self.stdfunc))
-
-    def __str__(self):
-        lines = ['<' + self.__class__.__name__ + '>']
-        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'iters', 'cenfunc',
-                 'stdfunc']
-        for attr in attrs:
-            lines.append('    {0}: {1}'.format(attr, getattr(self, attr)))
-        return '\n'.join(lines)
-
-    def __call__(self, data, axis=None, copy=True):
-        """
-        Perform sigma clipping on the provided data.
-
-        Parameters
-        ----------
-        data : array-like
-            The data to be sigma clipped.
-        axis : int or `None`, optional
-            If not `None`, clip along the given axis.  For this case,
-            ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``,
-            which are expected to return an array with the axis
-            dimension removed (like the numpy functions).  If `None`,
-            clip over all axes.  Defaults to `None`.
-        copy : bool, optional
-            If `True`, the ``data`` array will be copied.  If `False`,
-            the returned masked array data will contain the same array
-            as ``data``.  Defaults to `True`.
-
-        Returns
-        -------
-        filtered_data : `numpy.ma.MaskedArray`
-            A masked array with the same shape as ``data`` input, where
-            the points rejected by the algorithm have been masked.
-        """
-
-        return sigma_clip(data, sigma=self.sigma,
-                          sigma_lower=self.sigma_lower,
-                          sigma_upper=self.sigma_upper, iters=self.iters,
-                          cenfunc=self.cenfunc, stdfunc=self.stdfunc,
-                          axis=axis, copy=copy)
+    sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
+                        sigma_upper=sigma_upper, iters=iters,
+                        cenfunc=cenfunc, stdfunc=stdfunc)
+    return sigclip(data, axis=axis, copy=copy)
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
