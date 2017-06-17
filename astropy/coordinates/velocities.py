@@ -6,18 +6,13 @@ coordinates and related machinery.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from .. import units as u
-
 from .solar_system import get_body_barycentric_posvel
-from .matrix_utilities import matrix_product
-from .representation import (CartesianRepresentation, CartesianDifferential,
-                             UnitSphericalRepresentation)
+from .representation import CartesianDifferential, UnitSphericalRepresentation
 from .builtin_frames import GCRS
 
 
-__all__ = ['helio_corr', 'helio_vector']
+__all__ = ['radial_velocity_correction', 'helio_vector', 'bary_vector']
 
-KPS = u.km/u.s
 
 def helio_vector(t, loc):
     """
@@ -105,20 +100,14 @@ def radial_velocity_correction(t, loc, target, kind='barycentric'):
 
     """
     if kind == 'barycentric':
-        vsuntarg_cart = bary_vector(t, loc)
+        vcorr_cart = bary_vector(t, loc)
     elif kind == 'heliocentric':
-        vsuntarg_cart = helio_vector(t, loc)
+        vcorr_cart = helio_vector(t, loc)
     else:
         raise ValueError('Invalid "kind" in radial_velocity_correction: "{}"'.format(kind))
 
     gcrs_p, _ = loc.get_gcrs_posvel(t)
 
     gtarg = target.transform_to(GCRS(obstime=t, obsgeoloc=gcrs_p))
-    targxyz = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian().xyz
-
-    res = matrix_product(vsuntarg_cart.xyz, targxyz)
-
-    if hasattr(res, 'unit'):
-        return res
-    else:  # for unclear reasons, matrix_product here drops the unit for scalars
-        return res*KPS
+    targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
+    return targcart.dot(vcorr_cart)
