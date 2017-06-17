@@ -1249,7 +1249,7 @@ class SkyCoord(ShapedLikeNDArray):
         The definition of alphanumeric here is based on Unicode's definition
         of alphanumeric, except without ``_`` (which is normally considered
         alphanumeric).  So for ASCII, this means the non-alphanumeric characters
-        are ``<space>_!"#$%&'()*+,-./:;<=>?@[\]^`{|}~``).
+        are ``<space>_!"#$%&'()*+,-./\:;<=>?@[]^`{|}~``).
 
         Parameters
         ----------
