@@ -1235,18 +1235,21 @@ class TestCartesianRepresentationWithDifferential(object):
         assert_allclose_quantity(s_dif.d_z, [1, 1, 1] * u.m/u.s)
 
     def test_transform(self):
-        d = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
-                                  d_y=[3, 4] * u.km/u.s,
-                                  d_z=[5, 6] * u.km/u.s)
-        s1 = CartesianRepresentation(x=[1,2] * u.kpc,
+        d1 = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
+                                   d_y=[3, 4] * u.km/u.s,
+                                   d_z=[5, 6] * u.km/u.s)
+        r1 = CartesianRepresentation(x=[1,2] * u.kpc,
                                      y=[3,4] * u.kpc,
                                      z=[5,6] * u.kpc,
-                                     differentials=d)
+                                     differentials=d1)
 
         matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
 
-        with pytest.raises(TypeError):
-            s1.transform(matrix)
+        r2 = r1.transform(matrix)
+        d2 = r2.differentials[0]
+        assert_allclose_quantity(d2.d_x, [22., 28]*u.km/u.s)
+        assert_allclose_quantity(d2.d_y, [49, 64]*u.km/u.s)
+        assert_allclose_quantity(d2.d_z, [76, 100.]*u.km/u.s)
 
     def test_with_differentials(self):
         # make sure with_differential correctly creates a new copy with the same

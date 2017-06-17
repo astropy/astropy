@@ -326,7 +326,7 @@ Attaching ``Differential``'s to ``Representation``'s
 .. warning::
 
     The API for this functionality may change in future versions and should be
-    viewed as experimental!
+    viewed as provisional!
 
 ``Differential`` objects can be attached to ``Representation`` objects as a way
 to encapsulate information into a single object. ``Differential``'s can be

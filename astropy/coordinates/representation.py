@@ -664,9 +664,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # The without_differentials() call is needed to protect against an infinite loop, since
         # to_cartesian() gets called on the base when it's passed in to represent_as()
         self_no_diffs = self.without_differentials()
-        repr._differentials = tuple([
-            diff.represent_as(CartesianDifferential, base=self_no_diffs)
-            for diff in self._differentials])
+        repr._differentials = tuple([diff.represent_as(CartesianDifferential, base=self_no_diffs)
+                                     for diff in self._differentials])
         return repr
 
     @classmethod
@@ -690,7 +689,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # override the ``_from_cartesian_helper()`` method.
 
         repr = cls._from_cartesian_helper(other)
-        repr._differentials = other._differentials
+
+        if other._differentials:
+            diff_cls = DIFFERENTIAL_CLASSES[cls.get_name()]
+            other_no_diffs = other.without_differentials()
+            repr._differentials = tuple([diff.represent_as(diff_cls, base=other_no_diffs)
+                                         for diff in other._differentials])
+
         return repr
 
     @classmethod
@@ -726,9 +731,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         """
         rep = super(BaseRepresentation, self)._apply(method, *args, **kwargs)
-        diffs = [diff._apply(method, *args, **kwargs)
-                 for diff in self.differentials]
-        rep._differentials = tuple(diffs)
+        rep._differentials = tuple([diff._apply(method, *args, **kwargs)
+                                    for diff in self.differentials])
         return rep
 
     def _scale_operation(self, op, *args):
@@ -916,8 +920,8 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, unit=None, differentials=None,
-                 xyz_axis=None, copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, differentials=None,
+                 copy=True):
 
         if y is None and z is None:
             if xyz_axis is not None and xyz_axis != 0:
@@ -1015,7 +1019,6 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
-        self._raise_if_has_differentials('transform')
 
         # Avoid doing gratuitous np.array for things that look like arrays.
         try:
@@ -1043,8 +1046,19 @@ class CartesianRepresentation(BaseRepresentation):
             # remaining dimensions.
             newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
+        # Handle differentials attached to this representation
+        diffs = None
+        if self.differentials:
+            # We might be being too generous here - we could enforce that this
+            # only works when the differentials are CartesianDifferential's,
+            # and then this wouldn't require as much gymnastics
+            diff_reps = [d.represent_as(CartesianRepresentation, self).transform(matrix)
+                         for d in self.differentials]
+            diffs = [r.represent_as(CartesianDifferential).represent_as(d.__class__, self)
+                     for r,d in zip(diff_reps, self.differentials)]
+
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
-        return self.__class__(*newxyz, copy=False)
+        return self.__class__(*newxyz, copy=False, differentials=diffs)
 
     def _combine_operation(self, op, other, reverse=False):
         self._raise_if_has_differentials(op.__name__)
@@ -1164,7 +1178,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def __init__(self, lon, lat, differentials=None, copy=True):
         super(UnitSphericalRepresentation,
-              self).__init__(lon, lat, copy=copy, differentials=differentials)
+              self).__init__(lon, lat, differentials=differentials, copy=copy)
 
     # Could let the metaclass define these automatically, but good to have
     # a bit clearer docstrings.
@@ -1877,8 +1891,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         return base.unit_vectors(), base.scale_factors()
 
     def to_cartesian(self, base):
-        """
-        Convert the differential to 3D rectangular cartesian coordinates.
+        """Convert the differential to 3D rectangular cartesian coordinates.
 
         Parameters
         ----------
@@ -1894,8 +1907,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     @classmethod
     def from_cartesian(cls, other, base):
-        """
-        Convert the differential to 3D rectangular cartesian coordinates.
+        """Convert the differential from 3D rectangular cartesian coordinates to the desired class.
 
         Parameters
         ----------
