@@ -1278,7 +1278,7 @@ class SkyCoord(ShapedLikeNDArray):
                              "be 'barycentric' or 'heliocentric', but got "
                              "'{}'".format(kind))
 
-        return rvcorr(self.obstime, self.location, self, bary, ephemeris)
+        return rvcorr(self.obstime, self.location, self, bary)
 
     # Table interactions
     @classmethod
