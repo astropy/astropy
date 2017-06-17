@@ -17,7 +17,7 @@ from .sky_coordinate import SkyCoord
 __all__ = ['radial_velocity_correction', 'helio_vector', 'bary_vector']
 
 
-def helio_vector(t, loc, ephemeris=None):
+def helio_vector(t, loc):
     """
     Computes the heliocentric velocity correction at a given time and place.
 
@@ -33,8 +33,8 @@ def helio_vector(t, loc, ephemeris=None):
     vh : CartesianDifferential
         The heliocentric velocity vector
     """
-    vsun = get_body_barycentric_posvel('sun', t, ephemeris=ephemeris)[1]
-    vearth = get_body_barycentric_posvel('earth', t, ephemeris=ephemeris)[1]
+    vsun = get_body_barycentric_posvel('sun', t)[1]
+    vearth = get_body_barycentric_posvel('earth', t)[1]
 
     vsunearth = vearth - vsun
 
@@ -43,7 +43,7 @@ def helio_vector(t, loc, ephemeris=None):
     return (vsunearth + gcrs_v).represent_as(CartesianDifferential)
 
 
-def bary_vector(t, loc, ephemeris=None):
+def bary_vector(t, loc):
     """
     Computes the Solar System barycenter velocity correction at a given time and
     place.
@@ -60,14 +60,14 @@ def bary_vector(t, loc, ephemeris=None):
     vh : CartesianDifferential
         The barycentric velocity vector
     """
-    vearth = get_body_barycentric_posvel('earth', t, ephemeris=ephemeris)[1]
+    vearth = get_body_barycentric_posvel('earth', t)[1]
 
     gcrs_p, gcrs_v = loc.get_gcrs_posvel(t)
 
     return (vearth + gcrs_v).represent_as(CartesianDifferential)
 
 
-def radial_velocity_correction(t, loc, target, bary=True, ephemeris=None):
+def radial_velocity_correction(t, loc, target, bary=True):
     """
     This is the private API for the SkyCoord.radial_velocity_correction method.
     See the SkyCoord docstrings for a more detailed set of algorithm notes
@@ -83,9 +83,6 @@ def radial_velocity_correction(t, loc, target, bary=True, ephemeris=None):
         The on-sky location at which to compute the correction.
     bary : bool
         If True, do barycentric correction.  If False, do heliocentric.
-    ephemeris, optional
-        The ephemeris to use for the caclulation.  Must be something that
-        `bary_vector`/`helio_vector` accept.
 
     Returns
     -------
@@ -94,9 +91,9 @@ def radial_velocity_correction(t, loc, target, bary=True, ephemeris=None):
         to an observed radial velocity to get the heliocentric velocity.
     """
     if bary:
-        vcorr_cart = bary_vector(t, loc, ephemeris=ephemeris)
+        vcorr_cart = bary_vector(t, loc)
     else:
-        vcorr_cart = helio_vector(t, loc, ephemeris=ephemeris)
+        vcorr_cart = helio_vector(t, loc)
 
     gcrs_p, _ = loc.get_gcrs_posvel(t)
 
