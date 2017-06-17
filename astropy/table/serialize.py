@@ -18,6 +18,18 @@ __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.table.table.NdarrayMixin')
 
 
+class SerializedColumn(dict):
+    """
+    Subclass of dict that is a used in the representation to contain the name
+    (and possible other info) for a mixin attribute (either primary data or an
+    array-like attribute) that is serialized as a column in the table.
+
+    Normally contains the single key ``name`` with the name of the column in the
+    table.
+    """
+    pass
+
+
 def _represent_mixins_as_columns(tbl):
     """
     Convert any mixin columns to plain Column or MaskedColumn and
