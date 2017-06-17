@@ -10,7 +10,12 @@ from .table import Table, has_info_class
 __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.time.core.TimeDelta',
                              'astropy.units.quantity.Quantity',
-                             'astropy.coordinates.sky_coordinate.SkyCoord')
+                             'astropy.coordinates.angles.Latitude',
+                             'astropy.coordinates.angles.Longitude',
+                             'astropy.coordinates.angles.Angle',
+                             'astropy.coordinates.earth.EarthLocation',
+                             'astropy.coordinates.sky_coordinate.SkyCoord',
+                             'astropy.table.table.NdarrayMixin')
 
 
 def _represent_mixins_as_columns(tbl):
