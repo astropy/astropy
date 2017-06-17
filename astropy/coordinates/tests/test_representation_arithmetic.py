@@ -1190,13 +1190,11 @@ class TestDifferentialConversion():
         assert np.all(representation_equal(so5, so5c))
         assert_representation_allclose(self.s + (uo+ro), self.s+so1)
 
-@pytest.mark.parametrize('rep', [
-    CartesianRepresentation([1, 2, 3]*u.kpc),
-    SphericalRepresentation(90*u.deg, 0.*u.deg, 14.*u.kpc)
-])
-@pytest.mark.parametrize('dif', [
-    CartesianDifferential([.1, .2, .3]*u.km/u.s),
-    SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)
+@pytest.mark.parametrize('rep,dif', [
+    [CartesianRepresentation([1, 2, 3]*u.kpc),
+     CartesianDifferential([.1, .2, .3]*u.km/u.s)],
+    [SphericalRepresentation(90*u.deg, 0.*u.deg, 14.*u.kpc),
+     SphericalDifferential(1.*u.deg, 2.*u.deg, 0.1*u.kpc)]
 ])
 def test_arithmetic_with_differentials_fail(rep, dif):
 
