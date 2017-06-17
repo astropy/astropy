@@ -1907,7 +1907,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             comp = getattr(base, name)
             d_comp = getattr(self, 'd_{0}'.format(name), None)
             if d_comp:
-                d_unit = d_comp.si.unit / comp.si.unit
+                d_unit = comp.si.unit / d_comp.si.unit
                 return str(d_unit)
 
     @classmethod
