@@ -68,4 +68,3 @@ def test_euler_rotations_with_units():
     assert_quantity_allclose((a, b), (-23.614457631192547*u.deg, 9.631254579686113*u.deg))
     a, b = rurot(x.to(u.rad), y.to(u.rad))
     assert_quantity_allclose((a, b), (-0.4121500367370107*u.rad, 0.16809710351330523*u.rad))
-
