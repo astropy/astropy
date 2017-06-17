@@ -558,6 +558,50 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         raise NotImplementedError("{} has not implemented scale factors."
                                   .format(type(self)))
 
+    def _re_represent_differentials(self, new_rep, differential_class):
+        """Re-represent the differentials to the specified classes.
+
+        This returns a new dictionary with the same keys but with the
+        attached differentials converted to the new differential classes.
+        """
+        if differential_class is None:
+            return dict()
+
+        if not self.differentials:
+            raise ValueError("No differentials associated with this "
+                             "representation!")
+
+        elif (len(self.differentials) == 1 and
+                inspect.isclass(differential_class) and
+                issubclass(differential_class, BaseDifferential)):
+            # TODO: is there a better way to do this?
+            differential_class = {
+                list(self.differentials.keys())[0]: differential_class
+            }
+
+        if set(differential_class.keys()) != set(self.differentials.keys()):
+            ValueError("Desired differential classes must be passed in "
+                       "as a dictionary with keys equal to a string "
+                       "representation of the unit of the derivative "
+                       "for each differential stored with this "
+                       "representation object ({0})"
+                       .format(self.differentials))
+
+        new_diffs = dict()
+        for k in self.differentials:
+            if differential_class[k] not in new_rep._compatible_differentials:
+                raise TypeError("Desired differential class {0} is not "
+                                "compatible with the desired "
+                                "representation class {1}"
+                                .format(differential_class[k],
+                                        new_rep.__class__))
+
+            diff = self.differentials[k]
+            new_diffs[k] = diff.represent_as(differential_class[k],
+                                             base=self)
+
+        return new_diffs
+
     def represent_as(self, other_class, differential_class=None):
         """Convert coordinates to another representation.
 
@@ -581,45 +625,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                                  "strings, use frame objects")
 
             # The default is to convert via cartesian coordinates
-            if differential_class:
-                if not self.differentials:
-                    raise ValueError("No differentials associated with this "
-                                     "representation!")
-
-                elif (len(self.differentials) == 1 and
-                        inspect.isclass(differential_class) and
-                        issubclass(differential_class, BaseDifferential)):
-                    # TODO: is there a better way to do this?
-                    differential_class = {
-                        list(self.differentials.keys())[0]: differential_class
-                    }
-
-                if set(differential_class.keys()) != set(self.differentials.keys()):
-                    ValueError("Desired differential classes must be passed in "
-                               "as a dictionary with keys equal to a string "
-                               "representation of the unit of the derivative "
-                               "for each differential stored with this "
-                               "representation object ({0})"
-                               .format(self.differentials))
-
-                new_rep = other_class.from_cartesian(self.to_cartesian())
-
-                new_diffs = dict()
-                for k in self.differentials:
-                    if differential_class[k] not in new_rep._compatible_differentials:
-                        raise TypeError("Desired differential class {0} is not "
-                                        "compatible with the desired "
-                                        "representation class {1}"
-                                        .format(differential_class[k],
-                                                other_class))
-
-                    diff = self.differentials[k]
-                    new_diffs[k] = diff.represent_as(differential_class[k],
-                                                     base=self)
-                new_rep._differentials = new_diffs
-
-            else:
-                new_rep = other_class.from_cartesian(self.to_cartesian())
+            new_rep = other_class.from_cartesian(self.to_cartesian())
+            new_rep._differentials = self._re_represent_differentials(
+                new_rep, differential_class)
 
             return new_rep
 
@@ -1256,9 +1264,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         return cls(lon=lon, lat=lat, copy=False)
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if inspect.isclass(other_class):
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0,
                                    copy=False)
@@ -1514,9 +1525,12 @@ class SphericalRepresentation(BaseRepresentation):
                             ('lat', sf_lat),
                             ('distance', sf_distance)))
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if inspect.isclass(other_class):
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
                                    r=self.distance, copy=False)
@@ -1664,9 +1678,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                             ('theta', r),
                             ('r', l)))
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if inspect.isclass(other_class):
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
             if issubclass(other_class, SphericalRepresentation):
                 return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
                                    distance=self.r)
