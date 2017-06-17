@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tools for computing velocities and velocity corrections using Astropy
-coordinates and related machinery.
+Functions for computing velocity corrections.
+
+Note that this is *not* meant to be a public module - it is an internal
+implementation convenience, and the public API is on SkyCoord.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -9,6 +11,7 @@ from __future__ import (absolute_import, division, print_function,
 from .solar_system import get_body_barycentric_posvel
 from .representation import CartesianDifferential, UnitSphericalRepresentation
 from .builtin_frames import GCRS
+from .sky_coordinate import SkyCoord
 
 
 __all__ = ['radial_velocity_correction', 'helio_vector', 'bary_vector']
@@ -64,10 +67,11 @@ def bary_vector(t, loc):
     return (vearth + gcrs_v).represent_as(CartesianDifferential)
 
 
-def radial_velocity_correction(t, loc, target, kind='barycentric'):
+def radial_velocity_correction(t, loc, target, bary=True):
     """
-    Compute the correction required to convert a radial velocity at a given
-    time and place to a barycentric or heliocentric velocity.
+    This is the private API for the SkyCoord.radial_velocity_correction method.
+    See the SkyCoord docstrings for a more detailed set of algorithm notes
+    (remember that users generally will *not* see this docstring.)
 
     Parameters
     ----------
@@ -77,34 +81,19 @@ def radial_velocity_correction(t, loc, target, kind='barycentric'):
         The observer location at which to compute the correction.
     target : astropy.coordinates.SkyCoord
         The on-sky location at which to compute the correction.
-    kind : str
-        The kind of correction. Only 'barycentric' and 'heliocentric' are
-        allowed values.
+    bary : bool
+        If True, do barycentric correction.  If False, do heliocentric.
 
     Returns
     -------
     vcorr : astropy.units.Quantity with velocity units
         The  correction with a positive sign.  I.e., *add* this
         to an observed radial velocity to get the heliocentric velocity.
-
-    Notes
-    -----
-    The algorithm here is sufficient to perform corrections at the ~1 to
-    10 m/s level, but has not been validated at higher prevision.  Future
-    versions of Astropy will likely aim to improve this.
-
-    Additionally, this function may be deprecated in the future in favor of a
-    more complete representation of velocities built into the coordinate frame
-    classes. There will be ample warning if this occurs, however (following the
-    standard Astropy deprecation rules).
-
     """
-    if kind == 'barycentric':
+    if bary:
         vcorr_cart = bary_vector(t, loc)
-    elif kind == 'heliocentric':
-        vcorr_cart = helio_vector(t, loc)
     else:
-        raise ValueError('Invalid "kind" in radial_velocity_correction: "{}"'.format(kind))
+        vcorr_cart = helio_vector(t, loc)
 
     gcrs_p, _ = loc.get_gcrs_posvel(t)
 

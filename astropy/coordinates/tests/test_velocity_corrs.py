@@ -8,9 +8,10 @@ import numpy as np
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 from ...time import Time
-from .. import (helio_vector, bary_vector, radial_velocity_correction,
-                EarthLocation, SkyCoord, CartesianDifferential)
+from .. import EarthLocation, SkyCoord, CartesianDifferential
 from ..sites import get_builtin_sites
+from ..velocity_correction_funcs import (helio_vector, bary_vector,
+                                         radial_velocity_correction)
 
 
 @pytest.mark.parametrize('vectorfunc', [helio_vector, bary_vector])
