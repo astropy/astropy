@@ -136,14 +136,15 @@ def test_io_quantity_write(tmpdir):
         assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
-def test_io_time_write(tmpdir):
+@pytest.mark.parametrize('table_types', (Table, QTable))
+def test_io_time_write(tmpdir, table_types):
     """
     Test that table with Time mixin column can be written by io.fits but
     not by io.votable and io.misc.hdf5. Validation of the output is done.
     Test that io.fits writes a table containing Time mixin columns that can
     be considerably round-tripped (metadata scale, format).
     """
-    t = QTable()
+    t = table_types()
     t['a'] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(-2446353.80003635, 4237209.07495215, 4077985.57220038, unit='m'))
     t['b'] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc')
     t['c'] = [3.7,4.2]
@@ -153,7 +154,7 @@ def test_io_time_write(tmpdir):
 
     # Show that FITS format succeeds
     t.write(filename, format='fits', overwrite=True)
-    tm = QTable.read(filename, format='fits')
+    tm = table_types.read(filename, format='fits')
 
     # Assert that the time columns are read as Time
     assert isinstance(tm['a'], time.Time)

@@ -95,7 +95,7 @@ def read_table_fits(input, hdu=None):
     """
 
     # Avoid circular imports
-    from .time import is_time_column_keyword, FitsTime, TIME_KEYWORDS
+    from .fits_time import FitsTime
 
     if isinstance(input, HDUList):
 
@@ -165,8 +165,8 @@ def read_table_fits(input, hdu=None):
 
     # TODO: deal properly with unsigned integers
 
-    # Create a Time_fits object to facilitate reading in time
-    time_state = FitsTime(len(t.columns))
+    # Initial `Time` state information
+    time_state = None
 
     for key, value, comment in table.header.cards:
 
@@ -192,11 +192,19 @@ def read_table_fits(input, hdu=None):
 
             pass
 
-        elif (key.upper() in TIME_KEYWORDS):
+        elif (key.upper() in FitsTime.TIME_KEYWORDS):
+
+            if time_state == None:
+                # Create a FitsTime object to facilitate reading in time
+                time_state = FitsTime()
 
             time_state.set_global_time(key, value, comment)
 
-        elif (is_time_column_keyword(key.upper())):
+        elif (FitsTime.is_time_column_keyword(key.upper())):
+
+            if time_state == None:
+                # Create a FitsTime object to facilitate reading in time
+                time_state = FitsTime()
 
             time_state.set_column_override(key, value, comment)
 
@@ -205,7 +213,8 @@ def read_table_fits(input, hdu=None):
             t.meta[key] = value
 
     # Convert time columns to astropy Time
-    time_state.convert_to_time(t)
+    if time_state != None:
+        time_state.convert_time_columns(t)
 
     # TODO: implement masking
 
