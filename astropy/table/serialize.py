@@ -58,11 +58,8 @@ def _represent_mixins_as_columns(tbl):
             obj_attrs = col.info._represent_as_dict()
             data_attrs = col.info._represent_as_dict_data_attrs
 
-            data_attrs_map = {}  # mapping of new col name to data attr name
-
             for data_attr in data_attrs:
                 data = obj_attrs[data_attr]
-                del obj_attrs[data_attr]
 
                 name = col.info.name
                 # New column name is the same as original if there is only one
@@ -72,9 +69,7 @@ def _represent_mixins_as_columns(tbl):
                     name = name + '.' + data_attr
                 new_cols.append(Column(data, name=name))  # TODO masking, MaskedColumn
 
-                data_attrs_map[name] = data_attr
-
-            obj_attrs['__data_attrs_map__'] = data_attrs_map
+                obj_attrs[data_attr] = SerializedColumn({'name': name})
 
             # Store the fully qualified class name
             obj_attrs['__class__'] = col.__module__ + '.' + col.__class__.__name__
@@ -127,7 +122,13 @@ def _construct_mixins_from_columns(tbl):
     mixin_cols = out.meta.pop('__mixin_columns__')
 
     for new_name, obj_attrs in mixin_cols.items():
-        data_attrs_map = obj_attrs.pop('__data_attrs_map__')
+        data_attrs_map = {}
+        for name, val in obj_attrs.items():
+            if isinstance(val, SerializedColumn):
+                data_attrs_map[val['name']] = name
+
+        for name in data_attrs_map.values():
+            del obj_attrs[name]
 
         # Get the index where to add new column
         idx = min(out.colnames.index(name) for name in data_attrs_map)
