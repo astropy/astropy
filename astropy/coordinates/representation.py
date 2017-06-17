@@ -646,15 +646,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         finally:
             self._differentials = olddiffs
 
-    def to_cartesian(self, diffstocart=False):
+    def to_cartesian(self):
         """
-        Convert the representation to its Cartesian form.
-
-        Parameters
-        ----------
-        diffstocart : bool
-          If True, any differentials this representation has are *also*
-          converted to their cartesian form.
+        Convert the representation and any associated differentials to their Cartesian form.
 
         Returns
         -------
@@ -666,12 +660,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # override the ``_to_cartesian_helper()`` method.
 
         repr = self._to_cartesian_helper()
-        if diffstocart:
-            repr._differentials = tuple([
-                diff.represent_as(CartesianDifferential, base=self)
-                for diff in self._differentials])
-        else:
-            repr._differentials = self._differentials
+
+        # The without_differentials() call is needed to protect against an infinite loop, since
+        # to_cartesian() gets called on the base when it's passed in to represent_as()
+        self_no_diffs = self.without_differentials()
+        repr._differentials = tuple([
+            diff.represent_as(CartesianDifferential, base=self_no_diffs)
+            for diff in self._differentials])
         return repr
 
     @classmethod
