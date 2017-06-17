@@ -1225,7 +1225,7 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
-    def radial_velocity_correction(self, kind='barycentric'):
+    def radial_velocity_correction(self, kind='barycentric', ephemeris=None):
         """
         Compute the correction required to convert a radial velocity at a given
         time and place to a barycentric or heliocentric velocity.
@@ -1235,6 +1235,10 @@ class SkyCoord(ShapedLikeNDArray):
         kind : str
             The kind of velocity correction.  Must be 'barycentric' or
             'heliocentric'.
+        ephemeris , optional
+            The ephemeris to assume for the Earth (and possbily sun) location,
+            or None to use the default. Must be the same kind of ephemeris that
+            is passed into `~astropy.coordinates.get_body_barycentric_posvel`.
 
         Returns
         -------
@@ -1273,7 +1277,7 @@ class SkyCoord(ShapedLikeNDArray):
                              "be 'barycentric' or 'heliocentric', but got "
                              "'{}'".format(kind))
 
-        return rvcorr(self.obstime, self.location, self, bary)
+        return rvcorr(self.obstime, self.location, self, bary, ephemeris)
 
     # Table interactions
     @classmethod
