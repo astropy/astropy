@@ -1,9 +1,9 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import copy
 import re
-import collections
+import copy
 import warnings
+import collections
 
 import numpy as np
 
@@ -1224,6 +1224,56 @@ class SkyCoord(ShapedLikeNDArray):
         astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+
+    def radial_velocity_correction(self, kind='barycentric'):
+        """
+        Compute the correction required to convert a radial velocity at a given
+        time and place to a barycentric or heliocentric velocity.
+
+        Parameters
+        ----------
+        kind : str
+            The kind of velocity correction.  Must be 'barycentric' or
+            'heliocentric'.
+
+        Returns
+        -------
+        vcorr : astropy.units.Quantity with velocity units
+            The  correction with a positive sign.  I.e., *add* this
+            to an observed radial velocity to get the heliocentric velocity.
+
+        Notes
+        -----
+        The algorithm here is sufficient to perform corrections at the ~1 to
+        10 m/s level, but has not been validated at higher prevision.  Future
+        versions of Astropy will likely aim to improve this.
+
+        Additionally, this function may be deprecated in the future in favor of a
+        more complete representation of velocities built into the coordinate frame
+        classes. There will be ample warning if this occurs, however (following the
+        standard Astropy deprecation rules).
+        """
+        from .velocity_correction_funcs import radial_velocity_correction as rvcorr
+
+        if self.obstime is None:
+            raise ValueError('cannot compute radial velocity correction if '
+                             'obstime frame attribute is not present on this '
+                             'SkyCoord.')
+
+        if self.location is None:
+            raise ValueError('cannot compute radial velocity correction if '
+                             'location frame attribute is not present on this '
+                             'SkyCoord.')
+        if kind == 'barycentric':
+            bary = True
+        elif kind == 'heliocentric':
+            bary = False
+        else:
+            raise ValueError("Kind argument to radial_velocity_correction must "
+                             "be 'barycentric' or 'heliocentric', but got "
+                             "'{}'".format(kind))
+
+        return rvcorr(self.obstime, self.location, self, bary)
 
     # Table interactions
     @classmethod

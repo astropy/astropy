@@ -1376,3 +1376,24 @@ def test_extra_attributes():
     # Finally, check that we can delete such attributes.
     del sc3.obstime
     assert sc3.obstime is None
+
+
+def test_rvcorr():
+    """
+    Check that the SkyCoord radial_velocity_correction behaves sensibly
+    """
+    from ..velocity_correction_funcs import radial_velocity_correction
+
+    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    time = Time('2005-03-21 00:00:00')
+    target = ICRS(1*u.deg, 2*u.deg, 100*u.kpc)
+
+    rvcbary = radial_velocity_correction(time, loc, target, bary=True)
+    rvchelio = radial_velocity_correction(time, loc, target, bary=False)
+
+    sc = SkyCoord(target, obstime=time, location=loc)
+    rvcbary_sc = sc.radial_velocity_correction(kind='barycentric')
+    rvchelio_sc = sc.radial_velocity_correction(kind='heliocentric')
+
+    assert_allclose(rvcbary, rvcbary_sc)
+    assert_allclose(rvchelio, rvchelio_sc)
