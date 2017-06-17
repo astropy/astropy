@@ -98,8 +98,9 @@ New Features
 
   - Added infrastructure support for units on parameters and during
     model evaluation and fitting, added support for units on all
-    functional, power-law, and polynomial models where this is appropriate,
-    and added a new BlackBody1D model. [#4855, #6183, #6204]
+    functional, power-law, polynomial, and rotation models where this
+    is appropriate. A new BlackBody1D model has been added. [#4855, #6183,
+    #6204, #6235]
 
 - ``astropy.nddata``
 
