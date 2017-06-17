@@ -708,7 +708,8 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     if output is None:
         output = sys.stdout
 
-    table = Table(table, names=kwargs.get('names'))
+    table_cls = table.__class__ if isinstance(table, Table) else Table
+    table = table_cls(table, names=kwargs.get('names'))
 
     table0 = table[:0].copy()
     core._apply_include_exclude_names(table0, kwargs.get('names'),

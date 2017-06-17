@@ -657,8 +657,10 @@ class Table(object):
         def_names = _auto_names(n_cols)
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            # Structured ndarray gets viewed as a mixin
-            if isinstance(col, np.ndarray) and len(col.dtype) > 1:
+            # Structured ndarray gets viewed as a mixin unless already a valid
+            # mixin class
+            if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
+                    not self._add_as_mixin_column(col)):
                 col = col.view(NdarrayMixin)
 
             if isinstance(col, (Column, MaskedColumn)):
@@ -1264,8 +1266,10 @@ class Table(object):
             if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
                 value = np.asarray(value)
 
-            # Structured ndarray gets viewed as a mixin
-            if isinstance(value, np.ndarray) and len(value.dtype) > 1:
+            # Structured ndarray gets viewed as a mixin (unless already a valid
+            # mixin class).
+            if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
+                    not self._add_as_mixin_column(value)):
                 value = value.view(NdarrayMixin)
 
             # Make new column and assign the value.  If the table currently
