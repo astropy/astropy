@@ -86,7 +86,9 @@ class SkyCoordInfo(MixinInfo):
 
         out['representation'] = obj.representation.get_name()
         out['frame'] = obj.frame.name
-        out['unit'] = obj.info.unit
+        # Note that obj.info.unit is a fake composite unit (e.g. 'deg,deg,None'
+        # or None,None,m) and is not stored.  The individual attributes have
+        # units.
 
         return out
 

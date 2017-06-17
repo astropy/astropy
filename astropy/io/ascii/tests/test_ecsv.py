@@ -13,8 +13,11 @@ import sys
 import pytest
 import numpy as np
 
-from ....table import Table, Column
+from ....table import Table, Column, QTable, NdarrayMixin
 from ....table.table_helpers import simple_table
+from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from ....time import Time
+from ....tests.helper import quantity_allclose
 
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
@@ -216,3 +219,93 @@ def test_regression_5604():
 
     assert '!astropy.units.Unit' in out.getvalue()
     assert '!astropy.units.Quantity' in out.getvalue()
+
+
+def assert_objects_equal(obj1, obj2, attrs):
+    assert obj1.__class__ is obj2.__class__
+
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
+    for attr in attrs + info_attrs:
+        a1 = obj1
+        a2 = obj2
+        for subattr in attr.split('.'):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
+            assert quantity_allclose(a1, a2, rtol=1e-10)
+        else:
+            assert np.all(a1 == a2)
+
+
+el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
+              obstime=['J1990.5'] * 2)
+scc = sc.copy()
+scc.representation = 'cartesian'
+tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el)
+
+mixin_cols = {
+    'tm': tm,
+    'sc': sc,
+    'scc': scc,
+    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+                    obstime=['J1990.5'] * 2),
+    'q': [1, 2] * u.m,
+    'lat': Latitude([1, 2] * u.deg),
+    'lon': Longitude([1, 2] * u.deg),
+    'ang': Angle([1, 2] * u.deg),
+    'el': el,
+    'nd': NdarrayMixin(el)  # not supported yet
+}
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('name_col', list(mixin_cols.items()))
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_ecsv_mixins(table_cls, name_col):
+    name, col = name_col
+
+    compare_attrs = {
+        'c1': ['data'],
+        'c2': ['data'],
+        'tm': ['value', 'shape', 'format', 'scale', 'precision',
+               'in_subfmt', 'out_subfmt', 'location'],
+        'sc': ['ra', 'dec', 'representation', 'frame.name'],
+        'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
+        'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+        'q': ['value', 'unit'],
+        'lon': ['value', 'unit'],
+        'lat': ['value', 'unit'],
+        'ang': ['value', 'unit'],
+        'el': ['x', 'y', 'z', 'ellipsoid'],
+        'nd': ['x', 'y', 'z'],
+    }
+
+    c = [1.0, 2.0]
+    t = table_cls([c, col, c], names=['c1', name, 'c2'])
+    t[name].info.description = 'description'
+
+    if not t.has_mixin_columns:
+        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
+
+    if isinstance(t[name], NdarrayMixin):
+        pytest.xfail('NdarrayMixin not supported')
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    for name in t.colnames:
+        assert_objects_equal(t[name], t2[name], compare_attrs[name])
+
+    # Special case to make sure Column type doesn't leak into class data
+    if name == 'tm':
+        assert t2['tm']._time.jd1.__class__ is np.ndarray
+        assert t2['tm']._time.jd2.__class__ is np.ndarray
