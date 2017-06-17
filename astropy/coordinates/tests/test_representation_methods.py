@@ -7,7 +7,7 @@ import numpy as np
 
 from ... import units as u
 from .. import (SphericalRepresentation, Longitude, Latitude,
-                CartesianDifferential)
+                SphericalDifferential)
 from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
@@ -23,14 +23,17 @@ class TestManipulation():
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
 
-        self.diff = CartesianDifferential(np.ones((3,) + lon.shape + lat.shape)*u.km/u.s)
-
         # With same-sized arrays
         self.s0 = SphericalRepresentation(
             lon[:, np.newaxis] * np.ones(lat.shape),
             lat * np.ones(lon.shape)[:, np.newaxis],
-            np.ones(lon.shape + lat.shape) * u.kpc,
-            differentials=self.diff)
+            np.ones(lon.shape + lat.shape) * u.kpc)
+
+        self.diff = SphericalDifferential(
+            d_lon=np.ones(self.s0.shape)*u.mas/u.yr,
+            d_lat=np.ones(self.s0.shape)*u.mas/u.yr,
+            d_distance=np.ones(self.s0.shape)*u.km/u.s)
+        self.s0 = self.s0.with_differentials(self.diff)
 
         # With unequal arrays -> these will be broadcasted.
         self.s1 = SphericalRepresentation(lon[:, np.newaxis], lat, 1. * u.kpc,
@@ -47,38 +50,38 @@ class TestManipulation():
         assert np.may_share_memory(s0_ravel.lon, self.s0.lon)
         assert np.may_share_memory(s0_ravel.lat, self.s0.lat)
         assert np.may_share_memory(s0_ravel.distance, self.s0.distance)
-        assert s0_ravel.differentials[0].shape == (self.s0.size,)
+        assert s0_ravel.differentials['s'].shape == (self.s0.size,)
 
         # Since s1 was broadcast, ravel needs to make a copy.
         s1_ravel = self.s1.ravel()
         assert type(s1_ravel) is type(self.s1)
         assert s1_ravel.shape == (self.s1.size,)
-        assert s1_ravel.differentials[0].shape == (self.s1.size,)
+        assert s1_ravel.differentials['s'].shape == (self.s1.size,)
         assert np.all(s1_ravel.lon == self.s1.lon.ravel())
         assert not np.may_share_memory(s1_ravel.lat, self.s1.lat)
 
     def test_copy(self):
         s0_copy = self.s0.copy()
-        s0_copy_diff = s0_copy.differentials[0]
+        s0_copy_diff = s0_copy.differentials['s']
         assert s0_copy.shape == self.s0.shape
         assert np.all(s0_copy.lon == self.s0.lon)
         assert np.all(s0_copy.lat == self.s0.lat)
 
         # Check copy was made of internal data.
         assert not np.may_share_memory(s0_copy.distance, self.s0.distance)
-        assert not np.may_share_memory(s0_copy_diff.d_x, self.diff.d_x)
+        assert not np.may_share_memory(s0_copy_diff.d_lon, self.diff.d_lon)
 
     def test_flatten(self):
         s0_flatten = self.s0.flatten()
-        s0_diff = s0_flatten.differentials[0]
+        s0_diff = s0_flatten.differentials['s']
         assert s0_flatten.shape == (self.s0.size,)
         assert s0_diff.shape == (self.s0.size,)
         assert np.all(s0_flatten.lon == self.s0.lon.flatten())
-        assert np.all(s0_diff.d_x == self.diff.d_x.flatten())
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.flatten())
 
         # Flatten always copies.
         assert not np.may_share_memory(s0_flatten.distance, self.s0.distance)
-        assert not np.may_share_memory(s0_diff.d_x, self.diff.d_x)
+        assert not np.may_share_memory(s0_diff.d_lon, self.diff.d_lon)
 
         s1_flatten = self.s1.flatten()
         assert s1_flatten.shape == (self.s1.size,)
@@ -87,22 +90,22 @@ class TestManipulation():
 
     def test_transpose(self):
         s0_transpose = self.s0.transpose()
-        s0_diff = s0_transpose.differentials[0]
+        s0_diff = s0_transpose.differentials['s']
         assert s0_transpose.shape == (7, 6)
         assert s0_diff.shape == s0_transpose.shape
         assert np.all(s0_transpose.lon == self.s0.lon.transpose())
-        assert np.all(s0_diff.d_x == self.diff.d_x.transpose())
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.transpose())
         assert np.may_share_memory(s0_transpose.distance, self.s0.distance)
-        assert np.may_share_memory(s0_diff.d_x, self.diff.d_x)
+        assert np.may_share_memory(s0_diff.d_lon, self.diff.d_lon)
 
         s1_transpose = self.s1.transpose()
-        s1_diff = s1_transpose.differentials[0]
+        s1_diff = s1_transpose.differentials['s']
         assert s1_transpose.shape == (7, 6)
         assert s1_diff.shape == s1_transpose.shape
         assert np.all(s1_transpose.lat == self.s1.lat.transpose())
-        assert np.all(s1_diff.d_x == self.diff.d_x.transpose())
+        assert np.all(s1_diff.d_lon == self.diff.d_lon.transpose())
         assert np.may_share_memory(s1_transpose.lat, self.s1.lat)
-        assert np.may_share_memory(s1_diff.d_x, self.diff.d_x)
+        assert np.may_share_memory(s1_diff.d_lon, self.diff.d_lon)
 
         # Only one check on T, since it just calls transpose anyway.
         # Doing it on the CartesianRepresentation just for variety's sake.
@@ -113,27 +116,27 @@ class TestManipulation():
 
     def test_diagonal(self):
         s0_diagonal = self.s0.diagonal()
-        s0_diff = s0_diagonal.differentials[0]
+        s0_diff = s0_diagonal.differentials['s']
         assert s0_diagonal.shape == (6,)
         assert s0_diff.shape == s0_diagonal.shape
         assert np.all(s0_diagonal.lat == self.s0.lat.diagonal())
-        assert np.all(s0_diff.d_x == self.diff.d_x.diagonal())
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.diagonal())
         assert np.may_share_memory(s0_diagonal.lat, self.s0.lat)
-        assert np.may_share_memory(s0_diff.d_x, self.diff.d_x)
+        assert np.may_share_memory(s0_diff.d_lon, self.diff.d_lon)
 
     def test_swapaxes(self):
         s1_swapaxes = self.s1.swapaxes(0, 1)
-        s1_diff = s1_swapaxes.differentials[0]
+        s1_diff = s1_swapaxes.differentials['s']
         assert s1_swapaxes.shape == (7, 6)
         assert s1_diff.shape == s1_swapaxes.shape
         assert np.all(s1_swapaxes.lat == self.s1.lat.swapaxes(0, 1))
-        assert np.all(s1_diff.d_x == self.diff.d_x.swapaxes(0, 1))
+        assert np.all(s1_diff.d_lon == self.diff.d_lon.swapaxes(0, 1))
         assert np.may_share_memory(s1_swapaxes.lat, self.s1.lat)
-        assert np.may_share_memory(s1_diff.d_x, self.diff.d_x)
+        assert np.may_share_memory(s1_diff.d_lon, self.diff.d_lon)
 
     def test_reshape(self):
         s0_reshape = self.s0.reshape(2, 3, 7)
-        s0_diff = s0_reshape.differentials[0]
+        s0_diff = s0_reshape.differentials['s']
         assert s0_reshape.shape == (2, 3, 7)
         assert s0_diff.shape == s0_reshape.shape
         assert np.all(s0_reshape.lon == self.s0.lon.reshape(2, 3, 7))
@@ -144,13 +147,13 @@ class TestManipulation():
         assert np.may_share_memory(s0_reshape.distance, self.s0.distance)
 
         s1_reshape = self.s1.reshape(3, 2, 7)
-        s1_diff = s1_reshape.differentials[0]
+        s1_diff = s1_reshape.differentials['s']
         assert s1_reshape.shape == (3, 2, 7)
         assert s1_diff.shape == s1_reshape.shape
         assert np.all(s1_reshape.lat == self.s1.lat.reshape(3, 2, 7))
-        assert np.all(s1_diff.d_x == self.diff.d_x.reshape(3, 2, 7))
+        assert np.all(s1_diff.d_lon == self.diff.d_lon.reshape(3, 2, 7))
         assert np.may_share_memory(s1_reshape.lat, self.s1.lat)
-        assert np.may_share_memory(s1_diff.d_x, self.diff.d_x)
+        assert np.may_share_memory(s1_diff.d_lon, self.diff.d_lon)
 
         # For reshape(3, 14), copying is necessary for lon, lat, but not for d
         s1_reshape2 = self.s1.reshape(3, 14)
@@ -169,9 +172,9 @@ class TestManipulation():
         assert self.s0.lat.shape == (2, 3, 7)
         assert self.s0.distance.shape == (2, 3, 7)
         assert self.diff.shape == (2, 3, 7)
-        assert self.diff.d_x.shape == (2, 3, 7)
-        assert self.diff.d_y.shape == (2, 3, 7)
-        assert self.diff.d_z.shape == (2, 3, 7)
+        assert self.diff.d_lon.shape == (2, 3, 7)
+        assert self.diff.d_lat.shape == (2, 3, 7)
+        assert self.diff.d_distance.shape == (2, 3, 7)
 
         # this works with the broadcasting.
         self.s1.shape = (2, 3, 7)
@@ -208,33 +211,33 @@ class TestManipulation():
 
     def test_squeeze(self):
         s0_squeeze = self.s0.reshape(3, 1, 2, 1, 7).squeeze()
-        s0_diff = s0_squeeze.differentials[0]
+        s0_diff = s0_squeeze.differentials['s']
         assert s0_squeeze.shape == (3, 2, 7)
         assert s0_diff.shape == s0_squeeze.shape
         assert np.all(s0_squeeze.lat == self.s0.lat.reshape(3, 2, 7))
-        assert np.all(s0_diff.d_x == self.diff.d_x.reshape(3, 2, 7))
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.reshape(3, 2, 7))
         assert np.may_share_memory(s0_squeeze.lat, self.s0.lat)
 
     def test_add_dimension(self):
         s0_adddim = self.s0[:, np.newaxis, :]
-        s0_diff = s0_adddim.differentials[0]
+        s0_diff = s0_adddim.differentials['s']
         assert s0_adddim.shape == (6, 1, 7)
         assert s0_diff.shape == s0_adddim.shape
         assert np.all(s0_adddim.lon == self.s0.lon[:, np.newaxis, :])
-        assert np.all(s0_diff.d_x == self.diff.d_x[:, np.newaxis, :])
+        assert np.all(s0_diff.d_lon == self.diff.d_lon[:, np.newaxis, :])
         assert np.may_share_memory(s0_adddim.lat, self.s0.lat)
 
     def test_take(self):
         s0_take = self.s0.take((5, 2))
-        s0_diff = s0_take.differentials[0]
+        s0_diff = s0_take.differentials['s']
         assert s0_take.shape == (2,)
         assert s0_diff.shape == s0_take.shape
         assert np.all(s0_take.lon == self.s0.lon.take((5, 2)))
-        assert np.all(s0_diff.d_x == self.diff.d_x.take((5, 2)))
+        assert np.all(s0_diff.d_lon == self.diff.d_lon.take((5, 2)))
 
     def test_broadcast_to(self):
         s0_broadcast = self.s0._apply(np_broadcast_to, (3, 6, 7), subok=True)
-        s0_diff = s0_broadcast.differentials[0]
+        s0_diff = s0_broadcast.differentials['s']
         assert type(s0_broadcast) is type(self.s0)
         assert s0_broadcast.shape == (3, 6, 7)
         assert s0_diff.shape == s0_broadcast.shape
@@ -247,7 +250,7 @@ class TestManipulation():
 
         s1_broadcast = self.s1._apply(np_broadcast_to, shape=(3, 6, 7),
                                       subok=True)
-        s1_diff = s1_broadcast.differentials[0]
+        s1_diff = s1_broadcast.differentials['s']
         assert s1_broadcast.shape == (3, 6, 7)
         assert s1_diff.shape == s1_broadcast.shape
         assert np.all(s1_broadcast.lat == self.s1.lat)
