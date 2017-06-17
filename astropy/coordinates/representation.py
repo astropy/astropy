@@ -362,7 +362,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         arrstr = _array2string(self._values, prefix=prefixstr)
 
         diffstr = ''
-        if hasattr(self, 'differentials') and self.differentials:
+        if getattr(self, 'differentials', None):
             diffstr = '\n differentials={0}'.format(repr(self.differentials))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
@@ -445,16 +445,15 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     differential class, one should also define ``unit_vectors`` and
     ``scale_factors`` methods (see those methods for details). Finally, classes
     can also define a ``recommended_units`` dictionary, which maps component
-    names to the units they are best presented to users in (this is used only in representations of coordinates, and may be overridden by frame classes).
+    names to the units they are best presented to users in (this is used only in
+    representations of coordinates, and may be overridden by frame classes).
     """
 
     recommended_units = {}  # subclasses can override
 
     def __init__(self, *args, **kwargs):
         # now handle any differentials passed in
-        differentials = kwargs.pop('differentials', tuple())
-        if differentials is None or not differentials:
-            differentials = tuple()
+        differentials = kwargs.pop('differentials', None)
 
         super(BaseRepresentation, self).__init__(*args, **kwargs)
 
@@ -469,8 +468,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Note that this does *not* set the differentials on
         ``self._differentials``, but rather leaves that for the caller.
         """
+
         # Now handle the actual validation of any specified differential classes
-        if isinstance(differentials, BaseDifferential):
+        if differentials is None:
+            differentials = tuple()
+
+        elif isinstance(differentials, BaseDifferential):
             differentials = (differentials, )
 
         for diff in differentials:
@@ -556,9 +559,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             # The default is to convert via cartesian coordinates
             if isiterable(other_class):
                 if isinstance(other_class, six.string_types):
-                    raise ValueError('Input to a representation\'s represent_as'
-                                     ' must be a class, not a string. For '
-                                     'strings, use frame objects')
+                    raise ValueError("Input to a representation's represent_as "
+                                     "must be a class, not a string. For "
+                                     "strings, use frame objects")
                 if (self.differentials is None or
                         len(other_class) != 1+len(self.differentials)):
                     raise ValueError("If multiple classes are passed in to "
@@ -631,6 +634,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         # save the differentials, then strip them so that the copy doesn't do
         # an unneeded copy, then re-attach them to the right objects
+        if not self._differentials:
+            return self
+
         olddiffs = self._differentials
         try:
             self._differentials = None
@@ -642,10 +648,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     def to_cartesian(self, diffstocart=False):
         """
-        Convert the representation to its carteisan form.
-
-        Note that subclasses should *not* override this - rather they should
-        override the ``_to_cartesian_helper()`` method.
+        Convert the representation to its Cartesian form.
 
         Parameters
         ----------
@@ -658,6 +661,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         cartrepr : CartesianRepresentation
           The representation in Cartesian form.
         """
+
+        # Note that subclasses should *not* override this - rather they should
+        # override the ``_to_cartesian_helper()`` method.
+
         repr = self._to_cartesian_helper()
         if diffstocart:
             repr._differentials = tuple([
@@ -673,9 +680,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Create a new representation in this class from a supplied
         `CartesianRepresentation`.
 
-        Note that subclasses should *not* override this - rather they should
-        override the ``_from_cartesian_helper()`` method.
-
         Parameters
         ----------
         other : BaseRepresentation object
@@ -686,6 +690,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         newrepr : object of this class
             A new representation of this class's type.
         """
+
+        # Note that subclasses should *not* override this - rather they should
+        # override the ``_from_cartesian_helper()`` method.
+
         repr = cls._from_cartesian_helper(other)
         repr._differentials = other._differentials
         return repr
