@@ -1276,18 +1276,14 @@ class TestCartesianRepresentationWithDifferential(object):
 
 def test_to_cartesian():
     """
-    Test that to_cartesian does the expected thing in both the with and without
-    differential cases.
+    Test that to_cartesian does the expected thing (converts both the
+    representation and differentials)
     """
     sd = SphericalDifferential(d_lat=1*u.deg, d_lon=2*u.deg, d_distance=10*u.m)
     sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m,
                                  differentials=[sd])
 
-    notdiff = sr.to_cartesian(diffstocart=False)
-    diff = sr.to_cartesian(diffstocart=True)
-
-    assert notdiff.get_name() == 'cartesian'
-    assert notdiff.differentials[0].get_name() == 'spherical'
+    diff = sr.to_cartesian()
 
     assert diff.get_name() == 'cartesian'
     assert diff.differentials[0].get_name() == 'cartesian'
