@@ -788,12 +788,21 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     # We need to override this setter to support differentials
     @BaseRepresentationOrDifferential.shape.setter
     def shape(self, shape):
+        orig_shape = self.shape
+
         # See: https://stackoverflow.com/questions/3336767/ for an example
         BaseRepresentationOrDifferential.shape.fset(self, shape)
 
-        # also perform shape-setting on any associated differentials
-        for diff in self.differentials:
-            diff.shape = shape
+        # also try to perform shape-setting on any associated differentials
+        try:
+            for k in self.differentials:
+                self.differentials[k].shape = shape
+        except:
+            BaseRepresentationOrDifferential.shape.fset(self, orig_shape)
+            for k in self.differentials:
+                self.differentials[k].shape = orig_shape
+
+            raise
 
     def norm(self):
         """Vector norm.
