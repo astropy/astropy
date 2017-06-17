@@ -616,8 +616,8 @@ class Quantity(np.ndarray):
             kwargs['out'] = (out_array,) if function.nout == 1 else out_array
 
         # Same for inputs, but here also convert if necessary.
-        arrays = tuple(((converter(input_.value) if converter else input_.value)
-                        if isinstance(input_, Quantity) else input_)
+        arrays = tuple((converter(input_.value) if converter else
+                        getattr(input_, 'value', input_))
                        for input_, converter in zip(inputs, converters))
 
         # Call our superclass's __array_ufunc__
