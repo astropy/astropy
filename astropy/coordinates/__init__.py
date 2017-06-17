@@ -23,7 +23,7 @@ from .sky_coordinate import *
 from .funcs import *
 from .calculation import *
 from .solar_system import *
-from .velocities import *
+from .velocity_correction_funcs import *
 
 __doc__ += builtin_frames._transform_graph_docs + """
 
