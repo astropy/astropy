@@ -459,9 +459,9 @@ def table_to_hdu(table):
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
         from ...table.column import BaseColumn
-        from ...table import Table, Column
+        from ...table import Column
         from ...time import Time
-        from .time import replace_time_table
+        from .fits_time import FitsTime
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can be written
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
@@ -472,8 +472,7 @@ def table_to_hdu(table):
         
         time_cols = table.columns.isinstance(Time)
         if time_cols:
-            newtable = Table(table, copy=False)
-            table, hdr = replace_time_table(newtable)
+            table, hdr = FitsTime.replace_time_table(table)
 
     # Create a new HDU object
     if table.masked:

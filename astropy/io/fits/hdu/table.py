@@ -279,14 +279,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 ('TFIELDS', 0, 'number of table fields')]
 
             if header is not None:
-                for key in header.keys():
-                    if re.search(r'\d+$', key):
-                        self._header_column.append(Card(keyword=key, value=header[key]))
-                        header.remove(key)
-
                 # Make a "copy" (not just a view) of the input header, since it
                 # may get modified.  the data is still a "view" (for now)
                 hcopy = header.copy(strip=True)
+
+                # Separate global and column-specific keywords
+                for key in hcopy.keys():
+                    if re.search(r'\d+$', key):
+                        self._header_column.append(hcopy.cards[key])
+                        hcopy.remove(key)
+
                 cards.extend(hcopy.cards)
 
             self._header = Header(cards)
