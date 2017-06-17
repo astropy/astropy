@@ -304,8 +304,10 @@ class Parameter(OrderedDescriptor):
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
-            value = setter(value)
-
+            if self.unit is not None:
+                value = setter(value * self.unit).value
+            else:
+                value = setter(value)
         self._set_model_value(obj, value)
 
     def __len__(self):
@@ -423,7 +425,6 @@ class Parameter(OrderedDescriptor):
 
         if self._setter is not None:
             val = self._setter(value)
-
         if isinstance(value, Quantity):
             raise TypeError("The .value property on parameters should be set to "
                             "unitless values, not Quantity objects. To set a "
@@ -475,7 +476,10 @@ class Parameter(OrderedDescriptor):
         """
         This parameter, as a :class:`~astropy.units.Quantity` instance.
         """
-        return self.value * self.unit
+        if self.unit is not None:
+            return self.value * self.unit
+        else:
+            return None
 
     @quantity.setter
     def quantity(self, quantity):
@@ -908,6 +912,13 @@ def param_repr_oneline(param):
 
     out = array_repr_oneline(param.value)
     if param.unit is not None:
-        out = '{0} {1!s}'.format(out, param.unit)
+        if param._getter is None:
+            out = '{0} {1!s}'.format(out, param.unit)
+        else:
+            # Get the original parameter unit by passing the raw value with the
+            # unit through the getter. Otherwise it's inconsistent - ``value`` is the
+            # output of the getter while ``unit`` is the output of the setter.
+            q = param._getter(param._raw_value * param.unit)
+            out = '{0} {1!s}'.format(out, q.unit)
 
     return out

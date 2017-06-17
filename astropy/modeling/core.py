@@ -1843,7 +1843,10 @@ class Model(object):
             param_descr = getattr(self, name)
             value = np.array(value)
             if param_descr._setter is not None:
-                value = param_descr._setter(value)
+                if unit is not None:
+                    value = np.asarray(param_descr._setter(value * unit).value)
+                else:
+                    value = param_descr._setter(value)
             self._parameters[param_metrics[name]['slice']] = value.ravel()
 
         # Finally validate all the parameters; we do this last so that
