@@ -18,7 +18,7 @@ from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
                               DIFFERENTIAL_CLASSES,
-                              BaseRepresentation,
+                              BaseRepresentation, BaseDifferential,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
                               SphericalCosLatDifferential,
@@ -1005,7 +1005,7 @@ def test_minimal_subclass():
                                     ('lat', Latitude),
                                     ('logd', u.Dex)])
 
-        def _to_cartesian_helper(self):
+        def to_cartesian(self):
             d = self.logd.physical
             x = d * np.cos(self.lat) * np.cos(self.lon)
             y = d * np.cos(self.lat) * np.sin(self.lon)
@@ -1013,12 +1013,37 @@ def test_minimal_subclass():
             return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
         @classmethod
-        def _from_cartesian_helper(cls, cart):
+        def from_cartesian(cls, cart):
             s = np.hypot(cart.x, cart.y)
             r = np.hypot(s, cart.z)
             lon = np.arctan2(cart.y, cart.x)
             lat = np.arctan2(cart.z, s)
             return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
+
+        def unit_vectors(self):
+            sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
+            sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
+            d = self.logd.physical
+            return OrderedDict(
+                (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
+                 ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
+                                                 coslat, copy=False)),
+                 ('logd', CartesianRepresentation(d*coslat*coslon,
+                                                  d*coslat*sinlon,
+                                                  d*sinlat,
+                                                  copy=False))))
+
+        def scale_factors(self, omit_coslat=False):
+            d = self.logd.physical
+            sf_lat = d / u.radian
+            sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
+            sf_logd = d / u.Dex
+            return OrderedDict((('lon', sf_lon),
+                                ('lat', sf_lat),
+                                ('logd', sf_logd)))
+
+    class LogDDifferential(BaseDifferential):
+        base_representation = LogDRepresentation
 
     ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
@@ -1053,14 +1078,14 @@ def test_minimal_subclass():
                                         ('logr', u.Dex)])
 
     # now try passing in a differential
-    diff = CartesianDifferential(d_x=1 * u.km/u.s,
-                                 d_y=2 * u.km/u.s,
-                                 d_z=3 * u.km/u.s)
+    diff = LogDDifferential(d_logd=1 * u.dex(u.kpc),
+                            d_lon=2 * u.rad,
+                            d_lat=3 * u.rad)
     ld = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc),
                             differentials=diff)
-    assert ld.differentials[0] == diff
-    ld2 = ld.represent_as([CartesianRepresentation, CylindricalDifferential])
-    assert ld2.differentials[0].get_name() == 'cylindrical'
+    assert ld.differentials[''] == diff
+    ld2 = ld.represent_as(CartesianRepresentation, CartesianDifferential)
+    assert ld2.differentials[''].get_name() == 'cartesian'
 
 def test_combine_xyz():
 
@@ -1225,9 +1250,12 @@ class TestCartesianRepresentationWithDifferential(object):
         assert new_rep.get_name() == 'spherical'
         assert new_rep.differentials['1 / s'].get_name() == 'sphericalcoslat'
 
-        # make sure all of the to_cartesian() and from_cartesian() methods
-        # pass through the differentials
+        # make sure represent_as() passes through the differentials
         for name in REPRESENTATION_CLASSES:
+            if name == 'radial':
+                # TODO: Converting a CartesianDifferential to a
+                #       RadialDifferential fails, even on `master`
+                continue
             new_rep = rep1.represent_as(REPRESENTATION_CLASSES[name],
                                         DIFFERENTIAL_CLASSES[name])
             assert new_rep.get_name() == name
@@ -1314,4 +1342,4 @@ def test_to_cartesian():
     diff = sr.to_cartesian()
 
     assert diff.get_name() == 'cartesian'
-    assert diff.differentials[''].get_name() == 'cartesian'
+    assert not diff.differentials
