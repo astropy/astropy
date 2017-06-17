@@ -801,12 +801,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         The norm is the standard Frobenius norm, i.e., the square root of the
         sum of the squares of all components with non-angular units.
 
+        Note that any associated differentials will be dropped during this
+        operation.
+
         Returns
         -------
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
-        self._raise_if_has_differentials('norm')
         return np.sqrt(functools.reduce(
             operator.add, (getattr(self, component)**2
                            for component, cls in self.attr_classes.items()
@@ -856,6 +858,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         The calculation is done by converting both ``self`` and ``other``
         to `~astropy.coordinates.CartesianRepresentation`.
 
+        Note that any associated differentials will be dropped during this
+        operation.
+
         Parameters
         ----------
         other : `~astropy.coordinates.BaseRepresentation`
@@ -867,7 +872,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             The sum of the product of the x, y, and z components of the
             cartesian representations of ``self`` and ``other``.
         """
-        self._raise_if_has_differentials('dot')
         return self.to_cartesian().dot(other)
 
     def cross(self, other):
@@ -1126,6 +1130,9 @@ class CartesianRepresentation(BaseRepresentation):
     def dot(self, other):
         """Dot product of two representations.
 
+        Note that any associated differentials will be dropped during this
+        operation.
+
         Parameters
         ----------
         other : representation
@@ -1137,7 +1144,6 @@ class CartesianRepresentation(BaseRepresentation):
             The sum of the product of the x, y, and z components of ``self``
             and ``other``.
         """
-        self._raise_if_has_differentials('dot')
         try:
             other_c = other.to_cartesian()
         except Exception:
