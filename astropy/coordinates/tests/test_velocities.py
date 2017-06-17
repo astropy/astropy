@@ -1,17 +1,19 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
+
 import numpy as np
 
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 from ...time import Time
 from .. import (helio_vector, bary_vector, radial_velocity_correction,
-                EarthLocation, SkyCoord, CartesianRepresentation)
+                EarthLocation, SkyCoord, CartesianDifferential)
 from ..sites import get_builtin_sites
 
 
-@pytest.mark.parameterize('vectrofunc', [helio_vector, bary_vector])
+@pytest.mark.parametrize('vectorfunc', [helio_vector, bary_vector])
 def test_vectors(vectorfunc):
     t0 = Time('2015-1-1')
     loc = get_builtin_sites()['example_site']
@@ -20,15 +22,15 @@ def test_vectors(vectorfunc):
     vc0 = radial_velocity_correction(t0, loc, SkyCoord(0, 0, unit=u.deg))
 
     assert v0.shape == ()
-    assert isinstance(v0, CartesianRepresentation)
+    assert isinstance(v0, CartesianDifferential)
     assert vc0.shape == ()
-    assert v0.x.unit.is_equivalent(u.km/u.s)
+    assert v0.d_x.unit.is_equivalent(u.km/u.s)
     assert vc0.unit.is_equivalent(u.km/u.s)
 
     ts = t0 + np.arange(10)*u.day
     vs = vectorfunc(ts, loc)
     assert vs.shape == (10,)
-    assert vs.x.unit.is_equivalent(u.km/u.s)
+    assert vs.d_x.unit.is_equivalent(u.km/u.s)
 
 
 def test_helio_iraf():
