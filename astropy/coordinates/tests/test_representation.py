@@ -1217,7 +1217,8 @@ class TestCartesianRepresentationWithDifferential(object):
 
         r2 = CartesianRepresentation.from_representation(r1)
         assert r2.get_name() == 'cartesian'
-        assert r2.differentials['s'].get_name() == 'cartesian'
+        # assert r2.differentials['s'].get_name() == 'cartesian'
+        assert not r2.differentials
 
     def test_readonly(self):
 
