@@ -6,15 +6,18 @@ import numpy as np
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 from ...time import Time
-from .. import helio_vector, helio_corr, EarthLocation, SkyCoord, CartesianRepresentation
+from .. import (helio_vector, bary_vector, radial_velocity_correction,
+                EarthLocation, SkyCoord, CartesianRepresentation)
 from ..sites import get_builtin_sites
 
-def test_helio():
+
+@pytest.mark.parameterize('vectrofunc', [helio_vector, bary_vector])
+def test_vectors(vectorfunc):
     t0 = Time('2015-1-1')
     loc = get_builtin_sites()['example_site']
 
-    v0 = helio_vector(t0, loc)
-    vc0 = helio_corr(t0, loc, SkyCoord(0, 0, unit=u.deg))
+    v0 = vectorfunc(t0, loc)
+    vc0 = radial_velocity_correction(t0, loc, SkyCoord(0, 0, unit=u.deg))
 
     assert v0.shape == ()
     assert isinstance(v0, CartesianRepresentation)
@@ -23,7 +26,7 @@ def test_helio():
     assert vc0.unit.is_equivalent(u.km/u.s)
 
     ts = t0 + np.arange(10)*u.day
-    vs = helio_vector(ts, loc)
+    vs = vectorfunc(ts, loc)
     assert vs.shape == (10,)
     assert vs.x.unit.is_equivalent(u.km/u.s)
 
@@ -152,7 +155,7 @@ def test_helio_iraf():
             vhs_iraf.append(float(line.split()[2]))
     vhs_iraf = vhs_iraf*u.km/u.s
 
-    vhs_astropy = helio_corr(IRAF_time, loc, coos)
+    vhs_astropy = radial_velocity_correction(IRAF_time, loc, coos)
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
 
 
