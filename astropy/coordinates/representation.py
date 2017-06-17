@@ -471,16 +471,35 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         # Now handle the actual validation of any specified differential classes
         if differentials is None:
-            differentials = tuple()
+            differentials = dict()
 
         elif isinstance(differentials, BaseDifferential):
-            differentials = (differentials, )
+            key = differentials._get_deriv_key(self)
+            differentials = {key: differentials}
 
-        for diff in differentials:
+        for key in differentials:
+            try:
+                diff = differentials[key]
+            except TypeError:
+                raise TypeError("'differentials' argument must be a "
+                                "dictionary-like object")
+
+            if diff.__class__ not in self._compatible_differentials:
+                raise TypeError("Differential '{0}' is not compatible with "
+                                "this representation '{1}'".format(diff, self))
+
+            expected_key = diff._get_deriv_key(self)
+
             if not isinstance(diff, BaseDifferential):
-                raise TypeError("'differentials' must be an iterable of "
-                                "BaseDifferential subclass instances. Got '{0}'"
-                                .format(type(diff)))
+                raise TypeError("'differentials' must be a dictionary of "
+                                "BaseDifferential subclass instances with keys "
+                                "set to a string representation of the unit of "
+                                "the derivative. Got '{0}'".format(type(diff)))
+
+            elif key != expected_key:
+                raise ValueError("For differential object '{0}', expected unit "
+                                 "key = '{1}' but received key = '{2}'"
+                                 .format(diff, expected_key, key))
 
             # For now, we are very rigid: differentials must have the same shape
             # as the representation. This makes it easier to handle __getitem__
@@ -492,7 +511,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise ValueError("Shape of differentials must be the same "
                                  "as the shape of the representation ({0} vs "
                                  "{1})".format(diff.shape, self.shape))
-        return tuple(differentials)
+
+        return differentials
 
     def _raise_if_has_differentials(self, op_name):
         """
@@ -505,8 +525,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                             .format(op_name, self.__class__.__name__))
 
     @property
+    def _compatible_differentials(self):
+        return [DIFFERENTIAL_CLASSES[self.get_name()]]
+
+    @property
     def differentials(self):
-        """A tuple of differential class instances"""
+        """A dictionary of differential class instances"""
         return self._differentials
 
     # We do not make unit_vectors and scale_factors abstract methods, since
@@ -542,7 +566,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         raise NotImplementedError("{} has not implemented scale factors."
                                   .format(type(self)))
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         """Convert coordinates to another representation.
 
         If the instance is of the requested class, it is returned unmodified.
@@ -552,35 +576,60 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         ----------
         other_class : `~astropy.coordinates.BaseRepresentation` subclass
             The type of representation to turn the coordinates into.
+        differential_class : dict, `~astropy.coordinates.BaseDifferential` (optional)
+            TODO
         """
-        if other_class is self.__class__:
-            return self
+        if other_class is self.__class__ and not differential_class:
+            return self.without_differentials()
+
         else:
+            if isinstance(other_class, six.string_types):
+                raise ValueError("Input to a representation's represent_as "
+                                 "must be a class, not a string. For "
+                                 "strings, use frame objects")
+
             # The default is to convert via cartesian coordinates
-            if isiterable(other_class):
-                if isinstance(other_class, six.string_types):
-                    raise ValueError("Input to a representation's represent_as "
-                                     "must be a class, not a string. For "
-                                     "strings, use frame objects")
-                if (self.differentials is None or
-                        len(other_class) != 1+len(self.differentials)):
-                    raise ValueError("If multiple classes are passed in to "
-                                     "change the representations of attached "
-                                     "differentials, the number of classes must "
-                                     "be equal to 1 + the number of "
-                                     "differentials. (got {0})"
-                                     .format(len(other_class)))
+            if differential_class:
+                if not self.differentials:
+                    raise ValueError("No differentials associated with this "
+                                     "representation!")
 
-                new_rep = other_class[0].from_cartesian(self.to_cartesian())
+                elif (len(self.differentials) == 1 and
+                        inspect.isclass(differential_class) and
+                        issubclass(differential_class, BaseDifferential)):
+                    # TODO: is there a better way to do this?
+                    differential_class = {
+                        list(self.differentials.keys())[0]: differential_class
+                    }
 
-                new_diffs = []
-                for i,diff in enumerate(self.differentials):
-                    new_diffs.append(diff.represent_as(other_class[1+i],
-                                                       base=self))
-                new_rep._differentials = tuple(new_diffs)
+                if set(differential_class.keys()) != set(self.differentials.keys()):
+                    ValueError("Desired differential classes must be passed in "
+                               "as a dictionary with keys equal to a string "
+                               "representation of the unit of the derivative "
+                               "for each differential stored with this "
+                               "representation object ({0})"
+                               .format(self.differentials))
+
+                new_rep = other_class.from_cartesian(
+                    self.without_differentials().to_cartesian())
+
+                new_diffs = dict()
+                for k in self.differentials:
+                    if differential_class[k] not in new_rep._compatible_differentials:
+                        raise TypeError("Desired differential class {0} is not "
+                                        "compatible with the desired "
+                                        "representation class {1}"
+                                        .format(differential_class[k],
+                                                other_class))
+
+                    diff = self.differentials[k]
+                    new_diffs[k] = diff.represent_as(differential_class[k],
+                                                     base=self)
+                new_rep._differentials = new_diffs
 
             else:
-                new_rep = other_class.from_cartesian(self.to_cartesian())
+                new_rep = other_class.from_cartesian(
+                    self.without_differentials().to_cartesian())
 
             return new_rep
 
@@ -641,7 +690,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         try:
             self._differentials = None
             newrepr = deepcopy(self)
-            newrepr._differentials = ()
+            newrepr._differentials = dict()
             return newrepr
         finally:
             self._differentials = olddiffs
@@ -664,8 +713,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # The without_differentials() call is needed to protect against an infinite loop, since
         # to_cartesian() gets called on the base when it's passed in to represent_as()
         self_no_diffs = self.without_differentials()
-        repr._differentials = tuple([diff.represent_as(CartesianDifferential, base=self_no_diffs)
-                                     for diff in self._differentials])
+        repr._differentials = dict(
+            [(k, diff.represent_as(CartesianDifferential, base=self_no_diffs))
+             for k,diff in self._differentials.items()])
+
         return repr
 
     @classmethod
@@ -693,8 +744,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if other._differentials:
             diff_cls = DIFFERENTIAL_CLASSES[cls.get_name()]
             other_no_diffs = other.without_differentials()
-            repr._differentials = tuple([diff.represent_as(diff_cls, base=other_no_diffs)
-                                         for diff in other._differentials])
+            repr._differentials = dict(
+                [(k, diff.represent_as(diff_cls, base=other_no_diffs))
+                 for k,diff in other._differentials.items()])
 
         return repr
 
@@ -731,8 +783,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         """
         rep = super(BaseRepresentation, self)._apply(method, *args, **kwargs)
-        rep._differentials = tuple([diff._apply(method, *args, **kwargs)
-                                    for diff in self.differentials])
+
+        rep._differentials = dict(
+            [(k, diff._apply(method, *args, **kwargs))
+             for k,diff in self._differentials.items()])
         return rep
 
     def _scale_operation(self, op, *args):
@@ -920,8 +974,8 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, differentials=None,
-                 copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None,
+                 differentials=None, copy=True):
 
         if y is None and z is None:
             if xyz_axis is not None and xyz_axis != 0:
@@ -1052,10 +1106,13 @@ class CartesianRepresentation(BaseRepresentation):
             # We might be being too generous here - we could enforce that this
             # only works when the differentials are CartesianDifferential's,
             # and then this wouldn't require as much gymnastics
-            diff_reps = [d.represent_as(CartesianRepresentation, self).transform(matrix)
-                         for d in self.differentials]
-            diffs = [r.represent_as(CartesianDifferential).represent_as(d.__class__, self)
-                     for r,d in zip(diff_reps, self.differentials)]
+            diff_reps = dict(
+                [(k, d.represent_as(CartesianRepresentation, self).transform(matrix))
+                 for k,d in self.differentials.items()])
+            diffs = dict(
+                [(k, diff_reps[k].represent_as(CartesianDifferential)
+                                 .represent_as(d.__class__, self))
+                 for k,d in self.differentials.items()])
 
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
         return self.__class__(*newxyz, copy=False, differentials=diffs)
@@ -1179,6 +1236,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def __init__(self, lon, lat, differentials=None, copy=True):
         super(UnitSphericalRepresentation,
               self).__init__(lon, lat, differentials=differentials, copy=copy)
+
+    @property
+    def _compatible_differentials(self):
+        return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+                SphericalDifferential, SphericalCosLatDifferential,
+                RadialDifferential]
 
     # Could let the metaclass define these automatically, but good to have
     # a bit clearer docstrings.
@@ -1447,6 +1510,12 @@ class SphericalRepresentation(BaseRepresentation):
                              differentials=differentials)
         if self._distance.unit.physical_type == 'length':
             self._distance = self._distance.view(Distance)
+
+    @property
+    def _compatible_differentials(self):
+        return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+                SphericalDifferential, SphericalCosLatDifferential,
+                RadialDifferential]
 
     @property
     def lon(self):
@@ -1865,6 +1934,23 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             raise TypeError('need a base of the correct representation type, '
                             '{0}, not {1}.'.format(cls.base_representation,
                                                    type(base)))
+
+    def _get_deriv_key(self, base):
+        """Given a base (representation instance), determine the unit of the
+        derivative by removing the representation unit from the component units
+        of this differential.
+        """
+
+        # TODO: better validation by checking, e.g., _compatible_differentials
+        # for this class
+        self._check_base(base)
+
+        for name in base.components:
+            comp = getattr(base, name)
+            d_comp = getattr(self, 'd_{0}'.format(name), None)
+            if d_comp:
+                d_unit = d_comp.si.unit / comp.si.unit
+                return str(d_unit)
 
     @classmethod
     def _get_base_vectors(cls, base):
