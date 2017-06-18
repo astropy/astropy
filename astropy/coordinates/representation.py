@@ -450,8 +450,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         subclass instance, or a dictionary with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
-        representation, the key would be `'s'` for seconds, indicating that the
-        derivative is a time derivative.
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
 
@@ -547,7 +547,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         The keys of this dictionary must be a string representation of the SI
         unit with which the differential (derivative) is taken. For example, for
         a velocity differential on a positional representation, the key would be
-        `'s'` for seconds, indicating that the derivative is a time derivative.
+        ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
         """
         return self._differentials
 
@@ -950,8 +951,8 @@ class CartesianRepresentation(BaseRepresentation):
         `CartesianDifferential` s with keys set to a string representation of
         the SI unit with which the differential (derivative) is taken. For
         example, for a velocity differential on a positional representation, the
-        key would be `'s'` for seconds, indicating that the derivative is a time
-        derivative.
+        key would be ``'s'`` for seconds, indicating that the derivative is a
+        time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1212,8 +1213,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
-        representation, the key would be `'s'` for seconds, indicating that the
-        derivative is a time derivative.
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1417,8 +1418,8 @@ class RadialRepresentation(BaseRepresentation):
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
-        representation, the key would be `'s'` for seconds, indicating that the
-        derivative is a time derivative.
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1503,8 +1504,8 @@ class SphericalRepresentation(BaseRepresentation):
         dictionary of of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
-        representation, the key would be `'s'` for seconds, indicating that the
-        derivative is a time derivative.
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1658,7 +1659,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         differential instances with keys set to a string representation of the
         SI unit with which the differential (derivative) is taken. For example,
         for a velocity differential on a positional representation, the key
-        would be `'s'` for seconds, indicating that the derivative is a time
+        would be ``'s'`` for seconds, indicating that the derivative is a time
         derivative.
 
     copy : bool, optional
@@ -1817,7 +1818,8 @@ class CylindricalRepresentation(BaseRepresentation):
         instances with keys set to a string representation of the SI unit with
         which the differential (derivative) is taken. For example, for a
         velocity differential on a positional representation, the key would be
-        `'s'` for seconds, indicating that the derivative is a time derivative.
+        ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
