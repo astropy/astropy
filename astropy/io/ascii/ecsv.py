@@ -6,11 +6,13 @@ writing all the meta data associated with an astropy Table object.
 
 import re
 from collections import OrderedDict
+import contextlib
 
 from ...extern import six
 
 from . import core, basic
 from ...table import meta, serialize
+from ...utils.data_info import serialize_context_as
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -245,4 +247,6 @@ class Ecsv(basic.Basic):
         table : `astropy.table.Table`
             Output table for writing
         """
-        return serialize._represent_mixins_as_columns(table)
+        with serialize_context_as('ecsv'):
+            out = serialize._represent_mixins_as_columns(table)
+        return out

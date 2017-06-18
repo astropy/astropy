@@ -16,7 +16,7 @@ import numpy as np
 from ....table import Table, Column, QTable, NdarrayMixin
 from ....table.table_helpers import simple_table
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time
+from ....time import Time, TimeDelta
 from ....tests.helper import quantity_allclose
 
 from ....extern.six.moves import StringIO
@@ -248,9 +248,12 @@ sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
 scc = sc.copy()
 scc.representation = 'cartesian'
 tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el)
+tm2 = Time(tm, format='iso')
 
 mixin_cols = {
     'tm': tm,
+    'tm2': tm2,
+    'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
     'scc': scc,
     'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
@@ -270,11 +273,14 @@ mixin_cols = {
 def test_ecsv_mixins(table_cls, name_col):
     name, col = name_col
 
+    time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
+                  'in_subfmt', 'out_subfmt', 'location']
     compare_attrs = {
         'c1': ['data'],
         'c2': ['data'],
-        'tm': ['value', 'shape', 'format', 'scale', 'precision',
-               'in_subfmt', 'out_subfmt', 'location'],
+        'tm': time_attrs,
+        'tm2': time_attrs,
+        'dt': ['shape', 'value', 'format', 'scale'],
         'sc': ['ra', 'dec', 'representation', 'frame.name'],
         'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
         'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
