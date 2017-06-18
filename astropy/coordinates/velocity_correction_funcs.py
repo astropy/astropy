@@ -95,8 +95,9 @@ def radial_velocity_correction(t, loc, target, bary=True):
     else:
         vcorr_cart = helio_vector(t, loc)
 
-    gcrs_p, _ = loc.get_gcrs_posvel(t)
-
-    gtarg = target.transform_to(GCRS(obstime=t, obsgeoloc=gcrs_p))
+    gcrs_p, gcrs_v = loc.get_gcrs_posvel(t)
+    gtarg = target.transform_to(GCRS(obstime=t,
+                                     obsgeoloc=gcrs_p,
+                                     obsgeovel=gcrs_v))
     targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
     return targcart.dot(vcorr_cart)
