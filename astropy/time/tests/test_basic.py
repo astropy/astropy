@@ -93,21 +93,22 @@ class TestBasic():
         assert t4.isscalar is False
         assert t4.shape == np.broadcast(val, val2).shape
 
-    def test_copy_time(self):
+    @pytest.mark.parametrize('value', [2455197.5, [2455197.5]])
+    def test_copy_time(self, value):
         """Test copying the values of a Time object by passing it into the
         Time initializer.
         """
-        t = Time(2455197.5, format='jd', scale='utc')
+        t = Time(value, format='jd', scale='utc')
 
         t2 = Time(t, copy=False)
-        assert t.jd - t2.jd == 0
-        assert (t - t2).jd == 0
+        assert np.all(t.jd - t2.jd == 0)
+        assert np.all((t - t2).jd == 0)
         assert t._time.jd1 is t2._time.jd1
         assert t._time.jd2 is t2._time.jd2
 
         t2 = Time(t, copy=True)
-        assert t.jd - t2.jd == 0
-        assert (t - t2).jd == 0
+        assert np.all(t.jd - t2.jd == 0)
+        assert np.all((t - t2).jd == 0)
         assert t._time.jd1 is not t2._time.jd1
         assert t._time.jd2 is not t2._time.jd2
 
