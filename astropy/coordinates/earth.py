@@ -17,7 +17,7 @@ from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
-from ..utils import data
+from ..utils import data, deprecated
 
 try:
     # Not guaranteed available at setup time.
@@ -485,13 +485,25 @@ class EarthLocation(u.Quantity):
             u.Quantity(height * u.meter, self.unit, copy=False))
 
     @property
+    @deprecated('2.0', alternative='`lon`', obj_type='property')
     def longitude(self):
         """Longitude of the location, for the default ellipsoid."""
         return self.geodetic[0]
 
     @property
+    def lon(self):
+        """Longitude of the location, for the default ellipsoid."""
+        return self.geodetic[0]
+
+    @property
+    @deprecated('2.0', alternative='`lat`', obj_type='property')
     def latitude(self):
         """Latitude of the location, for the default ellipsoid."""
+        return self.geodetic[1]
+
+    @property
+    def lat(self):
+        """Longitude of the location, for the default ellipsoid."""
         return self.geodetic[1]
 
     @property
