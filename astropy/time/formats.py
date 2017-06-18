@@ -125,8 +125,8 @@ class TimeFormat(object):
         self.out_subfmt = out_subfmt
 
         if from_jd:
-            self.jd1 = np.asarray(val1)
-            self.jd2 = np.asarray(val2)
+            self.jd1 = val1
+            self.jd2 = val2
         else:
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
@@ -164,7 +164,14 @@ class TimeFormat(object):
         if val2 is None:
             val2 = np.zeros_like(val1)
 
-        return val1, val2
+        def asarray_or_scalar(val):
+            """
+            Remove ndarray subclasses since for jd1/jd2 we want a pure ndarray
+            or a Python or numpy scalar.
+            """
+            return np.asarray(val) if isinstance(val, np.ndarray) else val
+
+        return asarray_or_scalar(val1), asarray_or_scalar(val2)
 
     def _check_scale(self, scale):
         """
