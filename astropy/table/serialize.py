@@ -96,11 +96,12 @@ def _represent_mixins_as_columns(tbl):
             # Store the fully qualified class name
             obj_attrs['__class__'] = col.__module__ + '.' + col.__class__.__name__
 
+            # Strip out any attributes defined by the parent
+            for attr in col.info.attrs_from_parent:
+                if attr in info:
+                    del info[attr]
+
             if info:
-                # Strip out any attributes defined by the parent
-                for attr in col.info.attrs_from_parent:
-                    if attr in info:
-                        del info[attr]
                 obj_attrs['__info__'] = info
 
             mixin_cols[col.info.name] = obj_attrs
