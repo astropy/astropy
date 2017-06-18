@@ -758,32 +758,49 @@ class BaseAffineTransform(CoordinateTransform):
                                      UnitSphericalRepresentation,
                                      CartesianDifferential)
 
-        rep = fromcoord.data.to_cartesian(diffstocart=True)
+        rep = fromcoord.data.to_cartesian_with_differentials()
 
         # Only do transform is matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)
         if matrix is not None:
+            # Note: this applies to both representation and differentials
             rep = rep.transform(matrix)
 
-        newrep = rep.without_differentials()
+        # TODO: if we decide to allow arithmetic between representations that
+        # contain differentials, this can be tidied up
         if offset is not None:
-            newrep = newrep + offset.without_differentials()
+            newrep = (rep.without_differentials() +
+                      offset.without_differentials())
+        else:
+            newrep = rep.without_differentials()
 
-        if rep.differentials:
-            # assume the 0th item is a velocity
-            veldiff = rep.differentials[0] # already Cartesian
+        # We need a velocity (time derivative) and, for now, are strict: the
+        # representation can only contain a velocity differential and no others
+        if 's' in rep.differentials and len(rep.differentials) == 1:
+            veldiff = rep.differentials['s'] # already in Cartesian form
 
-            if offset.differentials:
-                veldiff = veldiff + offset.differentials[0]
+            if 's' in offset.differentials:
+                veldiff = veldiff + offset.differentials['s']
 
-            veldiff = veldiff.represent_as(rep.differentials[0].__class__,
-                                           newrep)
-            newrep._differentials = (veldiff,)
+            newrep = newrep.with_differentials(
+                veldiff.represent_as(rep.differentials['s'].__class__, newrep))
+
+        elif len(rep.differentials) > 1:
+            # We should never get here because the frame initializer sholdn't
+            # allow more differentials, but this just adds protection for
+            # subclasses that somehow skip the checks
+            raise ValueError("Representation passed to AffineTransform contains"
+                             " multiple associated differentials. Only a single"
+                             " differential with velocity units is presently"
+                             " supported (differentials: {0})."
+                             .format(str(rep.differentials)))
 
         if isinstance(fromcoord.data, UnitSphericalRepresentation):
             # need to special-case this because otherwise the new class will
             # think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
+            diff_class = dict([(k, diff.__class__)
+                               for k, diff in newrep.differentials.items()])
+            newrep = newrep.represent_as(fromcoord.data.__class__, diff_class)
 
         return newrep
 

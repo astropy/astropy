@@ -250,22 +250,16 @@ def test_affine_transform_succeed(transfunc, rep):
     # compute expected output
     M, offset = transfunc(c, TCoo2)
 
-    expected_pos = c.cartesian.transform(M) if M is not None else c.cartesian
+    expected_rep = rep.transform(M) if M is not None else rep
+    expected_pos = expected_rep.without_differentials()
     if offset is not None:
-        expected_pos = expected_pos + offset
-    else:
-        expected_pos = expected_pos
+        expected_pos = expected_pos + offset.without_differentials()
 
     expected_vel = None
     if c.data.differentials:
-        diff = c.data.differentials[0].represent_as(r.CartesianRepresentation,
-                                                    c.data)
-        expected_vel = diff.transform(M) if M is not None else diff
-
+        expected_vel = expected_rep.differentials['s']
         if offset.differentials:
-            expected_vel = expected_vel + offset.differentials[0]
-        else:
-            expected_vel = expected_vel
+            expected_vel = expected_vel + offset.differentials['s']
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
@@ -277,10 +271,11 @@ def test_affine_transform_succeed(transfunc, rep):
     if expected_vel is not None:
         # TODO: clean this up when there is a shorthand for accessing
         # differentials from the frames
-        diff = c2.data.differentials[0].to_cartesian(base=c2.data)
-        assert quantity_allclose(diff.xyz, expected_vel.xyz)
+        diff = c2.data.differentials['s'].to_cartesian(base=c2.data)
+        assert quantity_allclose(diff.xyz, expected_vel.d_xyz)
 
     trans.unregister(frame_transform_graph)
+
 
 # these should fail
 def transfunc_invalid_matrix(coo, fr):
@@ -295,6 +290,24 @@ def test_affine_transform_fail(transfunc):
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    with pytest.raises(ValueError):
+        c2 = c.transform_to(TCoo2)
+
+    trans.unregister(frame_transform_graph)
+
+
+def test_too_many_differentials():
+    dif1 = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
+    dif2 = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr**2)
+    rep = r.CartesianRepresentation(np.arange(3)*u.pc,
+                                    differentials={'s': dif1, 's2': dif2})
+
+    c = TCoo1(rep)
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     with pytest.raises(ValueError):
