@@ -25,6 +25,7 @@ from functools import partial
 import warnings
 import re
 from collections import OrderedDict
+from contextlib import contextmanager
 
 from ..extern import six
 from ..extern.six.moves import zip, cStringIO as StringIO
@@ -42,6 +43,26 @@ STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
                      (True, 'S'): 'bytes', # PY3
                      (True, 'U'): 'str'}
+
+
+@contextmanager
+def serialize_context_as(context):
+    """Set context for serialization.
+
+    This will allow downstream code to understand the context in which a column
+    is being serialized.  Objects like Time or SkyCoord will have different
+    default serialization representations depending on context.
+
+    Parameters
+    ----------
+    context : str
+        Context name, e.g. 'fits', 'hdf5', 'ecsv', 'yaml'
+    """
+    old_context = BaseColumnInfo._serialize_context
+    BaseColumnInfo._serialize_context = context
+    yield
+    BaseColumnInfo._serialize_context = old_context
+
 
 def dtype_info_name(dtype):
     """Return a human-oriented string name of the ``dtype`` arg.
@@ -426,6 +447,14 @@ class BaseColumnInfo(DataInfo):
     """
     attr_names = DataInfo.attr_names.union(['parent_table', 'indices'])
     _attrs_no_copy = set(['parent_table'])
+
+    # Context for serialization.  This can be set temporarily via
+    # ``serialize_context_as(context)`` context manager to allow downstream
+    # code to understand the context in which a column is being serialized.
+    # Typical values are 'fits', 'hdf5', 'ecsv', 'yaml'.  Objects like Time or
+    # SkyCoord will have different default serialization representations
+    # depending on context.
+    _serialize_context = None
 
     def iter_str_vals(self):
         """
