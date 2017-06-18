@@ -451,7 +451,9 @@ the positional information, e.g.::
   >>> rep.norm() # doctest: +FLOAT_CMP
   <Quantity [  8.94427191, 10.34408043, 11.83215957, 13.37908816] AU>
 
-TODO: combine and scale operations
+Operations that involve combining or scaling representations or pairs of
+representation objects that contain differentials will currently fail, but
+support for some operations may be added in future versions::
 
   >>> rep + rep # doctest: +SKIP
   ERROR: TypeError: Operation 'add' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
