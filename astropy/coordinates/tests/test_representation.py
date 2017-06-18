@@ -13,16 +13,23 @@ from numpy.testing import assert_allclose
 from ... import units as u
 from ...tests.helper import (pytest, assert_quantity_allclose as
                              assert_allclose_quantity)
-from ...utils import isiterable
+from ...utils import isiterable, IncompatibleShapeError, check_broadcast
+from ...utils.compat.numpy import broadcast_to
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
-                              BaseRepresentation,
+                              DIFFERENTIAL_CLASSES,
+                              BaseRepresentation, BaseDifferential,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
+                              SphericalCosLatDifferential,
+                              UnitSphericalCosLatDifferential,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation,
+                              CartesianDifferential,
+                              SphericalDifferential,
+                              CylindricalDifferential,
                               _combine_xyz)
 
 
@@ -1073,3 +1080,246 @@ def test_combine_xyz():
     assert np.all(xyz[...,0] == x)
     assert np.all(xyz[...,1] == y)
     assert np.all(xyz[...,2] == z)
+
+class TestCartesianRepresentationWithDifferential(object):
+
+    def test_init_differential(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+
+        # Check that a single differential gets turned into a 1-item dict.
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                     differentials=diff)
+
+        assert s1.x.unit is u.kpc
+        assert s1.y.unit is u.kpc
+        assert s1.z.unit is u.kpc
+        assert len(s1.differentials) == 1
+        assert s1.differentials['s'] is diff
+
+        # can also pass in an explicit dictionary
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                     differentials={'s': diff})
+        assert len(s1.differentials) == 1
+        assert s1.differentials['s'] is diff
+
+        # using the wrong key will cause it to fail
+        with pytest.raises(ValueError):
+            s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                         differentials={'1 / s2': diff})
+
+        # make sure other kwargs are handled properly
+        s1 = CartesianRepresentation(x=1, y=2, z=3,
+                                     differentials=diff, copy=False, unit=u.kpc)
+        assert len(s1.differentials) == 1
+        assert s1.differentials['s'] is diff
+
+        with pytest.raises(TypeError): # invalid type passed to differentials
+            CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                    differentials='garmonbozia')
+
+        # make sure differentials can't accept differentials
+        with pytest.raises(TypeError):
+            CartesianDifferential(d_x=1 * u.km/u.s, d_y=2 * u.km/u.s,
+                                  d_z=3 * u.km/u.s, differentials=diff)
+
+    def test_init_differential_compatible(self):
+        # TODO: more extensive checking of this
+
+        # should fail - representation and differential not compatible
+        diff = SphericalDifferential(d_lon=1 * u.mas/u.yr,
+                                     d_lat=2 * u.mas/u.yr,
+                                     d_distance=3 * u.km/u.s)
+        with pytest.raises(TypeError):
+            CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                    differentials=diff)
+
+        # should succeed - representation and differential are compatible
+        diff = SphericalCosLatDifferential(d_lon_coslat=1 * u.mas/u.yr,
+                                           d_lat=2 * u.mas/u.yr,
+                                           d_distance=3 * u.km/u.s)
+
+        r1 = SphericalRepresentation(lon=15*u.deg, lat=21*u.deg,
+                                     distance=1*u.pc,
+                                     differentials=diff)
+
+    def test_init_differential_multiple_equivalent_keys(self):
+        d1 = CartesianDifferential(*[1,2,3] * u.km/u.s)
+        d2 = CartesianDifferential(*[4,5,6] * u.km/u.s)
+
+        # verify that the check against expected_unit validates against passing
+        # in two different but equivalent keys
+        with pytest.raises(ValueError):
+            r1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                         differentials={'s': d1, 'yr': d2})
+
+    def test_init_array_broadcasting(self):
+
+        arr1 = np.arange(8).reshape(4,2) * u.km/u.s
+        diff = CartesianDifferential(d_x=arr1, d_y=arr1, d_z=arr1)
+
+        # shapes aren't compatible
+        arr2 = np.arange(27).reshape(3,9) * u.kpc
+        with pytest.raises(ValueError):
+            rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
+                                          differentials=diff)
+
+        arr2 = np.arange(8).reshape(4,2) * u.kpc
+        rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
+                                      differentials=diff)
+
+        assert rep.x.unit is u.kpc
+        assert rep.y.unit is u.kpc
+        assert rep.z.unit is u.kpc
+        assert len(rep.differentials) == 1
+        assert rep.differentials['s'] is diff
+
+        assert rep.xyz.shape == rep.differentials['s'].d_xyz.shape
+
+    def test_reprobj(self):
+
+        # should succeed - representation and differential are compatible
+        diff = SphericalCosLatDifferential(d_lon_coslat=1 * u.mas/u.yr,
+                                           d_lat=2 * u.mas/u.yr,
+                                           d_distance=3 * u.km/u.s)
+
+        r1 = SphericalRepresentation(lon=15*u.deg, lat=21*u.deg,
+                                     distance=1*u.pc,
+                                     differentials=diff)
+
+        r2 = CartesianRepresentation.from_representation(r1)
+        assert r2.get_name() == 'cartesian'
+        assert not r2.differentials
+
+    def test_readonly(self):
+
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        with pytest.raises(AttributeError): # attribute is not settable
+            s1.differentials = 'thing'
+
+    def test_represent_as(self):
+
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+        rep1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                       differentials=diff)
+
+        # Only change the representation, drop the differential
+        new_rep = rep1.represent_as(SphericalRepresentation)
+        assert new_rep.get_name() == 'spherical'
+        assert not new_rep.differentials # dropped
+
+        # Pass in separate classes for representation, differential
+        new_rep = rep1.represent_as(SphericalRepresentation,
+                                    SphericalCosLatDifferential)
+        assert new_rep.get_name() == 'spherical'
+        assert new_rep.differentials['s'].get_name() == 'sphericalcoslat'
+
+        # Pass in a dictionary for the differential classes
+        new_rep = rep1.represent_as(SphericalRepresentation,
+                                    {'s': SphericalCosLatDifferential})
+        assert new_rep.get_name() == 'spherical'
+        assert new_rep.differentials['s'].get_name() == 'sphericalcoslat'
+
+        # make sure represent_as() passes through the differentials
+        for name in REPRESENTATION_CLASSES:
+            if name == 'radial':
+                # TODO: Converting a CartesianDifferential to a
+                #       RadialDifferential fails, even on `master`
+                continue
+            new_rep = rep1.represent_as(REPRESENTATION_CLASSES[name],
+                                        DIFFERENTIAL_CLASSES[name])
+            assert new_rep.get_name() == name
+            assert len(new_rep.differentials) == 1
+            assert new_rep.differentials['s'].get_name() == name
+
+        with pytest.raises(ValueError) as excinfo:
+            rep1.represent_as('name')
+        assert 'use frame object' in str(excinfo.value)
+
+    def test_getitem(self):
+
+        d = CartesianDifferential(d_x=np.arange(10) * u.m/u.s,
+                                  d_y=-np.arange(10) * u.m/u.s,
+                                  d_z=1. * u.m/u.s)
+        s = CartesianRepresentation(x=np.arange(10) * u.m,
+                                    y=-np.arange(10) * u.m,
+                                    z=3 * u.km,
+                                    differentials=d)
+
+        s_slc = s[2:8:2]
+        s_dif = s_slc.differentials['s']
+
+        assert_allclose_quantity(s_slc.x, [2, 4, 6] * u.m)
+        assert_allclose_quantity(s_slc.y, [-2, -4, -6] * u.m)
+        assert_allclose_quantity(s_slc.z, [3, 3, 3] * u.km)
+
+        assert_allclose_quantity(s_dif.d_x, [2, 4, 6] * u.m/u.s)
+        assert_allclose_quantity(s_dif.d_y, [-2, -4, -6] * u.m/u.s)
+        assert_allclose_quantity(s_dif.d_z, [1, 1, 1] * u.m/u.s)
+
+    def test_transform(self):
+        d1 = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
+                                   d_y=[3, 4] * u.km/u.s,
+                                   d_z=[5, 6] * u.km/u.s)
+        r1 = CartesianRepresentation(x=[1,2] * u.kpc,
+                                     y=[3,4] * u.kpc,
+                                     z=[5,6] * u.kpc,
+                                     differentials=d1)
+
+        matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
+
+        r2 = r1.transform(matrix)
+        d2 = r2.differentials['s']
+        assert_allclose_quantity(d2.d_x, [22., 28]*u.km/u.s)
+        assert_allclose_quantity(d2.d_y, [49, 64]*u.km/u.s)
+        assert_allclose_quantity(d2.d_z, [76, 100.]*u.km/u.s)
+
+    def test_with_differentials(self):
+        # make sure with_differential correctly creates a new copy with the same
+        # differential
+        cr = CartesianRepresentation([1, 2, 3]*u.kpc)
+        diff = CartesianDifferential([.1, .2, .3]*u.km/u.s)
+        cr2 = cr.with_differentials(diff)
+        assert cr.differentials != cr2.differentials
+        assert cr2.differentials['s'] is diff
+
+        # make sure it works even if a differential is present already
+        diff2 = CartesianDifferential([.1, .2, .3]*u.m/u.s)
+        cr3 = CartesianRepresentation([1, 2, 3]*u.kpc, differentials=diff)
+        cr4 = cr3.with_differentials(diff2)
+        assert cr4.differentials['s'] != cr3.differentials['s']
+        assert cr4.differentials['s'] == diff2
+
+        # also ensure a *scalar* differential will works
+        cr5 = cr.with_differentials(diff)
+        assert len(cr5.differentials) == 1
+        assert cr5.differentials['s'] == diff
+
+        # make sure we don't update the original representation's dict
+        d1 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s)
+        d2 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s**2)
+        r1 = CartesianRepresentation(*np.random.random((3, 5)), unit=u.pc,
+                                     differentials=d1)
+
+        r2 = r1.with_differentials(d2)
+        assert r1.differentials['s'] is r2.differentials['s']
+        assert 's2' not in r1.differentials
+        assert 's2' in r2.differentials
+
+def test_to_cartesian():
+    """
+    Test that to_cartesian drops the differential.
+    """
+    sd = SphericalDifferential(d_lat=1*u.deg, d_lon=2*u.deg, d_distance=10*u.m)
+    sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m,
+                                 differentials=sd)
+
+    diff = sr.to_cartesian()
+
+    assert diff.get_name() == 'cartesian'
+    assert not diff.differentials

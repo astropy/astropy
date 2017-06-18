@@ -519,7 +519,7 @@ class TransformGraph(object):
 
         return nxgraph
 
-    def transform(self, transcls, fromsys, tosys, priority=1):
+    def transform(self, transcls, fromsys, tosys, priority=1, **kwargs):
         """
         A function decorator for defining transformations.
 
@@ -538,6 +538,9 @@ class TransformGraph(object):
         priority : number
             The priority if this transform when finding the shortest
             coordinate transform path - large numbers are lower priorities.
+
+        Additional keyword arguments are passed into the ``transcls``
+        constructor.
 
         Returns
         -------
@@ -578,7 +581,7 @@ class TransformGraph(object):
             # ``register_graph=self`` stores it in the transform graph
             # automatically
             transcls(func, fromsys, tosys, priority=priority,
-                     register_graph=self)
+                     register_graph=self, **kwargs)
             return func
         return deco
 

@@ -11,6 +11,7 @@ import abc
 import functools
 import operator
 from collections import OrderedDict
+import inspect
 
 import numpy as np
 import astropy.units as u
@@ -186,11 +187,34 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     # The two methods that any subclass has to define.
     # Should be replaced by abstractclassmethod once we support only PY3
     @abc.abstractmethod
-    def from_cartesian(self):
+    def from_cartesian(self, other):
+        """Create a representation of this class from a supplied Cartesian one.
+
+        Parameters
+        ----------
+        other : `CartesianRepresentation`
+            The representation to turn into this class
+
+        Returns
+        -------
+        representation : object of this class
+            A new representation of this class's type.
+        """
+        # Note: the above docstring gets overridden for differentials.
         raise NotImplementedError()
 
     @abc.abstractmethod
     def to_cartesian(self):
+        """Convert the representation to its Cartesian form.
+
+        Note that any differentials get dropped.
+
+        Returns
+        -------
+        cartrepr : `CartesianRepresentation`
+            The representation in Cartesian form.
+        """
+        # Note: the above docstring gets overridden for differentials.
         raise NotImplementedError()
 
     @property
@@ -199,7 +223,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return tuple(self.attr_classes)
 
     def _apply(self, method, *args, **kwargs):
-        """Create a new representation with ``method`` applied to the arrays.
+        """Create a new representation or differential with ``method`` applied
+        to the component data.
 
         In typical usage, the method is any of the shape-changing methods for
         `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
@@ -226,8 +251,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             apply_method = lambda array: method(array, *args, **kwargs)
         else:
             apply_method = operator.methodcaller(method, *args, **kwargs)
-        return self.__class__( *[apply_method(getattr(self, component))
-                                 for component in self.components], copy=False)
+
+        return self.__class__(*[apply_method(getattr(self, component))
+                                for component in self.components], copy=False)
 
     @property
     def shape(self):
@@ -348,11 +374,15 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         prefixstr = '    '
         arrstr = _array2string(self._values, prefix=prefixstr)
 
+        diffstr = ''
+        if getattr(self, 'differentials', None):
+            diffstr = '\n (has differentials: {0})'.format(
+                ', '.join([repr(key) for key in self.differentials.keys()]))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
-        return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
+        return '<{0} ({1}) {2:s}\n{3}{4}{5}>'.format(
             self.__class__.__name__, ', '.join(self.components),
-            unitstr, prefixstr, arrstr)
+            unitstr, prefixstr, arrstr, diffstr)
 
 
 def _make_getter(component):
@@ -414,6 +444,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     comp1, comp2, comp3 : `~astropy.units.Quantity` or subclass
         The components of the 3D points.  The names are the keys and the
         subclasses the values of the ``attr_classes`` attribute.
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        subclass instance, or a dictionary with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
 
@@ -434,6 +472,85 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     """
 
     recommended_units = {}  # subclasses can override
+
+    def __init__(self, *args, **kwargs):
+        # Handle any differentials passed in.
+        differentials = kwargs.pop('differentials', None)
+        super(BaseRepresentation, self).__init__(*args, **kwargs)
+        self._differentials = self._validate_differentials(differentials)
+
+    def _validate_differentials(self, differentials):
+        """
+        Validate that the provided differentials are appropriate for this
+        representation and recast/reshape as necessary and then return.
+
+        Note that this does *not* set the differentials on
+        ``self._differentials``, but rather leaves that for the caller.
+        """
+
+        # Now handle the actual validation of any specified differential classes
+        if differentials is None:
+            differentials = dict()
+
+        elif isinstance(differentials, BaseDifferential):
+            key = differentials._get_deriv_key(self)
+            differentials = {key: differentials}
+
+        for key in differentials:
+            try:
+                diff = differentials[key]
+            except TypeError:
+                raise TypeError("'differentials' argument must be a "
+                                "dictionary-like object")
+
+            if diff.__class__ not in self._compatible_differentials:
+                raise TypeError("Differential '{0}' is not compatible with "
+                                "this representation '{1}'".format(diff, self))
+
+            expected_key = diff._get_deriv_key(self)
+            if key != expected_key:
+                raise ValueError("For differential object '{0}', expected unit "
+                                 "key = '{1}' but received key = '{2}'"
+                                 .format(diff, expected_key, key))
+
+            # For now, we are very rigid: differentials must have the same shape
+            # as the representation. This makes it easier to handle __getitem__
+            # and any other shape-changing operations on representations that
+            # have associated differentials
+            if diff.shape != self.shape:
+                # TODO: message of IncompatibleShapeError is not customizable,
+                #       so use a valueerror instead?
+                raise ValueError("Shape of differentials must be the same "
+                                 "as the shape of the representation ({0} vs "
+                                 "{1})".format(diff.shape, self.shape))
+
+        return differentials
+
+    def _raise_if_has_differentials(self, op_name):
+        """
+        Used to raise a consistent exception for any operation that is not
+        supported when a representation has differentials attached.
+        """
+        if self.differentials:
+            raise TypeError("Operation '{0}' is not supported when "
+                            "differentials are attached to a {1}."
+                            .format(op_name, self.__class__.__name__))
+
+    @property
+    def _compatible_differentials(self):
+        return [DIFFERENTIAL_CLASSES[self.get_name()]]
+
+    @property
+    def differentials(self):
+        """A dictionary of differential class instances.
+
+        The keys of this dictionary must be a string representation of the SI
+        unit with which the differential (derivative) is taken. For example, for
+        a velocity differential on a positional representation, the key would be
+        ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
+        """
+        return self._differentials
 
     # We do not make unit_vectors and scale_factors abstract methods, since
     # they are only necessary if one also defines an associated Differential.
@@ -468,7 +585,55 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         raise NotImplementedError("{} has not implemented scale factors."
                                   .format(type(self)))
 
-    def represent_as(self, other_class):
+    def _re_represent_differentials(self, new_rep, differential_class):
+        """Re-represent the differentials to the specified classes.
+
+        This returns a new dictionary with the same keys but with the
+        attached differentials converted to the new differential classes.
+        """
+        if differential_class is None:
+            return dict()
+
+        if not self.differentials:
+            raise ValueError("No differentials associated with this "
+                             "representation!")
+
+        elif (len(self.differentials) == 1 and
+                inspect.isclass(differential_class) and
+                issubclass(differential_class, BaseDifferential)):
+            # TODO: is there a better way to do this?
+            differential_class = {
+                list(self.differentials.keys())[0]: differential_class
+            }
+
+        elif set(differential_class.keys()) != set(self.differentials.keys()):
+            ValueError("Desired differential classes must be passed in "
+                       "as a dictionary with keys equal to a string "
+                       "representation of the unit of the derivative "
+                       "for each differential stored with this "
+                       "representation object ({0})"
+                       .format(self.differentials))
+
+        new_diffs = dict()
+        for k in self.differentials:
+            diff = self.differentials[k]
+            try:
+                new_diffs[k] = diff.represent_as(differential_class[k],
+                                                 base=self)
+            except Exception:
+                if (differential_class[k] not in
+                        new_rep._compatible_differentials):
+                    raise TypeError("Desired differential class {0} is not "
+                                    "compatible with the desired "
+                                    "representation class {1}"
+                                    .format(differential_class[k],
+                                            new_rep.__class__))
+                else:
+                    raise
+
+        return new_diffs
+
+    def represent_as(self, other_class, differential_class=None):
         """Convert coordinates to another representation.
 
         If the instance is of the requested class, it is returned unmodified.
@@ -478,12 +643,76 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         ----------
         other_class : `~astropy.coordinates.BaseRepresentation` subclass
             The type of representation to turn the coordinates into.
+        differential_class : dict of `~astropy.coordinates.BaseDifferential`, optional
+            Classes in which the differentials should be represented.
+            Can be a single class if only a single differential is attached,
+            otherwise it should be a `dict` keyed by the same keys as the
+            differentials.
         """
-        if other_class is self.__class__:
-            return self
+        if other_class is self.__class__ and not differential_class:
+            return self.without_differentials()
+
         else:
+            if isinstance(other_class, six.string_types):
+                raise ValueError("Input to a representation's represent_as "
+                                 "must be a class, not a string. For "
+                                 "strings, use frame objects")
+
             # The default is to convert via cartesian coordinates
-            return other_class.from_cartesian(self.to_cartesian())
+            new_rep = other_class.from_cartesian(self.to_cartesian())
+            new_rep._differentials = self._re_represent_differentials(
+                new_rep, differential_class)
+
+            return new_rep
+
+    def with_differentials(self, differentials):
+        """
+        Create a new representation with the same positions as this
+        representation, but with these new differentials.
+
+        Differential keys that already exist in this object's differential dict
+        are overwritten.
+
+        Parameters
+        ----------
+        differentials : Sequence of `~astropy.coordinates.BaseDifferential`
+            The differentials for the new representation to have.
+
+        Returns
+        -------
+        newrepr
+            A copy of this representation, but with the ``differentials`` as
+            its differentials.
+        """
+        if not differentials:
+            return self
+
+        args = [getattr(self, component) for component in self.components]
+
+        # We shallow copy the differentials dictionary so we don't update the
+        # current object's dictionary when adding new keys
+        new_rep = self.__class__(*args, differentials=self.differentials.copy(),
+                                 copy=False)
+        new_rep._differentials.update(
+            new_rep._validate_differentials(differentials))
+
+        return new_rep
+
+    def without_differentials(self):
+        """Return a copy of the representation without attached differentials.
+
+        Returns
+        -------
+        newrepr
+            A shallow copy of this representation, without any differentials.
+            If no differentials were present, no copy is made.
+        """
+
+        if not self._differentials:
+            return self
+
+        args = [getattr(self, component) for component in self.components]
+        return self.__class__(*args, copy=False)
 
     @classmethod
     def from_representation(cls, representation):
@@ -496,6 +725,34 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """
         return representation.represent_as(cls)
 
+    def _apply(self, method, *args, **kwargs):
+        """Create a new representation with ``method`` applied to the component
+        data.
+
+        This is not a simple inherit from ``BaseRepresentationOrDifferential``
+        because we need to call ``._apply()`` on any associated differential
+        classes.
+
+        See docstring for `BaseRepresentationOrDifferential._apply`.
+
+        Parameters
+        ----------
+        method : str or callable
+            If str, it is the name of a method that is applied to the internal
+            ``components``. If callable, the function is applied.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+
+        """
+        rep = super(BaseRepresentation, self)._apply(method, *args, **kwargs)
+
+        rep._differentials = dict(
+            [(k, diff._apply(method, *args, **kwargs))
+             for k, diff in self._differentials.items()])
+        return rep
+
     def _scale_operation(self, op, *args):
         """Scale all non-angular components, leaving angular ones unchanged.
 
@@ -507,6 +764,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Any arguments required for the operator (typically, what is to
             be multiplied with, divided by).
         """
+
+        self._raise_if_has_differentials(op.__name__)
+
         results = []
         for component, cls in self.attr_classes.items():
             value = getattr(self, component)
@@ -538,17 +798,41 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Whether the operands should be reversed (e.g., as we got here via
             ``self.__rsub__`` because ``self`` is a subclass of ``other``).
         """
+        self._raise_if_has_differentials(op.__name__)
+
         result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
             return NotImplemented
         else:
             return self.from_cartesian(result)
 
+    # We need to override this setter to support differentials
+    @BaseRepresentationOrDifferential.shape.setter
+    def shape(self, shape):
+        orig_shape = self.shape
+
+        # See: https://stackoverflow.com/questions/3336767/ for an example
+        BaseRepresentationOrDifferential.shape.fset(self, shape)
+
+        # also try to perform shape-setting on any associated differentials
+        try:
+            for k in self.differentials:
+                self.differentials[k].shape = shape
+        except Exception:
+            BaseRepresentationOrDifferential.shape.fset(self, orig_shape)
+            for k in self.differentials:
+                self.differentials[k].shape = orig_shape
+
+            raise
+
     def norm(self):
         """Vector norm.
 
         The norm is the standard Frobenius norm, i.e., the square root of the
         sum of the squares of all components with non-angular units.
+
+        Note that any associated differentials will be dropped during this
+        operation.
 
         Returns
         -------
@@ -576,6 +860,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         mean : representation
             Vector mean, in the same representation as that of the input.
         """
+        self._raise_if_has_differentials('mean')
         return self.from_cartesian(self.to_cartesian().mean(*args, **kwargs))
 
     def sum(self, *args, **kwargs):
@@ -594,6 +879,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         sum : representation
             Vector sum, in the same representation as that of the input.
         """
+        self._raise_if_has_differentials('sum')
         return self.from_cartesian(self.to_cartesian().sum(*args, **kwargs))
 
     def dot(self, other):
@@ -601,6 +887,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         The calculation is done by converting both ``self`` and ``other``
         to `~astropy.coordinates.CartesianRepresentation`.
+
+        Note that any associated differentials will be dropped during this
+        operation.
 
         Parameters
         ----------
@@ -633,6 +922,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             With vectors perpendicular to both ``self`` and ``other``, in the
             same type of representation as ``self``.
         """
+        self._raise_if_has_differentials('cross')
         return self.from_cartesian(self.to_cartesian().cross(other))
 
 
@@ -653,6 +943,17 @@ class CartesianRepresentation(BaseRepresentation):
     xyz_axis : int, optional
         The axis along which the coordinates are stored when a single array is
         provided rather than distinct ``x``, ``y``, and ``z`` (default: 0).
+
+    differentials : dict, `CartesianDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `CartesianDifferential` instance, or a dictionary of
+        `CartesianDifferential` s with keys set to a string representation of
+        the SI unit with which the differential (derivative) is taken. For
+        example, for a velocity differential on a positional representation, the
+        key would be ``'s'`` for seconds, indicating that the derivative is a
+        time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -661,7 +962,8 @@ class CartesianRepresentation(BaseRepresentation):
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
 
-    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None, copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, xyz_axis=None,
+                 differentials=None, copy=True):
 
         if y is None and z is None:
             if xyz_axis is not None and xyz_axis != 0:
@@ -681,7 +983,8 @@ class CartesianRepresentation(BaseRepresentation):
             z = u.Quantity(z, unit, copy=copy, subok=True)
             copy = False
 
-        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy)
+        super(CartesianRepresentation, self).__init__(x, y, z, copy=copy,
+                                                      differentials=differentials)
         if not (self._x.unit.physical_type ==
                 self._y.unit.physical_type == self._z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
@@ -758,6 +1061,7 @@ class CartesianRepresentation(BaseRepresentation):
                        [ 1.23205081, 1.59807621],
                        [ 3.        , 4.        ]] pc>
         """
+
         # Avoid doing gratuitous np.array for things that look like arrays.
         try:
             matrix_shape = matrix.shape
@@ -785,9 +1089,20 @@ class CartesianRepresentation(BaseRepresentation):
             newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
-        return self.__class__(*newxyz, copy=False)
+        # Handle differentials attached to this representation
+        if self.differentials:
+            # TODO: speed this up going via d.d_xyz.
+            new_diffs = dict(
+                (k, d.from_cartesian(d.to_cartesian().transform(matrix)))
+                for k, d in self.differentials.items())
+        else:
+            new_diffs = None
+
+        return self.__class__(*newxyz, copy=False, differentials=new_diffs)
 
     def _combine_operation(self, op, other, reverse=False):
+        self._raise_if_has_differentials(op.__name__)
+
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -809,6 +1124,7 @@ class CartesianRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('mean')
         return self._apply('mean', *args, **kwargs)
 
     def sum(self, *args, **kwargs):
@@ -821,10 +1137,14 @@ class CartesianRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('sum')
         return self._apply('sum', *args, **kwargs)
 
     def dot(self, other):
         """Dot product of two representations.
+
+        Note that any associated differentials will be dropped during this
+        operation.
 
         Parameters
         ----------
@@ -861,6 +1181,7 @@ class CartesianRepresentation(BaseRepresentation):
         cross_product : `~astropy.coordinates.CartesianRepresentation`
             With vectors perpendicular to both ``self`` and ``other``.
         """
+        self._raise_if_has_differentials('cross')
         try:
             other_c = other.to_cartesian()
         except Exception:
@@ -885,6 +1206,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
         instances of `~astropy.coordinates.Angle`,
         `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
 
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -897,9 +1228,15 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def _dimensional_representation(cls):
         return SphericalRepresentation
 
-    def __init__(self, lon, lat, copy=True):
+    def __init__(self, lon, lat, differentials=None, copy=True):
         super(UnitSphericalRepresentation,
-              self).__init__(lon, lat, copy=copy)
+              self).__init__(lon, lat, differentials=differentials, copy=copy)
+
+    @property
+    def _compatible_differentials(self):
+        return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+                SphericalDifferential, SphericalCosLatDifferential,
+                RadialDifferential]
 
     # Could let the metaclass define these automatically, but good to have
     # a bit clearer docstrings.
@@ -927,7 +1264,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def scale_factors(self, omit_coslat=False):
         sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
-        sf_lon  = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
+        sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
 
@@ -956,27 +1293,34 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         return cls(lon=lon, lat=lat, copy=False)
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if issubclass(other_class, PhysicsSphericalRepresentation):
-            return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0,
-                               copy=False)
-        elif issubclass(other_class, SphericalRepresentation):
-            return other_class(lon=self.lon, lat=self.lat, distance=1.0,
-                               copy=False)
-        else:
-            return super(UnitSphericalRepresentation,
-                         self).represent_as(other_class)
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
+            if issubclass(other_class, PhysicsSphericalRepresentation):
+                return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0,
+                                   copy=False)
+            elif issubclass(other_class, SphericalRepresentation):
+                return other_class(lon=self.lon, lat=self.lat, distance=1.0,
+                                   copy=False)
+
+        return super(UnitSphericalRepresentation,
+                     self).represent_as(other_class)
 
     def __mul__(self, other):
+        self._raise_if_has_differentials('multiplication')
         return self._dimensional_representation(lon=self.lon, lat=self.lat,
                                                 distance=1. * other)
 
     def __truediv__(self, other):
+        self._raise_if_has_differentials('division')
         return self._dimensional_representation(lon=self.lon, lat=self.lat,
                                                 distance=1. / other)
 
     def __neg__(self):
+        self._raise_if_has_differentials('negation')
         return self.__class__(self.lon + 180. * u.deg, -self.lat, copy=False)
 
     def norm(self):
@@ -995,6 +1339,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
                           copy=False)
 
     def _combine_operation(self, op, other, reverse=False):
+        self._raise_if_has_differentials(op.__name__)
+
         result = self.to_cartesian()._combine_operation(op, other, reverse)
         if result is NotImplemented:
             return NotImplemented
@@ -1012,6 +1358,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('mean')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().mean(*args, **kwargs))
 
@@ -1026,6 +1373,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         that ``axis`` is the entry in the ``shape`` of the representation, and
         that the ``out`` argument cannot be used.
         """
+        self._raise_if_has_differentials('sum')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().sum(*args, **kwargs))
 
@@ -1046,6 +1394,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         cross_product : `~astropy.coordinates.SphericalRepresentation`
             With vectors perpendicular to both ``self`` and ``other``.
         """
+        self._raise_if_has_differentials('cross')
         return self._dimensional_representation.from_cartesian(
             self.to_cartesian().cross(other))
 
@@ -1062,14 +1411,25 @@ class RadialRepresentation(BaseRepresentation):
     distance : `~astropy.units.Quantity`
         The distance of the point(s) from the origin.
 
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
 
     attr_classes = OrderedDict([('distance', u.Quantity)])
 
-    def __init__(self, distance, copy=True):
-        super(RadialRepresentation, self).__init__(distance, copy=copy)
+    def __init__(self, distance, differentials=None, copy=True):
+        super(RadialRepresentation, self).__init__(distance, copy=copy,
+                                                   differentials=differentials)
 
     @property
     def distance(self):
@@ -1100,6 +1460,7 @@ class RadialRepresentation(BaseRepresentation):
         return cls(distance=cart.norm(), copy=False)
 
     def _scale_operation(self, op, *args):
+        self._raise_if_has_differentials(op.__name__)
         return op(self.distance, *args)
 
     def norm(self):
@@ -1136,6 +1497,16 @@ class SphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be ``'s'`` for seconds, indicating that
+        the derivative is a time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1146,11 +1517,18 @@ class SphericalRepresentation(BaseRepresentation):
     recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
-    def __init__(self, lon, lat, distance, copy=True):
+    def __init__(self, lon, lat, distance, differentials=None, copy=True):
         super(SphericalRepresentation,
-              self).__init__(lon, lat, distance, copy=copy)
+              self).__init__(lon, lat, distance, copy=copy,
+                             differentials=differentials)
         if self._distance.unit.physical_type == 'length':
             self._distance = self._distance.view(Distance)
+
+    @property
+    def _compatible_differentials(self):
+        return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+                SphericalDifferential, SphericalCosLatDifferential,
+                RadialDifferential]
 
     @property
     def lon(self):
@@ -1191,16 +1569,20 @@ class SphericalRepresentation(BaseRepresentation):
                             ('lat', sf_lat),
                             ('distance', sf_distance)))
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if issubclass(other_class, PhysicsSphericalRepresentation):
-            return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
-                               r=self.distance, copy=False)
-        elif issubclass(other_class, UnitSphericalRepresentation):
-            return other_class(lon=self.lon, lat=self.lat, copy=False)
-        else:
-            return super(SphericalRepresentation,
-                         self).represent_as(other_class)
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
+            if issubclass(other_class, PhysicsSphericalRepresentation):
+                return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
+                                   r=self.distance, copy=False)
+            elif issubclass(other_class, UnitSphericalRepresentation):
+                return other_class(lon=self.lon, lat=self.lat, copy=False)
+
+        return super(SphericalRepresentation,
+                     self).represent_as(other_class)
 
     def to_cartesian(self):
         """
@@ -1270,6 +1652,16 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
+    differentials : dict, `PhysicsSphericalDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `PhysicsSphericalDifferential` instance, or a dictionary of of
+        differential instances with keys set to a string representation of the
+        SI unit with which the differential (derivative) is taken. For example,
+        for a velocity differential on a positional representation, the key
+        would be ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1279,9 +1671,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                                 ('r', u.Quantity)])
     recommended_units = {'phi': u.deg, 'theta': u.deg}
 
-    def __init__(self, phi, theta, r, copy=True):
+    def __init__(self, phi, theta, r, differentials=None, copy=True):
         super(PhysicsSphericalRepresentation,
-              self).__init__(phi, theta, r, copy=copy)
+              self).__init__(phi, theta, r, copy=copy,
+                             differentials=differentials)
 
         # Wrap/validate phi/theta
         if copy:
@@ -1338,15 +1731,20 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                             ('theta', r),
                             ('r', l)))
 
-    def represent_as(self, other_class):
+    def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        if issubclass(other_class, SphericalRepresentation):
-            return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
-                               distance=self.r)
-        elif issubclass(other_class, UnitSphericalRepresentation):
-            return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
-        else:
-            return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
+
+        # TODO: this could be optimized to shortcut even if a differential_class
+        # is passed in, using the ._re_represent_differentials() method
+        if inspect.isclass(other_class) and not differential_class:
+            if issubclass(other_class, SphericalRepresentation):
+                return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
+                                   distance=self.r)
+            elif issubclass(other_class, UnitSphericalRepresentation):
+                return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
+
+        return super(PhysicsSphericalRepresentation,
+                     self).represent_as(other_class)
 
     def to_cartesian(self):
         """
@@ -1413,6 +1811,16 @@ class CylindricalRepresentation(BaseRepresentation):
     z : `~astropy.units.Quantity`
         The z coordinate(s) of the point(s)
 
+    differentials : dict, `CylindricalDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `CylindricalDifferential` instance, or a dictionary of of differential
+        instances with keys set to a string representation of the SI unit with
+        which the differential (derivative) is taken. For example, for a
+        velocity differential on a positional representation, the key would be
+        ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1422,9 +1830,10 @@ class CylindricalRepresentation(BaseRepresentation):
                                 ('z', u.Quantity)])
     recommended_units = {'phi': u.deg}
 
-    def __init__(self, rho, phi, z, copy=True):
+    def __init__(self, rho, phi, z, differentials=None, copy=True):
         super(CylindricalRepresentation,
-              self).__init__(rho, phi, z, copy=copy)
+              self).__init__(rho, phi, z, copy=copy,
+                             differentials=differentials)
 
         if not self._rho.unit.is_equivalent(self._z.unit):
             raise u.UnitsError("rho and z should have matching physical types")
@@ -1488,7 +1897,6 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
-
 
 class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
     """Set default ``attr_classes`` and component getters on a Differential.
@@ -1564,6 +1972,25 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                             '{0}, not {1}.'.format(cls.base_representation,
                                                    type(base)))
 
+    def _get_deriv_key(self, base):
+        """Given a base (representation instance), determine the unit of the
+        derivative by removing the representation unit from the component units
+        of this differential.
+        """
+
+        # TODO: better validation by checking, e.g., _compatible_differentials
+        # for this class
+        self._check_base(base)
+
+        for name in base.components:
+            comp = getattr(base, name)
+            d_comp = getattr(self, 'd_{0}'.format(name), None)
+            if d_comp:
+                d_unit = comp.unit / d_comp.unit
+                # Get the si unit without a scale by going via Quantity;
+                # `.si` causes the scale to be included in the value.
+                return str(u.Quantity(1., d_unit).si.unit)
+
     @classmethod
     def _get_base_vectors(cls, base):
         """Get unit vectors and scale factors from base.
@@ -1596,6 +2023,10 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         base : instance of ``self.base_representation``
              The points for which the differentials are to be converted: each of
              the components is multiplied by its unit vectors and scale factors.
+
+        Returns
+        -------
+        This object as a `CartesianDifferential`
         """
         base_e, base_sf = self._get_base_vectors(base)
         return functools.reduce(
@@ -1604,12 +2035,20 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     @classmethod
     def from_cartesian(cls, other, base):
-        """Interpret 3D rectangular cartesian coordinates as differentials.
+        """Convert the differential from 3D rectangular cartesian coordinates to
+        the desired class.
 
         Parameters
         ----------
+        other :
+            The object to convert into this differential.
         base : instance of ``self.base_representation``
-            Base relative to which the differentials are defined.
+             The points for which the differentials are to be converted: each of
+             the components is multiplied by its unit vectors and scale factors.
+
+        Returns
+        -------
+        A new differential object that is this class' type.
         """
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
