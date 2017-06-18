@@ -58,6 +58,7 @@ SIMPLE_LINES = ['# %ECSV 0.9',
                 '# - {name: a, datatype: int64}',
                 '# - {name: b, datatype: float64}',
                 '# - {name: c, datatype: string}',
+                '# schema: astropy-2.0',
                 'a b c',
                 '1 1.0 c',
                 '2 2.0 d',
@@ -107,6 +108,7 @@ def test_write_full():
              '#   meta: {meta str: 1}',
              '# meta: !!omap',
              '# - comments: [comment1, comment2]',
+             '# schema: astropy-2.0',
              'bool int64 float64 str',
              'False 0 0.0 "ab 0"',
              'True 1 1.0 "ab, 1"',
@@ -249,10 +251,14 @@ scc = sc.copy()
 scc.representation = 'cartesian'
 tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el)
 tm2 = Time(tm, format='iso')
+tm3 = Time(tm)
+tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
+
 
 mixin_cols = {
     'tm': tm,
     'tm2': tm2,
+    'tm3': tm3,
     'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
     'scc': scc,
@@ -263,14 +269,49 @@ mixin_cols = {
     'lon': Longitude([1, 2] * u.deg),
     'ang': Angle([1, 2] * u.deg),
     'el': el,
-    'nd': NdarrayMixin(el)  # not supported yet
+    # 'nd': NdarrayMixin(el)  # not supported yet
 }
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_ecsv_mixins_as_one(table_cls):
+    """Test write/read all cols at once and validate intermediate column names"""
+    names = sorted(mixin_cols)
+
+    # For Table, EarthLocation turns into NdarrayMixin, which is not yet supported
+    # Just skip this for now.
+    names.remove('el')
+
+    t = table_cls([mixin_cols[name] for name in names], names=names)
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    # Read as a ascii.basic table (skip all the ECSV junk)
+    t3 = table_cls.read(out.getvalue(), format='ascii.basic')
+    assert t3.colnames == ['ang',
+                           'dt',
+                           'lat',
+                           'lon',
+                           'q',
+                           'sc.ra', 'sc.dec',
+                           'scc.x', 'scc.y', 'scc.z',
+                           'scd.ra', 'scd.dec', 'scd.distance',
+                           'tm',  # serialize_method is formatted_value
+                           'tm2',  # serialize_method is formatted_value
+                           'tm3.jd1', 'tm3.jd2'  # serialize is jd1_jd2
+                           ]
 
 
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_ecsv_mixins(table_cls, name_col):
+def test_ecsv_mixins_per_column(table_cls, name_col):
+    """Test write/read one col at a time and do detailed validation"""
     name, col = name_col
 
     time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
@@ -280,6 +321,7 @@ def test_ecsv_mixins(table_cls, name_col):
         'c2': ['data'],
         'tm': time_attrs,
         'tm2': time_attrs,
+        'tm3': time_attrs,
         'dt': ['shape', 'value', 'format', 'scale'],
         'sc': ['ra', 'dec', 'representation', 'frame.name'],
         'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
@@ -308,10 +350,10 @@ def test_ecsv_mixins(table_cls, name_col):
 
     assert t.colnames == t2.colnames
 
-    for name in t.colnames:
-        assert_objects_equal(t[name], t2[name], compare_attrs[name])
+    for colname in t.colnames:
+        assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
 
-    # Special case to make sure Column type doesn't leak into class data
-    if name == 'tm':
-        assert t2['tm']._time.jd1.__class__ is np.ndarray
-        assert t2['tm']._time.jd2.__class__ is np.ndarray
+    # Special case to make sure Column type doesn't leak into Time class data
+    if name.startswith('tm'):
+        assert t2[name]._time.jd1.__class__ is np.ndarray
+        assert t2[name]._time.jd2.__class__ is np.ndarray

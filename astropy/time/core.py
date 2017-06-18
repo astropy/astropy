@@ -101,10 +101,26 @@ class TimeInfo(MixinInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
+    attr_names = set(list(MixinInfo.attr_names) + ['serialize_method'])
     _supports_indexing = True
     _represent_as_dict_info_attrs = ['format', 'scale', 'precision',
                                      'in_subfmt', 'out_subfmt', 'location',
                                      '_delta_ut1_utc', '_delta_tdb_tt']
+
+    def __init__(self, bound=False):
+        super(MixinInfo, self).__init__(bound)
+
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if bound:
+            # Specify how to serialize this object depending on context.
+            # If ``True`` for a context, then use formatted ``value`` attribute
+            # (e.g. the ISO time string).  If ``False`` then use decimal jd1 and jd2.
+            self.serialize_method = {'fits': 'jd1_jd2',
+                                     'ecsv': 'formatted_value',
+                                     'hdf5': 'jd1_jd2',
+                                     'yaml': 'jd1_jd2',
+                                     None: 'jd1_jd2'}
 
     @property
     def _represent_as_dict_data_attrs(self):
@@ -126,23 +142,6 @@ class TimeInfo(MixinInfo):
                           funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
-
-    @property
-    def serialize_method(self):
-        """
-        Specify how to serialize this object depending on context.
-
-        If ``True`` for a context, then use formatted ``value`` attribute
-        (e.g. the ISO time string).  If ``False`` then use decimal jd1 and jd2.
-        """
-        parent = self._parent
-        if not hasattr(parent, '_serialize_method'):
-            parent._serialize_method = {'fits': 'jd1_jd2',
-                                        'ecsv': 'formatted_value',
-                                        'hdf5': 'jd1_jd2',
-                                        'yaml': 'jd1_jd2',
-                                        None: 'jd1_jd2'}
-        return parent._serialize_method
 
     def _construct_from_dict(self, map):
         delta_ut1_utc = map.pop('_delta_ut1_utc', None)
