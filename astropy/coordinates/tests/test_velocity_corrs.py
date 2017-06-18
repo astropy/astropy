@@ -8,7 +8,7 @@ import numpy as np
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 from ...time import Time
-from .. import EarthLocation, SkyCoord, CartesianDifferential
+from .. import EarthLocation, SkyCoord, CartesianDifferential, Angle
 from ..sites import get_builtin_sites
 from ..velocity_correction_funcs import (helio_vector, bary_vector,
                                          radial_velocity_correction)
@@ -33,6 +33,12 @@ def test_vectors(vectorfunc):
     assert vs.shape == (10,)
     assert vs.d_x.unit.is_equivalent(u.km/u.s)
 
+test_input_time = Time(2457244.5, format='jd')
+#test_input_loc = EarthLocation.of_site('Cerro Paranal')
+# to avoid the network hit we just copy here what that yields
+test_input_loc = EarthLocation.from_geodetic(lon=-70.403*u.deg,
+                                             lat=-24.6252*u.deg,
+                                             height=2635*u.m)
 
 def test_helio_iraf():
     """
@@ -41,13 +47,6 @@ def test_helio_iraf():
     was produced
 
     """
-    #loc = EarthLocation.of_site('Cerro Paranal')
-    # to avoid the network hit we just copy here what that yields
-    loc = EarthLocation.from_geodetic(lon=-70.403*u.deg,
-                                      lat=-24.6252*u.deg,
-                                      height=2635*u.m)
-    coos = _get_iraf_radecs()
-
     # this is based on running IRAF with the output of `generate_IRAF_input` below
     rvcorr_result="""
     # RVCORRECT: Observatory parameters for European Southern Observatory: Paranal
@@ -158,20 +157,21 @@ def test_helio_iraf():
             vhs_iraf.append(float(line.split()[2]))
     vhs_iraf = vhs_iraf*u.km/u.s
 
-    vhs_astropy = radial_velocity_correction(IRAF_time, loc, coos)
+    vhs_astropy = radial_velocity_correction(test_input_time, test_input_loc,
+                                             _get_test_input_radecs(),
+                                             bary=False)
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
 
 
-IRAF_time = Time(2457244.5, format='jd')
 def generate_IRAF_input(writefn=None):
-    dt = IRAF_time.utc.datetime
+    dt = test_input_time.utc.datetime
 
-    coos = _get_iraf_radecs()
+    coos = _get_test_input_radecs()
 
     lines = []
     for ra, dec in zip(coos.ra, coos.dec):
-        rastr = coordinates.Angle(ra).to_string(u.hour, sep=':')
-        decstr = coordinates.Angle(dec).to_string(u.deg, sep=':')
+        rastr = Angle(ra).to_string(u.hour, sep=':')
+        decstr = Angle(dec).to_string(u.deg, sep=':')
 
         msg = '{yr} {mo} {day} {uth}:{utmin} {ra} {dec}'
         lines.append(msg.format(yr=dt.year, mo=dt.month, day=dt.day,
@@ -187,7 +187,7 @@ def generate_IRAF_input(writefn=None):
     print('Run IRAF as:\nastutil\nrvcorrect f=<filename> observatory=Paranal')
 
 
-def _get_iraf_radecs():
+def _get_test_input_radecs():
     ras = []
     decs = []
 
@@ -197,3 +197,61 @@ def _get_iraf_radecs():
         decs.extend([dec]*len(ras1))
 
     return SkyCoord(ra=ras, dec=decs, unit=u.deg)
+
+
+def test_barycorr():
+    # this is the result of calling _get_barycorr_bvcs
+    barycorr_bvcs = u.Quantity([
+       -10335.93326096, -14198.47605491,  -2237.60012494, -14198.47595363,
+       -17425.46512587, -17131.70901174,   2424.37095076,   2130.61519166,
+       -17425.46495779, -19872.50026998, -24442.37091097, -11017.08975893,
+         6978.0622355 ,  11547.93333743,  -1877.34772637, -19872.50004258,
+       -21430.08240017, -27669.14280689, -16917.08506807,   2729.57222968,
+        16476.49569232,  13971.97171764,  -2898.04250914, -21430.08212368,
+       -22028.51337105, -29301.92349394, -21481.13036199,  -3147.44828909,
+        14959.50065514,  22232.91155425,  14412.11903105,  -3921.56359768,
+       -22028.51305781, -21641.01479409, -29373.0512649 , -24205.90521765,
+        -8557.34138828,  10250.50350732,  23417.2299926 ,  24781.98057941,
+        13706.17339044,  -4627.70005932, -21641.01445812, -20284.92627505,
+       -28193.91696959, -22908.51624166,  -6901.82132125,  12336.45758056,
+        25804.51614607,  27200.50029664,  15871.21385688,  -2882.24738355,
+       -20284.9259314 , -18020.92947805, -25752.96564978, -20585.81957567,
+        -4937.25573801,  13870.58916957,  27037.31568441,  28402.06636994,
+        17326.25977035,  -1007.62209045, -18020.92914212, -14950.33284575,
+       -22223.74260839, -14402.94943965,   3930.73265119,  22037.68163353,
+        29311.09265126,  21490.30070307,   3156.62229843, -14950.33253252,
+       -11210.53846867, -17449.59867676,  -6697.54090389,  12949.11642965,
+        26696.03999586,  24191.5164355 ,   7321.50355488, -11210.53819218,
+        -6968.89359681, -11538.76423011,   1886.51695238,  19881.66902396,
+        24451.54039956,  11026.26000765,  -6968.89336945,  -2415.20201758,
+        -2121.44599781,  17434.63406085,  17140.87871753,  -2415.2018495 ,
+         2246.76923076,  14207.64513054,   2246.76933194,   6808.40787728],
+         u.m/u.s)
+
+    bvcs_astropy = radial_velocity_correction(test_input_time, test_input_loc,
+                                              _get_test_input_radecs(),
+                                              bary=True)
+    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=5*u.m/u.s)
+
+
+def _get_barycorr_bvcs(coos):
+    """
+    Gets the barycentric correction of the test data from the
+    http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html web site.
+    Requires the https://github.com/tronsgaard/barycorr python interface to that
+    site.
+
+    Provided to reproduce the test data above, but not required to actually run
+    the tests.
+    """
+    import barycorr
+    from ...utils.console import ProgressBar
+
+    bvcs = []
+    for ra, dec in ProgressBar(list(zip(coos.ra.deg, coos.dec.deg))):
+        res = barycorr.bvc(test_input_time.utc.jd, ra, dec,
+                  lat=loc.geodetic[1].deg,
+                  lon=loc.geodetic[0].deg,
+                  elevation=loc.geodetic[2].to(u.m).value)
+        bvcs.append(res)
+    return bvcs*u.m/u.s
