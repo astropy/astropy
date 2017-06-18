@@ -634,7 +634,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def with_differentials(self, differentials):
         """
         Create a new representation with the same positions as this
-        representation, but with new differentials.
+        representation, but with these new differentials.
+
+        Differential keys that already exist in this object's differential dict
+        are overwritten.
 
         Parameters
         ----------
@@ -647,22 +650,19 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A copy of this representation, but with the ``differentials`` as
             its differentials.
         """
-        # Implemented this way for (1) performance (skips going through the
-        # initializer), and (2) will preserve any additional attributes a user
-        # may have set
+        if not differentials:
+            return self
 
-        new_differentials = self._validate_differentials(differentials)
+        args = [getattr(self, component) for component in self.components]
 
-        # save the differentials, then strip them so that the copy doesn't do
-        # an unneeded copy, then re-attach them to the right objects
-        olddiffs = self._differentials
-        try:
-            self._differentials = None
-            newrepr = deepcopy(self)
-            newrepr._differentials = new_differentials
-            return newrepr
-        finally:
-            self._differentials = olddiffs
+        # We shallow copy the differentials dictionary so we don't update the
+        # current object's dictionary when adding new keys
+        new_rep = self.__class__(*args, differentials=self.differentials.copy(),
+                                 copy=False)
+        new_rep._differentials.update(
+            self._validate_differentials(differentials))
+
+        return new_rep
 
     def without_differentials(self):
         """
@@ -675,23 +675,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A copy of this representation, but without the ``differentials``.
         """
 
-        # Again, implemented this way for (1) performance (skips going through
-        # the initializer), and (2) will preserve any additional attributes a
-        # user may have set
-
-        # save the differentials, then strip them so that the copy doesn't do
-        # an unneeded copy, then re-attach them to the right objects
         if not self._differentials:
             return self
 
-        olddiffs = self._differentials
-        try:
-            self._differentials = None
-            newrepr = deepcopy(self)
-            newrepr._differentials = dict()
-            return newrepr
-        finally:
-            self._differentials = olddiffs
+        args = [getattr(self, component) for component in self.components]
+        return self.__class__(*args, copy=False)
 
     @classmethod
     def from_representation(cls, representation):
