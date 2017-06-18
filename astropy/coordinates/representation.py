@@ -444,6 +444,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     comp1, comp2, comp3 : `~astropy.units.Quantity` or subclass
         The components of the 3D points.  The names are the keys and the
         subclasses the values of the ``attr_classes`` attribute.
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        subclass instance, or a dictionary with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be `'s'` for seconds, indicating that the
+        derivative is a time derivative.
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
 
@@ -534,7 +542,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     @property
     def differentials(self):
-        """A dictionary of differential class instances"""
+        """A dictionary of differential class instances.
+
+        The keys of this dictionary must be a string representation of the SI
+        unit with which the differential (derivative) is taken. For example, for
+        a velocity differential on a positional representation, the key would be
+        `'s'` for seconds, indicating that the derivative is a time derivative.
+        """
         return self._differentials
 
     # We do not make unit_vectors and scale_factors abstract methods, since
@@ -928,6 +942,17 @@ class CartesianRepresentation(BaseRepresentation):
     xyz_axis : int, optional
         The axis along which the coordinates are stored when a single array is
         provided rather than distinct ``x``, ``y``, and ``z`` (default: 0).
+
+    differentials : dict, `CartesianDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `CartesianDifferential` instance, or a dictionary of
+        `CartesianDifferential` s with keys set to a string representation of
+        the SI unit with which the differential (derivative) is taken. For
+        example, for a velocity differential on a positional representation, the
+        key would be `'s'` for seconds, indicating that the derivative is a time
+        derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1180,6 +1205,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
         instances of `~astropy.coordinates.Angle`,
         `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
 
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be `'s'` for seconds, indicating that the
+        derivative is a time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1375,6 +1410,16 @@ class RadialRepresentation(BaseRepresentation):
     distance : `~astropy.units.Quantity`
         The distance of the point(s) from the origin.
 
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be `'s'` for seconds, indicating that the
+        derivative is a time derivative.
+
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
     """
@@ -1450,6 +1495,16 @@ class SphericalRepresentation(BaseRepresentation):
         The distance to the point(s). If the distance is a length, it is
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
+
+    differentials : dict, `BaseDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single `BaseDifferential`
+        instance (see `._compatible_differentials` for valid types), or a
+        dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative)
+        is taken. For example, for a velocity differential on a positional
+        representation, the key would be `'s'` for seconds, indicating that the
+        derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1595,6 +1650,16 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         The distance to the point(s). If the distance is a length, it is
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
+
+    differentials : dict, `PhysicsSphericalDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `PhysicsSphericalDifferential` instance, or a dictionary of of
+        differential instances with keys set to a string representation of the
+        SI unit with which the differential (derivative) is taken. For example,
+        for a velocity differential on a positional representation, the key
+        would be `'s'` for seconds, indicating that the derivative is a time
+        derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
@@ -1744,6 +1809,15 @@ class CylindricalRepresentation(BaseRepresentation):
 
     z : `~astropy.units.Quantity`
         The z coordinate(s) of the point(s)
+
+    differentials : dict, `CylindricalDifferential`, optional
+        Any differential classes that should be associated with this
+        representation. The input must either be a single
+        `CylindricalDifferential` instance, or a dictionary of of differential
+        instances with keys set to a string representation of the SI unit with
+        which the differential (derivative) is taken. For example, for a
+        velocity differential on a positional representation, the key would be
+        `'s'` for seconds, indicating that the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied rather than referenced.
