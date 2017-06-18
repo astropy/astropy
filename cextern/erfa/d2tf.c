@@ -48,7 +48,7 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
 **     case where days is very nearly 1.0 and rounds up to 24 hours,
 **     by testing for ihmsf[0]=24 and setting ihmsf[0-3] to zero.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -108,7 +108,7 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
