@@ -161,6 +161,7 @@ def test_helio_iraf():
                                              _get_test_input_radecs(),
                                              bary=False)
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
+    return vhs_astropy, vhs_iraf  # for interactively examination
 
 
 def generate_IRAF_input(writefn=None):
@@ -232,6 +233,7 @@ def test_barycorr():
                                               _get_test_input_radecs(),
                                               bary=True)
     assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=5*u.m/u.s)
+    return bvcs_astropy, barycorr_bvcs  # for interactively examination
 
 
 def _get_barycorr_bvcs(coos):
