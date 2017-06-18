@@ -1021,31 +1021,6 @@ def test_minimal_subclass():
             lat = np.arctan2(cart.z, s)
             return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
 
-        def unit_vectors(self):
-            sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
-            sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
-            d = self.logd.physical
-            return OrderedDict(
-                (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
-                 ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
-                                                 coslat, copy=False)),
-                 ('logd', CartesianRepresentation(d*coslat*coslon,
-                                                  d*coslat*sinlon,
-                                                  d*sinlat,
-                                                  copy=False))))
-
-        def scale_factors(self, omit_coslat=False):
-            d = self.logd.physical
-            sf_lat = d / u.radian
-            sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
-            sf_logd = d / u.Dex
-            return OrderedDict((('lon', sf_lon),
-                                ('lat', sf_lat),
-                                ('logd', sf_logd)))
-
-    class LogDDifferential(BaseDifferential):
-        base_representation = LogDRepresentation
-
     ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
     assert np.all(ld1.lon==ld2.lon)
@@ -1077,16 +1052,6 @@ def test_minimal_subclass():
             attr_classes = OrderedDict([('lon', Longitude),
                                         ('lat', Latitude),
                                         ('logr', u.Dex)])
-
-    # now try passing in a differential
-    diff = LogDDifferential(d_logd=1 * u.dex(u.kpc),
-                            d_lon=2 * u.rad,
-                            d_lat=3 * u.rad)
-    ld = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc),
-                            differentials=diff)
-    assert ld.differentials[''] == diff
-    ld2 = ld.represent_as(CartesianRepresentation, CartesianDifferential)
-    assert ld2.differentials[''].get_name() == 'cartesian'
 
 def test_combine_xyz():
 
