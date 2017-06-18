@@ -134,7 +134,7 @@ int eraAtio13(double ri, double di,
 **     eraApio13    astrometry parameters, CIRS-observed, 2013
 **     eraAtioq     quick CIRS to observed
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -161,7 +161,7 @@ int eraAtio13(double ri, double di,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
