@@ -409,6 +409,7 @@ re-represent both the ``Representation`` and any ``Differential`` s, you must
 specify target classes for the ``Differential`` as well::
 
   >>> rep2 = rep.represent_as(r.SphericalRepresentation, r.SphericalDifferential) # doctest: +FLOAT_CMP
+  >>> rep2
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
     [( 1.57079633,  1.10714872,   8.94427191),
      ( 1.37340077,  1.05532979,  10.34408043),
@@ -428,7 +429,7 @@ host ``Representation`` object::
 
   >>> rep.shape
   (4,)
-  >>> rep.differentials[0].shape
+  >>> rep.differentials['s'].shape
   (4,)
   >>> new_rep = rep.reshape(2, 2)
   >>> new_rep.shape
@@ -463,7 +464,7 @@ If you have a ``Representation`` with attached ``Differential`` s, you can
 easily retrieve a copy of the ``Representation`` without the ``Differential`` s
 and use this ``Differential``-free object for any arithmetic operation::
 
-  >>> 15 * rep.without_differentials().
+  >>> 15 * rep.without_differentials()
   <CartesianRepresentation (x, y, z) in AU
       [(  0.,   60.,  120.), ( 15.,   75.,  135.), ( 30.,   90.,  150.),
        ( 45.,  105.,  165.)]>
