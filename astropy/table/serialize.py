@@ -58,6 +58,16 @@ def _represent_mixins_as_columns(tbl):
             obj_attrs = col.info._represent_as_dict()
             data_attrs = col.info._represent_as_dict_data_attrs
 
+            # Set the __info__ attributes (see long note above)
+            info = {}
+            for attr, nontrivial, xform in (('unit', lambda x: x not in (None, ''), str),
+                                            ('format', lambda x: x is not None, None),
+                                            ('description', lambda x: x is not None, None),
+                                            ('meta', lambda x: x, None)):
+                col_attr = getattr(col.info, attr)
+                if nontrivial(col_attr):
+                    info[attr] = xform(col_attr) if xform else col_attr
+
             for data_attr in data_attrs:
                 data = obj_attrs[data_attr]
 
@@ -65,28 +75,32 @@ def _represent_mixins_as_columns(tbl):
                 # New column name is the same as original if there is only one
                 # data attribute (e.g. time.value), otherwise make a new name
                 # (e.g. skycoord.ra, skycoord.dec).
+                #
+                # In the single-name case the mixin Info gets put into the new
+                # Column so the ECSV header looks complete (and for back compatibility
+                # with pre-2.0 behavior).  However, these are ignored in object
+                # construction later in favor of values in the
+                # __mixin_columns__['__info__'] dict.  This is because in general
+                # object constructors don't pay attention to the .info attributes
+                # in the input data args (e.g. Quantity(col) does look at the unit
+                # but not info.description).
                 if len(data_attrs) > 1:
                     name = name + '.' + data_attr
-                new_cols.append(Column(data, name=name))  # TODO masking, MaskedColumn
+                    col_info = {}
+                else:
+                    col_info = info
+                new_cols.append(Column(data, name=name, **col_info))  # TODO masking, MaskedColumn
 
                 obj_attrs[data_attr] = SerializedColumn({'name': name})
 
             # Store the fully qualified class name
             obj_attrs['__class__'] = col.__module__ + '.' + col.__class__.__name__
 
-            # Set the __info__ attributes (see long note above)
-            info = {}
-            for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
-                                            ('format', lambda x: x is not None, None),
-                                            ('description', lambda x: x is not None, None),
-                                            ('meta', lambda x: x, None)):
-                # Don't repeat info from the parent
-                if attr in col.info.attrs_from_parent:
-                    continue
-                col_attr = getattr(col.info, attr)
-                if nontrivial(col_attr):
-                    info[attr] = xform(col_attr) if xform else col_attr
             if info:
+                # Strip out any attributes defined by the parent
+                for attr in col.info.attrs_from_parent:
+                    if attr in info:
+                        del info[attr]
                 obj_attrs['__info__'] = info
 
             mixin_cols[col.info.name] = obj_attrs
