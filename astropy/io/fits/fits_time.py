@@ -151,7 +151,7 @@ class FitsTime(object):
         hdr : `~astropy.io.fits.header.Header`
             FITS Header
         table : astropy.table.Table
-            
+            The table whose time columns are to be read as Time
         """
         for key, value, comment in hdr.cards:
             if (key.upper() in TIME_KEYWORDS):
@@ -208,17 +208,33 @@ class FitsTime(object):
             # Astropy specific keyword for storing Time format
             hdr.append(Card(keyword='TCAPF%d' %n, value=col.format.upper()))
 
+            pos_geo = None
+
             # Time column reference positions
             if col.location != None:
                 # Compatibility of Time Scales and Reference Positions
                 hdr.append(Card(keyword='TRPOS%d' %n, value=cls.TIME_SCALE_REF[col.scale]))
                 if cls.TIME_SCALE_REF[col.scale] == 'TOPOCENTER':
-                    hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value)
-                                for dim in ('x', 'y', 'z')])
+                    curr_loc = col.location
+                    if curr_loc.size > 1:
+                        warnings.warn(
+                            "Vectorized Location of Time Column {0} cannot be written. Only 0th Location"
+                            "will be written.".format(col.info.name),
+                            AstropyUserWarning)
+                        curr_loc = col.location[0]
+                    if pos_geo == None:
+                        hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(curr_loc, dim).value)
+                                    for dim in ('x', 'y', 'z')])
+                        pos_geo == curr_loc
+                    elif pos_geo != curr_loc:
+                        warnings.warn(
+                            "Multiple Time Columns with different geodetic observatory locations are encountered."
+                            "Location for {0} will be dropped.".format(col.info.name),
+                            AstropyUserWarning)
                 else:
                     warnings.warn(
                         "Location cannot be written for {0} due to incompatability of "
-                        "{1} and TOPOCENTER".format(col.info.name, col.scale.upper()),
+                        "{1} and TOPOCENTER.".format(col.info.name, col.scale.upper()),
                         AstropyUserWarning)
 
         return newtable, hdr

@@ -144,10 +144,11 @@ def test_io_time_write(tmpdir, table_types):
     Test that io.fits writes a table containing Time mixin columns that can
     be considerably round-tripped (metadata scale, format).
     """
-    t = table_types()
-    t['a'] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(-2446353.80003635, 4237209.07495215, 4077985.57220038, unit='m'))
-    t['b'] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc')
-    t['c'] = [3.7,4.2]
+    t = table_types([[1,2], ['string', 'column']])
+    for scale in time.TIME_SCALES:
+        t['a'+scale] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(-2446353.80003635, 4237209.07495215, 4077985.57220038, unit='m'))
+        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc')
+    t['c'] = [3., 4.]
 
     filename = tmpdir.join("table-tmp").strpath
     open(filename, 'w').close()
@@ -156,27 +157,31 @@ def test_io_time_write(tmpdir, table_types):
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
-    # Assert that the time columns are read as Time
-    assert isinstance(tm['a'], time.Time)
-    assert isinstance(tm['b'], time.Time)
-    assert isinstance(tm['c'], Column)
+    for scale in time.TIME_SCALES:
+        for ab in ('a', 'b'):
+            name = ab + scale
+            
+            # Assert that the time columns are read as Time
+            assert isinstance(tm[name], time.Time)
 
-    # Assert that the scales round-trip
-    assert tm['a'].scale == t['a'].scale
-    assert tm['b'].scale == t['b'].scale
+            # Assert that the scales round-trip
+            assert tm[name].scale == t[name].scale
 
-    # Assert that the formats round-trip
-    assert tm['a'].format == t['a'].format
-    assert tm['b'].format == t['b'].format
+            # Assert that the formats round-trip
+            assert tm[name].format == t[name].format
 
-    # Assert that the location round-trips
-    assert tm['a'].location == t['a'].location
-    assert tm['b'].location == t['b'].location
-    
-    # Finally assert that the column data round-trips
-    assert (tm['a'] == t['a']).all()
-    assert (tm['b'] == t['b']).all()
-    assert (tm['c'] == t['c']).all()
+            # Assert that the location round-trips
+            assert tm[name].location == t[name].location
+
+            # Finally assert that the column data round-trips
+            assert (tm[name] == t[name]).all()
+
+    for name in ('col0', 'col1', 'c'):
+        # Assert that the non-time columns are read as Column
+        assert isinstance(tm[name], Column)
+
+        # Assert that the non-time columns' data round-trips
+        assert (tm[name] == t[name]).all()
     
     for fmt in ('votable', 'hdf5'):
         if fmt == 'hdf5' and not HAS_H5PY:
