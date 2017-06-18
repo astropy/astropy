@@ -662,6 +662,11 @@ class TestLogQuantityArithmetic(object):
                 with pytest.raises(u.UnitsError):
                     t.to(u.dimensionless_unscaled)
 
+    def test_error_on_lq_as_power(self):
+        lq = u.Magnitude(np.arange(1., 4.)*u.Jy)
+        with pytest.raises(TypeError):
+            lq ** lq
+
     @pytest.mark.parametrize('other', pu_sample)
     def test_addition_subtraction_to_normal_units_fails(self, other):
         lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
