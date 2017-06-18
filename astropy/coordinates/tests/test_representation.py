@@ -1145,6 +1145,16 @@ class TestCartesianRepresentationWithDifferential(object):
                                      distance=1*u.pc,
                                      differentials=diff)
 
+    def test_init_differential_multiple_equivalent_keys(self):
+        d1 = CartesianDifferential(*[1,2,3] * u.km/u.s)
+        d2 = CartesianDifferential(*[4,5,6] * u.km/u.s)
+
+        # verify that the check against expected_unit validates against passing
+        # in two different but equivalent keys
+        with pytest.raises(ValueError):
+            r1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                         differentials={'s': d1, 'yr': d2})
+
     def test_init_array_broadcasting(self):
 
         arr1 = np.arange(8).reshape(4,2) * u.km/u.s
