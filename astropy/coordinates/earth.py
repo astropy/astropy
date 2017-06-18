@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 
 from warnings import warn
+import collections
 import socket
 import json
 
@@ -26,6 +27,8 @@ except ImportError:
         raise
 
 __all__ = ['EarthLocation']
+
+GeodeticLocation = collections.namedtuple('GeodeticLocation', ['lon', 'lat', 'height'])
 
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
@@ -475,10 +478,11 @@ class EarthLocation(u.Quantity):
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
         lon, lat, height = erfa.gc2gd(getattr(erfa, ellipsoid), self_array)
-        return (Longitude(lon * u.radian, u.degree,
-                          wrap_angle=180.*u.degree, copy=False),
-                Latitude(lat * u.radian, u.degree, copy=False),
-                u.Quantity(height * u.meter, self.unit, copy=False))
+        return GeodeticLocation(
+            Longitude(lon * u.radian, u.degree,
+                      wrap_angle=180.*u.degree, copy=False),
+            Latitude(lat * u.radian, u.degree, copy=False),
+            u.Quantity(height * u.meter, self.unit, copy=False))
 
     @property
     def longitude(self):
