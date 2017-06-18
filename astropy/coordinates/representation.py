@@ -11,7 +11,6 @@ import abc
 import functools
 import operator
 from collections import OrderedDict
-from copy import deepcopy
 import inspect
 
 import numpy as np
@@ -24,7 +23,6 @@ from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
-from ..utils.misc import isiterable, check_broadcast, IncompatibleShapeError
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
