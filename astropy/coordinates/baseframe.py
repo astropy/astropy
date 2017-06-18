@@ -32,7 +32,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              REPRESENTATION_CLASSES)
 from .frame_attributes import FrameAttribute
 
-# Import all orher FrameAttributes so we don't break backwards-compatibility
+# Import all other FrameAttributes so we don't break backwards-compatibility
 # (some users rely on them being here, although that is not
 # encouraged, as this is not the public API location.)
 from .frame_attributes import (
@@ -535,13 +535,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        # Here we pass representation=None to _apply, since we do not want
+        # Here we pass representation_cls=None to _apply, since we do not want
         # to insist that the realized frame has the same representation as
         # self.  [Avoids breaking sunpy; see gh-6208]
-        # TODO: expose this? But unhandy change of name, since in the
-        # initializer this is called `representation`. Sigh.
+        # TODO: should we expose this, so one has a choice?
         return self._apply('replicate', _framedata=representation,
-                           _repr_cls=None)
+                           representation_cls=None)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -834,7 +833,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data = self.data if self.has_data else None
 
-        representation = kwargs.pop('_repr_cls', self.representation)
+        # TODO: expose this trickery in docstring?
+        representation_cls = kwargs.pop('representation_cls',
+                                        self.representation)
 
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
@@ -854,7 +855,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if data is not None:
             data = apply_method(data)
 
-        frattrs = {'representation': representation}
+        # TODO: change to representation_cls in __init__ - gh-6219.
+        frattrs = {'representation': representation_cls}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
                 if (method == 'copy' or method == 'replicate') and attr in kwargs:
