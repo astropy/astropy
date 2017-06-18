@@ -301,3 +301,18 @@ def test_of_address():
     assert quantity_allclose(loc.latitude, 40.7128*u.degree)
     assert quantity_allclose(loc.longitude, -74.0059*u.degree)
     assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+
+
+def test_geodetic_tuple():
+    lat = 2*u.deg
+    lon = 10*u.deg
+    height = 100*u.m
+
+    el = EarthLocation.from_geodetic(lat=lat, lon=lon, height=height)
+
+    res1 = el.to_geodetic()
+    res2 = el.geodetic
+
+    assert res1.lat == res2.lat and quantity_allclose(res1.lat, lat)
+    assert res1.lon == res2.lon and quantity_allclose(res1.lon, lon)
+    assert res1.height == res2.height and quantity_allclose(res1.height, height)

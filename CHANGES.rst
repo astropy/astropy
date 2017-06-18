@@ -50,6 +50,12 @@ New Features
     This is primarily useful for internal operations that will provide support
     for transforming velocity components in coordinate frames. [#6169]
 
+  - ``EarthLocation.to_geodetic()`` (and ``EarthLocation.geodetic``) now return
+    namedtuples instead of regular tuples. [#6237]
+
+  - ``EarthLocation`` now has ``lat`` and ``lon`` properties (equivalent to, but
+    preferred over, the previous ``latitude`` and ``longitude``). [#6237]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -235,6 +241,10 @@ API Changes
     ``angles.angle_axis``. Use the routines in
     ``coordinates.matrix_utilities`` instead. [#6170]
 
+  - ``EarthLocation.latitude`` and ``EarthLocation.longitude`` are now
+    deprecated in favor of ``EarthLocation.lat`` and ``EarthLocation.lon``.
+    They former will be removed in a future version. [#6237]
+
 - ``astropy.cosmology``
 
   - Cosmological models do not include any contribution from neutrinos or photons
@@ -328,7 +338,7 @@ API Changes
   - ``solLum``,``solMass``, and ``solRad`` no longer have  their prefixed units
     included in the standard units.  If needed, they can still be found in
     ``units.required_by_vounit``, and are enabled by default. [#5661]
-    
+
   - Removed deprecated ``Unit.get_converter``. [#6170]
 
   - Internally, astropy replaced use of ``.to(unit).value`` with the new
