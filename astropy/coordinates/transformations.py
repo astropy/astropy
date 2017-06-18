@@ -763,7 +763,7 @@ class BaseAffineTransform(CoordinateTransform):
         # Only do transform is matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)
         if matrix is not None:
-            rep = rep.transform(matrix, apply_to_diffs=True)
+            rep = rep.transform(matrix)
 
         newrep = rep.without_differentials()
         if offset is not None:

@@ -1026,19 +1026,18 @@ class CartesianRepresentation(BaseRepresentation):
     def to_cartesian(self):
         return self
 
-    def transform(self, matrix, apply_to_diffs=False):
+    def transform(self, matrix):
         """
         Transform the cartesian coordinates using a 3x3 matrix.
 
         This returns a new representation and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
 
         Parameters
         ----------
         matrix : `~numpy.ndarray`
             A 3x3 transformation matrix, such as a rotation matrix.
-        apply_to_diffs : bool (optional)
-            Apply the transformation to any differentials associated with this
-            representation.
 
 
         Examples
