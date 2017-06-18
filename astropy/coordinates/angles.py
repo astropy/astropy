@@ -444,6 +444,18 @@ class Angle(u.SpecificTypeQuantity):
                                    formatter={'str_kind': lambda x: x})
 
 
+def _no_angle_subclass(obj):
+    """Return any Angle subclass objects as an Angle objects.
+
+    This is used to ensure that Latitute and Longitude change to Angle
+    objects when they are used in calculations (such as lon/2.)
+    """
+    if isinstance(obj, tuple):
+        return tuple(_no_angle_subclass(_obj) for _obj in obj)
+
+    return obj.view(Angle) if isinstance(obj, Angle) else obj
+
+
 class Latitude(Angle):
     """
     Latitude-like angle(s) which must be in the range -90 to +90 deg.
@@ -525,11 +537,11 @@ class Latitude(Angle):
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
+        return _no_angle_subclass(obj)
 
-        if isinstance(obj, Angle):
-            return obj.view(Angle)
-
-        return obj
+    def __array_ufunc__(self, *args, **kwargs):
+        results = super(Latitude, self).__array_ufunc__(*args, **kwargs)
+        return _no_angle_subclass(results)
 
 
 class Longitude(Angle):
@@ -644,8 +656,8 @@ class Longitude(Angle):
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
+        return _no_angle_subclass(obj)
 
-        if isinstance(obj, Angle):
-            return obj.view(Angle)
-
-        return obj
+    def __array_ufunc__(self, *args, **kwargs):
+        results = super(Longitude, self).__array_ufunc__(*args, **kwargs)
+        return _no_angle_subclass(results)

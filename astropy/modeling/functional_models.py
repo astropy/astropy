@@ -2185,19 +2185,21 @@ class AiryDisk2D(Fittable2DModel):
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
 
         if isinstance(r, Quantity):
-            r = r.decompose().value
+            # scipy function cannot handle Quantity, so turn into array.
+            r = r.to_value(u.dimensionless_unscaled)
 
         # Since r can be zero, we have to take care to treat that case
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
         rt = np.pi * r[r > 0]
         z[r > 0] = (2.0 * cls._j1(rt) / rt) ** 2
-        z *= amplitude
 
         if isinstance(amplitude, Quantity):
-            return Quantity(z, unit=amplitude.unit, copy=False)
-        else:
-            return z
+            # make z quantity too, otherwise in-place multiplication fails.
+            z = Quantity(z, u.dimensionless_unscaled, copy=False)
+
+        z *= amplitude
+        return z
 
     @property
     def input_units(self):

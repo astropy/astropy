@@ -187,6 +187,11 @@ New Features
   - ``Quantity`` now supports the ``@`` operator for matrix multiplication that
     was introduced in Python 3.5, for all supported versions of numpy. [#6144]
 
+  - ``Quantity`` supports the new ``__array_ufunc__`` protocol introduced in
+    numpy 1.13.  As a result, operations that involve unit conversion will be
+    sped up considerably (by up to a factor of two for costly operations such
+    as trigonometric ones). [#2583]
+
 - ``astropy.utils``
 
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
