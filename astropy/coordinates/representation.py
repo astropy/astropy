@@ -378,7 +378,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         diffstr = ''
         if getattr(self, 'differentials', None):
-            diffstr = '\n (has differentials)'
+            diffstr = '\n (has differentials: {0})'.format(
+                ', '.join([repr(key) for key in self.differentials.keys()]))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
         return '<{0} ({1}) {2:s}\n{3}{4}{5}>'.format(
@@ -1067,9 +1068,9 @@ class CartesianRepresentation(BaseRepresentation):
         # Handle differentials attached to this representation
         if self.differentials:
             # TODO: speed this up going via d.d_xyz.
-            new_diffs = dict((k, d.from_cartesian(
-                d.represent_as(CartesianRepresentation).transform(matrix)))
-                             for k, d in self.differentials.items())
+            new_diffs = dict(
+                (k, d.from_cartesian(d.to_cartesian().transform(matrix)))
+                for k, d in self.differentials.items())
         else:
             new_diffs = None
 
