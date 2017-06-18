@@ -1315,11 +1315,6 @@ class TestCartesianRepresentationWithDifferential(object):
         assert cr.differentials != cr2.differentials
         assert cr2.differentials['s'] is diff
 
-        # make sure its a copy and not a view
-        assert cr.x == cr2.x
-        cr2.x.ravel()[:] = 10*u.kpc
-        assert cr.x != cr2.x
-
         # make sure it works even if a differential is present already
         diff2 = CartesianDifferential([.1, .2, .3]*u.m/u.s)
         cr3 = CartesianRepresentation([1, 2, 3]*u.kpc, differentials=diff)
@@ -1331,6 +1326,17 @@ class TestCartesianRepresentationWithDifferential(object):
         cr5 = cr.with_differentials(diff)
         assert len(cr5.differentials) == 1
         assert cr5.differentials['s'] == diff
+
+        # make sure we don't update the original representation's dict
+        d1 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s)
+        d2 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s**2)
+        r1 = CartesianRepresentation(*np.random.random((3, 5)), unit=u.pc,
+                                     differentials=d1)
+
+        r2 = r1.with_differentials(d2)
+        assert r1.differentials['s'] is r2.differentials['s']
+        assert 's2' not in r1.differentials
+        assert 's2' in r2.differentials
 
 def test_to_cartesian():
     """
