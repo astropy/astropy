@@ -58,7 +58,7 @@ class EcsvHeader(basic.BasicHeader):
                                  .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
-        header = {'cols': self.cols}
+        header = {'cols': self.cols, 'schema': 'astropy-2.0'}
 
         if self.table_meta:
             header['meta'] = self.table_meta
