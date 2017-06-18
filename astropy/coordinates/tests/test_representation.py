@@ -1089,8 +1089,7 @@ class TestCartesianRepresentationWithDifferential(object):
                                      d_y=2 * u.km/u.s,
                                      d_z=3 * u.km/u.s)
 
-        # can pass in a single differential, which gets turned into a
-        #   length-1 tuple
+        # Check that a single differential gets turned into a 1-item dict.
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
                                      differentials=diff)
 
@@ -1182,7 +1181,6 @@ class TestCartesianRepresentationWithDifferential(object):
 
         r2 = CartesianRepresentation.from_representation(r1)
         assert r2.get_name() == 'cartesian'
-        # assert r2.differentials['s'].get_name() == 'cartesian'
         assert not r2.differentials
 
     def test_readonly(self):
@@ -1305,8 +1303,7 @@ class TestCartesianRepresentationWithDifferential(object):
 
 def test_to_cartesian():
     """
-    Test that to_cartesian does the expected thing (converts both the
-    representation and differentials)
+    Test that to_cartesian drops the differential.
     """
     sd = SphericalDifferential(d_lat=1*u.deg, d_lon=2*u.deg, d_distance=10*u.m)
     sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m,
