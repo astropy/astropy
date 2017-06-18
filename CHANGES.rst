@@ -49,8 +49,12 @@ New Features
   - The representation class instances can now contain differential objects.
     This is primarily useful for internal operations that will provide support
     for transforming velocity components in coordinate frames. [#6169]
+
   - ``EarthLocation.to_geodetic()`` (and ``EarthLocation.geodetic``) now return
     namedtuples instead of regular tuples. [#6237]
+
+  - ``EarthLocation`` now has ``lat`` and ``lon`` properties (equivalent to, but
+    preferred over, the previous ``latitude`` and ``longitude``). [#6237]
 
 - ``astropy.cosmology``
 
@@ -236,6 +240,10 @@ API Changes
   - Removed deprecated ``angles.rotation_matrix`` and
     ``angles.angle_axis``. Use the routines in
     ``coordinates.matrix_utilities`` instead. [#6170]
+
+  - ``EarthLocation.latitude`` and ``EarthLocation.longitude`` are now
+    deprecated in favor of ``EarthLocation.lat`` and ``EarthLocation.lon``.
+    They former will be removed in a future version. [#6237]
 
 - ``astropy.cosmology``
 
