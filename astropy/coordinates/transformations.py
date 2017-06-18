@@ -20,6 +20,7 @@ from __future__ import (absolute_import, division, print_function,
 import heapq
 import inspect
 import subprocess
+from warnings import warn
 
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, OrderedDict
@@ -29,6 +30,7 @@ import numpy as np
 from .. import units as u
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
+from ..utils.exceptions import AstropyWarning
 from ..extern import six
 from ..extern.six.moves import range
 from .. import units as u
@@ -747,6 +749,11 @@ class FunctionTransform(CoordinateTransform):
         if not isinstance(res, self.tosys):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
+        if (getattr(fromcoord.data, 'differentials', None) and not
+            getattr(res.data, 'differentials', None)):
+            warn("Applied a FunctionTransform to a coordinate frame with "
+                 "differentials, but the FunctionTransform does not handle "
+                 "differentials, so they have been dropped.", AstropyWarning)
         return res
 
 class FunctionTransformWithFiniteDifference(FunctionTransform):
