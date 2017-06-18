@@ -609,7 +609,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if differential_class is None:
             return dict()
 
-        if not self.differentials:
+        if not self.differentials and differential_class:
             raise ValueError("No differentials associated with this "
                              "representation!")
 
