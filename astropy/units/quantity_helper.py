@@ -587,7 +587,7 @@ def check_output(output, unit, inputs, function=None):
         if unit is None:
             raise TypeError("Cannot store non-quantity output{0} in {1} "
                             "instance".format(
-                                ("from {0} function".format(function.__name__)
+                                (" from {0} function".format(function.__name__)
                                  if function is not None else ""),
                                 type(output)))
 
@@ -595,7 +595,7 @@ def check_output(output, unit, inputs, function=None):
             raise UnitTypeError(
                 "Cannot store output with unit '{0}'{1} "
                 "in {2} instance.  Use {3} instance instead."
-                .format(unit, ("from {0} function".format(function.__name__)
+                .format(unit, (" from {0} function".format(function.__name__)
                                if function is not None else ""), type(output),
                         output.__quantity_subclass__(unit)[0]))
 
