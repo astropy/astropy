@@ -820,7 +820,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         from .representation import (CartesianRepresentation,
                                      CartesianDifferential)
 
-        supcall = super(FunctionTransformWithFiniteDifference, self).__call__
+        supcall = self.func
         if getattr(fromcoord.data, 'differentials', False):
             # this is the finite difference case
 
