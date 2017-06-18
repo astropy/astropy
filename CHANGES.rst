@@ -26,9 +26,9 @@ New Features
     coordinate frames that allow copying an existing frame object with various
     reference or copy behaviors and possibly overriding frame attributes. [#6182]
 
-  - The ``Representation`` class instances can now contain ``Differential``
-    objects. This is primarily useful for internal operations that will provide
-    support for transforming velocity components in coordinate frames. [#6169]
+  - The representation class instances can now contain differential objects.
+    This is primarily useful for internal operations that will provide support
+    for transforming velocity components in coordinate frames. [#6169]
 
 - ``astropy.cosmology``
 
