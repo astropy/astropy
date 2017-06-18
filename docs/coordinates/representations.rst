@@ -329,77 +329,98 @@ Attaching ``Differential``'s to ``Representation``'s
     viewed as provisional!
 
 ``Differential`` objects can be attached to ``Representation`` objects as a way
-to encapsulate information into a single object. ``Differential``'s can be
-passed in to the initializer of any of the built-in ``Representation`` classes.
-For example, to store a single velocity differential with a position::
+to encapsulate related information into a single object. ``Differential``'s can
+be passed in to the initializer of any of the built-in ``Representation``
+classes. For example, to store a single velocity differential with a position::
 
-  >>> from astropy.coordinates import CartesianDifferential
-  >>> dif = CartesianDifferential(d_x=1 * u.km/u.s,
-  ...                             d_y=2 * u.km/u.s,
-  ...                             d_z=3 * u.km/u.s)
-  >>> SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
-  ...                         distance=1.*u.kpc,
-  ...                         differentials=dif)
+  >>> from astropy.coordinates import representation as r
+  >>> dif = r.SphericalDifferential(d_lon=1 * u.mas/u.yr,
+  ...                               d_lat=2 * u.mas/u.yr,
+  ...                               d_distance=3 * u.km/u.s)
+  >>> rep = r.SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
+  ...                                 distance=1.*u.kpc,
+  ...                                 differentials=dif)
+  >>> rep
   <SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)
       ( 0.,  0.,  1.)
-   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      ( 1.,  2.,  3.)>,)>
+   (has differentials)>
+  >>> rep.differentials
+  {'s': <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr, mas / yr, km / s)
+       ( 1.,  2.,  3.)>}
 
-Implicit in the above is that the representation of a differential does not have
-to match the representation (i.e. in this case, the representation is spherical
-but the differential is Cartesian). ``Differential`` s can also be attached to a
-``Representation`` after creation::
+The ``Differential`` objects are stored as a Python dictionary on the
+``Representation`` object with keys equal to the (string) unit with which the
+differential derivatives are taken (converted to SI). For example, in this case
+the key is ``'s'`` (second) because the ``Differential`` units are velocities, a
+time derivative. Passing a single differential to the ``Representation``
+initializer will automatically generate the necessary key and store it in the
+differentials dictionary, but a dictionary is required to specify multiple
+differentials::
 
-  >>> rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+  >>> dif2 = r.SphericalDifferential(d_lon=4 * u.mas/u.yr**2,
+  ...                                d_lat=5 * u.mas/u.yr**2,
+  ...                                d_distance=6 * u.km/u.s**2)
+  >>> rep = r.SphericalRepresentation(lon=0.*u.deg, lat=0.*u.deg,
+  ...                                 distance=1.*u.kpc,
+  ...                                 differentials={'s': dif, 's2': dif2})
+  >>> rep.differentials['s']
+  <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr, mas / yr, km / s)
+      ( 1.,  2.,  3.)>
+  >>> rep.differentials['s2']
+  <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr2, mas / yr2, km / s2)
+      ( 4.,  5.,  6.)>
+
+``Differential`` s can also be attached to a ``Representation`` after creation::
+
+  >>> rep = r.CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+  >>> dif = r.CartesianDifferential(*[1, 2, 3] * u.km/u.s)
   >>> rep = rep.with_differentials(dif)
   >>> rep
   <CartesianRepresentation (x, y, z) in kpc
       ( 1.,  2.,  3.)
-   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      ( 1.,  2.,  3.)>,)>
+   (has differentials)>
 
 This also works for array data as well, as long as the shape of the
 ``Differential`` data is the same as that of the ``Representation``::
 
   >>> xyz = np.arange(12).reshape(3, 4) * u.au
   >>> d_xyz = np.arange(12).reshape(3, 4) * u.km/u.s
-  >>> rep = CartesianRepresentation(*xyz)
-  >>> dif = CartesianDifferential(*d_xyz)
+  >>> rep = r.CartesianRepresentation(*xyz)
+  >>> dif = r.CartesianDifferential(*d_xyz)
   >>> rep = rep.with_differentials(dif)
   >>> rep
   <CartesianRepresentation (x, y, z) in AU
       [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]
-   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]>,)>
+   (has differentials)>
 
 As with a ``Representation`` instance without a differential, to convert the
 positional data to a new representation, use the ``.represent_as()``::
 
-  >>> rep.represent_as(SphericalRepresentation) # doctest: +FLOAT_CMP
+  >>> rep.represent_as(r.SphericalRepresentation) # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
       [( 1.57079633,  1.10714872,   8.94427191),
        ( 1.37340077,  1.05532979,  10.34408043),
        ( 1.24904577,  1.00685369,  11.83215957),
-       ( 1.16590454,  0.96522779,  13.37908816)]
-   differentials=(<CartesianDifferential (d_x, d_y, d_z) in km / s
-      [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]>,)>
+       ( 1.16590454,  0.96522779,  13.37908816)]>
 
 However, by passing just the desired representation class, only the
-``Representation`` has changed. To change both the ``Representation`` and any
-``Differential`` s, you must specify target classes for each ``Differential``
-as well::
+``Representation`` has changed, and the differentials are dropped. To
+re-represent both the ``Representation`` and any ``Differential`` s, you must
+specify target classes for the ``Differential`` as well::
 
-  >>> rep.represent_as([SphericalRepresentation, SphericalDifferential]) # doctest: +FLOAT_CMP
+  >>> rep2 = rep.represent_as(r.SphericalRepresentation, r.SphericalDifferential) # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
-      [( 1.57079633,  1.10714872,   8.94427191),
-       ( 1.37340077,  1.05532979,  10.34408043),
-       ( 1.24904577,  1.00685369,  11.83215957),
-       ( 1.16590454,  0.96522779,  13.37908816)]
-   differentials=(<SphericalDifferential (d_lon, d_lat, d_distance) in (km rad / (AU s), km rad / (AU s), km / s)
+    [( 1.57079633,  1.10714872,   8.94427191),
+     ( 1.37340077,  1.05532979,  10.34408043),
+     ( 1.24904577,  1.00685369,  11.83215957),
+     ( 1.16590454,  0.96522779,  13.37908816)]
+   (has differentials)>
+  >>> rep2.differentials['s']
+  <SphericalDifferential (d_lon, d_lat, d_distance) in (km rad / (AU s), km rad / (AU s), km / s)
       [(  6.12323400e-17,   1.11022302e-16,   8.94427191),
        ( -5.55111512e-17,   0.00000000e+00,  10.34408043),
        (  0.00000000e+00,   0.00000000e+00,  11.83215957),
-       (  5.55111512e-17,   0.00000000e+00,  13.37908816)]>,)>
+       (  5.55111512e-17,   0.00000000e+00,  13.37908816)]>
 
 Shape-changing operations (e.g., reshapes) are propagated to all
 ``Differential`` s because they are guaranteed to have the same shape as their
@@ -412,7 +433,7 @@ host ``Representation`` object::
   >>> new_rep = rep.reshape(2, 2)
   >>> new_rep.shape
   (2, 2)
-  >>> new_rep.differentials[0].shape
+  >>> new_rep.differentials['s'].shape
   (2, 2)
 
 This also works for slicing::
@@ -420,31 +441,30 @@ This also works for slicing::
   >>> new_rep = rep[:2]
   >>> new_rep.shape
   (2,)
-  >>> new_rep.differentials[0].shape
+  >>> new_rep.differentials['s'].shape
   (2,)
 
-All other operations that involve scaling or combining representation data will
-raise an exception::
+Operations on representations that return `~astropy.units.Quantity` objects (as
+opposed to other ``Representation`` instances) still work, but only operate on
+the positional information, e.g.::
 
-  >>> rep.norm() # doctest: +SKIP
-  ERROR: TypeError: Operation 'norm' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
-  ...
+  >>> rep.norm() # doctest: +FLOAT_CMP
+  <Quantity [  8.94427191, 10.34408043, 11.83215957, 13.37908816] AU>
+
+TODO: combine and scale operations
+
   >>> rep + rep # doctest: +SKIP
   ERROR: TypeError: Operation 'add' is not supported when differentials are attached to a CartesianRepresentation. [astropy.coordinates.representation]
   ...
 
 If you have a ``Representation`` with attached ``Differential`` s, you can
 easily retrieve a copy of the ``Representation`` without the ``Differential`` s
-and use this ``Differential``-free object in arithmetic operations::
+and use this ``Differential``-free object for any arithmetic operation::
 
-  >>> rep.without_differentials() * 15.
+  >>> 15 * rep.without_differentials().
   <CartesianRepresentation (x, y, z) in AU
       [(  0.,   60.,  120.), ( 15.,   75.,  135.), ( 30.,   90.,  150.),
        ( 45.,  105.,  165.)]>
-  >>> rep.without_differentials() + rep.without_differentials()
-  <CartesianRepresentation (x, y, z) in AU
-      [( 0.,   8.,  16.), ( 2.,  10.,  18.), ( 4.,  12.,  20.),
-       ( 6.,  14.,  22.)]>
 
 .. _astropy-coordinates-create-repr:
 
