@@ -26,7 +26,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
-             preserve_nan=False):
+             preserve_nan=False, normalization_rtol=1e-8):
     '''
     Convolve an array with a kernel.
 
@@ -82,6 +82,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
         masked of it is masked in either ``mask`` *or* ``array.mask``.
+    normalization_rtol: float, optional
+        The relative tolerance on whether the kernel is normalizable.  If the
+        kernel sums to zero to within this precision, it cannot be normalized.
+        Default is "1e-8".
 
     Returns
     -------
@@ -212,7 +216,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
-    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=1e-8)
+    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_rtol)
 
     if (kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero) and normalize_kernel:
         raise Exception("The kernel can't be normalized, because its sum is "
@@ -573,7 +577,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             kernel_scale = 1
             normalized_kernel = kernel
         else:
-            if np.abs(kernel.sum()) < 1e-8:
+            if np.abs(kernel.sum()) < normalization_rtol:
                 if nan_treatment == 'interpolate':
                     raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
                 else:
@@ -581,6 +585,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                     kernel_scale = 1
                     normalized_kernel = kernel
             else:
+                # the kernel is normalizable; we'll temporarily normalize it
+                # now and undo the normalization later.
                 normalized_kernel = kernel / kernel_scale
 
     if boundary is None:
