@@ -599,6 +599,20 @@ Bug Fixes
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
+  - Convolution with un-normalized and un-normalizable kernels is now possible.
+    [#5782]
+
+  - Add a new argument, ``normalization_rtol``, to ``convolve_fft``, allowing
+    the user to specify the relative error tolerance in the normalization of
+    the convolution kernel. [#5649, #5177]
+  - Models can now be convoluted using ``convolve`` or ``convolve_fft``,
+    which generates a regular compound model. [#6015]
+
+  - ``convolve_fft`` will pad to the nearest regular value (power of 2, 3, or
+    5) instead of the nearest power of 2, which can save memory.  Real-only
+    FFTs are also supported, which can again save time and memory. [#2792]
+
+- ``astropy.coordinates``
 
 - Fixed Earth radius to be the IAU2015 value for the equatorial radius.
   The polar value had erroneously been used in 2.0. [#6400]
