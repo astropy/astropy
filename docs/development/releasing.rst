@@ -155,16 +155,39 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python -c 'import astropy; astropy.test(remote_data=True)'
       $ source deactivate
 
-#. If the tests do *not* pass, you'll have to fix whatever the problem is. First
-   you'll need to back out the release procedure by dropping the commits you
-   made for release and removing the tag you created::
+#. Build and test the Astropy wheels.  See the `wheel builder README
+   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
+   summary, clone the wheel-building repo, edit the ``.travis.yml`` and
+   ``appveyor.yml`` text files with the branch or commit for the release,
+   commit and then push back up to github.  This will trigger a wheel build
+   and test on OSX, Linux and Windows. Check the build has passed on on the
+   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
+   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
+   or on the mailing list if you do not have them.
+
+#. If the tests do *not* pass, you'll have to fix whatever the problem is.
+   First you'll need to back out the release procedure by dropping the commits
+   you made for release and removing the tag you created::
 
       $ git reset --hard HEAD^^^^ # you could also use the SHA hash of the commit before your first changelog edit
       $ git tag -d v<version>
 
 #. Once the tests are all passing, it's time to actually proceed with the
-   release! For safety's sake, you may want to clean the repo yet again
-   to make sure you didn't leave anything from the previous step::
+   release! This has two steps:
+
+   * build and upload the Astropy wheels;
+   * make and upload the Astropy source release.
+
+#. For the wheel build / upload, follow the `wheel builder README`_
+   instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
+   to give the release tag to build.  Check the build has passed on on the
+   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.  Now
+   follow the instructions in the page above to download the built wheels to a
+   local machine and upload to PyPI.
+
+#. Now the wheels are built and uploaded, you can upload the source release.
+   For safety's sake, you may want to clean the repo yet again to make sure
+   you didn't leave anything from the previous step::
 
       $ git clean -dfx
       $ cd astropy_helpers; git clean -dfx; cd ..
