@@ -26,6 +26,7 @@ def test_basic_nddata():
     resultf = convolve_fft(ndd, test_kernel)
     np.testing.assert_allclose(resultf, expected, atol=1e-6)
 
+
 @pytest.mark.parametrize('convfunc',
    [lambda *args: convolve(*args, nan_treatment='interpolate', normalize_kernel=True),
     lambda *args: convolve_fft(*args, nan_treatment='interpolate', normalize_kernel=True)])
@@ -35,7 +36,7 @@ def test_masked_nddata(convfunc):
     arr[5, 5] = 1.5
     ndd_base = NDData(arr)
 
-    mask = arr < 0 # this is all False
+    mask = arr < 0  # this is all False
     mask[5, 5] = True
     ndd_mask = NDData(arr, mask=mask)
 

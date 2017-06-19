@@ -5,6 +5,7 @@ from ..errors import SAMPHubError, SAMPClientError, SAMPProxyError
 # By default, tests should not use the internet.
 from .. import conf
 
+
 def setup_module(module):
     conf.use_internet = False
 

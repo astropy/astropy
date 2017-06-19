@@ -13,84 +13,88 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
 
+
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
-    wcs.wcs.pc = np.zeros([4,4])
-    np.fill_diagonal(wcs.wcs.pc, np.arange(1,5))
-    pc = wcs.wcs.pc # for later use below
+    wcs.wcs.pc = np.zeros([4, 4])
+    np.fill_diagonal(wcs.wcs.pc, np.arange(1, 5))
+    pc = wcs.wcs.pc  # for later use below
 
     dropped = wcs.dropaxis(0)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2,3,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2, 3, 4]))
     dropped = wcs.dropaxis(1)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,3,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 3, 4]))
     dropped = wcs.dropaxis(2)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 2, 4]))
     dropped = wcs.dropaxis(3)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,3]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 2, 3]))
 
     wcs = WCS(naxis=4)
     wcs.wcs.cd = pc
 
     dropped = wcs.dropaxis(0)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2,3,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2, 3, 4]))
     dropped = wcs.dropaxis(1)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,3,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 3, 4]))
     dropped = wcs.dropaxis(2)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,4]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 2, 4]))
     dropped = wcs.dropaxis(3)
-    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,3]))
+    assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1, 2, 3]))
+
 
 def test_wcs_swapping():
     wcs = WCS(naxis=4)
-    wcs.wcs.pc = np.zeros([4,4])
-    np.fill_diagonal(wcs.wcs.pc, np.arange(1,5))
-    pc = wcs.wcs.pc # for later use below
+    wcs.wcs.pc = np.zeros([4, 4])
+    np.fill_diagonal(wcs.wcs.pc, np.arange(1, 5))
+    pc = wcs.wcs.pc  # for later use below
 
-    swapped = wcs.swapaxes(0,1)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2,1,3,4]))
-    swapped = wcs.swapaxes(0,3)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4,2,3,1]))
-    swapped = wcs.swapaxes(2,3)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
+    swapped = wcs.swapaxes(0, 1)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2, 1, 3, 4]))
+    swapped = wcs.swapaxes(0, 3)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4, 2, 3, 1]))
+    swapped = wcs.swapaxes(2, 3)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1, 2, 4, 3]))
 
     wcs = WCS(naxis=4)
     wcs.wcs.cd = pc
 
-    swapped = wcs.swapaxes(0,1)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2,1,3,4]))
-    swapped = wcs.swapaxes(0,3)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4,2,3,1]))
-    swapped = wcs.swapaxes(2,3)
-    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
+    swapped = wcs.swapaxes(0, 1)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2, 1, 3, 4]))
+    swapped = wcs.swapaxes(0, 3)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4, 2, 3, 1]))
+    swapped = wcs.swapaxes(2, 3)
+    assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1, 2, 4, 3]))
 
-@pytest.mark.parametrize('ndim',(2,3))
+
+@pytest.mark.parametrize('ndim', (2, 3))
 def test_add_stokes(ndim):
     wcs = WCS(naxis=ndim)
 
     for ii in range(ndim+1):
-        outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
+        outwcs = utils.add_stokes_axis_to_wcs(wcs, ii)
         assert outwcs.wcs.naxis == ndim+1
         assert outwcs.wcs.ctype[ii] == 'STOKES'
         assert outwcs.wcs.cname[ii] == 'STOKES'
 
+
 def test_slice():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.crval = [1,1]
-    mywcs.wcs.cdelt = [0.1,0.1]
-    mywcs.wcs.crpix = [1,1]
+    mywcs.wcs.crval = [1, 1]
+    mywcs.wcs.cdelt = [0.1, 0.1]
+    mywcs.wcs.crpix = [1, 1]
     mywcs._naxis = [1000, 500]
 
-    slice_wcs = mywcs.slice([slice(1,None),slice(0,None)])
-    assert np.all(slice_wcs.wcs.crpix == np.array([1,0]))
+    slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
+    assert np.all(slice_wcs.wcs.crpix == np.array([1, 0]))
     assert slice_wcs._naxis == [1000, 499]
 
-    slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)])
+    slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)])
     assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
     assert slice_wcs._naxis == [250, 250]
 
-    slice_wcs = mywcs.slice([slice(None,None,2),slice(0,None,2)])
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.2]))
+    slice_wcs = mywcs.slice([slice(None, None, 2), slice(0, None, 2)])
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.2]))
     assert slice_wcs._naxis == [500, 250]
 
     # Non-integral values do not alter the naxis attribute
@@ -101,42 +105,45 @@ def test_slice():
     slice_wcs = mywcs.slice([slice(50), slice(20.5)])
     assert slice_wcs._naxis == [1000, 50]
 
+
 def test_slice_getitem():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.crval = [1,1]
-    mywcs.wcs.cdelt = [0.1,0.1]
-    mywcs.wcs.crpix = [1,1]
+    mywcs.wcs.crval = [1, 1]
+    mywcs.wcs.cdelt = [0.1, 0.1]
+    mywcs.wcs.crpix = [1, 1]
 
     slice_wcs = mywcs[1::2, 0::4]
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.625,0.25]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
 
-    mywcs.wcs.crpix = [2,2]
+    mywcs.wcs.crpix = [2, 2]
     slice_wcs = mywcs[1::2, 0::4]
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.875,0.75]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.875, 0.75]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
 
     # Default: numpy order
     slice_wcs = mywcs[1::2]
-    assert np.all(slice_wcs.wcs.crpix == np.array([2,0.75]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.1,0.2]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([2, 0.75]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.1, 0.2]))
+
 
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.crval = [1,1]
-    mywcs.wcs.cdelt = [0.1,0.1]
-    mywcs.wcs.crpix = [1,1]
+    mywcs.wcs.crval = [1, 1]
+    mywcs.wcs.cdelt = [0.1, 0.1]
+    mywcs.wcs.crpix = [1, 1]
 
-    slice_wcs = mywcs.slice([slice(1,None),slice(0,None)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0,1]))
+    slice_wcs = mywcs.slice([slice(1, None), slice(0, None)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0, 1]))
 
-    slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.25,0.625]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.4]))
+    slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.25, 0.625]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.4]))
 
-    slice_wcs = mywcs.slice([slice(1,None,2)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.25,1]))
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.1]))
+    slice_wcs = mywcs.slice([slice(1, None, 2)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.25, 1]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.1]))
+
 
 def test_invalid_slice():
     mywcs = WCS(naxis=2)
@@ -148,27 +155,30 @@ def test_invalid_slice():
                                  "axes.")
 
     with pytest.raises(ValueError) as exc:
-        mywcs[0,::2]
+        mywcs[0, ::2]
     assert exc.value.args[0] == ("Cannot downsample a WCS with indexing.  Use "
                                  "wcs.sub or wcs.dropaxis if you want to remove "
                                  "axes.")
 
+
 def test_axis_names():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT-LSR','STOKES']
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT-LSR', 'STOKES']
 
-    assert mywcs.axis_type_names == ['RA','DEC','VOPT','STOKES']
+    assert mywcs.axis_type_names == ['RA', 'DEC', 'VOPT', 'STOKES']
 
-    mywcs.wcs.cname = ['RA','DEC','VOPT','STOKES']
+    mywcs.wcs.cname = ['RA', 'DEC', 'VOPT', 'STOKES']
 
-    assert mywcs.axis_type_names == ['RA','DEC','VOPT','STOKES']
+    assert mywcs.axis_type_names == ['RA', 'DEC', 'VOPT', 'STOKES']
+
 
 def test_celestial():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT','STOKES']
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT', 'STOKES']
     cel = mywcs.celestial
-    assert list(cel.wcs.ctype) == ['RA---TAN','DEC--TAN']
-    assert cel.axis_type_names == ['RA','DEC']
+    assert list(cel.wcs.ctype) == ['RA---TAN', 'DEC--TAN']
+    assert cel.axis_type_names == ['RA', 'DEC']
+
 
 def test_wcs_to_celestial_frame():
 
@@ -224,7 +234,6 @@ def test_wcs_to_celestial_frame():
 
 def test_wcs_to_celestial_frame_extend():
 
-
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
     with pytest.raises(ValueError):
@@ -247,45 +256,48 @@ def test_wcs_to_celestial_frame_extend():
     with pytest.raises(ValueError):
         utils.wcs_to_celestial_frame(mywcs)
 
+
 def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.cdelt = [0.1,0.2]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    mywcs.wcs.cdelt = [0.1, 0.2]
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
-    mywcs.wcs.cdelt = [-0.1,0.2]
+    mywcs.wcs.cdelt = [-0.1, 0.2]
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
+
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
-    mywcs.wcs.cdelt = [0.1,0.2,1]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
+    mywcs.wcs.cdelt = [0.1, 0.2, 1]
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT']
     assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
-    mywcs.wcs.cdelt = [-0.1,0.2,1]
+    mywcs.wcs.cdelt = [-0.1, 0.2, 1]
     assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.1,0],[0,0.2]]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    mywcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 
 @pytest.mark.parametrize('angle',
-                         (30,45,60,75))
+                         (30, 45, 60, 75))
 def test_pixscale_cd_rotated(angle):
     mywcs = WCS(naxis=2)
     rho = angle/180.*np.pi
     scale = 0.1
     mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                     [scale*np.sin(rho), scale*np.cos(rho)]]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
+
 @pytest.mark.parametrize('angle',
-                         (30,45,60,75))
+                         (30, 45, 60, 75))
 def test_pixscale_pc_rotated(angle):
     mywcs = WCS(naxis=2)
     rho = angle/180.*np.pi
@@ -293,13 +305,14 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.cdelt = [-scale, scale]
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)],
                     [np.sin(rho), np.cos(rho)]]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
-@pytest.mark.parametrize(('cdelt','pc','pccd'),
-                         (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
-                          ([0.1,0.2,0.3], np.eye(3), np.diag([0.1,0.2,0.3])),
-                          ([1,1,1], np.diag([0.1,0.2,0.3]), np.diag([0.1,0.2,0.3])),
+
+@pytest.mark.parametrize(('cdelt', 'pc', 'pccd'),
+                         (([0.1, 0.2], np.eye(2), np.diag([0.1, 0.2])),
+                          ([0.1, 0.2, 0.3], np.eye(3), np.diag([0.1, 0.2, 0.3])),
+                          ([1, 1, 1], np.diag([0.1, 0.2, 0.3]), np.diag([0.1, 0.2, 0.3])),
                          ))
 def test_pixel_scale_matrix(cdelt, pc, pccd):
 
@@ -309,31 +322,34 @@ def test_pixel_scale_matrix(cdelt, pc, pccd):
 
     assert_almost_equal(mywcs.pixel_scale_matrix, pccd)
 
+
 @pytest.mark.parametrize(('ctype', 'cel'),
-                         ((['RA---TAN','DEC--TAN'], True),
-                          (['RA---TAN','DEC--TAN','FREQ'], False),
-                          (['RA---TAN','FREQ'], False),))
+                         ((['RA---TAN', 'DEC--TAN'], True),
+                          (['RA---TAN', 'DEC--TAN', 'FREQ'], False),
+                          (['RA---TAN', 'FREQ'], False),))
 def test_is_celestial(ctype, cel):
     mywcs = WCS(naxis=len(ctype))
     mywcs.wcs.ctype = ctype
 
     assert mywcs.is_celestial == cel
 
+
 @pytest.mark.parametrize(('ctype', 'cel'),
-                         ((['RA---TAN','DEC--TAN'], True),
-                          (['RA---TAN','DEC--TAN','FREQ'], True),
-                          (['RA---TAN','FREQ'], False),))
+                         ((['RA---TAN', 'DEC--TAN'], True),
+                          (['RA---TAN', 'DEC--TAN', 'FREQ'], True),
+                          (['RA---TAN', 'FREQ'], False),))
 def test_has_celestial(ctype, cel):
     mywcs = WCS(naxis=len(ctype))
     mywcs.wcs.ctype = ctype
 
     assert mywcs.has_celestial == cel
 
-@pytest.mark.parametrize(('cdelt','pc','cd'),
-                         ((np.array([0.1,0.2]), np.eye(2), np.eye(2)),
-                          (np.array([1,1]), np.diag([0.1,0.2]), np.eye(2)),
-                          (np.array([0.1,0.2]), np.eye(2), None),
-                          (np.array([0.1,0.2]), None, np.eye(2)),
+
+@pytest.mark.parametrize(('cdelt', 'pc', 'cd'),
+                         ((np.array([0.1, 0.2]), np.eye(2), np.eye(2)),
+                          (np.array([1, 1]), np.diag([0.1, 0.2]), np.eye(2)),
+                          (np.array([0.1, 0.2]), np.eye(2), None),
+                          (np.array([0.1, 0.2]), None, np.eye(2)),
                           )
                         )
 def test_noncelestial_scale(cdelt, pc, cd):
@@ -344,11 +360,12 @@ def test_noncelestial_scale(cdelt, pc, cd):
         mywcs.wcs.pc = pc
     mywcs.wcs.cdelt = cdelt
 
-    mywcs.wcs.ctype = ['RA---TAN','FREQ']
+    mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
 
     ps = non_celestial_pixel_scales(mywcs)
 
-    assert_almost_equal(ps.to_value(u.deg), np.array([0.1,0.2]))
+    assert_almost_equal(ps.to_value(u.deg), np.array([0.1, 0.2]))
+
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel(mode):
@@ -385,12 +402,12 @@ def test_skycoord_to_pixel(mode):
 def test_is_proj_plane_distorted():
     # non-orthogonal CD:
     wcs = WCS(naxis=2)
-    wcs.wcs.cd = [[-0.1,0],[0,0.2]]
-    wcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    wcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
+    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     assert(is_proj_plane_distorted(wcs))
 
     # almost orthogonal CD:
-    wcs.wcs.cd = [[0.1+2.0e-7,1.7e-7],[1.2e-7,0.1-1.3e-7]]
+    wcs.wcs.cd = [[0.1+2.0e-7, 1.7e-7], [1.2e-7, 0.1-1.3e-7]]
     assert(not is_proj_plane_distorted(wcs))
 
     # real case:

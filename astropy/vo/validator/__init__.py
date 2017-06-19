@@ -35,4 +35,6 @@ class Conf(_config.ConfigNamespace):
         'non-critical.',
         'list',
         aliases=['astropy.vo.validator.validate.noncrit_warnings'])
+
+
 conf = Conf()

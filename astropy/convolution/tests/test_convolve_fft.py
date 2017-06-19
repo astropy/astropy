@@ -247,7 +247,7 @@ class TestConvolve1D(object):
             'average_wrap': np.array([4/3., 4/3., 4/3.], dtype='float64'),
             'average_wrap_interpnan': np.array([2, 2, 2], dtype='float64'),
             'average_nozeros': np.array([1/2., 4/3., 3/2.], dtype='float64'),
-            #'average_nozeros_interpnan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
+            # 'average_nozeros_interpnan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
             'average_nozeros_interpnan': np.array([1., 2., 3.], dtype='float64'),
             'average_zeros': np.array([1 / 3., 4 / 3., 3 / 3.], dtype='float64'),
             'average_zeros_interpnan': np.array([1 / 2., 4 / 2., 3 / 2.], dtype='float64'),
@@ -499,7 +499,6 @@ class TestConvolve2D(object):
                          fill_value=np.nan if normalize_kernel else 0,
                          normalize_kernel=normalize_kernel)
 
-
         # weights
         w_n = np.array([[3., 5., 3.],
                         [5., 8., 5.],
@@ -549,7 +548,7 @@ class TestConvolve2D(object):
 
         with pytest.raises((ValueError, MemoryError)):
             # while a good idea, this approach did not work; it actually writes to disk
-            #arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=np.complex)
+            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=np.complex)
             # this just allocates the memory but never touches it; it's better:
             arr = np.empty([512, 512, 512], dtype=np.complex)
             # note 512**3 * 16 bytes = 2.0 GB

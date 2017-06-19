@@ -176,6 +176,7 @@ class TestRunnerBase(object):
         --------
         pytest.main : This method builds arguments for and then calls this function.
         """
+
     def run_tests(self, **kwargs):
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.

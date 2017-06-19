@@ -23,4 +23,6 @@ class Conf(_config.ConfigNamespace):
         'conesearch_good',
         'Conesearch database name to use.',
         aliases=['astropy.vo.client.conesearch.conesearch_dbname'])
+
+
 conf = Conf()

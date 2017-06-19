@@ -153,6 +153,7 @@ class CCDData(NDDataArray):
         >>> plt.imshow(x)   # doctest: +SKIP
 
     """
+
     def __init__(self, *args, **kwd):
         if 'meta' not in kwd:
             kwd['meta'] = kwd.pop('header', None)
@@ -374,6 +375,7 @@ class CCDData(NDDataArray):
             self.meta[short_name] = value
         else:
             self.meta[key] = value
+
 
 # This needs to be importable by the tests...
 _KEEP_THESE_KEYWORDS_IN_HEADER = [

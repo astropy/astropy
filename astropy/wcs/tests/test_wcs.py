@@ -977,7 +977,7 @@ def test_inconsistent_sip():
     assert('A_0_2' in newhdr)
     # Test that SIP coefficients are also written out.
     assert wnew.sip is not None
-    ########## broken header ###########
+    # ######### broken header ###########
     # Test that "-SIP" is added to CTYPE if relax=True and
     # "-SIP" was not in the original header but SIP coefficients
     # are present.
@@ -991,12 +991,12 @@ def test_inconsistent_sip():
 def test_bounds_check():
     """Test for #4957"""
     w = wcs.WCS(naxis=2)
-    w.wcs.ctype = ["RA---CAR","DEC--CAR"]
-    w.wcs.cdelt = [10,10]
-    w.wcs.crval = [-90,90]
-    w.wcs.crpix = [1,1]
+    w.wcs.ctype = ["RA---CAR", "DEC--CAR"]
+    w.wcs.cdelt = [10, 10]
+    w.wcs.crval = [-90, 90]
+    w.wcs.crpix = [1, 1]
     w.wcs.bounds_check(False, False)
-    ra, dec = w.wcs_pix2world(300,0,0)
+    ra, dec = w.wcs_pix2world(300, 0, 0)
     assert_allclose(ra, -180)
     assert_allclose(dec, -30)
 

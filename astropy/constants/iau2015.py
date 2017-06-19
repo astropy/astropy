@@ -13,6 +13,7 @@ from .codata2014 import G
 
 # ASTRONOMICAL CONSTANTS
 
+
 class IAU2015(Constant):
     default_reference = 'IAU 2015'
     _registry = {}

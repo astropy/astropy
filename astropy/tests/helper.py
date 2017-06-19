@@ -267,6 +267,7 @@ class catch_warnings(warnings.catch_warnings):
             do.something.bad()
         assert len(w) > 0
     """
+
     def __init__(self, *classes):
         super(catch_warnings, self).__init__(record=True)
         self.classes = classes
@@ -411,7 +412,7 @@ def generic_recursive_equality_test(a, b, class_history):
 
         if hasattr(dict_a[key], '__dict__'):
             if dict_a[key].__class__ in class_history:
-                #attempt to prevent infinite recursion
+                # attempt to prevent infinite recursion
                 pass
             else:
                 new_class_history = [dict_a[key].__class__]
@@ -484,7 +485,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
                                "are not convertible"
                                .format(atol.unit, actual.unit))
 
-    rtol =  u.Quantity(rtol, subok=True, copy=False)
+    rtol = u.Quantity(rtol, subok=True, copy=False)
     try:
         rtol = rtol.to(u.dimensionless_unscaled)
     except Exception:
