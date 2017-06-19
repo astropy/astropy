@@ -398,28 +398,26 @@ class _BoundingBox(tuple):
         nd = model.n_inputs
 
         if nd == 1:
-            msg = ("Bounding box for {0} model must be a sequence of length "
-                   "2 consisting of a lower and upper bound, or a 1-tuple "
-                   "containing such a sequence as its sole element.").format(
-                       model.name)
-
             if (not isiterable(bounding_box)
                     or np.shape(bounding_box) not in ((2,), (1, 2))):
-                raise ValueError(msg)
+                raise ValueError(
+                    "Bounding box for {0} model must be a sequence of length "
+                    "2 consisting of a lower and upper bound, or a 1-tuple "
+                    "containing such a sequence as its sole element.".format(
+                        model.name))
 
             if len(bounding_box) == 1:
                 return cls((tuple(bounding_box[0]),))
             else:
                 return cls(tuple(bounding_box))
         else:
-            msg = ("Bounding box for {0} model must be a sequence of length "
-                   "{1} (the number of model inputs) consisting of pairs of "
-                   "lower and upper bounds for those inputs on which to "
-                   "evaluate the model.").format(model.name, nd)
-
             if (not isiterable(bounding_box)
                     or np.shape(bounding_box) != (nd, 2)):
-                raise ValueError(msg)
+                raise ValueError(
+                    "Bounding box for {0} model must be a sequence of length "
+                    "{1} (the number of model inputs) consisting of pairs of "
+                    "lower and upper bounds for those inputs on which to "
+                    "evaluate the model.".format(model.name, nd))
 
             return cls(tuple(bounds) for bounds in bounding_box)
 

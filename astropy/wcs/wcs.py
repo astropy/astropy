@@ -302,7 +302,7 @@ class WCS(WCSBase):
     KeyError
          Key not found in FITS header.
 
-    AssertionError
+    ValueError
          Lookup table distortion present in the header but *fobj* was
          not provided.
 
@@ -900,7 +900,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 del header[distortion]
                 if dis == 'lookup':
                     if not isinstance(fobj, fits.HDUList):
-                        raise AssertionError('an astropy.io.fits.HDUList is '
+                        raise ValueError('an astropy.io.fits.HDUList is '
                                 'required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
                     dp_extver_key = dp + str('.EXTVER')

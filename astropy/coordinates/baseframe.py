@@ -51,11 +51,7 @@ def _get_repr_cls(value):
 
     if value in REPRESENTATION_CLASSES:
         value = REPRESENTATION_CLASSES[value]
-    try:
-        # value might not be a class, so use try
-        if not issubclass(value, BaseRepresentation):
-            raise TypeError
-    except TypeError:
+    elif not isinstance(value, type) or not issubclass(value, BaseRepresentation):
         raise ValueError(
             'Representation is {0!r} but must be a BaseRepresentation class '
             'or one of the string aliases {1}'.format(
