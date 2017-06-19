@@ -624,8 +624,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         n_diffs = len(self.data.differentials)
         has_diffs = n_diffs > 0
 
-        if isinstance(new_representation, six.string_types):
-            new_representation = _get_repr_cls(new_representation)
+        new_representation = _get_repr_cls(new_representation)
 
         if new_differential:
             if not has_diffs:
