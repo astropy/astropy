@@ -340,6 +340,9 @@ def test_too_many_differentials():
                                               d_lat=11*u.mas/u.yr,
                                               d_distance=-110*u.km/u.s)),
     r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)}),
+    r.SphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+                              distance=150*u.pc,
         differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)})
 ])
 def test_unit_spherical_with_differentials(rep):
@@ -350,4 +353,21 @@ def test_unit_spherical_with_differentials(rep):
     trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
     c2 = c.transform_to(TCoo2)
+
+    assert 's' in rep.differentials
+    assert isinstance(c2.data.differentials['s'],
+                      rep.differentials['s'].__class__)
+
+    if isinstance(rep.differentials['s'], r.RadialDifferential):
+        assert c2.data.differentials['s'] is rep.differentials['s']
+
+    trans.unregister(frame_transform_graph)
+
+    # should fail if we have to do offsets
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    with pytest.raises(TypeError):
+        c.transform_to(TCoo2)
+
     trans.unregister(frame_transform_graph)

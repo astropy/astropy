@@ -766,9 +766,9 @@ class BaseAffineTransform(CoordinateTransform):
         # list of unit differentials
         _unit_diffs = (SphericalDifferential._unit_differential,
                        SphericalCosLatDifferential._unit_differential)
-        unit_vel_diff = ('s' in data.differentials and
+        unit_vel_diff = (has_velocity and
                          isinstance(data.differentials['s'], _unit_diffs))
-        rad_vel_diff = ('s' in data.differentials and
+        rad_vel_diff = (has_velocity and
                         isinstance(data.differentials['s'], RadialDifferential))
 
         # Some initial checking to short-circuit doing any re-representation if
@@ -780,7 +780,7 @@ class BaseAffineTransform(CoordinateTransform):
                             .format(data.__class__))
 
         elif (has_velocity and (unit_vel_diff or rad_vel_diff) and
-              offset is not None):
+              offset is not None and 's' in offset.differentials):
             # Coordinate has a velocity, but it is not a full-space velocity
             # that we need to do a velocity offset
             raise TypeError("Velocity information stored on coordinate frame "
@@ -804,20 +804,18 @@ class BaseAffineTransform(CoordinateTransform):
         # sphericaldifferential with zero proper motion (if only a radial
         # velocity) so that the matrix operation works
         if (has_velocity and isinstance(data, UnitSphericalRepresentation) and
-                not unit_vel_diff):
+                not unit_vel_diff and not rad_vel_diff):
+            # retrieve just velocity differential
+            unit_diff = data.differentials['s'].represent_as(
+                data.differentials['s']._unit_differential, data)
+            data = data.with_differentials({'s': unit_diff}) # updates key
 
-            diff = data.differentials['s'] # retrieve just velocity differential
-
-            # If it's a RadialDifferential, we flat-out ignore the differentials
-            # This is because, by this point (past the validation above), we can
-            # only possibly be doing a rotation-only transformation, and that
-            # won't change the radial differential. We later add it back in
-            if rad_vel_diff:
-                data = data.without_differentials()
-
-            else:
-                unit_diff = diff.represent_as(diff._unit_differential, data)
-                data = data.with_differentials({'s': unit_diff}) # updates key
+        # If it's a RadialDifferential, we flat-out ignore the differentials
+        # This is because, by this point (past the validation above), we can
+        # only possibly be doing a rotation-only transformation, and that
+        # won't change the radial differential. We later add it back in
+        elif rad_vel_diff:
+            data = data.without_differentials()
 
         rep = data.to_cartesian_with_differentials()
 
@@ -836,7 +834,7 @@ class BaseAffineTransform(CoordinateTransform):
             newrep = rep.without_differentials()
 
         # We need a velocity (time derivative) and, for now, are strict: the
-        # representation can only contain a velocity differential and no others
+        # representation can only contain a velocity differential and no others.
         if has_velocity and not rad_vel_diff:
             veldiff = rep.differentials['s'] # already in Cartesian form
 
@@ -846,33 +844,37 @@ class BaseAffineTransform(CoordinateTransform):
             newrep = newrep.with_differentials(veldiff)
 
         if isinstance(fromcoord.data, UnitSphericalRepresentation):
+            # Special-case this because otherwise the return object will think
+            # it has a valid distance with the default return (a
+            # CartesianRepresentation instance)
 
-            if has_velocity and not unit_vel_diff:
-                diffs = dict()
+            if has_velocity and not unit_vel_diff and not rad_vel_diff:
+                # We have to first represent as the Unit types we converted to,
+                # then put the d_distance information back in to the
+                # differentials and re-represent as their original forms
+                newdiff = newrep.differentials['s']
+                _unit_cls = fromcoord.data.differentials['s']._unit_differential
+                newdiff = newdiff.represent_as(_unit_cls, fromcoord.data)
 
-                if rad_vel_diff:
-                    # Copy over the original RadialDifferential
-                    diffs['s'] = fromcoord.data.differentials['s']
-
-                else:
-                    # We have to first represent as the Unit types we converted to,
-                    # then put the d_distance information back in to the
-                    # differentials and re-represent as their original forms
-                    newdiff = newrep.differentials['s']
-                    _unit_cls = fromcoord.data.differentials['s']._unit_differential
-                    newdiff = newdiff.represent_as(_unit_cls, fromcoord.data)
-
-                    kwargs = dict([(comp, getattr(newdiff, comp))
-                                   for comp in newdiff.components])
-                    kwargs['d_distance'] = fromcoord.data.differentials['s'].d_distance
-                    diffs['s'] = fromcoord.data.differentials['s'].__class__(
-                        copy=False, **kwargs)
+                kwargs = dict([(comp, getattr(newdiff, comp))
+                               for comp in newdiff.components])
+                kwargs['d_distance'] = fromcoord.data.differentials['s'].d_distance
+                diffs = {'s': fromcoord.data.differentials['s'].__class__(
+                    copy=False, **kwargs)}
 
             else:
                 diffs = newrep.differentials
 
             newrep = newrep.represent_as(fromcoord.data.__class__) # drops diffs
             newrep = newrep.with_differentials(diffs)
+
+        # We pulled the radial differential off of the representation
+        # earlier, so now we need to put it back. But, in order to do that, we
+        # have to turn the representation into a repr that is compatible with
+        # having a RadialDifferential
+        if has_velocity and rad_vel_diff:
+            newrep = newrep.represent_as(fromcoord.data.__class__)
+            newrep = newrep.with_differentials({'s': fromcoord.data.differentials['s']})
 
         return newrep
 
