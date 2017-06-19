@@ -69,11 +69,6 @@ def _regexify_subfmts(subfmts):
     return tuple(new_subfmts)
 
 
-class TimeMaskedArray(np.ma.MaskedArray):
-    def __repr__(self):
-        return 'masked_array({})'.format(self)
-
-
 class TimeFormatMeta(type):
     """
     Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
@@ -149,7 +144,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     def mask_if_needed(self, value):
         if self.masked:
-            value = TimeMaskedArray(value, mask=self.mask, copy=False)
+            value = np.ma.array(value, mask=self.mask, copy=False)
         return value
 
     @property
