@@ -269,6 +269,8 @@ API Changes
 
   - Deprecated ``clobber`` keyword; use ``overwrite``. [#6203]
 
+  - Add EXTVER column to the output of ``HDUList.info()``. [#6124]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

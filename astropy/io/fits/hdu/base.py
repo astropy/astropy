@@ -774,7 +774,7 @@ class _CorruptedHDU(_BaseHDU):
         return self._file.size - self._data_offset
 
     def _summary(self):
-        return (self.name, 'CorruptedHDU')
+        return (self.name, self.ver, 'CorruptedHDU')
 
     def verify(self):
         pass
@@ -856,7 +856,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         return offset, size
 
     def _summary(self):
-        return (self.name, 'NonstandardHDU', len(self._header))
+        return (self.name, self.ver, 'NonstandardHDU', len(self._header))
 
     @lazyproperty
     def data(self):
@@ -1653,7 +1653,7 @@ class NonstandardExtHDU(ExtensionHDU):
                 xtension not in standard_xtensions)
 
     def _summary(self):
-        return (self.name, 'NonstandardExtHDU', len(self._header))
+        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header))
 
     @lazyproperty
     def data(self):

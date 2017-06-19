@@ -798,7 +798,7 @@ class _ImageBaseHDU(_ValidHDU):
         # Display shape in FITS-order
         shape = tuple(reversed(self.shape))
 
-        return (self.name, class_name, len(self._header), shape, format, '')
+        return (self.name, self.ver, class_name, len(self._header), shape, format, '')
 
     def _calculate_datasum(self, blocking):
         """

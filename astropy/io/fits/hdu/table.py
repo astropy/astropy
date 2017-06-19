@@ -561,7 +561,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         dims = "{}R x {}C".format(nrows, ncols)
         ncards = len(self._header)
 
-        return (self.name, class_name, ncards, dims, format)
+        return (self.name, self.ver, class_name, ncards, dims, format)
 
     def _update_column_removed(self, columns, idx):
         super(_TableBaseHDU, self)._update_column_removed(columns, idx)

@@ -98,8 +98,8 @@ class TestImageFunctions(FitsTestCase):
     def test_open_2(self):
         r = fits.open(self.data('test0.fits'))
 
-        info = ([(0, 'PRIMARY', 'PrimaryHDU', 138, (), '', '')] +
-                [(x, 'SCI', 'ImageHDU', 61, (40, 40), 'int16', '')
+        info = ([(0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')] +
+                [(x, 'SCI', x, 'ImageHDU', 61, (40, 40), 'int16', '')
                  for x in range(1, 5)])
 
         try:
@@ -156,7 +156,7 @@ class TestImageFunctions(FitsTestCase):
         assert hdul[0].name == 'XPRIMARY'
         assert hdul[0].name == hdul[0].header['EXTNAME']
 
-        info = [(0, 'XPRIMARY', 'PrimaryHDU', 5, (), '', '')]
+        info = [(0, 'XPRIMARY', 1, 'PrimaryHDU', 5, (), '', '')]
         assert hdul.info(output=False) == info
 
         assert hdul['PRIMARY'] is hdul['XPRIMARY']

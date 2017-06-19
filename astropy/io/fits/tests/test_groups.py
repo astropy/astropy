@@ -18,7 +18,7 @@ class TestGroupsFunctions(FitsTestCase):
             assert isinstance(hdul[0], fits.GroupsHDU)
             naxes = (3, 1, 128, 1, 1)
             parameters = ['UU', 'VV', 'WW', 'BASELINE', 'DATE']
-            info = [(0, 'PRIMARY', 'GroupsHDU', 147, naxes, 'float32',
+            info = [(0, 'PRIMARY', 1, 'GroupsHDU', 147, naxes, 'float32',
                      '3 Groups  5 Parameters')]
             assert hdul.info(output=False) == info
 
