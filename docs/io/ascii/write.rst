@@ -325,7 +325,7 @@ like ``representation`` or ``frame``.  For example::
   >>> q.info.format = '.2f'
   >>> t = QTable([c, q, sc], names=['c', 'q', 'sc'])
 
-  >>> ascii.write(t, format='ecsv')
+  >>> ascii.write(t, format='ecsv')   # doctest: +SKIP
   # %ECSV 0.9
   # ---
   # datatype:
