@@ -427,7 +427,7 @@ class TestCore(FitsTestCase):
         hdu.header['SIMPLE'] = False
         hdu.writeto(self.temp('test.fits'))
 
-        info = [(0, '', 'NonstandardHDU', 5, (), '', '')]
+        info = [(0, '', 1, 'NonstandardHDU', 5, (), '', '')]
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul.info(output=False) == info
             # NonstandardHDUs just treat the data as an unspecified array of
