@@ -324,7 +324,7 @@ API Changes
   - ``solLum``,``solMass``, and ``solRad`` no longer have  their prefixed units
     included in the standard units.  If needed, they can still be found in
     ``units.required_by_vounit``, and are enabled by default. [#5661]
-    
+
   - Removed deprecated ``Unit.get_converter``. [#6170]
 
   - Internally, astropy replaced use of ``.to(unit).value`` with the new
@@ -459,6 +459,8 @@ Other Changes and Additions
 - Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
 - Python 3.3 is no longer suppored. [#6020]
+
+- The bundled ERFA was updated to version 1.4.0. [#6239]
 
 - The bundled version of pytest has now been removed, but the
   astropy.tests.helper.pytest import will continue to work properly.
