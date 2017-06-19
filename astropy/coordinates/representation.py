@@ -686,17 +686,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             # The default is to convert via cartesian coordinates
             new_rep = other_class.from_cartesian(self.to_cartesian())
 
-            # This validation only happens in re_represent if the represent_as
-            # fails, but we have to check so we can enforce that the
-            # differential_class is one of the _compatible_differentials
-            if (differential_class and
-                    differential_class not in new_rep._compatible_differentials):
-                raise TypeError("Desired differential class {0} is not "
-                                "compatible with the desired "
-                                "representation class {1}"
-                                .format(differential_class,
-                                        new_rep.__class__))
-
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class)
 
