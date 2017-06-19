@@ -503,6 +503,18 @@ def main(srcdir, outfn, templateloc, verbose=True):
             for (name, value) in result:
                 constants.append(Constant(name, value, doc))
 
+    # TODO: re-enable this when const char* return values and non-status code integer rets are possible
+    # #Add in any "extra" functions from erfaextra.h
+    # erfaextrahfn = os.path.join(srcdir, 'erfaextra.h')
+    # with open(erfaextrahfn, 'r') as f:
+    #     for l in f:
+    #         ls = l.strip()
+    #         match = re.match('.* (era.*)\(', ls)
+    #         if match:
+    #             print_("Extra:  {0} ...".format(match.group(1)))
+    #             funcs.append(ExtraFunction(match.group(1), ls, erfaextrahfn))
+
+
     print_("Rendering template")
     erfa_c = erfa_c_in.render(funcs=funcs)
     erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
