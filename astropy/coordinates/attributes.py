@@ -186,6 +186,7 @@ class TimeAttribute(Attribute):
                                                                value, err))
             converted = True
 
+        out.writeable = False
         return out, converted
 
 
