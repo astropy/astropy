@@ -38,7 +38,7 @@ TIME_DELTA_FORMATS = OrderedDict()
 
 # Translations between deprecated FITS timescales defined by
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
-FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'TDT': 'tt', 'ET': 'tt',
+FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 
@@ -965,12 +965,13 @@ class TimeFITS(TimeString):
             # so we can round-trip (as long as no scale changes are made).
             fits_realization = (tm['realization'].upper()
                                 if tm['realization'] else None)
-            if self._scale is None:
-                self._scale = scale
+            if self._fits_scale is None:
                 self._fits_scale = fits_scale
                 self._fits_realization = fits_realization
-            elif (scale != self.scale or fits_scale != self._fits_scale or
-                  fits_realization != self._fits_realization):
+                if self._scale is None:
+                    self._scale = scale
+            if (scale != self.scale or fits_scale != self._fits_scale or
+                fits_realization != self._fits_realization):
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))

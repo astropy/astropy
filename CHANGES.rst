@@ -455,6 +455,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed the initial condition of ``TimeFITS`` to allow scale, FITS scale
+    and FITS realization to be checked and equated properly. [#6202]
+
 - ``astropy.units``
 
 - ``astropy.utils``
