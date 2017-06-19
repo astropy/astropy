@@ -174,6 +174,16 @@ tablefoot
 \\end{tabletype}
 """
          ),
+    dict(kwargs=dict(Writer=ascii.Latex, latexdict={'tabletype': None}),
+         out="""\
+\\begin{tabular}{ccccccccccc}
+ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
+14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+\\end{tabular}
+"""
+         ),
     dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css': 'table,th,td{border:1px solid black;'}),
          out="""\
 <html>

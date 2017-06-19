@@ -63,6 +63,9 @@ New Features
   - Allow to specify encoding in ``ascii.read``, only for Python 3 and with the
     pure-Python readers. [#5448]
 
+  - Writing latex tables with only a ``tabular`` environment is now possible by
+    setting ``latexdict['tabletyle']`` to ``None``. [#6205]
+
 - ``astropy.io.fits``
 
   - Checking available disk space before writing out file. [#5550, #4065]
