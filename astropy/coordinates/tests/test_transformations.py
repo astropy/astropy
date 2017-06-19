@@ -332,3 +332,24 @@ def test_too_many_differentials():
         c2 = c.transform_to(TCoo2)
 
     trans.unregister(frame_transform_graph)
+
+# A matrix transform of a unit spherical with differentials should work
+@pytest.mark.parametrize('rep', [
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials=r.SphericalDifferential(d_lon=15*u.mas/u.yr,
+                                              d_lat=11*u.mas/u.yr,
+                                              d_distance=-110*u.km/u.s)),
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials=r.RadialDifferential(d_distance=-110*u.km/u.s))
+])
+def test_unit_spherical_with_differentials(rep):
+
+    c = TCoo1(rep)
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    c2 = c.transform_to(TCoo2)
+
+    trans.unregister(frame_transform_graph)
