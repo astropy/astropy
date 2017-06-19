@@ -124,7 +124,7 @@ def get_auto_format_func(
                     out = format_func(format_, val)
                     # Require that the format statement actually did something.
                     if out == format_:
-                        raise Exception
+                        raise ValueError('the format passed in did nothing.')
                 except Exception:
                     continue
                 else:

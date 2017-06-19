@@ -47,7 +47,7 @@ def jackknife_resampling(data):
     """
 
     n = data.shape[0]
-    if not n > 0:
+    if n <= 0:
         raise ValueError("data must contain at least one measurement.")
 
     resamples = np.empty([n, n-1])
@@ -153,7 +153,7 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
 
     # make sure original data is proper
     n = data.shape[0]
-    if not n > 0:
+    if n <= 0:
         raise ValueError("data must contain at least one measurement.")
 
     resamples = jackknife_resampling(data)

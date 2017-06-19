@@ -247,7 +247,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        ValueError
             Insufficient data points for fitting.
 
         ModelsError
@@ -260,8 +260,8 @@ class RunTimePredictor(object):
 
         x_arr = np.array(list(six.iterkeys(self._cache_good)))
         if x_arr.size < min_datapoints:
-            raise AssertionError('requires {0} points but has {1}'.format(
-                    min_datapoints, x_arr.size))
+            raise ValueError('requires {0} points but has {1}'.format(
+                min_datapoints, x_arr.size))
 
         if model is None:
             model = modeling.models.Polynomial1D(1)
@@ -296,7 +296,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        RuntimeError
             No fitted data for prediction.
 
         """
@@ -304,7 +304,7 @@ class RunTimePredictor(object):
             t_est = self._cache_est[arg]
         else:
             if self._fit_func is None:
-                raise AssertionError('no fitted data for prediction')
+                raise RuntimeError('no fitted data for prediction')
             t_est = self._fit_func(arg**self._power)
             self._cache_est[arg] = t_est
         return t_est
@@ -328,7 +328,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        RuntimeError
             Insufficient data for plotting.
 
         """
@@ -339,7 +339,7 @@ class RunTimePredictor(object):
         y_arr = np.array([self._cache_good[x] for x in x_arr])
 
         if len(x_arr) <= 1:
-            raise AssertionError('insufficient data for plotting')
+            raise RuntimeError('insufficient data for plotting')
 
         # Auto-ranging
         qmean = y_arr.mean() * u.second

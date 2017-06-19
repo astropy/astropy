@@ -265,13 +265,13 @@ class XMLWriter:
         """
         if tag:
             if not self._tags:
-                raise AssertionError("unbalanced end({})".format(tag))
+                raise ValueError("unbalanced end({})".format(tag))
             if tag != self._tags[-1]:
-                raise AssertionError("expected end({}), got {}".format(
+                raise ValueError("expected end({}), got {}".format(
                         self._tags[-1], tag))
         else:
             if not self._tags:
-                raise AssertionError("unbalanced end()")
+                raise ValueError("unbalanced end()")
         tag = self._tags.pop()
         if self._data:
             self._flush(indent, wrap)

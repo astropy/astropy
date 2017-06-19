@@ -104,7 +104,7 @@ class ConeSearchResults(object):
             fout = sys.stdout
 
         if typ not in self.dbtypes:
-            raise AssertionError
+            raise ValueError("'typ' is not one of {}".format(self.dbtypes))
         str_list = []
 
         for cat in self.catkeys[typ]:
