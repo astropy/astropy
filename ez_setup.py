@@ -6,6 +6,8 @@ Setuptools bootstrapping installer.
 Maintained at https://github.com/pypa/setuptools/tree/bootstrap.
 
 Run this script to install or upgrade setuptools.
+
+This method is DEPRECATED. Check https://github.com/pypa/setuptools/issues/581 for more details.
 """
 
 import os
@@ -18,29 +20,28 @@ import subprocess
 import platform
 import textwrap
 import contextlib
-import json
-import codecs
 
 from distutils import log
 
 try:
     from urllib.request import urlopen
-    from urllib.parse import urljoin
 except ImportError:
     from urllib2 import urlopen
-    from urlparse import urljoin
 
 try:
     from site import USER_SITE
 except ImportError:
     USER_SITE = None
 
-LATEST = object()
-DEFAULT_VERSION = LATEST
+# 33.1.1 is the last version that supports setuptools self upgrade/installation.
+DEFAULT_VERSION = "33.1.1"
 DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
+DEFAULT_DEPRECATION_MESSAGE = "ez_setup.py is deprecated and when using it setuptools will be pinned to {0} since it's the last version that supports setuptools self upgrade/installation, check https://github.com/pypa/setuptools/issues/581 for more info; use pip to install setuptools"
 
 MEANINGFUL_INVALID_ZIP_ERR_MSG = 'Maybe {0} is corrupted, delete it and try again.'
+
+log.warn(DEFAULT_DEPRECATION_MESSAGE.format(DEFAULT_VERSION))
 
 
 def _python_cmd(*args):
@@ -157,7 +158,6 @@ def use_setuptools(
     Return None. Raise SystemExit if the requested version
     or later cannot be installed.
     """
-    version = _resolve_version(version)
     to_dir = os.path.abspath(to_dir)
 
     # prior to importing, capture the module state for
@@ -344,7 +344,6 @@ def download_setuptools(
     ``downloader_factory`` should be a function taking no arguments and
     returning a function for downloading a URL to a target.
     """
-    version = _resolve_version(version)
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
     zip_name = "setuptools-%s.zip" % version
@@ -355,27 +354,6 @@ def download_setuptools(
         downloader = downloader_factory()
         downloader(url, saveto)
     return os.path.realpath(saveto)
-
-
-def _resolve_version(version):
-    """
-    Resolve LATEST version
-    """
-    if version is not LATEST:
-        return version
-
-    meta_url = urljoin(DEFAULT_URL, '/pypi/setuptools/json')
-    resp = urlopen(meta_url)
-    with contextlib.closing(resp):
-        try:
-            charset = resp.info().get_content_charset()
-        except Exception:
-            # Python 2 compat; assume UTF-8
-            charset = 'UTF-8'
-        reader = codecs.getreader(charset)
-        doc = json.load(reader(resp))
-
-    return str(doc['info']['version'])
 
 
 def _build_install_args(options):
