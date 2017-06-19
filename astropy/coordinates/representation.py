@@ -522,11 +522,20 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise TypeError("Differential '{0}' is not compatible with "
                                 "this representation '{1}'".format(diff, self))
 
-            expected_key = diff._get_deriv_key(self)
-            if key != expected_key:
-                raise ValueError("For differential object '{0}', expected unit "
-                                 "key = '{1}' but received key = '{2}'"
-                                 .format(diff, expected_key, key))
+            if (isinstance(diff, RadialDifferential) and
+                    isinstance(self, UnitSphericalRepresentation)):
+                # We trust the passing of a key for a RadialDifferential
+                # attached to a UnitSphericalRepresentation because it will not
+                # have a paired component name (UnitSphericalRepresentation has
+                # no .distance) to automatically determine the expected key
+                pass
+
+            else:
+                expected_key = diff._get_deriv_key(self)
+                if key != expected_key:
+                    raise ValueError("For differential object '{0}', expected "
+                                     "unit key = '{1}' but received key = '{2}'"
+                                     .format(diff, expected_key, key))
 
             # For now, we are very rigid: differentials must have the same shape
             # as the representation. This makes it easier to handle __getitem__
@@ -2014,10 +2023,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             raise TypeError("Differential class {0} is not compatible with the "
                             "base (representation) class {1}"
                             .format(self.__class__, base.__class__))
-
-        # TODO: I think we must special-case RadialDifferential because if it is
-        # attached to a UnitSphericalRepresentation, it will not have a paired
-        # component name (UnitSphericalRepresentation has no .distance)
 
         for name in base.components:
             comp = getattr(base, name)
