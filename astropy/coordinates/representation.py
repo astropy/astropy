@@ -1996,9 +1996,12 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         of this differential.
         """
 
-        # TODO: better validation by checking, e.g., _compatible_differentials
-        # for this class
-        self._check_base(base)
+        # This check is just a last resort so we don't return a strange unit key
+        # from accidentally passing in the wrong base.
+        if self.__class__ not in base._compatible_differentials:
+            raise TypeError("Differential class {0} is not compatible with the "
+                            "base (representation) class {1}"
+                            .format(self.__class__, base.__class__))
 
         for name in base.components:
             comp = getattr(base, name)
@@ -2008,6 +2011,10 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                 # Get the si unit without a scale by going via Quantity;
                 # `.si` causes the scale to be included in the value.
                 return str(u.Quantity(1., d_unit).si.unit)
+
+        else:
+            raise RuntimeError("Invalid representation-differential match! Not "
+                               "sure how we got into this state.")
 
     @classmethod
     def _get_base_vectors(cls, base):
