@@ -310,9 +310,9 @@ class TestConvolve1D(object):
         assert_allclose(result, [3, 6, 5], atol=1E-10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_normalization_tolerance(self, boundary,
-                                     nan_treatment,
-                                     normalize_kernel):
+    def test_normalization_is_respected(self, boundary,
+                                        nan_treatment,
+                                        normalize_kernel):
         """
         Check that if normalize_kernel is False then the normalization
         tolerance is respected.
@@ -332,7 +332,7 @@ class TestConvolve1D(object):
             result = convolve_fft(array, kernel,
                                   normalize_kernel=normalize_kernel,
                                   nan_treatment=nan_treatment,
-                                  normalization_rtol=normalization_rtol)
+                                  normalization_zero_tol=normalization_rtol)
             if normalize_kernel:
                 # Kernel has been normalized to 1.
                 assert_allclose(result, array)
