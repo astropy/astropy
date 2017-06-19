@@ -52,15 +52,14 @@ class TestConvolve1DModels(object):
         where N(., .) stands for Gaussian probability density function.
         """
 
-        kernel = models.Gaussian1D(1, 1, 1)
-        model = models.Gaussian1D(1, 3, 1)
+        kernel = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 1, 1)
+        model = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 3, 1)
         model_conv = convolve_models(model, kernel, mode=mode,
                                      normalize_kernel=False)
-        ans = models.Gaussian1D(1, 4, np.sqrt(2))
+        ans = models.Gaussian1D(1 / (2 * math.sqrt(np.pi)), 4, np.sqrt(2))
         x = np.arange(-5, 6)
 
-        assert_allclose(ans(x) / (2 * math.sqrt(math.pi)),
-                        model_conv(x) / (2 * np.pi), atol=1e-3)
+        assert_allclose(ans(x), model_conv(x), atol=1e-3)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -71,7 +70,7 @@ class TestConvolve1DModels(object):
         b1 = models.Box1D()
         g1 = models.Gaussian1D()
 
-        x = np.linspace(-5, 5, 100)
+        x = np.linspace(-5, 5, 99)
         fake_model = models.Gaussian1D(amplitude=10)
         with NumpyRNGContext(123):
             fake_data = fake_model(x) + np.random.normal(size=len(x))
