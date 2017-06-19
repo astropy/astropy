@@ -228,12 +228,12 @@ def test_barycorr():
          2246.76923076,  14207.64513054,   2246.76933194,   6808.40787728],
          u.m/u.s)
 
-    targets = SkyCoord(_get_test_input_radecs(), obstime=test_input_time,
-                       location=test_input_loc)
-    bvcs_astropy = targets.radial_velocity_correction('barycentric')
-    # bvcs_astropy = targets.radial_velocity_correction(test_input_time,
-    #                                                   test_input_loc,
-    #                                                   kind='barycentric')
+    # this tries the *other* way of calling radial_velocity_correction relative
+    # to the IRAF tests
+    targets = _get_test_input_radecs()
+    bvcs_astropy = targets.radial_velocity_correction(obstime=test_input_time,
+                                                      location=test_input_loc,
+                                                      kind='barycentric')
 
     assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=5*u.m/u.s)
     return bvcs_astropy, barycorr_bvcs  # for interactively examination
@@ -276,3 +276,21 @@ def test_rvcorr_multiple_obstimes_onskycoord():
                   obstime=arrtime, location=loc)
     rvcbary_sc3 = sc.radial_velocity_correction(kind='barycentric')
     assert len(rvcbary_sc3) == 10
+
+
+def check_invalid_argument_combos():
+    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    time = Time('2005-03-21 00:00:00')
+    time2 = time + 1*u.day
+
+    scwattrs = SkyCoord(1*u.deg, 2*u.deg, obstime=time, location=loc)
+
+    scwattrs.radial_velocity_correction()
+    scwattrs.radial_velocity_correction(obstime=time, location=loc)
+    with pytest.raises(TypeError):
+        scwattrs.radial_velocity_correction(obstime=time2)
+
+    scwoattrs = SkyCoord(1*u.deg, 2*u.deg)
+    scwattrs.radial_velocity_correction(obstime=time2, location=loc)
+    with pytest.raises(TypeError):
+        scwoattrs.radial_velocity_correction()

@@ -1225,7 +1225,8 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
-    def radial_velocity_correction(self, kind='barycentric'):
+    def radial_velocity_correction(self, kind='barycentric', obstime=None,
+                                   location=None):
         """
         Compute the correction required to convert a radial velocity at a given
         time and place to a barycentric or heliocentric velocity.
@@ -1235,6 +1236,16 @@ class SkyCoord(ShapedLikeNDArray):
         kind : str
             The kind of velocity correction.  Must be 'barycentric' or
             'heliocentric'.
+        obstime : `~astropy.time.Time` or None, optional
+            The time at which to compute the correction.  If `None`, the
+            ``obstime`` frame attribute on the `SkyCoord` will be used. (Raises
+            an exception if the `SkyCoord` and this argument are in conflict.)
+        location : `~astropy.coordinates.EarthLocation` or None, optional
+            The observer location at which to compute the correction.  If
+            `None`, the  ``location`` frame attribute on the `SkyCoord` will be
+            used. (Raises an exception if the `SkyCoord` and this argument are
+            in conflict)
+
 
         Returns
         -------
@@ -1256,17 +1267,31 @@ class SkyCoord(ShapedLikeNDArray):
         # has to be here to prevent circular imports
         from .solar_system import get_body_barycentric_posvel
 
-        if self.obstime is None:
-            raise ValueError('cannot compute radial velocity correction if '
-                             'obstime frame attribute is not present on this '
-                             'SkyCoord.')
         t = self.obstime
+        if (obstime is not None and self.obstime is not None and
+           obstime != self.obstime):
+            raise TypeError('cannot compute radial velocity correction if '
+                            'obstime frame argument is passed in and it is '
+                            'inconsistent with the obstime on the SkyCoord')
+        elif self.obstime is None:
+            t = obstime
+        if t is None:
+            raise ValueError('Must provide an `obstime` to '
+                             'radial_velocity_correction, either as a SkyCoord'
+                             ' frame attribute or in the method call.')
 
-        if self.location is None:
-            raise ValueError('cannot compute radial velocity correction if '
-                             'location frame attribute is not present on this '
-                             'SkyCoord.')
         loc = self.location
+        if (location is not None and self.location is not None and
+           location != self.location):
+            raise TypeError('cannot compute radial velocity correction if '
+                            'location frame argument is passed in and it is '
+                            'inconsistent with the location on the SkyCoord')
+        elif self.location is None:
+            loc = location
+        if loc is None:
+            raise ValueError('Must provide a `location` to '
+                             'radial_velocity_correction, either as a SkyCoord'
+                             ' frame attribute or in the method call.')
 
         if kind == 'barycentric':
             vorigintoearth = get_body_barycentric_posvel('earth', t)[1]
@@ -1275,11 +1300,9 @@ class SkyCoord(ShapedLikeNDArray):
             vearth = get_body_barycentric_posvel('earth', t)[1]
             vorigintoearth = vearth - vsun
         else:
-            raise ValueError("Kind argument to radial_velocity_correction must "
+            raise ValueError("`kind` argument to radial_velocity_correction must "
                              "be 'barycentric' or 'heliocentric', but got "
                              "'{}'".format(kind))
-
-
 
         gcrs_p, gcrs_v = loc.get_gcrs_posvel(t)
         gtarg = self.transform_to(GCRS(obstime=t,
