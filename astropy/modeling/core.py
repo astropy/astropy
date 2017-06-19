@@ -287,7 +287,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             # normalize it
             try:
                 bounding_box = _BoundingBox.validate(cls, bounding_box)
-            except AssertionError as exc:
+            except ValueError as exc:
                 raise ModelDefinitionError(exc.args[0])
         else:
             sig = signature(bounding_box)
@@ -1122,7 +1122,7 @@ class Model(object):
         if cls is not None:
             try:
                 bounding_box = cls.validate(self, bounding_box)
-            except AssertionError as exc:
+            except ValueError as exc:
                 raise ValueError(exc.args[0])
 
         self._user_bounding_box = bounding_box
@@ -1326,18 +1326,16 @@ class Model(object):
             # Check dimensions match out and model
             assert len(coords) == ndim
             if out is not None:
-                assert coords[0].shape == out.shape
+                if coords[0].shape != out.shape:
+                    raise ValueError('inconsistent shape of the output.')
             else:
                 out = np.zeros(coords[0].shape)
 
         if out is not None:
             out = np.asanyarray(out, dtype=float)
-            try:
-                assert out.ndim == ndim
-            except AssertionError:
-                raise AssertionError(
-                    'The array and model must have the same number '
-                    'of dimensions.')
+            if out.ndim != ndim:
+                raise ValueError('the array and model must have the same '
+                                 'number of dimensions.')
 
         if bbox is not None:
             # assures position is at center pixel, important when using add_array
@@ -3056,7 +3054,7 @@ def render_model(model, arr=None, coords=None):
     bbox = model.bounding_box
 
     if (coords is None) & (arr is None) & (bbox is None):
-        raise AssertionError('If no bounding_box is set, coords or arr must be input.')
+        raise ValueError('If no bounding_box is set, coords or arr must be input.')
 
     # for consistent indexing
     if model.n_inputs == 1:
@@ -3068,14 +3066,19 @@ def render_model(model, arr=None, coords=None):
     if arr is not None:
         arr = arr.copy()
         # Check dimensions match model
-        assert arr.ndim == model.n_inputs
-
+        if arr.ndim != model.n_inputs:
+            raise ValueError('number of array dimensions inconsistent with '
+                             'number of model inputs.')
     if coords is not None:
         # Check dimensions match arr and model
         coords = np.array(coords)
-        assert len(coords) == model.n_inputs
+        if len(coords) != model.n_inputs:
+            raise ValueError('coordinate length inconsistent with the number '
+                             'of model inputs.')
         if arr is not None:
-            assert coords[0].shape == arr.shape
+            if coords[0].shape != arr.shape:
+                raise ValueError('coordinate shape inconsistent with the '
+                                 'array shape.')
         else:
             arr = np.zeros(coords[0].shape)
 

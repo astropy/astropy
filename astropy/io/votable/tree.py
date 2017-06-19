@@ -2049,7 +2049,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.utype = utype
         if nrows is not None:
             nrows = int(nrows)
-            assert nrows >= 0
+            if nrows < 0:
+                raise ValueError("'nrows' cannot be negative.")
         self._nrows = nrows
         self.description = None
         self.format = 'tabledata'
@@ -2417,7 +2418,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         try:
                             extnum = int(data.get('extnum', 0))
                             if extnum < 0:
-                                raise ValueError()
+                                raise ValueError("'extnum' cannot be negative.")
                         except ValueError:
                             vo_raise(E17, (), config, pos)
                         self.array = self._parse_fits(
@@ -3249,7 +3250,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups             = HomogeneousList(Group)
 
         version = str(version)
-        assert version in ("1.0", "1.1", "1.2")
+        if version not in ("1.0", "1.1", "1.2"):
+            raise ValueError("'version' should be one of '1.0', '1.1', "
+                             "or '1.2'")
+
         self._version            = version
 
     def __repr__(self):

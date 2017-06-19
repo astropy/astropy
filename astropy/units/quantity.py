@@ -1184,14 +1184,14 @@ class Quantity(np.ndarray):
         try:
             return float(self.to_value(dimensionless_unscaled))
         except (UnitsError, TypeError):
-            raise TypeError('Only dimensionless scalar quantities can be '
+            raise TypeError('only dimensionless scalar quantities can be '
                             'converted to Python scalars')
 
     def __int__(self):
         try:
             return int(self.to_value(dimensionless_unscaled))
         except (UnitsError, TypeError):
-            raise TypeError('Only dimensionless scalar quantities can be '
+            raise TypeError('only dimensionless scalar quantities can be '
                             'converted to Python scalars')
 
     def __index__(self):
@@ -1201,7 +1201,7 @@ class Quantity(np.ndarray):
             assert self.unit.is_unity()
             return self.value.__index__()
         except Exception:
-            raise TypeError('Only integer dimensionless scalar quantities '
+            raise TypeError('only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
 
     if six.PY2:
@@ -1209,7 +1209,7 @@ class Quantity(np.ndarray):
             try:
                 return long(self.to_value(dimensionless_unscaled))
             except (UnitsError, TypeError):
-                raise TypeError('Only dimensionless scalar quantities can be '
+                raise TypeError('only dimensionless scalar quantities can be '
                                 'converted to Python scalars')
 
     @property

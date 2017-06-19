@@ -137,7 +137,8 @@ class LombScargle(object):
                 raise ValueError("Units of frequency not equivalent to "
                                  "units of 1/t")
         else:
-            assert not has_units(frequency)
+            if has_units(frequency):
+                raise ValueError("frequency have units while 1/t doesn't.")
         return frequency
 
     def _validate_t(self, t):
