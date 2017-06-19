@@ -35,4 +35,5 @@ class Conf(_config.ConfigNamespace):
     n_retries = _config.ConfigItem(10,
         "How many times to retry communications when they fail")
 
+
 conf = Conf()

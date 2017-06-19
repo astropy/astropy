@@ -58,6 +58,7 @@ class TestConeSearch(object):
         not yield any successful search.
 
     """
+
     def setup_class(self):
         # If this link is broken, use the next in database that works
         self.url = ('http://vizier.u-strasbg.fr/viz-bin/votable/-A?-out.all&'
@@ -193,7 +194,7 @@ class TestConeSearch(object):
     @pytest.mark.parametrize(('center', 'radius'),
                              [((SCS_RA, SCS_DEC), 0.8),
                               (SCS_CENTER, 0.8 * u.degree)])
-    def test_prediction(self,  center, radius):
+    def test_prediction(self, center, radius):
         """Prediction tests are not very accurate but will have to do."""
         t_1, tab_1 = conesearch.conesearch_timer(
             center, radius, catalog_db=self.url,
@@ -229,6 +230,7 @@ class TestErrorResponse(object):
     Also see https://github.com/astropy/astropy/issues/1001
 
     """
+
     def setup_class(self):
         self.datadir = 'data'
         self.pedantic = False

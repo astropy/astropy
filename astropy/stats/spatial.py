@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import math
 
+
 class RipleysKEstimator(object):
     """
     Estimators for Ripley's K function for two-dimensional spatial data.
@@ -296,7 +297,7 @@ class RipleysKEstimator(object):
         elif mode == 'ripley':
             hor_dist = np.zeros(shape=(npts * (npts - 1)) // 2,
                                 dtype=np.double)
-            ver_dist = np.zeros(shape=(npts * (npts -1 )) // 2,
+            ver_dist = np.zeros(shape=(npts * (npts - 1)) // 2,
                                 dtype=np.double)
 
             for k in range(npts - 1):

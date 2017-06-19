@@ -12,6 +12,7 @@ from .constant import Constant
 
 # ASTRONOMICAL CONSTANTS
 
+
 class IAU2012(Constant):
     default_reference = 'IAU 2012'
     _registry = {}

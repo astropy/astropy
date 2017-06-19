@@ -22,10 +22,10 @@ def test_scott_bin_width(N=10000, rseed=0):
     X = rng.randn(N)
 
     delta = scott_bin_width(X)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     delta, bins = scott_bin_width(X, return_bins=True)
-    assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
+    assert_allclose(delta, 3.5 * np.std(X) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
         scott_bin_width(rng.rand(2, 10))
@@ -126,7 +126,7 @@ def test_histogram_output():
 
     counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [10, 61, 29])
-    assert_allclose(bins, [-2.55298982, -1.24381059,  0.46422235,  2.26975462])
+    assert_allclose(bins, [-2.55298982, -1.24381059, 0.46422235, 2.26975462])
 
 
 def test_histogram_badargs(N=1000, rseed=0):

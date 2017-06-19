@@ -146,6 +146,7 @@ class FLRW(Cosmology):
     of the parameters.  That is, all of the attributes above are
     read only.
     """
+
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
@@ -2186,6 +2187,7 @@ class FlatwCDM(wCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
+
 
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.

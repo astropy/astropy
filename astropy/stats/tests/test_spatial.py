@@ -11,6 +11,8 @@ from ...tests.helper import pytest
 
 a = np.array([[1, 4], [2, 5], [3, 6]])
 b = np.array([[-1, 1], [-2, 2], [-3, 3]])
+
+
 @pytest.mark.parametrize("points, x_min, x_max", [(a, 0, 10), (b, -5, 5)])
 def test_ripley_K_implementation(points, x_min, x_max):
     """
@@ -61,9 +63,12 @@ def test_ripley_K_implementation(points, x_min, x_max):
     assert_allclose(ANS_TRANS, Kest(data=points, radii=r, mode='translation'),
                     atol=1e-3)
 
+
 with NumpyRNGContext(123):
     a = np.random.uniform(low=5, high=10, size=(100, 2))
     b = np.random.uniform(low=-5, high=-10, size=(100, 2))
+
+
 @pytest.mark.parametrize("points", [a, b])
 def test_ripley_uniform_property(points):
     # Ripley's K function without edge-correction converges to the area when
@@ -74,9 +79,12 @@ def test_ripley_uniform_property(points):
         r = np.linspace(0, 20, 5)
         assert_allclose(area, Kest(data=points, radii=r, mode='none')[4])
 
+
 with NumpyRNGContext(123):
     a = np.random.uniform(low=0, high=1, size=(500, 2))
     b = np.random.uniform(low=-1, high=0, size=(500, 2))
+
+
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
 def test_ripley_large_density(points, low, high):
         Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,
@@ -88,9 +96,12 @@ def test_ripley_large_density(points, low, high):
             Kest_r = Kest(data=points, radii=r, mode=m)
             assert_allclose(Kpos, Kest_r, atol=1e-1)
 
+
 with NumpyRNGContext(123):
     a = np.random.uniform(low=5, high=10, size=(500, 2))
     b = np.random.uniform(low=-10, high=-5, size=(500, 2))
+
+
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
 def test_ripley_modes(points, low, high):
         Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low,
@@ -102,9 +113,12 @@ def test_ripley_modes(points, low, high):
             Kest_mean = np.mean(Kest(data=points, radii=r, mode=m))
             assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)
 
+
 with NumpyRNGContext(123):
     a = np.random.uniform(low=0, high=1, size=(50, 2))
     b = np.random.uniform(low=-1, high=0, size=(50, 2))
+
+
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
 def test_ripley_large_density_var_width(points, low, high):
         Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,
@@ -114,9 +128,12 @@ def test_ripley_large_density_var_width(points, low, high):
         Kest_r = Kest(data=points, radii=r, mode='var-width')
         assert_allclose(Kpos, Kest_r, atol=1e-1)
 
+
 with NumpyRNGContext(123):
     a = np.random.uniform(low=5, high=10, size=(50, 2))
     b = np.random.uniform(low=-10, high=-5, size=(50, 2))
+
+
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
 def test_ripley_var_width(points, low, high):
         Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low,

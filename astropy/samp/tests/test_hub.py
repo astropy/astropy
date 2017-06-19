@@ -6,6 +6,7 @@ from ..hub import SAMPHubServer
 
 from .. import conf
 
+
 def setup_module(module):
     conf.use_internet = False
 

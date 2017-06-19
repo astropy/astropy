@@ -149,7 +149,7 @@ class Kernel(object):
         """
         return kernel_arithmetics(self, kernel, 'add')
 
-    def __sub__(self,  kernel):
+    def __sub__(self, kernel):
         """
         Subtract two filter kernels.
         """
@@ -214,6 +214,7 @@ class Kernel1D(Kernel):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
     """
+
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
         if array is None:
@@ -274,6 +275,7 @@ class Kernel2D(Kernel):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
     """
+
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
 
         # Initialize from model
