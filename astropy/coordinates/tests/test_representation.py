@@ -1322,7 +1322,3 @@ def test_to_cartesian():
     cart = sr.to_cartesian()
     assert cart.get_name() == 'cartesian'
     assert not cart.differentials
-
-    cart = sr.to_cartesian_with_differentials()
-    assert cart.get_name() == 'cartesian'
-    assert set(cart.differentials.keys()) == set(sr.differentials.keys())

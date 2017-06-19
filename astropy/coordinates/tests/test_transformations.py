@@ -263,10 +263,13 @@ def test_affine_transform_succeed(transfunc, rep):
     # compute expected output
     M, offset = transfunc(c, TCoo2)
 
+    _rep = rep.to_cartesian()
+    diffs = dict([(k, diff.represent_as(r.CartesianDifferential, rep))
+                  for k, diff in rep.differentials.items()])
+    expected_rep = _rep.with_differentials(diffs)
+
     if M is not None:
-        expected_rep = rep.to_cartesian_with_differentials().transform(M)
-    else:
-        expected_rep = rep.to_cartesian_with_differentials()
+        expected_rep = expected_rep.transform(M)
 
     expected_pos = expected_rep.without_differentials()
     if offset is not None:

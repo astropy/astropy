@@ -756,6 +756,7 @@ class BaseAffineTransform(CoordinateTransform):
 
     def _apply_transform(self, fromcoord, matrix, offset):
         from .representation import (UnitSphericalRepresentation,
+                                     CartesianDifferential,
                                      SphericalDifferential,
                                      SphericalCosLatDifferential,
                                      RadialDifferential)
@@ -817,7 +818,12 @@ class BaseAffineTransform(CoordinateTransform):
         elif rad_vel_diff:
             data = data.without_differentials()
 
-        rep = data.to_cartesian_with_differentials()
+        # Convert the representation and differentials to cartesian without
+        # having them attached to a frame
+        rep = data.to_cartesian()
+        diffs = dict([(k, diff.represent_as(CartesianDifferential, data))
+                      for k, diff in data.differentials.items()])
+        rep = rep.with_differentials(diffs)
 
         # Only do transform if matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)

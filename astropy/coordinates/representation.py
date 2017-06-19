@@ -217,21 +217,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         # Note: the above docstring gets overridden for differentials.
         raise NotImplementedError()
 
-    def to_cartesian_with_differentials(self):
-        """Convert the representation and any differentials to Cartesian form.
-
-        Returns
-        -------
-        cartrepr : `CartesianRepresentation`
-            The representation in Cartesian form with any attached differentials
-            as `CartesianDifferential` instances.
-
-        """
-        rep = self.to_cartesian()
-        diffs = dict([(k, diff.represent_as(CartesianDifferential, self))
-                      for k, diff in self.differentials.items()])
-        return rep.with_differentials(diffs)
-
     @property
     def components(self):
         """A tuple with the in-order names of the coordinate components."""

@@ -621,13 +621,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             ( 1.,  0.,  0.)>
         """
 
-        n_diffs = len(self.data.differentials)
-        has_diffs = n_diffs > 0
+        has_velocity = 's' in self.data.differentials
 
         new_representation = _get_repr_cls(new_representation)
 
         if new_differential:
-            if not has_diffs:
+            if not has_velocity:
                 raise TypeError('Frame data has no associated differentials '
                                 '(i.e. the frame has no velocity data) - '
                                 'represent_as() only accepts a new '
@@ -636,10 +635,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if isinstance(new_differential, six.string_types):
                 new_differential = _get_diff_cls(new_differential)
 
-        elif has_diffs:
+        elif has_velocity:
             new_differential = _get_diff_cls(new_representation.get_name())
 
-        if has_diffs:
+        if has_velocity:
             cache_key = (new_representation.__name__,
                          new_differential.__name__,
                          in_frame_units)
@@ -648,7 +647,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
-            if has_diffs and new_differential is not None:
+            if has_velocity and new_differential is not None:
                 # TODO NOTE: only supports a single differential
                 data = self.data.represent_as(new_representation,
                                               new_differential)
@@ -1107,7 +1106,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as('sphericalcoslat', in_frame_units=True)
+        return self.represent_as('spherical',
+                                 new_differential='sphericalcoslat',
+                                 in_frame_units=True)
 
 
 class GenericFrame(BaseCoordinateFrame):
