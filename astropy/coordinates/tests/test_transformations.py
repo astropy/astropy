@@ -225,6 +225,14 @@ class transfunc(object):
         return M, cls.rep.with_differentials(cls.dif)
 
     @classmethod
+    def just_matrix(cls, coo, fr):
+        # exchange x <-> z and offset
+        M = np.array([[0., 0., 1.],
+                      [0., 1., 0.],
+                      [1., 0., 0.]])
+        return M, None
+
+    @classmethod
     def no_matrix(cls, coo, fr):
         return None, cls.rep.with_differentials(cls.dif)
 
@@ -237,12 +245,17 @@ class transfunc(object):
         return None, cls.rep
 
 @pytest.mark.parametrize('transfunc', [transfunc.both, transfunc.no_matrix,
-                                       transfunc.no_pos, transfunc.no_vel])
+                                       transfunc.no_pos, transfunc.no_vel,
+                                       transfunc.just_matrix])
 @pytest.mark.parametrize('rep', [
     r.CartesianRepresentation(5, 6, 7, unit=u.pc),
     r.CartesianRepresentation(5, 6, 7, unit=u.pc,
                               differentials=r.CartesianDifferential(8, 9, 10,
+                                                                    unit=u.pc/u.Myr)),
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
+                              differentials=r.CartesianDifferential(8, 9, 10,
                                                                     unit=u.pc/u.Myr))
+     .represent_as(r.CylindricalRepresentation, r.CylindricalDifferential)
 ])
 def test_affine_transform_succeed(transfunc, rep):
     c = TCoo1(rep)
@@ -250,7 +263,11 @@ def test_affine_transform_succeed(transfunc, rep):
     # compute expected output
     M, offset = transfunc(c, TCoo2)
 
-    expected_rep = rep.transform(M) if M is not None else rep
+    if M is not None:
+        expected_rep = rep.to_cartesian_with_differentials().transform(M)
+    else:
+        expected_rep = rep.to_cartesian_with_differentials()
+
     expected_pos = expected_rep.without_differentials()
     if offset is not None:
         expected_pos = expected_pos + offset.without_differentials()
@@ -258,19 +275,20 @@ def test_affine_transform_succeed(transfunc, rep):
     expected_vel = None
     if c.data.differentials:
         expected_vel = expected_rep.differentials['s']
-        if offset.differentials:
-            expected_vel = expected_vel + offset.differentials['s']
+
+        if offset and offset.differentials:
+            expected_vel = (expected_vel + offset.differentials['s'])
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     c2 = c.transform_to(TCoo2)
-    assert quantity_allclose(c2.data.to_cartesian().xyz, expected_pos.xyz)
+
+    assert quantity_allclose(c2.data.to_cartesian().xyz,
+                             expected_pos.to_cartesian().xyz)
 
     if expected_vel is not None:
-        # TODO: clean this up when there is a shorthand for accessing
-        # differentials from the frames
         diff = c2.data.differentials['s'].to_cartesian(base=c2.data)
         assert quantity_allclose(diff.xyz, expected_vel.d_xyz)
 

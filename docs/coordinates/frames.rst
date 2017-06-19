@@ -349,15 +349,15 @@ subclasses/types of transformations are:
 
     A transformation that includes a linear matrix operation and a translation
     (vector offset). These transformations are defined by a 3x3 matrix and a
-    3-vector for the offset. The transformation is applied to the Cartesian
-    representation of one frame and transforms into the Cartesian representation
-    of the target frame.
+    3-vector for the offset (supplied as a Cartesian representation). The
+    transformation is applied to the Cartesian representation of one frame and
+    transforms into the Cartesian representation of the target frame.
 
 * `~astropy.coordinates.StaticMatrixTransform`
 * `~astropy.coordinates.DynamicMatrixTransform`
 
     The matrix transforms are `~astropy.coordinates.AffineTransform`'s without
-    a translation, e.g., a rotation. The static version is for
+    a translation, i.e. a rotation. The static version is for
     the case where the matrix is independent of the frame attributes
     (e.g., the ICRS->FK5 transformation, because ICRS has no frame
     attributes).  The dynamic case is for transformations where the
