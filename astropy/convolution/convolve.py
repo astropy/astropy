@@ -26,7 +26,7 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
-             preserve_nan=False):
+             preserve_nan=False, normalization_zero_tol=1e-8):
     '''
     Convolve an array with a kernel.
 
@@ -82,6 +82,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
         masked of it is masked in either ``mask`` *or* ``array.mask``.
+    normalization_zero_tol: float, optional
+        The absolute tolerance on whether the kernel is different than zero.
+        If the kernel sums to zero to within this precision, it cannot be
+        normalized. Default is "1e-8".
 
     Returns
     -------
@@ -212,7 +216,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
-    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=1e-8)
+    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
     if (kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero) and normalize_kernel:
         raise Exception("The kernel can't be normalized, because its sum is "
@@ -316,11 +320,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 @support_nddata(data='array')
 def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  nan_treatment='interpolate', normalize_kernel=True,
+                 normalization_zero_tol=1e-8,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, quiet=False,
                  min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=np.complex, ):
+                 complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -379,6 +384,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
         ``normalize_kernel = np.sum``.
+    normalization_zero_tol: float, optional
+        The absolute tolerance on whether the kernel is different than zero.
+        If the kernel sums to zero to within this precision, it cannot be
+        normalized. Default is "1e-8".
     preserve_nan : bool
         After performing convolution, should pixels that were originally NaN
         again become NaN?
@@ -547,7 +556,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    anynan = (np.any(nanmaskarray) or np.any(nanmaskkernel))
 
     if normalize_kernel is True:
         if kernel.sum() < 1. / MAX_NORMALIZATION:
@@ -564,19 +572,17 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         normalized_kernel = kernel / kernel_scale
     else:
         kernel_scale = kernel.sum()
-        if np.abs(kernel_scale - 1) < 1e-8:
-            kernel_scale = 1
-            normalized_kernel = kernel
-        else:
-            if np.abs(kernel.sum()) < 1e-8:
-                if nan_treatment == 'interpolate':
-                    raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
-                else:
-                    # the kernel's sum is near-zero, so it can't be scaled
-                    kernel_scale = 1
-                    normalized_kernel = kernel
+        if np.abs(kernel_scale) < normalization_zero_tol:
+            if nan_treatment == 'interpolate':
+                raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
             else:
-                normalized_kernel = kernel / kernel_scale
+                # the kernel's sum is near-zero, so it can't be scaled
+                kernel_scale = 1
+                normalized_kernel = kernel
+        else:
+            # the kernel is normalizable; we'll temporarily normalize it
+            # now and undo the normalization later.
+            normalized_kernel = kernel / kernel_scale
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
