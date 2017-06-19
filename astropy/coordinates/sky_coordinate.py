@@ -20,7 +20,7 @@ from ..utils import ShapedLikeNDArray
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS, SkyOffsetFrame
+from .builtin_frames import ICRS, GCRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -1253,27 +1253,40 @@ class SkyCoord(ShapedLikeNDArray):
         `~astropy.coordinates.solar_system`_ variable, either directly or via
         ``with`` statement.
         """
-        from .velocity_correction_funcs import radial_velocity_correction as rvcorr
+        # has to be here to prevent circular imports
+        from .solar_system import get_body_barycentric_posvel
 
         if self.obstime is None:
             raise ValueError('cannot compute radial velocity correction if '
                              'obstime frame attribute is not present on this '
                              'SkyCoord.')
+        t = self.obstime
 
         if self.location is None:
             raise ValueError('cannot compute radial velocity correction if '
                              'location frame attribute is not present on this '
                              'SkyCoord.')
+        loc = self.location
+
         if kind == 'barycentric':
-            bary = True
+            vorigintoearth = get_body_barycentric_posvel('earth', t)[1]
         elif kind == 'heliocentric':
-            bary = False
+            vsun = get_body_barycentric_posvel('sun', t)[1]
+            vearth = get_body_barycentric_posvel('earth', t)[1]
+            vorigintoearth = vearth - vsun
         else:
             raise ValueError("Kind argument to radial_velocity_correction must "
                              "be 'barycentric' or 'heliocentric', but got "
                              "'{}'".format(kind))
 
-        return rvcorr(self.obstime, self.location, self, bary)
+
+
+        gcrs_p, gcrs_v = loc.get_gcrs_posvel(t)
+        gtarg = self.transform_to(GCRS(obstime=t,
+                                       obsgeoloc=gcrs_p,
+                                       obsgeovel=gcrs_v))
+        targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
+        return targcart.dot(vorigintoearth + gcrs_v)
 
     # Table interactions
     @classmethod
