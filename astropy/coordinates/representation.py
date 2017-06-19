@@ -520,7 +520,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
             if diff.__class__ not in self._compatible_differentials:
                 raise TypeError("Differential '{0}' is not compatible with "
-                                "this representation '{1}'".format(diff, self))
+                                "this representation '{1}'".format(repr(diff),
+                                                                   repr(self)))
 
             if (isinstance(diff, RadialDifferential) and
                     isinstance(self, UnitSphericalRepresentation)):
@@ -535,7 +536,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 if key != expected_key:
                     raise ValueError("For differential object '{0}', expected "
                                      "unit key = '{1}' but received key = '{2}'"
-                                     .format(diff, expected_key, key))
+                                     .format(repr(diff), expected_key, key))
 
             # For now, we are very rigid: differentials must have the same shape
             # as the representation. This makes it easier to handle __getitem__
