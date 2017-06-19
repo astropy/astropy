@@ -630,7 +630,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             new_differential = _get_diff_cls(new_representation[1])
             new_representation = _get_repr_cls(new_representation[0])
 
-        elif has_diffs and isinstance(new_representation, BaseDifferential):
+        elif (has_diffs and inspect.isclass(new_representation) and
+                issubclass(new_representation, BaseDifferential)):
             # a single differential class passed in
             new_differential = new_representation
             new_representation = new_representation.base_representation
@@ -1082,7 +1083,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(CartesianRepresentation, in_frame_units=True)
+        return self.represent_as('cartesian', in_frame_units=True)
 
     @property
     def spherical(self):
@@ -1092,7 +1093,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(SphericalRepresentation, in_frame_units=True)
+        return self.represent_as('spherical', in_frame_units=True)
+
+    @property
+    def sphericalcoslat(self):
+        """
+        Shorthand for a spherical representation of the coordinates in this object.
+        """
+
+        # TODO: if representations are updated to use a full transform graph,
+        #       the representation aliases should not be hard-coded like this
+        return self.represent_as('sphericalcoslat', in_frame_units=True)
 
 
 class GenericFrame(BaseCoordinateFrame):
