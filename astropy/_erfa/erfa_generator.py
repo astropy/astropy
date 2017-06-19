@@ -355,6 +355,70 @@ class Constant(object):
         self.doc = doc
 
 
+class ExtraFunction(Function):
+    """
+    An "extra" function - e.g. one not following the SOFA/ERFA standard format.
+
+    Parameters
+    ----------
+    cname : str
+        The name of the function in C
+    prototype : str
+        The prototype for the function (usually derived from the header)
+    pathfordoc : str
+        The path to a file that contains the prototype, with the documentation
+        as a multiline string *before* it.
+    """
+    def __init__(self, cname, prototype, pathfordoc):
+        self.name = cname
+        self.pyname = cname.split('era')[-1].lower()
+        self.filepath, self.filename = os.path.split(pathfordoc)
+
+        self.prototype = prototype.strip()
+        if prototype.endswith('{') or prototype.endswith(';'):
+            self.prototype = prototype[:-1].strip()
+
+        incomment = False
+        lastcomment = None
+        with open(pathfordoc, 'r') as f:
+            for l in f:
+                if incomment:
+                    if l.lstrip().startswith('*/'):
+                        incomment = False
+                        lastcomment = ''.join(lastcomment)
+                    else:
+                        if l.startswith('**'):
+                            l = l[2:]
+                        lastcomment.append(l)
+                else:
+                    if l.lstrip().startswith('/*'):
+                        incomment = True
+                        lastcomment = []
+                    if l.startswith(self.prototype):
+                        self.doc = lastcomment
+                        break
+            else:
+                raise ValueError('Did not find prototype {} in file '
+                                 '{}'.format(self.prototype, pathfordoc))
+
+        self.args = []
+        argset = re.search(r"{0}\(([^)]+)?\)".format(self.name),
+                           self.prototype).group(1)
+        if argset is not None:
+            for arg in argset.split(', '):
+                self.args.append(Argument(arg, self.doc))
+        self.ret = re.match("^(.*){0}".format(self.name),
+                            self.prototype).group(1).strip()
+        if self.ret != 'void':
+            self.args.append(Return(self.ret, self.doc))
+
+    def __repr__(self):
+        r = super(ExtraFunction, self).__repr__()
+        if r.startswith('Function'):
+            r = 'Extra' + r
+        return r
+
+
 def main(srcdir, outfn, templateloc, verbose=True):
     from jinja2 import Environment, FileSystemLoader
 
