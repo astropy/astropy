@@ -1370,3 +1370,27 @@ def _release_download_cache_lock():
         msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\
               'a directory.'
         raise RuntimeError(msg.format(lockdir))
+
+
+def _urls_on_shelf():
+    """
+    Get the list of URLs in the shelf. Useful for looking up what files are
+    cached when you don't have internet access.
+
+
+    Returns
+    -------
+    in_cache : bool
+        `True` if a download from ``url_key`` is in the cache
+    """
+    # The code below is modified from astropy.utils.data.download_file()
+    try:
+        dldir, urlmapfn = _get_download_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Remote data cache could not be accessed due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        return False
+
+    with _open_shelve(urlmapfn, True) as url2hash:
+        return list(url2hash.keys())
