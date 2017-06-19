@@ -30,11 +30,15 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
+from .frame_attributes import FrameAttribute
 
-# Import all FrameAttributes so we don't break backwards-compatibility
+# Import all other FrameAttributes so we don't break backwards-compatibility
 # (some users rely on them being here, although that is not
 # encouraged, as this is not the public API location.)
-from .frame_attributes import *
+from .frame_attributes import (
+    TimeFrameAttribute, QuantityFrameAttribute,
+    EarthLocationAttribute, CoordinateAttribute,
+    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'RepresentationMapping']
@@ -199,8 +203,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         copy = kwargs.pop('copy', True)
         self._attr_names_with_defaults = []
 
-        if 'representation' in kwargs:
-            self.representation = kwargs.pop('representation')
+        representation = kwargs.pop('representation', None)
+        if representation is not None:
+            self.representation = representation
 
         # if not set below, this is a frame with no data
         representation_data = None
@@ -527,7 +532,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        return self._apply('replicate', _framedata=representation)
+        # Here we pass representation_cls=None to _apply, since we do not want
+        # to insist that the realized frame has the same representation as
+        # self.  [Avoids breaking sunpy; see gh-6208]
+        # TODO: should we expose this, so one has a choice?
+        return self._apply('replicate', _framedata=representation,
+                           representation_cls=None)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -820,6 +830,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data = self.data if self.has_data else None
 
+        # TODO: expose this trickery in docstring?
+        representation_cls = kwargs.pop('representation_cls',
+                                        self.representation)
+
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
                 if method == 'replicate' and not hasattr(value, method):
@@ -838,7 +852,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if data is not None:
             data = apply_method(data)
 
-        frattrs = {}
+        # TODO: change to representation_cls in __init__ - gh-6219.
+        frattrs = {'representation': representation_cls}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
                 if (method == 'copy' or method == 'replicate') and attr in kwargs:
@@ -855,9 +870,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                 frattrs[attr] = value
 
-        out = self.__class__(data, **frattrs)
-        out.representation = self.representation
-        return out
+        return self.__class__(data, **frattrs)
 
     @override__dir__
     def __dir__(self):

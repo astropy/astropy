@@ -15,7 +15,9 @@ import numpy as np
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
-                get_moon, FK4, FK4NoETerms)
+                get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
+                QuantityFrameAttribute, SphericalRepresentation,
+                UnitSphericalRepresentation, CartesianRepresentation)
 from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
@@ -360,10 +362,68 @@ def test_regression_5743():
 def test_regression_5889_5890():
     # ensure we can represent all Representations and transform to ND frames
     greenwich = EarthLocation(
-        *u.Quantity([3980608.90246817, -102.47522911,  4966861.27310067],
+        *u.Quantity([3980608.90246817, -102.47522911, 4966861.27310067],
         unit=u.m))
     times = Time("2017-03-20T12:00:00") + np.linspace(-2,2,3)*u.hour
     moon = get_moon(times, location=greenwich)
     targets = SkyCoord([350.7*u.deg, 260.7*u.deg], [18.4*u.deg, 22.4*u.deg])
     targs2d = targets[:, np.newaxis]
     targs2d.transform_to(moon)
+
+
+def test_regression_6236():
+    # sunpy changes its representation upon initialisation of a frame,
+    # including via `realize_frame`. Ensure this works.
+    class MyFrame(BaseCoordinateFrame):
+        default_representation = CartesianRepresentation
+        my_attr = QuantityFrameAttribute(default=0, unit=u.m)
+
+    class MySpecialFrame(MyFrame):
+        def __init__(self, *args, **kwargs):
+            _rep_kwarg = kwargs.get('representation', None)
+            super(MyFrame, self).__init__(*args, **kwargs)
+            if not _rep_kwarg:
+                self.representation = self.default_representation
+                self._data = self.data.represent_as(self.representation)
+
+    rep1 = UnitSphericalRepresentation([0., 1]*u.deg, [2., 3.]*u.deg)
+    rep2 = SphericalRepresentation([10., 11]*u.deg, [12., 13.]*u.deg,
+                                   [14., 15.]*u.kpc)
+    mf1 = MyFrame(rep1, my_attr=1.*u.km)
+    mf2 = mf1.realize_frame(rep2)
+    # Normally, data is stored as is, but the representation gets set to a
+    # default, even if a different representation instance was passed in.
+    # realize_frame should do the same. Just in case, check attrs are passed.
+    assert mf1.data is rep1
+    assert mf2.data is rep2
+    assert mf1.representation is CartesianRepresentation
+    assert mf2.representation is CartesianRepresentation
+    assert mf2.my_attr == mf1.my_attr
+    # It should be independent of whether I set the reprensentation explicitly
+    mf3 = MyFrame(rep1, my_attr=1.*u.km, representation='unitspherical')
+    mf4 = mf3.realize_frame(rep2)
+    assert mf3.data is rep1
+    assert mf4.data is rep2
+    assert mf3.representation is UnitSphericalRepresentation
+    assert mf4.representation is CartesianRepresentation
+    assert mf4.my_attr == mf3.my_attr
+    # This should be enough to help sunpy, but just to be sure, a test
+    # even closer to what is done there, i.e., transform the representation.
+    msf1 = MySpecialFrame(rep1, my_attr=1.*u.km)
+    msf2 = msf1.realize_frame(rep2)
+    assert msf1.data is not rep1  # Gets transformed to Cartesian.
+    assert msf2.data is not rep2
+    assert type(msf1.data) is CartesianRepresentation
+    assert type(msf2.data) is CartesianRepresentation
+    assert msf1.representation is CartesianRepresentation
+    assert msf2.representation is CartesianRepresentation
+    assert msf2.my_attr == msf1.my_attr
+    # And finally a test where the input is not transformed.
+    msf3 = MySpecialFrame(rep1, my_attr=1.*u.km,
+                          representation='unitspherical')
+    msf4 = msf3.realize_frame(rep2)
+    assert msf3.data is rep1
+    assert msf4.data is not rep2
+    assert msf3.representation is UnitSphericalRepresentation
+    assert msf4.representation is CartesianRepresentation
+    assert msf4.my_attr == msf3.my_attr
