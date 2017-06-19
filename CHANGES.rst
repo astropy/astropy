@@ -138,6 +138,8 @@ API Changes
   - Angstrom, erg, G, and barn are no more reported as deprecated FITS units.
     [#5929]
 
+  - Add EXTVER column to the output of ``HDUList.info()``. [#6124]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
