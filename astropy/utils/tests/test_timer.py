@@ -43,10 +43,10 @@ def test_timer():
 
     # --- These must run before data points are introduced. ---
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         p.do_fit()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         p.predict_time(100)
 
     # --- These must run next to set up data points. ---

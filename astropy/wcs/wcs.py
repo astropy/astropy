@@ -57,22 +57,8 @@ except ImportError:
     else:
         _wcs = None
 
-if _wcs is not None:
-    _parsed_version = _wcs.__version__.split('.')
-    if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
-        raise ImportError(
-            "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
-            "later on the 5.x series are known to work.  The version of wcslib "
-            "that ships with astropy may be used.")
-
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
-
-if _wcs is not None:
-    assert _wcs._sanity_check(), \
-        "astropy.wcs did not pass its sanity check for your build " \
-        "on your platform."
-
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
@@ -89,6 +75,18 @@ if not six.PY2 or platform.system() == 'Windows':
 
 
 if _wcs is not None:
+    _parsed_version = _wcs.__version__.split('.')
+    if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
+        raise ImportError(
+            "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
+            "later on the 5.x series are known to work.  The version of wcslib "
+            "that ships with astropy may be used.")
+
+    if not _wcs._sanity_check():
+        raise RuntimeError(
+        "astropy.wcs did not pass its sanity check for your build " \
+        "on your platform.")
+
     WCSBase = _wcs._Wcs
     DistortionLookupTable = _wcs.DistortionLookupTable
     Sip = _wcs.Sip
@@ -304,7 +302,7 @@ class WCS(WCSBase):
     KeyError
          Key not found in FITS header.
 
-    AssertionError
+    ValueError
          Lookup table distortion present in the header but *fobj* was
          not provided.
 
@@ -901,9 +899,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                 dis = header[distortion].lower()
                 del header[distortion]
                 if dis == 'lookup':
-                    assert isinstance(fobj, fits.HDUList), \
-                        'An astropy.io.fits.HDUList is required for ' + \
-                        'Lookup table distortion.'
+                    if not isinstance(fobj, fits.HDUList):
+                        raise ValueError('an astropy.io.fits.HDUList is '
+                                'required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
                     dp_extver_key = dp + str('.EXTVER')
                     if dp_extver_key in header:

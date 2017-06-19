@@ -111,7 +111,9 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
     from . import conf
 
     invalid = invalid.lower()
-    assert invalid in ('exception', 'mask')
+    if invalid not in ('exception', 'mask'):
+        raise ValueError("accepted values of ``invalid`` are: "
+                         "``'exception'`` or ``'mask'``.")
 
     if pedantic is None:
         pedantic = conf.pedantic

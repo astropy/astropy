@@ -202,7 +202,7 @@ def test_data_name_third_party_package():
         sys.path.pop(0)
 
 
-@raises(AssertionError)
+@raises(RuntimeError)
 def test_local_data_nonlocalfail():
     from ..data import get_pkg_data_filename
 

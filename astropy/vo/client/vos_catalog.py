@@ -683,8 +683,10 @@ def _get_catalogs(service_type, catalog_db, **kwargs):
         catalogs = [(None, catalog_db)]
     elif isinstance(catalog_db, list):
         for x in catalog_db:
-            assert (isinstance(x, (VOSCatalog, six.string_types)) and
-                    not isinstance(x, VOSDatabase))
+            if (not isinstance(x, (VOSCatalog, six.string_types)) or
+                    isinstance(x, VOSDatabase)):
+                raise VOSError('catalog_db must be a catalog database, '
+                       'a list of catalogs, or a catalog')
         catalogs = [(None, x) for x in catalog_db]
     else:  # pragma: no cover
         raise VOSError('catalog_db must be a catalog database, '

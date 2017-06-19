@@ -47,7 +47,8 @@ def jackknife_resampling(data):
     """
 
     n = data.shape[0]
-    assert n > 0, "data must contain at least one measurement"
+    if n <= 0:
+        raise ValueError("data must contain at least one measurement.")
 
     resamples = np.empty([n, n-1])
 
@@ -152,7 +153,8 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
 
     # make sure original data is proper
     n = data.shape[0]
-    assert n > 0, "data must contain at least one measurement"
+    if n <= 0:
+        raise ValueError("data must contain at least one measurement.")
 
     resamples = jackknife_resampling(data)
 
@@ -171,8 +173,9 @@ def jackknife_stats(data, statistic, conf_lvl=0.95):
     estimate = stat_data - bias
 
     # jackknife confidence interval
-    assert (conf_lvl > 0 and conf_lvl < 1), ("confidence level must be in "
-                                             "(0, 1).")
+    if not (0 < conf_lvl < 1):
+        raise ValueError("confidence level must be in (0, 1).")
+
     z_score = np.sqrt(2.0)*erfinv(conf_lvl)
     conf_interval = estimate + z_score*np.array((-std_err, std_err))
 
