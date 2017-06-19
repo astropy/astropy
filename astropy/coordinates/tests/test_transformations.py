@@ -340,7 +340,7 @@ def test_too_many_differentials():
                                               d_lat=11*u.mas/u.yr,
                                               d_distance=-110*u.km/u.s)),
     r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
-        differentials=r.RadialDifferential(d_distance=-110*u.km/u.s))
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)})
 ])
 def test_unit_spherical_with_differentials(rep):
 
