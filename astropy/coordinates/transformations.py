@@ -754,9 +754,21 @@ class BaseAffineTransform(CoordinateTransform):
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
-        from .representation import UnitSphericalRepresentation
+        from .representation import (UnitSphericalRepresentation,
+                                     UnitSphericalDifferential)
 
-        rep = fromcoord.data.to_cartesian_with_differentials()
+        data = fromcoord.data
+
+        # If the representation is a UnitSphericalRepresentation, and this is
+        # just a MatrixTransform, we have to try to turn the differential into
+        # a UnitSphericalDifferential so that the matrix operation succceeds
+        if isinstance(data, UnitSphericalRepresentation):
+            unit_diffs = dict([(k, diff.represent_as(UnitSphericalDifferential,
+                                                     data))
+                               for k, diff in data.differentials.items()])
+            data = data.with_differentials(unit_diffs) # updates
+
+        rep = data.to_cartesian_with_differentials()
 
         # Only do transform is matrix is specified. This is for speed in
         # transformations that only specify an offset (e.g., LSR)
