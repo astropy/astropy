@@ -1325,7 +1325,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                    copy=False)
 
         return super(UnitSphericalRepresentation,
-                     self).represent_as(other_class)
+                     self).represent_as(other_class, differential_class)
 
     def __mul__(self, other):
         self._raise_if_has_differentials('multiplication')
@@ -1600,7 +1600,7 @@ class SphericalRepresentation(BaseRepresentation):
                 return other_class(lon=self.lon, lat=self.lat, copy=False)
 
         return super(SphericalRepresentation,
-                     self).represent_as(other_class)
+                     self).represent_as(other_class, differential_class)
 
     def to_cartesian(self):
         """
@@ -1762,7 +1762,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                 return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
 
         return super(PhysicsSphericalRepresentation,
-                     self).represent_as(other_class)
+                     self).represent_as(other_class, differential_class)
 
     def to_cartesian(self):
         """
