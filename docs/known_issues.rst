@@ -120,18 +120,6 @@ Quantities in np.linspace failure on numpy 1.10
 1.10.6 or later, in which the bug was fixed.
 
 
-Table sorting can silently fail on MacOS X or Windows with Python 3 and Numpy < 1.6.2
--------------------------------------------------------------------------------------
-
-In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
-sorting of structured arrays to silently fail under certain circumstances (for
-example if the Table contains string columns) on MacOS X, Windows, and possibly
-other platforms other than Linux.  Since ``Table.sort`` relies on Numpy to
-internally sort the data, it is also affected by this bug.  If you are using
-Python 3, and need the sorting functionality for tables, we recommend updating
-to a more recent version of Numpy.
-
-
 Remote data utilities in `astropy.utils.data` fail on some Python distributions
 -------------------------------------------------------------------------------
 
@@ -365,22 +353,6 @@ fix the issue, though an immediate workaround is to edit the file::
 
 and search for the line that adds the option ``-Wl,--no-undefined`` to the
 ``LDFLAGS`` variable and remove that option.
-
-
-Crash on upgrading from Astropy 0.2 to a newer version
-------------------------------------------------------
-
-It is possible for installation of a new version of Astropy, or upgrading of an
-existing installation to crash due to not having permissions on the
-``~/.astropy/`` directory (in your home directory) or some file or subdirectory
-in that directory.  In particular this can occur if you installed Astropy as
-the root user (such as with ``sudo``) at any point.  This can manifest in
-several ways, but the most common is a traceback ending with ``ImportError:
-cannot import name config``.  To resolve this issue either run ``sudo chown -R
-<your_username> ~/.astropy`` or, if you don't need anything in it you can blow
-it away with ``sudo rm -rf ~/.astropy``.
-
-See for example: https://github.com/astropy/astropy/issues/987
 
 .. [#] Continuum `says
        <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
