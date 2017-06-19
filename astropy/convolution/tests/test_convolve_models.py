@@ -22,28 +22,42 @@ class TestConvolve1DModels(object):
     def test_against_scipy(self):
         from scipy.signal import fftconvolve
 
-        g1 = models.Gaussian1D(1, 1, 1)
-        g2 = models.Gaussian1D(1, 3, 1)
+        kernel = models.Gaussian1D(1, 0, 1)
+        model = models.Gaussian1D(1, 0, 1)
+        model_conv = convolve_models(model, kernel, mode='convolve_fft')
         x = np.arange(-5, 6)
-        model_conv = convolve_models(g1, g2)
-        ans = fftconvolve(g1(x), g2(x), 'same')
+        ans = fftconvolve(kernel(x), model(x), mode='same')
+
+        assert_allclose(ans, model_conv(x) * kernel(x).sum(), atol=1e-5)
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_against_scipy_with_additional_keywords(self):
+        from scipy.signal import fftconvolve
+
+        kernel = models.Gaussian1D(1, 0, 1)
+        model = models.Gaussian1D(1, 0, 1)
+        model_conv = convolve_models(model, kernel, mode='convolve_fft',
+                                     normalize_kernel=False)
+        x = np.arange(-5, 6)
+        ans = fftconvolve(kernel(x), model(x), mode='same')
 
         assert_allclose(ans, model_conv(x), atol=1e-5)
 
     def test_sum_of_gaussians(self):
         """
         Test that convolving N(a, b) with N(c, d) gives N(a + b, c + d),
-        where N(.|.) stands for Gaussian probability density function.
+        where N(., .) stands for Gaussian probability density function.
         """
 
-        g1 = models.Gaussian1D(1, 1, 1)
-        g2 = models.Gaussian1D(1, 3, 1)
-        g3 = convolve_models(g1, g2)
+        kernel = models.Gaussian1D(1, 1, 1)
+        model = models.Gaussian1D(1, 3, 1)
+        model_conv = convolve_models(model, kernel, mode='convolve_fft',
+                                     normalize_kernel=False)
         ans = models.Gaussian1D(1, 4, np.sqrt(2))
-
         x = np.arange(-5, 6)
-        assert_allclose(g3(x) / (2 * np.pi), ans(x) / np.sqrt(2 * np.pi * 2),
-                        atol=1e-3)
+
+        assert_allclose(ans(x) / (2 * math.sqrt(math.pi)),
+                        model_conv(x) / (2 * np.pi), atol=1e-3)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitting_convolve_models(self):
@@ -58,7 +72,7 @@ class TestConvolve1DModels(object):
         with NumpyRNGContext(123):
             fake_data = fake_model(x) + np.random.normal(size=len(x))
 
-        init_model = convolve_models(b1, g1)
+        init_model = convolve_models(b1, g1, normalize_kernel=False)
         fitter = fitting.LevMarLSQFitter()
         fitted_model = fitter(init_model, x, fake_data)
 
