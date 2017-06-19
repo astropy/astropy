@@ -9,6 +9,8 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
 
 from ..convolve import convolve_fft
+from ...tests.helper import catch_warnings
+from ...utils.exceptions import AstropyUserWarning
 
 
 VALID_DTYPES = []
@@ -306,6 +308,37 @@ class TestConvolve1D(object):
         kernel = [3, 3, 3]
         result = convolve_fft(array, kernel, normalize_kernel=np.max)
         assert_allclose(result, [3, 6, 5], atol=1E-10)
+
+    @pytest.mark.parametrize(option_names, options)
+    def test_normalization_is_respected(self, boundary,
+                                        nan_treatment,
+                                        normalize_kernel):
+        """
+        Check that if normalize_kernel is False then the normalization
+        tolerance is respected.
+        """
+        array = np.array([1, 2, 3])
+        # A simple identity kernel to which a non-zero normalization is added.
+        base_kernel = np.array([1.0])
+
+        # Use the same normalization error tolerance in all cases.
+        normalization_rtol = 1e-4
+
+        # Add the error below to the kernel.
+        norm_error = [normalization_rtol / 10, normalization_rtol * 10]
+
+        for err in norm_error:
+            kernel = base_kernel + err
+            result = convolve_fft(array, kernel,
+                                  normalize_kernel=normalize_kernel,
+                                  nan_treatment=nan_treatment,
+                                  normalization_zero_tol=normalization_rtol)
+            if normalize_kernel:
+                # Kernel has been normalized to 1.
+                assert_allclose(result, array)
+            else:
+                # Kernel should not have been normalized...
+                assert_allclose(result, array * kernel)
 
 
 class TestConvolve2D(object):
