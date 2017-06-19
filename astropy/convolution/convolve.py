@@ -556,7 +556,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    anynan = (np.any(nanmaskarray) or np.any(nanmaskkernel))
 
     if normalize_kernel is True:
         if kernel.sum() < 1. / MAX_NORMALIZATION:
