@@ -1248,11 +1248,6 @@ class SkyCoord(ShapedLikeNDArray):
         10 m/s level, but has not been validated at higher prevision.  Future
         versions of Astropy will likely aim to improve this.
 
-        Additionally, this function may be deprecated in the future in favor of a
-        more complete representation of velocities built into the coordinate frame
-        classes. There will be ample warning if this occurs, however (following the
-        standard Astropy deprecation rules).
-
         The default is for this method to use the builtin ephemerides for
         computing the sun and earth location.  This can be changed by setting the
         `~astropy.coordinates.solar_system`_ variable, either directly or via
