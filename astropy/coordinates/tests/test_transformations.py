@@ -349,7 +349,5 @@ def test_unit_spherical_with_differentials(rep):
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
-
     c2 = c.transform_to(TCoo2)
-
     trans.unregister(frame_transform_graph)
