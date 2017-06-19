@@ -8,30 +8,26 @@ import numpy as np
 from ...tests.helper import assert_quantity_allclose
 from ... import units as u
 from ...time import Time
-from .. import EarthLocation, SkyCoord, CartesianDifferential, Angle
+from .. import EarthLocation, SkyCoord, Angle
 from ..sites import get_builtin_sites
-from ..velocity_correction_funcs import (helio_vector, bary_vector,
-                                         radial_velocity_correction)
 
 
-@pytest.mark.parametrize('vectorfunc', [helio_vector, bary_vector])
-def test_vectors(vectorfunc):
+@pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])
+def test_basic(kind):
     t0 = Time('2015-1-1')
     loc = get_builtin_sites()['example_site']
 
-    v0 = vectorfunc(t0, loc)
-    vc0 = radial_velocity_correction(t0, loc, SkyCoord(0, 0, unit=u.deg))
+    sc = SkyCoord(0, 0, unit=u.deg, obstime=t0, location=loc)
+    rvc0 = sc.radial_velocity_correction(kind)
 
-    assert v0.shape == ()
-    assert isinstance(v0, CartesianDifferential)
-    assert vc0.shape == ()
-    assert v0.d_x.unit.is_equivalent(u.km/u.s)
-    assert vc0.unit.is_equivalent(u.km/u.s)
+    assert rvc0.shape == ()
+    assert rvc0.unit.is_equivalent(u.km/u.s)
 
-    ts = t0 + np.arange(10)*u.day
-    vs = vectorfunc(ts, loc)
-    assert vs.shape == (10,)
-    assert vs.d_x.unit.is_equivalent(u.km/u.s)
+    scs = SkyCoord(0, 0, unit=u.deg, obstime=t0 + np.arange(10)*u.day,
+                   location=loc)
+    rvcs = scs.radial_velocity_correction(kind)
+    assert rvcs.shape == (10,)
+    assert rvcs.unit.is_equivalent(u.km/u.s)
 
 test_input_time = Time(2457244.5, format='jd')
 #test_input_loc = EarthLocation.of_site('Cerro Paranal')
@@ -157,9 +153,12 @@ def test_helio_iraf():
             vhs_iraf.append(float(line.split()[2]))
     vhs_iraf = vhs_iraf*u.km/u.s
 
-    vhs_astropy = radial_velocity_correction(test_input_time, test_input_loc,
-                                             _get_test_input_radecs(),
-                                             bary=False)
+    targets = SkyCoord(_get_test_input_radecs(), obstime=test_input_time,
+                       location=test_input_loc)
+    vhs_astropy = targets.radial_velocity_correction('heliocentric')
+    # vhs_astropy = targets.radial_velocity_correction(test_input_time,
+    #                                                  test_input_loc,
+    #                                                  kind='heliocentric')
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
     return vhs_astropy, vhs_iraf  # for interactively examination
 
@@ -229,14 +228,18 @@ def test_barycorr():
          2246.76923076,  14207.64513054,   2246.76933194,   6808.40787728],
          u.m/u.s)
 
-    bvcs_astropy = radial_velocity_correction(test_input_time, test_input_loc,
-                                              _get_test_input_radecs(),
-                                              bary=True)
+    targets = SkyCoord(_get_test_input_radecs(), obstime=test_input_time,
+                       location=test_input_loc)
+    bvcs_astropy = targets.radial_velocity_correction('barycentric')
+    # bvcs_astropy = targets.radial_velocity_correction(test_input_time,
+    #                                                   test_input_loc,
+    #                                                   kind='barycentric')
+
     assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=5*u.m/u.s)
     return bvcs_astropy, barycorr_bvcs  # for interactively examination
 
 
-def _get_barycorr_bvcs(coos):
+def _get_barycorr_bvcs(coos, loc, injupyter=False):
     """
     Gets the barycentric correction of the test data from the
     http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html web site.
@@ -250,10 +253,26 @@ def _get_barycorr_bvcs(coos):
     from ...utils.console import ProgressBar
 
     bvcs = []
-    for ra, dec in ProgressBar(list(zip(coos.ra.deg, coos.dec.deg))):
+    for ra, dec in ProgressBar(list(zip(coos.ra.deg, coos.dec.deg)),
+                               ipython_widget=injupyter):
         res = barycorr.bvc(test_input_time.utc.jd, ra, dec,
-                  lat=loc.geodetic[1].deg,
-                  lon=loc.geodetic[0].deg,
-                  elevation=loc.geodetic[2].to(u.m).value)
+                           lat=loc.geodetic[1].deg,
+                           lon=loc.geodetic[0].deg,
+                           elevation=loc.geodetic[2].to(u.m).value)
         bvcs.append(res)
     return bvcs*u.m/u.s
+
+
+def test_rvcorr_multiple_obstimes_onskycoord():
+    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    arrtime = Time('2005-03-21 00:00:00') + np.linspace(-1, 1, 10)*u.day
+
+    sc = SkyCoord(1*u.deg, 2*u.deg, 100*u.kpc, obstime=arrtime, location=loc)
+    rvcbary_sc2 = sc.radial_velocity_correction(kind='barycentric')
+    assert len(rvcbary_sc2) == 10
+
+    # check the multiple-obstime and multi- mode
+    sc = SkyCoord(([1]*10)*u.deg, 2*u.deg, 100*u.kpc,
+                  obstime=arrtime, location=loc)
+    rvcbary_sc3 = sc.radial_velocity_correction(kind='barycentric')
+    assert len(rvcbary_sc3) == 10
