@@ -294,14 +294,12 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
         from ..solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_coo.obstime)
+        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     else:
         from ..solar_system import get_body_barycentric
         bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
         bary_sun_vel = None
-
-    if bary_sun_vel is not None:
-        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
 
     return None, bary_sun_pos
 
@@ -315,15 +313,12 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
         from ..solar_system import get_body_barycentric_posvel
         bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
                                                                  hcrs_frame.obstime)
+        bary_sun_pos = -bary_sun_pos.with_differentials(-bary_sun_vel)
 
     else:
         from ..solar_system import get_body_barycentric
-        bary_sun_pos = get_body_barycentric('sun', hcrs_frame.obstime)
+        bary_sun_pos = -get_body_barycentric('sun', hcrs_frame.obstime)
         bary_sun_vel = None
-
-    bary_sun_pos = -bary_sun_pos
-    if bary_sun_vel is not None:
-        bary_sun_pos = bary_sun_pos.with_differentials(-bary_sun_vel)
 
     return None, bary_sun_pos
 

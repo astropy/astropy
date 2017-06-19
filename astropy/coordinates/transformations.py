@@ -754,9 +754,7 @@ class BaseAffineTransform(CoordinateTransform):
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
-        from .representation import (CartesianRepresentation,
-                                     UnitSphericalRepresentation,
-                                     CartesianDifferential)
+        from .representation import UnitSphericalRepresentation
 
         rep = fromcoord.data.to_cartesian_with_differentials()
 
@@ -779,14 +777,13 @@ class BaseAffineTransform(CoordinateTransform):
         if 's' in rep.differentials and len(rep.differentials) == 1:
             veldiff = rep.differentials['s'] # already in Cartesian form
 
-            if 's' in offset.differentials:
+            if offset is not None and 's' in offset.differentials:
                 veldiff = veldiff + offset.differentials['s']
 
-            newrep = newrep.with_differentials(
-                veldiff.represent_as(rep.differentials['s'].__class__, newrep))
+            newrep = newrep.with_differentials(veldiff)
 
         elif len(rep.differentials) > 1:
-            # We should never get here because the frame initializer sholdn't
+            # We should never get here because the frame initializer shouldn't
             # allow more differentials, but this just adds protection for
             # subclasses that somehow skip the checks
             raise ValueError("Representation passed to AffineTransform contains"
@@ -799,7 +796,7 @@ class BaseAffineTransform(CoordinateTransform):
             # need to special-case this because otherwise the new class will
             # think it has a valid distance
             diff_class = dict([(k, diff.__class__)
-                               for k, diff in newrep.differentials.items()])
+                               for k, diff in fromcoord.data.differentials.items()])
             newrep = newrep.represent_as(fromcoord.data.__class__, diff_class)
 
         return newrep
