@@ -629,7 +629,8 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
                 get_header_float(header, keyword, &(Fptr->hcomp_scale),
                                  DEFAULT_HCOMP_SCALE);
             }
-        } else if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
+        }
+        if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
              get_header_float(header, keyword, &(Fptr->quantize_level),
                               DEFAULT_QUANTIZE_LEVEL);
              if (Fptr->quantize_level == 0.0) {

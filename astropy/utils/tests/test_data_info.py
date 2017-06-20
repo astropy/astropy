@@ -5,11 +5,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function
 
+import pytest
 import numpy as np
 
 from ...extern import six
 from ..data_info import dtype_info_name
-from ...tests.helper import pytest
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # PY2
                      (False, 'U'): 'unicode',

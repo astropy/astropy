@@ -2,12 +2,12 @@
 
 .. _git-resources:
 
-=============
+*************
 Git resources
-=============
+*************
 
 Tutorials and summaries
-=======================
+***********************
 
 * `GitHub Help`_ has an excellent series of how-to guides.
 * `learn.github`_ has an excellent series of tutorials
@@ -28,7 +28,7 @@ Tutorials and summaries
 * `git svn crash course`_: git for those of us used to subversion_
 
 Manual pages online
-===================
+*******************
 
 You can get these on your own machine with (e.g) ``git help push`` or
 (same thing) ``git push --help``, but, for convenience, here are the

@@ -23,6 +23,7 @@ __all__ = ['def_physical_type', 'get_physical_type']
 
 
 _physical_unit_mapping = {}
+_unit_physical_mapping = {}
 
 
 def def_physical_type(unit, name):
@@ -43,6 +44,7 @@ def def_physical_type(unit, name):
             "{0!r} ({1!r}) already defined as {2!r}".format(
                 r, name, _physical_unit_mapping[r]))
     _physical_unit_mapping[r] = name
+    _unit_physical_mapping[name] = r
 
 
 def get_physical_type(unit):

@@ -1,7 +1,7 @@
 .. doctest-skip-all
 
 Using ``astropy.vo.client``
-===========================
+***************************
 
 This subpackage contains modules supporting VO client-side operations.
 
@@ -9,7 +9,7 @@ This subpackage contains modules supporting VO client-side operations.
 .. _vo-sec-client-cat-manip:
 
 Catalog Manipulation
---------------------
+====================
 
 You can manipulate a VO catalog using
 `~astropy.vo.client.vos_catalog.VOSCatalog`, which is basically a dictionary
@@ -18,7 +18,7 @@ with added functionalities.
 .. _vo-sec-client-cat-manip-examples:
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.client.vos_catalog import VOSCatalog
 
@@ -72,7 +72,7 @@ title and access URL:
 .. _vo-sec-client-db-manip:
 
 Database Manipulation
----------------------
+=====================
 
 You can manipulate VO database using
 `~astropy.vo.client.vos_catalog.VOSDatabase`, which is basically a nested
@@ -81,7 +81,7 @@ dictionary with added functionalities.
 .. _vo-sec-client-db-manip-examples:
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.client.vos_catalog import VOSDatabase
 
@@ -227,7 +227,7 @@ contains a simple catalog that only has given name and access URL:
 .. _vo-sec-client-vos:
 
 General VO Services Access
---------------------------
+==========================
 
 `astropy.vo.client.vos_catalog` also contains common utilities for accessing
 simple VO services already validated by STScI (see
@@ -236,7 +236,7 @@ simple VO services already validated by STScI (see
 .. _vo-sec-vos-config:
 
 Configurable Items
-^^^^^^^^^^^^^^^^^^
+------------------
 
 These parameters are set via :ref:`astropy_config`:
 
@@ -248,7 +248,7 @@ These parameters are set via :ref:`astropy_config`:
   URL (or path) where VO Service database is stored.
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.client import vos_catalog
 
@@ -351,7 +351,7 @@ None of the available catalogs returned valid results. (1 URL(s) timed out.)
 .. _vo-sec-client-scs:
 
 Simple Cone Search
-------------------
+==================
 
 `astropy.vo.client.conesearch` supports VO Simple Cone Search capabilities.
 
@@ -396,7 +396,7 @@ where the user has more control of which catalog(s) to search, et cetera.
 .. _vo-sec-scs-config:
 
 Configurable Items
-^^^^^^^^^^^^^^^^^^
+------------------
 
 These parameters are set via :ref:`astropy_config`:
 
@@ -409,7 +409,7 @@ Also depends on
 .. _vo-sec-scs-examples:
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.client import conesearch
 

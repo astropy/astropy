@@ -34,7 +34,7 @@
 .. _conda: http://conda.pydata.org/docs/
 
 .. pytest
-.. _py.test: http://pytest.org/latest/
+.. _py.test: https://pytest.org/en/latest/
 
 .. pychecker
 .. _pychecker: https://pypi.python.org/pypi/PyChecker

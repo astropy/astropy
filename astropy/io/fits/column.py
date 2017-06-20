@@ -23,7 +23,6 @@ from ...extern.six import string_types, iteritems, PY2
 from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import suppress
-from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -403,7 +402,8 @@ class ColumnAttribute(object):
 
         @ColumnAttribute('TTYPE')
         def name(col, name):
-            assert isinstance(name, str)
+            if not isinstance(name, str):
+                raise AssertionError
 
     The actual object returned by this decorator is the `ColumnAttribute`
     instance though, not the ``name`` function.  As such ``name`` is not a
@@ -756,12 +756,13 @@ class Column(NotifierMixin):
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
-        assert (isinstance(name, string_types) and
-                len(str(Card('TTYPE', name))) == CARD_LENGTH), \
-                    ('Column name must be a string able to fit in a single '
-                     'FITS card--typically this means a maximum of 68 '
-                     'characters, though it may be fewer if the string '
-                     'contains special characters like quotes.')
+        if (not isinstance(name, string_types)
+                or len(str(Card('TTYPE', name))) != CARD_LENGTH):
+            raise AssertionError(
+                'Column name must be a string able to fit in a single '
+                'FITS card--typically this means a maximum of 68 '
+                'characters, though it may be fewer if the string '
+                'contains special characters like quotes.')
 
     format = ColumnAttribute('TFORM')
     unit = ColumnAttribute('TUNIT')
@@ -1507,7 +1508,8 @@ class ColDefs(NotifierMixin):
         Append one `Column` to the column definition.
         """
 
-        assert isinstance(column, Column)
+        if not isinstance(column, Column):
+            raise AssertionError
 
         self._arrays.append(column.array)
         # Obliterate caches of certain things

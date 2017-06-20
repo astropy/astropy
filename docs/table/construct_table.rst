@@ -3,7 +3,7 @@
 .. _construct_table:
 
 Constructing a table
---------------------
+********************
 
 There is great deal of flexibility in the way that a table can be initially
 constructed.  Details on the inputs to the |Table|
@@ -11,7 +11,7 @@ constructor are in the `Initialization Details`_ section.  However, the
 easiest way to understand how to make a table is by example.
 
 Examples
-^^^^^^^^
+========
 
 Much of the flexibility lies in the types of data structures
 which can be used to initialize the table data.  The examples below show how to
@@ -20,7 +20,7 @@ columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).
 
 Setup
-"""""
+-----
 For the following examples you need to import the |Table| and |Column| classes
 along with the `numpy` package::
 
@@ -28,7 +28,7 @@ along with the `numpy` package::
   >>> import numpy as np
 
 Creating from scratch
-"""""""""""""""""""""
+---------------------
 A Table can be created without any initial input data or even without any
 initial columns.  This is useful for building tables dynamically if the initial
 size, columns, or data are not known.
@@ -63,8 +63,28 @@ Quantities`_ for details)::
   >>> type(t['velocity'])  # doctest: +SKIP
   astropy.units.quantity.Quantity
 
+
+Comment lines
+-------------
+Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+table's metadata. The following will insert two comment lines in the output
+ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+
+  >>> import sys
+  >>> from astropy.table import Table
+  >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
+  >>> t.add_row((1, 2.0, 'x'))
+  >>> t.meta['comments'] = ['Here is my explanatory text. This is awesome.',
+  ...                       'Second comment line.']
+  >>> t.write(sys.stdout, format='ascii')
+  # Here is my explanatory text. This is awesome.
+  # Second comment line.
+  a b c
+  1.0 2 x
+
+
 List of columns
-"""""""""""""""
+---------------
 A typical case is where you have a number of data columns with the same length
 defined in different variables.  These might be Python lists or `numpy` arrays
 or a mix of the two.  These can be used to create a |Table| by putting the column
@@ -136,7 +156,7 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 
 
 Dict of columns
-""""""""""""""""
+----------------
 A dictionary of column data can be used to initialize a |Table|.
 
   >>> arr = {'a': np.array([1, 4], dtype=np.int32),
@@ -191,7 +211,7 @@ column where each row element is itself a 2-element array.
 
 
 Row data
-"""""""""
+---------
 Row-oriented data can be used to create a table using the ``rows``
 keyword argument.
 
@@ -259,7 +279,7 @@ the difference between a scalar ``1`` (length 0) and an array like
    ``rows`` keyword, otherwise it will be interpreted as a list of columns.
 
 NumPy structured array
-""""""""""""""""""""""
+----------------------
 The structured array is the standard mechanism in `numpy` for storing
 heterogeneous table data.  Most scientific I/O packages that read table
 files (e.g.  `PyFITS
@@ -330,7 +350,7 @@ Likewise the data type for each column can by changed with ``dtype``::
 
 
 NumPy homogeneous array
-"""""""""""""""""""""""
+-----------------------
 A `numpy` 1-d array is treated as a single row table where each element of the
 array corresponds to a column::
 
@@ -406,7 +426,7 @@ natural interpretation of 2-d `numpy` arrays where the first index corresponds
 to data "rows" and the second index corresponds to data "columns".
 
 From existing table
-""""""""""""""""""""
+--------------------
 A new table can be created by selecting a subset of columns in an existing
 table::
 
@@ -453,7 +473,7 @@ To create a copy of an existing table that is empty (has no rows)::
 
 
 Initialization Details
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 A table object is created by initializing a |Table| class
 object with the following arguments, all of which are optional:
@@ -473,7 +493,7 @@ The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
 
 data
-""""
+----
 
 The |Table| object can be initialized with several different forms
 for the ``data`` argument.
@@ -537,7 +557,7 @@ for the ``data`` argument.
     are provided then the corresponding columns are created.
 
 names
-"""""
+-----
 
 The ``names`` argument provides a way to specify the table column names or
 override the existing ones.  By default the column names are either taken
@@ -552,7 +572,7 @@ must then contain each of the keys in the ``data`` dict.  If ``names`` is not
 supplied then the order of columns in the output table is not determinate.
 
 dtype
-"""""
+-----
 
 The ``dtype`` argument provides a way to specify the table column data
 types or override the existing types.  By default the types are either
@@ -567,7 +587,7 @@ must be accompanied by a corresponding ``names`` argument in order to uniquely
 specify the column ordering.
 
 meta
-""""
+----
 
 The ``meta`` argument is simply an object that contains meta-data associated
 with the table.  It is recommended that this object be a dict or
@@ -576,7 +596,7 @@ the standard library ``copy.deepcopy()`` routine.  By default ``meta`` is
 an empty OrderedDict_.
 
 copy
-""""
+----
 
 By default the input ``data`` are copied into a new internal ``np.ndarray``
 object in the Table object.  In the case where ``data`` is either an
@@ -591,7 +611,7 @@ information.
 .. _copy_versus_reference:
 
 Copy versus Reference
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 Normally when a new |Table| object is created, the input data are *copied* into
 a new internal array object.  This ensures that if the new table elements are
@@ -626,13 +646,13 @@ table then the reference to the original data array is lost and instead the
 table will now hold a copy of the original values (in addition to the new row).
 
 Column and TableColumns classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 There are two classes, |Column| and |TableColumns|, that are useful when
 constructing new tables.
 
 Column
-""""""
+------
 
 A |Column| object can be created as follows, where in all cases the column
 ``name`` should be provided as a keyword argument and one can optionally provide
@@ -652,7 +672,7 @@ these values:
     Meta-data associated with the column
 
 Initialization options
-''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^
 
 The column data values, shape, and data type are specified in one of two ways:
 
@@ -699,7 +719,7 @@ The column data values, shape, and data type are specified in one of two ways:
 .. _table_format_string:
 
 Format specifier
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 The format specifier controls the output of column values when a table or column
 is printed or written to an ASCII table.  In the simplest case, it is a string
@@ -769,7 +789,7 @@ following example this is used to make a LaTeX ready output::
 
 
 TableColumns
-""""""""""""
+------------
 
 Each |Table| object has an attribute ``columns`` which is an ordered dictionary
 that stores all of the |Column| objects in the table (see also the `Column`_
@@ -813,7 +833,7 @@ So now look at the ways to select columns from a |TableColumns| object:
 .. _subclassing_table:
 
 Subclassing Table
-^^^^^^^^^^^^^^^^^
+=================
 
 For some applications it can be useful to subclass the |Table| class in order
 to introduce specialized behavior.  In addition to subclassing |Table| it is
@@ -847,7 +867,7 @@ subclasses, but in practice you would override only the necessary subcomponents:
 
 
 Example
-"""""""
+-------
 
 As a more practical example, suppose you have a table of data with a certain set of fixed
 columns, but you also want to carry an arbitrary dictionary of keyword=value
@@ -930,7 +950,7 @@ fields.  This might look something like::
           # ... and then the rest of the original __getitem__ ...
 
 Columns and Quantities
-""""""""""""""""""""""
+----------------------
 
 Astropy `~astropy.units.Quantity` objects can be handled within tables in two
 complementary ways.  The first method stores the `~astropy.units.Quantity`
@@ -967,7 +987,7 @@ units, see the :ref:`columns_with_units` section.
 
 
 Table-like objects
-^^^^^^^^^^^^^^^^^^
+==================
 
 In order to improve interoperability between different table classes, an
 astropy |Table| object can be created directly from any other table-like

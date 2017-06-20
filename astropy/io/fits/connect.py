@@ -165,6 +165,10 @@ def read_table_fits(input, hdu=None):
     for key, value, comment in table.header.cards:
 
         if key in ['COMMENT', 'HISTORY']:
+            # Convert to io.ascii format
+            if key == 'COMMENT':
+                key = 'comments'
+
             if key in t.meta:
                 t.meta[key].append(value)
             else:

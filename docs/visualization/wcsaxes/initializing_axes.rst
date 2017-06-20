@@ -1,11 +1,11 @@
 .. _initialization:
 
-========================================
+****************************************
 Initializing axes with world coordinates
-========================================
+****************************************
 
 Basic initialization
-====================
+********************
 
 To make a plot using `~astropy.visualization.wcsaxes.WCSAxes`, we first read in
 the data using `astropy.io.fits
@@ -66,7 +66,7 @@ same functions/methods as for a normal Matplotlib plot:
           ``ax.set_ylim`` by ``plt.xlim`` and ``plt.ylim``.
 
 Alternative methods
-===================
+*******************
 
 As in Matplotlib, there are in fact several ways you can initialize the
 :class:`~astropy.visualization.wcsaxes.WCSAxes`.
@@ -97,7 +97,7 @@ as ``slices`` or ``frame_class``, will be passed on to the
 .. _initialize_alternative:
 
 Directly initializing WCSAxes
-=============================
+*****************************
 
 As an alternative to the above methods of initializing
 :class:`~astropy.visualization.wcsaxes.WCSAxes`, you can also instantiate

@@ -72,7 +72,7 @@ check_sphinx_version("1.2.1")
 del intersphinx_mapping['astropy']
 
 # add any custom intersphinx for astropy
-intersphinx_mapping['pytest'] = ('http://pytest.org/latest/', None)
+intersphinx_mapping['pytest'] = ('https://pytest.org/en/latest/', None)
 intersphinx_mapping['ipython'] = ('http://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
 
@@ -226,7 +226,7 @@ try:
     extensions += ["sphinx_gallery.gen_gallery"]
 
     sphinx_gallery_conf = {
-        'mod_example_dir': 'generated/modules', # path to store the module using example template
+        'backreferences_dir': 'generated/modules', # path to store the module using example template
         'filename_pattern': '^((?!skip_).)*$', # execute all examples except those that start with "skip_"
         'examples_dirs': '..{}examples'.format(os.sep), # path to the examples scripts
         'gallery_dirs': 'generated/examples', # path to save gallery generated examples

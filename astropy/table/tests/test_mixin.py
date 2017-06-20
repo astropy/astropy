@@ -14,12 +14,13 @@ try:
 except ImportError:
     HAS_YAML = False
 
-import numpy as np
 import copy
+
+import pytest
+import numpy as np
 
 from ...extern import six
 from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
-from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates
@@ -106,7 +107,7 @@ def test_io_ascii_write():
 def test_io_quantity_write(tmpdir):
     """
     Test that table with Quantity mixin column can be written by io.fits,
-    but not by io.votable and io.misc.hdf5. Validation of the output is done.
+    io.votable but not by io.misc.hdf5. Validation of the output is done.
     Test that io.fits writes a table containing Quantity mixin columns that can
     be round-tripped (metadata unit).
     """
@@ -116,17 +117,17 @@ def test_io_quantity_write(tmpdir):
     filename = tmpdir.join("table-tmp").strpath
     open(filename, 'w').close()
 
-    for fmt in ('fits', 'votable', 'hdf5'):
-        if fmt == 'fits':
-            t.write(filename, format=fmt, overwrite=True)
-            qt = QTable.read(filename, format=fmt)
-            assert isinstance(qt['a'], u.Quantity)
-            assert qt['a'].unit == 'Angstrom'
-            continue
-        if fmt == 'hdf5' and not HAS_H5PY:
-            continue
+    # Show that FITS and VOTable formats succeed
+    for fmt in ('fits', 'votable'):
+        t.write(filename, format=fmt, overwrite=True)
+        qt = QTable.read(filename, format=fmt)
+        assert isinstance(qt['a'], u.Quantity)
+        assert qt['a'].unit == 'Angstrom'
+
+    # Show that HDF5 format fails
+    if HAS_H5PY:
         with pytest.raises(ValueError) as err:
-            t.write(filename, format=fmt, overwrite=True)
+            t.write(filename, format='hdf5', overwrite=True)
         assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
@@ -181,7 +182,7 @@ def test_join(table_types):
             assert t12[name2].info.description == name + '2'
 
     for join_type in ('outer', 'right'):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(NotImplementedError) as exc:
             t12 = join(t1, t2, keys='a', join_type=join_type)
         assert 'join requires masking column' in str(exc.value)
 
@@ -211,7 +212,7 @@ def test_hstack(table_types):
             if chop:
                 t2 = t2[:-1]
                 if join_type == 'outer':
-                    with pytest.raises(ValueError) as exc:
+                    with pytest.raises(NotImplementedError) as exc:
                         t12 = hstack([t1, t2], join_type=join_type)
                     assert 'hstack requires masking column' in str(exc.value)
                     continue

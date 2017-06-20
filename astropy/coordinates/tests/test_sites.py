@@ -1,7 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...tests.helper import pytest, assert_quantity_allclose, remote_data, quantity_allclose
+import pytest
+
+from ...tests.helper import assert_quantity_allclose, remote_data, quantity_allclose
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry

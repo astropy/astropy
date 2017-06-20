@@ -5,47 +5,18 @@ earlier versions of Numpy.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ...extern import six
 from ...utils import minversion
 
 
-__all__ = ['NUMPY_LT_1_8', 'NUMPY_LT_1_9', 'NUMPY_LT_1_9_1', 'NUMPY_LT_1_10',
-           'NUMPY_LT_1_10_4', 'NUMPY_LT_1_11', 'NUMPY_LT_1_12']
+__all__ = ['NUMPY_LT_1_9_1', 'NUMPY_LT_1_10', 'NUMPY_LT_1_10_4',
+           'NUMPY_LT_1_11', 'NUMPY_LT_1_12', 'NUMPY_LT_1_13']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
 # astropy.table.table._BROKEN_UNICODE_TABLE_SORT)
-NUMPY_LT_1_8 = not minversion('numpy', '1.8.0')
-NUMPY_LT_1_9 = not minversion('numpy', '1.9.0')
 NUMPY_LT_1_9_1 = not minversion('numpy', '1.9.1')
 NUMPY_LT_1_10 = not minversion('numpy', '1.10.0')
 NUMPY_LT_1_10_4 = not minversion('numpy', '1.10.4')
 NUMPY_LT_1_11 = not minversion('numpy', '1.11.0')
 NUMPY_LT_1_12 = not minversion('numpy', '1.12')
-
-
-def _monkeypatch_unicode_mask_fill_values():
-    """
-    Numpy < 1.8.0 on Python 2 does not support Unicode fill values, since
-    it assumes that all of the string dtypes are ``S`` and ``V`` (not ``U``).
-
-    This monkey patches the function that validates and corrects a
-    fill value to handle this case.
-    """
-    if NUMPY_LT_1_8 and six.PY2:
-        import numpy as np
-        from numpy.ma import core as ma_core
-        _check_fill_value_original = ma_core._check_fill_value
-
-        def _check_fill_value(fill_value, ndtype):
-            if (not ndtype.fields and
-                isinstance(fill_value, six.string_types) and
-                ndtype.char in 'SVU'):
-                return np.array(fill_value, copy=False, dtype=ndtype)
-            return _check_fill_value_original(fill_value, ndtype)
-
-        ma_core._check_fill_value = _check_fill_value
-
-
-if not _ASTROPY_SETUP_:
-    _monkeypatch_unicode_mask_fill_values()
+NUMPY_LT_1_13 = not minversion('numpy', '1.13dev')

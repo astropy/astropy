@@ -1,10 +1,10 @@
 .. _nddata_subclassing:
 
 Subclassing
-===========
+***********
 
 `~astropy.nddata.NDData`
-------------------------
+========================
 
 This class serves as the base for subclasses that use a `numpy.ndarray` (or
 something that presents a numpy-like interface) as the ``data`` attribute.
@@ -14,7 +14,7 @@ something that presents a numpy-like interface) as the ``data`` attribute.
   the ``data`` is saved as ``_data`` and the ``mask`` as ``_mask``, and so on.
 
 Adding another property
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
     >>> from astropy.nddata import NDData
 
@@ -46,7 +46,7 @@ Adding another property
   the setter and will also apply during instance creation.
 
 Customize the setter for a property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
     >>> import numpy as np
 
@@ -63,7 +63,7 @@ Customize the setter for a property
     array(True, dtype=bool)
 
 Extend the setter for a property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 ``unit``, ``meta`` and ``uncertainty`` implement some additional logic in their
 setter so subclasses might define a call to the superclass and let the
@@ -88,7 +88,7 @@ super property set the attribute afterwards::
     UnknownUncertainty([2, 3, 4])
 
 Having a setter for the data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
     >>> class NDDataWithDataSetter(NDData):
     ...
@@ -102,7 +102,7 @@ Having a setter for the data
     array([3, 2, 1])
 
 `~astropy.nddata.NDDataRef`
----------------------------
+===========================
 
 `~astropy.nddata.NDDataRef` itself inherits from `~astropy.nddata.NDData` so
 any of the possibilities there also apply to NDDataRef. But NDDataRef also
@@ -115,7 +115,7 @@ inherits from the Mixins:
 which allow additional operations.
 
 Add another arithmetic operation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 Adding another possible operations is quite easy provided the ``data`` and
 ``unit`` allow it within the framework of `~astropy.units.Quantity`.
@@ -165,7 +165,7 @@ possible.
 
 
 Arithmetic on an existing property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 Customizing how an existing property is handled during arithmetic is possible
 with some arguments to the function calls like
@@ -219,7 +219,7 @@ be anything except ``None`` or ``"first_found"``::
 
 
 Changing default argument for arithmetic operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------
 
 If the goal is to change the default value of an existing parameter for
 arithmetic methods, maybe because explicitly specifying the parameter each
@@ -258,7 +258,7 @@ for python 2.
 
 
 Arithmetic with an additional property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 This also requires overriding the ``_arithmetic`` method. Suppose we have a
 ``flags`` attribute again::
@@ -310,7 +310,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
 
 
 Slicing an existing property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 Suppose you have a class expecting a 2 dimensional ``data`` but the mask is
 only 1D. This would lead to problems if one were to slice in two dimensions.
@@ -342,7 +342,7 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
 
 
 Slicing an additional property
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 Building on the added property ``flags`` we want them to be sliceable:
 
@@ -377,7 +377,7 @@ If you wanted to keep just the original ``flags`` instead of the sliced ones
 you could use ``kwargs['flags'] = self.flags`` and omit the ``[item]``.
 
 `~astropy.nddata.NDDataBase`
-----------------------------
+============================
 
 The class `~astropy.nddata.NDDataBase` is a metaclass -- when subclassing it,
 all properties of `~astropy.nddata.NDDataBase` *must* be overridden in the
@@ -390,7 +390,7 @@ be more straightforward to subclass `~astropy.nddata.NDData` instead of
 `~astropy.nddata.NDDataBase`.
 
 Implementing the NDDataBase interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 For example to create a readonly container::
 
@@ -438,7 +438,7 @@ For example to create a readonly container::
   return arbitrary values but the properties **must** be defined.
 
 Subclassing `~astropy.nddata.NDUncertainty`
--------------------------------------------
+===========================================
 .. warning::
     The internal interface of NDUncertainty and subclasses is experimental and
     might change in future versions.
@@ -451,7 +451,7 @@ Subclasses deriving from `~astropy.nddata.NDUncertainty` need to implement:
   that is used on the ``NDData`` parent.
 
 Creating an uncertainty without propagation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 `~astropy.nddata.UnknownUncertainty` is a minimal working implementation
 without error propagation. So let's create an uncertainty just storing
@@ -480,10 +480,10 @@ systematic uncertainties::
     SystematicUncertainty([10])
 
 Subclassing `~astropy.nddata.StdDevUncertainty`
------------------------------------------------
+===============================================
 
 Creating an variance uncertainty
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 `~astropy.nddata.StdDevUncertainty` already implements propagation based
 on gaussian standard deviation so this could be the starting point of an

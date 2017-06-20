@@ -1,6 +1,6 @@
-=============================
+*****************************
 Slicing Multidimensional Data
-=============================
+*****************************
 
 WCSAxes can ultimately only plot two-dimensional data. If we have an
 n-dimensional dataset, we have to select which dimensions to use for
@@ -8,7 +8,7 @@ the x and y axis of the image. This example will show how to slice a FITS
 data cube and plot an image from it.
 
 Slicing the WCS object
-======================
+**********************
 
 Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
@@ -64,7 +64,7 @@ can experiment with this by changing the selected slice and looking at how the
 plotted image changes.
 
 Plotting the image
-==================
+******************
 
 We then add the axes to the image and plot it using the method
 :meth:`~matplotlib.axes.Axes.imshow`.

@@ -3,7 +3,7 @@
 .. _astropy.io.ascii_write:
 
 Writing tables
---------------
+**************
 
 :mod:`astropy.io.ascii` is able to write ASCII tables out to a file or file-like
 object using the same class structure and basic user interface as for reading
@@ -48,7 +48,7 @@ To disable this engine, use the parameter ``fast_writer``::
    >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
 Input data format
-^^^^^^^^^^^^^^^^^
+=================
 
 The input ``table`` argument to |write| can be any value that is supported for
 initializing a |Table| object.  This is documented in detail in the
@@ -57,9 +57,9 @@ columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).  The sections below show a few examples.
 
 Table or NumPy structured array
-"""""""""""""""""""""""""""""""
+-------------------------------
 
-An AstroPy |Table| object or a NumPy `structured array`_ (or record array) can
+An Astropy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
 
 ::
@@ -92,7 +92,7 @@ object that can be an input to the |write| function.
     >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
 
 List of lists
-"""""""""""""
+-------------
 
 A list of Python lists (or any iterable object) can be used as input::
 
@@ -120,7 +120,7 @@ from the output::
 
 
 Dict of lists
-"""""""""""""
+-------------
 
 A dictionary containing iterable objects can serve as input to |write|.  Each
 dict key is taken as the column name while the value must be an iterable object
@@ -144,7 +144,7 @@ unpredictable unless the ``names`` argument is provided.
 .. _io_ascii_write_parameters:
 
 Parameters for ``write()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 The |write| function accepts a number of parameters that specify the detailed output table
 format.  Each of the :ref:`supported_formats` is handled by a corresponding Writer class that

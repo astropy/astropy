@@ -1,10 +1,10 @@
 .. _nddata_arithmetic:
 
 NDData Arithmetic
-=================
+*****************
 
 Introduction
-------------
+============
 
 `~astropy.nddata.NDDataRef` implements the following arithmetic operations:
 
@@ -14,7 +14,7 @@ Introduction
 - division: :meth:`~astropy.nddata.NDArithmeticMixin.divide`
 
 Using basic arithmetic methods
-------------------------------
+==============================
 
 Using the standard arithmetic methods requires that the first operand
 is an `~astropy.nddata.NDDataRef` instance
@@ -47,7 +47,7 @@ here broadcasting takes care of the different dimensions. Also several other
 classes are possible.
 
 Using arithmetic classmethods
------------------------------
+=============================
 
 Here both operands don't need to be `~astropy.nddata.NDDataRef`-like::
 
@@ -70,7 +70,7 @@ or taking the inverse of a `~astropy.nddata.NDDataRef` object::
 
 
 Possible operands
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The possible types of input for operands are:
 
@@ -82,14 +82,14 @@ The possible types of input for operands are:
 + other nddata classes or subclasses
 
 Advanced options
-----------------
+================
 
 The normal python operators ``+``, ``-``, ... are not implemented because
 the methods provide several options how to proceed with the additional
 attributes.
 
 data, unit
-^^^^^^^^^^
+----------
 
 For ``data`` and ``unit`` there are no parameters. Every arithmetic
 operation lets the `astropy.units.Quantity`-framework evaluate the result
@@ -130,7 +130,7 @@ not be decomposed during division::
     Unit("lyr / pc")
 
 mask
-^^^^
+----
 
 The ``handle_mask`` parameter for the arithmetic operations implements what the
 resulting mask will be. There are several options.
@@ -192,7 +192,7 @@ resulting mask will be. There are several options.
       array([False, False,  True,  True], dtype=bool)
 
 meta
-^^^^
+----
 
 The ``handle_meta`` parameter for the arithmetic operations implements what the
 resulting meta will be. The options are the same as for the ``mask``:
@@ -307,7 +307,7 @@ or if the operation should be forbidden. The possible values are identical to
   allows.
 
 uncertainty
-^^^^^^^^^^^
+-----------
 
 The ``propagate_uncertainties`` argument can be used to turn the propagation
 of uncertainties on or off.
@@ -336,7 +336,7 @@ of uncertainties on or off.
       StdDevUncertainty([ 14.14213562])
 
 uncertainty with correlation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 If ``propagate_uncertainties`` is ``True`` you can give also an argument
 for ``uncertainty_correlation``. `~astropy.nddata.StdDevUncertainty` cannot
@@ -385,7 +385,7 @@ element is fully correlated, the second element partially correlates while
 element 3 is uncorrelated and 4 is anti-correlated.
 
 uncertainty with unit
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 `~astropy.nddata.StdDevUncertainty` implements correct error propagation even
 if the unit of the data differs from the unit of the uncertainty::

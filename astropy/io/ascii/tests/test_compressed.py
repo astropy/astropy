@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import sys
+
+import pytest
 import numpy as np
 
-from ....tests.helper import pytest
 from .. import read
 
 ROOT = os.path.abspath(os.path.dirname(__file__))

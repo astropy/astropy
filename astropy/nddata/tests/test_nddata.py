@@ -8,12 +8,12 @@ from __future__ import (absolute_import, division, print_function,
 import textwrap
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
 from ..nduncertainty import NDUncertainty, StdDevUncertainty
-from ...tests.helper import pytest
 from ... import units as u
 from ...utils import NumpyRNGContext
 

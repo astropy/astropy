@@ -4,13 +4,13 @@
 
 import copy
 import functools
-import sys
 import datetime
 from copy import deepcopy
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ...tests.disable_internet import INTERNET_OFF
 from ...extern import six
 from ...extern.six.moves import zip
@@ -627,11 +627,20 @@ class TestSubFormat():
         # Test deprecated scale.
         t = Time('2000-01-02(IAT)')
         assert t.scale == 'tai'
+        # Test with scale and FITS string scale
+        t = Time('2045-11-08T00:00:00.000(UTC)', scale='utc')
+        assert t.scale == 'utc'
         # Check that inconsistent scales lead to errors.
         with pytest.raises(ValueError):
             Time('2000-01-02(TAI)', scale='utc')
         with pytest.raises(ValueError):
             Time(['2000-01-02(TAI)', '2001-02-03(UTC)'])
+        # Check that inconsistent FITS string scales lead to errors.
+        with pytest.raises(ValueError):
+            Time(['2000-01-02(TAI)', '2001-02-03(IAT)'])
+        # Check that inconsistent realizations lead to errors.
+        with pytest.raises(ValueError):
+            Time(['2000-01-02(ET(NIST))', '2001-02-03(ET)'])
 
     def test_fits_scale_representation(self):
         t = Time('1960-01-02T03:04:05.678(ET(NIST))')
@@ -821,13 +830,7 @@ def test_now():
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.
 
-    # py < 2.7 doesn't have `total_seconds`
-    if sys.version_info[:2] < (2, 7):
-        total_secs = lambda td: (td.microseconds + (
-            td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
-    else:
-        total_secs = lambda td: td.total_seconds()
-    assert total_secs(dt) < 0.1
+    assert dt.total_seconds() < 0.1
 
 
 def test_decimalyear():

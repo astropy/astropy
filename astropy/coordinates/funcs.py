@@ -157,7 +157,7 @@ def get_sun(time):
     earth_v = earth_pv_bary[..., 1, :]
 
     # convert barycentric velocity to units of c, but keep as array for passing in to erfa
-    earth_v /= c.to(u.au/u.d).value
+    earth_v /= c.to_value(u.au/u.d)
 
     dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
     invlorentz = (1-np.sum(earth_v**2, axis=-1))**0.5

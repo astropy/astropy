@@ -9,6 +9,7 @@ import os
 import warnings
 import zipfile
 
+import pytest
 import numpy as np
 
 try:
@@ -25,7 +26,7 @@ from ..file import _File, GZIP_MAGIC
 
 from ....extern.six.moves import range, zip
 from ....io import fits
-from ....tests.helper import pytest, raises, catch_warnings, ignore_warnings
+from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.data import get_pkg_data_filename
 from ....utils import data
 
@@ -426,7 +427,7 @@ class TestCore(FitsTestCase):
         hdu.header['SIMPLE'] = False
         hdu.writeto(self.temp('test.fits'))
 
-        info = [(0, '', 'NonstandardHDU', 5, (), '', '')]
+        info = [(0, '', 1, 'NonstandardHDU', 5, (), '', '')]
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul.info(output=False) == info
             # NonstandardHDUs just treat the data as an unspecified array of

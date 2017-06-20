@@ -1,6 +1,6 @@
-==================================
+**********************************
 Ticks, tick labels, and grid lines
-==================================
+**********************************
 
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.
@@ -26,7 +26,7 @@ For the example in the following page we start from the example introduced in
 .. _coordinateobjects:
 
 Coordinate objects
-==================
+******************
 
 While for many images, the coordinate axes are aligned with the pixel axes,
 this is not always the case, especially if there is any rotation in the world
@@ -75,7 +75,7 @@ to control the appearance of the ticks, tick labels, grid lines, and axis
 labels associated with that coordinate.
 
 Axis labels
-===========
+***********
 
 Axis labels can be added using the
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
@@ -117,7 +117,7 @@ allowed.
 .. _tick_label_format:
 
 Tick label format
-=================
+*****************
 
 The format of the tick labels can be specified with a string describing the
 format:
@@ -180,7 +180,7 @@ specifying a string or a tuple.
 
 
 Tick/label spacing and properties
-=================================
+*********************************
 
 The spacing of ticks/tick labels should have a sensible default, but you may
 want to be able to manually specify the spacing. This can be done using the
@@ -220,7 +220,7 @@ We can apply this to the previous example:
     lat.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
 
 Minor ticks
-===========
+***********
 
 WCSAxes does not display minor ticks by default but these can be shown by
 using the
@@ -238,7 +238,7 @@ specified.
     lat.set_minor_frequency(10)
 
 Tick, tick label, and axis label position
-=========================================
+*****************************************
 
 By default, the tick and axis labels for the first coordinate are shown on the
 x-axis, and the tick and axis labels for the second coordinate are shown on
@@ -283,7 +283,7 @@ vertical axis (which is usually the minor axis of the ellipse).
 
 
 Hiding ticks and tick labels
-============================
+****************************
 
 Sometimes it's desirable to hide ticks and tick labels. A common scenario
 is where WCSAxes is being used in a grid of subplots and the tick labels
@@ -320,7 +320,7 @@ And we can restore the ticks and tick labels again using:
 
 
 Coordinate grid
-===============
+***************
 
 Since the properties of a coordinate grid are linked to the properties of the
 ticks and labels, grid lines 'belong' to the coordinate objects described

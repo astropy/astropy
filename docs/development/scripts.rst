@@ -1,6 +1,6 @@
-============================
+****************************
 Writing Command-Line Scripts
-============================
+****************************
 
 Command-line scripts in Astropy should follow a consistent scheme to promote
 readability and compatibility.
@@ -24,7 +24,7 @@ astropy.utils.compat import argparse`` .
 .. _"entry points": https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
 
 Example
--------
+=======
 
 Contents of ``/astropy/somepackage/somemod.py`` ::
 

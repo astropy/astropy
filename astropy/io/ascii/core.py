@@ -141,9 +141,9 @@ class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
 
     We want to be able to put the generic term ``masked`` into a dictionary.
-    In python 2.7 we can just use ``numpy.ma.masked``, but in python 3.1 and 3.2 that
-    is not hashable, see https://github.com/numpy/numpy/issues/4660
-    So, we need to extend it here with a hash value.
+    The constant ``numpy.ma.masked`` is not hashable (see
+    https://github.com/numpy/numpy/issues/4660), so we need to extend it
+    here with a hash value.
     """
     def __hash__(self):
         '''All instances of this class shall have the same hash.'''
@@ -256,6 +256,10 @@ class BaseInputter(object):
     Get the lines from the table input and return a list of lines.
 
     """
+
+    encoding = None
+    """Encoding used to read the file"""
+
     def get_lines(self, table):
         """
         Get the lines from the ``table`` input. The input table can be one of:
@@ -280,8 +284,9 @@ class BaseInputter(object):
         try:
             if (hasattr(table, 'read') or
                     ('\n' not in table + '' and '\r' not in table + '')):
-                with get_readable_fileobj(table) as file_obj:
-                    table = file_obj.read()
+                with get_readable_fileobj(table,
+                                          encoding=self.encoding) as fileobj:
+                    table = fileobj.read()
             lines = table.splitlines()
         except TypeError:
             try:
@@ -1085,6 +1090,7 @@ class BaseReader(object):
     exclude_names = None
     strict_names = False
     guessing = False
+    encoding = None
 
     header_class = BaseHeader
     data_class = BaseData
@@ -1327,7 +1333,7 @@ class WhitespaceSplitter(DefaultSplitter):
 
 extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'delimiter', 'comment', 'quotechar', 'header_start',
-                     'data_start', 'data_end', 'converters',
+                     'data_start', 'data_end', 'converters', 'encoding',
                      'data_Splitter', 'header_Splitter',
                      'names', 'include_names', 'exclude_names', 'strict_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
@@ -1412,6 +1418,13 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
         reader.data.fill_include_names = kwargs['fill_include_names']
     if 'fill_exclude_names' in kwargs:
         reader.data.fill_exclude_names = kwargs['fill_exclude_names']
+    if 'encoding' in kwargs:
+        if six.PY2:
+            raise ValueError("the encoding parameter is not supported on "
+                             "Python 2")
+        else:
+            reader.encoding = kwargs['encoding']
+            reader.inputter.encoding = kwargs['encoding']
 
     return reader
 

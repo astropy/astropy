@@ -481,12 +481,18 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 should_swap = (byteorder in swap_types)
 
             if not fileobj.simulateonly:
+
                 if should_swap:
-                    output.byteswap(True)
-                    try:
-                        fileobj.writearray(output)
-                    finally:
+                    if output.flags.writeable:
                         output.byteswap(True)
+                        try:
+                            fileobj.writearray(output)
+                        finally:
+                            output.byteswap(True)
+                    else:
+                        # For read-only arrays, there is no way around making
+                        # a byteswapped copy of the data.
+                        fileobj.writearray(output.byteswap(False))
                 else:
                     fileobj.writearray(output)
 
@@ -518,7 +524,9 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         """
 
         if self._has_data:
+
             # We have the data to be used.
+
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
             # TODO: Maybe check this on a per-field basis instead of assuming
@@ -527,9 +535,16 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 self.data.dtype.fields[self.data.dtype.names[0]][0].str[0]
 
             if byteorder != '>':
-                byteswapped = True
-                d = self.data.byteswap(True)
-                d.dtype = d.dtype.newbyteorder('>')
+                if self.data.flags.writeable:
+                    byteswapped = True
+                    d = self.data.byteswap(True)
+                    d.dtype = d.dtype.newbyteorder('>')
+                else:
+                    # If the data is not writeable, we just make a byteswapped
+                    # copy and don't bother changing it back after
+                    d = self.data.byteswap(False)
+                    d.dtype = d.dtype.newbyteorder('>')
+                    byteswapped = False
             else:
                 byteswapped = False
                 d = self.data
@@ -554,7 +569,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
     def _summary(self):
         summary = super(GroupsHDU, self)._summary()
-        name, classname, length, shape, format, gcount = summary
+        name, ver, classname, length, shape, format, gcount = summary
 
         # Drop the first axis from the shape
         if shape:
@@ -566,7 +581,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # Update the GCOUNT report
         gcount = '{} Groups  {} Parameters'.format(self._gcount, self._pcount)
-        return (name, classname, length, shape, format, gcount)
+        return (name, ver, classname, length, shape, format, gcount)
 
 
 def _par_indices(names):

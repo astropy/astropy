@@ -1,16 +1,16 @@
 .. _config-0-4-transition:
 
 Configuration transition
-========================
+************************
 
 This document describes the changes in the configuration system in
 astropy 0.4 and how to update code to use it.
 
 For users
----------
+=========
 
 The config file
-^^^^^^^^^^^^^^^
+---------------
 
 If you never edited the configuration file in
 ``~/.astropy/config/astropy.cfg``, there is nothing for you to do.
@@ -24,13 +24,13 @@ changes to this file to determine what customizations should be
 brought over.
 
 Saving
-^^^^^^
+------
 
 Saving configuration items from Python has been completely removed.
 Instead, the configuration file must be edited directly.
 
 Renames
-^^^^^^^
+-------
 
 The location of the configuration parameters have been simplified, so
 they always appear in a high-level subpackage of astropy, rather than
@@ -207,7 +207,7 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``vo.validator.conf.noncritical_warnings``
 
 For affiliated package authors
-------------------------------
+==============================
 
 For an affiliated package to support both astropy 0.3 and 0.4,
 following the astropy 0.3 config instructions should continue to work.
@@ -283,7 +283,7 @@ The above, converted to the new method, looks like::
 
 
 Moving/renaming configuration items in Python
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------
 
 ``ConfigAlias`` objects can be used when a configuration item has been
 moved from an astropy 0.3-style ``ConfigurationItem`` to an astropy
@@ -298,7 +298,7 @@ work from user code::
         'enable_record_valued_keyword_cards')
 
 Moving/renaming configuration items in the config file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------
 
 If a configuration item is moved or renamed within the configuration
 file, the ``aliases`` kwarg to ``ConfigItem`` can be used so that the

@@ -69,8 +69,8 @@ Model parameters can be accessed as attributes::
     Parameter('amplitude', value=1.2)
     >>> g.mean
     Parameter('mean', value=0.9)
-    >>> g.stddev
-    Parameter('stddev', value=0.5)
+    >>> g.stddev  # doctest: +FLOAT_CMP
+    Parameter('stddev', value=0.5, bounds=(1.1754943508222875e-38, None))
 
 and can also be updated via those attributes::
 
@@ -288,7 +288,8 @@ without specifying any parameter values up front.  This more advanced usage is
 explained in more detail in the :ref:`compound model documentation
 <compound-model-classes>`.
 
-These new compound models can also be fitted to data, like most other models:
+These new compound models can also be fitted to data, like most other models
+(though this currently requires one of the non-linear fitters):
 
 .. plot::
     :include-source:
@@ -337,7 +338,7 @@ Using `astropy.modeling`
    new
    bounding-boxes
    algorithms
-
+   units
 
 Reference/API
 =============

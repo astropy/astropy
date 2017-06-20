@@ -3,13 +3,13 @@
 .. include:: links.inc
 .. _install-git:
 
-==========================
+**************************
  Install and configure git
-==========================
+**************************
 
 
 Get git
--------
+=======
 
 Installers and instructions for all platforms are available at
 http://git-scm.com/downloads
@@ -17,7 +17,7 @@ http://git-scm.com/downloads
 .. _essential_config:
 
 Essential configuration
------------------------
+=======================
 
 Though technically not required to install `git`_ and get it running, configure `git`_ so that you get credit for your contributions::
 
@@ -39,7 +39,7 @@ Check it with::
 .. _git_gui_options:
 
 Get a git GUI (optional)
-------------------------
+========================
 
 There are several good, free graphical interfaces for git.
 Even if you are proficient with `git`_ at the command line a GUI can be useful.

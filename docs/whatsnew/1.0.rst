@@ -2,12 +2,12 @@
 
 .. _whatsnew-1.0:
 
-==========================
+**************************
 What's New in Astropy 1.0?
-==========================
+**************************
 
 Overview
---------
+========
 
 Astropy 1.0 is a major release that adds significant new functionality since the 0.4.x series of releases.
 
@@ -34,7 +34,7 @@ By the numbers:
 * 122 distinct people have contributed code
 
 About Long-term support
------------------------
+=======================
 
 Astropy v1.0 is a long-term support (LTS) release.  This means v1.0 will
 be supported with bug fixes for 2 years from its release, rather than 6
@@ -50,7 +50,7 @@ major changes may prevent backporting of complex changes, particularly if they
 are connected to new features.
 
 Support for Alt/Az coordinates
-------------------------------
+==============================
 
 The `~astropy.coordinates` package now supports conversion to/from AltAz
 coordinates.  This means `~astropy.coordinates` can now be used for planning
@@ -76,7 +76,7 @@ To view the full set of coordinate frames now available, see the coordinates
 
 
 New Galactocentric coordinate frame
------------------------------------
+===================================
 
 Added a new, customizable :class:`~astropy.coordinates.Galactocentric`
 coordinate frame. The other coordinate frames (e.g.,
@@ -103,7 +103,7 @@ angle that allows for specifying the orientation of the z axis (``roll``)::
 .. _whatsnew_viz:
 
 New data visualization subpackage
----------------------------------
+=================================
 
 The new :ref:`Data Visualization <astropy-visualization>` package is intended
 to collect functionality that can be helpful when visualizing data. At the
@@ -139,7 +139,7 @@ colorbar:
 .. _whatsnew_analytical_functions:
 
 New analytic functions subpackage
----------------------------------
+=================================
 
 This subpackage provides analytic functions that are commonly used in
 astronomy. These already understand `~astropy.units.Quantity`, i.e., they can
@@ -161,10 +161,10 @@ accessible as `~astropy.modeling.Model` classes.
 .. _whatsnew_io_ascii:
 
 New ASCII features
-------------------
+==================
 
 Fast readers/writers for ASCII files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 The :mod:`astropy.io.ascii` module now includes a significantly faster Cython/C engine
 for reading and writing ASCII files.  This is available for the following
@@ -187,7 +187,7 @@ fast version, in which case the pure-Python version will automatically be used.
 For full details including extensive performance testing, see :ref:`fast_ascii_io`.
 
 Enhanced CSV format
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 One of the problems when storing a table in an ASCII format is preserving table
 meta-data such as comments, keywords and column data types, units, and
@@ -240,7 +240,7 @@ package to be installed.
 .. _whatsnew_modeling:
 
 New modeling features
----------------------
+=====================
 
 New subclasses of `~astropy.modeling.Model` are now a bit easier to define,
 requiring less boilerplate code in general.  Now all that is necessary to
@@ -278,7 +278,7 @@ fitting framework.  See the
 .. _whatsnew_table:
 
 New Table features
-------------------
+==================
 
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Time| replace:: :class:`~astropy.time.Time`
@@ -288,7 +288,7 @@ New Table features
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 
 Refactor of table infrastructure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 The underlying data container for the Astropy |Table| object has been changed
 in Astropy v1.0.  Previously, tables were stored internally as a Numpy structured
@@ -305,7 +305,7 @@ For details please see `Table implementation change in 1.0
 <https://astropy.readthedocs.io/en/v1.0/table/implementation_change_1.0.html>`_.
 
 Support for 'mixin' columns
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 Version v1.0 of Astropy introduces a new concept of the "Mixin
 Column" in tables which allows integration of appropriate non-|Column| based
@@ -345,7 +345,7 @@ The important point here is that the ``time`` column is a bona fide |Time| objec
 For all the details, including a new |QTable| class, please see :ref:`mixin_columns`.
 
 Integration with WCSAxes
-------------------------
+========================
 
 The :class:`~astropy.wcs.WCS` class can now be used as a `Matplotlib
 <http://www.matplotlib.org>`_ projection to make plots of images with WCS
@@ -355,14 +355,14 @@ information on using this functionality can be found in the `WCSAxes
 <http://wcsaxes.readthedocs.io>`_ documentation.
 
 Deprecation and backward-incompatible changes
----------------------------------------------
+=============================================
 
 Astropy is now no longer supported on Python 3.1 and 3.2. Python 3.x users
 should use Python 3.3 or 3.4. In addition, support for Numpy 1.5 has been
 dropped, and users should make sure they are using Numpy 1.6 or later.
 
 Full change log
----------------
+===============
 
 To see a detailed list of all changes in version v1.0, including changes in API,
 please see the :ref:`changelog`.

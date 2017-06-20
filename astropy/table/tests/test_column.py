@@ -1,16 +1,17 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
 
 import operator
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, assert_follows_unicode_guidelines, catch_warnings
+from ...tests.helper import assert_follows_unicode_guidelines, catch_warnings
 from ... import table
 from ... import units as u
 from ...extern import six
-from ...utils.compat import NUMPY_LT_1_8
 
 
 class TestColumn():
@@ -286,6 +287,16 @@ class TestColumn():
         with pytest.raises((ValueError,IndexError)):
             c1 = c.insert(4, 100)
 
+    def test_insert_axis(self, Column):
+        """Insert with non-default axis kwarg"""
+        c = Column([[1, 2], [3, 4]])
+
+        c1 = c.insert(1, [5, 6], axis=None)
+        assert np.all(c1 == [1, 5, 6, 2, 3, 4])
+
+        c1 = c.insert(1, [5, 6], axis=1)
+        assert np.all(c1 == [[1, 5, 2], [3, 6, 4]])
+
     def test_insert_multidim(self, Column):
         c = Column([[1, 2],
                     [3, 4]], name='a', dtype=int)
@@ -473,16 +484,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.Column)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.Column)
 
     c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
@@ -493,16 +498,10 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1_8:
-        with pytest.raises(ValueError):
-            c.take(0)
-        with pytest.raises(ValueError):
-            np.take(c, 0)
-    else:
-        for subset in [c.take(0), np.take(c, 0)]:
-            assert subset == 1
-            assert subset.shape == ()
-            assert not isinstance(subset, table.MaskedColumn)
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.MaskedColumn)
 
 
 def test_unicode_guidelines():
@@ -549,12 +548,13 @@ def test_qtable_column_conversion():
     assert isinstance(qtab['f'], u.Dex)
 
 
-def test_string_truncation_warning():
+@pytest.mark.parametrize('masked', [True, False])
+def test_string_truncation_warning(masked):
     """
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
-    t = table.Table([['aa', 'bb']], names=['a'])
+    t = table.Table([['aa', 'bb']], names=['a'], masked=masked)
 
     with catch_warnings() as w:
         from inspect import currentframe, getframeinfo
@@ -583,3 +583,192 @@ def test_string_truncation_warning():
         assert len(w) == 1
         assert ('truncated right side string(s) longer than 2 character(s)'
                 in str(w[0].message))
+
+    with catch_warnings() as w:
+        # Test the obscure case of assigning from an array that was originally
+        # wider than any of the current elements (i.e. dtype is U4 but actual
+        # elements are U1 at the time of assignment).
+        val = np.array(['ffff', 'gggg'])
+        val[:] = ['f', 'g']
+        t['a'][:] = val
+        assert np.all(t['a'] == ['f', 'g'])
+        assert len(w) == 0
+
+
+def test_string_truncation_warning_masked():
+    """
+    Test warnings associated with in-place assignment to a string
+    to a masked column, specifically where the right hand side
+    contains np.ma.masked.
+    """
+
+    # Test for strings, but also cover assignment of np.ma.masked to
+    # int and float masked column setting.  This was previously only
+    # covered in an unrelated io.ascii test (test_line_endings) which
+    # showed an unexpected difference between handling of str and numeric
+    # masked arrays.
+    for values in (['a', 'b'], [1, 2], [1.0, 2.0]):
+        mc = table.MaskedColumn(values)
+
+        with catch_warnings() as w:
+            mc[1] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [False, True])
+
+            mc[:] = np.ma.masked
+            assert len(w) == 0
+            assert np.all(mc.mask == [True, True])
+
+    mc = table.MaskedColumn(['aa', 'bb'])
+
+    with catch_warnings() as w:
+        mc[:] = [np.ma.masked, 'ggg']  # replace item with string that gets truncated
+        assert mc[1] == 'gg'
+        assert np.all(mc.mask == [True, False])
+        assert len(w) == 1
+        assert ('truncated right side string(s) longer than 2 character(s)'
+                in str(w[0].message))
+
+
+@pytest.mark.skipif('six.PY2')
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_create_from_str(Column):
+    """
+    Create a bytestring Column from strings (including unicode) in Py3.
+    """
+    # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
+    # Stress the system by injecting non-ASCII characters.
+    uba = u'bä'
+    c = Column([uba, 'def'], dtype='S')
+    assert c.dtype.char == 'S'
+    assert c[0] == uba
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_col_unicode_sandwich_bytes(Column):
+    """
+    Create a bytestring Column from bytes and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
+    # Stress the system by injecting non-ASCII characters.
+    uba = 'ba' if six.PY2 else u'bä'
+    uba8 = uba.encode('utf-8')
+    c = Column([uba8, b'def'])
+    assert c.dtype.char == 'S'
+    assert c[0] == uba8 if six.PY2 else uba  # Can compare utf-8 directly only in PY3
+    assert isinstance(c[0], str)
+    assert isinstance(c[:0], table.Column)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'S'
+
+    # Array / list comparisons
+    if not six.PY2:
+        assert np.all(c == [uba, 'def'])
+
+    ok = c == [uba8, b'def']
+    assert type(ok) is type(c.data)
+    assert ok.dtype.char == '?'
+    assert np.all(ok)
+
+    assert np.all(c == np.array([uba, u'def']))
+    if not six.PY2:
+        assert np.all(c == np.array([uba8, b'def']))
+
+    # Scalar compare
+    cmps = (uba8,) if six.PY2 else (uba, uba8)
+    for cmp in cmps:
+        ok = c == cmp
+        assert type(ok) is type(c.data)
+        assert np.all(ok == [True, False])
+
+
+def test_col_unicode_sandwich_unicode():
+    """
+    Sanity check that Unicode Column behaves normally.
+    """
+    # On Py2 the unicode must be ASCII-compatible, else the final test fails.
+    uba = 'ba' if six.PY2 else u'bä'
+    uba8 = uba.encode('utf-8')
+
+    c = table.Column([uba, 'def'], dtype='U')
+    assert c[0] == uba
+    assert isinstance(c[:0], table.Column)
+    assert isinstance(c[0], six.text_type)
+    assert np.all(c[:2] == np.array([uba, 'def']))
+
+    assert isinstance(c[:], table.Column)
+    assert c[:].dtype.char == 'U'
+
+    ok = c == [uba, 'def']
+    assert type(ok) == np.ndarray
+    assert ok.dtype.char == '?'
+    assert np.all(ok)
+
+    # In PY2 unicode is equal to bytestrings but not in PY3
+    if six.PY2:
+        assert np.all(c == [uba8, b'def'])
+    else:
+        assert np.all(c != [uba8, b'def'])
+
+
+def test_masked_col_unicode_sandwich():
+    """
+    Create a bytestring MaskedColumn and ensure that it works in Python 3 in
+    a convenient way like in Python 2.
+    """
+    c = table.MaskedColumn([b'abc', b'def'])
+    c[1] = np.ma.masked
+    assert isinstance(c[:0], table.MaskedColumn)
+    assert isinstance(c[0], str)
+
+    assert c[0] == 'abc'
+    assert c[1] is np.ma.masked
+
+    assert isinstance(c[:], table.MaskedColumn)
+    assert c[:].dtype.char == 'S'
+
+    ok = c == ['abc', 'def']
+    assert ok[0] == True
+    assert ok[1] is np.ma.masked
+    assert np.all(c == [b'abc', b'def'])
+    assert np.all(c == np.array([u'abc', u'def']))
+    assert np.all(c == np.array([b'abc', b'def']))
+
+    for cmp in (u'abc', b'abc'):
+        ok = c == cmp
+        assert type(ok) is np.ma.MaskedArray
+        assert ok[0] == True
+        assert ok[1] is np.ma.masked
+
+
+@pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
+def test_unicode_sandwich_set(Column):
+    """
+    Test setting
+    """
+    uba = 'ba' if six.PY2 else u'bä'
+
+    c = Column([b'abc', b'def'])
+
+    c[0] = b'aa'
+    assert np.all(c == [u'aa', u'def'])
+
+    c[0] = uba  # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding
+    assert np.all(c == [uba, u'def'])
+    assert c.pformat() == [u'None', u'----', '  ' + uba, u' def']
+
+    c[:] = b'cc'
+    assert np.all(c == [u'cc', u'cc'])
+
+    c[:] = uba
+    assert np.all(c == [uba, uba])
+
+    c[:] = ''
+    c[:] = [uba, b'def']
+    assert np.all(c == [uba, b'def'])

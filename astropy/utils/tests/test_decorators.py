@@ -6,12 +6,14 @@ import functools
 import inspect
 import pickle
 
+import pytest
+
 from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
                           format_doc, deprecated_renamed_argument)
 from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from ...extern import six
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 
 
 def test_wraps():

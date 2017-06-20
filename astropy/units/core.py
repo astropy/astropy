@@ -199,7 +199,7 @@ class _UnitRegistry(object):
                 if (st in self._registry and unit != self._registry[st]):
                     raise ValueError(
                         "Object with name {0!r} already exists in namespace. "
-                        "Filter the set of units to avoid name classes before "
+                        "Filter the set of units to avoid name clashes before "
                         "enabling them.".format(st))
 
             for st in unit._names:
@@ -321,13 +321,13 @@ def set_enabled_units(units):
       AU           | 1.49598e+11 m   | au, astronomical_unit ,
       Angstrom     | 1e-10 m         | AA, angstrom          ,
       cm           | 0.01 m          | centimeter            ,
-      earthRad     | 6.37814e+06 m   | R_earth, Rearth       ,
+      earthRad     | 6.3568e+06 m    | R_earth, Rearth       ,
       jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
       lyr          | 9.46073e+15 m   | lightyear             ,
       m            | irreducible     | meter                 ,
       micron       | 1e-06 m         |                       ,
       pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
     ]
     """
     # get a context with a new registry, using equivalencies of the current one
@@ -370,7 +370,7 @@ def add_enabled_units(units):
       AU           | 1.49598e+11 m   | au, astronomical_unit ,
       Angstrom     | 1e-10 m         | AA, angstrom          ,
       cm           | 0.01 m          | centimeter            ,
-      earthRad     | 6.37814e+06 m   | R_earth, Rearth       ,
+      earthRad     | 6.3568e+06 m    | R_earth, Rearth       ,
       ft           | 0.3048 m        | foot                  ,
       fur          | 201.168 m       | furlong               ,
       inch         | 0.0254 m        |                       ,
@@ -382,7 +382,7 @@ def add_enabled_units(units):
       mil          | 2.54e-05 m      | thou                  ,
       nmi          | 1852 m          | nauticalmile, NM      ,
       pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
       yd           | 0.9144 m        | yard                  ,
     ]
     """
@@ -908,38 +908,6 @@ class UnitBase(object):
                             pass
 
             raise exc
-
-    @deprecated('1.0')
-    def get_converter(self, other, equivalencies=[]):
-        """
-        Return the conversion function to convert values from ``self``
-        to the specified unit.
-
-        Parameters
-        ----------
-        other : unit object or string
-            The unit to convert to.
-
-        equivalencies : list of equivalence pairs, optional
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        func : callable
-            A callable that normally expects a single argument that is
-            a scalar value or an array of values (or anything that may
-            be converted to an array).
-
-        Raises
-        ------
-        UnitsError
-            If units are inconsistent
-        """
-        return self._get_converter(other, equivalencies=equivalencies)
 
     def _to(self, other):
         """
@@ -1965,6 +1933,19 @@ class Unit(NamedUnit):
     def __hash__(self):
         return hash(self.name) + hash(self._represents)
 
+    @classmethod
+    def _from_physical_type_id(cls, physical_type_id):
+        # get string bases and powers from the ID tuple
+        bases = [cls(base) for base, _ in physical_type_id]
+        powers = [power for _, power in physical_type_id]
+
+        if len(physical_type_id) == 1 and powers[0] == 1:
+            unit = bases[0]
+        else:
+            unit = CompositeUnit(1, bases, powers)
+
+        return unit
+
 
 class PrefixUnit(Unit):
     """
@@ -2332,14 +2313,11 @@ def _condition_arg(value):
     if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:
         return value
 
-    try:
-        avalue = np.array(value)
-        assert avalue.dtype.kind in ['i', 'f', 'c']
-        return avalue
-    except (ValueError, AssertionError):
+    avalue = np.array(value)
+    if avalue.dtype.kind not in ['i', 'f', 'c']:
         raise ValueError("Value not scalar compatible or convertible to "
                          "an int, float, or complex array")
-
+    return avalue
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980

@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import pytest
+
 from .. import fnpickle, fnunpickle
 from ....extern.six.moves import range
 
@@ -82,7 +85,6 @@ def test_fnpickling_many(tmpdir):
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle multiple objects from a single file.
     """
-    from ....tests.helper import pytest
 
     fn = str(tmpdir.join('test3.pickle'))
 

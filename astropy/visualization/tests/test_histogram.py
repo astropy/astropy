@@ -12,14 +12,14 @@ except ImportError:
     HAS_PLT = False
 
 try:
-    import scipy  # pylint: disable=W0611
+    import scipy  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
 
-from ...tests.helper import pytest
-
+import pytest
 import numpy as np
+
 from .. import hist
 from ...stats import histogram
 

@@ -3,7 +3,7 @@
 .. _working_with_angles:
 
 Working with Angles
--------------------
+*******************
 
 The angular components of the various coordinate objects are represented
 by objects of the |Angle| class. While most likely to be encountered in
@@ -13,7 +13,7 @@ their own wherever a representation of an angle is needed.
 .. _angle-creation:
 
 Creation
-^^^^^^^^
+========
 
 The creation of an |Angle| object is quite flexible and supports a wide
 variety of input object types and formats.  The type of the input angle(s)
@@ -50,7 +50,7 @@ to create an |Angle|::
 
 
 Representation
-^^^^^^^^^^^^^^
+==============
 
 The |Angle| object also supports a variety of ways of representing the value
 of the angle, both as a floating point number and as a string::
@@ -91,7 +91,7 @@ of the angle, both as a floating point number and as a string::
 
 
 Usage
-^^^^^
+=====
 
 Angles will also behave correctly for appropriate arithmetic operations::
 
@@ -100,9 +100,9 @@ Angles will also behave correctly for appropriate arithmetic operations::
     <Angle 3.5 rad>
     >>> np.sin(a / 2)  # doctest: +FLOAT_CMP
     <Quantity 0.479425538604203>
-    >>> a == a
+    >>> a == a  # doctest: +SKIP
     array(True, dtype=bool)
-    >>> a == (a + a)
+    >>> a == (a + a)    # doctest: +SKIP
     array(False, dtype=bool)
 
 |Angle| objects can also be used for creating coordinate objects::
@@ -114,7 +114,7 @@ Angles will also behave correctly for appropriate arithmetic operations::
 
 
 Wrapping and bounds
-^^^^^^^^^^^^^^^^^^^
+===================
 
 There are two utility methods that simplify working with angles that should
 have bounds.  The :meth:`~astropy.coordinates.Angle.wrap_at` method allows
@@ -124,7 +124,7 @@ boolean indicating whether an angle or angles is within the specified bounds.
 
 
 Longitude and Latitude objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================
 
 |Longitude| and |Latitude| are two specialized subclasses of the |Angle|
 class that are used for all of the spherical coordinate classes.
@@ -134,7 +134,7 @@ respectively).  |Latitude| is used for declination, Galactic latitude, and
 elevation.
 
 Longitude
-"""""""""
+---------
 
 A |Longitude| object is distinguished from a pure |Angle| by virtue of a
 ``wrap_angle`` property.  The ``wrap_angle`` specifies that all angle values
@@ -156,7 +156,7 @@ re-wrapping the angle values in-place.  For example::
     array([ -20., 150., -10.,   0.])
 
 Latitude
-""""""""
+--------
 
 A Latitude object is distinguished from a pure |Angle| by virtue
 of being bounded so that::

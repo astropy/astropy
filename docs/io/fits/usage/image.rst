@@ -3,13 +3,13 @@
 .. currentmodule:: astropy.io.fits
 
 Image Data
-----------
+**********
 
 In this chapter, we'll discuss the data component in an image HDU.
 
 
 Image Data as an Array
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
 A FITS primary HDU or an image extension HDU may contain image data. The
 following discussions apply to both of these HDU classes. In Astropy, for most
@@ -54,7 +54,7 @@ These examples show the concise nature of numpy array operations.
 
 
 Scaled Data
-^^^^^^^^^^^
+===========
 
 Sometimes an image is scaled, i.e. the data stored in the file is not the
 image's physical (true) values, but linearly transformed according to the
@@ -72,7 +72,7 @@ BSCALE=1.
 
 
 Reading Scaled Image Data
-"""""""""""""""""""""""""
+-------------------------
 
 Images are scaled only when either of the BSCALE/BZERO keywords are present in
 the header and either of their values is not the default value (BSCALE=1,
@@ -130,7 +130,7 @@ before and after the data is touched::
 
 
 Writing Scaled Image Data
-"""""""""""""""""""""""""
+-------------------------
 
 With the extra processing and memory requirement, we discourage use of scaled
 data as much as possible. However, Astropy does provide ways to write scaled
@@ -166,7 +166,7 @@ an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 .. _data-sections:
 
 Data Sections
-^^^^^^^^^^^^^
+=============
 
 When a FITS image HDU's :attr:`~ImageHDU.data` is accessed, either the whole
 data is copied into memory (in cases of NOT using memory mapping or if the data

@@ -1,12 +1,11 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
 
+import pytest
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import pytest
-from ...utils.compat import (NUMPY_LT_1_8, NUMPY_LT_1_9_1,
-                             NUMPY_LT_1_10, NUMPY_LT_1_10_4)
+from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4
 
 
 class TestQuantityArrayCopy(object):
@@ -286,7 +285,6 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
 
-    @pytest.mark.xfail(NUMPY_LT_1_8, reason="Numpy 1.8 or later is required")
     def test_nansum_inplace(self):
 
         q1 = np.array([1., 2., np.nan]) * u.m
@@ -543,10 +541,15 @@ class TestArrayConversion(object):
 class TestRecArray(object):
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
-    def test_creation(self):
-        ra = (np.array(np.arange(12.).reshape(4,3))
+    def setup(self):
+        self.ra = (np.array(np.arange(12.).reshape(4,3))
               .view(dtype=('f8,f8,f8')).squeeze())
-        qra = u.Quantity(ra, u.m)
-        assert np.all(qra[:2].value == ra[:2])
+
+    def test_creation(self):
+        qra = u.Quantity(self.ra, u.m)
+        assert np.all(qra[:2].value == self.ra[:2])
+
+    def test_equality(self):
+        qra = u.Quantity(self.ra, u.m)
         qra[1] = qra[2]
         assert qra[1] == qra[2]

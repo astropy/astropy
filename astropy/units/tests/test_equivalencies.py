@@ -8,13 +8,14 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ...extern.six.moves import zip
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
 # LOCAL
 from ... import units as u
 from ... import constants
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 
 
 def test_dimensionless_angles():
@@ -26,9 +27,9 @@ def test_dimensionless_angles():
     assert u.steradian.to(1, equivalencies=rad1) == 1.
     assert u.dimensionless_unscaled.to(u.steradian, equivalencies=rad1) == 1.
     # now quantities
-    assert (1.*u.radian).to(1, equivalencies=rad1).value == 1.
-    assert (1.*u.deg).to(1, equivalencies=rad1).value == u.deg.to(u.rad)
-    assert (1.*u.steradian).to(1, equivalencies=rad1).value == 1.
+    assert (1.*u.radian).to_value(1, equivalencies=rad1) == 1.
+    assert (1.*u.deg).to_value(1, equivalencies=rad1) == u.deg.to(u.rad)
+    assert (1.*u.steradian).to_value(1, equivalencies=rad1) == 1.
     # more complicated example
     I = 1.e45 * u.g * u.cm**2
     Omega = u.cycle / (1.*u.s)
@@ -36,14 +37,14 @@ def test_dimensionless_angles():
     # check that equivalency makes this work
     Erot_in_erg1 = Erot.to(u.erg, equivalencies=rad1)
     # and check that value is correct
-    assert_allclose(Erot_in_erg1.value, (Erot/u.radian**2).to(u.erg).value)
+    assert_allclose(Erot_in_erg1.value, (Erot/u.radian**2).to_value(u.erg))
 
     # test build-in equivalency in subclass
     class MyRad1(u.Quantity):
         _equivalencies = rad1
 
     phase = MyRad1(1., u.cycle)
-    assert phase.to(1).value == u.cycle.to(u.radian)
+    assert phase.to_value(1) == u.cycle.to(u.radian)
 
 
 @pytest.mark.parametrize('log_unit', (u.mag, u.dex, u.dB))
@@ -92,7 +93,7 @@ def test_doppler_wavelength_0(function):
 @pytest.mark.parametrize(('function'), doppler_functions)
 def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
-    q1 = 0.000434286445543 * u.eV
+    q1 = 0.0004342864612223407 * u.eV
     velo0 = q1.to(u.km/u.s, equivalencies=function(rest))
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
@@ -157,40 +158,40 @@ def test_massenergy():
     mass_g = u.Quantity([9.10938291e-28, 1.672621777e-24, 1.674927351e-24,
                          1.88353147e-25, 1], u.g)
     # Test both ways
-    assert np.allclose(mass_eV.to(u.g, equivalencies=u.mass_energy()).value,
+    assert np.allclose(mass_eV.to_value(u.g, equivalencies=u.mass_energy()),
                        mass_g.value, rtol=1e-7)
-    assert np.allclose(mass_g.to(u.eV, equivalencies=u.mass_energy()).value,
+    assert np.allclose(mass_g.to_value(u.eV, equivalencies=u.mass_energy()),
                        mass_eV.value, rtol=1e-7)
 
     # Basic tests of 'derived' equivalencies
     # Surface density
     sdens_eV = u.Quantity(5.60958884539e32, u.eV / u.m**2)
     sdens_g = u.Quantity(1e-4, u.g / u.cm**2)
-    assert np.allclose(sdens_eV.to(u.g / u.cm**2,
-                                   equivalencies=u.mass_energy()).value,
+    assert np.allclose(sdens_eV.to_value(u.g / u.cm**2,
+                                         equivalencies=u.mass_energy()),
                        sdens_g.value, rtol=1e-7)
-    assert np.allclose(sdens_g.to(u.eV / u.m**2,
-                                  equivalencies=u.mass_energy()).value,
+    assert np.allclose(sdens_g.to_value(u.eV / u.m**2,
+                                        equivalencies=u.mass_energy()),
                        sdens_eV.value, rtol=1e-7)
 
     # Density
     dens_eV = u.Quantity(5.60958884539e32, u.eV / u.m**3)
     dens_g = u.Quantity(1e-6, u.g / u.cm**3)
-    assert np.allclose(dens_eV.to(u.g / u.cm**3,
-                                   equivalencies=u.mass_energy()).value,
+    assert np.allclose(dens_eV.to_value(u.g / u.cm**3,
+                                        equivalencies=u.mass_energy()),
                        dens_g.value, rtol=1e-7)
-    assert np.allclose(dens_g.to(u.eV / u.m**3,
-                                  equivalencies=u.mass_energy()).value,
+    assert np.allclose(dens_g.to_value(u.eV / u.m**3,
+                                       equivalencies=u.mass_energy()),
                        dens_eV.value, rtol=1e-7)
 
     # Power
     pow_eV = u.Quantity(5.60958884539e32, u.eV / u.s)
     pow_g = u.Quantity(1, u.g / u.s)
-    assert np.allclose(pow_eV.to(u.g / u.s,
-                                   equivalencies=u.mass_energy()).value,
+    assert np.allclose(pow_eV.to_value(u.g / u.s,
+                                       equivalencies=u.mass_energy()),
                        pow_g.value, rtol=1e-7)
-    assert np.allclose(pow_g.to(u.eV / u.s,
-                                  equivalencies=u.mass_energy()).value,
+    assert np.allclose(pow_g.to_value(u.eV / u.s,
+                                      equivalencies=u.mass_energy()),
                        pow_eV.value, rtol=1e-7)
 
 
@@ -513,13 +514,13 @@ def test_irrelevant_equivalency():
 def test_brightness_temperature():
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
-    tb = 7.05258885885 * u.K
+    tb = 7.052590289134352 * u.K
     np.testing.assert_almost_equal(
-        tb.value, (1 * u.Jy).to(
-            u.K, equivalencies=u.brightness_temperature(omega_B, nu)).value)
+        tb.value, (1 * u.Jy).to_value(
+            u.K, equivalencies=u.brightness_temperature(omega_B, nu)))
     np.testing.assert_almost_equal(
-        1.0, tb.to(
-            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)).value)
+        1.0, tb.to_value(
+            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)))
 
 
 def test_equivalency_context():
@@ -603,15 +604,24 @@ def test_equivalency_context_manager():
 def test_temperature():
     from ..imperial import deg_F
     t_k = 0 * u.K
-    assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
-    assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
+    assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -273.15)
+    assert_allclose(t_k.to_value(deg_F, u.temperature()), -459.67)
 
 
 def test_temperature_energy():
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
-    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y.value)
-    assert_allclose(y.to(u.K, u.temperature_energy()).value, x.value)
+    assert_allclose(x.to_value(u.keV, u.temperature_energy()), y.value)
+    assert_allclose(y.to_value(u.K, u.temperature_energy()), x.value)
+
+
+def test_molar_mass_amu():
+    x = 1 * (u.g/u.mol)
+    y = 1 * u.u
+    assert_allclose(x.to_value(u.u, u.molar_mass_amu()), y.value)
+    assert_allclose(y.to_value(u.g/u.mol, u.molar_mass_amu()), x.value)
+    with pytest.raises(u.UnitsError):
+        x.to(u.u)
 
 
 def test_compose_equivalencies():

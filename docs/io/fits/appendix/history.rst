@@ -1,7 +1,7 @@
 .. doctest-skip-all
 
 astropy.io.fits History
-=======================
+***********************
 
 Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
 alone package called `PyFITS`_.  Though for the time being active development
@@ -15,10 +15,10 @@ Astropy.
 
 
 3.3.0 (unreleased)
-------------------
+==================
 
 New Features
-^^^^^^^^^^^^
+------------
 
 - Added new verification options ``fix+ignore``, ``fix+warn``,
   ``fix+exception``, ``silentfix+ignore``, ``silentfix+warn``, and
@@ -27,7 +27,7 @@ New Features
   the PyFITS documentation for more details.
 
 API Changes
-^^^^^^^^^^^
+-----------
 
 - The ``pyfits.new_table`` function is now fully deprecated (though will not
   be removed for a long time, considering how widely it is used).
@@ -105,7 +105,7 @@ API Changes
   v3.3.x bugfix releases, however).
 
 Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 - PyFITS has switched to a unified code base which supports Python 2.5 through
   3.4 simultaneously without translation.  This *shouldn't* have any
@@ -124,7 +124,7 @@ Other Changes and Additions
   ``False`` otherwise.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Fixed a regression where it was not possible to save an empty "compressed"
   image to a file (in this case there is nothing to compress, hence the
@@ -136,7 +136,7 @@ Bug Fixes
 
 
 3.2.4 (unreleased)
-------------------
+==================
 
 - Fixed a regression where multiple consecutive calls of the ``writeto``
   method on the same HDU but to different files could lead to corrupt data or
@@ -144,13 +144,13 @@ Bug Fixes
 
 
 3.1.7 (unreleased)
-------------------
+==================
 
 - Nothing changed yet.
 
 
 3.2.3 (2014-05-14)
-------------------
+==================
 
 - Nominal support for Python 3.4.
 
@@ -179,7 +179,7 @@ Bug Fixes
 
 
 3.1.6 (2014-05-14)
-------------------
+==================
 
 - Nominal support for Python 3.4.
 
@@ -205,7 +205,7 @@ Bug Fixes
 
 
 3.2.2 (2014-03-25)
-------------------
+==================
 
 - Fixed a regression on deletion of record-valued keyword cards using
   the Header wildcard syntax.  This was intended to be fixed before the
@@ -213,7 +213,7 @@ Bug Fixes
 
 
 3.1.5 (2014-03-25)
-------------------
+==================
 
 - Fixed a regression on deletion of record-valued keyword cards using
   the Header wildcard syntax.  This was intended to be fixed before the
@@ -221,7 +221,7 @@ Bug Fixes
 
 
 3.2.1 (2014-03-04)
-------------------
+==================
 
 - Nominal support for the upcoming Python 3.4.
 
@@ -297,7 +297,7 @@ Bug Fixes
 
 
 3.1.4 (2014-03-04)
-------------------
+==================
 
 - Added missing features from the ``Header.insert()`` method that were
   intended for inclusion in the original 3.1 release:  In addition to
@@ -352,7 +352,7 @@ Bug Fixes
 
 
 3.0.13 (2014-03-04)
--------------------
+===================
 
 - Fixed a bug where writing a file with ``checksum=True`` did not add the
   checksum on new files. (Backported from 3.2.1)
@@ -363,10 +363,10 @@ Bug Fixes
 
 
 3.2 (2013-11-26)
-----------------
+================
 
 Highlights
-^^^^^^^^^^
+----------
 
 - Rewrote CFITSIO-based backend for handling tile compression of FITS files.
   It now uses a standard CFITSIO instead of heavily modified pieces of CFITSIO
@@ -393,7 +393,7 @@ Highlights
 
 
 API Changes
-^^^^^^^^^^^
+-----------
 
 - Assigning to values in ``ColDefs.names``, ``ColDefs.formats``,
   ``ColDefs.nulls`` and other attributes of ``ColDefs`` instances that return
@@ -460,7 +460,7 @@ API Changes
 
 
 Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 - The new compression code also adds support for the ZQUANTIZ and ZDITHER0
   keywords added in more recent versions of this FITS Tile Compression spec.
@@ -496,7 +496,7 @@ Other Changes and Additions
 
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Binary tables containing compressed images may, optionally, contain other
   columns unrelated to the tile compression convention. Although this is an
@@ -515,7 +515,7 @@ Bug Fixes
 
 
 3.1.3 (2013-11-26)
-------------------
+==================
 
 - Disallowed assigning NaN and Inf floating point values as header values,
   since the FITS standard does not define a way to represent them in. Because
@@ -536,7 +536,7 @@ Bug Fixes
 
 
 3.0.12 (2013-11-26)
--------------------
+===================
 
 - Disallowed assigning NaN and Inf floating point values as header values,
   since the FITS standard does not define a way to represent them in. Because
@@ -557,7 +557,7 @@ Bug Fixes
 
 
 3.1.3 (unreleased)
-------------------
+==================
 
 - Disallowed assigning NaN and Inf floating point values as header values,
   since the FITS standard does not define a way to represent them in. Because
@@ -566,7 +566,7 @@ Bug Fixes
 
 
 3.0.12 (unreleased)
--------------------
+===================
 
 - Disallowed assigning NaN and Inf floating point values as header values,
   since the FITS standard does not define a way to represent them in. Because
@@ -578,7 +578,7 @@ Bug Fixes
 
 
 3.1.2 (2013-04-22)
-------------------
+==================
 
 - When an error occurs opening a file in fitsdiff the exception message will
   now at least mention which file had the error. (#168)
@@ -651,7 +651,7 @@ Bug Fixes
 
 
 3.0.11 (2013-04-17)
--------------------
+===================
 
 - Fixed support for opening gzipped FITS files by filename in a writeable mode
   (PyFITS has supported writing to gzip files for some time now, but only
@@ -701,12 +701,12 @@ Bug Fixes
 
 
 3.1.1 (2013-01-02)
-------------------
+==================
 
 This is a bug fix release for the 3.1.x series.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Improved handling of scaled images and pseudo-unsigned integer images in
   compressed image HDUs.  They now work more transparently like normal image
@@ -783,7 +783,7 @@ Bug Fixes
 
 
 3.0.10 (2013-01-02)
--------------------
+===================
 
 - Improved handling of scaled images and pseudo-unsigned integer images in
   compressed image HDUs.  They now work more transparently like normal image
@@ -820,10 +820,10 @@ Bug Fixes
 
 
 3.1 (2012-08-08)
-----------------
+================
 
 Highlights
-^^^^^^^^^^
+----------
 
 - The ``Header`` object has been significantly reworked, and ``CardList``
   objects are now deprecated (their functionality folded into the ``Header``
@@ -837,7 +837,7 @@ Highlights
   Features below.
 
 API Changes
-^^^^^^^^^^^
+-----------
 
 - The ``Header`` class has been rewritten, and the ``CardList`` class is
   deprecated.  Most of the basic details of working with FITS headers are
@@ -952,7 +952,7 @@ API Changes
   and removed when the file is saved.
 
 New Features
-^^^^^^^^^^^^
+------------
 
 - Added support for the proposed "FITS" extension HDU type.  See
   http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.  FITS
@@ -1000,7 +1000,7 @@ New Features
   (#121)
 
 Changes in Behavior
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 - Warnings from PyFITS are not output to stderr by default, instead of stdout
   as it has been for some time.  This is contrary to most users' expectations
@@ -1008,7 +1008,7 @@ Changes in Behavior
   desired output for their scripts. (r1319)
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Fixed ``pyfits.tcreate()`` (now ``pyfits.tableload()``) to be more robust
   when encountering blank lines in a column definition file (#14)
@@ -1046,12 +1046,12 @@ Bug Fixes
 
 
 3.0.9 (2012-08-06)
-------------------
+==================
 
 This is a bug fix release for the 3.0.x series.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Fixed ``Header.values()``/``Header.itervalues()`` and ``Header.items()``/
   ``Header.iteritems()`` to correctly return the different values for
@@ -1078,10 +1078,10 @@ Bug Fixes
 
 
 3.0.8 (2012-06-04)
-------------------
+==================
 
 Changes in Behavior
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 - Prior to this release, image data sections did not work with scaled
   data--that is, images with non-trivial BSCALE and/or BZERO values.
@@ -1091,7 +1091,7 @@ Changes in Behavior
   extends that support for general BSCALE+BZERO values.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Fixed a bug that prevented updates to values in boolean table columns from
   being saved.  This turned out to be a symptom of a deeper problem that could
@@ -1132,10 +1132,10 @@ Bug Fixes
 
 
 3.0.7 (2012-04-10)
-------------------
+==================
 
 Changes in Behavior
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 - Slices of GroupData objects now return new GroupData objects instead of
   extended multi-row _Group objects. This is analogous to how PyFITS 3.0 fixed
@@ -1154,7 +1154,7 @@ Changes in Behavior
   HDUs.  It was unnecessary to modify this value.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - Fixed GroupData objects to return new GroupData objects when sliced instead
   of _Group record objects.  See "Changes in behavior" above for more details.
@@ -1189,10 +1189,10 @@ Bug Fixes
 
 
 3.0.6 (2012-02-29)
-------------------
+==================
 
 Highlights
-^^^^^^^^^^
+----------
 
 The main reason for this release is to fix an issue that was introduced in
 PyFITS 3.0.5 where merely opening a file containing scaled data (that is, with
@@ -1208,7 +1208,7 @@ This release also fixes a few Windows-specific bugs found through more
 extensive Windows testing, and other miscellaneous bugs.
 
 Bug Fixes
-^^^^^^^^^
+---------
 
 - More accurate error messages when opening files containing invalid header
   cards. (#109)
@@ -1238,7 +1238,7 @@ Bug Fixes
 
 
 3.0.5 (2012-01-30)
-------------------
+==================
 
 - Fixed a crash that could occur when accessing image sections of files
   opened with memmap=True. (r1211)
@@ -1286,7 +1286,7 @@ Bug Fixes
 
 
 3.0.4 (2011-11-22)
-------------------
+==================
 
 - Fixed a crash when writing HCOMPRESS compressed images that could happen on
   Python 2.5 and 2.6. (r1217)
@@ -1330,7 +1330,7 @@ Bug Fixes
 
 
 3.0.3 (2011-10-05)
-------------------
+==================
 
 - Fixed several small bugs involving corner cases in record-valued keyword
   cards (#70)
@@ -1348,7 +1348,7 @@ Bug Fixes
 
 
 3.0.2 (2011-09-23)
-------------------
+==================
 
 - The ``BinTableHDU.tcreate`` method and by extension the ``pyfits.tcreate``
   function don't get tripped up by blank lines anymore (#14)
@@ -1389,7 +1389,7 @@ Bug Fixes
 
 
 3.0.1 (2011-09-12)
-------------------
+==================
 
 - Fixed a bug where updating a header card comment could cause the value to be
   lost if it had not already been read from the card image string.
@@ -1416,7 +1416,7 @@ Bug Fixes
 
 
 3.0.0 (2011-08-23)
---------------------
+====================
 
 - Contains major changes, bumping the version to 3.0
 
@@ -1522,7 +1522,7 @@ Bug Fixes
 
 
 2.4.0 (2011-01-10)
---------------------
+====================
 The following enhancements were added:
 
 - Checksum support now correctly conforms to the FITS standard.  pyfits
@@ -1598,7 +1598,7 @@ The following bugs were fixed:
 
 
 2.3.1 (2010-06-03)
---------------------
+====================
 
 The following bugs were fixed:
 
@@ -1608,7 +1608,7 @@ The following bugs were fixed:
 
 
 2.3 (2010-05-11)
-------------------
+==================
 
 The following enhancements were made:
 
@@ -1956,7 +1956,7 @@ The following bugs were fixed:
 
 
 2.2.2 (2009-10-12)
---------------------
+====================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -1969,7 +1969,7 @@ The following bugs were fixed:
 
 
 2.2.1 (2009-10-06)
---------------------
+====================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -1985,7 +1985,7 @@ The following bugs were fixed:
 
 
 2.2 (2009-09-23)
-------------------
+==================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2059,7 +2059,7 @@ The following bugs were fixed:
 
 
 2.1.1 (2009-04-22)
--------------------
+===================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2076,7 +2076,7 @@ The following bugs were fixed:
 
 
 2.1 (2009-04-14)
-------------------
+==================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2166,7 +2166,7 @@ The following bugs were fixed:
 
 
 2.0.1 (2009-02-03)
---------------------
+====================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2178,7 +2178,7 @@ The following bugs were fixed:
 
 
 2.0 (2009-01-30)
-------------------
+==================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2339,7 +2339,7 @@ The following bugs were fixed:
 
 
 1.4.1 (2008-11-04)
---------------------
+====================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2358,7 +2358,7 @@ The following bugs were fixed:
 
 
 1.4 (2008-07-07)
-------------------
+==================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2731,7 +2731,7 @@ The following bugs were fixed:
 
 
 1.3 (2008-02-22)
-------------------
+==================
 
 Updates described in this release are only supported in the NUMPY version of
 pyfits.
@@ -2828,7 +2828,7 @@ The following bugs were fixed:
 
 
 1.1 (2007-06-15)
-------------------
+==================
 
 - Modified to use either NUMPY or NUMARRAY.
 
@@ -2847,7 +2847,7 @@ The following bugs were fixed:
 
 
 1.0.1 (2006-03-24)
---------------------
+====================
 
 The changes to PyFITS were primarily to improve the docstrings and to
 reclassify some public functions and variables as private. Readgeis and
@@ -2864,7 +2864,7 @@ stsci_python release.
 
 
 1.0 (2005-11-01)
-------------------
+==================
 
 Major Changes since v0.9.6:
 
@@ -2921,7 +2921,7 @@ PyFITS Version 1.0 REQUIRES Python 2.3 or later.
 
 
 0.9.6 (2004-11-11)
---------------------
+====================
 
 Major changes since v0.9.3:
 
@@ -2942,7 +2942,7 @@ Some minor changes:
 
 
 0.9.3 (2004-07-02)
---------------------
+====================
 
 Changes since v0.9.0:
 
@@ -2962,7 +2962,7 @@ Changes since v0.9.0:
 
 
 0.9 (2004-04-27)
-------------------
+==================
 
 Changes since v0.8.0:
 
@@ -2986,7 +2986,7 @@ Changes since v0.8.0:
 
 
 0.8.0 (2003-08-19)
---------------------
+====================
 
 **NOTE:** This version will only work with numarray Version 0.6.  In addition,
 earlier versions of PyFITS will not work with numarray 0.6.  Therefore, both
@@ -3079,7 +3079,7 @@ Changes since 0.7.5:
 
 
 0.7.5 (2002-08-16)
---------------------
+====================
 
 Changes since v0.7.3:
 
@@ -3104,7 +3104,7 @@ Changes since v0.7.3:
 
 
 0.7.3 (2002-07-12)
---------------------
+====================
 
 Changes since v0.7.2:
 
@@ -3136,7 +3136,7 @@ Changes since v0.7.2:
   the comment must be string type to avoid exception.
 
 0.7.2.1 (2002-06-25)
-----------------------
+======================
 
 A couple of bugs were addressed in this version.
 
@@ -3150,7 +3150,7 @@ A couple of bugs were addressed in this version.
 
 
 0.7.2 (2002-06-19)
---------------------
+====================
 
 The two major improvements from Version 0.6.2 are:
 
@@ -3208,7 +3208,7 @@ technical changes.
 
 
 0.6.2 (2002-02-12)
---------------------
+====================
 
 This version requires numarray version 0.2.
 

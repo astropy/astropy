@@ -1,6 +1,6 @@
-=============================================
+*********************************************
  Emacs setup for following coding guidelines
-=============================================
+*********************************************
 
 .. _flymake: http://www.emacswiki.org/emacs/FlyMake
 .. _pyflakes: http://pypi.python.org/pypi/pyflakes
@@ -21,10 +21,10 @@ Flymake comes with Emacs 23. The rest can be obtained from their websites,
 or can be installed using `pip`_.
 
 Global settings
-===============
+***************
 
 No tabs
--------
+=======
 
 This setting will cause all tabs to be replaced with spaces. The number
 of spaces to use is set in the :ref:`basic settings` section below.
@@ -35,7 +35,7 @@ of spaces to use is set in the :ref:`basic settings` section below.
   (setq-default indent-tabs-mode nil)
 
 Maximum number of characters in a line
---------------------------------------
+======================================
 
 Emacs will automatically insert a new line after "fill-column" number
 of columns. PEP8 specifies a maximum of 79, but this can be set to a
@@ -56,7 +56,7 @@ smaller value also, for example 72.
   (column-number-mode 1)
 
 Syntax highlighting
--------------------
+===================
 
 Enable syntax highlighting. This will also highlight lines that form a
 region.
@@ -66,12 +66,12 @@ region.
   (global-font-lock-mode 1)
 
 Python specific settings
-========================
+************************
 
 .. _`basic settings`:
 
 Basic settings
---------------
+==============
 
 Indentation is automatically added. When a tab is pressed it is
 replaced with 4 spaces. When backspace is pressed on an empty line, the
@@ -94,7 +94,7 @@ cursor will jump to the previous indentation level.
                       (set-variable 'indent-tabs-mode nil))))
 
 Highlight the column where a line must stop
--------------------------------------------
+===========================================
 
 The "fill-column" column is highlighted in red. For this to work,
 download `column-marker.el
@@ -111,7 +111,7 @@ Emacs configuration directory.
               (column-marker-1 fill-column)))
 
 Flymake
--------
+=======
 
 Flymake will mark lines that do not satisfy syntax requirements in
 red. When cursor is on such a line a message is displayed in the
@@ -167,7 +167,7 @@ configuration:
     Sometimes there is a delay in refreshing the results.
 
 Delete trailing white spaces and blank lines
---------------------------------------------
+============================================
 
 To manually delete trailing whitespaces, press ``C-t C-w``, which will run
 the command "delete-whitespaces`. This command is also run when a file is

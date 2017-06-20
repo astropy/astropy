@@ -2,9 +2,10 @@
 
 # TEST_UNICODE_LITERALS
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import catch_warnings
 from ...table import Table, Column
 from ...utils.exceptions import AstropyUserWarning
 

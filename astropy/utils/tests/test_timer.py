@@ -16,12 +16,12 @@ from ...extern import six
 import time
 
 # THIRD-PARTY
+import pytest
 import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor
 from ...modeling.fitting import ModelsError
-from ...tests.helper import pytest
 
 
 def func_to_time(x):
@@ -43,10 +43,10 @@ def test_timer():
 
     # --- These must run before data points are introduced. ---
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         p.do_fit()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         p.predict_time(100)
 
     # --- These must run next to set up data points. ---

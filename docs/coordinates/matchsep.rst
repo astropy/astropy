@@ -3,7 +3,7 @@
 .. _astropy-coordinates-separations-matching:
 
 Separations, Catalog Matching, and Related Functionality
---------------------------------------------------------
+********************************************************
 
 `astropy.coordinates` contains commonly-used tools for comparing or
 matching coordinate objects.  Of particular importance are those for

@@ -53,9 +53,9 @@ def table_info(tbl, option='attributes', out=''):
     Parameters
     ----------
     option : str, function, list of (str or function)
-        Info option (default='attributes')
+        Info option, defaults to 'attributes'.
     out : file-like object, None
-        Output destination (default=sys.stdout).  If None then a
+        Output destination, default is sys.stdout.  If None then a
         Table with information attributes is returned
 
     Returns

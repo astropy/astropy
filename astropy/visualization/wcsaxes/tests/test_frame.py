@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
 from ....wcs import WCS
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import remote_data
 
 from .. import WCSAxes
 from ..frame import BaseFrame

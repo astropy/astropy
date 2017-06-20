@@ -93,10 +93,10 @@ class ManualInterval(BaseInterval):
     ----------
     vmin : float, optional
         The minimum value in the scaling.  Defaults to the image
-        minimum.
+        minimum (ignoring NaNs)
     vmax : float, optional
         The maximum value in the scaling.  Defaults to the image
-        maximum.
+        maximum (ignoring NaNs)
     """
 
     def __init__(self, vmin=None, vmax=None):
@@ -104,8 +104,8 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
-        vmin = self.vmin or np.min(values)
-        vmax = self.vmax or np.max(values)
+        vmin = np.nanmin(values) if self.vmin is None else self.vmin
+        vmax = np.nanmax(values) if self.vmax is None else self.vmax
         return vmin, vmax
 
 

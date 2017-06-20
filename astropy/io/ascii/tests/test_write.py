@@ -6,12 +6,14 @@ import os
 import copy
 from itertools import chain
 
+import pytest
 import numpy as np
+
 from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....table.table_helpers import simple_table
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from .... import units
 
@@ -170,6 +172,16 @@ data_end
 \\end{tabular}
 tablefoot
 \\end{tabletype}
+"""
+         ),
+    dict(kwargs=dict(Writer=ascii.Latex, latexdict={'tabletype': None}),
+         out="""\
+\\begin{tabular}{ccccccccccc}
+ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
+14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+\\end{tabular}
 """
          ),
     dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css': 'table,th,td{border:1px solid black;'}),

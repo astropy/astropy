@@ -11,12 +11,13 @@ import doctest
 
 from textwrap import dedent
 
+import pytest
+
 # test helper.run_tests function
 from ... import test as run_tests
 from ... extern import six
 
 from .. import helper
-from ..helper import pytest
 
 
 # run_tests should raise ValueError when asked to run on a module it can't find

@@ -1,10 +1,10 @@
 .. _nddata_details:
 
 NDData
-======
+******
 
 Overview
---------
+========
 
 :class:`~astropy.nddata.NDData` is based on `numpy.ndarray`-like ``data`` with
 additional meta attributes:
@@ -20,7 +20,7 @@ Each of these attributes can be set during initialization or directly on the
 instance. Only the ``data`` cannot be directly set after creating the instance.
 
 Data
-----
+====
 
 The data is the base of `~astropy.nddata.NDData` and required to be
 `numpy.ndarray`-like. It's the only property that is required to create an
@@ -55,7 +55,7 @@ modified in place::
            [  0,   1,   0]])
 
 Data during initialization
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 During initialization it is possible to provide data that it's not a
 `numpy.ndarray` but convertible to one. For example passing a `list` containing
@@ -133,7 +133,7 @@ The purpose of this mechanism is to allow considerable flexibility in the
 objects used to store the data while providing a useful default (numpy array).
 
 Mask
-----
+====
 
 The ``mask`` is being used to indicate if data points are valid or invalid.
 `~astropy.nddata.NDData` doesn't restrict this mask in any way but it is
@@ -172,7 +172,7 @@ function which evaluates a mask value as needed is acceptable as long as it
 follows the convention that ``True`` indicates a value that should be ignored.
 
 Unit
-----
+====
 
 The ``unit`` represents the unit of the data values. It is required to be
 `~astropy.units.Unit`-like or a string that can be converted to such a
@@ -187,7 +187,7 @@ The ``unit`` represents the unit of the data values. It is required to be
     Setting the ``unit`` on an instance is not possible.
 
 Uncertainties
--------------
+=============
 
 The ``uncertainty`` represents an arbitrary representation of the error of the
 data values. To indicate which kind of uncertainty representation is used the
@@ -235,7 +235,7 @@ object in the future.
     Like the unit the wcs cannot be set on an instance.
 
 Meta-data
----------
+=========
 
 The ``meta`` property contains all further meta information that don't fit
 any other property.
@@ -277,7 +277,7 @@ Elements of the meta-data dictionary can be set to any valid Python object::
     >>> ndd.meta['history'] = ['calibrated', 'aligned', 'flat-fielded']
 
 Initialization with copy
-------------------------
+========================
 
 The default way to create an `~astropy.nddata.NDData` instance is to try saving
 the parameters as references to the original rather than as copy. Sometimes
@@ -302,7 +302,7 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
     cases are if the ``data`` is a `list` or `tuple`.
 
 Converting NDData to other classes
-----------------------------------
+==================================
 
 There is limited to support to convert a `~astropy.nddata.NDData` instance to
 other classes. In the process some properties might be lost.
@@ -313,7 +313,7 @@ other classes. In the process some properties might be lost.
     >>> ndd = NDData(data, mask=mask, unit=unit)
 
 `numpy.ndarray`
-^^^^^^^^^^^^^^^
+---------------
 
 Converting the ``data`` to an array::
 
@@ -325,7 +325,7 @@ Though using ``np.asarray`` is not required in most cases it will ensure that
 the result is always a `numpy.ndarray`
 
 `numpy.ma.MaskedArray`
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 Converting the ``data``  and ``mask`` to a MaskedArray::
 
@@ -337,7 +337,7 @@ Converting the ``data``  and ``mask`` to a MaskedArray::
            fill_value = 999999)
 
 `~astropy.units.Quantity`
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 Converting the ``data``  and ``unit`` to a Quantity::
 
@@ -346,7 +346,7 @@ Converting the ``data``  and ``unit`` to a Quantity::
     <Quantity [ 1., 2., 3., 4.] m>
 
 masked Quantity
-^^^^^^^^^^^^^^^
+---------------
 
 Converting the ``data``, ``mask``  and ``unit`` to a masked Quantity requires
 NumPy version 1.9 or newer::

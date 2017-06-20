@@ -5,6 +5,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -12,7 +13,6 @@ from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
                              IncompatibleUncertaintiesException,
                              UnknownUncertainty)
 from ..nddata import NDData
-from ...tests.helper import pytest
 from ... import units as u
 
 # Regarding setter tests:

@@ -3,16 +3,16 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-import numpy as np
-import contextlib
 
-from ....tests.helper import pytest, assert_quantity_allclose, catch_warnings, remote_data
+import pytest
+import numpy as np
+
+from ....tests.helper import assert_quantity_allclose, catch_warnings, remote_data
 from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
 from ....extern.six.moves import urllib
-from ....utils.data import get_pkg_data_filename
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
@@ -149,7 +149,14 @@ class TestIERS_A():
         assert status3 == iers.FROM_IERS_A_PREDICTION
         assert ut1_utc3 != 0.
 
+
 class TestIERS_Auto():
+
+    @remote_data
+    def test_no_auto_download(self):
+        with iers.conf.set_temp('auto_download', False):
+            t = iers.IERS_Auto.open()
+        assert type(t) is iers.IERS_B
 
     @remote_data
     def test_simple(self):

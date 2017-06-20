@@ -49,6 +49,9 @@ Reference/API
 .. automodapi:: astropy.utils.console
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.data_info
+    :no-inheritance-diagram:
+
 .. automodapi:: astropy.utils.decorators
     :no-inheritance-diagram:
 

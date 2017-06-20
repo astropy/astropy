@@ -1,9 +1,10 @@
 from os.path import abspath, dirname, join
 import textwrap
 
+import pytest
+
 from ..table import Table
 from ... import extern
-from ...tests.helper import pytest
 from ...extern.six.moves import zip
 
 try:

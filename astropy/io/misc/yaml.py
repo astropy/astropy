@@ -166,10 +166,29 @@ def _skycoord_representer(dumper, obj):
                                    map)
     return out
 
+
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
     out = coords.SkyCoord.info._construct_from_dict(map)
     return out
+
+
+# Straight from yaml's Representer
+def _complex_representer(self, data):
+    if data.imag == 0.0:
+        data = u'%r' % data.real
+    elif data.real == 0.0:
+        data = u'%rj' % data.imag
+    elif data.imag > 0:
+        data = u'%r+%rj' % (data.real, data.imag)
+    else:
+        data = u'%r%rj' % (data.real, data.imag)
+    return self.represent_scalar(u'tag:yaml.org,2002:python/complex', data)
+
+
+def _complex_constructor(loader, node):
+    map = loader.construct_scalar(node)
+    return complex(map)
 
 
 class AstropyLoader(yaml.SafeLoader):
@@ -223,6 +242,23 @@ AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
 
+# Numpy dtypes
+AstropyDumper.add_representer(np.bool_,
+                              yaml.representer.SafeRepresenter.represent_bool)
+for np_type in [np.int_, np.int, np.intc, np.intp, np.int8, np.int16, np.int32,
+                np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
+    AstropyDumper.add_representer(np_type,
+                                 yaml.representer.SafeRepresenter.represent_int)
+for np_type in [np.float_, np.float, np.float16, np.float32, np.float64,
+                np.longdouble]:
+    AstropyDumper.add_representer(np_type,
+                                 yaml.representer.SafeRepresenter.represent_float)
+for np_type in [np.complex_, np.complex, np.complex64, np.complex128]:
+    AstropyDumper.add_representer(np_type,
+                                 _complex_representer)
+
+AstropyLoader.add_constructor(u'tag:yaml.org,2002:python/complex',
+                              _complex_constructor)
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
                               AstropyLoader._construct_python_tuple)
 AstropyLoader.add_constructor('tag:yaml.org,2002:python/unicode',

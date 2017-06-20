@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 
+import pytest
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....io import fits
-from ....tests.helper import pytest, remote_data
+from ....tests.helper import remote_data
 from ....wcs import WCS
 from ....coordinates import SkyCoord
 
@@ -17,6 +18,7 @@ from ..patches import SphericalCircle
 from .. import WCSAxes
 from . import datasets
 from ....tests.image_tests import IMAGE_REFERENCE_DIR
+from ..frame import EllipticalFrame
 
 
 class BaseImageTests(object):
@@ -521,4 +523,17 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
 
+        return fig
+
+    @remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=1.5)
+    def test_elliptical_frame(self):
+
+        # Regression test for a bug (astropy/astropy#6063) that caused labels to
+        # be incorrectly simplified.
+
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(5, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
         return fig

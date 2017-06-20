@@ -1,11 +1,11 @@
 astropy.wcs History
-===================
+*******************
 
 `astropy.wcs` began life as ``pywcs``.  Earlier version numbers refer to
 that package.
 
 pywcs Version 1.11
-------------------
+==================
 
 - Updated to wcslib version 4.8, which gives much more detailed error
   messages.
@@ -34,7 +34,7 @@ pywcs Version 1.11
   are valid unit strings.
 
 pywcs Version 1.10
-------------------
+==================
 
 - Adds a ``UnitConversion`` class, which gives access to wcslib's unit
   conversion functionality.  Given two convertible unit strings, pywcs
@@ -45,7 +45,7 @@ pywcs Version 1.10
 - Changes to some wcs values would not always calculate secondary values.
 
 pywcs Version 1.9
------------------
+=================
 
 - Support binary image arrays and pixel list format WCS by presenting
   a way to call wcslib's ``wcsbth()``
@@ -61,7 +61,7 @@ pywcs Version 1.9
       was not properly handled.
 
 Bugs
-````
+----
 
 - The `~astropy.wcs.Wcsprm.pc` member is now available with a default
   raw `~astropy.wcs.Wcsprm` object.
@@ -73,7 +73,7 @@ Bugs
 - `float` properties can now be set using `int` values
 
 pywcs Version 1.3a1
--------------------
+===================
 
 Earlier versions of pywcs had two versions of every conversion method::
 

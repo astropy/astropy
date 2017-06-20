@@ -4,10 +4,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import itertools
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-
-from ...tests.helper import pytest
 
 from ..utils import discretize_model
 from ...modeling.functional_models import (

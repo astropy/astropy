@@ -1,14 +1,14 @@
 .. _astropy-units-format:
 
 String representations of units
-===============================
+*******************************
 
 .. |quantity| replace:: :class:`~astropy.units.Quantity`
 
 .. |unit| replace:: :class:`~astropy.units.UnitBase`
 
 Converting units to string representations
-------------------------------------------
+==========================================
 
 You can control the way that |quantity| and |unit| objects are rendered as
 strings using the new `Format String Syntax
@@ -87,7 +87,7 @@ format units as strings, and is the underlying implementation of the
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
 
 Creating units from strings
----------------------------
+===========================
 
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
@@ -112,7 +112,7 @@ formats using the `~astropy.units.Unit` class::
    VOTable.
 
 Built-in formats
-----------------
+================
 
 `astropy.units` includes support for parsing and writing the following
 formats:
@@ -183,7 +183,7 @@ following formats:
                        s²
 
 Unrecognized Units
-------------------
+==================
 
 Since many files in found in the wild have unit strings that do not
 correspond to any given standard, `astropy.units` also has a

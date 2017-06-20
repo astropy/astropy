@@ -5,9 +5,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
 from ...utils.misc import NumpyRNGContext
 

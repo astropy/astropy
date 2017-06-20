@@ -298,6 +298,9 @@ class FitnessFunc(object):
             return -np.log(self.gamma)
         elif self.p0 is not None:
             return self.p0_prior(N)
+        else:
+            raise ValueError("``ncp_prior`` is not defined, and cannot compute "
+                             "it as neither ``gamma`` nor ``p0`` is defined.")
 
     def fit(self, t, x=None, sigma=None):
         """Fit the Bayesian Blocks model given the specified fitness function.

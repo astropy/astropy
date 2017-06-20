@@ -3,9 +3,9 @@
 .. include:: links.inc
 .. _virtual_envs:
 
-===========================
+***************************
 Python virtual environments
-===========================
+***************************
 
 If you plan to do regular work on astropy you should do your development in
 a python virtual environment. Conceptually a virtual environment is a
@@ -47,7 +47,7 @@ accomplish each step are given for both `conda`_ and `virtualenvwrapper`_:
 
 
 Set up for virtual environments
--------------------------------
+===============================
 
 * `virtualenvwrapper`_:
 
@@ -65,7 +65,7 @@ Set up for virtual environments
 .. _list_env:
 
 List virtual environments
--------------------------
+=========================
 
 You do not need to list the virtual environments you have created before using
 them...but sooner or later you will forget what environments you have defined
@@ -84,7 +84,7 @@ and this is the easy way to find out.
 .. _create_env:
 
 Create a new virtual environment
---------------------------------
+================================
 
 This needs to be done once for each virtual environment you want. There is one
 important choice you need to make when you create a virtual environment:
@@ -132,7 +132,7 @@ environment.
 .. _activate_env:
 
 Activate a virtual environment
-------------------------------
+==============================
 
 To use a new virtual environment you may need to activate it;
 `virtualenvwrapper`_ will try to automatically activate your new environment
@@ -160,7 +160,7 @@ addition to activating new ones.
 .. _deactivate_env:
 
 Deactivate a virtual environment
---------------------------------
+================================
 
 At some point you may want to go back to your normal python environment. Do
 that with:
@@ -174,7 +174,7 @@ that with:
 .. _delete_env:
 
 Delete a virtual environment
-----------------------------
+============================
 
 In both `virtualenvwrapper`_ and `conda`_ you can simply delete the directory in
 which the ``ENV`` is located; both also provide commands to make that a bit easier.

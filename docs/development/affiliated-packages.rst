@@ -1,6 +1,6 @@
-========================================================
+********************************************************
 How to create and maintain an Astropy affiliated package
-========================================================
+********************************************************
 
 If you run into any problems, don't hesitate to ask for help on the
 astropy-dev mailing list!
@@ -47,10 +47,10 @@ entering your package name in the box below:
     <br>
 
 Managing the template files manually
-====================================
+************************************
 
 Starting a new package
-----------------------
+======================
 
 #. Clone the `package-template`_ package so that we can have access to the
    files, but do not go inside it - instead, create another empty repository
@@ -214,7 +214,7 @@ Starting a new package
    `astropy-dev mailing list`_!
 
 Updating to the latest template files
--------------------------------------
+=====================================
 
 From time to time we will make changes to the package-template to fix bugs or
 add functionality. Updating to the latest version is simple - simply check
@@ -238,7 +238,7 @@ You can find out what the latest version of astropy-helpers is by checking the
 PyPI.
 
 Customizing the documentation CSS
----------------------------------
+=================================
 
 As described in the documentation configuration file (`teplate/docs/conf.py
 <https://github.com/astropy/package-template/blob/master/docs/conf.py#L95>`_),
@@ -283,10 +283,10 @@ Sphinx to use the new style. To do this, edit your
     html_style = '<packagename>.css'
 
 Managing the template files via git
-===================================
+***********************************
 
 Starting a new package
-----------------------
+======================
 
 Before reading this we recommend reading over the `Managing the template
 files manually`_ section since this explains what many of the files do.
@@ -505,13 +505,13 @@ files manually`_ section since this explains what many of the files do.
 #. Good luck with your code and your science!
 
 Updating to the latest template files
--------------------------------------
+=====================================
 
 See instructions in :ref:`Item 14 above <template-changes-with-gitfu>`.
 
 
 Releasing an affiliated package
-===============================
+*******************************
 
 You can release an affiliated package using the steps given below. In these
 instructions, we assume that the release is made from a fresh clone of the
@@ -631,6 +631,12 @@ by ``CHANGES.md`` in the instructions.
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
+#. If your affiliated package is available in the `astropy conda channel
+   <https://github.com/astropy/conda-channel-astropy>`_, you should also submit
+   a pull request to update the version number of your affiliated package. See the
+   `conda-channel-astropy README <https://github.com/astropy/conda-channel-astropy/>`_
+   for details.
+
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
           we recommend that you read over the more complete astropy
@@ -638,7 +644,7 @@ by ``CHANGES.md`` in the instructions.
 
 
 Modifications for a beta/release candidate release
---------------------------------------------------
+==================================================
 
    Before a new release of your package, you may wish do a "pre-release" of the
    code, for example to allow collaborators to independently test the release.

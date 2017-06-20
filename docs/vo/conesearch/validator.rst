@@ -1,7 +1,7 @@
 .. doctest-skip-all
 
 Using `astropy.vo.validator`
-============================
+****************************
 
 VO services validator is used by STScI to support :ref:`vo-sec-client-scs`.
 Currently, only Cone Search services are supported.
@@ -12,7 +12,7 @@ to be validated has to be registered in STScI VAO Registry.
 .. _vo-sec-validator-validate:
 
 Validation for Simple Cone Search
----------------------------------
+=================================
 
 `astropy.vo.validator.validate` validates VO services.
 Currently, only Cone Search validation is done using
@@ -55,7 +55,7 @@ HTML pages summarizing the validation results are stored in
 files from individual Cone Search queries.
 
 Warnings and Exceptions
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 A subset of `astropy.io.votable.exceptions` that is considered
 non-critical is defined by
@@ -79,7 +79,7 @@ non-critical list is not recommended.
 .. _vo-sec-validator-build-db:
 
 Building the Database from Registry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 Each Cone Search service is a `~astropy.vo.client.vos_catalog.VOSCatalog` in
 a `~astropy.vo.client.vos_catalog.VOSDatabase` (see
@@ -135,7 +135,7 @@ In addition, new keys from validation are added:
     Output from ``xmllint``.
 
 Configurable Items
-^^^^^^^^^^^^^^^^^^
+------------------
 
 These parameters are set via :ref:`astropy_config`:
 
@@ -153,7 +153,7 @@ Also depends on properties in
 .. _vo-sec-validate-examples:
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.validator import validate
 
@@ -247,7 +247,7 @@ the actual VO Table returned by the Cone Search query:
 .. _vo-sec-validator-inspect:
 
 Inspection of Validation Results
---------------------------------
+================================
 
 `astropy.vo.validator.inspect` inspects results from
 :ref:`vo-sec-validator-validate`. It reads in JSON files of
@@ -256,14 +256,14 @@ residing in ``astropy.vo.Conf.vos_baseurl``, which
 can be changed to point to a different location.
 
 Configurable Items
-^^^^^^^^^^^^^^^^^^
+------------------
 
 This parameter is set via :ref:`astropy_config`:
 
 * `astropy.vo.Conf.vos_baseurl`
 
 Examples
-^^^^^^^^
+--------
 
 >>> from astropy.vo.validator import inspect
 

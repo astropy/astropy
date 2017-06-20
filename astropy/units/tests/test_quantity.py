@@ -7,6 +7,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import sys
 import copy
 import decimal
 from fractions import Fraction
@@ -15,9 +16,10 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
+from ...utils.compat import NUMPY_LT_1_10
+from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import range
@@ -362,6 +364,32 @@ class TestQuantityOperations(object):
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
+    @pytest.mark.skipif(sys.version_info[:2] < (3, 5),
+                        reason="__matmul__ only introduced in Python 3.5")
+    def test_matrix_multiplication(self):
+        # We cannot write @ as an operator since class gets parsed also on
+        # Python <3.5, so we use eval instead.
+        a = np.eye(3)
+        q = a * u.m
+        result1 = eval("q @ a")
+        assert np.all(result1 == q)
+        result2 = eval("a @ q")
+        assert np.all(result2 == q)
+        result3 = eval("q @ q")
+        assert np.all(result3 == a * u.m **2)
+        # less trivial case.
+        q2 = np.array([[[1., 0., 0.],
+                        [0., 1., 0.],
+                        [0., 0., 1.]],
+                       [[0., 1., 0.],
+                        [0., 0., 1.],
+                        [1., 0., 0.]],
+                       [[0., 0., 1.],
+                        [1., 0., 0.],
+                        [0., 1., 0.]]]) / u.s
+        result4 = eval("q @ q2")
+        assert np.all(result4 == matmul(a, q2.value) * q.unit * q2.unit)
+
     def test_unary(self):
 
         # Test the minus unary operator
@@ -496,9 +524,9 @@ class TestQuantityOperations(object):
         # quantities with units should never convert, or be usable as an index
         q1 = u.Quantity(1, u.m)
 
-        converter_err_msg = ("Only dimensionless scalar quantities "
+        converter_err_msg = ("only dimensionless scalar quantities "
                              "can be converted to Python scalars")
-        index_err_msg = ("Only integer dimensionless scalar quantities "
+        index_err_msg = ("only integer dimensionless scalar quantities "
                          "can be converted to a Python index")
         with pytest.raises(TypeError) as exc:
             float(q1)
@@ -524,11 +552,11 @@ class TestQuantityOperations(object):
         # dimensionless but scaled is OK, however
         q2 = u.Quantity(1.23, u.m / u.km)
 
-        assert float(q2) == float(q2.to(u.dimensionless_unscaled).value)
-        assert int(q2) == int(q2.to(u.dimensionless_unscaled).value)
+        assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
+        assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
 
         if six.PY2:
-            assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
+            assert long(q2) == long(q2.to_value(u.dimensionless_unscaled))
 
         with pytest.raises(TypeError) as exc:
             q2.__index__()
@@ -543,7 +571,7 @@ class TestQuantityOperations(object):
             assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
-            q1.__index__()
+            q3.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
@@ -575,6 +603,15 @@ class TestQuantityOperations(object):
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
+    # Fails for numpy >=1.10; see https://github.com/numpy/numpy/issues/5074
+    # It seems unlikely this will be resolved, so xfail'ing it.
+    @pytest.mark.xfail(not NUMPY_LT_1_10,
+                       reason="list multiplication only works for numpy <=1.10")
+    def test_numeric_converter_to_index_in_practice(self):
+        """Test that use of __index__ actually works."""
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
+
     def test_array_converters(self):
 
         # Scalar quantity
@@ -588,26 +625,55 @@ class TestQuantityOperations(object):
 
 def test_quantity_conversion():
     q1 = u.Quantity(0.1, unit=u.meter)
-
+    value = q1.value
+    assert value == 0.1
+    value_in_km = q1.to_value(u.kilometer)
+    assert value_in_km == 0.0001
     new_quantity = q1.to(u.kilometer)
     assert new_quantity.value == 0.0001
 
     with pytest.raises(u.UnitsError):
         q1.to(u.zettastokes)
+    with pytest.raises(u.UnitsError):
+        q1.to_value(u.zettastokes)
+
+
+def test_quantity_value_views():
+    q1 = u.Quantity([1., 2.], unit=u.meter)
+    # views if the unit is the same.
+    v1 = q1.value
+    v1[0] = 0.
+    assert np.all(q1 == [0., 2.] * u.meter)
+    v2 = q1.to_value()
+    v2[1] = 3.
+    assert np.all(q1 == [0., 3.] * u.meter)
+    v3 = q1.to_value('m')
+    v3[0] = 1.
+    assert np.all(q1 == [1., 3.] * u.meter)
+    v4 = q1.to_value('cm')
+    v4[0] = 0.
+    # copy if different unit.
+    assert np.all(q1 == [1., 3.] * u.meter)
 
 
 def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
+    v2 = q1.to_value(u.Hz, equivalencies=u.spectral())
+    assert_allclose(v2, 2997924580.0)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
-    assert_allclose(q2.value, 2997924580.0)
+    assert_allclose(q2.value, v2)
 
     q1 = u.Quantity(0.4, unit=u.arcsecond)
+    v2 = q1.to_value(u.au, equivalencies=u.parallax())
     q2 = q1.to(u.au, equivalencies=u.parallax())
+    v3 = q2.to_value(u.arcminute, equivalencies=u.parallax())
     q3 = q2.to(u.arcminute, equivalencies=u.parallax())
 
-    assert_allclose(q2.value, 515662.015)
+    assert_allclose(v2, 515662.015)
+    assert_allclose(q2.value, v2)
     assert q2.unit == u.au
-    assert_allclose(q3.value, 0.0066666667)
+    assert_allclose(v3, 0.0066666667)
+    assert_allclose(q3.value, v3)
     assert q3.unit == u.arcminute
 
 

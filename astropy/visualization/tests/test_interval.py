@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ...utils import NumpyRNGContext
 
 from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
@@ -20,6 +20,7 @@ class TestInterval(object):
         np.testing.assert_allclose(vmax, +15.)
 
     def test_manual_defaults(self):
+
         interval = ManualInterval(vmin=-10.)
         vmin, vmax = interval.get_limits(self.data)
         np.testing.assert_allclose(vmin, -10.)
@@ -29,6 +30,22 @@ class TestInterval(object):
         vmin, vmax = interval.get_limits(self.data)
         np.testing.assert_allclose(vmin, np.min(self.data))
         np.testing.assert_allclose(vmax, 15.)
+
+    def test_manual_zero_limit(self):
+        # Regression test for a bug that caused ManualInterval to compute the
+        # limit (min or max) if it was set to zero.
+        interval = ManualInterval(vmin=0, vmax=0)
+        vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, 0)
+        np.testing.assert_allclose(vmax, 0)
+
+    def test_manual_defaults_with_nan(self):
+        interval = ManualInterval()
+        data = np.copy(self.data)
+        data[0] = np.nan
+        vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, -20)
+        np.testing.assert_allclose(vmax, +60)
 
     def test_minmax(self):
         interval = MinMaxInterval()

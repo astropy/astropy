@@ -74,8 +74,8 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
     ----------
     size : int
         Number of table rows
-    cols : int, default=number of kinds
-        Number of table columns
+    cols : int, optional
+        Number of table columns. Defaults to number of kinds.
     kinds : str
         String consisting of the column dtype.kinds.  This string
         will be cycled through to generate the column dtype.

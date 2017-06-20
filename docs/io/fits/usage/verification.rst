@@ -3,7 +3,7 @@
 .. currentmodule:: astropy.io.fits
 
 Verification
-------------
+************
 
 Astropy has built in a flexible scheme to verify FITS data being conforming to
 the FITS standard. The basic verification philosophy in Astropy is to be
@@ -21,7 +21,7 @@ not be held up because of a minor standard violation.
 
 
 FITS Standard
-^^^^^^^^^^^^^
+=============
 
 Since FITS standard is a "loose" standard, there are many places the violation
 can occur and to enforce them all will be almost impossible. It is not uncommon
@@ -54,7 +54,7 @@ reading a FITS file, no ``verify()`` is called on input. On output,
 
 
 Verification Options
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 There are several options accepted by all verify(option) calls in Astropy. In
 addition, they available for the ``output_verify`` argument of the following
@@ -134,13 +134,13 @@ unfixable errors, but will stay silent about any fixed errors.
 
 
 Verifications at Different Data Object Levels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================================
 
 We'll examine what Astropy's verification does at the three different levels:
 
 
 Verification at HDUList
-"""""""""""""""""""""""
+-----------------------
 
 At the HDU List level, the verification is only for two simple cases:
 
@@ -152,7 +152,7 @@ At the HDU List level, the verification is only for two simple cases:
 
 
 Verification at Each HDU
-""""""""""""""""""""""""
+------------------------
 
 For each HDU, the mandatory keywords, their locations in the header, and their
 values will be verified. Each FITS HDU has a fixed set of required keywords in
@@ -183,7 +183,7 @@ option will fix them::
 
 
 Verification at Each Card
-"""""""""""""""""""""""""
+-------------------------
 
 The lowest level, the Card, also has the most complicated verification
 possibilities. Here is a lit of fixable and not fixable Cards:
@@ -278,7 +278,7 @@ We'll summarize the verification with a "life-cycle" example::
 
 
 Verification using the FITS Checksum Keyword Convention
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======================================================
 
 The North American FITS committee has reviewed the FITS Checksum Keyword
 Convention for possible adoption as a FITS Standard.  This convention provides

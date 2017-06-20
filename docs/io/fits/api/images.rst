@@ -3,10 +3,10 @@
 .. _images:
 
 Images
-------
+******
 
 `ImageHDU`
-^^^^^^^^^^
+==========
 
 .. autoclass:: ImageHDU
    :members:
@@ -14,7 +14,7 @@ Images
    :show-inheritance:
 
 `CompImageHDU`
-^^^^^^^^^^^^^^
+==============
 
 .. autoclass:: CompImageHDU
    :members:
@@ -22,7 +22,7 @@ Images
    :show-inheritance:
 
 `Section`
-=========
+---------
 
 .. autoclass:: Section
    :members:

@@ -10,11 +10,11 @@ Regression tests for the units.format package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...extern import six
-
+import pytest
 from numpy.testing.utils import assert_allclose
-from ...tests.helper import pytest, catch_warnings
 
+from ...extern import six
+from ...tests.helper import catch_warnings
 from ... import units as u
 from ...constants import si
 from .. import core

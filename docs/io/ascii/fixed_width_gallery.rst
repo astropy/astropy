@@ -3,7 +3,7 @@
 .. _fixed_width_gallery:
 
 Fixed-width Gallery
--------------------
+*******************
 
 Fixed-width tables are those where each column has the same width for every row
 in the table.  This is commonly used to make tables easy to read for humans or
@@ -27,10 +27,10 @@ Details are available in the class API documentation, but the easiest way to
 understand all the options and their interactions is by example.
 
 Reading
-^^^^^^^
+=======
 
 FixedWidth
-""""""""""
+----------
 
 **Nice, typical fixed format table**
 ::
@@ -161,7 +161,7 @@ keywords to indicate no header line.
 
 
 FixedWidthNoHeader
-""""""""""""""""""
+------------------
 
 **Table with no header row and auto-column naming.  Use the FixedWidthNoHeader
 convenience class.**
@@ -260,7 +260,7 @@ The two examples below read the same table and produce the same result
 
 
 FixedWidthTwoLine
-"""""""""""""""""
+-----------------
 
 **Typical fixed format table with two header lines with some cruft**
 ::
@@ -320,10 +320,10 @@ FixedWidthTwoLine
       2.4 's worlds
 
 Writing
-^^^^^^^
+=======
 
 FixedWidth
-""""""""""
+----------
 
 **Define input values ``dat`` for all write examples.**
 ::
@@ -377,7 +377,7 @@ FixedWidth
   | 2.400    | 's worlds       |    2 |    2 |
 
 FixedWidthNoHeader
-""""""""""""""""""
+------------------
 
 **Write a table as a normal fixed width table.**
 ::
@@ -409,7 +409,7 @@ FixedWidthNoHeader
   2.4  's worlds  2  2
 
 FixedWidthTwoLine
-"""""""""""""""""
+-----------------
 
 **Write a table as a normal fixed width table.**
 ::

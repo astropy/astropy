@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-from ...tests.helper import pytest, assert_quantity_allclose
+
+from ...tests.helper import assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
@@ -333,8 +336,8 @@ class TestCutout2D(object):
         wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                         [scale*np.sin(rho), scale*np.cos(rho)]]
         wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-        wcs.wcs.crval = [self.position.ra.to(u.deg).value,
-                         self.position.dec.to(u.deg).value]
+        wcs.wcs.crval = [self.position.ra.to_value(u.deg),
+                         self.position.dec.to_value(u.deg)]
         wcs.wcs.crpix = [3, 3]
         self.wcs = wcs
 
