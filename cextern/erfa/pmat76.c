@@ -66,7 +66,7 @@ void eraPmat76(double date1, double date2, double rmatp[3][3])
 **
 **     Kaplan,G.H., 1981. USNO circular no. 163, pA2.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -89,7 +89,7 @@ void eraPmat76(double date1, double date2, double rmatp[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -47,6 +47,8 @@ from . import _core
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
            {{ constants|map(attribute='name')|surround("'","'")|join(", ") }},
+           # TODO: delete the functions below when they can get auto-generated
+           'version', 'version_major', 'version_minor', 'version_micro', 'sofa_version',
            'dt_eraASTROM', 'dt_eraLDBODY']
 
 
@@ -238,3 +240,46 @@ STATUS_CODES['{{ func.pyname }}'] = {{ stat.doc_info.statuscodes|string }}
 {%- endfor %}
 
 {% endfor %}
+
+
+# TODO: delete the functions below when they can get auto-generated
+# (current machinery doesn't support returning strings or non-status-codes)
+def version():
+    """
+    Returns the package version
+    as defined in configure.ac
+    in string format
+    """
+    return "1.4.0"
+
+def version_major():
+    """
+    Returns the package major version
+    as defined in configure.ac
+    as integer
+    """
+    return 1
+
+def version_minor():
+    """
+    Returns the package minor version
+    as defined in configure.ac
+    as integer
+    """
+    return 4
+
+def version_micro():
+    """
+    Returns the package micro version
+    as defined in configure.ac
+    as integer
+    """
+    return 0
+
+def sofa_version():
+    """
+    Returns the corresponding SOFA version
+    as defined in configure.ac
+    in string format
+    """
+    return "20170420"

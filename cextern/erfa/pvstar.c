@@ -10,7 +10,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 **  Convert star position+velocity vector to catalog coordinates.
 **
 **  Given (Note 1):
-**     pv     double[2][3]   pv-vector (AU, AU/day)
+**     pv     double[2][3]   pv-vector (au, au/day)
 **
 **  Returned (Note 2):
 **     ra     double         right ascension (radians)
@@ -65,7 +65,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 **  3) Care is needed with units.  The star coordinates are in radians
 **     and the proper motions in radians per Julian year, but the
 **     parallax is in arcseconds; the radial velocity is in km/s, but
-**     the pv-vector result is in AU and AU/day.
+**     the pv-vector result is in au and au/day.
 **
 **  4) The proper motions are the rate of change of the right ascension
 **     and declination at the catalog epoch and are in radians per Julian
@@ -93,7 +93,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -101,12 +101,12 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
           usr[3], ust[3], a, rad, decd, rd;
 
 
-/* Isolate the radial component of the velocity (AU/day, inertial). */
+/* Isolate the radial component of the velocity (au/day, inertial). */
    eraPn(pv[0], &r, x);
    vr = eraPdp(x, pv[1]);
    eraSxp(vr, x, ur);
 
-/* Isolate the transverse component of the velocity (AU/day, inertial). */
+/* Isolate the transverse component of the velocity (au/day, inertial). */
    eraPmp(pv[1], ur, ut);
    vt = eraPm(ut);
 
@@ -116,9 +116,9 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 
 /* The inertial-to-observed correction terms. */
    d = 1.0 + betr;
-   w = 1.0 - betr*betr - bett*bett;
-   if (d == 0.0 || w < 0) return -1;
-   del = sqrt(w) - 1.0;
+   w = betr*betr + bett*bett;
+   if (d == 0.0 || w > 1.0) return -1;
+   del = - w / (sqrt(1.0-w) + 1.0);
 
 /* Apply relativistic correction factor to radial velocity component. */
    w = (betr != 0) ? (betr - del) / (betr * d) : 1.0;
@@ -128,7 +128,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 /* component.                                                  */
    eraSxp(1.0/d, ut, ust);
 
-/* Combine the two to obtain the observed velocity vector (AU/day). */
+/* Combine the two to obtain the observed velocity vector (au/day). */
    eraPpp(usr, ust, pv[1]);
 
 /* Cartesian to spherical. */
@@ -155,7 +155,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
