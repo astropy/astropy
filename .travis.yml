@@ -48,7 +48,6 @@ env:
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
@@ -79,10 +78,6 @@ matrix:
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
         # Numpy 1.10 is tested below in the image tests.
-
-        - os: linux
-          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
-               SETUP_CMD='test --open-files'  PYTEST_VERSION=3.2.1
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
