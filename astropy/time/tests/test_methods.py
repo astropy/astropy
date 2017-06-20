@@ -164,8 +164,10 @@ class TestManipulation():
 
     def test_shape_setting(self):
         t0_reshape = self.t0.copy()
+        mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
         t0_reshape.shape = (5, 2, 5)
         assert t0_reshape.shape == (5, 2, 5)
+        assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
         assert np.all(t0_reshape.jd2 == self.t0._time.jd2.reshape(5, 2, 5))
         assert t0_reshape.location is None
