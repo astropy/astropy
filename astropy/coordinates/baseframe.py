@@ -246,10 +246,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         copy = kwargs.pop('copy', True)
         self._attr_names_with_defaults = []
 
-        representation = kwargs.pop('representation', None)
-        if representation is not None:
-            self.representation = representation
-
         # TODO: we may want to raise a deprecation warning if representation
         # is used instead of representation_cls
         if 'representation' in kwargs and 'representation_cls' in kwargs:
@@ -257,6 +253,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                              'class: both \'representation\' and '
                              '\'representation_cls\' were passed.')
 
+        # We do this so we don't set the representation_cls or the
+        # differential_cls to None. If it's not set, it gets set to the default
+        # stored as a class attribute
         representation = kwargs.pop('representation_cls', None)
         if representation is None:
             representation = kwargs.pop('representation', None)
@@ -302,8 +301,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 elif nmkw in kwargs:
                     repr_kwargs[nmrep] = kwargs.pop(nmkw)
 
-            #special-case the Spherical->UnitSpherical if no `distance`
-            #TODO: possibly generalize this somehow?
+            # special-case the Spherical->UnitSpherical if no `distance`
+            # TODO: possibly generalize this somehow?
 
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
@@ -314,6 +313,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     representation = self.representation._unit_representation
                 else:
                     representation = self.representation
+
                 representation_data = representation(copy=copy, **repr_kwargs)
 
             # Now we handle the Differential data:
@@ -852,7 +852,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError('Cannot transform a frame with no data')
 
         if inspect.isclass(new_frame):
-            #means use the defaults for this class
+            # Use the default frame attributes for this class
             new_frame = new_frame()
 
         if hasattr(new_frame, '_sky_coord_frame'):
@@ -1109,10 +1109,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __getattr__(self, attr):
         """
         Allow access to attributes defined in
-        ``self.representation_component_names``.
+        ``self.representation_component_names`` and .
+        ``self.differential_component_names``
 
-        TODO: dynamic representation transforms (i.e. include cylindrical et
-        al.).
+        TODO: We should handle dynamic representation transforms here (e.g.,
+        `.cylindrical`) instead of defining properties as below.
         """
 
         # attr == '_representation' is likely from the hasattr() test in the
@@ -1146,7 +1147,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             # unitspherical information. The differential_cls gets set to the
             # default_differential, which expects full information, so the units
             # don't work out
-            rep = self.represent_as(self.differential_cls, in_frame_units=True)
+            rep = self.represent_as(self.representation,
+                                    new_differential=self.differential_cls,
+                                    in_frame_units=True)
             val = getattr(rep.differentials['s'],
                           self.differential_component_names[attr])
             return val
