@@ -26,6 +26,7 @@ class Galactic(BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
+
     l : `Angle`, optional, must be keyword
         The Galactic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
@@ -34,6 +35,16 @@ class Galactic(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
+
+    pm_l : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic longitude for this object (``pm_b`` must
+        also be given).
+    pm_b : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic latitude for this object (``pm_l`` must
+        also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
