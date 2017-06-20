@@ -13,10 +13,13 @@ from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from ..representation import (CartesianRepresentation,
                               CartesianDifferential,
+                              SphericalCosLatDifferential,
                               UnitSphericalRepresentation)
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          RepresentationMapping)
-from ..frame_attributes import FrameAttribute, CoordinateAttribute
+from ..frame_attributes import (FrameAttribute, CoordinateAttribute,
+                                QuantityFrameAttribute,
+                                DifferentialFrameAttribute)
 from ..transformations import AffineTransform
 from ..errors import ConvertError
 
@@ -27,16 +30,6 @@ from .icrs import ICRS
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
 _ROLL0 = Angle(58.5986320306*u.degree)
-
-# RA,Dec : Reid et al. 2004 - http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
-# distance : Gillessen et al. 2009
-# pm_ra, pm_dec : Reid & Brunthaler 2004 (assuming all motion is in the plane)
-# radial velocity : Bovy et al. 2012 (negative of value is intentional)
-galcen_default = ICRS(ra=266.4051*u.degree, dec=-28.936175*u.degree,
-                      distance=8.3*u.kpc,
-                      pm_ra=3.3236424408301515*u.mas/u.yr, # Converted Galactic
-                      pm_dec=5.444726065240803*u.mas/u.yr, # to ICRS
-                      radial_velocity=10*u.km/u.s)
 
 class Galactocentric(BaseCoordinateFrame):
     r"""
@@ -62,12 +55,24 @@ class Galactocentric(BaseCoordinateFrame):
         {\rm Dec} = -28:56:10.23~{\rm deg}
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
-    Gillessen et al. 2009,
-    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
+    Gillessen et al. (2009),
+    https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G/abstract
 
     The default height of the Sun above the Galactic midplane is taken to
-    be 27 pc, as measured by
-    http://adsabs.harvard.edu/abs/2001ApJ...553..184C.
+    be 27 pc, as measured by Chen et al. (2001),
+    https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
+
+    The default solar motion relative to the Galactic center is defined in terms
+    of the proper motion and radial velocity of Sgr A*. The Galactic proper
+    motion components are taken from Reid & Brunthaler (2004) assuming all
+    motion is in the Galactic plane (i.e. :math:`\mu_b=0` and
+    :math:`\mu_l=\mu_{\rm SgrA^*}=6.379~{\rm mas}~{\rm yr}^{-1}`),
+    https://ui.adsabs.harvard.edu/#abs/2004ApJ...616..872R/abstract
+
+    The radial velocity is adopted from Bovy et al. (2012), -10 km/s (in the
+    paper, the value is defined as the radial velocity away from the Galactic
+    center center, but from the sun's frame it is also the velocity of Sgr A*),
+    https://ui.adsabs.harvard.edu/#abs/2012ApJ...759..131B/abstract
 
     For a more detailed look at the math behind this transformation, see
     the document :ref:`coordinates-galactocentric`.
@@ -77,14 +82,19 @@ class Galactocentric(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
+    galcen_coord : `ICRS`, optional, must be keyword
+        The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
-        The distance from the Sun to the Galactic center.
-    galcen_ra : `Angle`, optional, must be keyword
-        The Right Ascension (RA) of the Galactic center in the ICRS frame.
-    galcen_dec : `Angle`, optional, must be keyword
-        The Declination (Dec) of the Galactic center in the ICRS frame.
+        The distance from the sun to the Galactic center.
+    galcen_v_sun : `~astropy.coordinates.representation.BaseDifferential`, optional, must be keyword
+        The velocity of the sun relative to the Galactic center. By default,
+        this is specified by the proper motion and radial velocity of Sgr A*.
+        To pass in a Cartesian specification of the solar motion (including the
+        peculiar motion of the sun with respect to the local standard of rest),
+        pass in a `CartesianDifferential` object, e.g.,
+        ``galcen_v_sun=CartesianDifferential([-11.1, 245, 7.25]*u.km/u.s)``.
     z_sun : `~astropy.units.Quantity`, optional, must be keyword
-        The distance from the Sun to the Galactic midplane.
+        The distance from the sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
         The angle to rotate about the final x-axis, relative to the
         orientation for Galactic. For example, if this roll angle is 0,
@@ -154,44 +164,59 @@ class Galactocentric(BaseCoordinateFrame):
     default_differential = CartesianDifferential
 
     # frame attributes
-    galcen = CoordinateAttribute(default=galcen_default, frame=ICRS)
+
+    # RA,Dec : Reid et al. 2004 - http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
+    galcen_coord = CoordinateAttribute(default=ICRS(ra=266.4051*u.degree,
+                                                    dec=-28.936175*u.degree),
+                                       frame=ICRS)
+
+    # These are deprecated, but this tricks the frame __getattr__ into
+    # recognizing these as valid attributes so we can define properties below
+    # for backwards-compatibility
+    galcen_ra = FrameAttribute(default=None)
+    galcen_dec = FrameAttribute(default=None)
+
+    # distance : Gillessen et al. 2009
+    galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
+
+    # Converted Galactic proper motion to ICRS
+    # pm_ra, pm_dec : Reid & Brunthaler 2004 (assuming all motion is in the plane)
+    # radial velocity : Bovy et al. 2012 (negative of value is intentional)
+    galcen_v_sun = DifferentialFrameAttribute(
+        default=SphericalCosLatDifferential(3.3236424408301515*u.mas/u.yr,
+                                            5.444726065240803*u.mas/u.yr,
+                                            10*u.km/u.s))
+
     z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
 
     def __init__(self, *args, **kwargs):
 
         # backwards-compatibility
-        if ('galcen_distance' in kwargs or 'galcen_ra' in kwargs or
-                'galcen_dec' in kwargs):
-            warnings.warn("The arguments 'galcen_distance', 'galcen_ra', and "
-                          "'galcen_dec' are deprecated in favor of specifying "
-                          "the full-space position and velocity of the Galactic "
-                          "center by passing a frame in to the 'galcen' attribute",
-                          AstropyDeprecationWarning)
+        if ('galcen_ra' in kwargs or 'galcen_dec' in kwargs):
+            warnings.warn("The arguments 'galcen_ra', and 'galcen_dec' are "
+                          "deprecated in favor of specifying the sky coordinate"
+                          " as a CoordinateAttribute using the 'galcen_coord' "
+                          "argument", AstropyDeprecationWarning)
 
         galcen_kw = dict()
-        galcen_kw['distance'] = kwargs.pop('galcen_distance',
-                                           self.galcen.distance)
-        galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen.ra)
-        galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen.dec)
-        galcen_kw['pm_ra'] = self.galcen.pm_ra
-        galcen_kw['pm_dec'] = self.galcen.pm_dec
-        galcen_kw['radial_velocity'] = self.galcen.radial_velocity
-        kwargs['galcen'] = ICRS(**galcen_kw)
+        galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
+        galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
+        kwargs['galcen_coord'] = ICRS(**galcen_kw)
 
-        super(Galactocentric, self).__init__(self, *args, **kwargs)
+        super(Galactocentric, self).__init__(*args, **kwargs)
 
     @property
     def galcen_ra(self):
-        return self.galcen.frame.ra
+        warnings.warn("The attribute 'galcen_ra' is deprecated. Use "
+                      "'.galcen_coord.ra' instead.", AstropyDeprecationWarning)
+        return self.galcen_coord.ra
 
     @property
     def galcen_dec(self):
-        return self.galcen.frame.dec
-
-    @property
-    def galcen_distance(self):
-        return self.galcen.frame.distance
+        warnings.warn("The attribute 'galcen_dec' is deprecated. Use "
+                      "'.galcen_coord.dec' instead.", AstropyDeprecationWarning)
+        return self.galcen_coord.dec
 
     @classmethod
     def get_roll0(cls):
