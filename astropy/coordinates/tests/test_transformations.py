@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+import pytest
 
 from ... import units as u
 from .. import transformations as t
@@ -12,6 +13,7 @@ from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import assert_quantity_allclose as assert_allclose
+from ...tests.helper import quantity_allclose
 from ...time import Time
 
 
@@ -204,3 +206,171 @@ def test_obstime():
     # because the obstime is different
     assert icrs_50.ra.degree != icrs_75.ra.degree
     assert icrs_50.dec.degree != icrs_75.dec.degree
+
+# ------------------------------------------------------------------------------
+# Affine transform tests and helpers:
+
+# just acting as a namespace
+class transfunc(object):
+    rep = r.CartesianRepresentation(np.arange(3)*u.pc)
+    dif = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
+    rep0 = r.CartesianRepresentation(np.zeros(3)*u.pc)
+
+    @classmethod
+    def both(cls, coo, fr):
+        # exchange x <-> z and offset
+        M = np.array([[0., 0., 1.],
+                      [0., 1., 0.],
+                      [1., 0., 0.]])
+        return M, cls.rep.with_differentials(cls.dif)
+
+    @classmethod
+    def just_matrix(cls, coo, fr):
+        # exchange x <-> z and offset
+        M = np.array([[0., 0., 1.],
+                      [0., 1., 0.],
+                      [1., 0., 0.]])
+        return M, None
+
+    @classmethod
+    def no_matrix(cls, coo, fr):
+        return None, cls.rep.with_differentials(cls.dif)
+
+    @classmethod
+    def no_pos(cls, coo, fr):
+        return None, cls.rep0.with_differentials(cls.dif)
+
+    @classmethod
+    def no_vel(cls, coo, fr):
+        return None, cls.rep
+
+@pytest.mark.parametrize('transfunc', [transfunc.both, transfunc.no_matrix,
+                                       transfunc.no_pos, transfunc.no_vel,
+                                       transfunc.just_matrix])
+@pytest.mark.parametrize('rep', [
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc),
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
+                              differentials=r.CartesianDifferential(8, 9, 10,
+                                                                    unit=u.pc/u.Myr)),
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
+                              differentials=r.CartesianDifferential(8, 9, 10,
+                                                                    unit=u.pc/u.Myr))
+     .represent_as(r.CylindricalRepresentation, r.CylindricalDifferential)
+])
+def test_affine_transform_succeed(transfunc, rep):
+    c = TCoo1(rep)
+
+    # compute expected output
+    M, offset = transfunc(c, TCoo2)
+
+    _rep = rep.to_cartesian()
+    diffs = dict([(k, diff.represent_as(r.CartesianDifferential, rep))
+                  for k, diff in rep.differentials.items()])
+    expected_rep = _rep.with_differentials(diffs)
+
+    if M is not None:
+        expected_rep = expected_rep.transform(M)
+
+    expected_pos = expected_rep.without_differentials()
+    if offset is not None:
+        expected_pos = expected_pos + offset.without_differentials()
+
+    expected_vel = None
+    if c.data.differentials:
+        expected_vel = expected_rep.differentials['s']
+
+        if offset and offset.differentials:
+            expected_vel = (expected_vel + offset.differentials['s'])
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    c2 = c.transform_to(TCoo2)
+
+    assert quantity_allclose(c2.data.to_cartesian().xyz,
+                             expected_pos.to_cartesian().xyz)
+
+    if expected_vel is not None:
+        diff = c2.data.differentials['s'].to_cartesian(base=c2.data)
+        assert quantity_allclose(diff.xyz, expected_vel.d_xyz)
+
+    trans.unregister(frame_transform_graph)
+
+
+# these should fail
+def transfunc_invalid_matrix(coo, fr):
+    return np.eye(4), None
+
+# Leaving this open in case we want to add more functions to check for failures
+@pytest.mark.parametrize('transfunc', [transfunc_invalid_matrix])
+def test_affine_transform_fail(transfunc):
+    diff = r.CartesianDifferential(8, 9, 10, unit=u.pc/u.Myr)
+    rep = r.CartesianRepresentation(5, 6, 7, unit=u.pc, differentials=diff)
+    c = TCoo1(rep)
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    with pytest.raises(ValueError):
+        c2 = c.transform_to(TCoo2)
+
+    trans.unregister(frame_transform_graph)
+
+
+def test_too_many_differentials():
+    dif1 = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
+    dif2 = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr**2)
+    rep = r.CartesianRepresentation(np.arange(3)*u.pc,
+                                    differentials={'s': dif1, 's2': dif2})
+
+    c = TCoo1(rep)
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    with pytest.raises(ValueError):
+        c2 = c.transform_to(TCoo2)
+
+    trans.unregister(frame_transform_graph)
+
+# A matrix transform of a unit spherical with differentials should work
+@pytest.mark.parametrize('rep', [
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials=r.SphericalDifferential(d_lon=15*u.mas/u.yr,
+                                              d_lat=11*u.mas/u.yr,
+                                              d_distance=-110*u.km/u.s)),
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)}),
+    r.SphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+                              distance=150*u.pc,
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)})
+])
+def test_unit_spherical_with_differentials(rep):
+
+    c = TCoo1(rep)
+
+    # register and do the transformation and check against expected
+    trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+    c2 = c.transform_to(TCoo2)
+
+    assert 's' in rep.differentials
+    assert isinstance(c2.data.differentials['s'],
+                      rep.differentials['s'].__class__)
+
+    if isinstance(rep.differentials['s'], r.RadialDifferential):
+        assert c2.data.differentials['s'] is rep.differentials['s']
+
+    trans.unregister(frame_transform_graph)
+
+    # should fail if we have to do offsets
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans.register(frame_transform_graph)
+
+    with pytest.raises(TypeError):
+        c.transform_to(TCoo2)
+
+    trans.unregister(frame_transform_graph)
