@@ -714,8 +714,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return self._apply('replicate', _framedata=representation,
                            representation_cls=None)
 
-    def represent_as(self, new_representation, in_frame_units=False,
-                     new_differential=None):
+    def represent_as(self, new_representation, new_differentials=None,
+                     in_frame_units=False):
         """
         Generate and return a new representation of this frame's `data`
         as a Representation object.
@@ -731,14 +731,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             (not an instance), or the string name of the representation
             class.
 
-        in_frame_units : bool
-            Force the representation units to match the specified units
-            particular to this frame
-
-        new_differential : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
+        new_differentials : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
             Class in which the differential should be represented. Must be
             a *class* (not an instance), or the string name of the
             differential class.
+
+        in_frame_units : bool
+            Force the representation units to match the specified units
+            particular to this frame
 
         Returns
         -------
@@ -765,24 +765,52 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             ( 1.,  0.,  0.)>
         """
 
+        # For backwards compatibility (because in_frame_units used to be the
+        # 2nd argument), we check to see if `new_differential` is a boolean. If
+        # it is, we ignore the value of `new_differential` and warn about the
+        # position change
+        if isinstance(new_differentials, bool):
+            warnings.warn("The argument position for `in_frame_units` in "
+                          "`represent_as` has changed. Use as a keyword "
+                          "argument if needed.", AstropyWarning)
+            in_frame_units = new_differentials
+            new_differentials = None
+
         has_velocity = 's' in self.data.differentials
 
         new_representation = _get_repr_cls(new_representation)
 
-        if new_differential:
+        if new_differentials:
             if not has_velocity:
                 raise TypeError('Frame data has no associated differentials '
                                 '(i.e. the frame has no velocity data) - '
                                 'represent_as() only accepts a new '
                                 'representation.')
 
-            if isinstance(new_differential, six.string_types):
-                new_differential = _get_diff_cls(new_differential)
+            if isinstance(new_differentials, six.string_types):
+                new_differentials = _get_diff_cls(new_differentials)
+
+            elif hasattr(new_differentials, 'keys'):
+                if 's' in new_differentials: # get the velocity differential
+                    new_differentials = new_differentials['s']
+
+                elif len(new_differentials) > 0:
+                    raise ValueError("Only a single velocity differential is "
+                                     "supported in BaseCoordinateFrame, so we "
+                                     "only expect to get one differential class"
+                                     " in represent_as, not {0}"
+                                     .format(new_differentials))
 
         elif has_velocity:
-            new_differential = _get_diff_cls(new_representation.get_name())
+            new_differentials = _get_diff_cls(new_representation.get_name())
 
-        if has_velocity:
+        # In the future, we might want to support a dictionary of differentials.
+        # But for right now, we only care about one - the velocity. So, in the
+        # if clause above new_differentials always gets stripped down to either
+        # `None` or the velocity differential class
+        new_differential = new_differentials
+
+        if has_velocity and new_differential is not None:
             cache_key = (new_representation.__name__,
                          new_differential.__name__,
                          in_frame_units)
@@ -1148,7 +1176,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             # default_differential, which expects full information, so the units
             # don't work out
             rep = self.represent_as(self.representation,
-                                    new_differential=self.differential_cls,
+                                    new_differentials=self.differential_cls,
                                     in_frame_units=True)
             val = getattr(rep.differentials['s'],
                           self.differential_component_names[attr])
