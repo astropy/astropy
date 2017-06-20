@@ -66,7 +66,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
-   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree, 
+   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree,
    don't forget to clean the ``astropy_helpers`` submodule, too.
 
 #. Be sure you're on the branch appropriate for the version you're about to
@@ -119,12 +119,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.2
 
-   Don't forget to remove any non-committed files both from the main working tree 
+   Don't forget to remove any non-committed files both from the main working tree
    and ``astropy_helpers`` submodules with::
 
       $ git clean -dfx
       $ cd astropy_helpers; git clean -dfx; cd ..
-      
+
 #. Make sure the source distribution doesn't inherit limited permissions
    following your default umask::
 
@@ -311,9 +311,8 @@ The procedure for this is straightforward:
 
 #. Make sure you're on master, and updated to the latest version from github::
 
-      $ git checkout master
       $ git fetch upstream
-      $ git reset --hard upstream/master
+      $ git checkout upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
@@ -357,7 +356,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream master:master
+      $ git push upstream HEAD:master
 
    .. note::
 
