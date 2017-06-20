@@ -841,16 +841,14 @@ def test_inplace_change():
     assert i.dec == 2 * u.deg
 
 
-def test_pass_representation_with_differentials():
+def test_representation_with_multiple_differentials():
     from ..builtin_frames import ICRS
 
-    dif = r.CartesianDifferential(1*u.km/u.s, 2*u.km/u.s, 3*u.km/u.s)
-    rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc,
-                                    differentials=[dif, dif])
+    dif1 = r.CartesianDifferential([1,2,3]*u.km/u.s)
+    dif2 = r.CartesianDifferential([1,2,3]*u.km/u.s**2)
+    rep = r.CartesianRepresentation([1, 2, 3]*u.pc,
+                                    differentials={'s': dif1, 's2': dif2})
 
     # check warning is raised for a scalar
-    with catch_warnings() as w:
+    with pytest.raises(ValueError):
         ICRS(rep)
-        assert len(w) == 1
-        assert w[0].category == AstropyWarning
-        assert 'Multiple differentials are associated' in str(w[0].message)
