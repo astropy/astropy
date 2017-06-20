@@ -31,6 +31,7 @@ from .representation import (BaseRepresentation, BaseDifferential,
                              CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
+                             SphericalCosLatDifferential,
                              REPRESENTATION_CLASSES,
                              DIFFERENTIAL_CLASSES)
 
@@ -583,7 +584,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Parameters
         ----------
         new_representation : subclass of BaseRepresentation or string
-            The type of representation to generate.  May be a *class*
+            The type of representation to generate.  Must be a *class*
             (not an instance), or the string name of the representation
             class.
 
@@ -592,7 +593,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             particular to this frame
 
         new_differential : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
-            Class in which the differential should be represented. May be
+            Class in which the differential should be represented. Must be
             a *class* (not an instance), or the string name of the
             differential class.
 
@@ -1091,7 +1092,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def spherical(self):
         """
-        Shorthand for a spherical representation of the coordinates in this object.
+        Shorthand for a spherical representation of the coordinates in this
+        object.
         """
 
         # TODO: if representations are updated to use a full transform graph,
@@ -1101,13 +1103,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @property
     def sphericalcoslat(self):
         """
-        Shorthand for a spherical representation of the coordinates in this object.
+        Shorthand for a spherical representation of the positional data and a
+        `SphericalCosLatDifferential` for the velocity data in this object.
         """
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
+        new_diffs = dict([(k, SphericalCosLatDifferential)
+                          for k in self.data.differentials])
         return self.represent_as('spherical',
-                                 new_differential='sphericalcoslat',
+                                 new_differential=new_diffs,
                                  in_frame_units=True)
 
 

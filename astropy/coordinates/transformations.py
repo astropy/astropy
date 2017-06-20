@@ -749,9 +749,14 @@ class FunctionTransform(CoordinateTransform):
         return res
 
 class BaseAffineTransform(CoordinateTransform):
-    """
-    Base class for common functionality between the ``AffineTransform``-type
+    """Base class for common functionality between the ``AffineTransform``-type
     subclasses.
+
+    This needed because ``AffineTransform`` and the matrix transform classes
+    share the ``_apply_transform()`` method, but have different ``__call__()``
+    methods. ``StaticMatrixTransform`` passes in a matrix stored as a
+    class attribute, and both of the matrix transforms pass in ``None`` for the
+    offset.
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
@@ -889,14 +894,18 @@ class AffineTransform(BaseAffineTransform):
     A coordinate transformation specified as a function that yields a 3 x 3
     cartesian transformation matrix and a tuple of displacement vectors.
 
+    See `~astropy.coordinates.builtin_frames.galactocentric.Galactocentric` for
+    an example.
+
     Parameters
     ----------
     transform_func : callable
         A callable that has the signature ``transform_func(fromcoord, toframe)``
-        and returns a length-2 tuple that contains: [0] a (3, 3) matrix that
-        converts ``fromcoord`` in a cartesian representation to the new
-        coordinate system, and [1] a (N, 3) set of vectors that contain
-        offsets for differentials (or None).
+        and returns: a (3, 3) matrix that operates on ``fromcoord`` in a
+        Cartesian representation, and a ``CartesianRepresentation`` with
+        (optionally) an attached velocity ``CartesianDifferential`` to represent
+        a translation and offset in velocity to apply after the matrix
+        operation.
     fromsys : class
         The coordinate frame class to start from.
     tosys : class
