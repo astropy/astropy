@@ -59,6 +59,12 @@ New Features
   - ``EarthLocation`` now has ``lat`` and ``lon`` properties (equivalent to, but
     preferred over, the previous ``latitude`` and ``longitude``). [#6237]
 
+  - Added a new ``AffineTransform`` class for coordinate frame transformations.
+    This class supports matrix operations with vector offsets in position or
+    any differential quantities (so far, only velocity is supported). The
+    matrix transform classes now subclass from the base affine transform.
+    [#6218]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
