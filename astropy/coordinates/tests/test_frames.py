@@ -589,6 +589,23 @@ def test_represent_as():
     with pytest.raises(ValueError):
         icrs.represent_as('odaigahara')
 
+def test_shorthand_representations():
+    from ..builtin_frames import ICRS
+
+    rep = r.CartesianRepresentation([1,2,3]*u.pc)
+    dif = r.CartesianDifferential([1,2,3]*u.km/u.s)
+    rep = rep.with_differentials(dif)
+
+    icrs = ICRS(rep)
+
+    sph = icrs.spherical
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalDifferential)
+
+    sph = icrs.sphericalcoslat
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalCosLatDifferential)
+
 def test_dynamic_attrs():
     from ..builtin_frames import ICRS
     c = ICRS(1*u.deg, 2*u.deg)

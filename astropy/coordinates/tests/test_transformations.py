@@ -325,12 +325,17 @@ def test_too_many_differentials():
     rep = r.CartesianRepresentation(np.arange(3)*u.pc,
                                     differentials={'s': dif1, 's2': dif2})
 
-    c = TCoo1(rep)
+    with pytest.raises(ValueError):
+        c = TCoo1(rep)
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
+    # Check that if frame somehow gets through to transformation, multiple
+    # differentials are caught
+    c = TCoo1(rep.without_differentials)
+    c._data = c._data.with_differentials({'s': dif1, 's2': dif2})
     with pytest.raises(ValueError):
         c2 = c.transform_to(TCoo2)
 
