@@ -213,6 +213,9 @@ New Features
   - Added a new ``dataurl_mirror`` configuration item in ``astropy.utils.data``
     that is used to indicate a mirror for the astropy data server. [#5547]
 
+  - Added a new convenience method ``get_cached_urls`` to ``astropy.utils.data``
+    for getting a list of the URLs in your cache. [#6242]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
