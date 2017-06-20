@@ -40,8 +40,8 @@ from .frame_attributes import (
     EarthLocationAttribute, CoordinateAttribute,
     CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
 
-__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
-           'RepresentationMapping']
+__all__ = ['BaseCoordinateFrame', 'BaseRADecFrame', 'frame_transform_graph',
+           'GenericFrame', 'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -1324,3 +1324,61 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
+
+# Note: this is a base class that defines default representation info for frames
+# that represent longitude and latitude with RA, Dec
+class BaseRADecFrame(BaseCoordinateFrame):
+    """
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or ``None`` to have no data (or use the other
+        keywords below).
+
+    ra : `Angle`, optional, must be keyword
+        The RA for this object (``dec`` must also be given and ``representation``
+        must be None).
+    dec : `Angle`, optional, must be keyword
+        The Declination for this object (``ra`` must also be given and
+        ``representation`` must be None).
+    distance : `~astropy.units.Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (``representation`` must be None).
+
+    pm_ra : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Right Ascension for this object (``pm_dec`` must
+        also be given).
+    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_ra`` must also be
+        given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
+    """
+    frame_specific_representation_info = {
+        r.SphericalRepresentation: [
+            RepresentationMapping('lon', 'ra'),
+            RepresentationMapping('lat', 'dec')
+        ],
+        r.SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_ra', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
+        ],
+        r.CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)
+        ],
+    }
+    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[r.SphericalRepresentation]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
