@@ -418,6 +418,9 @@ Bug Fixes
 
   - Use more sensible fix values for invalid NAXISj header values. [#5935]
 
+  - Close file on error to avoid creating a ``ResourceWarning`` warning
+    about an unclosed file. [#6168, #6177]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
