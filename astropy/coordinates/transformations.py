@@ -752,11 +752,13 @@ class BaseAffineTransform(CoordinateTransform):
     """Base class for common functionality between the ``AffineTransform``-type
     subclasses.
 
-    This needed because ``AffineTransform`` and the matrix transform classes
-    share the ``_apply_transform()`` method, but have different ``__call__()``
-    methods. ``StaticMatrixTransform`` passes in a matrix stored as a
-    class attribute, and both of the matrix transforms pass in ``None`` for the
-    offset.
+    This base class is needed because ``AffineTransform`` and the matrix
+    transform classes share the ``_apply_transform()`` method, but have
+    different ``__call__()`` methods. ``StaticMatrixTransform`` passes in a
+    matrix stored as a class attribute, and both of the matrix transforms pass
+    in ``None`` for the offset. Hence, user subclasses would likely want to
+    subclass this (rather than ``AffineTransform``) if they want to provide
+    alternative transformations using this machinery.
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
