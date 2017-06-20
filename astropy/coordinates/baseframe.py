@@ -27,19 +27,8 @@ from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
-from ..utils.misc import isiterable
 from .transformations import TransformGraph
-from .representation import (BaseRepresentation, BaseDifferential,
-                             BaseSphericalDifferential,
-                             BaseSphericalCosLatDifferential,
-                             CartesianRepresentation,
-                             SphericalRepresentation,
-                             SphericalDifferential,
-                             RadialDifferential,
-                             UnitSphericalRepresentation,
-                             SphericalCosLatDifferential,
-                             REPRESENTATION_CLASSES,
-                             DIFFERENTIAL_CLASSES)
+from . import representation as r
 
 from .frame_attributes import FrameAttribute
 
@@ -64,13 +53,14 @@ def _get_repr_cls(value):
     Return a valid representation class from ``value`` or raise exception.
     """
 
-    if value in REPRESENTATION_CLASSES:
-        value = REPRESENTATION_CLASSES[value]
-    elif not isinstance(value, type) or not issubclass(value, BaseRepresentation):
+    if value in r.REPRESENTATION_CLASSES:
+        value = r.REPRESENTATION_CLASSES[value]
+    elif (not isinstance(value, type) or
+          not issubclass(value, r.BaseRepresentation)):
         raise ValueError(
             'Representation is {0!r} but must be a BaseRepresentation class '
             'or one of the string aliases {1}'.format(
-                value, list(REPRESENTATION_CLASSES)))
+                value, list(r.REPRESENTATION_CLASSES)))
     return value
 
 def _get_diff_cls(value):
@@ -78,16 +68,16 @@ def _get_diff_cls(value):
     Return a valid differential class from ``value`` or raise exception.
     """
 
-    if value in DIFFERENTIAL_CLASSES:
-        value = DIFFERENTIAL_CLASSES[value]
+    if value in r.DIFFERENTIAL_CLASSES:
+        value = r.DIFFERENTIAL_CLASSES[value]
     try:
         # value might not be a class, so use try
-        assert issubclass(value, BaseDifferential)
+        assert issubclass(value, r.BaseDifferential)
     except (TypeError, AssertionError):
         raise ValueError(
             'Differential is {0!r} but must be a BaseDifferential class '
             'or one of the string aliases {1}'.format(
-                value, list(DIFFERENTIAL_CLASSES)))
+                value, list(r.DIFFERENTIAL_CLASSES)))
     return value
 
 # Need to subclass ABCMeta as well, so that this meta class can be combined
@@ -271,7 +261,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         differential_data = None
 
         args = list(args)  # need to be able to pop them
-        if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
+        if (len(args) > 0) and (isinstance(args[0], r.BaseRepresentation) or
                                 args[0] is None):
             representation_data = args.pop(0)
             if len(args) > 0:
@@ -308,8 +298,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
 
-                if (issubclass(self.representation, SphericalRepresentation) and
-                        'distance' not in repr_kwargs):
+                if (issubclass(self.representation, r.SphericalRepresentation)
+                        and 'distance' not in repr_kwargs):
                     representation = self.representation._unit_representation
                 else:
                     representation = self.representation
@@ -333,7 +323,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     differential = self.differential_cls._unit_differential
 
                 elif len(diff_kwargs) == 1 and 'd_distance' in diff_kwargs:
-                    differential = RadialDifferential
+                    differential = r.RadialDifferential
 
                 else:
                     differential = self.differential_cls
@@ -536,8 +526,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # moved into the representation_info property at that time.
 
         repr_attrs = {}
-        for repr_diff_cls in (list(REPRESENTATION_CLASSES.values()) +
-                              list(DIFFERENTIAL_CLASSES.values())):
+        for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
+                              list(r.DIFFERENTIAL_CLASSES.values())):
             repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
             for c in repr_diff_cls.attr_classes.keys():
                 repr_attrs[repr_diff_cls]['names'].append(c)
@@ -1008,7 +998,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                                                      frameattrs, data_repr)
         else:
             return '<{0} Frame{1}>'.format(self.__class__.__name__,
-                                            frameattrs)
+                                           frameattrs)
 
     def _data_repr(self):
         """Returns a string representation of the coordinate data."""
@@ -1017,8 +1007,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return ''
 
         if self.representation:
-            if (issubclass(self.representation, SphericalRepresentation) and
-                    isinstance(self.data, UnitSphericalRepresentation)):
+            if (issubclass(self.representation, r.SphericalRepresentation) and
+                    isinstance(self.data, r.UnitSphericalRepresentation)):
                 data = self.represent_as(self.data.__class__,
                                          in_frame_units=True)
             else:
@@ -1219,9 +1209,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         from .angle_utilities import angular_separation
         from .angles import Angle
 
-        self_unit_sph = self.represent_as(UnitSphericalRepresentation)
+        self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
         other_transformed = other.transform_to(self)
-        other_unit_sph = other_transformed.represent_as(UnitSphericalRepresentation)
+        other_unit_sph = other_transformed.represent_as(r.UnitSphericalRepresentation)
 
         # Get the separation as a Quantity, convert to Angle in degrees
         sep = angular_separation(self_unit_sph.lon, self_unit_sph.lat,
@@ -1251,14 +1241,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         from .distances import Distance
 
-        if issubclass(self.data.__class__, UnitSphericalRepresentation):
+        if issubclass(self.data.__class__, r.UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
         other_in_self_system = other.transform_to(self)
 
-        if issubclass(other_in_self_system.__class__, UnitSphericalRepresentation):
+        if issubclass(other_in_self_system.__class__, r.UnitSphericalRepresentation):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
