@@ -6,6 +6,12 @@
 Analytic Functions (``astropy.analytic_functions``)
 ***************************************************
 
+.. warning::
+
+    Blackbody functions have been moved to `astropy.modeling.blackbody`.
+    This sub-package is deprecated since v2.0 and will be removed from
+    Astropy in a future version.
+
 Introduction
 ============
 
@@ -35,7 +41,7 @@ Calculate blackbody flux for 10000 K at 6000 Angstrom:
 Using ``astropy.analytic_functions``
 ====================================
 
-.. _blackbody-planck-law:
+.. _blackbody-planck-law-deprecated:
 
 Blackbody Radiation
 -------------------
@@ -56,14 +62,16 @@ where the unit of :math:`B_{\lambda}(T)` is
 :func:`~astropy.analytic_functions.blackbody.blackbody_nu` calculate the
 blackbody flux for :math:`B_{\lambda}(T)` and :math:`B_{\nu}(T)`, respectively.
 
-.. _blackbody-examples:
+.. _blackbody-examples-deprecated:
 
 Examples
 ^^^^^^^^
 
 >>> import numpy as np
+>>> import warnings
 >>> from astropy import units as u
 >>> from astropy.analytic_functions import blackbody_lambda, blackbody_nu
+>>> from astropy.utils.exceptions import AstropyDeprecationWarning
 
 Calculate blackbody flux for 5000 K at 100 and 10000 Angstrom while suppressing
 any Numpy warnings:
@@ -71,8 +79,10 @@ any Numpy warnings:
 >>> wavelengths = [100, 10000] * u.AA
 >>> temperature = 5000 * u.K
 >>> with np.errstate(all='ignore'):
-...     flux_lam = blackbody_lambda(wavelengths, temperature)
-...     flux_nu = blackbody_nu(wavelengths, temperature)
+...     with warnings.catch_warnings():
+...         warnings.simplefilter('ignore', AstropyDeprecationWarning)
+...         flux_lam = blackbody_lambda(wavelengths, temperature)
+...         flux_nu = blackbody_nu(wavelengths, temperature)
 >>> flux_lam
 Quantity [1.27452545e-108, 7.10190526e+005] erg / (Angstrom cm2 s sr)>
 >>> flux_nu
@@ -84,16 +94,20 @@ Plot a blackbody spectrum for 5000 K:
 
     import matplotlib.pyplot as plt
     import numpy as np
+    import warnings
     from astropy import constants as const
     from astropy import units as u
     from astropy.analytic_functions import blackbody_lambda
+    from astropy.utils.exceptions import AstropyDeprecationWarning
 
     temperature = 5000 * u.K
     wavemax = (const.b_wien / temperature).to(u.AA)  # Wien's displacement law
     waveset = np.logspace(
         0, np.log10(wavemax.value + 10 * wavemax.value), num=1000) * u.AA
     with np.errstate(all='ignore'):
-        flux = blackbody_lambda(waveset, temperature)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', AstropyDeprecationWarning)
+            flux = blackbody_lambda(waveset, temperature)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(waveset.value, flux.value)
