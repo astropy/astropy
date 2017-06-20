@@ -1,0 +1,40 @@
+.. doctest-skip-all
+
+.. _whatsnew-3.0:
+
+**************************
+What's New in Astropy 3.0?
+**************************
+
+Overview
+========
+
+Astropy 3.0 is a major release that adds significant new functionality since
+the 2.0.x series of releases. It is the first version that supports only
+Python 3.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-3.0-python3`
+
+In addition to these major changes, Astropy 3.0 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* xxx issues have been closed since v2.0
+* xxx pull requests have been merged since v2.0
+* xxx distinct people have contributed code
+
+.. _whatsnew-3.0-python3:
+
+Supporting only Python 3
+========================
+
+This version removed all Python 2.x compatibility code.
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v3.0, including changes in
+API, please see the :ref:`changelog`.
