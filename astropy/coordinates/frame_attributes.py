@@ -14,7 +14,8 @@ from ..utils import OrderedDescriptor, ShapedLikeNDArray
 
 __all__ = ['FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
-           'CartesianRepresentationFrameAttribute', 'VelocityAttribute']
+           'CartesianRepresentationFrameAttribute',
+           'DifferentialFrameAttribute']
 
 class FrameAttribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
@@ -420,20 +421,9 @@ class CoordinateAttribute(FrameAttribute):
                 transformedobj = transformedobj.frame
             return transformedobj, True
 
-class VelocityAttribute(FrameAttribute):
+class DifferentialFrameAttribute(FrameAttribute):
     """
-    A frame attribute which is a coordinate object with velocity units. This
-    looks strange, but is needed for specifying the solar motion in the
-    `~astropy.coordinates.builtin_frames.LSR` and
-    `~astropy.coordinates.builtin_frames.Galactocentric` frames.
-
-    To prevent awkward argument names (mainly ``distance``), it is recommended
-    that `~astropy.coordinates.frame_attributes.VelocityAttribute` s are
-    initialized with
-    `~astropy.coordinates.representation.CartesianRepresentation` objects,
-    e.g.::
-
-        Galactic(CartesianRepresentation([-11.1, 12.24, 7.25]*u.km/u.s))
+    TODO:
 
     Parameters
     ----------
@@ -445,9 +435,9 @@ class VelocityAttribute(FrameAttribute):
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
     """
-    def __init__(self, frame, default=None, secondary_attribute=''):
-        self._frame = frame
-        super(VelocityAttribute, self).__init__(default, secondary_attribute)
+    def __init__(self, default=None, secondary_attribute=''):
+        super(DifferentialFrameAttribute, self).__init__(default,
+                                                         secondary_attribute)
 
     def convert_input(self, value):
         """
@@ -470,20 +460,11 @@ class VelocityAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        if value is None:
-            return None, False
-        elif isinstance(value, self._frame):
-            return value, False
-        else:
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into a '
-                                 'CoordinateAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
-            transformedobj = value.transform_to(self._frame)
-            if hasattr(transformedobj, 'frame'):
-                transformedobj = transformedobj.frame
-            return transformedobj, True
+        if not isinstance(value, BaseDifferential):
+            raise TypeError('Tried to set a DifferentialFrameAttribute with '
+                            'something that does not have a unit.')
+        return value, True
 
 # do this here to prevent a series of complicated circular imports
 from .earth import EarthLocation
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, BaseDifferential

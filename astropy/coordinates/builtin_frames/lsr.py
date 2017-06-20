@@ -14,7 +14,7 @@ from ..representation import (CartesianRepresentation,
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          frame_transform_graph)
 from ..transformations import AffineTransform
-from ..frame_attributes import VelocityAttribute
+from ..frame_attributes import DifferentialFrameAttribute
 
 from .icrs import ICRS
 from .galactic import Galactic
@@ -22,7 +22,7 @@ from .galactic import Galactic
 # For speed
 J2000 = Time('J2000')
 
-v_bary_Schoenrich2010 = CartesianRepresentation([-11.1, 12.24, 7.25]*u.km/u.s)
+v_bary_Schoenrich2010 = CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
 
 __all__ = ['LSR', 'GalacticLSR']
 
@@ -33,6 +33,7 @@ class LSR(BaseCoordinateFrame):
     TODO: more words
     - axis-aligned with ICRS
     - co-spatial (SS barycenter)
+    - v_bary assumed to be Galactic
 
     Parameters
     ----------
@@ -77,18 +78,19 @@ class LSR(BaseCoordinateFrame):
     default_differential = SphericalCosLatDifferential
 
     # frame attributes:
-    v_bary = VelocityAttribute(Galactic,
-                               default=Galactic(v_bary_Schoenrich2010))
+    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):
-    voffset = lsr_frame.v_bary.transform_to(icrs_coord)
+    v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
+    voffset = v_bary_gal.transform_to(icrs_coord)
     return None, (None, voffset.cartesian.get_xyz())
 
 @frame_transform_graph.transform(AffineTransform, LSR, ICRS)
 def lsr_to_icrs(lsr_coord, icrs_frame):
-    voffset = lsr_coord.v_bary.transform_to(icrs_frame)
+    v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
+    voffset = v_bary_gal.transform_to(icrs_frame)
     return None, (None, -voffset.cartesian.get_xyz())
 
 
@@ -143,16 +145,17 @@ class GalacticLSR(BaseCoordinateFrame):
     default_differential = SphericalCosLatDifferential
 
     # frame attributes:
-    v_bary = VelocityAttribute(Galactic,
-                               default=Galactic(v_bary_Schoenrich2010))
+    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
 
 
 @frame_transform_graph.transform(AffineTransform, Galactic, GalacticLSR)
 def galactic_to_galacticlsr(galactic_coord, lsr_frame):
-    voffset = lsr_frame.v_bary.transform_to(galactic_coord)
+    v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
+    voffset = v_bary_gal.transform_to(galactic_coord)
     return None, (None, voffset.cartesian.get_xyz())
 
 @frame_transform_graph.transform(AffineTransform, GalacticLSR, Galactic)
 def galacticlsr_to_galactic(lsr_coord, galactic_frame):
-    voffset = lsr_coord.v_bary.transform_to(galactic_frame)
+    v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
+    voffset = v_bary_gal.transform_to(galactic_frame)
     return None, (None, -voffset.cartesian.get_xyz())
