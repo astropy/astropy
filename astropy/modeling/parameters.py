@@ -17,6 +17,7 @@ import operator
 
 import numpy as np
 
+from .. import units as u
 from ..units import Quantity, UnitsError
 from ..utils import isiterable, OrderedDescriptor
 from ..extern import six
@@ -276,7 +277,6 @@ class Parameter(OrderedDescriptor):
         parameter = self.__class__.__new__(self.__class__)
         parameter.__dict__.update(self.__dict__)
         parameter._bind(obj)
-
         return parameter
 
     def __set__(self, obj, value):
@@ -411,11 +411,16 @@ class Parameter(OrderedDescriptor):
             raise AttributeError('Parameter definition does not have a value')
 
         value = self._get_model_value(self._model)
-
         if self._getter is None:
             return value
         else:
-            return self._getter(value)
+            raw_unit = self._model._param_metrics[self.name]['raw_unit']
+            orig_unit = self._model._param_metrics[self.name]['orig_unit']
+            if raw_unit is not None:
+                #return np.float64(self._getter(value * raw_unit).value)
+                return np.float64(self._getter(value, raw_unit, orig_unit).value)
+            else:
+                return self._getter(value)
 
     @value.setter
     def value(self, value):
@@ -425,12 +430,12 @@ class Parameter(OrderedDescriptor):
 
         if self._setter is not None:
             val = self._setter(value)
+
         if isinstance(value, Quantity):
             raise TypeError("The .value property on parameters should be set to "
                             "unitless values, not Quantity objects. To set a "
                             "parameter to a quantity simply set the parameter "
                             "directly without using .value")
-
         self._set_model_value(self._model, value)
 
     @property
@@ -912,13 +917,5 @@ def param_repr_oneline(param):
 
     out = array_repr_oneline(param.value)
     if param.unit is not None:
-        if param._getter is None:
-            out = '{0} {1!s}'.format(out, param.unit)
-        else:
-            # Get the original parameter unit by passing the raw value with the
-            # unit through the getter. Otherwise it's inconsistent - ``value`` is the
-            # output of the getter while ``unit`` is the output of the setter.
-            q = param._getter(param._raw_value * param.unit)
-            out = '{0} {1!s}'.format(out, q.unit)
-
+        out = '{0} {1!s}'.format(out, param.unit)
     return out

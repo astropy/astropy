@@ -37,6 +37,19 @@ from ..utils.decorators import deprecated
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
 
+def _to_rad(value):
+    if isinstance(value, u.Quantity):
+        return value.to(u.rad)
+    else:
+        return np.deg2rad(value)
+
+
+def _to_orig_unit(value, raw_unit=None, orig_unit=None):
+    if raw_unit is not None:
+        return (value * raw_unit).to(orig_unit)
+    else:
+        return np.rad2deg(value)
+
 
 class _EulerRotation(object):
     """
@@ -130,9 +143,9 @@ class EulerAngleRotation(_EulerRotation, Model):
     inputs = ('alpha', 'delta')
     outputs = ('alpha', 'delta')
 
-    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
         self.axes = ['x', 'y', 'z']
@@ -167,9 +180,9 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    lat = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    lon_pole = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
@@ -207,10 +220,23 @@ class RotateNative2Celestial(_SkyRotation):
     inputs = ('phi_N', 'theta_N')
     outputs = ('alpha_C', 'delta_C')
 
+    @property
+    def input_units(self):
+        return {'phi_N': u.deg, 'theta_N': u.deg}
+
+    @property
+    def return_units(self):
+        return {'alpha_C': u.deg, 'delta_C': u.deg}
+
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super(RotateNative2Celestial, self).__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
+        # The values are in radians since they have already been through the setter.
+        if isinstance(lon, u.Quantity):
+            lon = lon.value
+            lat = lat.value
+            lon_pole = lon_pole.value
         # Convert to Euler angles
         phi = lon_pole - np.pi / 2
         theta = - (np.pi / 2 - lat)
@@ -244,17 +270,29 @@ class RotateCelestial2Native(_SkyRotation):
     # angles in degrees on the native sphere
     outputs = ('phi_N', 'theta_N')
 
+    @property
+    def input_units(self):
+        return {'alpha_C': u.deg, 'delta_C': u.deg}
+
+    @property
+    def return_units(self):
+        return {'phi_N': u.deg, 'theta_N': u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super(RotateCelestial2Native, self).__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
+        if isinstance(lon, u.Quantity):
+            lon = lon.value
+            lat = lat.value
+            lon_pole = lon_pole.value
         # Convert to Euler angles
         phi = (np.pi / 2 + lon)
         theta =  (np.pi / 2 - lat)
         psi = -(lon_pole - np.pi / 2)
         phi_N, theta_N = super(RotateCelestial2Native, self)._evaluate(alpha_C, delta_C,
                                                                        phi, theta, psi)
+
         return phi_N, theta_N
 
     @property
@@ -277,7 +315,7 @@ class Rotation2D(Model):
     inputs = ('x', 'y')
     outputs = ('x', 'y')
 
-    angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
+    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_rad)
 
     input_units_strict = True
 
