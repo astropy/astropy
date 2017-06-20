@@ -156,12 +156,6 @@ class Galactocentric(BaseCoordinateFrame):
                                        frame=ICRS)
     galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
 
-    # These are deprecated, but this tricks the frame __getattr__ into
-    # recognizing these as valid attributes so we can define properties below
-    # for backwards-compatibility
-    galcen_ra = FrameAttribute(default=None)
-    galcen_dec = FrameAttribute(default=None)
-
     galcen_v_sun = DifferentialFrameAttribute(
         default=r.CartesianDifferential([-11.1, 244, 7.25] * u.km/u.s),
         allowed_classes=[r.CartesianDifferential])
