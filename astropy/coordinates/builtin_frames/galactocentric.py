@@ -11,10 +11,7 @@ from ... import units as u
 from ...utils.exceptions import AstropyDeprecationWarning
 from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-from ..representation import (CartesianRepresentation,
-                              CartesianDifferential,
-                              SphericalCosLatDifferential,
-                              UnitSphericalRepresentation)
+from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          RepresentationMapping)
 from ..frame_attributes import (FrameAttribute, CoordinateAttribute,
@@ -62,37 +59,27 @@ class Galactocentric(BaseCoordinateFrame):
     be 27 pc, as measured by Chen et al. (2001),
     https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
 
-    The default solar motion relative to the Galactic center is defined in terms
-    of the proper motion and radial velocity of Sgr A*. The Galactic proper
-    motion components are taken from Reid & Brunthaler (2004) assuming all
-    motion is in the Galactic plane (i.e. :math:`\mu_b=0` and
-    :math:`\mu_l=\mu_{\rm SgrA^*}=6.379~{\rm mas}~{\rm yr}^{-1}`),
-    https://ui.adsabs.harvard.edu/#abs/2004ApJ...616..872R/abstract
-
-    The radial velocity is adopted from Bovy et al. (2012), -10 km/s (in the
-    paper, the value is defined as the radial velocity away from the Galactic
-    center center, but from the sun's frame it is also the velocity of Sgr A*),
-    https://ui.adsabs.harvard.edu/#abs/2012ApJ...759..131B/abstract
+    The default solar motion relative to the Galactic center is taken from a
+    combination of Schönrich et al. (2010) [for the peculiar velocity] and
+    Bovy (2015) [for the circular velocity at the solar radius],
+    https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S/abstract
+    https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B/abstract
 
     For a more detailed look at the math behind this transformation, see
     the document :ref:`coordinates-galactocentric`.
 
     Parameters
     ----------
-    representation : `BaseRepresentation` or None
+    representation : `~astropy.coordinates.representation.BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
     galcen_coord : `ICRS`, optional, must be keyword
         The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the sun to the Galactic center.
-    galcen_v_sun : `~astropy.coordinates.representation.BaseDifferential`, optional, must be keyword
-        The velocity of the sun relative to the Galactic center. By default,
-        this is specified by the proper motion and radial velocity of Sgr A*.
-        To pass in a Cartesian specification of the solar motion (including the
-        peculiar motion of the sun with respect to the local standard of rest),
-        pass in a `CartesianDifferential` object, e.g.,
-        ``galcen_v_sun=CartesianDifferential([-11.1, 245, 7.25]*u.km/u.s)``.
+    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, optional, must be keyword
+        The velocity of the sun *in the Galactocentric frame* as Cartesian
+        velocity components.
     z_sun : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
@@ -153,22 +140,21 @@ class Galactocentric(BaseCoordinateFrame):
 
     """
     frame_specific_representation_info = {
-        CartesianDifferential: [
+        r.CartesianDifferential: [
             RepresentationMapping('d_x', 'v_x', u.km/u.s),
             RepresentationMapping('d_y', 'v_y', u.km/u.s),
             RepresentationMapping('d_z', 'v_z', u.km/u.s),
         ],
     }
 
-    default_representation = CartesianRepresentation
-    default_differential = CartesianDifferential
+    default_representation = r.CartesianRepresentation
+    default_differential = r.CartesianDifferential
 
     # frame attributes
-
-    # RA,Dec : Reid et al. 2004 - http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
     galcen_coord = CoordinateAttribute(default=ICRS(ra=266.4051*u.degree,
                                                     dec=-28.936175*u.degree),
                                        frame=ICRS)
+    galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
 
     # These are deprecated, but this tricks the frame __getattr__ into
     # recognizing these as valid attributes so we can define properties below
@@ -176,16 +162,9 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_ra = FrameAttribute(default=None)
     galcen_dec = FrameAttribute(default=None)
 
-    # distance : Gillessen et al. 2009
-    galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
-
-    # Converted Galactic proper motion to ICRS
-    # pm_ra, pm_dec : Reid & Brunthaler 2004 (assuming all motion is in the plane)
-    # radial velocity : Bovy et al. 2012 (negative of value is intentional)
     galcen_v_sun = DifferentialFrameAttribute(
-        default=SphericalCosLatDifferential(3.3236424408301515*u.mas/u.yr,
-                                            5.444726065240803*u.mas/u.yr,
-                                            10*u.km/u.s))
+        default=r.CartesianDifferential([-11.1, 244, 7.25] * u.km/u.s),
+        allowed_classes=[r.CartesianDifferential])
 
     z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
@@ -232,13 +211,17 @@ class Galactocentric(BaseCoordinateFrame):
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
-def get_matrix_vectors(galactocentric_frame):
+def get_matrix_vectors(galactocentric_frame, inv=False):
+    """
+    Use the ``inv`` argument to get the inverse transformation, matrix and
+    offsets to go from Galactocentric to ICRS.
+    """
     # shorthand
     gcf = galactocentric_frame
 
-    # define rotation matrix to align x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(-gcf.galcen_dec, 'y')
-    mat2 = rotation_matrix(gcf.galcen_ra, 'z')
+    # rotation matrix to align x(ICRS) with the vector to the Galactic center
+    mat1 = rotation_matrix(-gcf.galcen_coord.dec, 'y')
+    mat2 = rotation_matrix(gcf.galcen_coord.ra, 'z')
     # extra roll away from the Galactic x-z plane
     mat0 = rotation_matrix(gcf.get_roll0() - gcf.roll, 'x')
 
@@ -247,7 +230,7 @@ def get_matrix_vectors(galactocentric_frame):
 
     # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
-    translation = CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
+    translation = r.CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
     z_d = gcf.z_sun / gcf.galcen_distance
     H = rotation_matrix(-np.arcsin(z_d), 'y')
 
@@ -258,31 +241,38 @@ def get_matrix_vectors(galactocentric_frame):
     # above the midplane
     offset = -translation.transform(H)
 
-    # TODO: need to get the velocity offset and save as a differential on
-    #       `offset` - leaving this to the next PR
-    # vel_vec = matrix_product(H, -gcf.v_sun.xyz)
+    if inv:
+        # the inverse of a rotation matrix is a transpose, which is much faster
+        #   and more stable to compute
+        A = matrix_transpose(A)
+        offset = (-offset).with_differentials(-gcf.galcen_v_sun)
+
+    else:
+        offset = offset.with_differentials(gcf.galcen_v_sun)
 
     return A, offset
 
+def _check_coord_repr_diff_types(c):
+    if isinstance(c.data, r.UnitSphericalRepresentation):
+        raise ConvertError("Transforming to/from a Galactocentric frame "
+                           "requires a 3D coordinate, e.g. (angle, angle, "
+                           "distance) or (x, y, z).")
+
+    if ('s' in c.data.differentials and
+            isinstance(c.data.differentials['s'],
+                       (r.UnitSphericalDifferential,
+                        r.UnitSphericalCosLatDifferential,
+                        r.RadialDifferential))):
+        raise ConvertError("Transforming to/from a Galactocentric frame "
+                           "requires a 3D velocity, e.g., proper motion "
+                           "components and radial velocity.")
+
 @frame_transform_graph.transform(AffineTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
-    if isinstance(icrs_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming to a Galactocentric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
-
+    _check_coord_repr_diff_types(icrs_coord)
     return get_matrix_vectors(galactocentric_frame)
 
 @frame_transform_graph.transform(AffineTransform, Galactocentric, ICRS)
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
-    if isinstance(galactocentric_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming from a Galactocentric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
-
-    A, offset = get_matrix_vectors(galactocentric_coord)
-
-    # the inverse of a rotation matrix is a transpose, which is much faster and
-    #   more stable to compute
-    A_T = matrix_transpose(A)
-    return A_T, -offset.transform(A_T)
+    _check_coord_repr_diff_types(galactocentric_coord)
+    return get_matrix_vectors(galactocentric_coord, inv=True)

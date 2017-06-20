@@ -84,14 +84,18 @@ class LSR(BaseCoordinateFrame):
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
-    voffset = v_bary_gal.transform_to(icrs_coord)
-    return None, (None, voffset.cartesian.get_xyz())
+    v_bary_icrs = v_bary_gal.transform_to(icrs_coord)
+    v_offset = v_bary_icrs.data.represent_as(CartesianDifferential)
+    offset = CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
+    return None, offset
 
 @frame_transform_graph.transform(AffineTransform, LSR, ICRS)
 def lsr_to_icrs(lsr_coord, icrs_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
-    voffset = v_bary_gal.transform_to(icrs_frame)
-    return None, (None, -voffset.cartesian.get_xyz())
+    v_bary_icrs = v_bary_gal.transform_to(icrs_frame)
+    v_offset = v_bary_icrs.data.represent_as(CartesianDifferential)
+    offset = CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
+    return None, offset
 
 
 class GalacticLSR(BaseCoordinateFrame):
@@ -151,11 +155,13 @@ class GalacticLSR(BaseCoordinateFrame):
 @frame_transform_graph.transform(AffineTransform, Galactic, GalacticLSR)
 def galactic_to_galacticlsr(galactic_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
-    voffset = v_bary_gal.transform_to(galactic_coord)
-    return None, (None, voffset.cartesian.get_xyz())
+    v_offset = v_bary_gal.data.represent_as(CartesianDifferential)
+    offset = CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
+    return None, offset
 
 @frame_transform_graph.transform(AffineTransform, GalacticLSR, Galactic)
 def galacticlsr_to_galactic(lsr_coord, galactic_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
-    voffset = v_bary_gal.transform_to(galactic_frame)
-    return None, (None, -voffset.cartesian.get_xyz())
+    v_offset = v_bary_gal.data.represent_as(CartesianDifferential)
+    offset = CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
+    return None, offset
