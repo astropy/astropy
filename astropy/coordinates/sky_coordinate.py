@@ -1267,10 +1267,16 @@ class SkyCoord(ShapedLikeNDArray):
         10 m/s level, but has not been validated at better precision.  Future
         versions of Astropy will likely aim to improve this.
 
-        The default is for this method to use the builtin ephemerides for
-        computing the sun and earth location.  This can be changed by setting the
-        `~astropy.coordinates.solar_system`_ variable, either directly or via
-        ``with`` statement.
+        The default is for this method to use the builtin ephemeris for
+        computing the sun and earth location.  Other ephemerides can be chosen
+        by setting the `~astropy.coordinates.solar_system_ephemeris` variable,
+        either directly or via ``with`` statement.  For example, to use the JPL
+        ephemeris, do::
+
+            sc = SkyCoord(1*u.deg, 2*u.deg)
+            with coord.solar_system_ephemeris.set('jpl'):
+                rv += sc.rv_correction(obstime=t, location=loc)
+
         """
         # has to be here to prevent circular imports
         from .solar_system import get_body_barycentric_posvel
