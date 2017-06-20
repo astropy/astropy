@@ -427,15 +427,22 @@ class DifferentialFrameAttribute(FrameAttribute):
 
     Parameters
     ----------
-    frame : a coordinate frame class
-        The type of frame this attribute can be
     default : object
         Default value for the attribute if not provided
+    allowed_classes : tuple, optional
+        A list of allowed differential classes for this attribute to have.
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
     """
-    def __init__(self, default=None, secondary_attribute=''):
+    def __init__(self, default=None, allowed_classes=None,
+                 secondary_attribute=''):
+
+        if allowed_classes is not None:
+            self.allowed_classes = tuple(allowed_classes)
+        else:
+            self.allowed_classes = None
+
         super(DifferentialFrameAttribute, self).__init__(default,
                                                          secondary_attribute)
 
@@ -462,7 +469,16 @@ class DifferentialFrameAttribute(FrameAttribute):
         """
         if not isinstance(value, BaseDifferential):
             raise TypeError('Tried to set a DifferentialFrameAttribute with '
-                            'something that does not have a unit.')
+                            'an invalid class ({0})'.format(value.__class__))
+
+        if (self.allowed_classes is not None and
+                not isinstance(value, self.allowed_classes)):
+            raise TypeError('Tried to set a DifferentialFrameAttribute with '
+                            'an unsupported Differential type {0}. Allowed '
+                            'classes are: {1}'
+                            .format(value.__class__,
+                                    self.allowed_classes.__class__))
+
         return value, True
 
 # do this here to prevent a series of complicated circular imports
