@@ -55,7 +55,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -85,11 +85,11 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 /* Separate days and fractions. */
    f1 = fmod(d1, 1.0);
    f2 = fmod(d2, 1.0);
-   d1 = floor(d1 - f1);
-   d2 = floor(d2 - f2);
+   d1 = ERFA_DNINT(d1-f1);
+   d2 = ERFA_DNINT(d2-f2);
 
 /* Round the total fraction to the specified number of places. */
-   f = floor((f1+f2)*denom + 0.5) / denom;
+   f = ERFA_DNINT((f1+f2)*denom) / denom;
 
 /* Re-assemble the rounded date and re-align to noon. */
    d2 += f + 0.5;
@@ -109,7 +109,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

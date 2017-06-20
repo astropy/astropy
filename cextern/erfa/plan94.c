@@ -17,7 +17,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 **                             5=Jupiter, 6=Saturn, 7=Uranus, 8=Neptune)
 **
 **  Returned (argument):
-**     pv     double[2][3] planet p,v (heliocentric, J2000.0, AU,AU/d)
+**     pv     double[2][3] planet p,v (heliocentric, J2000.0, au,au/d)
 **
 **  Returned (function value):
 **            int          status: -1 = illegal NP (outside 1-8)
@@ -58,11 +58,11 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 **  4) On successful return, the array pv contains the following:
 **
 **        pv[0][0]   x      }
-**        pv[0][1]   y      } heliocentric position, AU
+**        pv[0][1]   y      } heliocentric position, au
 **        pv[0][2]   z      }
 **
 **        pv[1][0]   xdot   }
-**        pv[1][1]   ydot   } heliocentric velocity, AU/d
+**        pv[1][1]   ydot   } heliocentric velocity, au/d
 **        pv[1][2]   zdot   }
 **
 **     The reference frame is equatorial and is with respect to the
@@ -157,7 +157,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 **              Chapront-Touze, M., Francou, G., and Laskar, J.,
 **              Astron. Astrophys. 282, 663 (1994).
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -189,7 +189,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 /*
 ** Tables giving the mean Keplerian elements, limited to t^2 terms:
 **
-**   a       semi-major axis (AU)
+**   a       semi-major axis (au)
 **   dlm     mean longitude (degree and arcsecond)
 **   e       eccentricity
 **   pi      longitude of the perihelion (degree and arcsecond)
@@ -416,7 +416,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
       at = 2.0 * atan2(sqrt((1.0 + de) / (1.0 - de)) * sin(ae2),
                                                        cos(ae2));
 
-   /* Distance (AU) and speed (radians per day). */
+   /* Distance (au) and speed (radians per day). */
       r = da * (1.0 - de * cos(ae));
       v = GK * sqrt((1.0 + 1.0 / amas[np]) / (da * da * da));
 
@@ -433,7 +433,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
       xmc = (de * cos(dp) + xcw) * xf;
       xpxq2 = 2 * xp * xq;
 
-   /* Position (J2000.0 ecliptic x,y,z in AU). */
+   /* Position (J2000.0 ecliptic x,y,z in au). */
       x = r * (xcw - xm2 * xp);
       y = r * (xsw + xm2 * xq);
       z = r * (-xm2 * ci2);
@@ -443,7 +443,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
       pv[0][1] = y * COSEPS - z * SINEPS;
       pv[0][2] = y * SINEPS + z * COSEPS;
 
-   /* Velocity (J2000.0 ecliptic xdot,ydot,zdot in AU/d). */
+   /* Velocity (J2000.0 ecliptic xdot,ydot,zdot in au/d). */
       x = v * (( -1.0 + 2.0 * xp * xp) * xms + xpxq2 * xmc);
       y = v * ((  1.0 - 2.0 * xq * xq) * xmc - xpxq2 * xms);
       z = v * (2.0 * ci2 * (xp * xms + xq * xmc));
@@ -462,7 +462,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

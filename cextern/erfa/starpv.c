@@ -19,7 +19,7 @@ int eraStarpv(double ra, double dec,
 **     rv     double        radial velocity (km/s, positive = receding)
 **
 **  Returned (Note 2):
-**     pv     double[2][3]  pv-vector (AU, AU/day)
+**     pv     double[2][3]  pv-vector (au, au/day)
 **
 **  Returned (function value):
 **            int           status:
@@ -53,7 +53,7 @@ int eraStarpv(double ra, double dec,
 **     direction", where the object was located at the catalog epoch, be
 **     required, it may be obtained by calculating the magnitude of the
 **     position vector pv[0][0-2] dividing by the speed of light in
-**     AU/day to give the light-time, and then multiplying the space
+**     au/day to give the light-time, and then multiplying the space
 **     velocity pv[1][0-2] by this light-time and adding the result to
 **     pv[0][0-2].
 **
@@ -72,7 +72,7 @@ int eraStarpv(double ra, double dec,
 **  3) Care is needed with units.  The star coordinates are in radians
 **     and the proper motions in radians per Julian year, but the
 **     parallax is in arcseconds; the radial velocity is in km/s, but
-**     the pv-vector result is in AU and AU/day.
+**     the pv-vector result is in au and au/day.
 **
 **  4) The RA proper motion is in terms of coordinate angle, not true
 **     angle.  If the catalog uses arcseconds for both RA and Dec proper
@@ -113,7 +113,7 @@ int eraStarpv(double ra, double dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -135,7 +135,7 @@ int eraStarpv(double ra, double dec,
           od = 0.0, odel = 0.0;     /* warnings   */
 
 
-/* Distance (AU). */
+/* Distance (au). */
    if (px >= PXMIN) {
       w = px;
       iwarn = 0;
@@ -145,14 +145,14 @@ int eraStarpv(double ra, double dec,
    }
    r = ERFA_DR2AS / w;
 
-/* Radial velocity (AU/day). */
+/* Radial velocity (au/day). */
    rd = ERFA_DAYSEC * rv * 1e3 / ERFA_DAU;
 
 /* Proper motion (radian/day). */
    rad = pmr / ERFA_DJY;
    decd = pmd / ERFA_DJY;
 
-/* To pv-vector (AU,AU/day). */
+/* To pv-vector (au,au/day). */
    eraS2pv(ra, dec, r, rad, decd, rd, pv);
 
 /* If excessive velocity, arbitrarily set it to zero. */
@@ -162,12 +162,12 @@ int eraStarpv(double ra, double dec,
       iwarn += 2;
    }
 
-/* Isolate the radial component of the velocity (AU/day). */
+/* Isolate the radial component of the velocity (au/day). */
    eraPn(pv[0], &w, x);
    vsr = eraPdp(x, pv[1]);
    eraSxp(vsr, x, usr);
 
-/* Isolate the transverse component of the velocity (AU/day). */
+/* Isolate the transverse component of the velocity (au/day). */
    eraPmp(pv[1], usr, ust);
    vst = eraPm(ust);
 
@@ -180,7 +180,8 @@ int eraStarpv(double ra, double dec,
    betr = betsr;
    for (i = 0; i < IMAX; i++) {
       d = 1.0 + betr;
-      del = sqrt(1.0 - betr*betr - bett*bett) - 1.0;
+      w = betr*betr + bett*bett;
+      del = - w / (sqrt(1.0 - w) + 1.0);
       betr = d * betsr + del;
       bett = d * betst;
       if (i > 0) {
@@ -212,7 +213,7 @@ int eraStarpv(double ra, double dec,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2016, NumFOCUS Foundation.
+**  Copyright (C) 2013-2017, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
