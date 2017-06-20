@@ -334,7 +334,7 @@ def test_too_many_differentials():
 
     # Check that if frame somehow gets through to transformation, multiple
     # differentials are caught
-    c = TCoo1(rep.without_differentials)
+    c = TCoo1(rep.without_differentials())
     c._data = c._data.with_differentials({'s': dif1, 's2': dif2})
     with pytest.raises(ValueError):
         c2 = c.transform_to(TCoo2)
