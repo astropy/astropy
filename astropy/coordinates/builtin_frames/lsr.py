@@ -12,7 +12,7 @@ from ..representation import (CartesianRepresentation,
                               SphericalCosLatDifferential,
                               UnitSphericalCosLatDifferential)
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         frame_transform_graph)
+                         frame_transform_graph, BaseRADecFrame)
 from ..transformations import AffineTransform
 from ..frame_attributes import DifferentialFrameAttribute
 
@@ -26,7 +26,7 @@ v_bary_Schoenrich2010 = CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
 
 __all__ = ['LSR', 'GalacticLSR']
 
-class LSR(BaseCoordinateFrame):
+class LSR(BaseRADecFrame):
     """
     A coordinate or frame in the Local Standard of Rest (LSR).
 
@@ -34,52 +34,12 @@ class LSR(BaseCoordinateFrame):
     - axis-aligned with ICRS
     - co-spatial (SS barycenter)
     - v_bary assumed to be Galactic
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
-
-    frame_specific_representation_info = {
-        SphericalRepresentation: [
-            RepresentationMapping('lon', 'ra'),
-            RepresentationMapping('lat', 'dec')
-        ],
-        SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_ra', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
-        CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s),
-        ],
-    }
-    frame_specific_representation_info[UnitSphericalRepresentation] = \
-        frame_specific_representation_info[SphericalRepresentation]
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
-
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
 
     # frame attributes:
     v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
 
+LSR.__doc__ += BaseRADecFrame.__doc__
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):
@@ -130,8 +90,8 @@ class GalacticLSR(BaseCoordinateFrame):
             RepresentationMapping('lat', 'b')
         ],
         SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_ra', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
+            RepresentationMapping('d_lon_coslat', 'pm_l', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
         ],
         CartesianDifferential: [

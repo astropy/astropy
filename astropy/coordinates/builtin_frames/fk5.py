@@ -3,15 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ... import units as u
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping)
-from ..representation import (CartesianDifferential,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential)
-
+from ..baseframe import BaseRADecFrame, frame_transform_graph
 from ..frame_attributes import TimeFrameAttribute
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
@@ -19,55 +11,18 @@ from .. import earth_orientation as earth
 from .utils import EQUINOX_J2000
 
 
-class FK5(BaseCoordinateFrame):
+class FK5(BaseRADecFrame):
     """
     A coordinate or frame in the FK5 system.
 
     Note that this is a barycentric version of FK5 - that is, the origin for
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    equinox : `~astropy.time.Time`, optional, must be keyword
-        The equinox of this frame.
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-    """
-    frame_specific_representation_info = {
-        SphericalRepresentation: [
-            RepresentationMapping('lon', 'ra'),
-            RepresentationMapping('lat', 'dec')
-        ],
-        SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_ra', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
-        ],
-        CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s)
-        ],
-    }
-    frame_specific_representation_info[UnitSphericalRepresentation] = \
-        frame_specific_representation_info[SphericalRepresentation]
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
+    This frame has one frame attribute:
 
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
+    * ``equinox``
+        The equinox of this frame.
+    """
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
@@ -91,6 +46,7 @@ class FK5(BaseCoordinateFrame):
         """
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
+FK5.__doc__ += BaseRADecFrame.__doc__
 
 # This is the "self-transform".  Defined at module level because the decorator
 #  needs a reference to the FK5 class
