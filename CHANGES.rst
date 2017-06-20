@@ -264,7 +264,7 @@ API Changes
 
   - Cosmological models do not include any contribution from neutrinos or photons
     by default -- that is, the default value of Tcmb0 is 0.  This does not affect
-    built in models (such as WMAP or Planck). [#6122]
+    built in models (such as WMAP or Planck). [#6112]
 
 - ``astropy.io.ascii``
 
@@ -362,7 +362,7 @@ API Changes
     ``to_value(unit)`` method, since this is somewhat faster. Any subclasses
     that overwrote ``.to``, should also overwrite ``.to_value`` (or
     possibly just the private ``._to_value`` method.  (If you did this,
-    please let us know what was lacking that made this necessary!). [#6136]
+    please let us know what was lacking that made this necessary!). [#6137]
 
 - ``astropy.utils``
 
