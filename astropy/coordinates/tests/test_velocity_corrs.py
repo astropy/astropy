@@ -156,9 +156,6 @@ def test_helio_iraf():
     targets = SkyCoord(_get_test_input_radecs(), obstime=test_input_time,
                        location=test_input_loc)
     vhs_astropy = targets.radial_velocity_correction('heliocentric')
-    # vhs_astropy = targets.radial_velocity_correction(test_input_time,
-    #                                                  test_input_loc,
-    #                                                  kind='heliocentric')
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
     return vhs_astropy, vhs_iraf  # for interactively examination
 
