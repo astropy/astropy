@@ -627,14 +627,16 @@ class Time(ShapedLikeNDArray):
         """
         First of the two doubles that internally store time value(s) in JD.
         """
-        return self._shaped_like_input(self._time.jd1)
+        jd1 = self._time.mask_if_needed(self._time.jd1)
+        return self._shaped_like_input(jd1)
 
     @property
     def jd2(self):
         """
         Second of the two doubles that internally store time value(s) in JD.
         """
-        return self._shaped_like_input(self._time.jd2)
+        jd2 = self._time.mask_if_needed(self._time.jd2)
+        return self._shaped_like_input(jd2)
 
     @property
     def value(self):
