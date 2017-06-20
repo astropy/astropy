@@ -493,6 +493,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             differentials = dict()
 
         elif isinstance(differentials, BaseDifferential):
+            # We can't handle auto-determining the key for this combo
+            if (isinstance(differentials, RadialDifferential) and
+                    isinstance(self, UnitSphericalRepresentation)):
+                raise ValueError("To attach a RadialDifferential to a "
+                                 "UnitSphericalRepresentation, you must supply "
+                                 "a dictionary with an appropriate key.")
+
             key = differentials._get_deriv_key(self)
             differentials = {key: differentials}
 
