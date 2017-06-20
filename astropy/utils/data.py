@@ -42,7 +42,7 @@ __all__ = [
     'get_pkg_data_filenames', 'compute_hash', 'clear_download_cache',
     'CacheMissingWarning', 'get_free_space_in_dir',
     'check_free_space_in_dir', 'download_file',
-    'download_files_in_parallel', 'is_url_in_cache']
+    'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
 
 
 class Conf(_config.ConfigNamespace):
@@ -1104,6 +1104,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     return local_path
 
+
 def is_url_in_cache(url_key):
     """
     Check if a download from ``url_key`` is in the cache.
@@ -1372,16 +1373,15 @@ def _release_download_cache_lock():
         raise RuntimeError(msg.format(lockdir))
 
 
-def _urls_on_shelf():
+def get_cached_urls():
     """
-    Get the list of URLs in the shelf. Useful for looking up what files are
-    cached when you don't have internet access.
-
+    Get the list of URLs in the cache. Especially useful for looking up what
+    files are stored in your cache when you don't have internet access.
 
     Returns
     -------
-    in_cache : bool
-        `True` if a download from ``url_key`` is in the cache
+    cached_urls : list
+        List of cached URLs.
     """
     # The code below is modified from astropy.utils.data.download_file()
     try:
