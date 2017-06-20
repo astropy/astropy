@@ -588,14 +588,24 @@ class Time(ShapedLikeNDArray):
 
     @shape.setter
     def shape(self, shape):
+        del self.cache
+
         # We have to keep track of arrays that were already reshaped,
         # since we may have to return those to their original shape if a later
         # shape-setting fails.
         reshaped = []
         oldshape = self.shape
-        for attr in ('jd1', 'jd2', '_delta_ut1_utc', '_delta_tdb_tt',
-                     'location'):
-            val = getattr(self, attr, None)
+
+        # In-place reshape of data/attributes.  Need to access _time.jd1/2 not
+        # self.jd1/2 because the latter are not guaranteed to be the actual
+        # data, and in fact should not be directly changeable from the public
+        # API.
+        for obj, attr in ((self._time, 'jd1'),
+                          (self._time, 'jd2'),
+                          (self, '_delta_ut1_utc'),
+                          (self, '_delta_tdb_tt'),
+                          (self, 'location')):
+            val = getattr(obj, attr, None)
             if val is not None and val.size > 1:
                 try:
                     val.shape = shape
