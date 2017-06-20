@@ -87,10 +87,10 @@ The current planned and existing sub-packages are:
                 astropy.analytic_functions
             </td>
             <td align='center'>
-                <span class="pendingdep"></span>
+                <span class="deprecated"></span>
             </td>
             <td>
-                New in v1.0. Contains blackbody calculations. Will be deprecated when <tt class="docutils literal"><span class="pre">astropy.modeling</span></tt> supports units.
+                New in v1.0 but deprecated in v2.0 and will be removed in future version. Contains blackbody calculations, which have been moved to  <tt class="docutils literal"><span class="pre">astropy.modeling.blackbody</span></tt>.
             </td>
         </tr>
         <tr>
