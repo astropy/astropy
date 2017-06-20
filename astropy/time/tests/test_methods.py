@@ -9,12 +9,23 @@ import numpy as np
 from .. import Time
 
 
+@pytest.fixture(scope="module", params=['not masked', 'masked'])
+def masked(request):
+    # Could not figure out a better way to parametrize the setup method
+    global use_masked_data
+    use_masked_data = request.param
+    yield use_masked_data
+
+
 class TestManipulation():
     """Manipulation of Time objects, ensuring attributes are done correctly."""
 
     def setup(self):
         mjd = np.arange(50000, 50010)
         frac = np.arange(0., 0.999, 0.2)
+        if use_masked_data == 'masked':
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
         self.t1 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
                        location=('45d', '50d'))
@@ -24,7 +35,7 @@ class TestManipulation():
         self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
                        location=(np.arange(len(frac)), np.arange(len(frac))))
 
-    def test_ravel(self):
+    def test_ravel(self, masked):
         t0_ravel = self.t0.ravel()
         assert t0_ravel.shape == (self.t0.size,)
         assert np.all(t0_ravel.jd1 == self.t0.jd1.ravel())
@@ -43,7 +54,7 @@ class TestManipulation():
         # Broadcasting and ravelling cannot be done without a copy.
         assert not np.may_share_memory(t2_ravel.location, self.t2.location)
 
-    def test_flatten(self):
+    def test_flatten(self, masked):
         t0_flatten = self.t0.flatten()
         assert t0_flatten.shape == (self.t0.size,)
         assert t0_flatten.location is None
@@ -60,7 +71,7 @@ class TestManipulation():
         assert t2_flatten.location.shape == t2_flatten.shape
         assert not np.may_share_memory(t2_flatten.location, self.t2.location)
 
-    def test_transpose(self):
+    def test_transpose(self, masked):
         t0_transpose = self.t0.transpose()
         assert t0_transpose.shape == (5, 10)
         assert np.all(t0_transpose.jd1 == self.t0.jd1.transpose())
@@ -85,7 +96,7 @@ class TestManipulation():
         assert t2_T.location.shape == t2_T.location.shape
         assert np.may_share_memory(t2_T.location, self.t2.location)
 
-    def test_diagonal(self):
+    def test_diagonal(self, masked):
         t0_diagonal = self.t0.diagonal()
         assert t0_diagonal.shape == (5,)
         assert np.all(t0_diagonal.jd1 == self.t0.jd1.diagonal())
@@ -103,7 +114,7 @@ class TestManipulation():
         assert np.may_share_memory(t2_diagonal.jd1, self.t2.jd1)
         assert np.may_share_memory(t2_diagonal.location, self.t2.location)
 
-    def test_swapaxes(self):
+    def test_swapaxes(self, masked):
         t0_swapaxes = self.t0.swapaxes(0, 1)
         assert t0_swapaxes.shape == (5, 10)
         assert np.all(t0_swapaxes.jd1 == self.t0.jd1.swapaxes(0, 1))
@@ -121,7 +132,7 @@ class TestManipulation():
         assert t2_swapaxes.location.shape == t2_swapaxes.shape
         assert np.may_share_memory(t2_swapaxes.location, self.t2.location)
 
-    def test_reshape(self):
+    def test_reshape(self, masked):
         t0_reshape = self.t0.reshape(5, 2, 5)
         assert t0_reshape.shape == (5, 2, 5)
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
@@ -162,7 +173,7 @@ class TestManipulation():
         assert not np.may_share_memory(t2_reshape_t_reshape.location,
                                        t2_reshape_t.location)
 
-    def test_shape_setting(self):
+    def test_shape_setting(self, masked):
         t0_reshape = self.t0.copy()
         mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
         t0_reshape.shape = (5, 2, 5)
@@ -206,7 +217,7 @@ class TestManipulation():
         # reset t2 to its original.
         self.setup()
 
-    def test_squeeze(self):
+    def test_squeeze(self, masked):
         t0_squeeze = self.t0.reshape(5, 1, 2, 1, 5).squeeze()
         assert t0_squeeze.shape == (5, 2, 5)
         assert np.all(t0_squeeze.jd1 == self.t0.jd1.reshape(5, 2, 5))
@@ -224,7 +235,7 @@ class TestManipulation():
         assert t2_squeeze.location.shape == t2_squeeze.shape
         assert np.may_share_memory(t2_squeeze.location, self.t2.location)
 
-    def test_add_dimension(self):
+    def test_add_dimension(self, masked):
         t0_adddim = self.t0[:, np.newaxis, :]
         assert t0_adddim.shape == (10, 1, 5)
         assert np.all(t0_adddim.jd1 == self.t0.jd1[:, np.newaxis, :])
@@ -242,7 +253,7 @@ class TestManipulation():
         assert t2_adddim.location.shape == t2_adddim.shape
         assert np.may_share_memory(t2_adddim.location, self.t2.location)
 
-    def test_take(self):
+    def test_take(self, masked):
         t0_take = self.t0.take((5, 2))
         assert t0_take.shape == (2,)
         assert np.all(t0_take.jd1 == self.t0._time.jd1.take((5, 2)))
@@ -260,7 +271,7 @@ class TestManipulation():
         assert np.all(t2_take2.jd1 == self.t2.jd1.take((5, 15)))
         assert t2_take2.location.shape == t2_take2.shape
 
-    def test_broadcast(self):
+    def test_broadcast(self, masked):
         """Test using a callable method."""
         t0_broadcast = self.t0._apply(np.broadcast_to, shape=(3, 10, 5))
         assert t0_broadcast.shape == (3, 10, 5)
