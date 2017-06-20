@@ -559,32 +559,20 @@ def test_represent_as():
     # single string
     rep2 = icrs.represent_as('cylindrical')
     assert isinstance(rep2, r.CylindricalRepresentation)
-    assert isinstance(rep2.differentials[0], r.CylindricalDifferential)
+    assert isinstance(rep2.differentials['s'], r.CylindricalDifferential)
 
-    # single differential class
-    rep2 = icrs.represent_as(r.SphericalCosLatDifferential)
-    assert isinstance(rep2, r.SphericalRepresentation)
-    assert isinstance(rep2.differentials[0],
-                      r.SphericalCosLatDifferential)
+    # single class with positional in_frame_units, verify that warning raised
+    with catch_warnings() as w:
+        icrs.represent_as(r.CylindricalRepresentation, False)
+        assert len(w) == 1
+        assert w[0].category == AstropyWarning
+        assert 'argument position' in str(w[0].message)
 
     # two classes
-    rep2 = icrs.represent_as([r.CartesianRepresentation,
-                              r.SphericalCosLatDifferential])
+    rep2 = icrs.represent_as(r.CartesianRepresentation,
+                             r.SphericalCosLatDifferential)
     assert isinstance(rep2, r.CartesianRepresentation)
-    assert isinstance(rep2.differentials[0],
-                      r.SphericalCosLatDifferential)
-
-    # single string - only diff name
-    rep2 = icrs.represent_as('sphericalcoslat')
-    assert isinstance(rep2, r.SphericalRepresentation)
-    assert isinstance(rep2.differentials[0],
-                      r.SphericalCosLatDifferential)
-
-    with pytest.raises(ValueError):
-        # 3 classes
-        icrs.represent_as([r.CartesianRepresentation,
-                           r.SphericalCosLatDifferential,
-                           r.SphericalCosLatDifferential])
+    assert isinstance(rep2.differentials['s'], r.SphericalCosLatDifferential)
 
     with pytest.raises(ValueError):
         icrs.represent_as('odaigahara')
