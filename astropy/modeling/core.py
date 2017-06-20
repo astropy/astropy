@@ -722,7 +722,6 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-
         # Check whether any of the inputs are quantities
         inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
 
@@ -1614,7 +1613,6 @@ class Model(object):
             # existing model, and hand them to the appropriate parameters in
             # the new model
             self._param_metrics[param_a] = existing._param_metrics[param_b]
-
         if needs_initialization:
             self.__init__(*dummy_args)
 
@@ -1703,7 +1701,6 @@ class Model(object):
 
         self._model_set_axis = model_set_axis
         self._param_metrics = defaultdict(dict)
-
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1728,7 +1725,6 @@ class Model(object):
                 # if any of the arguments are quantities, we need to return a
                 # Quantity object not a plain Numpy array.
                 params[param_name] = quantity_asanyarray(value, dtype=np.float)
-
         if kwargs:
             # If any keyword arguments were left over at this point they are
             # invalid--the base class should only be passed the parameter
@@ -1791,7 +1787,6 @@ class Model(object):
 
         for name in self.param_names:
             param_descr = getattr(self, name)
-
             if params.get(name) is None:
                 default = param_descr.default
 
@@ -1826,7 +1821,13 @@ class Model(object):
                     "{1!r}".format(self.__class__.__name__, name))
 
             param_metrics[name]['orig_unit'] = unit
-
+            param_metrics[name]['raw_unit'] = None
+            if param_descr._setter is not None:
+                _val = param_descr._setter(value)
+                if isinstance(_val, Quantity):
+                    param_metrics[name]['raw_unit'] = _val.unit
+                else:
+                    param_metrics[name]['raw_unit'] = None
             total_size += param_size
 
         self._param_metrics = param_metrics
@@ -1842,9 +1843,10 @@ class Model(object):
         for name, value in params.items():
             param_descr = getattr(self, name)
             value = np.array(value)
+            orig_unit = param_metrics[name]['orig_unit']
             if param_descr._setter is not None:
                 if unit is not None:
-                    value = np.asarray(param_descr._setter(value * unit).value)
+                    value = np.asarray(param_descr._setter(value * orig_unit).value)
                 else:
                     value = param_descr._setter(value)
             self._parameters[param_metrics[name]['slice']] = value.ravel()
@@ -1962,8 +1964,13 @@ class Model(object):
                 # consistency
                 value = np.array([value])
 
-            if units and param.unit is not None:
-                value = Quantity(value, param.unit)
+            if units:
+                if raw and self._param_metrics[name]['raw_unit'] is not None:
+                    unit = self._param_metrics[name]['raw_unit']
+                else:
+                    unit = param.unit
+                if unit is not None:
+                    value = Quantity(value, unit)
 
             values.append(value)
 
@@ -2299,7 +2306,6 @@ class _CompoundModelMeta(_ModelMeta):
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
-
         if cls.n_outputs == 1:
             return result[0]
         else:
