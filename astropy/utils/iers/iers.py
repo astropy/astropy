@@ -92,16 +92,16 @@ class Conf(_config.ConfigNamespace):
     auto_download = _config.ConfigItem(
         True,
         'Enable auto-downloading of the latest IERS data.  If set to False '
-        'then the local IERS-B file will be used by default. (default=True)')
+        'then the local IERS-B file will be used by default. Default is True.')
     auto_max_age = _config.ConfigItem(
         30.0,
-        'Maximum age of predictive data before auto-downloading (days, default=30)')
+        'Maximum age (days) of predictive data before auto-downloading. Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
-        'URL for auto-downloading IERS file data')
+        'URL for auto-downloading IERS file data.')
     remote_timeout = _config.ConfigItem(
         10.0,
-        'Remote timeout downloading IERS file data (seconds)')
+        'Remote timeout downloading IERS file data (seconds).')
 
 conf = Conf()
 
@@ -184,8 +184,8 @@ class IERS(QTable):
         jd1 : float, array, or Time
             first part of two-part JD, or Time object
         jd2 : float or array, optional
-            second part of two-part JD (default: 0., ignored if jd1 is Time)
-
+            second part of two-part JD.
+            Default is 0., ignored if jd1 is `~astropy.time.Time`.
         Returns
         -------
         mjd : float or array
@@ -209,7 +209,8 @@ class IERS(QTable):
         jd1 : float, float array, or Time object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
-            second part of two-part JD (default 0., ignored if jd1 is Time)
+            second part of two-part JD.
+            Default is 0., ignored if jd1 is `~astropy.time.Time`.
         return_status : bool
             Whether to return status values.  If False (default),
             raise ``IERSRangeError`` if any time is out of the range covered
@@ -238,7 +239,8 @@ class IERS(QTable):
         jd1 : float, float array, or Time object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
-            second part of two-part JD (default 0., ignored if jd1 is Time)
+            second part of two-part JD.
+            Default is 0., ignored if jd1 is `~astropy.time.Time`.
         return_status : bool
             Whether to return status values.  If False (default),
             raise ``IERSRangeError`` if any time is out of the range covered
@@ -433,11 +435,11 @@ class IERS_A(IERS):
         Parameters
         ----------
         file : str
-            full path to ascii file holding IERS-A data
-            (default: ``iers.IERS_A_FILE``)
+            full path to ascii file holding IERS-A data.
+            Defaults to ``iers.IERS_A_FILE``.
         readme : str
-            full path to ascii file holding CDS-style readme
-            (default: package version, ``iers.IERS_A_README``)
+            full path to ascii file holding CDS-style readme.
+            Defaults to package version, ``iers.IERS_A_README``.
 
         Returns
         -------
@@ -497,13 +499,13 @@ class IERS_B(IERS):
         Parameters
         ----------
         file : str
-            full path to ascii file holding IERS-B data
-            (default: package version, ``iers.IERS_B_FILE``)
+            full path to ascii file holding IERS-B data.
+            Defaults to package version, ``iers.IERS_B_FILE``.
         readme : str
-            full path to ascii file holding CDS-style readme
-            (default: package version, ``iers.IERS_B_README``)
+            full path to ascii file holding CDS-style readme.
+            Defaults to package version, ``iers.IERS_B_README``.
         data_start : int
-            starting row (default: 14, appropriate for standard IERS files)
+            starting row. Default is 14, appropriate for standard IERS files.
 
         Returns
         -------
@@ -559,6 +561,7 @@ class IERS_Auto(IERS_A):
         """
         if not conf.auto_download:
             cls.iers_table = IERS.open()
+            return cls.iers_table
 
         if cls.iers_table is not None:
 

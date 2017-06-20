@@ -21,78 +21,12 @@ import numpy as np
 from numpy import ma
 
 from ..utils import metadata
+from .column import Column
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
 
 __all__ = ['join', 'hstack', 'vstack', 'unique']
-
-
-def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
-                    metadata_conflicts='warn'):
-    """
-    Merge column meta data for the ``out`` table.
-
-    This merges column meta, which includes attributes unit, format,
-    and description, as well as the actual `meta` attribute.  It is
-    assumed that the ``out`` table was created by merging ``tables``.
-    The ``col_name_map`` provides the mapping from col name in ``out``
-    back to the original name (which may be different).
-    """
-    # Set column meta
-    attrs = ('unit', 'format', 'description')
-    for out_col in six.itervalues(out.columns):
-        for idx_table, table in enumerate(tables):
-            left_col = out_col
-            right_name = col_name_map[out_col.info.name][idx_table]
-
-            if right_name:
-                right_col = table[right_name]
-                out_col.info.meta = metadata.merge(left_col.info.meta or {},
-                                                   right_col.info.meta or {},
-                                                   metadata_conflicts=metadata_conflicts)
-                for attr in attrs:
-
-                    # Pick the metadata item that is not None, or they are both
-                    # not None, then if they are equal, there is no conflict,
-                    # and if they are different, there is a conflict and we
-                    # pick the one on the right (or raise an error).
-
-                    left_attr = getattr(left_col, attr, None)
-                    right_attr = getattr(right_col, attr, None)
-
-                    if left_attr is None:
-                        # This may not seem necessary since merge_attr gets set
-                        # to right_attr, but not all objects support != which is
-                        # needed for one of the if clauses.
-                        merge_attr = right_attr
-                    elif right_attr is None:
-                        merge_attr = left_attr
-                    elif left_attr != right_attr:
-                        if metadata_conflicts == 'warn':
-                            warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
-                                          "({2} != {3}).  Using {3} for merged output"
-                                          .format(out_col.info.name, attr,
-                                                  left_attr, right_attr),
-                                          metadata.MergeConflictWarning)
-                        elif metadata_conflicts == 'error':
-                            raise metadata.MergeConflictError(
-                                'In merged column {0!r} the {1!r} attribute does not match '
-                                '({2} != {3})'.format(out_col.info.name, attr,
-                                                      left_attr, right_attr))
-                        elif metadata_conflicts != 'silent':
-                            raise ValueError('metadata_conflicts argument must be one of "silent",'
-                                             ' "warn", or "error"')
-                        merge_attr = right_attr
-                    else:  # left_attr == right_attr
-                        merge_attr = right_attr
-
-                    try:
-                        # It may not be allowed to set attributes, for instance `unit`
-                        # in a Quantity column.
-                        setattr(out_col, attr, merge_attr)
-                    except AttributeError:
-                        pass
 
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):
@@ -123,18 +57,22 @@ def _get_list_of_tables(tables):
     return tables
 
 
-def _get_out_class(tables):
+def _get_out_class(objs):
     """
-    From a list of table instances get the merged output table class.
-    This is just taken as the deepest subclass.  It is assumed that
-    `tables` is a list of at least one element and that they are all
-    Table (subclass) instances.  This doesn't handle complicated
+    From a list of input objects ``objs`` get merged output object class.
+
+    This is just taken as the deepest subclass. This doesn't handle complicated
     inheritance schemes.
     """
-    out_class = tables[0].__class__
-    for t in tables[1:]:
-        if issubclass(t.__class__, out_class):
-            out_class = t.__class__
+    out_class = objs[0].__class__
+    for obj in objs[1:]:
+        if issubclass(obj.__class__, out_class):
+            out_class = obj.__class__
+
+    if any(not issubclass(out_class, obj.__class__) for obj in objs):
+        raise ValueError('unmergeable object classes {}'
+                         .format([obj.__class__.__name__ for obj in objs]))
+
     return out_class
 
 
@@ -182,11 +120,10 @@ def join(left, right, keys=None, join_type='inner',
 
     col_name_map = OrderedDict()
     out = _join(left, right, keys, join_type,
-                uniq_col_name, table_names, col_name_map)
+                uniq_col_name, table_names, col_name_map, metadata_conflicts)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
-    _merge_col_meta(out, [left, right], col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
@@ -250,10 +187,9 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         return tables[0]  # no point in stacking a single table
     col_name_map = OrderedDict()
 
-    out = _vstack(tables, join_type, col_name_map)
+    out = _vstack(tables, join_type, col_name_map, metadata_conflicts)
 
-    # Merge column and table metadata
-    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    # Merge table metadata
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
@@ -325,7 +261,6 @@ def hstack(tables, join_type='outer',
     out = _hstack(tables, join_type, uniq_col_name, table_names,
                   col_name_map)
 
-    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
@@ -574,7 +509,7 @@ def common_dtype(cols):
 def _join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
-         col_name_map=None):
+         col_name_map=None, metadata_conflicts='warn'):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -630,13 +565,13 @@ def _join(left, right, keys=None, join_type='inner',
                 raise TableMergeError('{0} key column {1!r} has missing values'
                                       .format(arr_label, name))
             if not isinstance(arr[name], np.ndarray):
-                raise ValueError("non-ndarray column '{0}' not allowed as a key column")
+                raise ValueError("non-ndarray column '{}' not allowed as a key column"
+                                 .format(name))
 
     len_left, len_right = len(left), len(right)
 
     if len_left == 0 or len_right == 0:
         raise ValueError('input tables for join must both have at least one row')
-
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
@@ -673,10 +608,27 @@ def _join(left, right, keys=None, join_type='inner',
 
         left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
-            out[out_name] = out.ColumnClass(length=n_out, name=out_name, dtype=dtype, shape=shape)
-            out[out_name] = np.where(right_mask,
-                                     left[left_name].take(left_out),
-                                     right[right_name].take(right_out))
+            cols = [left[left_name], right[right_name]]
+
+            col_cls = _get_out_class(cols)
+            if not hasattr(col_cls.info, 'new_like'):
+                raise NotImplementedError('join unavailable for mixin column type(s): {}'
+                                          .format(col_cls.__name__))
+
+            out[out_name] = col_cls.info.new_like(cols, n_out, metadata_conflicts, out_name)
+
+            if issubclass(col_cls, Column):
+                out[out_name][:] = np.where(right_mask,
+                                            left[left_name].take(left_out),
+                                            right[right_name].take(right_out))
+            else:
+                # np.where does not work for mixin columns (e.g. Quantity) so
+                # use a slower workaround.
+                left_mask = ~right_mask
+                if np.any(left_mask):
+                    out[out_name][left_mask] = left[left_name].take(left_out)
+                if np.any(right_mask):
+                    out[out_name][right_mask] = right[right_name].take(right_out)
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
@@ -701,9 +653,10 @@ def _join(left, right, keys=None, join_type='inner',
             try:
                 out[out_name].mask[:] = array_mask
             except ValueError:
-                raise ValueError("join requires masking column '{0}' but column"
-                                 " type {1} does not support masking"
-                                 .format(out_name, out[out_name].__class__.__name__))
+                raise NotImplementedError(
+                    "join requires masking column '{}' but column"
+                    " type {} does not support masking"
+                    .format(out_name, out[out_name].__class__.__name__))
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
@@ -712,7 +665,7 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _vstack(arrays, join_type='outer', col_name_map=None):
+def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='warn'):
     """
     Stack Tables vertically (by rows)
 
@@ -749,10 +702,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
     if len(arrays) == 1:
         return arrays[0]
 
-    for arr in arrays:
-        if arr.has_mixin_columns:
-            raise NotImplementedError('vstack not available for tables with mixin columns')
-
     # Start by assuming an outer match where all names go to output
     names = set(itertools.chain(*[arr.colnames for arr in arrays]))
     col_name_map = get_col_name_map(arrays, names)
@@ -786,22 +735,36 @@ def _vstack(arrays, join_type='outer', col_name_map=None):
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
     out = _get_out_class(arrays)(masked=masked)
-    out_descrs = get_descrs(arrays, col_name_map)
-    for out_descr in out_descrs:
-        name = out_descr[0]
-        dtype = out_descr[1:]
-        if masked:
-            out[name] = ma.array(data=np.zeros(n_rows, dtype),
-                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
-        else:
-            out[name] = np.empty(n_rows, dtype=dtype)
 
     for out_name, in_names in six.iteritems(col_name_map):
+        # List of input arrays that contribute to this output column
+        cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
+
+        col_cls = _get_out_class(cols)
+        if not hasattr(col_cls.info, 'new_like'):
+            raise NotImplementedError('vstack unavailable for mixin column type(s): {}'
+                                      .format(col_cls.__name__))
+        try:
+            out[out_name] = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
+        except metadata.MergeConflictError as err:
+            # Beautify the error message when we are trying to merge columns with incompatible
+            # types by including the name of the columns that originated the error.
+            raise TableMergeError("The '{0}' columns have incompatible types: {1}"
+                                  .format(out_name, err._incompat_types))
+
         idx0 = 0
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
             if name in array.colnames:
                 out[out_name][idx0:idx1] = array[name]
+            else:
+                try:
+                    out[out_name].mask[idx0:idx1] = True
+                except ValueError:
+                    raise NotImplementedError(
+                        "vstack requires masking column '{}' but column"
+                        " type {} does not support masking"
+                        .format(out_name, out[out_name].__class__.__name__))
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
@@ -895,9 +858,10 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 try:
                     out[out_name].mask[arr_len:] = True
                 except ValueError:
-                    raise ValueError("hstack requires masking column '{0}' but column"
-                                     " type {1} does not support masking"
-                                     .format(out_name, out[out_name].__class__.__name__))
+                    raise NotImplementedError(
+                        "hstack requires masking column '{}' but column"
+                        " type {} does not support masking"
+                        .format(out_name, out[out_name].__class__.__name__))
             else:
                 out[out_name] = array[name][:n_rows]
 

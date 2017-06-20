@@ -1,8 +1,8 @@
 Convolution Kernels
-===================
+*******************
 
 Introduction and Concept
-------------------------
+========================
 
 The convolution module provides several built-in kernels to cover the most
 common applications in astronomy. It is also possible to define custom kernels
@@ -17,10 +17,10 @@ array, which can be used for discrete convolution with the binned data.
 
 
 Examples
---------
+========
 
 1D Kernels
-^^^^^^^^^^
+----------
 
 One application of filtering is to smooth noisy data. In this case we
 consider a noisy Lorentz curve:
@@ -86,7 +86,7 @@ work properly if ``NaN`` values are present in the data.
 >>> smoothed = np.convolve(data_1D, box_kernel.array)
 
 2D Kernels
-^^^^^^^^^^
+----------
 
 As all 2D kernels are symmetric it is sufficient to specify the width in one
 direction. Therefore the use of 2D kernels is basically the same as for 1D
@@ -168,8 +168,9 @@ Note that it has a slightly different color scale compared to the original image
 
     # Plot kernels
     for kernel, ax in zip(kernels, axes.flat):
-        smoothed = convolve(data_2D, kernel)
-        im = ax.imshow(smoothed, vmin=-0.01, vmax=0.08, origin='lower', interpolation='None')
+        smoothed = convolve(data_2D, kernel, normalize_kernel=False)
+        im = ax.imshow(smoothed, vmin=-0.01, vmax=0.08, origin='lower',
+                       interpolation='None')
         title = kernel.__class__.__name__
         ax.set_title(title, fontsize=12)
         ax.set_yticklabels([])
@@ -189,7 +190,7 @@ The best choice for the filter strongly depends on the application.
 
 
 Available Kernels
------------------
+=================
 
 .. currentmodule:: astropy.convolution
 
@@ -211,10 +212,10 @@ Available Kernels
    TrapezoidDisk2DKernel
 
 Kernel Arithmetics
-------------------
+==================
 
 Addition and Subtraction
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 As convolution is a linear operation, kernels can be added or subtracted from each other.
 They can also be multiplied with some number. One basic example would be the definition
 of a Difference of Gaussian filter:
@@ -237,7 +238,7 @@ Most times it will be necessary to normalize the resulting kernel by calling exp
 
 
 Convolution
-^^^^^^^^^^^
+-----------
 Furthermore two kernels can be convolved with each other, which is useful when
 data is filtered with two different kinds of kernels or to create a new,
 special kernel:
@@ -271,7 +272,7 @@ Which, in most cases, will also be faster than the first method, because only
 one convolution with the, most times, larger data array will be necessary.
 
 Discretization
---------------
+==============
 
 To obtain the kernel array for discrete convolution, the kernels response
 function is evaluated on a grid with
@@ -309,7 +310,7 @@ conserve the integral on a subpixel scale.
 
 
 Normalization
--------------
+=============
 
 The kernel models are normalized per default, i.e.
 :math:`\int_{-\infty}^{\infty} f(x) dx = 1`. But because of the limited kernel

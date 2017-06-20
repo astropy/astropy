@@ -210,9 +210,9 @@ class WCSAxes(Axes):
             plot_data = []
             for coord in self.coords:
                 if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.data.lon.to(coord.coord_unit).value)
+                    plot_data.append(frame0.data.lon.to_value(coord.coord_unit))
                 elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.data.lat.to(coord.coord_unit).value)
+                    plot_data.append(frame0.data.lat.to_value(coord.coord_unit))
                 else:
                     raise NotImplementedError("Coordinates cannot be plotted with this "
                                               "method because the WCS does not represent longitude/latitude.")
@@ -352,11 +352,11 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    def set_xlabel(self, label):
-        self.coords[self._x_index].set_axislabel(label)
+    def set_xlabel(self, label, labelpad=1, **kwargs):
+        self.coords[self._x_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
-    def set_ylabel(self, label):
-        self.coords[self._y_index].set_axislabel(label)
+    def set_ylabel(self, label, labelpad=1, **kwargs):
+        self.coords[self._y_index].set_axislabel(label, minpad=labelpad, **kwargs)
 
     def get_xlabel(self):
         return self.coords[self._x_index].get_axislabel()

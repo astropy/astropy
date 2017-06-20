@@ -7,6 +7,7 @@ import signal
 import gzip
 from sys import version_info
 
+import pytest
 import numpy as np
 
 try:
@@ -15,7 +16,7 @@ try:
 except ImportError:
     HAS_PIL = False
 
-from ....tests.helper import pytest, catch_warnings
+from ....tests.helper import catch_warnings
 from .. import util
 from ..util import ignore_sigint
 from .._numpy_hacks import realign_dtype

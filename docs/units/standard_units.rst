@@ -1,7 +1,7 @@
 .. _doc_standard_units:
 
 Standard units
-==============
+**************
 
 Standard units are defined in the `astropy.units` package as object
 instances.
@@ -39,18 +39,18 @@ all the existing predefined units of a given type::
   [
     M_e          | 9.10938e-31 kg  |                                  ,
     M_p          | 1.67262e-27 kg  |                                  ,
-    earthMass    | 5.9742e+24 kg   | M_earth, Mearth                  ,
+    earthMass    | 5.97236e+24 kg  | M_earth, Mearth                  ,
     g            | 0.001 kg        | gram                             ,
-    jupiterMass  | 1.8987e+27 kg   | M_jup, Mjup, M_jupiter, Mjupiter ,
+    jupiterMass  | 1.89819e+27 kg  | M_jup, Mjup, M_jupiter, Mjupiter ,
     kg           | irreducible     | kilogram                         ,
-    solMass      | 1.9891e+30 kg   | M_sun, Msun                      ,
+    solMass      | 1.98848e+30 kg  | M_sun, Msun                      ,
     t            | 1000 kg         | tonne                            ,
     u            | 1.66054e-27 kg  | Da, Dalton                       ,
   ]
 
 
 Prefixes
---------
+========
 
 Most units can be used with prefixes, with both the standard SI prefixes and
 the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
@@ -123,7 +123,7 @@ the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
 .. _doc_dimensionless_unit:
 
 The dimensionless unit
-----------------------
+======================
 
 In addition to these units, `astropy.units` includes the concept of
 the dimensionless unit, used to indicate quantities that don't have a
@@ -178,7 +178,7 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
 .. _enabling-other-units:
 
 Enabling other units
---------------------
+====================
 
 By default, only the "default" units are searched by
 `~astropy.units.core.UnitBase.find_equivalent_units` and similar
@@ -206,7 +206,7 @@ For example, to enable Imperial units, simply do::
       mil          | 2.54e-05 m      | thou                  ,
       nmi          | 1852 m          | nauticalmile, NM      ,
       pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
       yd           | 0.9144 m        | yard                  ,
     ]
 

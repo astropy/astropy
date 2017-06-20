@@ -11,10 +11,12 @@ from ...extern.six.moves import zip
 
 import pickle
 import itertools
+
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 from ... import units as u, constants as c
 
 lu_units = [u.dex, u.mag, u.decibel]
@@ -463,8 +465,8 @@ class TestLogQuantityCreation(object):
         q2 = unit * pv
         assert q2.unit == unit
         assert q2.unit.physical_unit == pv.unit
-        assert q2.to(unit.physical_unit).value == 100.
-        assert (q2._function_view / u.mag).to(1).value == -5.
+        assert q2.to_value(unit.physical_unit) == 100.
+        assert (q2._function_view / u.mag).to_value(1) == -5.
         q3 = unit / 0.4
         assert q3 == q1
 
@@ -659,6 +661,11 @@ class TestLogQuantityArithmetic(object):
             with u.set_enabled_equivalencies(u.logarithmic()):
                 with pytest.raises(u.UnitsError):
                     t.to(u.dimensionless_unscaled)
+
+    def test_error_on_lq_as_power(self):
+        lq = u.Magnitude(np.arange(1., 4.)*u.Jy)
+        with pytest.raises(TypeError):
+            lq ** lq
 
     @pytest.mark.parametrize('other', pu_sample)
     def test_addition_subtraction_to_normal_units_fails(self, other):

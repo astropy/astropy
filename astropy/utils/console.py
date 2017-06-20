@@ -475,7 +475,7 @@ def human_file_size(size):
         # Import units only if necessary because the import takes a
         # significant time [#4649]
         from .. import units as u
-        size = size.to(u.byte).value
+        size = u.Quantity(size, u.byte).value
 
     suffixes = ' kMGTPEZY'
     if size == 0:
@@ -997,7 +997,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     write = file.write
 
     if col is not None:
-        assert col < len(line)
+        if col >= len(line):
+            raise ValueError('col must be less the the line lenght.')
         ntabs = line[:col].count('\t')
         col += ntabs * (tabwidth - 1)
 

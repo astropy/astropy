@@ -2,12 +2,12 @@
 
 .. _whatsnew-0.4:
 
-==========================
+**************************
 What's New in Astropy 0.4?
-==========================
+**************************
 
 Overview
---------
+========
 
 Astropy 0.4 is a major release that adds new functionality since the
 0.3.x series of releases. A new sub-package is included (see `SAMP`_),
@@ -28,7 +28,7 @@ improvements have occurred.  Since v0.3, by the numbers:
 
 
 Coordinates
------------
+===========
 
 The :ref:`astropy-coordinates` sub-package has been largely re-designed based
 on broad community discussion and experience with v0.2 and v0.3.  The key
@@ -76,7 +76,7 @@ and be displayed using those representations.  For example::
     <SkyCoord (ICRS): phi=63.4349488229 deg, theta=36.6992252005 deg, r=3.74165738677 pc>
 
 SAMP
-----
+====
 
 The :ref:`vo-samp` sub-package is a new sub-package (adapted from the `SAMPy
 package <http://packages.python.org/sampy/>`_) that contains an
@@ -112,7 +112,7 @@ and we can then send for example tables and images over SAMP to other
 applications (see :ref:`vo-samp` for examples of how to do this).
 
 Quantity
---------
+========
 The `~astropy.units.Quantity` class has seen a series of optimizations
 and is now substantially faster.  Additionally, the `~astropy.time`,
 `~astropy.coordinates`, and `~astropy.table` subpackages integrate
@@ -121,7 +121,7 @@ way for `~astropy.table`. See :doc:`/units/quantity` and the other
 subpackage documentation sections for more details.
 
 Inspecting FITS headers from the command line
----------------------------------------------
+=============================================
 
 The :ref:`astropy-io-fits` sub-package now provides a command line script for
 inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run
@@ -130,7 +130,7 @@ the screen in a human-readable format. Run ``fitsheader --help`` to see the
 full usage documentation.
 
 Reading and writing HTML tables
--------------------------------
+===============================
 
 The :ref:`io-ascii` sub-package now provides the capability to read a table
 within an HTML file or web URL into an astropy `~astropy.table.Table` object.
@@ -140,7 +140,7 @@ Conversely a `~astropy.table.Table` object can now be written out as an HTML
 table.
 
 Documentation URL changes
--------------------------
+=========================
 
 Starting in v0.4, the astropy documentation (and any package that uses
 ``astropy-helpers``) will show the full name of functions and classes
@@ -159,7 +159,7 @@ while the appropriate URL for v0.4 and later is:
 * http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
 
 astropy-helpers package
------------------------
+=======================
 
 We have now extracted our set-up and documentation utilities into a separate
 package, `astropy-helpers <https://github.com/astropy/astropy-helpers>`_. In
@@ -169,7 +169,7 @@ set-up utilies developed for the core package without having to first install
 astropy.
 
 Configuration
--------------
+=============
 
 The configuration framework has been re-factored based on the design
 described in
@@ -180,7 +180,7 @@ located at ``~/.astropy/config/astropy.cfg``) then you should read over
 to the new mechanism.
 
 Deprecation and backward-incompatible changes
----------------------------------------------
+=============================================
 
 - ``Quantity`` comparisons with ``==`` or ``!=`` now always return ``True``
   or ``False``, even if units do not match (for which case a ``UnitsError``
@@ -212,13 +212,13 @@ Deprecation and backward-incompatible changes
   them to do so.
 
 Full change log
----------------
+===============
 
 To see a detailed list of all changes in version 0.4 and prior, please see the
 :ref:`changelog`.
 
 Note on future versions
------------------------
+=======================
 
 While the current release supports Python 2.6, 2.7, and 3.1 to 3.4, the next
 release (1.0) will drop support for Python 3.1 and 3.2.

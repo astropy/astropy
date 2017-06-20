@@ -8,9 +8,9 @@ from __future__ import (absolute_import, division, print_function,
 import os
 from copy import copy
 
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
@@ -60,22 +60,52 @@ def test_get_writer_invalid():
 
 
 def test_register_reader():
+
     io_registry.register_reader('test1', TestData, empty_reader)
     io_registry.register_reader('test2', TestData, empty_reader)
+
     assert io_registry.get_reader('test1', TestData) == empty_reader
     assert io_registry.get_reader('test2', TestData) == empty_reader
 
+    io_registry.unregister_reader('test1', TestData)
+
+    with pytest.raises(io_registry.IORegistryError):
+        io_registry.get_reader('test1', TestData)
+    assert io_registry.get_reader('test2', TestData) == empty_reader
+
+    io_registry.unregister_reader('test2', TestData)
+
+    with pytest.raises(io_registry.IORegistryError):
+        io_registry.get_reader('test2', TestData)
+
 
 def test_register_writer():
+
     io_registry.register_writer('test1', TestData, empty_writer)
     io_registry.register_writer('test2', TestData, empty_writer)
+
     assert io_registry.get_writer('test1', TestData) == empty_writer
     assert io_registry.get_writer('test2', TestData) == empty_writer
 
+    io_registry.unregister_writer('test1', TestData)
+
+    with pytest.raises(io_registry.IORegistryError):
+        io_registry.get_writer('test1', TestData)
+    assert io_registry.get_writer('test2', TestData) == empty_writer
+
+    io_registry.unregister_writer('test2', TestData)
+
+    with pytest.raises(io_registry.IORegistryError):
+        io_registry.get_writer('test2', TestData)
+
 
 def test_register_identifier():
+
     io_registry.register_identifier('test1', TestData, empty_identifier)
     io_registry.register_identifier('test2', TestData, empty_identifier)
+
+    io_registry.unregister_identifier('test1', TestData)
+    io_registry.unregister_identifier('test2', TestData)
 
 
 def test_register_reader_invalid():
@@ -100,6 +130,24 @@ def test_register_identifier_invalid():
         io_registry.register_identifier('test', TestData, empty_identifier)
     assert (str(exc.value) == "Identifier for format 'test' and class "
                               "'TestData' is already defined")
+
+
+def test_unregister_reader_invalid():
+    with pytest.raises(io_registry.IORegistryError) as exc:
+        io_registry.unregister_reader('test', TestData)
+    assert str(exc.value) == "No reader defined for format 'test' and class 'TestData'"
+
+
+def test_unregister_writer_invalid():
+    with pytest.raises(io_registry.IORegistryError) as exc:
+        io_registry.unregister_writer('test', TestData)
+    assert str(exc.value) == "No writer defined for format 'test' and class 'TestData'"
+
+
+def test_unregister_identifier_invalid():
+    with pytest.raises(io_registry.IORegistryError) as exc:
+        io_registry.unregister_identifier('test', TestData)
+    assert str(exc.value) == "No identifier defined for format 'test' and class 'TestData'"
 
 
 def test_register_reader_force():
@@ -289,7 +337,7 @@ def test_non_existing_unknown_ext():
 
 def test_read_basic_table():
     data = np.array(list(zip([1, 2, 3], ['a', 'b', 'c'])),
-                    dtype=[(str('A'), int), (str('B'), '|S1')])
+                    dtype=[(str('A'), int), (str('B'), '|U1')])
     io_registry.register_reader('test', Table, lambda x: Table(x))
     t = Table.read(data, format='test')
     assert t.keys() == ['A', 'B']

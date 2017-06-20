@@ -8,14 +8,13 @@ from __future__ import (absolute_import, division, print_function,
 
 """Test initalization and other aspects of Angle and subclasses"""
 
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose, assert_array_equal
 
-from ..angles import Longitude, Latitude, Angle, rotation_matrix, angle_axis
-from ...tests.helper import pytest, catch_warnings
+from ..angles import Longitude, Latitude, Angle
 from ... import units as u
 from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
-from ...utils.exceptions import AstropyDeprecationWarning
 
 
 def test_create_angles():
@@ -862,23 +861,6 @@ def test_repr_latex():
     # make sure the ... appears for large arrays
     bigarrangle = Angle(np.ones(50000)/50000., u.deg)
     assert '...' in bigarrangle._repr_latex_()
-
-
-def test_rotation_matrix_deprecation():
-    with catch_warnings(AstropyDeprecationWarning):
-        m = rotation_matrix(0.*u.deg, 'x')
-    assert isinstance(m, np.matrix)
-    assert_array_equal(m, np.eye(3))
-
-
-def test_angle_axis_deprecation():
-    m = np.matrix([[0., 1., 0,],
-                   [-1, 0., 0.],
-                   [0., 0., 1.]])
-    with catch_warnings(AstropyDeprecationWarning):
-        an1, ax1 = angle_axis(m)
-    assert_allclose(an1.to(u.deg).value, 90.)
-    assert_allclose(ax1, [0., 0., 1.])
 
 
 def test_angle_with_cds_units_enabled():

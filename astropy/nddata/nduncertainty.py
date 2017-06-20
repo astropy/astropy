@@ -9,7 +9,6 @@ from copy import deepcopy
 import weakref
 
 # from ..utils.compat import ignored
-from ..utils import deprecated
 from .. import log
 from ..units import Unit, Quantity
 from ..extern import six
@@ -117,11 +116,6 @@ class NDUncertainty(object):
         .. versionadded:: 1.2
         """
         return False
-
-    @property
-    @deprecated('1.2', alternative=':attr:`supports_correlated`')
-    def support_correlated(self):
-        return self.supports_correlated
 
     @property
     def array(self):
@@ -433,26 +427,6 @@ class StdDevUncertainty(NDUncertainty):
         else:
             raise IncompatibleUncertaintiesException
 
-# TODO: These 4 methods were part of the pre-astropy 1.2 version. Remove
-# them at some point. It's unlikely they were used directly but in any case
-# better keep them around for now.
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_add(self, other_nddata, result_data):
-        return self.propagate(np.add, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_subtract(self, other_nddata, result_data):
-        return self.propagate(np.subtract, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_multiply(self, other_nddata, result_data):
-        return self.propagate(np.multiply, other_nddata, result_data, 0)
-
-    @deprecated('1.2', alternative=':meth:`~NDUncertainty.propagate`')
-    def propagate_divide(self, other_nddata, result_data):
-        return self.propagate(np.divide, other_nddata, result_data, 0)
-
     def _propagate_add(self, other_uncert, result_data, correlation):
 
         if self.array is None:
@@ -475,7 +449,7 @@ class StdDevUncertainty(NDUncertainty):
             if self.unit is not None and self.unit != self.parent_nddata.unit:
                 # If the uncertainty has a different unit than the result we
                 # need to convert it to the results unit.
-                return (self.array * self.unit).to(result_data.unit).value
+                return self.unit.to(result_data.unit, self.array)
             else:
                 # Copy the result because _propagate will not copy it but for
                 # arithmetic operations users will expect copies.
@@ -508,12 +482,9 @@ class StdDevUncertainty(NDUncertainty):
 
             if isinstance(result, Quantity):
                 # In case we worked with quantities we need to return the
-                # uncertainty that has the same unit as the resulting data
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    # Convert it to the data's unit and then drop the unit.
-                    return result.to(result_data.unit).value
+                # uncertainty that has the same unit as the resulting data.
+                # Note that this call is fast if the units are the same.
+                return result.to_value(result_data.unit)
             else:
                 return result
 
@@ -530,7 +501,7 @@ class StdDevUncertainty(NDUncertainty):
                 return deepcopy(other_uncert.array)
         elif other_uncert.array is None:
             if self.unit is not None and self.unit != self.parent_nddata.unit:
-                return (self.array * self.unit).to(result_data.unit).value
+                return self.unit.to(result_data.unit, self.array)
             else:
                 return deepcopy(self.array)
         else:
@@ -549,10 +520,7 @@ class StdDevUncertainty(NDUncertainty):
             else:
                 result = np.sqrt(this**2 + other**2)
             if isinstance(result, Quantity):
-                if result.unit == result_data.unit:
-                    return result.value
-                else:
-                    return result.to(result_data.unit).value
+                return result.to_value(result_data.unit)
             else:
                 return result
 

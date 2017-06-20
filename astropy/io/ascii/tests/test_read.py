@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # TEST_UNICODE_LITERALS
 
 import re
-from io import BytesIO
+from io import BytesIO, open
 from collections import OrderedDict
 import locale
-
-import numpy as np
 import platform
 
+import pytest
+import numpy as np
+
+from ....extern import six  # noqa
 from ....extern.six.moves import zip, cStringIO as StringIO
-from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
 from ....units import Unit
@@ -1244,3 +1246,43 @@ def text_aastex_no_trailing_backslash():
     assert dat.colnames == ['a', 'b', 'c']
     assert np.all(dat['a'] == ['1', r'3\%'])
     assert np.all(dat['c'] == ['c', 'e'])
+
+
+@pytest.mark.skipif('six.PY2')
+@pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
+def test_read_with_encoding(tmpdir, encoding):
+    data = {
+        'commented_header': u'# à b è \n 1 2 héllo',
+        'csv': u'à,b,è\n1,2,héllo'
+    }
+
+    testfile = str(tmpdir.join('test.txt'))
+    for fmt, content in data.items():
+        with open(testfile, 'w', encoding=encoding) as f:
+            f.write(content)
+
+        table = ascii.read(testfile, encoding=encoding)
+        assert table.pformat() == [' à   b    è  ',
+                                   '--- --- -----',
+                                   '  1   2 héllo']
+
+        for guess in (True, False):
+            table = ascii.read(testfile, format=fmt, fast_reader=False,
+                               encoding=encoding, guess=guess)
+            assert table['è'].dtype.kind == 'U'
+            assert table.pformat() == [' à   b    è  ',
+                                       '--- --- -----',
+                                       '  1   2 héllo']
+
+
+def test_unsupported_read_with_encoding(tmpdir):
+    # Fast reader is not supported, make sure it raises an exception
+    with pytest.raises(ascii.ParameterError):
+        ascii.read('t/simple3.txt', guess=False, fast_reader='force',
+                   encoding='latin1', format='fast_csv')
+
+    # Python 2 is not supported, make sure it raises an exception
+    if six.PY2:
+        with pytest.raises(ValueError):
+            ascii.read('t/simple3.txt', guess=False, fast_reader=False,
+                       encoding='latin1', format='csv')

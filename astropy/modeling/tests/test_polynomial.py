@@ -8,18 +8,19 @@ import os
 
 from itertools import product
 
+import pytest
 import numpy as np
 
 from numpy.testing.utils import assert_allclose
 
 from .. import fitting
-from ...tests.helper import pytest
 from ... import wcs
 from ...io import fits
 from ..polynomial import (Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
                           Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
                           PolynomialBase, OrthoPolynomialBase)
 from ..functional_models import Linear1D
+from ..mappings import Identity
 from ...utils.data import get_pkg_data_filename
 
 try:
@@ -359,3 +360,26 @@ def test_zero_degree_polynomial(cls):
         p2_fit = fitter(p2_init, x, y, z)
 
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_2d_orthopolynomial_in_compound_model():
+    """
+    Ensure that OrthoPolynomialBase (ie. Chebyshev2D & Legendre2D) models get
+    evaluated & fitted correctly when part of a compound model.
+
+    Regression test for https://github.com/astropy/astropy/pull/6085.
+    """
+
+    y, x = np.mgrid[0:5, 0:5]
+    z = x + y
+
+    fitter = fitting.LevMarLSQFitter()
+    simple_model = Chebyshev2D(2,2)
+    simple_fit = fitter(simple_model, x, y, z)
+
+    fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
+    compound_model = Identity(2) | Chebyshev2D(2,2)
+    compound_fit = fitter(compound_model, x, y, z)
+
+    assert_allclose(simple_fit(x,y), compound_fit(x,y), atol=1e-15)

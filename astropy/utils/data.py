@@ -52,9 +52,12 @@ class Conf(_config.ConfigNamespace):
 
     dataurl = _config.ConfigItem(
         'http://data.astropy.org/',
-        'URL for astropy remote data site.')
+        'Primary URL for astropy remote data site.')
+    dataurl_mirror = _config.ConfigItem(
+        'http://astropy.org/astropy-data/',
+        'Mirror URL for astropy remote data site.')
     remote_timeout = _config.ConfigItem(
-        3.,
+        10.,
         'Time to wait for remote data queries (in seconds).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     compute_hash_block_size = _config.ConfigItem(
@@ -484,8 +487,16 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     elif os.path.isfile(datafn):  # local file
         return get_readable_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_readable_fileobj(conf.dataurl + datafn, encoding=encoding,
-                                    cache=cache)
+        all_urls = (conf.dataurl, conf.dataurl_mirror)
+        for url in all_urls:
+            try:
+                return get_readable_fileobj(url + datafn, encoding=encoding,
+                                            cache=cache)
+            except urllib.error.URLError as e:
+                pass
+        urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
+        raise urllib.error.URLError("Failed to download {0} from the following "
+                                    "repositories:\n\n{1}".format(datafn, urls))
 
 
 def get_pkg_data_filename(data_name, package=None, show_progress=True,
@@ -582,11 +593,20 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
+
         if hashfn is None:
-            return download_file(
-                conf.dataurl + data_name, cache=True,
-                show_progress=show_progress,
-                timeout=remote_timeout)
+            all_urls = (conf.dataurl, conf.dataurl_mirror)
+            for url in all_urls:
+                try:
+                    return download_file(url + data_name, cache=True,
+                                         show_progress=show_progress,
+                                         timeout=remote_timeout)
+                except urllib.error.URLError:
+                    pass
+            urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
+            raise urllib.error.URLError("Failed to download {0} from the following "
+                                        "repositories:\n\n{1}\n\n".format(data_name, urls))
+
         else:
             return hashfn
     else:
@@ -597,10 +617,17 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
         elif os.path.isfile(datafn):  # local file
             return datafn
         else:  # remote file
-            return download_file(
-                conf.dataurl + data_name, cache=True,
-                show_progress=show_progress,
-                timeout=remote_timeout)
+            all_urls = (conf.dataurl, conf.dataurl_mirror)
+            for url in all_urls:
+                try:
+                    return download_file(url + data_name, cache=True,
+                                         show_progress=show_progress,
+                                         timeout=remote_timeout)
+                except urllib.error.URLError:
+                    pass
+            urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
+            raise urllib.error.URLError("Failed to download {0} from the following "
+                                        "repositories:\n\n{1}".format(data_name, urls))
 
 
 def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
@@ -874,9 +901,9 @@ def _find_pkg_data_path(data_name, package=None):
     path = os.path.join(module_path, data_name)
 
     root_dir = os.path.dirname(rootpkg.__file__)
-    assert _is_inside(path, root_dir), \
-           ("attempted to get a local data file outside "
-            "of the " + rootpkgname + " tree")
+    if not _is_inside(path, root_dir):
+        raise RuntimeError("attempted to get a local data file outside "
+                           "of the {} tree.".format(rootpkgname))
 
     return path
 
@@ -1244,9 +1271,9 @@ def clear_download_cache(hashorurl=None):
         else:
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
-                assert _is_inside(filepath, dldir), \
-                       ("attempted to use clear_download_cache on a path "
-                        "outside the data cache directory")
+                if not _is_inside(filepath, dldir):
+                    raise RuntimeError("attempted to use clear_download_cache on"
+                                       " a path outside the data cache directory")
 
                 # shelve DBs don't accept unicode strings as keys in Python 2
                 if six.PY2 and isinstance(hashorurl, six.text_type):

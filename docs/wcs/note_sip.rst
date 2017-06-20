@@ -4,7 +4,7 @@
 
 
 Note about SIP and WCS
-======================
+**********************
 
 `astropy.wcs` supports the Simple Imaging Polynomial (`SIP`_) convention.
 The SIP distortion is defined in FITS headers by the presence of the

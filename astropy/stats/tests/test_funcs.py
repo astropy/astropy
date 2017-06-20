@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
-
 from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
@@ -23,26 +22,16 @@ except ImportError:
 else:
     HAS_MPMATH = True
 
-from ...tests.helper import pytest
-from ...extern.six.moves import range
-
 from .. import funcs
-
-# These are not part of __all__ because they are just the lower level versions
-# of poisson_upper_limit
-# from ..funcs import scipy_poisson_upper_limit, mpmath_poisson_upper_limit
-
-from ...utils.compat import NUMPY_LT_1_10, NUMPY_LT_1_9  # pylint: disable=W0611
-from ...utils.misc import NumpyRNGContext
 from ... import units as u
+from ...extern.six.moves import range
+from ...tests.helper import catch_warnings
+from ...utils.compat import NUMPY_LT_1_10  # pylint: disable=W0611
+from ...utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
-    # need to seed the numpy RNG to make sure we don't get some amazingly
-    # flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
-
         # test that it runs
         randvar = randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
@@ -111,20 +100,18 @@ def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan],
                       [2, 5, np.nan, 4]])
     assert_equal(funcs.median_absolute_deviation(array, func=np.nanmedian,
-                                                 axis=1),
-                 [1, 1])
+                                                 axis=1), [1, 1])
 
     array = np.ma.masked_invalid(array)
     assert funcs.median_absolute_deviation(array) == 1
 
 
-@pytest.mark.skipif('NUMPY_LT_1_9')
 def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     assert_equal(funcs.median_absolute_deviation(array, axis=(1, 2)),
                  np.zeros(5))
-    assert_equal(funcs.median_absolute_deviation(array, axis=np.array([1, 2])),
-                 np.zeros(5))
+    assert_equal(funcs.median_absolute_deviation(
+        array, axis=np.array([1, 2])), np.zeros(5))
 
 
 def test_median_absolute_deviation_quantity():
@@ -134,172 +121,11 @@ def test_median_absolute_deviation_quantity():
     # quantity
     a = np.array([1, 16, 5]) * u.m
     mad = funcs.median_absolute_deviation(a)
-    # Check for the correct unit and that the result is identical to the result
-    # without units.
+    # Check for the correct unit and that the result is identical to the
+    # result without units.
     assert mad.unit == a.unit
     assert mad.value == funcs.median_absolute_deviation(a.value)
 
-
-def test_biweight_location():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        # test that it runs
-        randvar = randn(10000)
-        cbl = funcs.biweight_location(randvar)
-
-        assert abs(cbl-0) < 1e-2
-
-
-def test_biweight_location_small():
-
-    cbl = funcs.biweight_location([1, 3, 5, 500, 2])
-    assert abs(cbl-2.745) < 1e-3
-
-
-def test_biweight_location_axis():
-    """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = normal(5, 2, (ny, nx))
-
-        bw = funcs.biweight_location(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_location(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-        bw = funcs.biweight_location(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(funcs.biweight_location(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-
-def test_biweight_location_axis_3d():
-    """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = normal(5, 2, (nz, ny, nx))
-        bw = funcs.biweight_location(data, axis=0)
-        assert bw.shape == (ny, nx)
-
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_location(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
-
-
-def test_biweight_midvariance():
-    # need to seed the numpy RNG to make sure we don't get some
-    # amazingly flukey random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        # test that it runs
-        randvar = randn(10000)
-        scl = funcs.biweight_midvariance(randvar)
-
-        assert abs(scl-1) < 1e-2
-
-
-def test_biweight_midvariance_small():
-    scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
-    assert abs(scl-1.529) < 1e-3
-
-
-def test_biweight_midvariance_5127():
-    # test a regression introduced in #5127
-    rand = np.random.RandomState(12345)
-    data = rand.normal(loc=0., scale=20., size=(100, 100))
-    scl = funcs.biweight_midvariance(data)
-    assert_allclose(scl, 20.171003621738148)    # test against previous code
-
-
-def test_biweight_midvariance_axis():
-    """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = normal(5, 2, (ny, nx))
-
-        bw = funcs.biweight_midvariance(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_midvariance(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-        bw = funcs.biweight_midvariance(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(funcs.biweight_midvariance(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
-
-
-def test_biweight_midvariance_axis_3d():
-    """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = normal(5, 2, (nz, ny, nx))
-        bw = funcs.biweight_midvariance(data, axis=0)
-        assert bw.shape == (ny, nx)
-
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(funcs.biweight_midvariance(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
-
-def test_biweight_midcovariance():
-    """test biweight_midcovariance method"""
-    # Test 1
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(5)])
-    cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 1.8,  1.9,  2. ,  2.1,  2.1])
-    # Test 2
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 10) for i in range(5)])
-    cov = funcs.biweight_midcovariance(d)
-    std = np.around(np.sqrt(cov.diagonal()), 1)
-    assert_allclose(std, [ 2.6,  2.1,  1.6,  1.5,  1.9])
-
-def test_midcov_midvar():
-    """
-    test biweight_midcovariance and biweight_midvariance
-    are compatible
-    """
-    rng = np.random.RandomState(1)
-    d = np.array([rng.normal(0, 2, 100) for i in range(3)])
-    cov = funcs.biweight_midcovariance(d)
-    cov_std = np.around(np.sqrt(cov.diagonal()), 1)
-    std = np.around(list(map(funcs.biweight_midvariance, d)), 1)
-    assert_allclose(cov_std, std)
-
-def test_midcovariance_shape():
-    """
-    test that midcovariance raises error when feed 3D array
-    """
-    rng = np.random.RandomState(1)
-    d = rng.normal(0,1,27).reshape(3,3,3)
-    with pytest.raises(ValueError) as e:
-        funcs.biweight_midcovariance(d)
-    assert 'a.ndim should equal 2' in str(e.value)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
@@ -499,6 +325,52 @@ def test_mad_std():
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
+@pytest.mark.xfail('not NUMPY_LT_1_10')
+def test_mad_std_scalar_return():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(10, 10))
+        # make a masked array with no masked points
+        data = np.ma.masked_where(np.isnan(data), data)
+        rslt = funcs.mad_std(data)
+        # want a scalar result, NOT a masked array
+        assert np.isscalar(rslt)
+
+        data[5, 5] = np.nan
+        rslt = funcs.mad_std(data, ignore_nan=True)
+        assert np.isscalar(rslt)
+        with catch_warnings():
+            rslt = funcs.mad_std(data)
+            assert np.isscalar(rslt)
+            assert not np.isnan(rslt)
+
+
+def test_mad_std_warns():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(10, 10))
+        data[5, 5] = np.nan
+
+        with catch_warnings() as warns:
+            rslt = funcs.mad_std(data, ignore_nan=False)
+            if NUMPY_LT_1_10:
+                w = warns[0]
+                assert str(w.message).startswith("Numpy versions <1.10 will return")
+            else:
+                assert np.isnan(rslt)
+
+
+def test_mad_std_withnan():
+    with NumpyRNGContext(12345):
+        data = np.empty([102, 102])
+        data[:] = np.nan
+        data[1:-1, 1:-1] = normal(5, 2, size=(100, 100))
+        assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
+
+    if not NUMPY_LT_1_10:
+        assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan],  ignore_nan=True),
+                    1.482602218505602)
+
+
 def test_mad_std_with_axis():
     data = np.array([[1, 2, 3, 4],
                      [4, 3, 2, 1]])
@@ -508,6 +380,31 @@ def test_mad_std_with_axis():
     result_axis1 = np.array([1.48260222, 1.48260222])
     assert_allclose(funcs.mad_std(data, axis=0), result_axis0)
     assert_allclose(funcs.mad_std(data, axis=1), result_axis1)
+
+
+def test_mad_std_with_axis_and_nan():
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+    # results follow data symmetry
+    result_axis0 = np.array([2.22390333, 0.74130111, 0.74130111,
+                             2.22390333, np.nan])
+    result_axis1 = np.array([1.48260222, 1.48260222])
+
+    assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
+    assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
+
+
+def test_mad_std_with_axis_and_nan_array_type():
+    # mad_std should return a masked array if given one, and not otherwise
+    data = np.array([[1, 2, 3, 4, np.nan],
+                     [4, 3, 2, 1, np.nan]])
+
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert not np.ma.isMaskedArray(result)
+
+    data = np.ma.masked_where(np.isnan(data), data)
+    result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    assert np.ma.isMaskedArray(result)
 
 
 def test_gaussian_fwhm_to_sigma():

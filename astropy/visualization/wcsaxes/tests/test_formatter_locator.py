@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -7,7 +8,6 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....extern import six
-from ....tests.helper import pytest
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 
@@ -41,12 +41,12 @@ class TestAngleFormatterLocator(object):
     def test_values(self):
 
         fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree)
-        assert fl.values.to(u.degree).value.tolist() == [0.1, 1., 14.]
+        assert fl.values.to_value(u.degree).tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.to(u.degree).value, [0.1, 1., 14.])
+        assert_almost_equal(values.to_value(u.degree), [0.1, 1., 14.])
 
     def test_number(self):
 
@@ -56,14 +56,14 @@ class TestAngleFormatterLocator(object):
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.to(u.degree).value, [35., 40., 45., 50., 55.])
+        assert_almost_equal(values.to_value(u.degree), [35., 40., 45., 50., 55.])
 
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.to(u.degree).value, [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
+        assert_almost_equal(values.to_value(u.degree), [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.to(u.degree).value, [35., 36.])
+        assert_almost_equal(values.to_value(u.degree), [35., 36.])
 
     def test_spacing(self):
 
@@ -77,15 +77,15 @@ class TestAngleFormatterLocator(object):
         assert fl.spacing == 3. * u.degree
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.to(u.degree).value, [36., 39., 42., 45., 48., 51., 54.])
+        assert_almost_equal(values.to_value(u.degree), [36., 39., 42., 45., 48., 51., 54.])
 
         fl.spacing = 30. * u.arcmin
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.to(u.degree).value, [34.5, 35., 35.5, 36.])
+        assert_almost_equal(values.to_value(u.degree), [34.5, 35., 35.5, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.to(u.degree).value, [35., 36.])
+        assert_almost_equal(values.to_value(u.degree), [35., 36.])
 
     def test_minor_locator(self):
 
@@ -95,13 +95,13 @@ class TestAngleFormatterLocator(object):
 
         minor_values = fl.minor_locator(spacing, 5, 34.3, 55.4)
 
-        assert_almost_equal(minor_values.to(u.degree).value, [36., 37., 38.,
+        assert_almost_equal(minor_values.to_value(u.degree), [36., 37., 38.,
                             39., 41., 42., 43., 44., 46., 47., 48., 49., 51.,
                             52., 53., 54.])
 
         minor_values = fl.minor_locator(spacing, 2, 34.3, 55.4)
 
-        assert_almost_equal(minor_values.to(u.degree).value, [37.5, 42.5, 47.5, 52.5])
+        assert_almost_equal(minor_values.to_value(u.degree), [37.5, 42.5, 47.5, 52.5])
 
         fl.values = [0.1, 1., 14.] * u.degree
 
@@ -109,7 +109,7 @@ class TestAngleFormatterLocator(object):
 
         minor_values = fl.minor_locator(spacing, 2, 34.3, 55.4)
 
-        assert_almost_equal(minor_values.to(u.degree).value, [])
+        assert_almost_equal(minor_values.to_value(u.degree), [])
 
     @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
                                                     ('dd:mm', six.u('15\xb024\'')),
@@ -191,7 +191,7 @@ class TestAngleFormatterLocator(object):
         fl = AngleFormatterLocator()
         fl.spacing = 0.032 * u.deg
         fl.format = 'dd:mm:ss'
-        assert_almost_equal(fl.spacing.to(u.arcsec).value, 115.)
+        assert_almost_equal(fl.spacing.to_value(u.arcsec), 115.)
 
     @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, six.u('15\xb0')),
                                                      (2 * u.arcmin, six.u('15\xb024\'')),
@@ -337,4 +337,4 @@ class TestScalarFormatterLocator(object):
         fl = ScalarFormatterLocator(unit=u.m)
         fl.spacing = 0.032 * u.m
         fl.format = 'x.xx'
-        assert_almost_equal(fl.spacing.to(u.m).value, 0.03)
+        assert_almost_equal(fl.spacing.to_value(u.m), 0.03)

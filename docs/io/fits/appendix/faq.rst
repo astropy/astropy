@@ -3,15 +3,15 @@
 .. _io-fits-faq:
 
 astropy.io.fits FAQ
--------------------
+*******************
 
 .. contents::
 
 General Questions
-^^^^^^^^^^^^^^^^^
+=================
 
 What is PyFITS and how does it relate to Astropy?
-"""""""""""""""""""""""""""""""""""""""""""""""""
+-------------------------------------------------
 
 PyFITS_ is a library written in, and for use with the Python_ programming
 language for reading, writing, and manipulating FITS_ formatted files.  It
@@ -39,7 +39,7 @@ the rest of PyFITS functions without this extension module.
 
 
 What is the development status of PyFITS?
-"""""""""""""""""""""""""""""""""""""""""
+-----------------------------------------
 
 PyFITS is written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
@@ -79,10 +79,10 @@ earlier) are no longer actively supported.
 
 
 Usage Questions
-^^^^^^^^^^^^^^^
+===============
 
 Something didn't work as I expected.  Did I do something wrong?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+---------------------------------------------------------------
 
 Possibly.  But if you followed the documentation and things still did not work
 as expected, it is entirely possible that there is a mistake in the
@@ -101,7 +101,7 @@ cases are discovered).
 
 
 Astropy crashed and output a long string of code.  What do I do?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------------
 
 This listing of code is what is knows as a `stack trace`_ (or in Python
 parlance a "traceback").  When an unhandled exception occurs in the code,
@@ -140,7 +140,7 @@ report it as a bug.
 
 
 Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------------------
 
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
@@ -171,7 +171,7 @@ there is a bug in Astropy.
 
 
 How do I turn off the warning messages Astropy keeps outputting to my console?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+------------------------------------------------------------------------------
 
 Astropy uses Python's built-in `warnings`_ subsystem for informing about
 exceptional conditions in the code that are recoverable, but that the user may
@@ -189,7 +189,7 @@ information on how to control and quiet warnings.
 
 
 What convention does Astropy use for indexing, such as of image coordinates?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------------------------
 
 All arrays and sequences in Astropy use a zero-based indexing scheme.  For
 example, the first keyword in a header is ``header[0]``, not ``header[1]``.
@@ -230,7 +230,7 @@ is likely to cause more difficulties than it's worth.
 
 
 How do I open a very large image that won't fit in memory?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------
 
 In PyFITS, prior to version 3.1, when the data portion of an HDU is accessed,
 the data is read into memory in its entirety.  For example::
@@ -278,7 +278,7 @@ sections <data-sections>` for more details on using this interface.
 
 
 How can I create a very large FITS file from scratch?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
+-----------------------------------------------------
 
 See :ref:`sphx_glr_generated_examples_io_skip_create-large-fits.py`.
 
@@ -302,7 +302,7 @@ this FAQ might provide an example of how to do this.
 
 
 How do I create a multi-extension FITS file from scratch?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+---------------------------------------------------------
 
 See :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 
@@ -310,7 +310,7 @@ See :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 .. _fits-scaled-data-faq:
 
 Why is an image containing integer data being converted unexpectedly to floats?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+-------------------------------------------------------------------------------
 
 If the header for your image contains non-trivial values for the optional
 BSCALE and/or BZERO keywords (that is, BSCALE != 1 and/or BZERO != 0), then
@@ -375,7 +375,7 @@ the file::
 
 
 Why am I losing precision when I assign floating point values in the header?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------------------------
 
 The FITS standard allows two formats for storing floating-point numbers in a
 header value.  The "fixed" format requires the ASCII representation of the
@@ -407,7 +407,7 @@ according to the FITS standard).
 
 
 Why is reading rows out of a FITS table so slow?
-""""""""""""""""""""""""""""""""""""""""""""""""
+------------------------------------------------
 
 Underlying every table data array returned by `astropy.io.fits` is a Numpy
 `~numpy.recarray` which is a Numpy array type specifically for representing
@@ -439,7 +439,7 @@ liking.
 
 
 I'm opening many FITS files in a loop and getting OSError: Too many open files
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+------------------------------------------------------------------------------
 
 Say you have some code like:
 
@@ -502,10 +502,10 @@ cleanup when closing FITS files, where needed.
 
 
 Comparison with Other FITS Readers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 What is the difference between astropy.io.fits and fitsio?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+----------------------------------------------------------
 
 The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
 reader in that all the code for parsing the FITS file format is in Python,
@@ -529,7 +529,7 @@ API than if one were to use CFITSIO directly.
 
 
 Why did Astropy adopt PyFITS as its FITS reader instead of fitsio?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+------------------------------------------------------------------
 
 When the Astropy project was first started it was clear from the start that
 one of its core components should be a submodule for reading and writing FITS
@@ -570,7 +570,7 @@ assumes a more rigid structure.
 
 
 What performance differences are there between astropy.io.fits and fitsio?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+--------------------------------------------------------------------------
 
 There are two main performance areas to look at: reading/parsing FITS headers
 and reading FITS data (image-like arrays as well as tables).
@@ -732,7 +732,7 @@ question.
 
 
 Why is fitsio so much faster than Astropy at reading tables?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+------------------------------------------------------------
 
 In many cases it isn't--there is either no difference, or it may be a little
 faster in Astropy depending on what you're trying to do with the table and

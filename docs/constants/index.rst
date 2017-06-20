@@ -33,7 +33,7 @@ different units for example::
       Value  = 299792458.0
       Uncertainty  = 0.0
       Unit  = m / s
-      Reference = CODATA 2010
+      Reference = CODATA 2014
 
     >>> print(const.c.to('km/s'))
     299792.458 km / s
@@ -47,7 +47,7 @@ and you can use them in conjunction with unit and other non-constant
     >>> from astropy import units as u
     >>> F = (const.G * 3. * const.M_sun * 100 * u.kg) / (2.2 * u.au) ** 2
     >>> print(F.to(u.N))  # doctest: +FLOAT_CMP
-    0.367669392028 N
+    0.3675671602160826 N
 
 It is possible to convert most constants to cgs using e.g.::
 
@@ -66,6 +66,60 @@ cannot be used in expressions without specifying a system::
     values without specifying a system (eg. e.emu)
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
+
+Collections of constants (and prior versions)
+=============================================
+
+Constants are organized into version modules. The constants for
+Astropy 1.3 can be accessed in the ``astropyconst13`` module.
+For example:
+
+    >>> from astropy.constants import astropyconst13 as const
+    >>> print(const.e)
+      Name   = Electron charge
+      Value  = 1.602176565e-19
+      Uncertainty  = 3.5e-27
+      Unit  = C
+      Reference = CODATA 2010
+
+Physical CODATA constants are in modules with names like ``codata2010`` or
+``codata2014``:
+
+    >>> from astropy.constants import codata2010 as const
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+
+Astronomical constants defined (primarily) by the IAU are collected in 
+modules with names like ``iau2012`` or ``iau2015``:
+
+    >>> from astropy.constants import iau2012 as const
+    >>> print(const.L_sun)
+      Name   = Solar luminosity
+      Value  = 3.846e+26
+      Uncertainty  = 5e+22
+      Unit  = W
+      Reference = Allen's Astrophysical Quantities 4th Ed.
+
+    >>> from astropy.constants import iau2015 as const
+    >>> print(const.L_sun)
+      Name   = Nominal solar luminosity
+      Value  = 3.828e+26
+      Uncertainty  = 0.0
+      Unit  = W
+      Reference = IAU 2015 Resolution B 3
+
+The astronomical and physical constants are combined into modules with
+names like ``astropyconst13`` and ``astropyconst20``.
+
+.. warning:: 
+
+    Units such as ``u.M_sun`` will use the current version of the
+    corresponding constant. When using prior versions of the constants,
+    quantities should be constructed with constants instead of units.
 
 Reference/API
 =============

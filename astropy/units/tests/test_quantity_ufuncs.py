@@ -3,12 +3,14 @@
 
 import warnings
 
+import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
 from ... import units as u
-from ...tests.helper import pytest, raises
+from ...tests.helper import raises
 from ...extern.six.moves import zip
+from ...utils.compat import NUMPY_LT_1_13
 
 
 class TestUfuncCoverage(object):
@@ -122,7 +124,7 @@ class TestQuantityTrigonometricFuncs(object):
 
     def test_arctan_array(self):
         q = np.array([10., 30., 70., 80.]) * u.degree
-        assert_allclose(np.arctan(np.tan(q)).to(q.unit).value, q.value)
+        assert_allclose(np.arctan(np.tan(q)).to_value(q.unit), q.value)
 
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -141,11 +143,11 @@ class TestQuantityTrigonometricFuncs(object):
         q2 = 2.0 * u.km
         assert np.arctan2(q1, q2).unit == u.radian
         assert_allclose(np.arctan2(q1, q2).value,
-                        np.arctan2(q1.value, q2.to(q1.unit).value))
+                        np.arctan2(q1.value, q2.to_value(q1.unit)))
         q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
-        assert_allclose(at2.value, np.arctan2(q3.to(1).value, q4))
+        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
@@ -233,23 +235,40 @@ class TestQuantityMathFuncs(object):
         assert np.all(function(np.arange(3.) * u.m, 2. * u.s) ==
                       function(np.arange(3.), 2.) * u.m / u.s)
 
-    def test_divmod_and_floor_divide(self):
+    def test_floor_divide_remainder_and_divmod(self):
         inch = u.Unit(0.0254 * u.m)
         dividend = np.array([1., 2., 3.]) * u.m
         divisor = np.array([3., 4., 5.]) * inch
         quotient = dividend // divisor
+        remainder = dividend % divisor
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
-        quotient2, remainder = divmod(dividend, divisor)
-        assert np.all(quotient2 == quotient)
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
         assert remainder.unit == dividend.unit
+        quotient2 = np.floor_divide(dividend, divisor)
+        remainder2 = np.remainder(dividend, divisor)
+        assert np.all(quotient2 == quotient)
+        assert np.all(remainder2 == remainder)
+        quotient3, remainder3 = divmod(dividend, divisor)
+        assert np.all(quotient3 == quotient)
+        assert np.all(remainder3 == remainder)
 
         with pytest.raises(TypeError):
             divmod(dividend, u.km)
 
         with pytest.raises(TypeError):
             dividend // u.km
+
+        with pytest.raises(TypeError):
+            dividend % u.km
+
+        if hasattr(np, 'divmod'):  # not NUMPY_LT_1_13
+            quotient4, remainder4 = np.divmod(dividend, divisor)
+            assert np.all(quotient4 == quotient)
+            assert np.all(remainder4 == remainder)
+            with pytest.raises(TypeError):
+                np.divmod(dividend, u.km)
+
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
@@ -345,7 +364,7 @@ class TestQuantityMathFuncs(object):
         # Test also against different types of exponent
         for cls in (list, tuple, np.array, np.ma.array, u.Quantity):
             res2 = np.power(q2, cls(powers))
-            assert np.all(res2.value == q2.to(1).value ** powers)
+            assert np.all(res2.value == q2.to_value(1) ** powers)
             assert res2.unit == u.dimensionless_unscaled
         # Though for single powers, we keep the composite unit.
         res3 = q2 ** 2
@@ -425,7 +444,7 @@ class TestQuantityMathFuncs(object):
     def test_modf_array(self):
         v = np.arange(10.) * u.m / (500. * u.cm)
         q = np.modf(v)
-        n = np.modf(v.to(1).value)
+        n = np.modf(v.to_value(u.dimensionless_unscaled))
         assert q[0].unit == u.dimensionless_unscaled
         assert q[1].unit == u.dimensionless_unscaled
         assert all(q[0].value == n[0])
@@ -472,10 +491,12 @@ class TestQuantityMathFuncs(object):
 
 class TestInvariantUfuncs(object):
 
+    # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
                                          np.conj, np.conjugate,
                                          np.negative, np.spacing, np.rint,
-                                         np.floor, np.ceil])
+                                         np.floor, np.ceil] +
+                             [np.positive] if hasattr(np, 'positive') else [])
     def test_invariant_scalar(self, ufunc):
 
         q_i = 4.7 * u.m
@@ -505,7 +526,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
@@ -517,7 +538,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
@@ -554,11 +575,12 @@ class TestComparisonUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert not isinstance(q_o, u.Quantity)
         assert q_o.dtype == np.bool
-        assert np.all(q_o == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert np.all(q_o == ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
         q_o2 = ufunc(q_i1 / q_i2, 2.)
         assert not isinstance(q_o2, u.Quantity)
         assert q_o2.dtype == np.bool
-        assert np.all(q_o2 == ufunc((q_i1 / q_i2).to(1).value, 2.))
+        assert np.all(q_o2 == ufunc((q_i1 / q_i2)
+                                    .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities
         for arbitrary_unit_value in (0., np.inf, np.nan):
             ufunc(q_i1, arbitrary_unit_value)
@@ -626,20 +648,28 @@ class TestInplaceUfuncs(object):
         np.modf(v, tmp, v)  # cannot use out1,out2 keywords with numpy 1.7
         assert check is v
         assert check.unit == u.dimensionless_unscaled
-        v2 = v_copy.to(1)
+        v2 = v_copy.to(u.dimensionless_unscaled)
         check2 = v2
         np.modf(v2, tmp, v2)
         assert check2 is v2
         assert check2.unit == u.dimensionless_unscaled
         # can also replace in last position if no scaling is needed
-        v3 = v_copy.to(1)
+        v3 = v_copy.to(u.dimensionless_unscaled)
         check3 = v3
         np.modf(v3, v3, tmp)
         assert check3 is v3
         assert check3.unit == u.dimensionless_unscaled
-        # but cannot replace input with first output if scaling is needed
-        with pytest.raises(TypeError):
-            np.modf(v_copy, v_copy, tmp)
+        # in np<1.13, without __array_ufunc__, one cannot replace input with
+        # first output when scaling
+        v4 = v_copy.copy()
+        if NUMPY_LT_1_13:
+            with pytest.raises(TypeError):
+                np.modf(v4, v4, tmp)
+        else:
+            check4 = v4
+            np.modf(v4, v4, tmp)
+            assert check4 is v4
+            assert check4.unit == u.dimensionless_unscaled
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_1(self, value):
@@ -685,6 +715,29 @@ class TestInplaceUfuncs(object):
         assert_allclose(s.value, np.arctan2(1., 2.))
         assert s.unit is u.radian
 
+    @pytest.mark.skipif(NUMPY_LT_1_13, reason="numpy >=1.13 required.")
+    @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
+    def test_two_argument_two_output_ufunc_inplace(self, value):
+        v = value * u.m
+        divisor = 70.*u.cm
+        v1 = v.copy()
+        tmp = v.copy()
+        check = np.divmod(v1, divisor, out=(tmp, v1))
+        assert check[0] is tmp and check[1] is v1
+        assert tmp.unit == u.dimensionless_unscaled
+        assert v1.unit == v.unit
+        v2 = v.copy()
+        check2 = np.divmod(v2, divisor, out=(v2, tmp))
+        assert check2[0] is v2 and check2[1] is tmp
+        assert v2.unit == u.dimensionless_unscaled
+        assert tmp.unit == v.unit
+        v3a = v.copy()
+        v3b = v.copy()
+        check3 = np.divmod(v3a, divisor, out=(v3a, v3b))
+        assert check3[0] is v3a and check3[1] is v3b
+        assert v3a.unit == u.dimensionless_unscaled
+        assert v3b.unit == v.unit
+
     def test_ufunc_inplace_non_contiguous_data(self):
         # ensure inplace works also for non-contiguous data (closes #1834)
         s = np.arange(10.) * u.m
@@ -715,3 +768,205 @@ class TestInplaceUfuncs(object):
         a4 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
         with pytest.raises(TypeError):
             a4 += u.Quantity(10, u.mm, dtype=np.int64)
+
+@pytest.mark.xfail("NUMPY_LT_1_13")
+class TestUfuncAt(object):
+    """Test that 'at' method for ufuncs (calculates in-place at given indices)
+
+    For Quantities, since calculations are in-place, it makes sense only
+    if the result is still a quantity, and if the unit does not have to change
+    """
+    def test_one_argument_ufunc_at(self):
+        q = np.arange(10.) * u.m
+        i = np.array([1, 2])
+        qv = q.value.copy()
+        np.negative.at(q, i)
+        np.negative.at(qv, i)
+        assert np.all(q.value == qv)
+        assert q.unit is u.m
+
+        # cannot change from quantity to bool array
+        with pytest.raises(TypeError):
+            np.isfinite.at(q, i)
+
+        # for selective in-place, cannot change the unit
+        with pytest.raises(u.UnitsError):
+            np.square.at(q, i)
+
+        # except if the unit does not change (i.e., dimensionless)
+        d = np.arange(10.) * u.dimensionless_unscaled
+        dv = d.value.copy()
+        np.square.at(d, i)
+        np.square.at(dv, i)
+        assert np.all(d.value == dv)
+        assert d.unit is u.dimensionless_unscaled
+
+        d = np.arange(10.) * u.dimensionless_unscaled
+        dv = d.value.copy()
+        np.log.at(d, i)
+        np.log.at(dv, i)
+        assert np.all(d.value == dv)
+        assert d.unit is u.dimensionless_unscaled
+
+        # also for sine it doesn't work, even if given an angle
+        a = np.arange(10.) * u.radian
+        with pytest.raises(u.UnitsError):
+            np.sin.at(a, i)
+
+        # except, for consistency, if we have made radian equivalent to
+        # dimensionless (though hopefully it will never be needed)
+        av = a.value.copy()
+        with u.add_enabled_equivalencies(u.dimensionless_angles()):
+            np.sin.at(a, i)
+            np.sin.at(av, i)
+            assert_allclose(a.value, av)
+
+            # but we won't do double conversion
+            ad = np.arange(10.) * u.degree
+            with pytest.raises(u.UnitsError):
+                np.sin.at(ad, i)
+
+    def test_two_argument_ufunc_at(self):
+        s = np.arange(10.) * u.m
+        i = np.array([1, 2])
+        check = s.value.copy()
+        np.add.at(s, i, 1.*u.km)
+        np.add.at(check, i, 1000.)
+        assert np.all(s.value == check)
+        assert s.unit is u.m
+
+        with pytest.raises(u.UnitsError):
+            np.add.at(s, i, 1.*u.s)
+
+        # also raise UnitsError if unit would have to be changed
+        with pytest.raises(u.UnitsError):
+            np.multiply.at(s, i, 1*u.s)
+
+        # but be fine if it does not
+        s = np.arange(10.) * u.m
+        check = s.value.copy()
+        np.multiply.at(s, i, 2.*u.dimensionless_unscaled)
+        np.multiply.at(check, i, 2)
+        assert np.all(s.value == check)
+        s = np.arange(10.) * u.m
+        np.multiply.at(s, i, 2.)
+        assert np.all(s.value == check)
+
+        # of course cannot change class of data either
+        with pytest.raises(TypeError):
+            np.greater.at(s, i, 1.*u.km)
+
+
+@pytest.mark.xfail("NUMPY_LT_1_13")
+class TestUfuncReduceReduceatAccumulate(object):
+    """Test 'reduce', 'reduceat' and 'accumulate' methods for ufuncs
+
+    For Quantities, it makes sense only if the unit does not have to change
+    """
+    def test_one_argument_ufunc_reduce_accumulate(self):
+        # one argument cannot be used
+        s = np.arange(10.) * u.radian
+        i = np.array([0, 5, 1, 6])
+        with pytest.raises(ValueError):
+            np.sin.reduce(s)
+        with pytest.raises(ValueError):
+            np.sin.accumulate(s)
+        with pytest.raises(ValueError):
+            np.sin.reduceat(s, i)
+
+    def test_two_argument_ufunc_reduce_accumulate(self):
+        s = np.arange(10.) * u.m
+        i = np.array([0, 5, 1, 6])
+        check = s.value.copy()
+        s_add_reduce = np.add.reduce(s)
+        check_add_reduce = np.add.reduce(check)
+        assert s_add_reduce.value == check_add_reduce
+        assert s_add_reduce.unit is u.m
+
+        s_add_accumulate = np.add.accumulate(s)
+        check_add_accumulate = np.add.accumulate(check)
+        assert np.all(s_add_accumulate.value == check_add_accumulate)
+        assert s_add_accumulate.unit is u.m
+
+        s_add_reduceat = np.add.reduceat(s, i)
+        check_add_reduceat = np.add.reduceat(check, i)
+        assert np.all(s_add_reduceat.value == check_add_reduceat)
+        assert s_add_reduceat.unit is u.m
+
+        # reduce(at) or accumulate on comparisons makes no sense,
+        # as intermediate result is not even a Quantity
+        with pytest.raises(TypeError):
+            np.greater.reduce(s)
+
+        with pytest.raises(TypeError):
+            np.greater.accumulate(s)
+
+        with pytest.raises(TypeError):
+            np.greater.reduceat(s, i)
+
+        # raise UnitsError if unit would have to be changed
+        with pytest.raises(u.UnitsError):
+            np.multiply.reduce(s)
+
+        with pytest.raises(u.UnitsError):
+            np.multiply.accumulate(s)
+
+        with pytest.raises(u.UnitsError):
+            np.multiply.reduceat(s, i)
+
+        # but be fine if it does not
+        s = np.arange(10.) * u.dimensionless_unscaled
+        check = s.value.copy()
+        s_multiply_reduce = np.multiply.reduce(s)
+        check_multiply_reduce = np.multiply.reduce(check)
+        assert s_multiply_reduce.value == check_multiply_reduce
+        assert s_multiply_reduce.unit is u.dimensionless_unscaled
+        s_multiply_accumulate = np.multiply.accumulate(s)
+        check_multiply_accumulate = np.multiply.accumulate(check)
+        assert np.all(s_multiply_accumulate.value == check_multiply_accumulate)
+        assert s_multiply_accumulate.unit is u.dimensionless_unscaled
+        s_multiply_reduceat = np.multiply.reduceat(s, i)
+        check_multiply_reduceat = np.multiply.reduceat(check, i)
+        assert np.all(s_multiply_reduceat.value == check_multiply_reduceat)
+        assert s_multiply_reduceat.unit is u.dimensionless_unscaled
+
+
+@pytest.mark.xfail("NUMPY_LT_1_13")
+class TestUfuncOuter(object):
+    """Test 'outer' methods for ufuncs
+
+    Just a few spot checks, since it uses the same code as the regular
+    ufunc call
+    """
+    def test_one_argument_ufunc_outer(self):
+        # one argument cannot be used
+        s = np.arange(10.) * u.radian
+        with pytest.raises(ValueError):
+            np.sin.outer(s)
+
+    def test_two_argument_ufunc_outer(self):
+        s1 = np.arange(10.) * u.m
+        s2 = np.arange(2.) * u.s
+        check1 = s1.value
+        check2 = s2.value
+        s12_multiply_outer = np.multiply.outer(s1, s2)
+        check12_multiply_outer = np.multiply.outer(check1, check2)
+        assert np.all(s12_multiply_outer.value == check12_multiply_outer)
+        assert s12_multiply_outer.unit == s1.unit * s2.unit
+
+        # raise UnitsError if appropriate
+        with pytest.raises(u.UnitsError):
+            np.add.outer(s1, s2)
+
+        # but be fine if it does not
+        s3 = np.arange(2.) * s1.unit
+        check3 = s3.value
+        s13_add_outer = np.add.outer(s1, s3)
+        check13_add_outer = np.add.outer(check1, check3)
+        assert np.all(s13_add_outer.value == check13_add_outer)
+        assert s13_add_outer.unit is s1.unit
+
+        s13_greater_outer = np.greater.outer(s1, s3)
+        check13_greater_outer = np.greater.outer(check1, check3)
+        assert type(s13_greater_outer) is np.ndarray
+        assert np.all(s13_greater_outer == check13_greater_outer)

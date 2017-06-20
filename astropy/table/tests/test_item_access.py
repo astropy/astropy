@@ -5,9 +5,10 @@
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
+
+import pytest
 import numpy as np
 
-from ...tests.helper import pytest
 
 
 @pytest.mark.usefixtures('table_data')

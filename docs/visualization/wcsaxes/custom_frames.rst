@@ -1,6 +1,6 @@
-====================
+********************
 Using a custom frame
-====================
+********************
 
 By default, `~astropy.visualization.wcsaxes.WCSAxes` will make use of a rectangular
 frame for a plot, but this can be changed to provide any custom frame. The
@@ -122,7 +122,7 @@ which we can then use:
 
 
 Frame properties
-================
+****************
 
 The color and linewidth of the frame can also be set by
 

@@ -103,7 +103,8 @@ class ConeSearchResults(object):
         if fout is None:  # pragma: no cover
             fout = sys.stdout
 
-        assert typ in self.dbtypes
+        if typ not in self.dbtypes:
+            raise ValueError("'typ' is not one of {}".format(self.dbtypes))
         str_list = []
 
         for cat in self.catkeys[typ]:

@@ -21,9 +21,17 @@ The rules for passing input to fitters are:
   argument just as used when evaluating models; this may be required for the
   fitter to know how to broadcast the input data.
 
+* The `~astropy.modeling.fitting.LinearLSQFitter` currently works only with
+  simple (not compound) models.
+
+* The current fitters work only with models that have a single output
+  (including bivariate functions such as
+  `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
+  ``x, y -> x', y'``).
+
 
 Fitting examples
-----------------
+================
 
 - Fitting a polynomial model to multiple data sets simultaneously::
 
@@ -106,11 +114,12 @@ Fitters support constrained fitting.
   to models or setting the `~astropy.modeling.Parameter.fixed`
   attribute directly on a parameter.
 
-  For linear fitters, freezing a polynomial coefficient means that a polynomial
-  without that term will be fitted to the data. For example, fixing ``c0`` in a
-  polynomial model will fit a polynomial with the zero-th order term missing.
-  However, the fixed value of the coefficient is used when evaluating the
-  model::
+  For linear fitters, freezing a polynomial coefficient means that the
+  corresponding term will be subtracted from the data before fitting a
+  polynomial without that term to the result. For example, fixing ``c0`` in a
+  polynomial model will fit a polynomial with the zero-th order term missing
+  to the data minus that constant. However, the fixed coefficient value is
+  restored when evaluating the model, to fit the original data values::
 
       >>> x = np.arange(1, 10, .1)
       >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
@@ -123,15 +132,15 @@ Fitters support constrained fitting.
       >>> new_model = pfit(p1, x, y)
       >>> print(new_model)  # doctest: +SKIP
       Model: Polynomial1D
-      Inputs: 1
-      Outputs: 1
+      Inputs: (u'x',)
+      Outputs: (u'y',)
       Model set size: 2
       Degree: 2
       Parameters:
-           c0     c1         c2    
-          --- ------------- -------------
-          1.0 2.38641216243 2.96827885742
-          1.0 2.38641216243 2.96827885742
+           c0  c1  c2
+          --- --- ---
+          1.0 2.0 3.0
+          1.0 2.0 3.0
 
 - A parameter can be `~astropy.modeling.Parameter.tied` (linked to
   another parameter). This can be done in two ways::
@@ -165,7 +174,7 @@ bounds internally.
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
 
 Plugin Fitters
---------------
+==============
 
 
 Fitters defined outside of astropy's core can be inserted into the

@@ -3,7 +3,7 @@
 .. _fast_ascii_io:
 
 Fast ASCII I/O
---------------
+**************
 
 While :mod:`astropy.io.ascii` was designed with flexibility and extensibility
 in mind, there is also a less flexible but significantly faster Cython/C engine for
@@ -45,7 +45,7 @@ To disable the fast engine, specify ``fast_reader=False`` or
    (e.g. ``format='csv'``) and/or other options such as the delimiter.
 
 Reading
-^^^^^^^
+=======
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`
 infrastructure, fast readers raise an error when passed certain
 parameters which are not implemented in the fast reader
@@ -67,7 +67,7 @@ These parameters are:
 .. _fast_conversion_opts:
 
 Parallel and fast conversion options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a dict specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``. For example::
@@ -93,7 +93,7 @@ exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
 
 Writing
-^^^^^^^
+=======
 The fast engine supports the same functionality as the ordinary writing engine
 and is generally about 2 to 4 times faster than the ordinary engine. An IPython
 notebook testing the relative performance of the fast writer against the
@@ -106,7 +106,7 @@ Also note that stripping string values slows down the writing process, so
 specifying ``strip_whitespace=False`` can improve performance.
 
 Fast converter
-^^^^^^^^^^^^^^
+==============
 Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
@@ -133,7 +133,7 @@ and values out of the range of floats) is available `here
 <http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
 
 Speed gains
-^^^^^^^^^^^
+===========
 The fast ASCII engine was designed based on the general parsing strategy
 used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by
@@ -150,7 +150,7 @@ are very similar in terms of speed, while ``read_csv`` is slightly faster
 than the fast engine for integer and floating-point data; for pure
 floating-point data, enabling the fast converter yields a speedup of about
 50%. Also note that Pandas uses the exact same method as the fast
-converter in AstroPy when converting floating-point data.
+converter in Astropy when converting floating-point data.
 
 The difference in performance between the fast engine and Pandas for
 text data depends on the extent to which data values are repeated, as
@@ -170,7 +170,7 @@ IPython doesn't work well with ``multiprocessing``, there is a
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
 <http://amras1.github.io/ascii-profiling/>`__. This profile uses the
-fast converter for both the serial and parallel AstroPy
+fast converter for both the serial and parallel Astropy
 readers.
 
 Another point worth noting is that the fast engine uses memory mapping

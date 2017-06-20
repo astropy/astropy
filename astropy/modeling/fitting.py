@@ -33,7 +33,8 @@ from functools import reduce
 
 import numpy as np
 
-from .utils import poly_map_domain
+from .utils import poly_map_domain, _combine_equivalency_dict
+from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
 from ..extern import six
 from ..extern.six.moves import range
@@ -90,6 +91,97 @@ class _FitterMeta(abc.ABCMeta):
             mcls.registry.add(cls)
 
         return cls
+
+
+def fitter_unit_support(func):
+    """
+    This is a decorator that can be used to add support for dealing with
+    quantities to any __call__ method on a fitter which may not support
+    quantities itself. This is done by temporarily removing units from all
+    parameters then adding them back once the fitting has completed.
+    """
+
+    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
+
+        data_has_units = (isinstance(x, Quantity) or
+                          isinstance(y, Quantity) or
+                          isinstance(z, Quantity))
+
+        model_has_units = model._has_units
+
+        if data_has_units or model_has_units:
+
+            if model._supports_unit_fitting:
+
+                # We now combine any instance-level input equivalencies with user
+                # specified ones at call-time.
+
+                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
+                                                                      equivalencies,
+                                                                      model.input_units_equivalencies)
+
+                # If input_units is defined, we transform the input data into those
+                # expected by the model. We hard-code the input names 'x', and 'y'
+                # here since FittableModel instances have input names ('x',) or
+                # ('x', 'y')
+
+                if model.input_units is not None:
+                    if isinstance(x, Quantity):
+                        x = x.to(model.input_units['x'], equivalencies=input_units_equivalencies['x'])
+                    if isinstance(y, Quantity) and z is not None:
+                        y = y.to(model.input_units['y'], equivalencies=input_units_equivalencies['y'])
+
+                # We now strip away the units from the parameters, taking care to
+                # first convert any parameters to the units that correspond to the
+                # input units (to make sure that initial guesses on the parameters)
+                # are in the right unit system
+
+                model = model.without_units_for_data(x=x, y=y, z=z)
+
+                # We strip away the units from the input itself
+
+                add_back_units = False
+
+                if isinstance(x, Quantity):
+                    add_back_units = True
+                    xdata = x.value
+                else:
+                    xdata = np.asarray(x)
+
+                if isinstance(y, Quantity):
+                    add_back_units = True
+                    ydata = y.value
+                else:
+                    ydata = np.asarray(y)
+
+                if z is not None:
+                    if isinstance(y, Quantity):
+                        add_back_units = True
+                        zdata = z.value
+                    else:
+                        zdata = np.asarray(z)
+
+                # We run the fitting
+                if z is None:
+                    model_new = func(self, model, xdata, ydata, **kwargs)
+                else:
+                    model_new = func(self, model, xdata, ydata, zdata, **kwargs)
+
+                # And finally we add back units to the parameters
+                if add_back_units:
+                    model_new = model_new.with_units_from_data(x=x, y=y, z=z)
+
+                return model_new
+
+            else:
+
+                raise NotImplementedError("This model does not support being fit to data with units")
+
+        else:
+
+            return func(self, model, x, y, z=z, **kwargs)
+
+    return wrapper
 
 
 @six.add_metaclass(_FitterMeta)
@@ -192,7 +284,7 @@ class LinearLSQFitter(object):
         if model.col_fit_deriv:
             return d[param_indices]
         else:
-            return d[:, param_indices]
+            return d[..., param_indices]
 
     def _map_domain_window(self, model, x, y=None):
         """
@@ -220,6 +312,7 @@ class LinearLSQFitter(object):
             ynew = poly_map_domain(y, model.y_domain, model.y_window)
             return xnew, ynew
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
@@ -265,18 +358,38 @@ class LinearLSQFitter(object):
         farg = _convert_input(x, y, z, n_models=len(model_copy),
                               model_set_axis=model_copy.model_set_axis)
 
+        has_fixed = any(model_copy.fixed.values())
+
+        if has_fixed:
+
+            # The list of fixed params is the complement of those being fitted:
+            fixparam_indices = [idx for idx in\
+                                range(len(model_copy.param_names))\
+                                if idx not in fitparam_indices]
+
+            # Construct matrix of user-fixed parameters that can be dotted with
+            # the corresponding fit_deriv() terms, to evaluate corrections to
+            # the dependent variable in order to fit only the remaining terms:
+            fixparams = np.asarray([getattr(model_copy,
+                                            model_copy.param_names[idx]).value\
+                                    for idx in fixparam_indices])
+
         if len(farg) == 2:
             x, y = farg
 
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
-            if any(model_copy.fixed.values()):
+            if has_fixed:
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices,
                                                    x=x)
+                fixderivs = self._deriv_with_constraints(model_copy,
+                                                         fixparam_indices,
+                                                         x=x)
             else:
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
+            sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x)
             rhs = y
         else:
             x, y, z = farg
@@ -285,11 +398,14 @@ class LinearLSQFitter(object):
             if hasattr(model_copy, 'x_domain'):
                 x, y = self._map_domain_window(model_copy, x, y)
 
-            if any(model_copy.fixed.values()):
+            if has_fixed:
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices, x=x, y=y)
+                fixderivs = self._deriv_with_constraints(model_copy,
+                                                    fixparam_indices, x=x, y=y)
             else:
                 lhs = model_copy.fit_deriv(x, y, *model_copy.parameters)
+            sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x, y)
 
             if len(model_copy) > 1:
                 if z.ndim > 2:
@@ -309,6 +425,26 @@ class LinearLSQFitter(object):
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
             lhs = np.asarray(lhs).T
+
+        # Subtract any terms fixed by the user from (a copy of) the RHS, in
+        # order to fit the remaining terms correctly:
+        if has_fixed:
+            if model_copy.col_fit_deriv:
+                fixderivs = np.asarray(fixderivs).T  # as for lhs above
+            rhs = rhs - fixderivs.dot(fixparams)  # evaluate user-fixed terms
+
+        # Subtract any terms implicit in the model from the RHS, which, like
+        # user-fixed terms, affect the dependent variable but are not fitted:
+        if sum_of_implicit_terms is not None:
+            # If we have a model set, the extra axis must be added to
+            # sum_of_implicit_terms as its innermost dimension, to match the
+            # dimensionality of rhs after _convert_input "rolls" it as needed
+            # by np.linalg.lstsq. The vector then gets broadcast to the right
+            # number of sets (columns). This assumes all the models share the
+            # same input co-ordinates, as is currently the case.
+            if len(model_copy) > 1:
+                sum_of_implicit_terms = sum_of_implicit_terms[..., np.newaxis]
+            rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
             weights = np.asarray(weights, dtype=np.float)
@@ -413,7 +549,7 @@ class FittingWithOutlierRemoval(object):
             Fitted model after outlier removal.
         """
 
-        fitted_model = self.fitter(model, x, y, z, weights, **kwargs)
+        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
         if z is None:
             filtered_data = y
             for n in range(self.niter):
@@ -504,6 +640,7 @@ class LevMarLSQFitter(object):
         else:
             return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
                  epsilon=DEFAULT_EPS, estimate_jacobian=False):
@@ -642,6 +779,7 @@ class SLSQPLSQFitter(Fitter):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.
@@ -708,6 +846,7 @@ class SimplexLSQFitter(Fitter):
                                                statistic=leastsquare)
         self.fit_info = {}
 
+    @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.

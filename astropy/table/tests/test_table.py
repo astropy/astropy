@@ -427,6 +427,40 @@ class TestAddPosition(SetupData):
 
 
 @pytest.mark.usefixtures('table_types')
+class TestAddName(SetupData):
+
+    def test_override_name(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
+
+        # Check that we can override the name of the input column in the Table
+        t.add_column(self.a, name='b')
+        t.add_column(self.b, name='a')
+        assert t.columns.keys() == ['b', 'a']
+        # Check that we did not change the name of the input column
+        assert self.a.info.name == 'a'
+        assert self.b.info.name == 'b'
+
+        # Now test with an input column from another table
+        t2 = table_types.Table()
+        t2.add_column(t['a'], name='c')
+        assert t2.columns.keys() == ['c']
+        # Check that we did not change the name of the input column
+        assert t.columns.keys() == ['b', 'a']
+
+        # Check that we can give a name if none was present
+        col = table_types.Column([1,2,3])
+        t.add_column(col, name='c')
+        assert t.columns.keys() == ['b', 'a', 'c']
+
+    def test_default_name(self, table_types):
+        t = table_types.Table()
+        col = table_types.Column([1,2,3])
+        t.add_column(col)
+        assert t.columns.keys() == ['col0']
+
+
+@pytest.mark.usefixtures('table_types')
 class TestInitFromTable(SetupData):
 
     def test_from_table_cols(self, table_types):
@@ -495,6 +529,21 @@ class TestAddColumns(SetupData):
         t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[2, 2])
         assert t.colnames == ['a', 'b', 'c', 'd']
+
+    def test_add_columns6(self, table_types):
+        """Check that we can override column names."""
+        self._setup(table_types)
+        t = table_types.Table()
+        t.add_columns([self.a, self.b, self.c], names=['b', 'c', 'a'])
+        assert t.colnames == ['b', 'c', 'a']
+
+    def test_add_columns7(self, table_types):
+        """Check that default names are used when appropriate."""
+        t = table_types.Table()
+        col0 = table_types.Column([1,2,3])
+        col1 = table_types.Column([4,5,3])
+        t.add_columns([col0, col1])
+        assert t.colnames == ['col0', 'col1']
 
     def test_add_duplicate_column(self, table_types):
         self._setup(table_types)
@@ -573,11 +622,11 @@ class TestAddRow(SetupData):
         t = table_types.Table(names=('a', 'b', 'c'), dtype=('(2,)i', 'S4', 'O'))
         t.add_row()
         assert np.all(t['a'][0] == [0, 0])
-        assert t['b'][0] == b''
+        assert t['b'][0] == ''
         assert t['c'][0] == 0
         t.add_row()
         assert np.all(t['a'][1] == [0, 0])
-        assert t['b'][1] == b''
+        assert t['b'][1] == ''
         assert t['c'][1] == 0
 
     def test_add_stuff_to_empty_table(self, table_types):
@@ -585,13 +634,13 @@ class TestAddRow(SetupData):
         t = table_types.Table(names=('a', 'b', 'obj'), dtype=('(2,)i', 'S8', 'O'))
         t.add_row([[1, 2], 'hello', 'world'])
         assert np.all(t['a'][0] == [1, 2])
-        assert t['b'][0] == b'hello'
+        assert t['b'][0] == 'hello'
         assert t['obj'][0] == 'world'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
         assert np.all(t['a'][1] == [0, 0])
-        assert t['b'][1] == b''
+        assert t['b'][1] == ''
         assert t['obj'][1] == 0
 
     def test_add_table_row(self, table_types):
@@ -614,6 +663,12 @@ class TestAddRow(SetupData):
         assert np.all(t['a'] == np.array([1, 2, 3, 1]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['obj'] == np.array([1, 'string', 3, [10]], dtype='O'))
+
+    def test_add_qtable_row_multidimensional(self):
+        q = [[1, 2], [3, 4]] * u.m
+        qt = table.QTable([q])
+        qt.add_row(([5, 6] * u.km,))
+        assert np.all(qt['col0'] == [[1, 2], [3, 4], [5000, 6000]] * u.m)
 
     def test_add_with_tuple(self, table_types):
         self._setup(table_types)
@@ -1410,8 +1465,8 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'].dtype.kind == 'S'
     assert t1['col1'].dtype.kind == 'S'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == 'abc'.encode('ascii')
-    assert t1['col1'][0] == 'def'.encode('ascii')
+    assert t1['col0'][0] == 'abc'
+    assert t1['col1'][0] == 'def'
     assert t1['col2'][0] == 1
 
     t1 = t.copy()
@@ -1486,7 +1541,7 @@ class TestPandas(object):
                     t[endian + kind + byte] = x
 
         t['u'] = ['a','b','c']
-        t['s'] = [b'a', b'b', b'c']
+        t['s'] = ['a', 'b', 'c']
 
         d = t.to_pandas()
 
@@ -1495,7 +1550,7 @@ class TestPandas(object):
                 assert np.all(t['u'] == np.array(['a','b','c']))
                 assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             elif column == 's':
-                assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
+                assert np.all(t['s'] == np.array(['a','b','c']))
                 assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             else:
                 # We should be able to compare exact values here
@@ -1559,7 +1614,7 @@ class TestPandas(object):
         t['u'] = ['a','b','c']
         t['u'].mask = [False, True, False]
 
-        t['s'] = [b'a', b'b', b'c']
+        t['s'] = ['a', 'b', 'c']
         t['s'].mask = [False, True, False]
 
         d = t.to_pandas()

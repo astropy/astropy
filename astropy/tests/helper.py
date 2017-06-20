@@ -6,14 +6,13 @@ from the installed astropy.  It makes use of the `pytest` testing framework.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import base64
-import errno
 import functools
 import os
 import sys
 import types
 import warnings
-import zlib
+
+import pytest
 
 from ..extern import six
 from ..extern.six.moves import cPickle as pickle
@@ -38,63 +37,6 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'assert_follows_unicode_guidelines', 'quantity_allclose',
            'assert_quantity_allclose', 'check_pickling_recovery',
            'pickle_protocol', 'generic_recursive_equality_test']
-
-
-if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
-    import pytest
-
-else:
-    from ..extern import pytest as extern_pytest
-
-    if six.PY2:
-        exec("def do_exec_def(co, loc): exec co in loc\n")
-        extern_pytest.do_exec = do_exec_def
-
-        unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodestring(extern_pytest.sources)))
-    else:
-        exec("def do_exec_def(co, loc): exec(co, loc)\n")
-        extern_pytest.do_exec = do_exec_def
-
-        unpacked_sources = extern_pytest.sources.encode("ascii")
-        unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
-
-    importer = extern_pytest.DictImporter(unpacked_sources)
-    sys.meta_path.insert(0, importer)
-
-    pytest = importer.load_module(str('pytest'))
-
-
-# Monkey-patch py.test to work around issue #811
-# https://github.com/astropy/astropy/issues/811
-from _pytest.assertion import rewrite as _rewrite
-_orig_write_pyc = _rewrite._write_pyc
-
-
-def _write_pyc_wrapper(*args):
-    """Wraps the internal _write_pyc method in py.test to recognize
-    PermissionErrors and just stop trying to cache its generated pyc files if
-    it can't write them to the __pycache__ directory.
-
-    When py.test scans for test modules, it actually rewrites the bytecode
-    of each test module it discovers--this is how it manages to add extra
-    instrumentation to the assert builtin.  Normally it caches these
-    rewritten bytecode files--``_write_pyc()`` is just a function that handles
-    writing the rewritten pyc file to the cache.  If it returns ``False`` for
-    any reason py.test will stop trying to cache the files altogether.  The
-    original function catches some cases, but it has a long-standing bug of
-    not catching permission errors on the ``__pycache__`` directory in Python
-    3.  Hence this patch.
-    """
-
-    try:
-        return _orig_write_pyc(*args)
-    except IOError as e:
-        if e.errno == errno.EACCES:
-            return False
-_rewrite._write_pyc = _write_pyc_wrapper
-
 
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
@@ -188,16 +130,69 @@ class raises(object):
 
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
+_modules_to_ignore_on_import = set([
+    'compiler',  # A deprecated stdlib module used by py.test
+    'scipy',
+    'pygments',
+    'ipykernel',
+    'setuptools'])
+_warnings_to_ignore_by_pyver = {
+    (3, 4): set([
+        # py.test reads files with the 'U' flag, which is now
+        # deprecated in Python 3.4.
+        r"'U' mode is deprecated",
+        # BeautifulSoup4 triggers warning in stdlib's html module.x
+        r"The strict argument and mode are deprecated\.",
+        r"The value of convert_charrefs will become True in 3\.5\. "
+        r"You are encouraged to set the value explicitly\."]),
+    (3, 5): set([
+        # py.test raises this warning on Python 3.5.
+        # This can be removed when fixed in py.test.
+        # See https://github.com/pytest-dev/pytest/pull/1009
+        r"inspect\.getargspec\(\) is deprecated, use "
+        r"inspect\.signature\(\) instead"])}
 
-def enable_deprecations_as_exceptions(include_astropy_deprecations=True):
+
+def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
+                                      modules_to_ignore_on_import=[],
+                                      warnings_to_ignore_by_pyver={}):
     """
     Turn on the feature that turns deprecations into exceptions.
+
+    Parameters
+    ----------
+    include_astropy_deprecations : bool
+        If set to `True`, ``AstropyDeprecationWarning`` and
+        ``AstropyPendingDeprecationWarning`` are also turned into exceptions.
+
+    modules_to_ignore_on_import : list of str
+        List of additional modules that generate deprecation warnings
+        on import, which are to be ignored. By default, these are already
+        included: ``compiler``, ``scipy``, ``pygments``, ``ipykernel``, and
+        ``setuptools``.
+
+    warnings_to_ignore_by_pyver : dict
+        Dictionary mapping tuple of ``(major, minor)`` Python version to
+        a list of deprecation warning messages to ignore. This is in
+        addition of those already ignored by default
+        (see ``_warnings_to_ignore_by_pyver`` values).
+
     """
     global _deprecations_as_exceptions
     _deprecations_as_exceptions = True
 
     global _include_astropy_deprecations
     _include_astropy_deprecations = include_astropy_deprecations
+
+    global _modules_to_ignore_on_import
+    _modules_to_ignore_on_import.update(modules_to_ignore_on_import)
+
+    global _warnings_to_ignore_by_pyver
+    for key, val in six.iteritems(warnings_to_ignore_by_pyver):
+        if key in _warnings_to_ignore_by_pyver:
+            _warnings_to_ignore_by_pyver[key].update(val)
+        else:
+            _warnings_to_ignore_by_pyver[key] = set(val)
 
 
 def treat_deprecations_as_exceptions():
@@ -217,7 +212,7 @@ def treat_deprecations_as_exceptions():
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
         if (isinstance(module, types.ModuleType) and
-            hasattr(module, '__warningregistry__')):
+                hasattr(module, '__warningregistry__')):
             del module.__warningregistry__
 
     if not _deprecations_as_exceptions:
@@ -232,31 +227,11 @@ def treat_deprecations_as_exceptions():
     # themselves, and we'd like to ignore those.  Fortunately, those
     # show up only at import time, so if we import those things *now*,
     # before we turn the warnings into exceptions, we're golden.
-    try:
-        # A deprecated stdlib module used by py.test
-        import compiler  # pylint: disable=W0611
-    except ImportError:
-        pass
-
-    try:
-        import scipy  # pylint: disable=W0611
-    except ImportError:
-        pass
-
-    try:
-        import pygments  # pylint: disable=W0611
-    except ImportError:
-        pass
-
-    try:
-        import ipykernel  # pylint: disable=W0611
-    except ImportError:
-        pass
-
-    try:
-        import setuptools  # pylint: disable=W0611
-    except ImportError:
-        pass
+    for m in _modules_to_ignore_on_import:
+        try:
+            __import__(m)
+        except ImportError:
+            pass
 
     # Now, start over again with the warning filters
     warnings.resetwarnings()
@@ -268,35 +243,10 @@ def treat_deprecations_as_exceptions():
         warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
         warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
 
-    if sys.version_info[:2] >= (3, 4):
-        # py.test reads files with the 'U' flag, which is now
-        # deprecated in Python 3.4.
-        warnings.filterwarnings(
-            "ignore",
-            r"'U' mode is deprecated",
-            DeprecationWarning)
-
-        # BeautifulSoup4 triggers a DeprecationWarning in stdlib's
-        # html module.x
-        warnings.filterwarnings(
-            "ignore",
-            r"The strict argument and mode are deprecated\.",
-            DeprecationWarning)
-        warnings.filterwarnings(
-            "ignore",
-            r"The value of convert_charrefs will become True in 3\.5\. "
-            r"You are encouraged to set the value explicitly\.",
-            DeprecationWarning)
-
-    if sys.version_info[:2] >= (3, 5):
-        # py.test raises this warning on Python 3.5.
-        # This can be removed when fixed in py.test.
-        # See https://github.com/pytest-dev/pytest/pull/1009
-        warnings.filterwarnings(
-            "ignore",
-            r"inspect\.getargspec\(\) is deprecated, use "
-            r"inspect\.signature\(\) instead",
-            DeprecationWarning)
+    for v in _warnings_to_ignore_by_pyver:
+        if sys.version_info[:2] >= v:
+            for s in _warnings_to_ignore_by_pyver[v]:
+                warnings.filterwarnings("ignore", s, DeprecationWarning)
 
 
 class catch_warnings(warnings.catch_warnings):

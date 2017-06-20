@@ -1,8 +1,8 @@
 Using the convolution functions
-===============================
+*******************************
 
 Overview
---------
+========
 
 Two convolution functions are provided.  They are imported as::
 
@@ -45,7 +45,7 @@ use::
     >>> result = convolve(image, kernel, normalize_kernel=True)  # doctest: +SKIP
 
 Examples
---------
+========
 
 Smooth a 1D array with a custom kernel and no boundary treatment::
 
@@ -63,7 +63,7 @@ interpolated using the kernel::
 
     >>> import numpy as np
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
+    array([ 1.6 ,  3.6 ,  5.  ,  5.75,  6.5 ,  7.25,  7.8 ])
 
 Kernels and arrays can be specified either as lists or as Numpy
 arrays. The following examples show how to construct a 1-d array as a
@@ -87,7 +87,7 @@ and a 3-d array as a list::
     >>> result = convolve(cube, kernel)  # doctest: +SKIP
 
 Kernels
--------
+=======
 
 The above examples uses custom kernels, but `astropy.convolution` also
 includes a number of built-in kernels, which are described in

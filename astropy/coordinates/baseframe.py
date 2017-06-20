@@ -19,24 +19,29 @@ import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
-from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.decorators import lazyproperty
 from ..extern import six
 from ..extern.six.moves import zip
 from .. import units as u
-from ..utils import (OrderedDescriptor, OrderedDescriptorContainer,
-                     ShapedLikeNDArray, check_broadcast)
+from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
+                     check_broadcast)
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
+from .frame_attributes import FrameAttribute
 
+# Import all other FrameAttributes so we don't break backwards-compatibility
+# (some users rely on them being here, although that is not
+# encouraged, as this is not the public API location.)
+from .frame_attributes import (
+    TimeFrameAttribute, QuantityFrameAttribute,
+    EarthLocationAttribute, CoordinateAttribute,
+    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
-           'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'EarthLocationAttribute', 'RepresentationMapping',
-           'CartesianRepresentationFrameAttribute', 'CoordinateAttribute']
+           'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -50,10 +55,7 @@ def _get_repr_cls(value):
 
     if value in REPRESENTATION_CLASSES:
         value = REPRESENTATION_CLASSES[value]
-    try:
-        # value might not be a class, so use try
-        assert issubclass(value, BaseRepresentation)
-    except (TypeError, AssertionError):
+    elif not isinstance(value, type) or not issubclass(value, BaseRepresentation):
         raise ValueError(
             'Representation is {0!r} but must be a BaseRepresentation class '
             'or one of the string aliases {1}'.format(
@@ -130,409 +132,6 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         members[attr] = property(getter)
 
 
-class FrameAttribute(OrderedDescriptor):
-    """A non-mutable data descriptor to hold a frame attribute.
-
-    This class must be used to define frame attributes (e.g. ``equinox`` or
-    ``obstime``) that are included in a frame class definition.
-
-    Examples
-    --------
-    The `~astropy.coordinates.FK4` class uses the following class attributes::
-
-      class FK4(BaseCoordinateFrame):
-          equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
-          obstime = TimeFrameAttribute(default=None,
-                                       secondary_attribute='equinox')
-
-    This means that ``equinox`` and ``obstime`` are available to be set as
-    keyword arguments when creating an ``FK4`` class instance and are then
-    accessible as instance attributes.  The instance value for the attribute
-    must be stored in ``'_' + <attribute_name>`` by the frame ``__init__``
-    method.
-
-    Note in this example that ``equinox`` and ``obstime`` are time attributes
-    and use the ``TimeAttributeFrame`` class.  This subclass overrides the
-    ``convert_input`` method to validate and convert inputs into a ``Time``
-    object.
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    """
-
-    _class_attribute_ = 'frame_attributes'
-    _name_attribute_ = 'name'
-    name = '<unbound>'
-
-    def __init__(self, default=None, secondary_attribute=''):
-        self.default = default
-        self.secondary_attribute = secondary_attribute
-        super(FrameAttribute, self).__init__()
-
-    def convert_input(self, value):
-        """
-        Validate the input ``value`` and convert to expected attribute class.
-
-        The base method here does nothing, but subclasses can implement this
-        as needed.  The method should catch any internal exceptions and raise
-        ValueError with an informative message.
-
-        The method returns the validated input along with a boolean that
-        indicates whether the input value was actually converted.  If the input
-        value was already the correct type then the ``converted`` return value
-        should be ``False``.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        output_value
-            The ``value`` converted to the correct type (or just ``value`` if
-            ``converted`` is False)
-        converted : bool
-            True if the conversion was actually performed, False otherwise.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        return value, False
-
-    def __get__(self, instance, frame_cls=None):
-        if instance is None:
-            out = self.default
-        else:
-            out = getattr(instance, '_' + self.name, self.default)
-            if out is None:
-                out = getattr(instance, self.secondary_attribute, self.default)
-
-        out, converted = self.convert_input(out)
-        if instance is not None:
-            instance_shape = getattr(instance, 'shape', None)
-            if instance_shape is not None and (getattr(out, 'size', 1) > 1 and
-                                               out.shape != instance_shape):
-                # If the shapes do not match, try broadcasting.
-                try:
-                    if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np_broadcast_to, shape=instance_shape,
-                                         subok=True)
-                    else:
-                        out = np_broadcast_to(out, instance_shape, subok=True)
-                except ValueError:
-                    # raise more informative exception.
-                    raise ValueError(
-                        "attribute {0} should be scalar or have shape {1}, "
-                        "but is has shape {2} and could not be broadcast."
-                        .format(self.name, instance_shape, out.shape))
-
-                converted = True
-
-            if converted:
-                setattr(instance, '_' + self.name, out)
-
-        return out
-
-    def __set__(self, instance, val):
-        raise AttributeError('Cannot set frame attribute')
-
-
-class TimeFrameAttribute(FrameAttribute):
-    """
-    Frame attribute descriptor for quantities that are Time objects.
-    See the `~astropy.coordinates.FrameAttribute` API doc for further
-    information.
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    """
-
-    def convert_input(self, value):
-        """
-        Convert input value to a Time object and validate by running through
-        the Time constructor.  Also check that the input was a scalar.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-
-        from ..time import Time
-
-        if value is None:
-            return None, False
-
-        if isinstance(value, Time):
-            out = value
-            converted = False
-        else:
-            try:
-                out = Time(value)
-            except Exception as err:
-                raise ValueError(
-                    'Invalid time input {0}={1!r}\n{2}'.format(self.name,
-                                                               value, err))
-            converted = True
-
-        return out, converted
-
-
-class CartesianRepresentationFrameAttribute(FrameAttribute):
-    """
-    A frame attribute that is a CartesianRepresentation with specified units.
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    unit : unit object or None
-        Name of a unit that the input will be converted into. If None, no
-        unit-checking or conversion is performed
-    """
-    def __init__(self, default=None, secondary_attribute='', unit=None):
-        super(CartesianRepresentationFrameAttribute, self).__init__(default, secondary_attribute)
-        self.unit = unit
-
-    def convert_input(self, value):
-        """
-        Checks that the input is a CartesianRepresentation with the correct
-        unit, or the special value ``[0, 0, 0]``.
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        if (isinstance(value, list) and len(value) == 3 and
-                all(v == 0 for v in value) and self.unit is not None):
-            return CartesianRepresentation(np.zeros(3) * self.unit), True
-        else:
-            # is it a CartesianRepresentation with correct unit?
-            if hasattr(value, 'xyz') and value.xyz.unit == self.unit:
-                return value, False
-
-            converted = True
-            # if it's a CartesianRepresentation, get the xyz Quantity
-            value = getattr(value, 'xyz', value)
-            if not hasattr(value, 'unit'):
-                raise TypeError('tried to set a CartesianRepresentationFrameAttribute with '
-                                'something that does not have a unit.')
-
-            value = value.to(self.unit)
-
-            # now try and make a CartesianRepresentation.
-            cartrep = CartesianRepresentation(value, copy=False)
-            return cartrep, converted
-
-
-class QuantityFrameAttribute(FrameAttribute):
-    """
-    A frame attribute that is a quantity with specified units and shape
-    (optionally).
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    unit : unit object or None
-        Name of a unit that the input will be converted into. If None, no
-        unit-checking or conversion is performed
-    shape : tuple or None
-        If given, specifies the shape the attribute must be
-    """
-    def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
-        super(QuantityFrameAttribute, self).__init__(default, secondary_attribute)
-        self.unit = unit
-        self.shape = shape
-
-    def convert_input(self, value):
-        """
-        Checks that the input is a Quantity with the necessary units (or the
-        special value ``0``).
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        if np.all(value == 0) and self.unit is not None:
-            return u.Quantity(np.zeros(self.shape), self.unit), True
-        else:
-            if not hasattr(value, 'unit'):
-                raise TypeError('Tried to set a QuantityFrameAttribute with '
-                                'something that does not have a unit.')
-            oldvalue = value
-            value = u.Quantity(oldvalue, self.unit, copy=False)
-            if self.shape is not None and value.shape != self.shape:
-                raise ValueError('The provided value has shape "{0}", but '
-                                 'should have shape "{1}"'.format(value.shape,
-                                                                  self.shape))
-            converted = oldvalue is not value
-            return value, converted
-
-
-class EarthLocationAttribute(FrameAttribute):
-    """
-    A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
-    It can be created as anything that can be transformed to the
-    `~astropy.coordinates.ITRS` frame, but always presents as an `EarthLocation`
-    when accessed after creation.
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    """
-
-    def convert_input(self, value):
-        """
-        Checks that the input is a Quantity with the necessary units (or the
-        special value ``0``).
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        if value is None:
-            return None, False
-        elif isinstance(value, EarthLocation):
-            return value, False
-        else:
-            #we have to do the import here because of some tricky circular deps
-            from .builtin_frames import ITRS
-
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into an '
-                                 'EarthLocationAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
-            itrsobj = value.transform_to(ITRS)
-            return itrsobj.earth_location, True
-
-
-class CoordinateAttribute(FrameAttribute):
-    """
-    A frame attribute which is a coordinate object. It can be given as a
-    low-level frame class *or* a `~astropy.coordinates.SkyCoord`, but will
-    always be converted to the low-level frame class when accessed.
-
-    Parameters
-    ----------
-    frame : a coordinate frame class
-        The type of frame this attribute can be
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
-    """
-    def __init__(self, frame, default=None, secondary_attribute=''):
-        self._frame = frame
-        super(CoordinateAttribute, self).__init__(default, secondary_attribute)
-
-    def convert_input(self, value):
-        """
-        Checks that the input is a SkyCoord with the necessary units (or the
-        special value ``None``).
-
-        Parameters
-        ----------
-        value : object
-            Input value to be converted.
-
-        Returns
-        -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
-
-        Raises
-        ------
-        ValueError
-            If the input is not valid for this attribute.
-        """
-        if value is None:
-            return None, False
-        elif isinstance(value, self._frame):
-            return value, False
-        else:
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0}" was passed into a '
-                                 'CoordinateAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
-            transformedobj = value.transform_to(self._frame)
-            if hasattr(transformedobj, 'frame'):
-                transformedobj = transformedobj.frame
-            return transformedobj, True
-
-
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
                ('reprname', 'framename', 'defaultunit'))
@@ -604,8 +203,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         copy = kwargs.pop('copy', True)
         self._attr_names_with_defaults = []
 
-        if 'representation' in kwargs:
-            self.representation = kwargs.pop('representation')
+        representation = kwargs.pop('representation', None)
+        if representation is not None:
+            self.representation = representation
 
         # if not set below, this is a frame with no data
         representation_data = None
@@ -856,10 +456,70 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 out[repr_name] = repr_unit
         return out
 
+    def replicate(self, copy=False, **kwargs):
+        """
+        Return a replica of the frame, optionally with new frame attributes.
+
+        The replica is a new frame object that has the same data as this frame
+        object and with frame attributes overriden if they are provided as extra
+        keyword arguments to this method. If ``copy`` is set to `True` then a
+        copy of the internal arrays will be made.  Otherwise the replica will
+        use a reference to the original arrays when possible to save memory. The
+        internal arrays are normally not changeable by the user so in most cases
+        it should not be necessary to set ``copy`` to `True`.
+
+        Parameters
+        ----------
+        copy : bool, optional
+            If True, the resulting object is a copy of the data.  When False,
+            references are used where  possible. This rule also applies to the
+            frame attributes.
+
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            Replica of this object, but possibly with new frame attributes.
+        """
+        return self._apply('copy' if copy else 'replicate', **kwargs)
+
+    def replicate_without_data(self, copy=False, **kwargs):
+        """
+        Return a replica without data, optionally with new frame attributes.
+
+        The replica is a new frame object without data but with the same frame
+        attributes as this object, except where overriden by extra keyword
+        arguments to this method.  The ``copy`` keyword determines if the frame
+        attributes are truly copied vs being references (which saves memory for
+        cases where frame attributes are large).
+
+        This method is essentially the converse of `realize_frame`.
+
+        Parameters
+        ----------
+        copy : bool, optional
+            If True, the resulting object has copies of the frame attributes.
+            When False, references are used where  possible.
+
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            Replica of this object, but without data and possibly with new frame
+            attributes.
+        """
+        kwargs['_framedata'] = None
+        return self._apply('copy' if copy else 'replicate', **kwargs)
+
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
-        may not have data).
+        may not have data). Roughly speaking, the converse of
+        `replicate_without_data`.
 
         Parameters
         ----------
@@ -872,10 +532,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        frattrs = dict([(attr, getattr(self, attr))
-                        for attr in self.get_frame_attr_names()
-                        if attr not in self._attr_names_with_defaults])
-        return self.__class__(representation, **frattrs)
+        # Here we pass representation_cls=None to _apply, since we do not want
+        # to insist that the realized frame has the same representation as
+        # self.  [Avoids breaking sunpy; see gh-6208]
+        # TODO: should we expose this, so one has a choice?
+        return self._apply('replicate', _framedata=representation,
+                           representation_cls=None)
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
@@ -1163,22 +825,41 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
+        if '_framedata' in kwargs:
+            data = kwargs.pop('_framedata')
+        else:
+            data = self.data if self.has_data else None
+
+        # TODO: expose this trickery in docstring?
+        representation_cls = kwargs.pop('representation_cls',
+                                        self.representation)
+
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
-                return value._apply(method, *args, **kwargs)
+                if method == 'replicate' and not hasattr(value, method):
+                    return value  # reference directly
+                else:
+                    return value._apply(method, *args, **kwargs)
             else:
                 if callable(method):
                     return method(value, *args, **kwargs)
                 else:
-                    return getattr(value, method)(*args, **kwargs)
+                    if method == 'replicate' and not hasattr(value, method):
+                        return value  # reference directly
+                    else:
+                        return getattr(value, method)(*args, **kwargs)
 
+        if data is not None:
+            data = apply_method(data)
 
-        data = apply_method(self.data) if self.has_data else None
-
-        frattrs = {}
+        # TODO: change to representation_cls in __init__ - gh-6219.
+        frattrs = {'representation': representation_cls}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
-                value = getattr(self, attr)
+                if (method == 'copy' or method == 'replicate') and attr in kwargs:
+                    value = kwargs[attr]
+                else:
+                    value = getattr(self, attr)
                 if getattr(value, 'size', 1) > 1:
                     value = apply_method(value)
                 elif method == 'copy' or method == 'flatten':
@@ -1189,9 +870,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                 frattrs[attr] = value
 
-        out = self.__class__(data, **frattrs)
-        out.representation = self.representation
-        return out
+        return self.__class__(data, **frattrs)
 
     @override__dir__
     def __dir__(self):
@@ -1376,7 +1055,3 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
-
-# doing this import at the bottom prevents a circular import issue that is
-# otherwise present due to EarthLocation needing to import ITRS
-from .earth import EarthLocation

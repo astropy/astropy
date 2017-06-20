@@ -5,10 +5,10 @@ from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...wcs import WCS
 from .. import utils
 from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
-from ...tests.helper import pytest
 from ...extern.six.moves import range
 from ... import units as u
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
@@ -348,7 +348,7 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     ps = non_celestial_pixel_scales(mywcs)
 
-    assert_almost_equal(ps.to(u.deg).value, np.array([0.1,0.2]))
+    assert_almost_equal(ps.to_value(u.deg), np.array([0.1,0.2]))
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel(mode):

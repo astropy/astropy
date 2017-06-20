@@ -77,13 +77,13 @@ class SphericalCircle(Polygon):
 
         # Start off by generating the circle around the North pole
         lon = np.linspace(0., 2 * np.pi, resolution + 1)[:-1] * u.radian
-        lat = np.repeat(0.5 * np.pi - radius.to(u.radian).value, resolution) * u.radian
+        lat = np.repeat(0.5 * np.pi - radius.to_value(u.radian), resolution) * u.radian
 
         lon, lat = _rotate_polygon(lon, lat, longitude, latitude)
 
         # Extract new longitude/latitude in the requested units
-        lon = lon.to(vertex_unit).value
-        lat = lat.to(vertex_unit).value
+        lon = lon.to_value(vertex_unit)
+        lat = lat.to_value(vertex_unit)
 
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()

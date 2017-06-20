@@ -58,7 +58,7 @@ implemented in :func:`astropy.stats.histogram`, which has a similar syntax
 to the ``np.histogram`` function.
 
 Normal Reference Rules
-----------------------
+======================
 The simplest methods of tuning the number of bins are the normal reference
 rules due to Scott (implemented in :func:`~astropy.stats.scott_bin_width`) and
 Freedman & Diaconis (implemented in :func:`~astropy.stats.freedman_bin_width`).
@@ -104,7 +104,7 @@ bins which provide a good tradeoff between data representation and noise
 suppression.
 
 Bayesian Models
----------------
+===============
 
 Though rules-of-thumb like Scott's rule and the Freedman-Diaconis rule are
 fast and convenient, their strong assumptions about the data make them

@@ -4,14 +4,13 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from math import cos, sin
+
+import pytest
 import numpy as np
 from numpy.testing import utils
 
 from .. import models
 from ...wcs import wcs
-from ...io import fits
-from ...utils.data import get_pkg_data_filename
-from ...tests.helper import pytest
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9), (0, 90), (0, -90), (np.mgrid[:4, :6])])

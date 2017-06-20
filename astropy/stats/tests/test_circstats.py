@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from numpy.testing import assert_equal
@@ -15,7 +16,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ...tests.helper import pytest
 from ..circstats import _length, circmean, circvar, circmoment, circcorrcoef
 from ..circstats import rayleightest, vtest, vonmisesmle
 

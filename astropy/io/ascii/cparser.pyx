@@ -215,7 +215,7 @@ cdef class CParser:
             raise core.ParameterError("fast_reader cannot be False for fast readers")
         expchar = fast_reader.pop('exponent_style', 'E').upper()
         # parallel and use_fast_reader are False by default, but only the latter
-        # supports Fortran double precision notation 
+        # supports Fortran double precision notation
         if expchar == 'E':
             use_fast_converter = fast_reader.pop('use_fast_converter', False)
         else:

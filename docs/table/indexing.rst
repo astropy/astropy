@@ -5,7 +5,7 @@
 .. _table-indexing:
 
 Table indexing
---------------
+**************
 
 Once a |Table| has been created, it is possible to create indexes on one or
 more columns of the table. An index internally sorts the rows of a table based
@@ -18,7 +18,7 @@ improved performance for certain table operations.
    It is recommended to avoid using this engine in production code for now.
 
 Creating an index
-^^^^^^^^^^^^^^^^^
+=================
 
 To create an index on a table, use the |add_index| method::
 
@@ -56,7 +56,7 @@ retrieve an index from a table, use the `~astropy.table.Table.indices` property:
 
 
 Row retrieval using indices
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================
 
 Row retrieval can be accomplished using two table properties: `~astropy.table.Table.loc` and
 `~astropy.table.Table.iloc`. The `~astropy.table.Table.loc` property can be indexed either by column value, range of
@@ -130,7 +130,7 @@ rather than column values. For example::
        1    10
 
 Effects on performance
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 Table operations change somewhat when indices are present, and there are a
 number of factors to consider when deciding whether the use of indices will
 improve performance. In general, indexing offers the following advantages:
@@ -147,7 +147,7 @@ There are certain caveats, however:
 See `here <http://nbviewer.ipython.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_ for an IPython notebook profiling various aspects of table indexing.
 
 Index modes
-^^^^^^^^^^^
+===========
 The |index_mode| method allows for some flexibility in the behavior of table
 indexing by allowing the user to enter a specific indexing mode via a context manager. There are
 currently three indexing modes: *freeze*, *copy_on_getitem*, and
@@ -209,7 +209,7 @@ or table is copied::
   []
 
 Engines
-^^^^^^^
+=======
 When creating an index via |add_index|, the keyword argument "engine" may be
 specified to use a particular indexing engine. The available engines are
 

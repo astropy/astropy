@@ -1622,7 +1622,7 @@ class CompImageHDU(BinTableHDU):
 
             _format = BITPIX2DTYPE[self.header['BITPIX']]
 
-        return (self.name, class_name, len(self.header), _shape,
+        return (self.name, self.ver, class_name, len(self.header), _shape,
                 _format)
 
     def _update_compressed_data(self):
@@ -1651,7 +1651,13 @@ class CompImageHDU(BinTableHDU):
             should_swap = not self.data.dtype.isnative
 
         if should_swap:
-            self.data.byteswap(True)
+
+            if self.data.flags.writeable:
+                self.data.byteswap(True)
+            else:
+                # For read-only arrays, there is no way around making
+                # a byteswapped copy of the data.
+                self.data = self.data.byteswap(False)
 
         try:
             nrows = self._header['NAXIS2']
