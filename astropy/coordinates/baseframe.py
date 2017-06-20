@@ -330,7 +330,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if diff_kwargs:
                 if (hasattr(self.differential_cls, '_unit_differential') and
                         'd_distance' not in diff_kwargs):
-                    differential = self.differential._unit_differential
+                    differential = self.differential_cls._unit_differential
 
                 elif len(diff_kwargs) == 1 and 'd_distance' in diff_kwargs:
                     differential = RadialDifferential
@@ -1296,10 +1296,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        new_diffs = dict([(k, SphericalCosLatDifferential)
-                          for k in self.data.differentials])
-        return self.represent_as('spherical',
-                                 new_differential=new_diffs,
+        return self.represent_as('spherical', 'sphericalcoslat',
                                  in_frame_units=True)
 
 
