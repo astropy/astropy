@@ -25,11 +25,16 @@ from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
+from ..utils.misc import isiterable
 from .transformations import TransformGraph
-from .representation import (BaseRepresentation, CartesianRepresentation,
+from .representation import (BaseRepresentation, BaseDifferential,
+                             CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
-                             REPRESENTATION_CLASSES)
+                             SphericalCosLatDifferential,
+                             REPRESENTATION_CLASSES,
+                             DIFFERENTIAL_CLASSES)
+
 from .frame_attributes import FrameAttribute
 
 # Import all other FrameAttributes so we don't break backwards-compatibility
@@ -62,6 +67,22 @@ def _get_repr_cls(value):
                 value, list(REPRESENTATION_CLASSES)))
     return value
 
+def _get_diff_cls(value):
+    """
+    Return a valid differential class from ``value`` or raise exception.
+    """
+
+    if value in DIFFERENTIAL_CLASSES:
+        value = DIFFERENTIAL_CLASSES[value]
+    try:
+        # value might not be a class, so use try
+        assert issubclass(value, BaseDifferential)
+    except (TypeError, AssertionError):
+        raise ValueError(
+            'Differential is {0!r} but must be a BaseDifferential class '
+            'or one of the string aliases {1}'.format(
+                value, list(DIFFERENTIAL_CLASSES)))
+    return value
 
 # Need to subclass ABCMeta as well, so that this meta class can be combined
 # with ShapedLikeNDArray below (which is an ABC); without it, one gets
@@ -297,8 +318,19 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             else:
                 self._no_data_shape = ()
         else:
+            # This makes the cache keys backwards-compatible, but also adds
+            # support for having differentials attached to the frame data
+            # representation object.
+            if self._data.differentials:
+                # TODO: assumes a velocity unit differential
+                key = (self._data.__class__.__name__,
+                       self._data.differentials['s'].__class__.__name__,
+                       False)
+            else:
+                key = (self._data.__class__.__name__, False)
+
             # Set up representation cache.
-            self.cache['representation'][self._data.__class__.__name__, False] = self._data
+            self.cache['representation'][key] = self._data
 
     @lazyproperty
     def cache(self):
@@ -539,7 +571,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return self._apply('replicate', _framedata=representation,
                            representation_cls=None)
 
-    def represent_as(self, new_representation, in_frame_units=False):
+    def represent_as(self, new_representation, in_frame_units=False,
+                     new_differential=None):
         """
         Generate and return a new representation of this frame's `data`
         as a Representation object.
@@ -551,13 +584,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Parameters
         ----------
         new_representation : subclass of BaseRepresentation or string
-            The type of representation to generate.  May be a *class*
+            The type of representation to generate.  Must be a *class*
             (not an instance), or the string name of the representation
             class.
 
         in_frame_units : bool
             Force the representation units to match the specified units
             particular to this frame
+
+        new_differential : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
+            Class in which the differential should be represented. Must be
+            a *class* (not an instance), or the string name of the
+            differential class.
 
         Returns
         -------
@@ -583,12 +621,41 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             ( 1.,  0.,  0.)>
         """
+
+        has_velocity = 's' in self.data.differentials
+
         new_representation = _get_repr_cls(new_representation)
 
-        cached_repr = self.cache['representation'].get((new_representation.__name__,
-                                                        in_frame_units))
+        if new_differential:
+            if not has_velocity:
+                raise TypeError('Frame data has no associated differentials '
+                                '(i.e. the frame has no velocity data) - '
+                                'represent_as() only accepts a new '
+                                'representation class.')
+
+            if isinstance(new_differential, six.string_types):
+                new_differential = _get_diff_cls(new_differential)
+
+        elif has_velocity:
+            new_differential = _get_diff_cls(new_representation.get_name())
+
+        if has_velocity:
+            cache_key = (new_representation.__name__,
+                         new_differential.__name__,
+                         in_frame_units)
+        else:
+            cache_key = (new_representation.__name__, in_frame_units)
+
+        cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
-            data = self.data.represent_as(new_representation)
+            if has_velocity and new_differential is not None:
+                # TODO NOTE: only supports a single differential
+                data = self.data.represent_as(new_representation,
+                                              new_differential)
+                diff = data.differentials['s'] # TODO: assumes velocity
+
+            else:
+                data = self.data.represent_as(new_representation)
 
             # If the new representation is known to this frame and has a defined
             # set of names and units, then use that.
@@ -601,9 +668,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            self.cache['representation'][new_representation.__name__, in_frame_units] = data
+            # If the new differential is known to this frame and has a defined
+            # set of names and units, then use that.
+            new_attrs = self.representation_info.get(new_differential)
+            if new_attrs and in_frame_units:
+                diffkwargs = dict((comp, getattr(diff, comp))
+                                  for comp in diff.components)
+                for comp, new_attr_unit in zip(diff.components, new_attrs['units']):
+                    if new_attr_unit:
+                        diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                diff = diff.__class__(copy=False, **diffkwargs)
+                data = data.with_differentials(diff)
 
-        return self.cache['representation'][new_representation.__name__, in_frame_units]
+            self.cache['representation'][cache_key] = data
+
+        return self.cache['representation'][cache_key]
 
     def transform_to(self, new_frame):
         """
@@ -1008,17 +1087,33 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(CartesianRepresentation, in_frame_units=True)
+        return self.represent_as('cartesian', in_frame_units=True)
 
     @property
     def spherical(self):
         """
-        Shorthand for a spherical representation of the coordinates in this object.
+        Shorthand for a spherical representation of the coordinates in this
+        object.
         """
 
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(SphericalRepresentation, in_frame_units=True)
+        return self.represent_as('spherical', in_frame_units=True)
+
+    @property
+    def sphericalcoslat(self):
+        """
+        Shorthand for a spherical representation of the positional data and a
+        `SphericalCosLatDifferential` for the velocity data in this object.
+        """
+
+        # TODO: if representations are updated to use a full transform graph,
+        #       the representation aliases should not be hard-coded like this
+        new_diffs = dict([(k, SphericalCosLatDifferential)
+                          for k in self.data.differentials])
+        return self.represent_as('spherical',
+                                 new_differential=new_diffs,
+                                 in_frame_units=True)
 
 
 class GenericFrame(BaseCoordinateFrame):

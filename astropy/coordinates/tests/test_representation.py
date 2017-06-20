@@ -1319,7 +1319,6 @@ def test_to_cartesian():
     sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m,
                                  differentials=sd)
 
-    diff = sr.to_cartesian()
-
-    assert diff.get_name() == 'cartesian'
-    assert not diff.differentials
+    cart = sr.to_cartesian()
+    assert cart.get_name() == 'cartesian'
+    assert not cart.differentials

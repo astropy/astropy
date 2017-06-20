@@ -26,14 +26,18 @@ from collections import defaultdict, OrderedDict
 
 import numpy as np
 
+from .. import units as u
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..extern import six
 from ..extern.six.moves import range
 
+from .representation import REPRESENTATION_CLASSES
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
-           'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
+           'BaseAffineTransform', 'AffineTransform',
+           'StaticMatrixTransform', 'DynamicMatrixTransform',
+           'CompositeTransform']
 
 class TransformGraph(object):
     """
@@ -744,8 +748,201 @@ class FunctionTransform(CoordinateTransform):
                 'should have been of type {1}'.format(res, self.tosys))
         return res
 
+class BaseAffineTransform(CoordinateTransform):
+    """Base class for common functionality between the ``AffineTransform``-type
+    subclasses.
 
-class StaticMatrixTransform(CoordinateTransform):
+    This base class is needed because ``AffineTransform`` and the matrix
+    transform classes share the ``_apply_transform()`` method, but have
+    different ``__call__()`` methods. ``StaticMatrixTransform`` passes in a
+    matrix stored as a class attribute, and both of the matrix transforms pass
+    in ``None`` for the offset. Hence, user subclasses would likely want to
+    subclass this (rather than ``AffineTransform``) if they want to provide
+    alternative transformations using this machinery.
+    """
+
+    def _apply_transform(self, fromcoord, matrix, offset):
+        from .representation import (UnitSphericalRepresentation,
+                                     CartesianDifferential,
+                                     SphericalDifferential,
+                                     SphericalCosLatDifferential,
+                                     RadialDifferential)
+
+        data = fromcoord.data
+        has_velocity = 's' in data.differentials
+
+        # list of unit differentials
+        _unit_diffs = (SphericalDifferential._unit_differential,
+                       SphericalCosLatDifferential._unit_differential)
+        unit_vel_diff = (has_velocity and
+                         isinstance(data.differentials['s'], _unit_diffs))
+        rad_vel_diff = (has_velocity and
+                        isinstance(data.differentials['s'], RadialDifferential))
+
+        # Some initial checking to short-circuit doing any re-representation if
+        # we're going to fail anyways:
+        if isinstance(data, UnitSphericalRepresentation) and offset is not None:
+            raise TypeError("Position information stored on coordiante frame "
+                            "is insufficient to do a full-space position "
+                            "transformation (representation class: {0})"
+                            .format(data.__class__))
+
+        elif (has_velocity and (unit_vel_diff or rad_vel_diff) and
+              offset is not None and 's' in offset.differentials):
+            # Coordinate has a velocity, but it is not a full-space velocity
+            # that we need to do a velocity offset
+            raise TypeError("Velocity information stored on coordinate frame "
+                            "is insufficient to do a full-space velocity "
+                            "transformation (differential class: {0})"
+                            .format(data.differentials['s'].__class__))
+
+        elif len(data.differentials) > 1:
+            # We should never get here because the frame initializer shouldn't
+            # allow more differentials, but this just adds protection for
+            # subclasses that somehow skip the checks
+            raise ValueError("Representation passed to AffineTransform contains"
+                             " multiple associated differentials. Only a single"
+                             " differential with velocity units is presently"
+                             " supported (differentials: {0})."
+                             .format(str(data.differentials)))
+
+        # If the representation is a UnitSphericalRepresentation, and this is
+        # just a MatrixTransform, we have to try to turn the differential into a
+        # Unit version of the differential (if no radial velocity) or a
+        # sphericaldifferential with zero proper motion (if only a radial
+        # velocity) so that the matrix operation works
+        if (has_velocity and isinstance(data, UnitSphericalRepresentation) and
+                not unit_vel_diff and not rad_vel_diff):
+            # retrieve just velocity differential
+            unit_diff = data.differentials['s'].represent_as(
+                data.differentials['s']._unit_differential, data)
+            data = data.with_differentials({'s': unit_diff}) # updates key
+
+        # If it's a RadialDifferential, we flat-out ignore the differentials
+        # This is because, by this point (past the validation above), we can
+        # only possibly be doing a rotation-only transformation, and that
+        # won't change the radial differential. We later add it back in
+        elif rad_vel_diff:
+            data = data.without_differentials()
+
+        # Convert the representation and differentials to cartesian without
+        # having them attached to a frame
+        rep = data.to_cartesian()
+        diffs = dict([(k, diff.represent_as(CartesianDifferential, data))
+                      for k, diff in data.differentials.items()])
+        rep = rep.with_differentials(diffs)
+
+        # Only do transform if matrix is specified. This is for speed in
+        # transformations that only specify an offset (e.g., LSR)
+        if matrix is not None:
+            # Note: this applies to both representation and differentials
+            rep = rep.transform(matrix)
+
+        # TODO: if we decide to allow arithmetic between representations that
+        # contain differentials, this can be tidied up
+        if offset is not None:
+            newrep = (rep.without_differentials() +
+                      offset.without_differentials())
+        else:
+            newrep = rep.without_differentials()
+
+        # We need a velocity (time derivative) and, for now, are strict: the
+        # representation can only contain a velocity differential and no others.
+        if has_velocity and not rad_vel_diff:
+            veldiff = rep.differentials['s'] # already in Cartesian form
+
+            if offset is not None and 's' in offset.differentials:
+                veldiff = veldiff + offset.differentials['s']
+
+            newrep = newrep.with_differentials(veldiff)
+
+        if isinstance(fromcoord.data, UnitSphericalRepresentation):
+            # Special-case this because otherwise the return object will think
+            # it has a valid distance with the default return (a
+            # CartesianRepresentation instance)
+
+            if has_velocity and not unit_vel_diff and not rad_vel_diff:
+                # We have to first represent as the Unit types we converted to,
+                # then put the d_distance information back in to the
+                # differentials and re-represent as their original forms
+                newdiff = newrep.differentials['s']
+                _unit_cls = fromcoord.data.differentials['s']._unit_differential
+                newdiff = newdiff.represent_as(_unit_cls, fromcoord.data)
+
+                kwargs = dict([(comp, getattr(newdiff, comp))
+                               for comp in newdiff.components])
+                kwargs['d_distance'] = fromcoord.data.differentials['s'].d_distance
+                diffs = {'s': fromcoord.data.differentials['s'].__class__(
+                    copy=False, **kwargs)}
+
+            else:
+                diffs = newrep.differentials
+
+            newrep = newrep.represent_as(fromcoord.data.__class__) # drops diffs
+            newrep = newrep.with_differentials(diffs)
+
+        # We pulled the radial differential off of the representation
+        # earlier, so now we need to put it back. But, in order to do that, we
+        # have to turn the representation into a repr that is compatible with
+        # having a RadialDifferential
+        if has_velocity and rad_vel_diff:
+            newrep = newrep.represent_as(fromcoord.data.__class__)
+            newrep = newrep.with_differentials({'s': fromcoord.data.differentials['s']})
+
+        return newrep
+
+class AffineTransform(BaseAffineTransform):
+    """
+    A coordinate transformation specified as a function that yields a 3 x 3
+    cartesian transformation matrix and a tuple of displacement vectors.
+
+    See `~astropy.coordinates.builtin_frames.galactocentric.Galactocentric` for
+    an example.
+
+    Parameters
+    ----------
+    transform_func : callable
+        A callable that has the signature ``transform_func(fromcoord, toframe)``
+        and returns: a (3, 3) matrix that operates on ``fromcoord`` in a
+        Cartesian representation, and a ``CartesianRepresentation`` with
+        (optionally) an attached velocity ``CartesianDifferential`` to represent
+        a translation and offset in velocity to apply after the matrix
+        operation.
+    fromsys : class
+        The coordinate frame class to start from.
+    tosys : class
+        The coordinate frame class to transform into.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate transform path - large numbers are lower priorities.
+    register_graph : `TransformGraph` or `None`
+        A graph to register this transformation with on creation, or
+        `None` to leave it unregistered.
+
+    Raises
+    ------
+    TypeError
+        If ``transform_func`` is not callable
+
+    """
+    def __init__(self, transform_func, fromsys, tosys, priority=1,
+                 register_graph=None):
+
+        if not six.callable(transform_func):
+            raise TypeError('transform_func is not callable')
+        self.transform_func = transform_func
+
+        super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
+                                              register_graph=register_graph)
+
+    def __call__(self, fromcoord, toframe):
+
+        M, vec = self.transform_func(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, M, vec)
+
+        return toframe.realize_frame(newrep)
+
+class StaticMatrixTransform(BaseAffineTransform):
     """
     A coordinate transformation defined as a 3 x 3 cartesian
     transformation matrix.
@@ -786,21 +983,15 @@ class StaticMatrixTransform(CoordinateTransform):
             raise ValueError('Provided matrix is not 3 x 3')
 
         super(StaticMatrixTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+                                                    priority=priority,
+                                                    register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
-        from .representation import UnitSphericalRepresentation
-
-        newrep = fromcoord.cartesian.transform(self.matrix)
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
-            #need to special-case this because otherwise the new class will
-            #think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
-
+        newrep = self._apply_transform(fromcoord, self.matrix, None)
         return toframe.realize_frame(newrep)
 
 
-class DynamicMatrixTransform(CoordinateTransform):
+class DynamicMatrixTransform(BaseAffineTransform):
     """
     A coordinate transformation specified as a function that yields a
     3 x 3 cartesian transformation matrix.
@@ -837,24 +1028,16 @@ class DynamicMatrixTransform(CoordinateTransform):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 
+        def _transform_func(fromcoord, toframe):
+            return self.matrix_func(fromcoord, toframe), None
+
         super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+                                                     priority=priority,
+                                                     register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
-
-        from .representation import CartesianRepresentation, \
-                                    UnitSphericalRepresentation
-
-        transform_matrix = self.matrix_func(fromcoord, toframe)
-
-        rep = fromcoord.represent_as(CartesianRepresentation)
-        newrep = rep.transform(transform_matrix)
-
-        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
-            #need to special-case this because otherwise the new class will
-            #think it has a valid distance
-            newrep = newrep.represent_as(fromcoord.data.__class__)
-
+        M = self.matrix_func(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, M, None)
         return toframe.realize_frame(newrep)
 
 
@@ -943,6 +1126,7 @@ class CompositeTransform(CoordinateTransform):
 
 # map class names to colorblind-safe colors
 trans_to_color = OrderedDict()
+trans_to_color[AffineTransform] = '#555555' # gray
 trans_to_color[FunctionTransform] = '#d95f02' # red-ish
 trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
 trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish
