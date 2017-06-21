@@ -28,26 +28,26 @@
 #endif /* HAVE_CONFIG_H */
 
 
-const char* eraVersion() {
+const char* eraVersion(void) {
   return PACKAGE_VERSION;
 }
 
 
-int eraVersionMajor() {
+int eraVersionMajor(void) {
   return PACKAGE_VERSION_MAJOR;
 }
 
 
-int eraVersionMinor() {
+int eraVersionMinor(void) {
   return PACKAGE_VERSION_MINOR;
 }
 
 
-int eraVersionMicro() {
+int eraVersionMicro(void) {
   return PACKAGE_VERSION_MICRO;
 }
 
 
-const char* eraSofaVersion() {
+const char* eraSofaVersion(void) {
   return SOFA_VERSION;
 }
