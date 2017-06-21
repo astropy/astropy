@@ -71,20 +71,20 @@ class FitsTime(object):
 
         Parameters
         ----------
-        keyword : string
+        keyword : str
             FITS keyword.
         """
         if keyword[5:].isdigit() and keyword[:5] in cls.COLUMN_TIME_KEYWORDS:
             return True
         return False
 
-    def set_global_time(self, key, value, comment):
+    def set_global_time(self, key, value, comment=None):
         """
         Set the global time reference frame attributes.
 
         Parameters
         ----------
-        key : string
+        key : str
             FITS global time reference frame keyword.
         value : int, str, list
             value associated with specified keyword.
@@ -94,15 +94,15 @@ class FitsTime(object):
         if key in self.TIME_KEYWORDS:
             self.global_info[self.TIME_KEYWORDS[key]] = value
         else:
-            raise ValueError('Illegal time keyword')
+            raise ValueError('Illegal global time keyword')
 
-    def set_column_override(self, key, value, comment):
+    def set_column_override(self, key, value, comment=None):
         """
         Set the time column specific override attributes.
 
         Parameters
         ----------
-        key : string
+        key : str
             FITS time column specific keyword.
         value : int, str, list
             value associated with specified keyword.
@@ -113,7 +113,7 @@ class FitsTime(object):
             idx = int(key[5:])
             self.time_columns[idx][self.COLUMN_TIME_KEYWORDS[key[:5]]] = value
         else:
-            raise ValueError('Illegal time keyword')
+            raise ValueError('Illegal column-specific time keyword')
 
     def convert_time_columns(self, table):
         """
@@ -191,9 +191,14 @@ class FitsTime(object):
         newtable = table.copy(copy_data=False)
 
         # Global time coordinate frame keywords
-        hdr = Header([Card(keyword=key, value=val[0], comment=val[1]) for key, val in cls.GLOBAL_TIME_INFO.items()])
+        hdr = Header([Card(keyword=key, value=val[0], comment=val[1]) 
+                     for key, val in cls.GLOBAL_TIME_INFO.items()])
 
         time_cols = table.columns.isinstance(Time)
+
+        # Geocentric Position
+        pos_geo = None
+
         for col in time_cols:
             jd12 = np.array([col.jd1, col.jd2])
             jd12 = np.rollaxis(jd12, 0, jd12.ndim)
@@ -208,33 +213,34 @@ class FitsTime(object):
             # Astropy specific keyword for storing Time format
             hdr.append(Card(keyword='TCAPF%d' %n, value=col.format.upper()))
 
-            pos_geo = None
-
             # Time column reference positions
-            if col.location != None:
+            if col.location is None:
+                if pos_geo is not None:
+                    warnings.warn(
+                        'Time Column "{0}" has no specified location, but global Time Position '
+                        'is present, which will be the default for this column in '
+                        'FITS specification.'.format(col.info.name),
+                        AstropyUserWarning)
+            else:
                 # Compatibility of Time Scales and Reference Positions
-                hdr.append(Card(keyword='TRPOS%d' %n, value=cls.TIME_SCALE_REF[col.scale]))
-                if cls.TIME_SCALE_REF[col.scale] == 'TOPOCENTER':
-                    curr_loc = col.location
-                    if curr_loc.size > 1:
-                        warnings.warn(
-                            "Vectorized Location of Time Column {0} cannot be written. Only 0th Location"
-                            "will be written.".format(col.info.name),
-                            AstropyUserWarning)
-                        curr_loc = col.location[0]
-                    if pos_geo == None:
-                        hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(curr_loc, dim).value)
-                                    for dim in ('x', 'y', 'z')])
-                        pos_geo == curr_loc
-                    elif pos_geo != curr_loc:
-                        warnings.warn(
-                            "Multiple Time Columns with different geodetic observatory locations are encountered."
-                            "Location for {0} will be dropped.".format(col.info.name),
-                            AstropyUserWarning)
+                pos_ref = cls.TIME_SCALE_REF[col.scale]
+                hdr.append(Card(keyword='TRPOS%d' %n, value=pos_ref))
+                if pos_ref == 'TOPOCENTER':
+                    if col.location.size > 1:
+                        raise ValueError('Vectorized Location of Time Column "{0}" cannot be written, '
+                                         'as it is not yet supported'.format(col.info.name))
+                    if pos_geo is None:
+                        hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value) for dim in ('x', 'y', 'z')])
+                        pos_geo = col.location
+                    elif pos_geo != col.location:
+                        raise ValueError('Multiple Time Columns with different geocentric observatory '
+                                         'locations ({0}, {1}, {2}) , ({3}, {4}, {5}) are encountered. '
+                                         'These are not yet supported.'.format(pos_geo.x, pos_geo.y,
+                                         pos_geo.z, col.location.x, col.location.y, col.location.z))
                 else:
                     warnings.warn(
-                        "Location cannot be written for {0} due to incompatability of "
-                        "{1} and TOPOCENTER.".format(col.info.name, col.scale.upper()),
+                        'Location cannot be written for "{0}" due to incompatability of '
+                        '{1} and TOPOCENTER.'.format(col.info.name, col.scale.upper()),
                         AstropyUserWarning)
 
         return newtable, hdr

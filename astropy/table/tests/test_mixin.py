@@ -119,8 +119,7 @@ def test_io_quantity_write(tmpdir):
     t = QTable()
     t['a'] = u.Quantity([1, 2, 4], unit='Angstrom')
 
-    filename = tmpdir.join("table-tmp").strpath
-    open(filename, 'w').close()
+    filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS and VOTable formats succeed
     for fmt in ('fits', 'votable'):
@@ -146,8 +145,11 @@ def test_io_time_write(tmpdir, table_types):
     """
     t = table_types([[1,2], ['string', 'column']])
     for scale in time.TIME_SCALES:
-        t['a'+scale] = time.Time([1,2], format='cxcsec', scale='tai', location=EarthLocation(-2446353.80003635, 4237209.07495215, 4077985.57220038, unit='m'))
-        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'], format='isot', scale='utc')
+        t['a'+scale] = time.Time([1,2], format='cxcsec', scale='tai',
+                                  location=EarthLocation(-2446353.80003635,
+                                  4237209.07495215, 4077985.57220038, unit='m'))
+        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789', 
+                                  '2010-01-01T00:00:00'], format='isot', scale='utc')
     t['c'] = [3., 4.]
 
     filename = tmpdir.join("table-tmp").strpath
