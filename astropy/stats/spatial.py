@@ -12,6 +12,8 @@ import math
 class RipleysKEstimator(object):
     """
     Estimators for Ripley's K function for two-dimensional spatial data.
+    See [1]_, [2]_, [3]_, [4]_, [5]_ for detailed mathematical and
+    practical aspects of those estimators.
 
     Parameters
     ----------
@@ -42,13 +44,15 @@ class RipleysKEstimator(object):
 
     References
     ----------
-    .. [1] Spatial descriptive statistics.
+    .. [1] Peebles, P.J.E. *The large scale structure of the universe*.
+       <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1980lssu.book.....P&db_key=AST>
+    .. [2] Spatial descriptive statistics.
        <https://en.wikipedia.org/wiki/Spatial_descriptive_statistics>
-    .. [2] Package spatstat.
+    .. [3] Package spatstat.
        <https://cran.r-project.org/web/packages/spatstat/spatstat.pdf>
-    .. [3] Cressie, N.A.C. (1991). Statistics for Spatial Data,
+    .. [4] Cressie, N.A.C. (1991). Statistics for Spatial Data,
        Wiley, New York.
-    .. [4] Stoyan, D., Stoyan, H. (1992). Fractals, Random Shapes and
+    .. [5] Stoyan, D., Stoyan, H. (1992). Fractals, Random Shapes and
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 

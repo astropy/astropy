@@ -4,8 +4,14 @@
 Ripley's K Function Estimators
 ******************************
 
-Ripley's K function is used to characterize spatial point processes.
-More precisely, it describes correlation in point fields.
+Spatial correlation functions have been used in the astronomical
+context to estimate the probability of finding an object, e.g. a galaxy,
+within a given distance of another object [1]_.
+
+Ripley's K function is a type of estimator used to characterize the correlation
+of such spatial point processes
+[2]_, [3]_, [4]_, [5]_, [6]_.
+More precisely, it describes correlation among objects in a given field.
 The `~astropy.stats.RipleysKEstimator` class implements some
 estimators for this function which provides several methods for
 edge-effects correction.
@@ -15,7 +21,7 @@ Basic Usage
 
 The actual implementation of Ripley's K function estimators lie in the method
 ``evaluate`` which take the following arguments ``data``, ``radii``, and,
-optionally ``mode``.
+optionally, ``mode``.
 
 The ``data`` argument is a 2D array which represents the set of observed
 points (events) in the area of study. The ``radii`` argument corresponds to a
@@ -55,10 +61,14 @@ A minimal usage example is shown as follows:
 
 References
 ==========
-.. [1] Ripley, B.D. *The second-order analysis of stationary point processes*.
+.. [1] Peebles, P.J.E. *The large scale structure of the universe*.
+       <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1980lssu.book.....P&db_key=AST>
+.. [2] Ripley, B.D. *The second-order analysis of stationary point processes*.
        Journal of Applied Probability. 13: 255–266, 1976.
-.. [2] *Spatial descriptive statistics*.
+.. [3] *Spatial descriptive statistics*.
        <https://en.wikipedia.org/wiki/Spatial_descriptive_statistics>
-.. [3] Cressie, N.A.C. *Statistics for Spatial Data*, Wiley, New York.
-.. [4] Stoyan, D., Stoyan, H. *Fractals, Random Shapes and Point Fields*,
+.. [4] Cressie, N.A.C. *Statistics for Spatial Data*, Wiley, New York.
+.. [5] Stoyan, D., Stoyan, H. *Fractals, Random Shapes and Point Fields*,
        Akademie Verlag GmbH, Chichester, 1992.
+.. [6] *Correlation function*.
+       <https://en.wikipedia.org/wiki/Correlation_function_(astronomy)>
