@@ -9,23 +9,28 @@ Astronomical Coordinate Systems (`astropy.coordinates`)
 Introduction
 ============
 
-The `~astropy.coordinates` package provides classes for representing a
-variety of celestial/spatial  coordinates, as well as tools for
-converting between common coordinate systems in a uniform way.
+The `~astropy.coordinates` package provides classes for representing a variety
+of celestial/spatial coordinates and their velocity components, as well as tools
+for converting between common coordinate systems in a uniform way.
 
 Getting Started
 ===============
 
 The simplest way to use `~astropy.coordinates` is to use the |skycoord|
-class. |skycoord| objects are instantiated with a flexible and natural
-approach that supports inputs provided in a number of convenient
-formats.  The following ways of initializing a coordinate are all
-equivalent::
+class. |skycoord| objects are instantiated by passing in positions (and
+optional velocities) with specified units and a coordinate frame. Commonly sky
+positions are passed in as `~astropy.units.Quantity` objects and the frame is
+specified with the string name. As an example of creating a |skycoord| to
+represent an ICRS (Right ascension [RA], Declination [Dec]) sky position::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
-
     >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
+
+The initializer for |skycoord| is very flexible and supports inputs provided in
+a number of convenient formats. The following ways of initializing a coordinate
+are all equivalent to the above::
+
     >>> c = SkyCoord(10.625, 41.2, frame='icrs', unit='deg')
     >>> c = SkyCoord('00h42m30s', '+41d12m00s', frame='icrs')
     >>> c = SkyCoord('00h42.5m', '+41d12m')
@@ -35,14 +40,33 @@ equivalent::
     <SkyCoord (ICRS): (ra, dec) in deg
         ( 10.625,  41.2)>
 
-The examples above illustrate a few simple rules to follow when creating a coordinate
-object:
+The examples above illustrate a few simple rules to follow when creating a
+coordinate object:
 
 - Coordinate values can be provided either as unnamed positional arguments or
-  via keyword arguments like ``ra``, ``dec``, ``l``, or ``b`` (depending on the frame).
-- Coordinate ``frame`` keyword is optional and defaults to ICRS.
-- Angle units must be specified, either in the values themselves
-  (e.g. ``10.5*u.degree`` or ``'+41d12m00s'``) or via the ``unit`` keyword.
+  via keyword arguments like ``ra`` and ``dec``, or  ``l`` and ``b`` (depending
+  on the frame).
+- The coordinate ``frame`` keyword is optional because it defaults to
+  `~astropy.coordinates.ICRS`.
+- Angle units must be specified for all components, either by passing in a
+  `~astropy.units.Quantity` object (e.g., ``10.5*u.degree``), by including them
+  in the value (e.g., ``'+41d12m00s'``), or via the ``unit`` keyword.
+
+Passing velocity information to |skycoord| follows similar rules:
+
+- The velocity component names are frame-dependent. However, when supported in a
+  frame, the proper motion components all begin with ``pm_``. By default the
+  longitudinal component should already include the ``cos(latitude)`` term. For
+  example, the proper motion components for the ICRS frame are
+  (``pm_ra_cosdec``, ``pm_dec``). These must be passed in as
+  `~astropy.units.Quantity` objects.
+- Any frame that supports spherical velocity components (proper motions) also
+  accept a radial/line-of-sight velocity through the ``radial_velocity``
+  keyword, which must also be a `~astropy.units.Quantity` object.
+
+
+
+  >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
 
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
@@ -50,8 +74,8 @@ they store multiple coordinates in a single object.  When you're going
 to apply the same operation to many different coordinates (say, from a
 catalog), this is a better choice than a list of |skycoord| objects,
 because it will be *much* faster than applying the operation to each
-|skycoord| in a for loop. Like the underlying `~numpy.ndarray` instances
-holding the data, |skycoord| objects can be sliced, reshaped, etc.::
+|skycoord| in a ``for`` loop. Like the underlying `~numpy.ndarray` instances
+that contain the data, |skycoord| objects can be sliced, reshaped, etc.::
 
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
     >>> c
@@ -69,7 +93,7 @@ Coordinate access
 -----------------
 
 Once you have a coordinate object you can now access the components of that
-coordinate (e.g. RA, Dec) and get a specific string representation of the full
+coordinate (e.g., RA, Dec) and get a specific string representation of the full
 coordinate.
 
 The component values are accessed using aptly named attributes::
