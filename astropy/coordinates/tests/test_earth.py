@@ -121,8 +121,8 @@ class TestInput():
         assert type(self.location.x) is u.Quantity
         assert type(self.location.y) is u.Quantity
         assert type(self.location.z) is u.Quantity
-        assert type(self.location.longitude) is Longitude
-        assert type(self.location.latitude) is Latitude
+        assert type(self.location.lon) is Longitude
+        assert type(self.location.lat) is Latitude
         assert type(self.location.height) is u.Quantity
 
     def test_input(self):
@@ -141,17 +141,17 @@ class TestInput():
                                   self.h.to_value(u.m))
         assert np.all(geodetic2 == self.location)
         geodetic3 = EarthLocation(self.lon, self.lat)
-        assert allclose_m14(geodetic3.longitude.value,
-                            self.location.longitude.value)
-        assert allclose_m14(geodetic3.latitude.value,
-                            self.location.latitude.value)
+        assert allclose_m14(geodetic3.lon.value,
+                            self.location.lon.value)
+        assert allclose_m14(geodetic3.lat.value,
+                            self.location.lat.value)
         assert not np.any(isclose_m14(geodetic3.height.value,
                                       self.location.height.value))
         geodetic4 = EarthLocation(self.lon, self.lat, self.h[-1])
-        assert allclose_m14(geodetic4.longitude.value,
-                            self.location.longitude.value)
-        assert allclose_m14(geodetic4.latitude.value,
-                            self.location.latitude.value)
+        assert allclose_m14(geodetic4.lon.value,
+                            self.location.lon.value)
+        assert allclose_m14(geodetic4.lat.value,
+                            self.location.lat.value)
         assert allclose_m14(geodetic4.height[-1].value,
                             self.location.height[-1].value)
         assert not np.any(isclose_m14(geodetic4.height[:-1].value,
@@ -292,14 +292,14 @@ def test_of_address():
 
     # just a location
     loc = EarthLocation.of_address("New York, NY")
-    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
-    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
+    assert quantity_allclose(loc.lat, 40.7128*u.degree)
+    assert quantity_allclose(loc.lon, -74.0059*u.degree)
     assert np.allclose(loc.height.value, 0.)
 
     # a location and height
     loc = EarthLocation.of_address("New York, NY", get_height=True)
-    assert quantity_allclose(loc.latitude, 40.7128*u.degree)
-    assert quantity_allclose(loc.longitude, -74.0059*u.degree)
+    assert quantity_allclose(loc.lat, 40.7128*u.degree)
+    assert quantity_allclose(loc.lon, -74.0059*u.degree)
     assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
 
 
