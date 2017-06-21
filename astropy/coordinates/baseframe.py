@@ -551,12 +551,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 if c in comptomap:
                     mapp = comptomap[c]
                     nms[i] = mapp.framename
+
                     # need the isinstance because otherwise if it's a unit it
                     # will try to compare to the unit string representation
                     if not (isinstance(mapp.defaultunit, six.string_types) and
                             mapp.defaultunit == 'recommended'):
                         uns[i] = mapp.defaultunit
                         # else we just leave it as recommended_units says above
+
             # Convert to tuples so that this can't mess with frame internals
             repr_attrs[repr_diff_cls]['names'] = tuple(nms)
             repr_attrs[repr_diff_cls]['units'] = tuple(uns)
@@ -828,17 +830,32 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            # If the new differential is known to this frame and has a defined
-            # set of names and units, then use that.
-            new_attrs = self.representation_info.get(new_differential)
-            if new_attrs and in_frame_units:
-                diffkwargs = dict((comp, getattr(diff, comp))
-                                  for comp in diff.components)
-                for comp, new_attr_unit in zip(diff.components, new_attrs['units']):
-                    if new_attr_unit:
-                        diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
-                diff = diff.__class__(copy=False, **diffkwargs)
-                data = data.with_differentials(diff)
+            if has_velocity and new_differential is not None:
+                # If the new differential is known to this frame and has a
+                # defined set of names and units, then use that.
+                new_attrs = self.representation_info.get(new_differential)
+                if new_attrs and in_frame_units:
+                    diffkwargs = dict((comp, getattr(diff, comp))
+                                      for comp in diff.components)
+                    for comp, new_attr_unit in zip(diff.components,
+                                                   new_attrs['units']):
+                        if (new_attr_unit and
+                                hasattr(self._data.differentials['s'], comp)):
+                            diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+
+                    diff = diff.__class__(copy=False, **diffkwargs)
+
+                    # Here we have to bypass using with_differentials() because
+                    # it has a validation check. But because .representation and
+                    # .differential_cls don't point to the original classes, if
+                    # the input differential is a RadialDifferential, it usually
+                    # gets turned into a SphericalCosLatDifferential (or
+                    # whatever the default is) with strange units for the d_lon
+                    # and d_lat attributes. This then causes the dictionary key
+                    # check to fail (i.e. comparison against
+                    # `diff._get_deriv_key()`)
+                    data._differentials.update({'s': diff})
+                    # data = data.with_differentials({'s': diff})
 
             self.cache['representation'][cache_key] = data
 
