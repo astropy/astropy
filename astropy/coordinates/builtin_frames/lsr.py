@@ -5,12 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ... import units as u
 from ...time import Time
-from ..representation import (CartesianRepresentation,
-                              CartesianDifferential,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential)
+from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          frame_transform_graph, BaseRADecFrame)
 from ..transformations import AffineTransform
@@ -22,7 +17,7 @@ from .galactic import Galactic
 # For speed
 J2000 = Time('J2000')
 
-v_bary_Schoenrich2010 = CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
+v_bary_Schoenrich2010 = r.CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
 
 __all__ = ['LSR', 'GalacticLSR']
 
@@ -45,18 +40,19 @@ LSR.__doc__ += BaseRADecFrame.__doc__
 def icrs_to_lsr(icrs_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
     v_bary_icrs = v_bary_gal.transform_to(icrs_coord)
-    v_offset = v_bary_icrs.data.represent_as(CartesianDifferential)
-    offset = CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
+    v_offset = v_bary_icrs.data.represent_as(r.CartesianDifferential)
+    offset = r.CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
     return None, offset
 
 @frame_transform_graph.transform(AffineTransform, LSR, ICRS)
 def lsr_to_icrs(lsr_coord, icrs_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
     v_bary_icrs = v_bary_gal.transform_to(icrs_frame)
-    v_offset = v_bary_icrs.data.represent_as(CartesianDifferential)
-    offset = CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
+    v_offset = v_bary_icrs.data.represent_as(r.CartesianDifferential)
+    offset = r.CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
     return None, offset
 
+# ------------------------------------------------------------------------------
 
 class GalacticLSR(BaseCoordinateFrame):
     """
@@ -85,28 +81,35 @@ class GalacticLSR(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        SphericalRepresentation: [
+        r.SphericalRepresentation: [
             RepresentationMapping('lon', 'l'),
             RepresentationMapping('lat', 'b')
         ],
-        SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_l', u.mas/u.yr),
+        r.SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_l_cosb', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
         ],
-        CartesianDifferential: [
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_l', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
+        ],
+        r.CartesianDifferential: [
             RepresentationMapping('d_x', 'v_x', u.km/u.s),
             RepresentationMapping('d_y', 'v_y', u.km/u.s),
             RepresentationMapping('d_z', 'v_z', u.km/u.s)
         ],
     }
-    frame_specific_representation_info[UnitSphericalRepresentation] = \
-        frame_specific_representation_info[SphericalRepresentation]
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[r.SphericalRepresentation]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
     # frame attributes:
     v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
@@ -115,13 +118,13 @@ class GalacticLSR(BaseCoordinateFrame):
 @frame_transform_graph.transform(AffineTransform, Galactic, GalacticLSR)
 def galactic_to_galacticlsr(galactic_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
-    v_offset = v_bary_gal.data.represent_as(CartesianDifferential)
-    offset = CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
+    v_offset = v_bary_gal.data.represent_as(r.CartesianDifferential)
+    offset = r.CartesianRepresentation([0,0,0]*u.au, differentials=v_offset)
     return None, offset
 
 @frame_transform_graph.transform(AffineTransform, GalacticLSR, Galactic)
 def galacticlsr_to_galactic(lsr_coord, galactic_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
-    v_offset = v_bary_gal.data.represent_as(CartesianDifferential)
-    offset = CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
+    v_offset = v_bary_gal.data.represent_as(r.CartesianDifferential)
+    offset = r.CartesianRepresentation([0,0,0]*u.au, differentials=-v_offset)
     return None, offset

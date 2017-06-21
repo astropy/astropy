@@ -6,11 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ..representation import (CartesianDifferential,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential)
+from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..frame_attributes import (FrameAttribute, TimeFrameAttribute,
                                 QuantityFrameAttribute, EarthLocationAttribute)
@@ -64,14 +60,16 @@ class AltAz(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
-    pm_az : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in azimuth for this object (``pm_alt`` must also be
-        given).
+
+    pm_az_cosalt : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in azimuth (including the ``cos(alt)`` factor) for
+        this object (``pm_alt`` must also be given).
     pm_alt : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in altitude for this object (``pm_az`` must also be
-        given).
+        The proper motion in altitude for this object (``pm_az_cosalt`` must
+        also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
+
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
@@ -89,28 +87,35 @@ class AltAz(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        SphericalRepresentation: [
+        r.SphericalRepresentation: [
             RepresentationMapping('lon', 'az'),
             RepresentationMapping('lat', 'alt')
         ],
-        SphericalCosLatDifferential: [
+        r.SphericalCosLatDifferential: [
             RepresentationMapping('d_lon_coslat', 'pm_az', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_alt', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ],
-        CartesianDifferential: [
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_ra', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
+        ],
+        r.CartesianDifferential: [
             RepresentationMapping('d_x', 'v_x', u.km/u.s),
             RepresentationMapping('d_y', 'v_y', u.km/u.s),
             RepresentationMapping('d_z', 'v_z', u.km/u.s),
         ],
     }
-    frame_specific_representation_info[UnitSphericalRepresentation] = \
-        frame_specific_representation_info[SphericalRepresentation]
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[r.SphericalRepresentation]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
     obstime = TimeFrameAttribute(default=None)
     location = EarthLocationAttribute(default=None)
