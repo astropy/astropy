@@ -1242,8 +1242,9 @@ class SkyCoord(ShapedLikeNDArray):
             ``obstime`` frame attribute on the `SkyCoord` will be used.
         location : `~astropy.coordinates.EarthLocation` or None, optional
             The observer location at which to compute the correction.  If
-            `None`, the  ``location`` frame attribute on the `SkyCoord` will be
-            used.
+            `None`, the  ``location`` frame attribute on the passed-in
+            `obstime`` will be used, and if that is None, the ``location``
+             frame attribute on the `SkyCoord` will be used.
 
         Raises
         ------
@@ -1281,6 +1282,32 @@ class SkyCoord(ShapedLikeNDArray):
         # has to be here to prevent circular imports
         from .solar_system import get_body_barycentric_posvel
 
+        # location validation
+        timeloc = getattr(obstime, 'location', None)
+        if location is None:
+            if self.location is not None:
+                location = self.location
+                if timeloc is not None:
+                    raise ValueError('`location` cannot be in both the '
+                                     'passed-in `obstime` and this `SkyCoord` '
+                                     'because it is ambiguous which is meant '
+                                     'for the radial_velocity_correction.')
+            elif timeloc is not None:
+                location = timeloc
+            else:
+                raise TypeError('Must provide a `location` to '
+                                'radial_velocity_correction, either as a '
+                                'SkyCoord frame attribute, as an attribute on '
+                                'the passed in `obstime`, or in the method '
+                                'call.')
+
+        elif self.location is not None or timeloc is not None:
+            raise ValueError('Cannot compute radial velocity correction if '
+                             '`location` argument is passed in and there is '
+                             'also a  `location` attribute on this SkyCoord or '
+                             'the passed-in `obstime`.')
+
+        #obstime validation
         if obstime is None:
             obstime = self.obstime
             if obstime is None:
@@ -1294,23 +1321,7 @@ class SkyCoord(ShapedLikeNDArray):
                              'inconsistent with the `obstime` frame '
                              'attribute on the SkyCoord')
 
-        if location is None:
-            location = self.location
-            if location is None:
-                raise TypeError('Must provide an `location` to '
-                                'radial_velocity_correction, either as a '
-                                'SkyCoord frame attribute or in the method '
-                                'call.')
-        elif self.location is not None:
-            raise ValueError('Cannot compute radial velocity correction if '
-                             '`location` argument is passed in and it is '
-                             'inconsistent with the `location` frame '
-                             'attribute on the SkyCoord')
 
-        if obstime.location is not None:
-            raise ValueError('`obstime` cannot have a `location` when used '
-                             'with radial_velocity_correction because it is '
-                             'ambiguous which is the desired `location`.')
 
         if kind == 'barycentric':
             v_origin_to_earth = get_body_barycentric_posvel('earth', obstime)[1]

@@ -189,7 +189,8 @@ def _get_test_input_radecs():
     decs = []
 
     for dec in np.linspace(-85, 85, 15):
-        ras1 = np.linspace(-180, 180-1e-6, np.round(10*np.cos(dec*u.deg)))
+        nra = int(np.round(10*np.cos(dec*u.deg)).value)
+        ras1 = np.linspace(-180, 180-1e-6, nra)
         ras.extend(ras1)
         decs.extend([dec]*len(ras1))
 
@@ -275,19 +276,23 @@ def test_rvcorr_multiple_obstimes_onskycoord():
     assert len(rvcbary_sc3) == 10
 
 
-def check_invalid_argument_combos():
+def test_invalid_argument_combos():
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time('2005-03-21 00:00:00')
-    time2 = time + 1*u.day
+    timel = Time('2005-03-21 00:00:00', location=loc)
 
     scwattrs = SkyCoord(1*u.deg, 2*u.deg, obstime=time, location=loc)
+    scwoattrs = SkyCoord(1*u.deg, 2*u.deg)
 
     scwattrs.radial_velocity_correction()
-    scwattrs.radial_velocity_correction(obstime=time, location=loc)
+    with pytest.raises(ValueError):
+        scwattrs.radial_velocity_correction(obstime=time, location=loc)
     with pytest.raises(TypeError):
-        scwattrs.radial_velocity_correction(obstime=time2)
+        scwoattrs.radial_velocity_correction(obstime=time)
 
-    scwoattrs = SkyCoord(1*u.deg, 2*u.deg)
-    scwattrs.radial_velocity_correction(obstime=time2, location=loc)
+    scwoattrs.radial_velocity_correction(obstime=time, location=loc)
     with pytest.raises(TypeError):
         scwoattrs.radial_velocity_correction()
+
+    with pytest.raises(ValueError):
+        scwattrs.radial_velocity_correction(timel)
