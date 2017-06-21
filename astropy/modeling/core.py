@@ -722,6 +722,7 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+
         # Check whether any of the inputs are quantities
         inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
 
@@ -1613,6 +1614,7 @@ class Model(object):
             # existing model, and hand them to the appropriate parameters in
             # the new model
             self._param_metrics[param_a] = existing._param_metrics[param_b]
+
         if needs_initialization:
             self.__init__(*dummy_args)
 
@@ -1701,6 +1703,7 @@ class Model(object):
 
         self._model_set_axis = model_set_axis
         self._param_metrics = defaultdict(dict)
+
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1725,6 +1728,7 @@ class Model(object):
                 # if any of the arguments are quantities, we need to return a
                 # Quantity object not a plain Numpy array.
                 params[param_name] = quantity_asanyarray(value, dtype=np.float)
+
         if kwargs:
             # If any keyword arguments were left over at this point they are
             # invalid--the base class should only be passed the parameter
@@ -1787,6 +1791,7 @@ class Model(object):
 
         for name in self.param_names:
             param_descr = getattr(self, name)
+
             if params.get(name) is None:
                 default = param_descr.default
 
