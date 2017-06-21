@@ -417,7 +417,6 @@ class Parameter(OrderedDescriptor):
             raw_unit = self._model._param_metrics[self.name]['raw_unit']
             orig_unit = self._model._param_metrics[self.name]['orig_unit']
             if raw_unit is not None:
-                #return np.float64(self._getter(value * raw_unit).value)
                 return np.float64(self._getter(value, raw_unit, orig_unit).value)
             else:
                 return self._getter(value)
