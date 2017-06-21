@@ -4,12 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..representation import (CartesianRepresentation,
-                              CartesianDifferential,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential)
+from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from .galactic import Galactic
 
@@ -49,33 +44,40 @@ class Supergalactic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        SphericalRepresentation: [
+        r.SphericalRepresentation: [
             RepresentationMapping('lon', 'sgl'),
             RepresentationMapping('lat', 'sgb')
         ],
-        CartesianRepresentation: [
+        r.CartesianRepresentation: [
             RepresentationMapping('x', 'sgx'),
             RepresentationMapping('y', 'sgy'),
             RepresentationMapping('z', 'sgz')
         ],
-        SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_sgl', u.mas/u.yr),
+        r.SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_sgl_cossgb', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ],
-        CartesianDifferential: [
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_sgl', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
+        ],
+        r.CartesianDifferential: [
             RepresentationMapping('d_x', 'v_x', u.km/u.s),
             RepresentationMapping('d_y', 'v_y', u.km/u.s),
             RepresentationMapping('d_z', 'v_z', u.km/u.s)
         ],
     }
-    frame_specific_representation_info[UnitSphericalRepresentation] = \
-        frame_specific_representation_info[SphericalRepresentation]
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[r.SphericalRepresentation]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
     # North supergalactic pole in Galactic coordinates.
     # Needed for transformations to/from Galactic coordinates.

@@ -1346,12 +1346,12 @@ class BaseRADecFrame(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
 
-    pm_ra : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in Right Ascension for this object (``pm_dec`` must
-        also be given).
-    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in Declination for this object (``pm_ra`` must also be
-        given).
+    pm_ra_cosdec : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Right Ascension (including the ``cos(dec)`` factor)
+        for this object (``pm_dec`` must also be given).
+    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword The
+        proper motion in Declination for this object (``pm_ra_cosdec`` must also
+        be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
 
@@ -1365,7 +1365,12 @@ class BaseRADecFrame(BaseCoordinateFrame):
             RepresentationMapping('lat', 'dec')
         ],
         r.SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_ra', u.mas/u.yr),
+            RepresentationMapping('d_lon_coslat', 'pm_ra_cosdec', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
+        ],
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_ra', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
         ],
@@ -1379,6 +1384,8 @@ class BaseRADecFrame(BaseCoordinateFrame):
         frame_specific_representation_info[r.SphericalRepresentation]
     frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
         frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential

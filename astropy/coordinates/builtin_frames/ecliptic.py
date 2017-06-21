@@ -4,11 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..representation import (CartesianDifferential,
-                              SphericalRepresentation,
-                              UnitSphericalRepresentation,
-                              SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential)
+from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..frame_attributes import TimeFrameAttribute
 from .utils import EQUINOX_J2000
@@ -40,12 +36,12 @@ class BaseEclipticFrame(BaseCoordinateFrame):
         The distance for this object from the {0}.
         (``representation`` must be None).
 
-    pm_lon : `Angle`, optional, must be keyword
-        The proper motion in the ecliptic longitude for this object (``pm_lat``
-        must also be given).
+    pm_lon_coslat : `Angle`, optional, must be keyword
+        The proper motion in the ecliptic longitude (including the ``cos(lat)``
+        factor) for this object (``pm_lat`` must also be given).
     pm_lat : `Angle`, optional, must be keyword
-        The proper motion in the ecliptic latitude for this object (``pm_lon``
-        must also be given).
+        The proper motion in the ecliptic latitude for this object
+        (``pm_lon_coslat`` must also be given).
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The distance for this object from the {0}.
         (``representation`` must be None).
@@ -56,18 +52,25 @@ class BaseEclipticFrame(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_lon', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_alt', u.mas/u.yr),
+        r.SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_lon_coslat', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_lat', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
+        ],
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_lon', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_lat', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ]
     }
 
-    frame_specific_representation_info[UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
 
 class GeocentricTrueEcliptic(BaseEclipticFrame):
@@ -130,8 +133,6 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
     """
-    default_representation = SphericalRepresentation
-    default_differential = SphericalCosLatDifferential
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 

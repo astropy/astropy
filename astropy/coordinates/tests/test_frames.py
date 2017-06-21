@@ -553,7 +553,7 @@ def test_represent_as():
 
     # now try with velocities
     icrs = ICRS(ra=0*u.deg, dec=0*u.deg, distance=10*u.kpc,
-                pm_ra=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
                 radial_velocity=1*u.km/u.s)
 
     # single string

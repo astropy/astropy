@@ -19,7 +19,7 @@ def test_lsr_sanity():
 
     # random numbers, but zero velocity in ICRS frame
     icrs = ICRS(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
-                pm_ra=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
                 radial_velocity=0*u.km/u.s)
     lsr = icrs.transform_to(LSR)
 
@@ -32,7 +32,7 @@ def test_lsr_sanity():
 
     # moving with LSR velocity
     lsr = LSR(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
-              pm_ra=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+              pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
               radial_velocity=0*u.km/u.s)
     icrs = lsr.transform_to(ICRS)
 
