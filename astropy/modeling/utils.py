@@ -634,3 +634,19 @@ def _combine_equivalency_dict(keys, eq1=None, eq2=None):
         if eq2 is not None and key in eq2:
             eq[key].extend(eq2[key])
     return eq
+
+
+def _to_radian(value):
+    """ Convert ``value`` to radian. """
+    if isinstance(value, u.Quantity):
+        return value.to(u.rad)
+    else:
+        return np.deg2rad(value)
+
+
+def _to_orig_unit(value, raw_unit=None, orig_unit=None):
+    """ Conver value with ``raw_unit`` to ``orig_unit``. """
+    if raw_unit is not None:
+        return (value * raw_unit).to(orig_unit)
+    else:
+        return np.rad2deg(value)

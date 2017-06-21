@@ -32,23 +32,11 @@ from ..extern.six.moves import zip
 from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
 from ..utils.decorators import deprecated
-
+from .utils import _to_radian, _to_orig_unit
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
 
-def _to_rad(value):
-    if isinstance(value, u.Quantity):
-        return value.to(u.rad)
-    else:
-        return np.deg2rad(value)
-
-
-def _to_orig_unit(value, raw_unit=None, orig_unit=None):
-    if raw_unit is not None:
-        return (value * raw_unit).to(orig_unit)
-    else:
-        return np.rad2deg(value)
 
 
 class _EulerRotation(object):
@@ -116,10 +104,12 @@ class _EulerRotation(object):
 
     @property
     def input_units(self):
+        """ Input units. """
         return {'alpha': u.deg, 'delta': u.deg}
 
     @property
     def return_units(self):
+        """ Output units. """
         return {'alpha': u.deg, 'delta': u.deg}
 
 
@@ -133,8 +123,9 @@ class EulerAngleRotation(_EulerRotation, Model):
 
     Parameters
     ----------
-    phi, theta, psi : float
-        "proper" Euler angles in deg
+    phi, theta, psi : float or `~astropy.units.Quantity`
+        "proper" Euler angles in deg.
+        If floats, they should be in deg.
     axes_order : str
         A 3 character string, a combination of 'x', 'y' and 'z',
         where each character denotes an axis in 3D space.
@@ -143,9 +134,9 @@ class EulerAngleRotation(_EulerRotation, Model):
     inputs = ('alpha', 'delta')
     outputs = ('alpha', 'delta')
 
-    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
-    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
-    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
         self.axes = ['x', 'y', 'z']
@@ -180,9 +171,9 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
-    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
-    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_rad)
+    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
@@ -208,30 +199,51 @@ class RotateNative2Celestial(_SkyRotation):
 
     Parameters
     ----------
-    lon : float
+    lon : float or or `~astropy.units.Quantity`
         Celestial longitude of the fiducial point.
-    lat : float
+    lat : float or or `~astropy.units.Quantity`
         Celestial latitude of the fiducial point.
-    lon_pole : float
+    lon_pole : float or or `~astropy.units.Quantity`
         Longitude of the celestial pole in the native system.
+
+    Notes
+    -----
+    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they should be in units of deg.
     """
 
-    # angles in degrees on the native sphere
+    #: Inputs are angles on the native sphere
     inputs = ('phi_N', 'theta_N')
+
+    #: Outputs are angles on the celestial sphere
     outputs = ('alpha_C', 'delta_C')
 
     @property
     def input_units(self):
+        """ Input units. """
         return {'phi_N': u.deg, 'theta_N': u.deg}
 
     @property
     def return_units(self):
+        """ Output units. """
         return {'alpha_C': u.deg, 'delta_C': u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super(RotateNative2Celestial, self).__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
+        """
+        Parameters
+        ----------
+        phi_N, theta_N : float (deg) or `~astropy.units.Quantity`
+            Angles in the Native coordinate system.
+        lon, lat, lon_pole : float (in deg) or `~astropy.units.Quantity`
+            Parameter values when the model was initialized.
+
+        Returns
+        -------
+        alpha_C, delta_C : float (deg) or `~astropy.units.Quantity`
+            Angles on the Celestial sphere.
+        """
         # The values are in radians since they have already been through the setter.
         if isinstance(lon, u.Quantity):
             lon = lon.value
@@ -257,31 +269,52 @@ class RotateCelestial2Native(_SkyRotation):
 
     Parameters
     ----------
-    lon : float
+    lon : float or or `~astropy.units.Quantity`
         Celestial longitude of the fiducial point.
-    lat : float
+    lat : float or or `~astropy.units.Quantity`
         Celestial latitude of the fiducial point.
-    lon_pole : float
+    lon_pole : float or or `~astropy.units.Quantity`
         Longitude of the celestial pole in the native system.
+
+    Notes
+    -----
+    If ``lon``, ``lat`` and ``lon_pole`` are numerical values they should be in units of deg.
     """
 
-    # angles in degrees on the celestial sphere
+    #: Inputs are angles on the celestial sphere
     inputs = ('alpha_C', 'delta_C')
-    # angles in degrees on the native sphere
+
+    #: Outputs are angles on the native sphere
     outputs = ('phi_N', 'theta_N')
 
     @property
     def input_units(self):
+        """ Input units. """
         return {'alpha_C': u.deg, 'delta_C': u.deg}
 
     @property
     def return_units(self):
+        """ Output units. """
         return {'phi_N': u.deg, 'theta_N': u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super(RotateCelestial2Native, self).__init__(lon, lat, lon_pole, **kwargs)
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
+        """
+        Parameters
+        ----------
+        alpha_C, delta_C : float (deg) or `~astropy.units.Quantity`
+            Angles in the Celestial coordinate frame.
+        lon, lat, lon_pole : float (deg) or `~astropy.units.Quantity`
+            Parameter values when the model was initialized.
+
+        Returns
+        -------
+        phi_N, theta_N : float (deg) or `~astropy.units.Quantity`
+            Angles on the Native sphere.
+
+        """
         if isinstance(lon, u.Quantity):
             lon = lon.value
             lat = lat.value
@@ -302,20 +335,20 @@ class RotateCelestial2Native(_SkyRotation):
 
 class Rotation2D(Model):
     """
-    Perform a 2D rotation given an angle in degrees.
+    Perform a 2D rotation given an angle.
 
     Positive angles represent a counter-clockwise rotation and vice-versa.
 
     Parameters
     ----------
-    angle : float
-        angle of rotation in deg
+    angle : float or `~astropy.units.Quantity`
+        Angle of rotation (if float it should be in deg).
     """
 
     inputs = ('x', 'y')
     outputs = ('x', 'y')
 
-    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_rad)
+    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
     input_units_strict = True
 
@@ -330,9 +363,15 @@ class Rotation2D(Model):
     @classmethod
     def evaluate(cls, x, y, angle):
         """
-        Apply the rotation to a set of 2D Cartesian coordinates given as two
-        lists--one for the x coordinates and one for a y coordinates--or a
-        single coordinate pair.
+        Rotate (x, y) about ``angle``.
+
+        Parameters
+        ----------
+        x, y : ndarray-like
+            Input quantities
+        angle : float (deg) or `~astropy.units.Quantity`
+            Angle of rotations.
+
         """
 
         if x.shape != y.shape:
