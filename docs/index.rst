@@ -42,7 +42,7 @@ Getting Started
    :maxdepth: 1
 
    install
-   What's New in astropy 1.3? <http://docs.astropy.org/en/stable/whatsnew/1.3.html>
+   whatsnew/1.3
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
