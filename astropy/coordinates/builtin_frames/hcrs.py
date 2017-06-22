@@ -25,15 +25,19 @@ class HCRS(BaseRADecFrame):
     the references provided in the :ref:`astropy-coordinates-seealso` section of
     the documentation.
 
-    This frame has these frame attributes:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``obstime``
+    {params}
+
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Sun.
     """
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
-HCRS.__doc__ += BaseRADecFrame.__doc__
+HCRS.__doc__ = HCRS.__doc__.format(params=BaseRADecFrame.__doc__)
 
 # Transformations are defined in icrs_circ_transforms.py

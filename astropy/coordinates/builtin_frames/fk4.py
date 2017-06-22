@@ -25,12 +25,15 @@ class FK4(BaseRADecFrame):
     Note that this is a barycentric version of FK4 - that is, the origin for
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
-    This frame has two frame attributes:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The equinox of this frame.
-
-    * ``obstime``
+    obstime : `~astropy.time.Time`
         The time this frame was observed.  If ``None``, will be the same as
         ``equinox``.
     """
@@ -38,7 +41,7 @@ class FK4(BaseRADecFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
-FK4.__doc__ += BaseRADecFrame.__doc__
+FK4.__doc__ = FK4.__doc__.format(params=BaseRADecFrame.__doc__)
 
 # the "self" transform
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)

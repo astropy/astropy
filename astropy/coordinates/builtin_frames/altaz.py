@@ -22,36 +22,15 @@ class AltAz(BaseCoordinateFrame):
     This frame is assumed to *include* refraction effects if the ``pressure``
     frame attribute is non-zero.
 
-    This frame has the following frame attributes, which are necessary for
-    transforming from AltAz to some other system:
-
-    * ``obstime``
-        The time at which the observation is taken.  Used for determining the
-        position and orientation of the Earth.
-    * ``location``
-        The location on the Earth.  This can be specified either as an
-        `~astropy.coordinates.EarthLocation` object or as anything that can be
-        transformed to an `~astropy.coordinates.ITRS` frame.
-    * ``pressure``
-        The atmospheric pressure as an `~astropy.units.Quantity` with pressure
-        units.  This is necessary for performing refraction corrections.
-        Setting this to 0 (the default) will disable refraction calculations
-        when transforming to/from this frame.
-    * ``temperature``
-        The ground-level temperature as an `~astropy.units.Quantity` in
-        deg C.  This is necessary for performing refraction corrections.
-    * ``relative_humidity``
-        The relative humidity as a number from 0 to 1.  This is necessary for
-        performing refraction corrections.
-    * ``obswl``
-        The average wavelength of observations as an `~astropy.units.Quantity`
-         with length units.  This is necessary for performing refraction
-         corrections.
+    The frame attributes are listed under **Other Parameters**, which are
+    necessary for transforming from AltAz to some other system.
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
+        A representation object or None to have no data (or use the other
+        keywords)
+
     az : `Angle`, optional, must be keyword
         The Azimuth for this object (``alt`` must also be given and
         ``representation`` must be None).
@@ -73,6 +52,31 @@ class AltAz(BaseCoordinateFrame):
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
+
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
+        The time at which the observation is taken.  Used for determining the
+        position and orientation of the Earth.
+    location : `~astropy.coordinates.EarthLocation`
+        The location on the Earth.  This can be specified either as an
+        `~astropy.coordinates.EarthLocation` object or as anything that can be
+        transformed to an `~astropy.coordinates.ITRS` frame.
+    pressure : `~astropy.units.Quantity`
+        The atmospheric pressure as an `~astropy.units.Quantity` with pressure
+        units.  This is necessary for performing refraction corrections.
+        Setting this to 0 (the default) will disable refraction calculations
+        when transforming to/from this frame.
+    temperature : `~astropy.units.Quantity`
+        The ground-level temperature as an `~astropy.units.Quantity` in
+        deg C.  This is necessary for performing refraction corrections.
+    relative_humidity`` : numeric
+        The relative humidity as a number from 0 to 1.  This is necessary for
+        performing refraction corrections.
+    obswl : `~astropy.units.Quantity`
+        The average wavelength of observations as an `~astropy.units.Quantity`
+         with length units.  This is necessary for performing refraction
+         corrections.
 
     Notes
     -----

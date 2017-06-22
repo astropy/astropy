@@ -18,9 +18,13 @@ class FK5(BaseRADecFrame):
     Note that this is a barycentric version of FK5 - that is, the origin for
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
-    This frame has one frame attribute:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The equinox of this frame.
     """
 
@@ -46,7 +50,7 @@ class FK5(BaseRADecFrame):
         """
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
-FK5.__doc__ += BaseRADecFrame.__doc__
+FK5.__doc__ = FK5.__doc__.format(params=BaseRADecFrame.__doc__)
 
 # This is the "self-transform".  Defined at module level because the decorator
 #  needs a reference to the FK5 class
