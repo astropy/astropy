@@ -259,7 +259,10 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
         # the inverse of a rotation matrix is a transpose, which is much faster
         #   and more stable to compute
         A = matrix_transpose(A)
-        offset = (-offset).with_differentials(-gcf.galcen_v_sun)
+        offset = (-offset).transform(A)
+        offset_v = r.CartesianDifferential(
+            (-gcf.galcen_v_sun).to_cartesian().transform(A).xyz)
+        offset = offset.with_differentials(offset_v)
 
     else:
         offset = offset.with_differentials(gcf.galcen_v_sun)
