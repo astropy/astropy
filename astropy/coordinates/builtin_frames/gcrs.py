@@ -25,19 +25,22 @@ class GCRS(BaseRADecFrame):
     This frame also includes frames that are defined *relative* to the Earth,
     but that are offset (in both position and velocity) from the Earth.
 
+    The frame attributes are listed under **Other Parameters**.
 
-    This frame has these frame attributes:
+    {params}
 
-    * ``obstime``
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
-    * ``obsgeoloc``
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The position of the observer relative to the center-of-mass of the
         Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
         Defaults to [0, 0, 0], meaning "true" GCRS.
-    * ``obsgeovel``
+    obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The velocity of the observer relative to the center-of-mass of the
         Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
@@ -51,7 +54,7 @@ class GCRS(BaseRADecFrame):
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
                                                       unit=u.m/u.s)
 
-GCRS.__doc__ += BaseRADecFrame.__doc__
+GCRS.__doc__ = GCRS.__doc__.format(params=BaseRADecFrame.__doc__)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like CIRS)
@@ -65,19 +68,23 @@ class PrecessedGeocentric(BaseRADecFrame):
     to that of ICRS, which is not quite the same as the dynamical J2000
     orientation.
 
-    This frame has these frame attributes:
+    The frame attributes are listed under **Other Parameters**
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The (mean) equinox to precess the coordinates to.
-    * ``obstime``
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
-    * ``obsgeoloc``
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The position of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS. Either [0, 0, 0], `~astropy.coordinates.CartesianRepresentation`,
         or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
         Defaults to [0, 0, 0], meaning "true" Geocentric.
-    * ``obsgeovel``
+    obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The velocity of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
         or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity units.
@@ -89,4 +96,5 @@ class PrecessedGeocentric(BaseRADecFrame):
     obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m)
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m/u.s)
 
-PrecessedGeocentric.__doc__ += BaseRADecFrame.__doc__
+PrecessedGeocentric.__doc__ = PrecessedGeocentric.__doc__.format(
+    params=BaseRADecFrame.__doc__)

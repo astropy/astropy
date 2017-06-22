@@ -42,7 +42,7 @@ class LSR(BaseRADecFrame):
     values are customizable via the ``v_bary`` argument which specifies the
     velocity of the solar system barycenter with respect to the LSR.
 
-    The frame attributes are listed under __Other parameters__.
+    The frame attributes are listed under **Other Parameters**.
 
     {params}
 
@@ -79,7 +79,7 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
 # ------------------------------------------------------------------------------
 
 class GalacticLSR(BaseCoordinateFrame):
-    """A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
+    r"""A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
     to the `Galactic` frame.
 
     This coordinate frame is axis-aligned and co-spatial with `ICRS`, but has
@@ -100,7 +100,7 @@ class GalacticLSR(BaseCoordinateFrame):
     argument which specifies the velocity of the solar system barycenter with
     respect to the LSR.
 
-    The frame attributes are listed under __Other parameters__.
+    The frame attributes are listed under **Other Parameters**.
 
     Parameters
     ----------

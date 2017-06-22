@@ -68,11 +68,34 @@ class Galactocentric(BaseCoordinateFrame):
     For a more detailed look at the math behind this transformation, see
     the document :ref:`coordinates-galactocentric`.
 
+    The frame attributes are listed under **Other Parameters**.
+
     Parameters
     ----------
     representation : `~astropy.coordinates.representation.BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
+
+    x : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`x` position component.
+    y : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`y` position component.
+    z : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`z` position component.
+
+    v_x : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_x` velocity component.
+    v_y : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_y` velocity component.
+    v_z : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_z` velocity component.
+
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
+
+    Other parameters
+    ----------------
     galcen_coord : `ICRS`, optional, must be keyword
         The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
@@ -88,9 +111,6 @@ class Galactocentric(BaseCoordinateFrame):
         the final x-z plane will align with the Galactic coordinates x-z
         plane. Unless you really know what this means, you probably should
         not change this!
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
 
     Examples
     --------

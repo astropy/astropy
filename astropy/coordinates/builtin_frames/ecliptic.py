@@ -84,9 +84,13 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     *includes* light deflection from the sun, aberration, etc when transforming
     to/from e.g. ICRS.
 
-    This frame has one frame attribute:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth (necessary for transformation to
         non-geocentric systems).
@@ -95,7 +99,8 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
 
-GeocentricTrueEcliptic.__doc__ += BaseEclipticFrame.__doc__.format("geocenter")
+GeocentricTrueEcliptic.__doc__ = GeocentricTrueEcliptic.__doc__.format(
+    params=BaseEclipticFrame.__doc__.format("geocenter"))
 
 
 class BarycentricTrueEcliptic(BaseEclipticFrame):
@@ -106,9 +111,13 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
     attribute (as seen from Earth), and the xy-plane in the plane of the
     ecliptic for that date.
 
-    This frame has one frame attribute:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
     """
@@ -116,7 +125,8 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
 
-BarycentricTrueEcliptic.__doc__ += BaseEclipticFrame.__doc__.format("sun's center")
+BarycentricTrueEcliptic.__doc__ = BarycentricTrueEcliptic.__doc__.format(
+    params=BaseEclipticFrame.__doc__.format("sun's center"))
 
 
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
@@ -127,9 +137,13 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     attribute (as seen from Earth), and the xy-plane in the plane of the
     ecliptic for that date.
 
-    This frame has one frame attribute:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
     """
@@ -137,4 +151,5 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
 
-HeliocentricTrueEcliptic.__doc__ += BaseEclipticFrame.__doc__.format("sun's center")
+HeliocentricTrueEcliptic.__doc__ = HeliocentricTrueEcliptic.__doc__.format(
+    params=BaseEclipticFrame.__doc__.format("sun's center"))
