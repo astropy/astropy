@@ -59,6 +59,9 @@ New Features
   - ``EarthLocation`` now has ``lat`` and ``lon`` properties (equivalent to, but
     preferred over, the previous ``latitude`` and ``longitude``). [#6237]
 
+  - Added a ``radial_velocity_correction`` method to ``SkyCoord`` to do compute
+    barycentric and heliocentric velocity corrections. [#5752]
+
   - Added a new ``AffineTransform`` class for coordinate frame transformations.
     This class supports matrix operations with vector offsets in position or
     any differential quantities (so far, only velocity is supported). The
