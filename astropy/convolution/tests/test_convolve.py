@@ -703,15 +703,15 @@ def test_asymmetric_kernel(boundary, convfunc):
 
     y = np.array([1, 2, 3], dtype='>f8')
 
-    z = convolve(x, y, boundary=boundary)
+    z = convolve(x, y, boundary=boundary, normalize_kernel=False)
 
     if boundary == 'fill':
         assert_array_almost_equal_nulp(z, np.array([6., 10.,  2.], dtype='float'), 10)
     elif boundary is None:
         assert_array_almost_equal_nulp(z, np.array([0., 10.,  0.], dtype='float'), 10)
-    elif boundary == 'wrap':
-        assert_array_almost_equal_nulp(z, np.array([7., 10.,  11.], dtype='float'), 10)
     elif boundary == 'extend':
+        assert_array_almost_equal_nulp(z, np.array([15., 10.,  3.], dtype='float'), 10)
+    elif boundary == 'wrap':
         assert_array_almost_equal_nulp(z, np.array([9., 10.,  5.], dtype='float'), 10)
 
 @pytest.mark.parametrize('ndims', (1,2,3))
@@ -719,9 +719,10 @@ def test_convolution_consistency(ndims):
 
     np.random.seed(0)
     array = np.random.randn(*([3]*ndims))
-    kernel = np.random.randn(*([3]*ndims))
+    np.random.seed(0)
+    kernel = np.random.rand(*([3]*ndims))
 
     conv_f = convolve_fft(array, kernel, boundary='fill')
     conv_d = convolve(array, kernel, boundary='fill')
 
-    assert_array_almost_equal_nulp(conv_f, conv_d)
+    assert_array_almost_equal_nulp(conv_f, conv_d, 10)
