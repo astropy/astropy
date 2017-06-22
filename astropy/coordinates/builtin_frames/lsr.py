@@ -22,19 +22,43 @@ v_bary_Schoenrich2010 = r.CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
 __all__ = ['LSR', 'GalacticLSR']
 
 class LSR(BaseRADecFrame):
-    """
-    A coordinate or frame in the Local Standard of Rest (LSR).
+    r"""A coordinate or frame in the Local Standard of Rest (LSR).
 
-    TODO: more words
-    - axis-aligned with ICRS
-    - co-spatial (SS barycenter)
-    - v_bary assumed to be Galactic
+    This coordinate frame is axis-aligned and co-spatial with `ICRS`, but has
+    a velocity offset relative to the solar system barycenter to remove the
+    peculiar motion of the sun relative to the LSR. Roughly, the LSR is the mean
+    velocity of the stars in the solar neighborhood, but the precise definition
+    of which depends on the study. As defined in Schönrich et al. (2010):
+    "The LSR is the rest frame at the location of the Sun of a star that would
+    be on a circular orbit in the gravitational potential one would obtain by
+    azimuthally averaging away non-axisymmetric features in the actual Galactic
+    potential." No such orbit truly exists, but it is still a commonly used
+    velocity frame.
+
+    We use default values from Schönrich et al. (2010) for the barycentric
+    velocity relative to the LSR, which is defined in Galactic cartesian
+    velocity components
+    :math:`(U, V, W) = (-11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
+    values are customizable via the ``v_bary`` argument which specifies the
+    velocity of the solar system barycenter with respect to the LSR.
+
+    The frame attributes are listed under __Other parameters__.
+
+    {params}
+
+    Other parameters
+    ----------------
+    v_bary : `~astropy.coordinates.representation.CartesianDifferential`
+        The velocity of the solar system barycenter with respect to the LSR, in
+        Galactic cartesian velocity components.
+
     """
 
     # frame attributes:
-    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
+    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010,
+                                        allowed_classes=[r.CartesianDifferential])
 
-LSR.__doc__ += BaseRADecFrame.__doc__
+LSR.__doc__ = LSR.__doc__.format(params=BaseRADecFrame.__doc__)
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):
@@ -55,17 +79,34 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
 # ------------------------------------------------------------------------------
 
 class GalacticLSR(BaseCoordinateFrame):
-    """
-    A coordinate or frame in the Local Standard of Rest (LSR).
+    """A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
+    to the `Galactic` frame.
 
-    TODO: more words
-    - axis-aligned with Galactic
-    - co-spatial (SS barycenter)
+    This coordinate frame is axis-aligned and co-spatial with `ICRS`, but has
+    a velocity offset relative to the solar system barycenter to remove the
+    peculiar motion of the sun relative to the LSR. Roughly, the LSR is the mean
+    velocity of the stars in the solar neighborhood, but the precise definition
+    of which depends on the study. As defined in Schönrich et al. (2010):
+    "The LSR is the rest frame at the location of the Sun of a star that would
+    be on a circular orbit in the gravitational potential one would obtain by
+    azimuthally averaging away non-axisymmetric features in the actual Galactic
+    potential." No such orbit truly exists, but it is still a commonly used
+    velocity frame.
+
+    We use default values from Schönrich et al. (2010) for the barycentric
+    velocity relative to the LSR, which is defined in Galactic cartesian
+    velocity components :math:`(U, V, W) = (-11.1, 12.24, 7.25)~
+    {\rm km}~{\rm s}^{-1}`. These values are customizable via the ``v_bary``
+    argument which specifies the velocity of the solar system barycenter with
+    respect to the LSR.
+
+    The frame attributes are listed under __Other parameters__.
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
+
     l : `Angle`, optional, must be keyword
         The Galactic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
@@ -75,9 +116,25 @@ class GalacticLSR(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
+
+    pm_l_cosb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic longitude (including the ``cos(b)`` term)
+        for this object (``pm_b`` must also be given).
+    pm_b : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic latitude for this object (``pm_l_cosb``
+        must also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
+
+    Other parameters
+    ----------------
+    v_bary : `~astropy.coordinates.representation.CartesianDifferential`
+        The velocity of the solar system barycenter with respect to the LSR, in
+        Galactic cartesian velocity components.
     """
 
     frame_specific_representation_info = {
