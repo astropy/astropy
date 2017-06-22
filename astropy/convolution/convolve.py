@@ -817,6 +817,6 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     elif mode == 'convolve':
         BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(partial(convolve, **kwargs))
     else:
-        raise ValueError('Mode ' + mode + ' is not supported.')
+        raise ValueError('Mode {} is not supported.'.format(mode))
 
     return _CompoundModelMeta._from_operator(mode, model, kernel)
