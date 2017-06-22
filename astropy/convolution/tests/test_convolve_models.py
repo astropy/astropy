@@ -62,6 +62,17 @@ class TestConvolve1DModels(object):
         assert_allclose(ans(x), model_conv(x), atol=1e-3)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
+    def test_convolve_box_models(self, mode):
+        kernel = models.Box1D()
+        model = models.Box1D()
+        model_conv = convolve_models(model, kernel, mode=mode,
+                                     normalize_kernel=False)
+        x = np.linspace(-1, 1, 99)
+        ans = (x - 1) * (x < 0) + (-x + 1) * (x >= 0)
+
+        assert_allclose(ans(x), model_conv(x), atol=1e-3)
+
+    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitting_convolve_models(self, mode):
         """
