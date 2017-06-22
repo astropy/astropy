@@ -3013,6 +3013,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
+        self._groups = HomogeneousList(Group)
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._links = HomogeneousList(Link)
@@ -3075,6 +3076,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self._infos
 
     @property
+    def groups(self):
+        """
+        A list of groups
+        """
+        return self._groups
+
+    @property
     def params(self):
         """
         A list of parameters (constant-valued columns) for the
@@ -3117,6 +3125,11 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.infos.append(info)
         info.parse(iterator, config)
 
+    def _add_group(self, iterator, tag, data, config, pos):
+        group = Group(self, config=config, pos=pos, **data)
+        self.groups.append(group)
+        group.parse(iterator, config)
+
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
         self.params.append(param)
@@ -3144,6 +3157,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
             'TABLE': self._add_table,
             'INFO': self._add_info,
             'PARAM': self._add_param,
+            'GROUP' : self._add_group,
             'COOSYS': self._add_coosys,
             'RESOURCE': self._add_resource,
             'LINK': self._add_link,
