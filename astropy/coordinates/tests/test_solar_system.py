@@ -57,8 +57,8 @@ def test_positions_skyfield():
     skyfield_t = ts.from_astropy(t)
 
     if location is not None:
-        earth = earth.topos(latitude_degrees=location.latitude.to_value(u.deg),
-                            longitude_degrees=location.longitude.to_value(u.deg),
+        earth = earth.topos(latitude_degrees=location.lat.to_value(u.deg),
+                            longitude_degrees=location.lon.to_value(u.deg),
                             elevation_m=location.height.to_value(u.m))
 
     skyfield_mercury = earth.at(skyfield_t).observe(mercury).apparent()
