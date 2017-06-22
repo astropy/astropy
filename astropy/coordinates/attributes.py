@@ -186,7 +186,10 @@ class TimeAttribute(Attribute):
                                                                value, err))
             converted = True
 
-        out.writeable = False
+        # Set attribute as read-only for arrays (not allowed by numpy
+        # for array scalars)
+        if out.shape:
+            out.writeable = False
         return out, converted
 
 
