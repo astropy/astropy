@@ -422,8 +422,11 @@ class CoordinateAttribute(FrameAttribute):
             return transformedobj, True
 
 class DifferentialFrameAttribute(FrameAttribute):
-    """
-    TODO:
+    """A frame attribute which is a differential instance.
+
+    The optional ``allowed_classes`` argument allows specifying a restricted
+    set of valid differential classes to check the input against. Otherwise,
+    any `~astropy.coordinates.BaseDifferential` subclass instance is valid.
 
     Parameters
     ----------
@@ -448,13 +451,13 @@ class DifferentialFrameAttribute(FrameAttribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a SkyCoord with the necessary units (or the
-        special value ``None``).
+        Checks that the input is a differential object and is one of the
+        allowed class types.
 
         Parameters
         ----------
         value : object
-            Input value to be converted.
+            Input value.
 
         Returns
         -------
