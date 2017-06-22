@@ -714,7 +714,7 @@ class Time(ShapedLikeNDArray):
             if self.location is None:
                 raise ValueError('No longitude is given but the location for '
                                  'the Time object is not set.')
-            longitude = self.location.longitude
+            longitude = self.location.lon
         elif longitude == 'greenwich':
             longitude = Longitude(0., u.degree,
                                   wrap_angle=180.*u.degree)
@@ -1268,7 +1268,7 @@ class Time(ShapedLikeNDArray):
             else:
                 location = self.location
             # Geodetic params needed for d_tdb_tt()
-            lon = location.longitude
+            lon = location.lon
             rxy = np.hypot(location.x, location.y)
             z = location.z
             self._delta_tdb_tt = erfa.dtdb(

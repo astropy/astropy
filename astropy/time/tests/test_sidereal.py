@@ -122,9 +122,9 @@ class TestST():
         lmst2 = self.t2.sidereal_time(kind)
         assert allclose_hours(lmst2.value, lst_compare[kind])
         assert allclose_hours((lmst2-gmst2).wrap_at('12h').value,
-                              self.t2.location.longitude.to_value('hourangle'))
+                              self.t2.location.lon.to_value('hourangle'))
         # check it also works when one gives longitude explicitly
-        lmst1 = self.t1.sidereal_time(kind, self.t2.location.longitude)
+        lmst1 = self.t1.sidereal_time(kind, self.t2.location.lon)
         assert allclose_hours(lmst1.value, lst_compare[kind])
 
     def test_lst_needs_location(self):
