@@ -1095,8 +1095,6 @@ class Time(ShapedLikeNDArray):
         # dt = (self.jd1 - approx_jd1) + (self.jd2 - approx_jd2)
         dt = (self.jd1 - approx) + self.jd2
 
-        # FIX ME
-
         return dt.argmin(axis, out)
 
     def argmax(self, axis=None, out=None):
@@ -1112,8 +1110,6 @@ class Time(ShapedLikeNDArray):
 
         dt = (self.jd1 - approx) + self.jd2
 
-        # FIX ME
-
         return dt.argmax(axis, out)
 
     def argsort(self, axis=-1):
@@ -1124,9 +1120,6 @@ class Time(ShapedLikeNDArray):
         is used, and that corresponding attributes are copied.  Internally,
         it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
         """
-
-        # FIX ME
-
         jd_approx = self.jd
         jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
         if axis is None:
@@ -1146,8 +1139,6 @@ class Time(ShapedLikeNDArray):
         to have an actual ``out`` to store the result in.
         """
 
-        # FIX ME
-
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1165,8 +1156,6 @@ class Time(ShapedLikeNDArray):
         to have an actual ``out`` to store the result in.
         """
 
-        # FIX ME?
-
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1183,8 +1172,6 @@ class Time(ShapedLikeNDArray):
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
-
-        # FIX ME?
 
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
@@ -1206,8 +1193,6 @@ class Time(ShapedLikeNDArray):
             Axis to be sorted.  If ``None``, the flattened array is sorted.
             By default, sort over the last axis.
         """
-
-        # FIX ME?
 
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
