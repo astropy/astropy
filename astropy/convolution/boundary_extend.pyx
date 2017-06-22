@@ -170,9 +170,9 @@ def convolve3d_boundary_extend(np.ndarray[DTYPE_t, ndim=3] f,
                                 jjj = int_min(int_max(jj, 0), ny - 1)
                                 kkk = int_min(int_max(kk, 0), nz - 1)
                                 val = f[iii, jjj, kkk]
-                                ker = g[<unsigned int>(nkx - 1 - (wkx - ii - i)),
-                                        <unsigned int>(nky - 1 - (wky - jj - j)),
-                                        <unsigned int>(nkz - 1 - (wkz - kk - k))]
+                                ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
+                                        <unsigned int>(nky - 1 - (wky + jj - j)),
+                                        <unsigned int>(nkz - 1 - (wkz + kk - k))]
                                 if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
