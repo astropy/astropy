@@ -29,12 +29,12 @@ class Supergalactic(BaseCoordinateFrame):
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
 
-    pm_sgl : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_sgl_cossgb : :class:`~astropy.units.Quantity`, optional, must be keyword
         The proper motion in Right Ascension for this object (``pm_sgb`` must
         also be given).
     pm_sgb : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in Declination for this object (``pm_sgl`` must also
-        be given).
+        The proper motion in Declination for this object (``pm_sgl_cossgb`` must
+        also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
 
