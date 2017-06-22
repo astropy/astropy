@@ -7,7 +7,7 @@ import numpy as np
 
 from ..convolve import convolve, convolve_fft
 
-from numpy.testing import assert_array_almost_equal_nulp
+from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
 
 import itertools
 
@@ -726,3 +726,12 @@ def test_convolution_consistency(ndims):
     conv_d = convolve(array, kernel, boundary='fill')
 
     assert_array_almost_equal_nulp(conv_f, conv_d, 10)
+
+def test_astropy_convolution_against_numpy():
+    x = np.array([1, 2, 3])
+    y = np.array([5, 4, 3, 2, 1])
+
+    assert_array_almost_equal(np.convolve(y, x, 'same'),
+                              convolve(y, x, normalize_kernel=False))
+    assert_array_almost_equal(np.convolve(y, x, 'same'),
+                              convolve_fft(y, x, normalize_kernel=False))
