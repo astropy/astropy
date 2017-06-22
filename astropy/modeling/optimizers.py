@@ -183,8 +183,10 @@ class Simplex(Optimization):
     This algorithm only uses function values, not derivatives.
     Uses `scipy.optimize.fmin`.
 
+    References
+    ----------
     .. [1] Nelder, J.A. and Mead, R. (1965), "A simplex method for function
-           minimization", The Computer Journal, 7, pp. 308-313
+       minimization", The Computer Journal, 7, pp. 308-313
     """
 
     supported_constraints = ['bounds', 'fixed', 'tied']
