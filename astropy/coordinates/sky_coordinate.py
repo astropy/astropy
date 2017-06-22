@@ -1243,8 +1243,8 @@ class SkyCoord(ShapedLikeNDArray):
         location : `~astropy.coordinates.EarthLocation` or None, optional
             The observer location at which to compute the correction.  If
             `None`, the  ``location`` frame attribute on the passed-in
-            `obstime`` will be used, and if that is None, the ``location``
-             frame attribute on the `SkyCoord` will be used.
+            ``obstime`` will be used, and if that is None, the ``location``
+            frame attribute on the `SkyCoord` will be used.
 
         Raises
         ------
@@ -1254,7 +1254,6 @@ class SkyCoord(ShapedLikeNDArray):
         TypeError
             If ``obstime`` or ``location`` aren't provided, either as arguments
             or as frame attributes.
-
 
         Returns
         -------
