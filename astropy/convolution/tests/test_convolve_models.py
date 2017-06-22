@@ -20,6 +20,17 @@ else:
 class TestConvolve1DModels(object):
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
+    def test_is_consistency_with_astropy_convolution(self, mode):
+        kernel = models.Gaussian1D(1, 0, 1)
+        model = models.Gaussian1D(1, 0, 1)
+        model_conv = convolve_models(model, kernel, mode=mode)
+        x = np.arange(-5, 6)
+        ans = eval("{}(model(x), kernel(x))".format(mode))
+
+        assert_allclose(ans, model_conv(x), atol=1e-5)
+
+    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_against_scipy(self, mode):
         from scipy.signal import fftconvolve
 
