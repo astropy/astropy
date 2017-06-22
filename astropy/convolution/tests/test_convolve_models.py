@@ -70,7 +70,7 @@ class TestConvolve1DModels(object):
         x = np.linspace(-1, 1, 99)
         ans = (x - 1) * (x < 0) + (-x + 1) * (x >= 0)
 
-        assert_allclose(ans(x), model_conv(x), atol=1e-3)
+        assert_allclose(ans, model_conv(x), atol=1e-3)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
