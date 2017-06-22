@@ -961,12 +961,12 @@ def test_read_big_table(tmpdir):
 # test these both with guessing turned on and off
 @pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
-@pytest.mark.parametrize('reader', [ False, dict(use_fast_converter=False),
+@pytest.mark.parametrize('fast_reader', [ False, dict(use_fast_converter=False),
                                      dict(use_fast_converter=True) ])
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [False,
     pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
-def test_data_out_of_range(parallel, reader, guess):
+def test_data_out_of_range(parallel, fast_reader, guess):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
     shall be returned as 0 and +-inf respectively by the C parser, just like
@@ -976,14 +976,14 @@ def test_data_out_of_range(parallel, reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
 
-    # update fast_reader dict; pass only copies to avoid changing during read()!
-    if reader:
-        reader['parallel'] = parallel
-        if reader.get('use_fast_converter'):
+    # update fast_reader dict
+    if fast_reader:
+        fast_reader['parallel'] = parallel
+        if fast_reader.get('use_fast_converter'):
             rtol = 1.e-15
 
     if parallel:
-        if not reader:
+        if not fast_reader:
             pytest.skip("Multiprocessing only available in fast reader")
         elif TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
@@ -1005,8 +1005,8 @@ def test_data_out_of_range(parallel, reader, guess):
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
     # test corner cases again with non-standard exponent_style (auto-detection)
-    if reader and reader.get('use_fast_converter'):
-        reader.update({'exponent_style': 'A'})
+    if fast_reader and fast_reader.get('use_fast_converter'):
+        fast_reader.update({'exponent_style': 'A'})
     else:
         pytest.skip("Fortran exponent style only available in fast converter")
 
@@ -1247,3 +1247,19 @@ def test_fortran_reader_notbasic():
     with pytest.raises(ParameterError):
         t7 = ascii.read(tabrst.split('\n'), format='rst', guess=False,
                         fast_reader=dict(exponent_style='D'))
+
+@pytest.mark.parametrize("guess", [True, False])
+@pytest.mark.parametrize('fast_reader', [ dict(exponent_style='D'),
+                                          dict(exponent_style='A') ])
+
+def test_dict_kwarg_integrity(fast_reader, guess):
+    """
+    Check if dictionaries passed as kwargs (fast_reader in this test) are
+    left intact by ascii.read()
+    """
+    expstyle = fast_reader.get('exponent_style', 'E')
+    fields = [ '10.1D+199', '3.14d+313', '2048d+306', '0.6D-325', '-2.d345' ]
+    # values = np.array([ 1.01e200, np.inf, np.inf, 0.0, -np.inf ])
+    t = ascii.read(StringIO(' '.join(fields)), guess=guess,
+                   fast_reader=fast_reader)
+    assert fast_reader.get('exponent_style', None) == expstyle

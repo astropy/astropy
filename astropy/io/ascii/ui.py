@@ -295,6 +295,11 @@ def read(table, guess=None, **kwargs):
 
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
+    # dictionary arguments are passed by reference per default and thus need
+    # special protection:
+    for k in kwargs:
+        if isinstance(kwargs[k], dict):
+            new_kwargs[k] = copy.deepcopy(kwargs[k])
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
     Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
