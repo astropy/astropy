@@ -28,7 +28,7 @@ matplotlib's default of 10 bins, the second with an arbitrarily chosen
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
@@ -81,7 +81,7 @@ The following figure shows the results of these two rules on the above dataset:
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
@@ -124,6 +124,7 @@ the results of these procedures for the above dataset:
 .. plot::
    :align: center
 
+    import warnings
     import numpy as np
     from astropy.visualization import hist
 
@@ -134,7 +135,7 @@ the results of these procedures for the above dataset:
                         -1 + 0.3 * rng.standard_cauchy(500),
                         2 + 0.8 * rng.standard_cauchy(1000),
                         4 + 1.5 * rng.standard_cauchy(1000)])
-    
+
     # truncate to a reasonable range
     t = t[(t > -15) & (t < 15)]
 
@@ -144,8 +145,10 @@ the results of these procedures for the above dataset:
 
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['knuth', 'blocks']):
-        hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
-             alpha=0.2, normed=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # Ignore bayesian block p0 warning
+            hist(t, bins=bins, ax=ax[i], histtype='stepfilled',
+                 alpha=0.2, normed=True)
         ax[i].set_xlabel('t')
         ax[i].set_ylabel('P(t)')
         ax[i].set_title('hist(t, bins="{0}")'.format(bins),
