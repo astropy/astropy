@@ -9,7 +9,7 @@ import numpy as np
 from .. import Time
 
 
-@pytest.fixture(scope="module", params=['not masked', 'masked'])
+@pytest.fixture(scope="module", params=[True, False])
 def masked(request):
     # Could not figure out a better way to parametrize the setup method
     global use_masked_data
@@ -23,7 +23,7 @@ class TestManipulation():
     def setup(self):
         mjd = np.arange(50000, 50010)
         frac = np.arange(0., 0.999, 0.2)
-        if use_masked_data == 'masked':
+        if use_masked_data:
             frac = np.ma.array(frac)
             frac[1] = np.ma.masked
         self.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
@@ -293,21 +293,29 @@ class TestManipulation():
 
 class TestArithmetic():
     """Arithmetic on Time objects, using both doubles."""
-    kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
-    functions = ('min', 'max', 'sort')
+    # kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
+    kwargs = ({'axis': None},)
+    # functions = ('min', 'max', 'sort')
+    functions = ('sort',)
 
     def setup(self):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
         frac = np.array([0.1, 0.1+1.e-15, 0.1-1.e-15, 0.9+2.e-16, 0.9])
+        if use_masked_data:
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t0 = Time(mjd, frac, format='mjd', scale='utc')
 
         # Define arrays with same ordinal properties
         frac = np.array([1, 2, 0, 4, 3])
+        if use_masked_data:
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t1 = Time(mjd + frac, format='mjd', scale='utc')
         self.jd = mjd + frac
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
-    def test_argfuncs(self, kw, func):
+    def test_argfuncs(self, kw, func, masked):
         """
         Test that np.argfunc(jd, **kw) is the same as t0.argfunc(**kw) where
         jd is a similarly shaped array with the same ordinal properties but
@@ -317,13 +325,19 @@ class TestArithmetic():
         t0v = getattr(self.t0, 'arg' + func)(**kw)
         t1v = getattr(self.t1, 'arg' + func)(**kw)
         jdv = getattr(np, 'arg' + func)(self.jd, **kw)
+
+        if self.t0.masked and kw == {'axis': None} and func == 'sort':
+            t0v = np.ma.array(t0v, mask=self.t0.mask.reshape(t0v.shape)[t0v])
+            t1v = np.ma.array(t1v, mask=self.t1.mask.reshape(t1v.shape)[t1v])
+            jdv = np.ma.array(jdv, mask=self.jd.mask.reshape(jdv.shape)[jdv])
+
         assert np.all(t0v == jdv)
         assert np.all(t1v == jdv)
         assert t0v.shape == jdv.shape
         assert t1v.shape == jdv.shape
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
-    def test_funcs(self, kw, func):
+    def test_funcs(self, kw, func, masked):
         """
         Test that np.func(jd, **kw) is the same as t1.func(**kw) where
         jd is a similarly shaped array and the same integral values.
@@ -333,27 +347,42 @@ class TestArithmetic():
         assert np.all(t1v.value == jdv)
         assert t1v.shape == jdv.shape
 
-    def test_argmin(self):
+    def test_argmin(self, masked):
         assert self.t0.argmin() == 2
         assert np.all(self.t0.argmin(axis=0) == 0)
         assert np.all(self.t0.argmin(axis=1) == 0)
         assert np.all(self.t0.argmin(axis=2) == 2)
 
-    def test_argmax(self):
+    def test_argmax(self, masked):
         assert self.t0.argmax() == self.t0.size - 2
-        assert np.all(self.t0.argmax(axis=0) == 1)
-        assert np.all(self.t0.argmax(axis=1) == 4)
+        if masked:
+            # The 0 is where all entries are masked in that axis
+            assert np.all(self.t0.argmax(axis=0) == [1, 0, 1, 1, 1])
+            assert np.all(self.t0.argmax(axis=1) == [4, 0, 4, 4, 4])
+        else:
+            assert np.all(self.t0.argmax(axis=0) == 1)
+            assert np.all(self.t0.argmax(axis=1) == 4)
         assert np.all(self.t0.argmax(axis=2) == 3)
 
-    def test_argsort(self):
-        assert np.all(self.t0.argsort() == np.array([2, 0, 1, 4, 3]))
+    def test_argsort(self, masked):
+        order = [2, 0, 4, 3, 1] if masked else [2, 0, 1, 4, 3]
+        assert np.all(self.t0.argsort() == np.array(order))
         assert np.all(self.t0.argsort(axis=0) == np.arange(2).reshape(2, 1, 1))
         assert np.all(self.t0.argsort(axis=1) == np.arange(5).reshape(5, 1))
-        assert np.all(self.t0.argsort(axis=2) == np.array([2, 0, 1, 4, 3]))
-        assert np.all(self.t0.argsort(axis=None) ==
-                      np.arange(50).reshape(-1, 5)[:, (2, 0, 1, 4, 3)].ravel())
+        assert np.all(self.t0.argsort(axis=2) == np.array(order))
+        ravel = np.arange(50).reshape(-1, 5)[:, order].ravel()
+        if masked:
+            t0v = self.t0.argsort(axis=None)
+            # Manually remove elements in ravel that correspond to masked
+            # entries in self.t0.  This removes the 10 entries that are masked
+            # which show up at the end of the list.
+            mask = self.t0.mask.ravel()[ravel]
+            ravel = ravel[~mask]
+            assert np.all(t0v[:-10] == ravel)
+        else:
+            assert np.all(self.t0.argsort(axis=None) == ravel)
 
-    def test_min(self):
+    def test_min(self, masked):
         assert self.t0.min() == self.t0[0, 0, 2]
         assert np.all(self.t0.min(0) == self.t0[0])
         assert np.all(self.t0.min(1) == self.t0[:, 0])
@@ -365,7 +394,7 @@ class TestArithmetic():
         assert self.t0.min(2).shape == (2, 5)
         assert self.t0.min(2, keepdims=True).shape == (2, 5, 1)
 
-    def test_max(self):
+    def test_max(self, masked):
         assert self.t0.max() == self.t0[-1, -1, -2]
         assert np.all(self.t0.max(0) == self.t0[1])
         assert np.all(self.t0.max(1) == self.t0[:, 4])
@@ -373,22 +402,24 @@ class TestArithmetic():
         assert self.t0.max(0).shape == (5, 5)
         assert self.t0.max(0, keepdims=True).shape == (1, 5, 5)
 
-    def test_ptp(self):
+    def test_ptp(self, masked):
         assert self.t0.ptp() == self.t0.max() - self.t0.min()
         assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
         assert self.t0.ptp(0).shape == (5, 5)
         assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
 
-    def test_sort(self):
-        assert np.all(self.t0.sort() == self.t0[:, :, (2, 0, 1, 4, 3)])
+    def test_sort(self, masked):
+        order = [2, 0, 4, 3, 1] if masked else [2, 0, 1, 4, 3]
+        assert np.all(self.t0.sort() == self.t0[:, :, order])
         assert np.all(self.t0.sort(0) == self.t0)
         assert np.all(self.t0.sort(1) == self.t0)
-        assert np.all(self.t0.sort(2) == self.t0[:, :, (2, 0, 1, 4, 3)])
-        assert np.all(self.t0.sort(None) ==
-                      self.t0[:, :, (2, 0, 1, 4, 3)].ravel())
-        # Bit superfluous, but good to check.
-        assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
-        assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
+        assert np.all(self.t0.sort(2) == self.t0[:, :, order])
+        if not masked:
+            assert np.all(self.t0.sort(None) ==
+                          self.t0[:, :, order].ravel())
+            # Bit superfluous, but good to check.
+            assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
+            assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
 
 
 def test_regression():
