@@ -205,7 +205,7 @@ class Galactocentric(BaseCoordinateFrame):
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
-def get_matrix_vectors(galactocentric_frame, inv=False):
+def get_matrix_vectors(galactocentric_frame, inverse=False):
     """
     Use the ``inv`` argument to get the inverse transformation, matrix and
     offsets to go from Galactocentric to ICRS.
@@ -235,7 +235,7 @@ def get_matrix_vectors(galactocentric_frame, inv=False):
     # above the midplane
     offset = -translation.transform(H)
 
-    if inv:
+    if inverse:
         # the inverse of a rotation matrix is a transpose, which is much faster
         #   and more stable to compute
         A = matrix_transpose(A)
@@ -269,4 +269,4 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 @frame_transform_graph.transform(AffineTransform, Galactocentric, ICRS)
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     _check_coord_repr_diff_types(galactocentric_coord)
-    return get_matrix_vectors(galactocentric_coord, inv=True)
+    return get_matrix_vectors(galactocentric_coord, inverse=True)
