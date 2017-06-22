@@ -1,9 +1,9 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import copy
 import re
-import collections
+import copy
 import warnings
+import collections
 
 import numpy as np
 
@@ -20,7 +20,7 @@ from ..utils import ShapedLikeNDArray
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS, SkyOffsetFrame
+from .builtin_frames import ICRS, GCRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -1225,6 +1225,121 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
+    def radial_velocity_correction(self, kind='barycentric', obstime=None,
+                                   location=None):
+        """
+        Compute the correction required to convert a radial velocity at a given
+        time and place on the Earth's Surface to a barycentric or heliocentric
+        velocity.
+
+        Parameters
+        ----------
+        kind : str
+            The kind of velocity correction.  Must be 'barycentric' or
+            'heliocentric'.
+        obstime : `~astropy.time.Time` or None, optional
+            The time at which to compute the correction.  If `None`, the
+            ``obstime`` frame attribute on the `SkyCoord` will be used.
+        location : `~astropy.coordinates.EarthLocation` or None, optional
+            The observer location at which to compute the correction.  If
+            `None`, the  ``location`` frame attribute on the passed-in
+            ``obstime`` will be used, and if that is None, the ``location``
+            frame attribute on the `SkyCoord` will be used.
+
+        Raises
+        ------
+        ValueError
+            If either ``obstime`` or ``location`` are passed in (not ``None``)
+            when the frame attribute is already set on this `SkyCoord`.
+        TypeError
+            If ``obstime`` or ``location`` aren't provided, either as arguments
+            or as frame attributes.
+
+        Returns
+        -------
+        vcorr : `~astropy.units.Quantity` with velocity units
+            The  correction with a positive sign.  I.e., *add* this
+            to an observed radial velocity to get the heliocentric velocity.
+
+        Notes
+        -----
+        The algorithm here is sufficient to perform corrections at the ~1 to
+        10 m/s level, but has not been validated at better precision.  Future
+        versions of Astropy will likely aim to improve this.
+
+        The default is for this method to use the builtin ephemeris for
+        computing the sun and earth location.  Other ephemerides can be chosen
+        by setting the `~astropy.coordinates.solar_system_ephemeris` variable,
+        either directly or via ``with`` statement.  For example, to use the JPL
+        ephemeris, do::
+
+            sc = SkyCoord(1*u.deg, 2*u.deg)
+            with coord.solar_system_ephemeris.set('jpl'):
+                rv += sc.rv_correction(obstime=t, location=loc)
+
+        """
+        # has to be here to prevent circular imports
+        from .solar_system import get_body_barycentric_posvel
+
+        # location validation
+        timeloc = getattr(obstime, 'location', None)
+        if location is None:
+            if self.location is not None:
+                location = self.location
+                if timeloc is not None:
+                    raise ValueError('`location` cannot be in both the '
+                                     'passed-in `obstime` and this `SkyCoord` '
+                                     'because it is ambiguous which is meant '
+                                     'for the radial_velocity_correction.')
+            elif timeloc is not None:
+                location = timeloc
+            else:
+                raise TypeError('Must provide a `location` to '
+                                'radial_velocity_correction, either as a '
+                                'SkyCoord frame attribute, as an attribute on '
+                                'the passed in `obstime`, or in the method '
+                                'call.')
+
+        elif self.location is not None or timeloc is not None:
+            raise ValueError('Cannot compute radial velocity correction if '
+                             '`location` argument is passed in and there is '
+                             'also a  `location` attribute on this SkyCoord or '
+                             'the passed-in `obstime`.')
+
+        #obstime validation
+        if obstime is None:
+            obstime = self.obstime
+            if obstime is None:
+                raise TypeError('Must provide an `obstime` to '
+                                'radial_velocity_correction, either as a '
+                                'SkyCoord frame attribute or in the method '
+                                'call.')
+        elif self.obstime is not None:
+            raise ValueError('Cannot compute radial velocity correction if '
+                             '`obstime` argument is passed in and it is '
+                             'inconsistent with the `obstime` frame '
+                             'attribute on the SkyCoord')
+
+
+
+        if kind == 'barycentric':
+            v_origin_to_earth = get_body_barycentric_posvel('earth', obstime)[1]
+        elif kind == 'heliocentric':
+            v_sun = get_body_barycentric_posvel('sun', obstime)[1]
+            v_earth = get_body_barycentric_posvel('earth', obstime)[1]
+            v_origin_to_earth = v_earth - v_sun
+        else:
+            raise ValueError("`kind` argument to radial_velocity_correction must "
+                             "be 'barycentric' or 'heliocentric', but got "
+                             "'{}'".format(kind))
+
+        gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
+        gtarg = self.transform_to(GCRS(obstime=obstime,
+                                       obsgeoloc=gcrs_p,
+                                       obsgeovel=gcrs_v))
+        targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
+        return targcart.dot(v_origin_to_earth + gcrs_v)
+
     # Table interactions
     @classmethod
     def guess_from_table(cls, table, **coord_kwargs):
@@ -1249,7 +1364,7 @@ class SkyCoord(ShapedLikeNDArray):
         The definition of alphanumeric here is based on Unicode's definition
         of alphanumeric, except without ``_`` (which is normally considered
         alphanumeric).  So for ASCII, this means the non-alphanumeric characters
-        are ``<space>_!"#$%&'()*+,-./:;<=>?@[\]^`{|}~``).
+        are ``<space>_!"#$%&'()*+,-./\:;<=>?@[]^`{|}~``).
 
         Parameters
         ----------
