@@ -26,6 +26,11 @@ BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
                                                                'wrap'),
                                                               (convolve_fft,
                                                                'fill')])
+HAS_SCIPY = True
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
 
 
 class TestConvolve1D(object):
@@ -734,4 +739,15 @@ def test_astropy_convolution_against_numpy():
     assert_array_almost_equal(np.convolve(y, x, 'same'),
                               convolve(y, x, normalize_kernel=False))
     assert_array_almost_equal(np.convolve(y, x, 'same'),
+                              convolve_fft(y, x, normalize_kernel=False))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_astropy_convolution_against_scipy():
+    from scipy.signal import fftconvolve
+    x = np.array([1, 2, 3])
+    y = np.array([5, 4, 3, 2, 1])
+
+    assert_array_almost_equal(fftconvolve(y, x, 'same'),
+                              convolve(y, x, normalize_kernel=False))
+    assert_array_almost_equal(fftconvolve(y, x, 'same'),
                               convolve_fft(y, x, normalize_kernel=False))
