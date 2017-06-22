@@ -1,4 +1,4 @@
-v3.0 (unreleased)
+3.0 (unreleased)
 -----------------
 
 New Features
