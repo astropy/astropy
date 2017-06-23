@@ -297,10 +297,8 @@ def test_ecsv_mixins_as_one(table_cls):
         # For Table, EarthLocation turns into NdarrayMixin, which is
         # not yet supported. Just skip this for now.
         names.remove('el')
-        serialized_names = serialized_names[:2] + serialized_names[5:-3]
-        mixin_cols['tm3'].location = el[0]
-    else:
-        mixin_cols['tm3'].location = el
+        for name in 'el.x', 'el.y', 'el.z':
+            serialized_names.remove(name)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
 

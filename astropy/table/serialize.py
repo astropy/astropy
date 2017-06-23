@@ -116,7 +116,7 @@ def _represent_mixins_as_columns(tbl):
         _represent_mixin_as_column(col, col.info.name, new_cols, mixin_cols)
 
     meta = deepcopy(tbl.meta)
-    meta['__mixin_columns__'] = mixin_cols
+    meta['__serialized_columns__'] = mixin_cols
     out = Table(new_cols, meta=meta, copy=False)
 
     return out
@@ -169,9 +169,10 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
         obj_attrs[data_attr] = col
         del out[name]
 
+    info = obj_attrs.pop('__info__', {})
     if len(data_attrs_map) == 1:
-        # col is the first and only column.
-        info = {}
+        # col is the first and only serialized column; in that case, use info
+        # stored on the column.
         for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
                                  ('format', lambda x: x is not None),
                                  ('description', lambda x: x is not None),
@@ -179,8 +180,6 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
             col_attr = getattr(col.info, attr)
             if nontrivial(col_attr):
                 info[attr] = col_attr
-    else:
-        info = obj_attrs.pop('__info__', {})
 
     info['name'] = new_name
     col = _construct_mixin_from_obj_attrs_and_info(obj_attrs, info)
@@ -188,12 +187,12 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
 
 
 def _construct_mixins_from_columns(tbl):
-    if '__mixin_columns__' not in tbl.meta:
+    if '__serialized_columns__' not in tbl.meta:
         return tbl
 
     out = tbl.copy(copy_data=False)
 
-    mixin_cols = out.meta.pop('__mixin_columns__')
+    mixin_cols = out.meta.pop('__serialized_columns__')
 
     for new_name, obj_attrs in mixin_cols.items():
         _construct_mixin_from_columns(new_name, obj_attrs, out)
