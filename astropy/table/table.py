@@ -16,7 +16,7 @@ from numpy import ma
 
 from .. import log
 from ..io import registry as io_registry
-from ..units import Quantity
+from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
@@ -902,7 +902,7 @@ class Table(object):
 
         # Is it a mixin but not not Quantity (which gets converted to Column with
         # unit set).
-        return has_info_class(col, MixinInfo) and not isinstance(col, Quantity)
+        return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False, align=None):
