@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains predefined polynomial models.
+This module contains models representing polynomials and polynomial series.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
@@ -21,7 +21,7 @@ from ..units import Quantity
 
 __all__ = [
     'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',
-    'InverseSIP','Legendre1D', 'Legendre2D', 'Polynomial1D',
+    'InverseSIP', 'Legendre1D', 'Legendre2D', 'Polynomial1D',
     'Polynomial2D', 'SIP', 'OrthoPolynomialBase',
     'PolynomialModel'
 ]
@@ -321,8 +321,16 @@ class OrthoPolynomialBase(PolynomialBase):
 
 
 class Chebyshev1D(PolynomialModel):
-    """
-    1D Chebyshev polynomial of the 1st kind.
+    r"""
+    Univariate Chebyshev series.
+
+    It is defined as:
+
+    .. math::
+
+        P(x) = \sum_{i=0}^{i=n}C_{i} * T_{i}(x)
+
+    where ``T_i(x)`` is the corresponding Chebyshev polynomial of the 1st kind.
 
     Parameters
     ----------
@@ -419,8 +427,16 @@ class Chebyshev1D(PolynomialModel):
 
 
 class Hermite1D(PolynomialModel):
-    """
-    1D Hermite Polynomials ("Physicist's kind")
+    r"""
+    Univariate Hermite series.
+
+    It is defined as:
+
+    .. math::
+
+        P(x) = \sum_{i=0}^{i=n}C_{i} * H_{i}(x)
+
+    where ``H_i(x)`` is the corresponding Hermite polynomial ("Physicist's kind").
 
     Parameters
     ----------
@@ -515,13 +531,16 @@ class Hermite1D(PolynomialModel):
                 c1 = temp + c1 * x2
         return c0 + c1 * x2
 
+
 class Hermite2D(OrthoPolynomialBase):
     r"""
-    2D Hermite polynomial.
+    Bivariate Hermite series.
 
     It is defined as
 
-    .. math:: P_{n_m}(x,y) = \sum c_{n_m}  H_n(x) H_m(y)
+    .. math:: P_{nm}(x,y) = \sum_{n,m=0}^{n=d,m=d}C_{nm} H_n(x) H_m(y)
+
+    where ``H_n(x)`` and ``H_m(y)`` are Hermite polynomials.
 
     Parameters
     ----------
@@ -553,7 +572,7 @@ class Hermite2D(OrthoPolynomialBase):
     """
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
-                 y_domain=None, y_window=[-1,1], n_models=None,
+                 y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         super(Hermite2D, self).__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
@@ -635,9 +654,18 @@ class Hermite2D(OrthoPolynomialBase):
                 d[i] = x2 * d[i - 1] - 2 * (i - 1) * d[i - 2]
         return np.rollaxis(d, 0, d.ndim)
 
+
 class Legendre1D(PolynomialModel):
-    """
-    1D Legendre polynomial.
+    r"""
+    Univariate Legendre series.
+
+    It is defined as:
+
+    .. math::
+
+        P(x) = \sum_{i=0}^{i=n}C_{i} * L_{i}(x)
+
+    where ``L_i(x)`` is the corresponding Legendre polynomial.
 
     Parameters
     ----------
@@ -649,6 +677,7 @@ class Legendre1D(PolynomialModel):
         Fitters will remap the domain to this window
     **params : dict
         keyword: value pairs, representing parameter_name: value
+
 
     Notes
     -----
@@ -732,8 +761,14 @@ class Legendre1D(PolynomialModel):
 
 
 class Polynomial1D(PolynomialModel):
-    """
+    r"""
     1D Polynomial model.
+
+    It is defined as:
+
+    .. math::
+
+        P = \sum_{i=0}^{i=n}C_{i} * x^{i}
 
     Parameters
     ----------
@@ -745,6 +780,7 @@ class Polynomial1D(PolynomialModel):
         Fitters will remap the domain to this window
     **params : dict
         keyword: value pairs, representing parameter_name: value
+
     """
 
     inputs = ('x',)
@@ -988,14 +1024,16 @@ class Polynomial2D(PolynomialModel):
         return OrderedDict(mapping)
 
 
-
 class Chebyshev2D(OrthoPolynomialBase):
     r"""
-    2D Chebyshev polynomial of the 1st kind.
+    Bivariate Chebyshev series..
 
     It is defined as
 
-    .. math:: P_{n_m}(x,y) = \sum C_{n_m}  T_n(x) T_m(y)
+    .. math:: P_{nm}(x,y) = \sum_{n,m=0}^{n=d,m=d}C_{nm}  T_n(x ) T_m(y)
+
+    where ``T_n(x)`` and ``T_m(y)`` are Chebyshev polynomials of the first kind.
+
 
     Parameters
     ----------
@@ -1027,7 +1065,7 @@ class Chebyshev2D(OrthoPolynomialBase):
     """
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
-                 y_domain=None, y_window=[-1,1], n_models=None,
+                 y_domain=None, y_window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
         super(Chebyshev2D, self).__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
@@ -1111,13 +1149,14 @@ class Chebyshev2D(OrthoPolynomialBase):
 
 
 class Legendre2D(OrthoPolynomialBase):
-    """
-    Legendre 2D polynomial.
+    r"""
+    Bivariate Legendre series.
 
     Defined as:
 
-    .. math:: P_{nm}(x,y) = C_{n_m}  L_n(x ) L_m(y)
+    .. math:: P_{n_m}(x,y) = \sum_{n,m=0}^{n=d,m=d}C_{nm}  L_n(x ) L_m(y)
 
+    where ``L_n(x)`` and ``L_m(y)`` are Legendre polynomials.
 
     Parameters
     ----------
@@ -1136,6 +1175,23 @@ class Legendre2D(OrthoPolynomialBase):
         range of the y independent variable
     **params : dict
         keyword: value pairs, representing parameter_name: value
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        P(x) = \sum_{i=0}^{i=n}C_{i} * L_{i}(x)
+
+    where ``L_{i}`` is the corresponding Legendre polynomial.
+
+    This model does not support the use of units/quantities, because each term
+    in the sum of Legendre polynomials is a polynomial in x - since the
+    coefficients within each Legendre polynomial are fixed, we can't use
+    quantities for x since the units would not be compatible. For example, the
+    third Legendre polynomial (P2) is 1.5x^2-0.5, but if x was specified with
+    units, 1.5x^2 and -0.5 would have incompatible units.
     """
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
@@ -1338,7 +1394,6 @@ class SIP(Model):
     ----------
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
-
 
     inputs = ('u', 'v')
     outputs = ('x', 'y')
