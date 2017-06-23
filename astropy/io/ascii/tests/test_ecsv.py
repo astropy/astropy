@@ -266,7 +266,7 @@ mixin_cols = {
                     obstime=['J1990.5'] * 2),
     'q': [1, 2] * u.m,
     'lat': Latitude([1, 2] * u.deg),
-    'lon': Longitude([1, 2] * u.deg),
+    'lon': Longitude([1, 2] * u.deg, wrap_angle=180.*u.deg),
     'ang': Angle([1, 2] * u.deg),
     'el': el,
     # 'nd': NdarrayMixin(el)  # not supported yet
@@ -333,7 +333,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col):
         'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
         'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
         'q': ['value', 'unit'],
-        'lon': ['value', 'unit'],
+        'lon': ['value', 'unit', 'wrap_angle'],
         'lat': ['value', 'unit'],
         'ang': ['value', 'unit'],
         'el': ['x', 'y', 'z', 'ellipsoid'],

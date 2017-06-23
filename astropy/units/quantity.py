@@ -174,9 +174,15 @@ class QuantityInfo(ParentDtypeInfo):
         # Make an empty quantity using the unit of the last one.
         shape = (length,) + attrs.pop('shape')
         dtype = attrs.pop('dtype')
-        data = np.empty(shape=shape, dtype=dtype)
-        unit = cols[-1].unit
-        out = self._parent_cls(data, unit=unit, copy=False)
+        # Use zeros so we do not get problems for Quantity subclasses such
+        # as Longitude and Latitude, which cannot take arbitrary values.
+        data = np.zeros(shape=shape, dtype=dtype)
+        # Get arguments needed to reconstruct class
+        map = {key: (data if key == 'value' else getattr(cols[-1], key))
+               for key in (self._represent_as_dict_data_attrs +
+                           self._represent_as_dict_info_attrs)}
+        map['copy'] = False
+        out = self._construct_from_dict(map)
 
         # Set remaining info attributes
         for attr, value in attrs.items():
