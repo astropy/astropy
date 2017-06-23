@@ -147,8 +147,9 @@ def pytest_configure(config):
                           allow_astropy_data=config.getoption('remote_data') == 'astropy')
 
     doctest_plugin = config.pluginmanager.getplugin('doctest')
-    if (doctest_plugin is None or config.option.doctestmodules or not
-            (config.getini('doctest_plus') or config.option.doctest_plus)):
+    if (doctest_plugin is None or config.option.doctestmodules
+            or not (config.getini('doctest_plus').lower() in ['true', 'enabled']
+                    or config.option.doctest_plus)):
         return
 
     # These are the default doctest options we use for everything.
