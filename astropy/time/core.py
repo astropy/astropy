@@ -101,11 +101,26 @@ class TimeInfo(MixinInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
-    attr_names = set(list(MixinInfo.attr_names) + ['serialize_method'])
+    attr_names = MixinInfo.attr_names | {'serialize_method'}
     _supports_indexing = True
-    _represent_as_dict_info_attrs = ['format', 'scale', 'precision',
-                                     'in_subfmt', 'out_subfmt', 'location',
-                                     '_delta_ut1_utc', '_delta_tdb_tt']
+
+    # The usual tuple of attributes needed for serialization is replaced
+    # by a property, since Time can be serialized different ways.
+    _represent_as_dict_extra_attrs = ('format', 'scale', 'precision',
+                                      'in_subfmt', 'out_subfmt', 'location',
+                                      '_delta_ut1_utc', '_delta_tdb_tt')
+
+    @property
+    def _represent_as_dict_attrs(self):
+        method = self.serialize_method[self._serialize_context]
+        if method == 'formatted_value':
+            out = ('value',)
+        elif method == 'jd1_jd2':
+            out = ('jd1', 'jd2')
+        else:
+            raise ValueError("serialize method must be 'formatted_value' or 'jd1_jd2'")
+
+        return out + self._represent_as_dict_extra_attrs
 
     def __init__(self, bound=False):
         super(MixinInfo, self).__init__(bound)
@@ -123,17 +138,6 @@ class TimeInfo(MixinInfo):
                                      None: 'jd1_jd2'}
 
     @property
-    def _represent_as_dict_data_attrs(self):
-        method = self.serialize_method[self._serialize_context]
-        if method == 'formatted_value':
-            out = ['value']
-        elif method == 'jd1_jd2':
-            out = ['jd1', 'jd2']
-        else:
-            raise ValueError("serialize method must be 'formatted_value' or 'jd1_jd2'")
-        return out
-
-    @property
     def unit(self):
         return None
 
@@ -143,10 +147,7 @@ class TimeInfo(MixinInfo):
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
-    def _construct_from_dict(self, map):
-        delta_ut1_utc = map.pop('_delta_ut1_utc', None)
-        delta_tdb_tt = map.pop('_delta_tdb_tt', None)
-
+    def _construct_from_dict_base(self, map):
         if 'jd1' in map and 'jd2' in map:
             format = map.pop('format')
             map['format'] = 'jd'
@@ -158,6 +159,13 @@ class TimeInfo(MixinInfo):
 
         out = self._parent_cls(**map)
         out.format = format
+        return out
+
+    def _construct_from_dict(self, map):
+        delta_ut1_utc = map.pop('_delta_ut1_utc', None)
+        delta_tdb_tt = map.pop('_delta_tdb_tt', None)
+
+        out = self._construct_from_dict_base(map)
 
         if delta_ut1_utc is not None:
             out._delta_ut1_utc = delta_ut1_utc
@@ -168,22 +176,10 @@ class TimeInfo(MixinInfo):
 
 
 class TimeDeltaInfo(TimeInfo):
-    _represent_as_dict_info_attrs = ['format', 'scale']
+    _represent_as_dict_extra_attrs = ('format', 'scale')
 
     def _construct_from_dict(self, map):
-        if 'jd1' in map and 'jd2' in map:
-            format = map.pop('format')
-            map['format'] = 'jd'
-            map['val'] = map.pop('jd1')
-            map['val2'] = map.pop('jd2')
-        else:
-            format = map['format']
-            map['val'] = map.pop('value')
-
-        out = self._parent_cls(**map)
-        out.format = format
-
-        return out
+        return self._construct_from_dict_base(map)
 
 
 class Time(ShapedLikeNDArray):

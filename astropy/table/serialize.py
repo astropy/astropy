@@ -55,8 +55,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols):
             info[attr] = xform(col_attr) if xform else col_attr
 
     obj_attrs = col.info._represent_as_dict()
-    ordered_keys = (col.info._represent_as_dict_data_attrs +
-                    col.info._represent_as_dict_info_attrs)
+    ordered_keys = col.info._represent_as_dict_attrs
 
     data_attrs = [key for key in ordered_keys if key in obj_attrs and
                   getattr(obj_attrs[key], 'shape', ())[:1] == col.shape[:1]]
