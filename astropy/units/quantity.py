@@ -112,10 +112,9 @@ class QuantityInfo(ParentDtypeInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
+    attrs_from_parent = {'dtype', 'unit'}  # dtype and unit taken from parent
     _supports_indexing = True
-    _represent_as_dict_data_attrs = ['value']
-    _represent_as_dict_info_attrs = ['unit']
+    _represent_as_dict_attrs = ('value', 'unit')
 
     @staticmethod
     def default_format(val):
@@ -179,8 +178,7 @@ class QuantityInfo(ParentDtypeInfo):
         data = np.zeros(shape=shape, dtype=dtype)
         # Get arguments needed to reconstruct class
         map = {key: (data if key == 'value' else getattr(cols[-1], key))
-               for key in (self._represent_as_dict_data_attrs +
-                           self._represent_as_dict_info_attrs)}
+               for key in self._represent_as_dict_attrs}
         map['copy'] = False
         out = self._construct_from_dict(map)
 

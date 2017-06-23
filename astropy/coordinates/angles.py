@@ -545,7 +545,7 @@ class Latitude(Angle):
 
 
 class LongitudeInfo(u.QuantityInfo):
-    _represent_as_dict_info_attrs = ['unit', 'wrap_angle']
+    _represent_as_dict_attrs = u.QuantityInfo._represent_as_dict_attrs + ('wrap_angle',)
 
 
 class Longitude(Angle):

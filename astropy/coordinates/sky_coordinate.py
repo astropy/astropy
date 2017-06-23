@@ -72,15 +72,14 @@ class SkyCoordInfo(MixinInfo):
 
     def _represent_as_dict(self):
         obj = self._parent
-        data_attrs = list(obj.representation_component_names)
+        attrs = (list(obj.representation_component_names) +
+                 list(frame_transform_graph.frame_attributes.keys()))
 
         # Don't output distance if it is all unitless 1.0
-        if 'distance' in data_attrs and np.all(obj.distance == 1.0):
-            data_attrs.remove('distance')
+        if 'distance' in attrs and np.all(obj.distance == 1.0):
+            attrs.remove('distance')
 
-        info_attrs = list(frame_transform_graph.frame_attributes)
-        self._represent_as_dict_data_attrs = data_attrs
-        self._represent_as_dict_info_attrs = info_attrs
+        self._represent_as_dict_attrs = attrs
 
         out = super(SkyCoordInfo, self)._represent_as_dict()
 
