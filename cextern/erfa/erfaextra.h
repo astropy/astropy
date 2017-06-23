@@ -20,35 +20,35 @@ extern "C" {
 ** as defined in configure.ac
 ** in string format
 */
-const char* eraVersion();
+const char* eraVersion(void);
 
 /* 
 ** Returns the package major version
 ** as defined in configure.ac
 ** as integer
 */
-int eraVersionMajor();
+int eraVersionMajor(void);
 
 /* 
 ** Returns the package minor version
 ** as defined in configure.ac
 ** as integer
 */
-int eraVersionMinor();
+int eraVersionMinor(void);
 
 /* 
 ** Returns the package micro version
 ** as defined in configure.ac
 ** as integer
 */
-int eraVersionMicro();
+int eraVersionMicro(void);
 
 /* 
 ** Returns the orresponding SOFA version
 ** as defined in configure.ac
 ** in string format
 */
-const char* eraSofaVersion();
+const char* eraSofaVersion(void);
 
 
 #ifdef __cplusplus
