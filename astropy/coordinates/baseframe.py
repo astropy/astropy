@@ -491,7 +491,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        which : ('representation', 's', `None`)
+        which : ('base', 's', `None`)
             The class of which part to return.  'base' means the class used to
             represent the coordinates; 's' the first derivative to time, i.e.,
             the class representing the proper motion and/or radial velocity.
@@ -514,7 +514,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         base : str or `~astropy.coordinates.BaseRepresentation` subclass
             The name or subclass to use to represent the coordinate data.
         s : `~astropy.coordinates.BaseDifferential` subclass, optional
-            The differential subclass to use to represent any differentials,
+            The differential subclass to use to represent any velocities,
             such as proper motion and radial velocity.  If equal to 'base',
             which is the default, it will be inferred from the representation.
             If `None`, the representation will drop any differentials.
@@ -713,10 +713,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             (not an instance), or the string name of the representation
             class.
         s : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
-            Class in which the differential should be represented. Must be
+            Class in which any velocities should be represented. Must be
             a *class* (not an instance), or the string name of the
             differential class.  If equal to 'base' (default), inferred from
-            the base class.  If `None`, any velocity differential is dropped.
+            the base class.  If `None`, all velocity information is dropped.
         in_frame_units : bool, keyword only
             Force the representation units to match the specified units
             particular to this frame
