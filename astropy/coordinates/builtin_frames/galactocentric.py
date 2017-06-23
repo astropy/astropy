@@ -125,15 +125,17 @@ class Galactocentric(BaseCoordinateFrame):
         ...                dec=[-17.3, 81.52] * u.degree,
         ...                distance=[11.5, 24.12] * u.kpc)
         >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_distance=8.3 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
-            [( -9.6083819 , -9.40062188,  6.52056066),
-             (-21.28302307, 18.76334013,  7.84693855)]>
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            ( 266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(-11.1,  244.,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+            [( -9.6083819 ,  -9.40062188,  6.52056066),
+             (-21.28302307,  18.76334013,  7.84693855)]>
 
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
         >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_distance=8.1 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            ( 266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=(-11.1,  244.,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.40785924,  -9.40062188,  6.52066574),
              (-21.08239383,  18.76334013,  7.84798135)]>
 
