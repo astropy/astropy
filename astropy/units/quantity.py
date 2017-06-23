@@ -32,7 +32,8 @@ from .. import config as _config
 from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 
-__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo"]
+__all__ = ["Quantity", "SpecificTypeQuantity",
+           "QuantityInfoBase", "QuantityInfo"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -106,15 +107,12 @@ class QuantityIterator(object):
     next = __next__
 
 
-class QuantityInfo(ParentDtypeInfo):
-    """
-    Container for meta information like name, description, format.  This is
-    required when the object is used as a mixin column within a table, but can
-    be used as a general way to store meta information.
-    """
+class QuantityInfoBase(ParentDtypeInfo):
+    # This is on a base class rather than QuantityInfo directly, so that
+    # it can be used for EarthLocationInfo yet make clear that that class
+    # should not be considered a typical Quantity subclass by Table.
     attrs_from_parent = {'dtype', 'unit'}  # dtype and unit taken from parent
     _supports_indexing = True
-    _represent_as_dict_attrs = ('value', 'unit')
 
     @staticmethod
     def default_format(val):
@@ -133,6 +131,15 @@ class QuantityInfo(ParentDtypeInfo):
         yield lambda format_, val: format(val.value, format_)
         yield lambda format_, val: format_.format(val.value)
         yield lambda format_, val: format_ % val.value
+
+
+class QuantityInfo(QuantityInfoBase):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    _represent_as_dict_attrs = ('value', 'unit')
 
     def _construct_from_dict(self, map):
         # Need to pop value because different Quantity subclasses use

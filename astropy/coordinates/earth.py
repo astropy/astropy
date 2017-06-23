@@ -8,7 +8,7 @@ import json
 
 import numpy as np
 from .. import units as u
-from ..units.quantity import QuantityInfo
+from ..units.quantity import QuantityInfoBase
 from ..extern import six
 from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
@@ -83,7 +83,7 @@ def _get_json_result(url, err_str):
     return results
 
 
-class EarthLocationInfo(QuantityInfo):
+class EarthLocationInfo(QuantityInfoBase):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
@@ -97,6 +97,54 @@ class EarthLocationInfo(QuantityInfo):
         ellipsoid = map.pop('ellipsoid')
         out = self._parent_cls(**map)
         out.ellipsoid = ellipsoid
+        return out
+
+    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+        """
+        Return a new EarthLocation instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : EarthLocation (or subclass)
+            Empty instance of this class consistent with ``cols``
+        """
+        # Very similar to QuantityInfo.new_like, but the creation of the
+        # map is different enough that this needs its own rouinte.
+        # Get merged info attributes shape, dtype, format, description.
+        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
+                                           ('meta', 'format', 'description'))
+        # The above raises an error if the dtypes do not match, but returns
+        # just the string representation, which is not useful, so remove.
+        attrs.pop('dtype')
+        # Make empty EarthLocation using the dtype and unit of the last column.
+        # Use zeros so we do not get problems for possible conversion to
+        # geodetic coordinates.
+        shape = (length,) + attrs.pop('shape')
+        data = u.Quantity(np.zeros(shape=shape, dtype=cols[0].dtype),
+                          unit=cols[0].unit, copy=False)
+        # Get arguments needed to reconstruct class
+        map = {key: (data[key] if key in 'xyz' else getattr(cols[-1], key))
+               for key in self._represent_as_dict_attrs}
+        out = self._construct_from_dict(map)
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
         return out
 
 
@@ -133,6 +181,10 @@ class EarthLocation(u.Quantity):
     info = EarthLocationInfo()
 
     def __new__(cls, *args, **kwargs):
+        # TODO: needs copy argument and better dealing with inputs.
+        if (len(args) == 1 and len(kwargs) == 0 and
+                isinstance(args[0], EarthLocation)):
+            return args[0].copy()
         try:
             self = cls.from_geocentric(*args, **kwargs)
         except (u.UnitsError, TypeError) as exc_geocentric:

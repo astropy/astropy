@@ -149,6 +149,10 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                            dtype='<i4,|S1').view(table.NdarrayMixin),
               }
+MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
+    lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
+    height=MIXIN_COLS['quantity'])
+
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):
