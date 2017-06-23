@@ -246,12 +246,12 @@ def assert_objects_equal(obj1, obj2, attrs):
 
 el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
-              obstime=['J1990.5'] * 2)
+              obstime='J1990.5')
 scc = sc.copy()
 scc.representation = 'cartesian'
-tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el)
+tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el[0])
 tm2 = Time(tm, format='iso')
-tm3 = Time(tm)
+tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 
 
@@ -279,9 +279,28 @@ def test_ecsv_mixins_as_one(table_cls):
     """Test write/read all cols at once and validate intermediate column names"""
     names = sorted(mixin_cols)
 
-    # For Table, EarthLocation turns into NdarrayMixin, which is not yet supported
-    # Just skip this for now.
-    names.remove('el')
+    serialized_names = ['ang',
+                        'dt',
+                        'el.x', 'el.y', 'el.z',
+                        'lat',
+                        'lon',
+                        'q',
+                        'sc.ra', 'sc.dec',
+                        'scc.x', 'scc.y', 'scc.z',
+                        'scd.ra', 'scd.dec', 'scd.distance',
+                        'scd.obstime',
+                        'tm',  # serialize_method is formatted_value
+                        'tm2',  # serialize_method is formatted_value
+                        'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2
+                        'tm3.location.x', 'tm3.location.y', 'tm3.location.z']
+    if table_cls is Table:
+        # For Table, EarthLocation turns into NdarrayMixin, which is
+        # not yet supported. Just skip this for now.
+        names.remove('el')
+        serialized_names = serialized_names[:2] + serialized_names[5:-3]
+        mixin_cols['tm3'].location = el[0]
+    else:
+        mixin_cols['tm3'].location = el
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
 
@@ -293,18 +312,7 @@ def test_ecsv_mixins_as_one(table_cls):
 
     # Read as a ascii.basic table (skip all the ECSV junk)
     t3 = table_cls.read(out.getvalue(), format='ascii.basic')
-    assert t3.colnames == ['ang',
-                           'dt',
-                           'lat',
-                           'lon',
-                           'q',
-                           'sc.ra', 'sc.dec',
-                           'scc.x', 'scc.y', 'scc.z',
-                           'scd.ra', 'scd.dec', 'scd.distance',
-                           'tm',  # serialize_method is formatted_value
-                           'tm2',  # serialize_method is formatted_value
-                           'tm3.jd1', 'tm3.jd2'  # serialize is jd1_jd2
-                           ]
+    assert t3.colnames == serialized_names
 
 
 @pytest.mark.skipif('not HAS_YAML')
