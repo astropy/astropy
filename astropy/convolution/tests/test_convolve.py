@@ -730,7 +730,7 @@ def test_convolution_consistency(ndims):
     conv_f = convolve_fft(array, kernel, boundary='fill')
     conv_d = convolve(array, kernel, boundary='fill')
 
-    assert_array_almost_equal_nulp(conv_f, conv_d, 10)
+    assert_array_almost_equal_nulp(conv_f, conv_d, 30)
 
 def test_astropy_convolution_against_numpy():
     x = np.array([1, 2, 3])
