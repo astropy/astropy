@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 
 import numpy as np
+from functools import partial
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
@@ -13,6 +14,8 @@ from ..utils.console import human_file_size
 from ..utils.decorators import deprecated_renamed_argument
 from .. import units as u
 from ..nddata import support_nddata
+from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
+from ..modeling.core import _CompoundModelMeta
 
 from ..extern.six.moves import range, zip
 
@@ -500,7 +503,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array([ 1.,  2.,  3.])
 
     """
-
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
@@ -784,3 +786,37 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     newarray[isnan] = convolved[isnan]
 
     return newarray
+
+
+def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
+    """
+    Convolve two models using `~astropy.convolution.convolve_fft`.
+
+    Parameters
+    ----------
+    model : `~astropy.modeling.core.Model`
+        Functional model
+    kernel : `~astropy.modeling.core.Model`
+        Convolution kernel
+    mode : str
+        Keyword representing which function to use for convolution.
+            * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
+            * 'convolve' : use `~astropy.convolution.convolve`.
+    kwargs : dict
+        Keyword arguments to me passed either to `~astropy.convolution.convolve`
+        or `~astropy.convolution.convolve_fft` depending on ``mode``.
+
+    Returns
+    -------
+    default : CompoundModel
+        Convolved model
+    """
+
+    if mode == 'convolve_fft':
+        BINARY_OPERATORS['convolve_fft'] = _make_arithmetic_operator(partial(convolve_fft, **kwargs))
+    elif mode == 'convolve':
+        BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(partial(convolve, **kwargs))
+    else:
+        raise ValueError('Mode {} is not supported.'.format(mode))
+
+    return _CompoundModelMeta._from_operator(mode, model, kernel)
