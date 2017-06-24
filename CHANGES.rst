@@ -32,6 +32,8 @@ New Features
   - Add a new argument, ``normalization_rtol``, to ``convolve_fft``, allowing
     the user to specify the relative error tolerance in the normalization of
     the convolution kernel. [#5649, #5177]
+  - Models can now be convoluted using ``convolve`` or ``convolve_fft``,
+    which generates a regular compound model. [#6015]
 
 - ``astropy.coordinates``
 

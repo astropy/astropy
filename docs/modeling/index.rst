@@ -323,6 +323,30 @@ are some complexities involved in correctly matching up the inputs and outputs
 of all models used to build a compound model.  You can learn more details in
 the :doc:`compound-models` documentation.
 
+Astropy models also support convolution through the function
+`~astropy.convolution.convolve_models`, which returns a compound model.
+
+For instance, the convolution of two Gaussian functions is also a Gaussian
+function in which the resulting mean (variance) is the sum of the means
+(variances) of each Gaussian.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling import models
+    from astropy.convolution import convolve_models
+
+    g1 = models.Gaussian1D(1, -1, 1)
+    g2 = models.Gaussian1D(1, 1, 1)
+    g3 = convolve_models(g1, g2)
+
+    x = np.linspace(-3, -3, 50)
+    plt.plot(x, g1(x), 'k-')
+    plt.plot(x, g2(x), 'k-')
+    plt.plot(x, g3(x), 'k-')
+
 .. _modeling-using:
 
 Using `astropy.modeling`
