@@ -78,7 +78,7 @@ class TestConvolve1DModels(object):
         kernel = models.Box1D()
         model = models.Box1D()
         model_conv = convolve_models(model, kernel, mode=mode,
-                                     normalize_kernel=False)
+                                     normalize_kernel=True)
         x = np.linspace(-1, 1, 99)
         ans = (x - 1) * (x < 0) + (-x + 1) * (x >= 0)
 
