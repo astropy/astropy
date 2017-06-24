@@ -4,7 +4,8 @@ from copy import deepcopy
 
 from ..utils.data_info import MixinInfo
 from .column import Column
-from .table import Table, has_info_class
+from .table import Table, QTable, has_info_class
+from ..units.quantity import QuantityInfo
 
 
 __construct_mixin_classes = ('astropy.time.core.Time',
@@ -189,11 +190,22 @@ def _construct_mixins_from_columns(tbl):
     if '__serialized_columns__' not in tbl.meta:
         return tbl
 
-    out = tbl.copy(copy_data=False)
+    # Don't know final output class but assume QTable so no columns get
+    # downgraded.
+    out = QTable(tbl, copy=False)
 
     mixin_cols = out.meta.pop('__serialized_columns__')
 
     for new_name, obj_attrs in mixin_cols.items():
         _construct_mixin_from_columns(new_name, obj_attrs, out)
+
+    # If no quantity subclasses are in the output then output as Table.
+    # For instance ascii.read(file, format='ecsv') doesn't specify an
+    # output class and should return the minimal table class that
+    # represents the table file.
+    has_quantities = any(isinstance(col.info, QuantityInfo)
+                         for col in out.itercols())
+    if not has_quantities:
+        out = Table(out, copy=False)
 
     return out

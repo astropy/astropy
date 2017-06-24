@@ -18,6 +18,7 @@ from ....table.table_helpers import simple_table
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
 from ....tests.helper import quantity_allclose
+from ....units.quantity import QuantityInfo
 
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
@@ -223,8 +224,9 @@ def test_regression_5604():
     assert '!astropy.units.Quantity' in out.getvalue()
 
 
-def assert_objects_equal(obj1, obj2, attrs):
-    assert obj1.__class__ is obj2.__class__
+def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
+    if compare_class:
+        assert obj1.__class__ is obj2.__class__
 
     info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
     for attr in attrs + info_attrs:
@@ -272,6 +274,76 @@ mixin_cols = {
     # 'nd': NdarrayMixin(el)  # not supported yet
 }
 
+time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
+              'in_subfmt', 'out_subfmt', 'location']
+compare_attrs = {
+    'c1': ['data'],
+    'c2': ['data'],
+    'tm': time_attrs,
+    'tm2': time_attrs,
+    'tm3': time_attrs,
+    'dt': ['shape', 'value', 'format', 'scale'],
+    'sc': ['ra', 'dec', 'representation', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'q': ['value', 'unit'],
+    'lon': ['value', 'unit', 'wrap_angle'],
+    'lat': ['value', 'unit'],
+    'ang': ['value', 'unit'],
+    'el': ['x', 'y', 'z', 'ellipsoid'],
+    'nd': ['x', 'y', 'z'],
+}
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_ecsv_mixins_ascii_read_class():
+    """Ensure that ascii.read(ecsv_file) returns the correct class
+    (QTable if any Quantity subclasses, Table otherwise).
+    """
+    # Make a table with every mixin type except Quantities
+    t = QTable({name: col for name, col in mixin_cols.items()
+                if not isinstance(col.info, QuantityInfo)})
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = ascii.read(out.getvalue(), format='ecsv')
+    assert type(t2) is Table
+
+    # Add a single quantity column
+    t['lon'] = mixin_cols['lon']
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = ascii.read(out.getvalue(), format='ecsv')
+    assert type(t2) is QTable
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_ecsv_mixins_qtable_to_table():
+    """Test writing as QTable and reading as Table.  Ensure correct classes
+    come out.
+    """
+    names = sorted(mixin_cols)
+
+    t = QTable([mixin_cols[name] for name in names], names=names)
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    for name, col in t.columns.items():
+        col2 = t2[name]
+        attrs = compare_attrs[name]
+        compare_class = True
+
+        if isinstance(col.info, QuantityInfo):
+            # Downgrade Quantity to Column + unit
+            assert type(col2) is Column
+            attrs = ['unit']  # Other attrs are lost
+            compare_class = False
+
+        assert_objects_equal(col, col2, attrs, compare_class)
+
 
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
@@ -313,26 +385,6 @@ def test_ecsv_mixins_as_one(table_cls):
 def test_ecsv_mixins_per_column(table_cls, name_col):
     """Test write/read one col at a time and do detailed validation"""
     name, col = name_col
-
-    time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
-                  'in_subfmt', 'out_subfmt', 'location']
-    compare_attrs = {
-        'c1': ['data'],
-        'c2': ['data'],
-        'tm': time_attrs,
-        'tm2': time_attrs,
-        'tm3': time_attrs,
-        'dt': ['shape', 'value', 'format', 'scale'],
-        'sc': ['ra', 'dec', 'representation', 'frame.name'],
-        'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
-        'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
-        'q': ['value', 'unit'],
-        'lon': ['value', 'unit', 'wrap_angle'],
-        'lat': ['value', 'unit'],
-        'ang': ['value', 'unit'],
-        'el': ['x', 'y', 'z', 'ellipsoid'],
-        'nd': ['x', 'y', 'z'],
-    }
 
     c = [1.0, 2.0]
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
