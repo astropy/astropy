@@ -50,7 +50,7 @@ def convolve1d_boundary_fill(np.ndarray[DTYPE_t, ndim=1] f,
                     val = fill_value
                 else:
                     val = f[ii]
-                ker = g[<unsigned int>(wkx + ii - i)]
+                ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i))]
                 if not npy_isnan(val):
                     top += val * ker
                     bot += ker
@@ -109,8 +109,8 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
                             val = fill_value
                         else:
                             val = f[ii, jj]
-                        ker = g[<unsigned int>(wkx + ii - i),
-                                <unsigned int>(wky + jj - j)]
+                        ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
+                                <unsigned int>(nky - 1 - (wky + jj - j))]
                         if not npy_isnan(val):
                             top += val * ker
                             bot += ker
@@ -175,9 +175,9 @@ def convolve3d_boundary_fill(np.ndarray[DTYPE_t, ndim=3] f,
                                     val = fill_value
                                 else:
                                     val = f[ii, jj, kk]
-                                ker = g[<unsigned int>(wkx + ii - i),
-                                        <unsigned int>(wky + jj - j),
-                                        <unsigned int>(wkz + kk - k)]
+                                ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
+                                        <unsigned int>(nky - 1 - (wky + jj - j)),
+                                        <unsigned int>(nkz - 1 - (wkz + kk - k))]
                                 if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
