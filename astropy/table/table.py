@@ -2521,7 +2521,22 @@ class Table(object):
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
         """
-        return io_registry.read(cls, *args, **kwargs)
+        # Always read as Table because all astropy readers initially return
+        # Table or QTable.  Most readers return Table but e.g. ascii.ecsv might
+        # return QTable.
+        out = io_registry.read(Table, *args, **kwargs)
+
+        # If desired output `cls` is different from returned `out` class then
+        # try coercing to desired class without copying (io.registry.read
+        # would normally do a copy).  The normal case here is swapping
+        # Table <=> QTable.
+        if cls is not out.__class__:
+            try:
+                out = cls(out, copy=False)
+            except Exception:
+                raise TypeError('could not convert reader output to {0} '
+                                'class.'.format(cls.__name__))
+        return out
 
     def write(self, *args, **kwargs):
         """
