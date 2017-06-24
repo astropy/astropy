@@ -95,7 +95,7 @@ def read_table_fits(input, hdu=None):
     """
 
     # Avoid circular imports
-    from .fits_time import FitsTime
+    from .fitstime import FITS_time
 
     if isinstance(input, HDUList):
 
@@ -192,21 +192,29 @@ def read_table_fits(input, hdu=None):
 
             pass
 
-        elif (key.upper() in FitsTime.TIME_KEYWORDS):
+        elif (key.upper() in FITS_time.TIME_KEYWORDS):
 
             if time_state == None:
-                # Create a FitsTime object to facilitate reading in time
-                time_state = FitsTime()
+                # Create a FITS_time object to facilitate reading in time
+                time_state = FITS_time()
 
             time_state.set_global_time(key, value, comment)
 
-        elif (FitsTime.is_time_column_keyword(key.upper())):
+        elif (FITS_time.is_time_column_keyword(key.upper())):
 
             if time_state == None:
-                # Create a FitsTime object to facilitate reading in time
-                time_state = FitsTime()
+                # Create a FITS_time object to facilitate reading in time
+                time_state = FITS_time()
 
             time_state.set_column_override(key, value, comment)
+
+        elif (key.startswith('ASTROPY TIME')):
+
+            if time_state == None:
+                # Create a FITS_time object to facilitate reading in time
+                time_state = FITS_time()
+
+            time_state.set_astropy_time(key, value, comment)
 
         else:
 
