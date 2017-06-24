@@ -7,7 +7,7 @@ import numpy as np
 
 from ..convolve import convolve, convolve_fft
 
-from numpy.testing import assert_array_almost_equal_nulp
+from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
 
 import itertools
 
@@ -26,6 +26,11 @@ BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
                                                                'wrap'),
                                                               (convolve_fft,
                                                                'fill')])
+HAS_SCIPY = True
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
 
 
 class TestConvolve1D(object):
@@ -418,6 +423,39 @@ class TestConvolve2D(object):
         else:
             raise ValueError("Invalid boundary specification")
 
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_non_normalized_kernel_2D(self, boundary):
+
+        x = np.array([[0., 0., 4.],
+                      [1., 2., 0.],
+                      [0., 3., 0.]], dtype='float')
+
+        y = np.array([[1., -1., 1.],
+                      [-1., 0., -1.],
+                      [1., -1., 1.]], dtype='float')
+
+        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+                     normalize_kernel=False)
+
+        if boundary is None:
+            assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
+                                                        [0., 0., 0.],
+                                                        [0., 0., 0.]], dtype='float'), 10)
+        elif boundary == 'fill':
+            assert_array_almost_equal_nulp(z, np.array([[1., -5., 2.],
+                                                        [1., 0., -3.],
+                                                        [-2., -1., -1.]], dtype='float'), 10)
+        elif boundary == 'wrap':
+            assert_array_almost_equal_nulp(z, np.array([[0., -8., 6.],
+                                                        [5., 0., -4.],
+                                                        [2., 3., -4.]], dtype='float'), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([[ 2., -1., -2.],
+                                                        [ 0.,  0.,  1.],
+                                                        [ 2., -4.,  2.]], dtype='float'), 10)
+        else:
+            raise ValueError("Invalid boundary specification")
+
 class TestConvolve3D(object):
     def test_list(self):
         """
@@ -658,35 +696,58 @@ class TestConvolve3D(object):
         else:
             raise ValueError("Invalid Boundary Option")
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-    def test_non_normalized_kernel(self, boundary):
 
-        x = np.array([[0., 0., 4.],
-                      [1., 2., 0.],
-                      [0., 3., 0.]], dtype='float')
+@pytest.mark.parametrize(('convfunc', 'boundary',), BOUNDARIES_AND_CONVOLUTIONS)
+def test_asymmetric_kernel(boundary, convfunc):
+    '''
+    Regression test for #6264: make sure that asymmetric convolution
+    functions go the right direction
+    '''
 
-        y = np.array([[1., -1., 1.],
-                      [-1., 0., -1.],
-                      [1., -1., 1.]], dtype='float')
+    x = np.array([3., 0., 1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
-                     normalize_kernel=False)
+    y = np.array([1, 2, 3], dtype='>f8')
 
-        if boundary is None:
-            assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
-                                                        [0., 0., 0.],
-                                                        [0., 0., 0.]], dtype='float'), 10)
-        elif boundary == 'fill':
-            assert_array_almost_equal_nulp(z, np.array([[1., -5., 2.],
-                                                        [1., 0., -3.],
-                                                        [-2., -1., -1.]], dtype='float'), 10)
-        elif boundary == 'wrap':
-            assert_array_almost_equal_nulp(z, np.array([[0., -8., 6.],
-                                                        [5., 0., -4.],
-                                                        [2., 3., -4.]], dtype='float'), 10)
-        elif boundary == 'extend':
-            assert_array_almost_equal_nulp(z, np.array([[ 2., -1., -2.],
-                                                        [ 0.,  0.,  1.],
-                                                        [ 2., -4.,  2.]], dtype='float'), 10)
-        else:
-            raise ValueError("Invalid boundary specification")
+    z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+
+    if boundary == 'fill':
+        assert_array_almost_equal_nulp(z, np.array([6., 10.,  2.], dtype='float'), 10)
+    elif boundary is None:
+        assert_array_almost_equal_nulp(z, np.array([0., 10.,  0.], dtype='float'), 10)
+    elif boundary == 'extend':
+        assert_array_almost_equal_nulp(z, np.array([15., 10.,  3.], dtype='float'), 10)
+    elif boundary == 'wrap':
+        assert_array_almost_equal_nulp(z, np.array([9., 10.,  5.], dtype='float'), 10)
+
+@pytest.mark.parametrize('ndims', (1,2,3))
+def test_convolution_consistency(ndims):
+
+    np.random.seed(0)
+    array = np.random.randn(*([3]*ndims))
+    np.random.seed(0)
+    kernel = np.random.rand(*([3]*ndims))
+
+    conv_f = convolve_fft(array, kernel, boundary='fill')
+    conv_d = convolve(array, kernel, boundary='fill')
+
+    assert_array_almost_equal_nulp(conv_f, conv_d, 30)
+
+def test_astropy_convolution_against_numpy():
+    x = np.array([1, 2, 3])
+    y = np.array([5, 4, 3, 2, 1])
+
+    assert_array_almost_equal(np.convolve(y, x, 'same'),
+                              convolve(y, x, normalize_kernel=False))
+    assert_array_almost_equal(np.convolve(y, x, 'same'),
+                              convolve_fft(y, x, normalize_kernel=False))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_astropy_convolution_against_scipy():
+    from scipy.signal import fftconvolve
+    x = np.array([1, 2, 3])
+    y = np.array([5, 4, 3, 2, 1])
+
+    assert_array_almost_equal(fftconvolve(y, x, 'same'),
+                              convolve(y, x, normalize_kernel=False))
+    assert_array_almost_equal(fftconvolve(y, x, 'same'),
+                              convolve_fft(y, x, normalize_kernel=False))

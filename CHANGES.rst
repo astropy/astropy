@@ -410,6 +410,9 @@ Bug Fixes
     in earlier versions of astropy.
     [#5782]
 
+  - Direct convolution previously implemented the wrong definition of
+    convolution.  This error only affects *asymmetric* kernels.  [#6267]
+
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
