@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import math
 import numpy as np
-from ..convolve import convolve, convolve_models
+from ..convolve import convolve, convolve_fft, convolve_models
 from ...modeling import models, fitting
 from ...tests.helper import pytest
 from ...utils.misc import NumpyRNGContext
@@ -77,10 +77,9 @@ class TestConvolve1DModels(object):
     def test_convolve_box_models(self, mode):
         kernel = models.Box1D()
         model = models.Box1D()
-        model_conv = convolve_models(model, kernel, mode=mode,
-                                     normalize_kernel=False)
+        model_conv = convolve_models(model, kernel, mode=mode)
         x = np.linspace(-1, 1, 99)
-        ans = (x - 1) * (x < 0) + (-x + 1) * (x >= 0)
+        ans = (x + 1) * (x < 0) + (-x + 1) * (x >= 0)
 
         assert_allclose(ans, model_conv(x), atol=1e-3)
 
