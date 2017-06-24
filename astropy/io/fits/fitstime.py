@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 import warnings
 from collections import defaultdict, OrderedDict
 
@@ -10,11 +11,10 @@ from . import Header, Card
 from ...coordinates import EarthLocation
 from ...table import Column
 from ...time import Time
-from ...time.formats import FITS_DEPRECATED_SCALES
 from ...utils.exceptions import AstropyUserWarning
 
 
-class FitsTime(object):
+class FITS_time(object):
     """A class to read FITS binary table time columns as `~astropy.time.Time`
 
     This class reads the metadata associated with time coordinates, as 
@@ -37,10 +37,12 @@ class FitsTime(object):
                      'OBSGEO-Z' : 'loc_z'}
 
     # Column-specific time override keywords
-    COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale', 
+    COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
                             'TRPOS' : 'pos',
-                            'TCUNI' : 'unit',
-                            'TCAPF' : 'format'}
+                            'TCUNI' : 'unit'}
+
+    # AstroPy-specific keywords
+    ASTROPY_TIME_KEYWORDS = {'FORMAT' : 'format'}
 
     # Set AstroPy Time global information
     GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
@@ -54,7 +56,8 @@ class FitsTime(object):
                       'utc' : 'TOPOCENTER',
                       'tcg' : 'GEOCENTER',
                       'tcb' : 'BARYCENTER'}
-                      
+
+    astropy_namespace = 'HIERARCH ASTROPY TIME'
 
     def __init__(self):
         # Set defaults for global time scale, reference, etc.
@@ -94,7 +97,7 @@ class FitsTime(object):
         if key in self.TIME_KEYWORDS:
             self.global_info[self.TIME_KEYWORDS[key]] = value
         else:
-            raise ValueError('Illegal global time keyword')
+            raise ValueError('Illegal global time keyword.')
 
     def set_column_override(self, key, value, comment=None):
         """
@@ -113,7 +116,28 @@ class FitsTime(object):
             idx = int(key[5:])
             self.time_columns[idx][self.COLUMN_TIME_KEYWORDS[key[:5]]] = value
         else:
-            raise ValueError('Illegal column-specific time keyword')
+            raise ValueError('Illegal column-specific time keyword.')
+
+    def set_astropy_time(self, key, value, comment=None):
+        """
+        Set the astropy namespace attributes. 
+
+        Parameters
+        ----------
+        key : str
+            FITS astropy time specific keyword.
+        value : int, str, list
+            value associated with specified keyword.
+        comment : str
+            comment associated with specified keyword.
+        """
+        if key.startswith('ASTROPY TIME'):
+            sub_keys = re.split('(\d+)', key)
+            if len(sub_keys) > 1 and sub_keys[-1] == '':
+                idx = sub_keys[-2]
+                self.time_columns[int(idx)][self.ASTROPY_TIME_KEYWORDS[key[13:-len(idx)]]] = value
+        else:
+            raise ValueError('Illegal astropy time keyword.')
 
     def convert_time_columns(self, table):
         """
@@ -211,7 +235,7 @@ class FitsTime(object):
             hdr.append(Card(keyword='TCTYP%d' %n, value=col.scale.upper()))
 
             # Astropy specific keyword for storing Time format
-            hdr.append(Card(keyword='TCAPF%d' %n, value=col.format.upper()))
+            hdr.append(Card(keyword='{0} FORMAT%d'.format(cls.astropy_namespace) %n, value=col.format.upper()))
 
             # Time column reference positions
             if col.location is None:
