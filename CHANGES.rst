@@ -79,6 +79,8 @@ New Features
 
   - Writing latex tables with only a ``tabular`` environment is now possible by
     setting ``latexdict['tabletyle']`` to ``None``. [#6205]
+  - Allow ECSV format to support reading and writing mixin columns like
+    ``Time``, ``SkyCoord``, ``Latitude``, and ``EarthLocation``. [#6181]
 
 - ``astropy.io.fits``
 

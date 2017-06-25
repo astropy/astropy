@@ -13,8 +13,12 @@ import sys
 import pytest
 import numpy as np
 
-from ....table import Table, Column
+from ....table import Table, Column, QTable, NdarrayMixin
 from ....table.table_helpers import simple_table
+from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from ....time import Time, TimeDelta
+from ....tests.helper import quantity_allclose
+from ....units.quantity import QuantityInfo
 
 from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
@@ -55,6 +59,7 @@ SIMPLE_LINES = ['# %ECSV 0.9',
                 '# - {name: a, datatype: int64}',
                 '# - {name: b, datatype: float64}',
                 '# - {name: c, datatype: string}',
+                '# schema: astropy-2.0',
                 'a b c',
                 '1 1.0 c',
                 '2 2.0 d',
@@ -104,6 +109,7 @@ def test_write_full():
              '#   meta: {meta str: 1}',
              '# meta: !!omap',
              '# - comments: [comment1, comment2]',
+             '# schema: astropy-2.0',
              'bool int64 float64 str',
              'False 0 0.0 "ab 0"',
              'True 1 1.0 "ab, 1"',
@@ -216,3 +222,190 @@ def test_regression_5604():
 
     assert '!astropy.units.Unit' in out.getvalue()
     assert '!astropy.units.Quantity' in out.getvalue()
+
+
+def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
+    if compare_class:
+        assert obj1.__class__ is obj2.__class__
+
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
+    for attr in attrs + info_attrs:
+        a1 = obj1
+        a2 = obj2
+        for subattr in attr.split('.'):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
+            assert quantity_allclose(a1, a2, rtol=1e-10)
+        else:
+            assert np.all(a1 == a2)
+
+
+el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
+              obstime='J1990.5')
+scc = sc.copy()
+scc.representation = 'cartesian'
+tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el[0])
+tm2 = Time(tm, format='iso')
+tm3 = Time(tm, location=el)
+tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
+
+
+mixin_cols = {
+    'tm': tm,
+    'tm2': tm2,
+    'tm3': tm3,
+    'dt': TimeDelta([1, 2] * u.day),
+    'sc': sc,
+    'scc': scc,
+    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+                    obstime=['J1990.5'] * 2),
+    'q': [1, 2] * u.m,
+    'lat': Latitude([1, 2] * u.deg),
+    'lon': Longitude([1, 2] * u.deg, wrap_angle=180.*u.deg),
+    'ang': Angle([1, 2] * u.deg),
+    'el': el,
+    # 'nd': NdarrayMixin(el)  # not supported yet
+}
+
+time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
+              'in_subfmt', 'out_subfmt', 'location']
+compare_attrs = {
+    'c1': ['data'],
+    'c2': ['data'],
+    'tm': time_attrs,
+    'tm2': time_attrs,
+    'tm3': time_attrs,
+    'dt': ['shape', 'value', 'format', 'scale'],
+    'sc': ['ra', 'dec', 'representation', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'q': ['value', 'unit'],
+    'lon': ['value', 'unit', 'wrap_angle'],
+    'lat': ['value', 'unit'],
+    'ang': ['value', 'unit'],
+    'el': ['x', 'y', 'z', 'ellipsoid'],
+    'nd': ['x', 'y', 'z'],
+}
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_ecsv_mixins_ascii_read_class():
+    """Ensure that ascii.read(ecsv_file) returns the correct class
+    (QTable if any Quantity subclasses, Table otherwise).
+    """
+    # Make a table with every mixin type except Quantities
+    t = QTable({name: col for name, col in mixin_cols.items()
+                if not isinstance(col.info, QuantityInfo)})
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = ascii.read(out.getvalue(), format='ecsv')
+    assert type(t2) is Table
+
+    # Add a single quantity column
+    t['lon'] = mixin_cols['lon']
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = ascii.read(out.getvalue(), format='ecsv')
+    assert type(t2) is QTable
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_ecsv_mixins_qtable_to_table():
+    """Test writing as QTable and reading as Table.  Ensure correct classes
+    come out.
+    """
+    names = sorted(mixin_cols)
+
+    t = QTable([mixin_cols[name] for name in names], names=names)
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    for name, col in t.columns.items():
+        col2 = t2[name]
+        attrs = compare_attrs[name]
+        compare_class = True
+
+        if isinstance(col.info, QuantityInfo):
+            # Downgrade Quantity to Column + unit
+            assert type(col2) is Column
+            attrs = ['unit']  # Other attrs are lost
+            compare_class = False
+
+        assert_objects_equal(col, col2, attrs, compare_class)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_ecsv_mixins_as_one(table_cls):
+    """Test write/read all cols at once and validate intermediate column names"""
+    names = sorted(mixin_cols)
+
+    serialized_names = ['ang',
+                        'dt',
+                        'el.x', 'el.y', 'el.z',
+                        'lat',
+                        'lon',
+                        'q',
+                        'sc.ra', 'sc.dec',
+                        'scc.x', 'scc.y', 'scc.z',
+                        'scd.ra', 'scd.dec', 'scd.distance',
+                        'scd.obstime',
+                        'tm',  # serialize_method is formatted_value
+                        'tm2',  # serialize_method is formatted_value
+                        'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2
+                        'tm3.location.x', 'tm3.location.y', 'tm3.location.z']
+
+    t = table_cls([mixin_cols[name] for name in names], names=names)
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    # Read as a ascii.basic table (skip all the ECSV junk)
+    t3 = table_cls.read(out.getvalue(), format='ascii.basic')
+    assert t3.colnames == serialized_names
+
+
+@pytest.mark.skipif('not HAS_YAML')
+@pytest.mark.parametrize('name_col', list(mixin_cols.items()))
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_ecsv_mixins_per_column(table_cls, name_col):
+    """Test write/read one col at a time and do detailed validation"""
+    name, col = name_col
+
+    c = [1.0, 2.0]
+    t = table_cls([c, col, c], names=['c1', name, 'c2'])
+    t[name].info.description = 'description'
+
+    if not t.has_mixin_columns:
+        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
+
+    if isinstance(t[name], NdarrayMixin):
+        pytest.xfail('NdarrayMixin not supported')
+
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t.colnames == t2.colnames
+
+    for colname in t.colnames:
+        assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
+
+    # Special case to make sure Column type doesn't leak into Time class data
+    if name.startswith('tm'):
+        assert t2[name]._time.jd1.__class__ is np.ndarray
+        assert t2[name]._time.jd2.__class__ is np.ndarray

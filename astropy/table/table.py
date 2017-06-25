@@ -16,7 +16,7 @@ from numpy import ma
 
 from .. import log
 from ..io import registry as io_registry
-from ..units import Quantity
+from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
@@ -657,8 +657,10 @@ class Table(object):
         def_names = _auto_names(n_cols)
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            # Structured ndarray gets viewed as a mixin
-            if isinstance(col, np.ndarray) and len(col.dtype) > 1:
+            # Structured ndarray gets viewed as a mixin unless already a valid
+            # mixin class
+            if (isinstance(col, np.ndarray) and len(col.dtype) > 1 and
+                    not self._add_as_mixin_column(col)):
                 col = col.view(NdarrayMixin)
 
             if isinstance(col, (Column, MaskedColumn)):
@@ -900,7 +902,7 @@ class Table(object):
 
         # Is it a mixin but not not Quantity (which gets converted to Column with
         # unit set).
-        return has_info_class(col, MixinInfo) and not isinstance(col, Quantity)
+        return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False, align=None):
@@ -1264,8 +1266,10 @@ class Table(object):
             if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
                 value = np.asarray(value)
 
-            # Structured ndarray gets viewed as a mixin
-            if isinstance(value, np.ndarray) and len(value.dtype) > 1:
+            # Structured ndarray gets viewed as a mixin (unless already a valid
+            # mixin class).
+            if (isinstance(value, np.ndarray) and len(value.dtype) > 1 and
+                    not self._add_as_mixin_column(value)):
                 value = value.view(NdarrayMixin)
 
             # Make new column and assign the value.  If the table currently
@@ -2517,7 +2521,19 @@ class Table(object):
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
         """
-        return io_registry.read(cls, *args, **kwargs)
+        out = io_registry.read(cls, *args, **kwargs)
+        # For some readers (e.g., ascii.ecsv), the returned `out` class is not
+        # guaranteed to be the same as the desired output `cls`.  If so,
+        # try coercing to desired class without copying (io.registry.read
+        # would normally do a copy).  The normal case here is swapping
+        # Table <=> QTable.
+        if cls is not out.__class__:
+            try:
+                out = cls(out, copy=False)
+            except Exception:
+                raise TypeError('could not convert reader output to {0} '
+                                'class.'.format(cls.__name__))
+        return out
 
     def write(self, *args, **kwargs):
         """
