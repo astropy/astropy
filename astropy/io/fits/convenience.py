@@ -466,7 +466,7 @@ def table_to_hdu(table):
 
     # Create a new HDU object
     if table.masked:
-        #float column's default mask value needs to be Nan
+        # float column's default mask value needs to be Nan
         for column in six.itervalues(table.columns):
             fill_value = column.get_fill_value()
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
@@ -885,6 +885,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         if closed:
             f.close()
 
+
 if isinstance(tabledump.__doc__, string_types):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
@@ -923,6 +924,7 @@ def tableload(datafile, cdfile, hfile=None):
 
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
 
+
 if isinstance(tableload.__doc__, string_types):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
@@ -940,7 +942,7 @@ def _getext(filename, mode, *args, **kwargs):
     extver = kwargs.pop('extver', None)
 
     err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
-            {'args': args, 'ext': ext,  'extname': extname,
+            {'args': args, 'ext': ext, 'extname': extname,
              'extver': extver}))
 
     # This code would be much simpler if just one way of specifying an

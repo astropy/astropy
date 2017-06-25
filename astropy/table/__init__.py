@@ -5,6 +5,7 @@ from ..extern import six
 
 from .. import config as _config
 
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.table`.

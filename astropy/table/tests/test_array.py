@@ -17,11 +17,13 @@ def array():
     t = t[t.argsort()]
     return SortedArray(t, t['col1'].copy())
 
+
 @pytest.fixture
 def wide_array():
     # array with 100 columns
     t = Table([[x] * 10 for x in np.arange(100)])
     return SortedArray(t, t['col0'].copy())
+
 
 def test_array_find(array):
     for i in range(1, 11):
@@ -29,10 +31,12 @@ def test_array_find(array):
         assert array.find((i % 2, i)) == [i]
     assert array.find((1, 4)) == []
 
+
 def test_array_range(array):
     assert np.all(array.range((0, 8), (1, 3), (True, True)) == [8, 10, 1, 3])
     assert np.all(array.range((0, 8), (1, 3), (False, True)) == [10, 1, 3])
     assert np.all(array.range((0, 8), (1, 3), (True, False)) == [8, 10, 1])
+
 
 def test_wide_array(wide_array):
     # checks for a previous bug in which the length of a

@@ -137,6 +137,7 @@ class TA(object):
     """
     This is the class docstring.
     """
+
     def __init__(self):
         """
         This is the __init__ docstring
@@ -513,6 +514,7 @@ def test_sharedmethod_reuse_on_subclasses():
             return cls.x
 
     six.add_metaclass(AMeta)
+
     class A(object):
         x = 3
 
@@ -741,7 +743,7 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == 'what we do is strange.'
 
 
-#@pytest.mark.skipif('six.PY2')
+# @pytest.mark.skipif('six.PY2')
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = 'what we do {__doc__} {0}{opt}'

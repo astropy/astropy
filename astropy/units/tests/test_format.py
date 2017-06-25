@@ -52,6 +52,7 @@ def test_unit_grammar_fail(string):
         print(string)
         u_format.Generic.parse(string)
 
+
 @pytest.mark.parametrize('strings, unit', [
     (["0.1nm"], u.AA),
     (["mW/m2"], u.Unit(u.erg / u.cm ** 2 / u.s)),
@@ -254,25 +255,25 @@ def test_new_style_latex():
 
 
 def test_latex_scale():
-    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
     latex = r'$\mathrm{1 \times 10^{-24}\,\frac{erg}{Hz\,s\,cm^{2}}}$'
     assert fluxunit.to_string('latex') == latex
 
 
 def test_latex_inline_scale():
-    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm **2 * u.s * u.Hz))
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
     latex_inline = (r'$\mathrm{1 \times 10^{-24}\,erg'
                     r'\,Hz^{-1}\,s^{-1}\,cm^{-2}}$')
     assert fluxunit.to_string('latex_inline') == latex_inline
 
 
 @pytest.mark.parametrize('format_spec, string', [
-    ('generic','erg / (cm2 s)'),
+    ('generic', 'erg / (cm2 s)'),
     ('s', 'erg / (cm2 s)'),
     ('console', '  erg  \n ------\n s cm^2'),
     ('latex', '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'),
     ('latex_inline', '$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$'),
-    ('>20s','       erg / (cm2 s)')])
+    ('>20s', '       erg / (cm2 s)')])
 def test_format_styles(format_spec, string):
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert format(fluxunit, format_spec) == string

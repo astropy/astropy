@@ -41,17 +41,16 @@ from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
-#Check pkg_resources exists
+# Check pkg_resources exists
 try:
     from pkg_resources import iter_entry_points
-    HAS_PKG=True
+    HAS_PKG = True
 except ImportError:
-    HAS_PKG=False
+    HAS_PKG = False
 
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
-
 
 
 # Statistic functions implemented in `astropy.modeling.statistic.py
@@ -508,7 +507,7 @@ class FittingWithOutlierRemoval(object):
         self.outlier_kwargs = outlier_kwargs
 
     def __str__(self):
-        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}"+
+        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
                 ("\nOutlier func. args.: {3}"))\
                 .format(self.fitter__class__.__name__,\
                         self.outlier_func.__name__, self.niter,\
@@ -636,9 +635,9 @@ class LevMarLSQFitter(object):
         _fitter_to_model_params(model, fps)
         meas = args[-1]
         if weights is None:
-            return np.ravel(model(*args[2 : -1]) - meas)
+            return np.ravel(model(*args[2: -1]) - meas)
         else:
-            return np.ravel(weights * (model(*args[2 : -1]) - meas))
+            return np.ravel(weights * (model(*args[2: -1]) - meas))
 
     @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
@@ -1256,6 +1255,7 @@ def populate_entry_points(entry_points):
                     warnings.warn(AstropyUserWarning(
                         'Modeling entry point {0} expected to extend '
                         'astropy.modeling.Fitter' .format(name)))
+
 
 # this is so fitting doesn't choke if pkg_resources doesn't exist
 if HAS_PKG:

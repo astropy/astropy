@@ -127,6 +127,7 @@ def test_table_read_with_unnamed_tables():
 
     assert len(t) == 1
 
+
 @pytest.mark.skipif('not HAS_PATHLIB')
 def test_votable_path_object():
     """

@@ -18,7 +18,7 @@ else:
     HAS_BZ2 = True
 
 try:
-    if sys.version_info >= (3,3,0):
+    if sys.version_info >= (3, 3, 0):
         import lzma
     else:
         from backports import lzma  # pylint: disable=W0611

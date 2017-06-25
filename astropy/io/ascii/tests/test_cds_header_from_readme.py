@@ -147,6 +147,7 @@ def test_header_from_readme():
             else:
                 assert val == Q[i]
 
+
 if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()

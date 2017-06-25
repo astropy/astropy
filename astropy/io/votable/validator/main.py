@@ -18,7 +18,6 @@ from . import result
 __all__ = ['make_validation_report']
 
 
-
 def get_srcdir():
     return os.path.dirname(__file__)
 
@@ -146,7 +145,6 @@ def make_validation_report(
         votlint_args = [(stilts, x, destdir) for x in urls]
         ProgressBar.map(
             votlint_validate, votlint_args, multiprocess=multiprocess)
-
 
     color_print('Generating HTML files', 'green')
     ProgressBar.map(

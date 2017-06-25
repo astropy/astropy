@@ -17,6 +17,7 @@ def test_string_fail():
     config = {'pedantic': True}
     tree.check_string(42, 'foo', config)
 
+
 def test_make_Fields():
     votable = tree.VOTableFile()
     # ...with one resource...
@@ -27,4 +28,4 @@ def test_make_Fields():
     table = tree.Table(votable)
     resource.tables.append(table)
 
-    table.fields.extend([tree.Field(votable, name='Test', datatype="float", unit = "mag")])
+    table.fields.extend([tree.Field(votable, name='Test', datatype="float", unit="mag")])

@@ -790,7 +790,6 @@ class TestSingleInputDoubleOutputSingleModel(object):
                              [[111.07, 222.08, 333.09],
                               [111.10, 222.11, 333.12]]])
 
-
         y2, z2 = t([[[[10]]], [[[20]]], [[[30]]]])
         assert np.shape(y2) == np.shape(z2) == (3, 2, 2, 3)
         assert_allclose(y2, [[[[11.01, 12.02, 13.03],

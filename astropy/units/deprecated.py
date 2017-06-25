@@ -38,6 +38,7 @@ def _initialize_module():
     _add_prefixes(astrophys.jupiterRad, namespace=_ns, prefixes=True)
     _add_prefixes(astrophys.earthRad, namespace=_ns, prefixes=True)
 
+
 _initialize_module()
 
 

@@ -74,6 +74,8 @@ class Conf(_config.ConfigNamespace):
         True,
         'If True, temporary download files created when the cache is '
         'inaccessible will be deleted at the end of the python session.')
+
+
 conf = Conf()
 
 
@@ -264,7 +266,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
             # but does not support TextIOWrapper
-            if sys.version_info >= (3,3,0):
+            if sys.version_info >= (3, 3, 0):
                 import lzma
                 fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
             else:
@@ -1055,7 +1057,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
         with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
-            #keep a hash to rename the local file to the hashed name
+            # keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
             info = remote.info()
@@ -1359,8 +1361,8 @@ def _open_shelve(shelffn, withclosing=False):
         return shelf
 
 
-#the cache directory must be locked before any writes are performed.  Same for
-#the hash shelve, so this should be used for both.
+# the cache directory must be locked before any writes are performed.  Same for
+# the hash shelve, so this should be used for both.
 def _acquire_download_cache_lock():
     """
     Uses the lock directory method.  This is good because `mkdir` is
@@ -1371,7 +1373,7 @@ def _acquire_download_cache_lock():
     for i in range(conf.download_cache_lock_attempts):
         try:
             os.mkdir(lockdir)
-            #write the pid of this process for informational purposes
+            # write the pid of this process for informational purposes
             with open(os.path.join(lockdir, 'pid'), 'w') as f:
                 f.write(str(os.getpid()))
 
@@ -1389,7 +1391,7 @@ def _release_download_cache_lock():
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
     if os.path.isdir(lockdir):
-        #if the pid file is present, be sure to remove it
+        # if the pid file is present, be sure to remove it
         pidfn = os.path.join(lockdir, 'pid')
         if os.path.exists(pidfn):
             os.remove(pidfn)

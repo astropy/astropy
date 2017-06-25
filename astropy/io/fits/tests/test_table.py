@@ -539,7 +539,7 @@ class TestTableFunctions(FitsTestCase):
 
         assert fits.info(self.temp('newtable.fits'), output=False) == info
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True),
              ('NGC2', 334, '', z, False),
@@ -651,7 +651,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.columns.names == ['target', 'counts', 'notes',
                                         'spectrum', 'flag']
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True),
              ('NGC2', 334, '', z, False),
@@ -692,7 +692,7 @@ class TestTableFunctions(FitsTestCase):
 
         hdu = fits.BinTableHDU.from_columns(t1[1].columns + t2[1].columns)
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
@@ -753,7 +753,7 @@ class TestTableFunctions(FitsTestCase):
                 ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
                  'counts1', 'notes1', 'spectrum1', 'flag1'])
 
-        z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
         array = np.rec.array(
             [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
              ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
@@ -868,7 +868,7 @@ class TestTableFunctions(FitsTestCase):
         a, b, c = row[1:4]
         assert a == counts[2]
         assert b == ''
-        assert (c == np.array([0., 0.,  0.,  0., 0.], dtype=np.float32)).all()
+        assert (c == np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         row['counts'] = 310
         assert row['counts'] == 310
 
@@ -1072,7 +1072,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[8] == False  #nopep8
+        assert tbhdu2.columns.columns[4].array[8] == False  # nopep8
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -1898,7 +1898,7 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://github.com/astropy/astropy/pull/3580"""
 
         hdulist = fits.open(self.data('tdim.fits'))
-        assert hdulist[1].data['V_mag'].shape == (3,1,1)
+        assert hdulist[1].data['V_mag'].shape == (3, 1, 1)
 
     def test_slicing(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/52"""

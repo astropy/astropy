@@ -93,7 +93,6 @@ class TestCore(FitsTestCase):
 
         assert FITSDiff(hdulist2, hdulist).identical is True
 
-
     def test_add_del_columns(self):
         p = fits.ColDefs([])
         p.add_col(fits.Column(name='FOO', format='3J'))
@@ -616,7 +615,7 @@ class TestFileFunctions(FitsTestCase):
         # still how the original test case looked
         # Note: with statement not supported on GzipFile in older Python
         # versions
-        fileobj =  gzip.GzipFile(self.temp('test.fits.gz'), 'ab+')
+        fileobj = gzip.GzipFile(self.temp('test.fits.gz'), 'ab+')
         h = fits.PrimaryHDU()
         try:
             h.writeto(fileobj)
@@ -945,7 +944,6 @@ class TestFileFunctions(FitsTestCase):
             def tell(self):
                 return self._foobar.tell()
 
-
         with open(self.data('test0.fits'), 'rb') as f:
             fileobj = MyFileLike(f)
 
@@ -1015,12 +1013,12 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp(filename)) as hdul:
             assert np.all(hdul[0].data == hdu.data)
 
-
     def test_writeto_full_disk(self, monkeypatch):
         """
         Test that it gives a readable error when trying to write an hdulist
         to a full disk.
         """
+
         def _writeto(self, array):
             raise OSError("Fake error raised when writing file.")
 

@@ -1449,6 +1449,7 @@ def _build_doc_string():
     return {'warnings': warnings,
             'exceptions': exceptions}
 
+
 if __doc__ is not None:
     __doc__ = __doc__.format(**_build_doc_string())
 

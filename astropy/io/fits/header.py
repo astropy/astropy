@@ -247,7 +247,6 @@ class Header(object):
             if not indices:
                 del self._rvkc_indices[card.rawkeyword]
 
-
         # We also need to update all other indices
         self._updateindices(idx, increment=False)
         self._modified = True
@@ -1493,7 +1492,6 @@ class Header(object):
                     del self[self._keyword_indices[keyword][0]]
         elif not ignore_missing:
             raise KeyError("Keyword '{}' not found.".format(keyword))
-
 
     def rename_keyword(self, oldkeyword, newkeyword, force=False):
         """

@@ -33,6 +33,7 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
 allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
                                   atol=0.)  # 14 microsec at current epoch
 
+
 def setup_function(func):
     func.FORMATS_ORIG = deepcopy(Time.FORMATS)
 
@@ -907,6 +908,7 @@ def test_TimeFormat_scale():
     t.unix
     assert t.unix == t.utc.unix
 
+
 def test_scale_conversion():
     if INTERNET_OFF:
         # With internet off (which is the default for testing) then this will
@@ -919,10 +921,9 @@ def test_scale_conversion():
         Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
 
 
-
 def test_byteorder():
     """Ensure that bigendian and little-endian both work (closes #2942)"""
-    mjd = np.array([53000.00,54000.00])
+    mjd = np.array([53000.00, 54000.00])
     big_endian = mjd.astype('>f8')
     little_endian = mjd.astype('<f8')
     time_mjd = Time(mjd, format='mjd')
@@ -944,6 +945,7 @@ def test_datetime_tzinfo():
     t = Time(d)
     assert t.value == datetime.datetime(2002, 1, 2, 16, 3, 4)
 
+
 def test_subfmts_regex():
     """
     Test having a custom subfmts with a regular expression
@@ -956,6 +958,7 @@ def test_subfmts_regex():
     t = Time('+02000-02-03', format='longyear')
     assert t.value == '+02000-02-03'
     assert t.jd == Time('2000-02-03').jd
+
 
 def test_set_format_basic():
     """
@@ -974,6 +977,7 @@ def test_set_format_basic():
         assert t._time.jd1 is t0._time.jd1
         assert t._time.jd2 is t0._time.jd2
 
+
 def test_set_format_shares_subfmt():
     """
     Set format and round trip through a format that shares out_subfmt
@@ -990,6 +994,7 @@ def test_set_format_shares_subfmt():
     assert t.value == tc.value
     assert t.precision == 5
 
+
 def test_set_format_does_not_share_subfmt():
     """
     Set format and round trip through a format that does not share out_subfmt
@@ -1004,6 +1009,7 @@ def test_set_format_does_not_share_subfmt():
     assert t.out_subfmt == '*'
     assert t.value == '2000-02-03T00:00:00.000(UTC)'  # date_hms
 
+
 def test_replicate_value_error():
     """
     Passing a bad format to replicate should raise ValueError, not KeyError.
@@ -1013,6 +1019,7 @@ def test_replicate_value_error():
     with pytest.raises(ValueError) as err:
         t1.replicate(format='definitely_not_a_valid_format')
     assert 'format must be one of' in str(err)
+
 
 def test_remove_astropy_time():
     """
@@ -1024,6 +1031,7 @@ def test_remove_astropy_time():
     with pytest.raises(ValueError) as err:
         Time(t1, format='astropy_time')
     assert 'format must be one of' in str(err)
+
 
 def test_isiterable():
     """
@@ -1039,6 +1047,7 @@ def test_isiterable():
     t2 = Time(['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00'],
               format='iso', scale='utc')
     assert isiterable(t2)
+
 
 def test_to_datetime():
     tz = TimezoneInfo(utc_offset=-10*u.hour, tzname='US/Hawaii')
@@ -1064,6 +1073,7 @@ def test_to_datetime():
         Time('2015-06-30 23:59:60.000').to_datetime()
         assert 'does not support leap seconds' in str(e.message)
 
+
 @pytest.mark.skipif('not HAS_PYTZ')
 def test_to_datetime_pytz():
 
@@ -1083,6 +1093,7 @@ def test_to_datetime_pytz():
     for dt, tz_dt in zip(time.datetime, tz_aware_datetime):
         assert tz.tzname(dt) == tz_dt.tzname()
     assert np.all(time == forced_to_astropy_time)
+
 
 def test_cache():
     t = Time('2010-09-03 00:00:00')

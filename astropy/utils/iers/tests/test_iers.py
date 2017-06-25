@@ -26,6 +26,7 @@ else:
 
 IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'iers_a_excerpt')
 
+
 class TestBasic():
     """Basic tests that IERS_B returns correct values"""
 
@@ -59,7 +60,7 @@ class TestBasic():
         t = Time(jd1, jd2, format='jd', scale='utc')
         ut1_utc3 = iers_tab.ut1_utc(t)
         assert_quantity_allclose(ut1_utc3, [-0.5868211, -0.5868184, -0.5868184,
-                                            0.4131816, 0.41328895] *u.s,
+                                            0.4131816, 0.41328895] * u.s,
                                  atol=1.*u.ns)
 
         # Table behaves properly as a table (e.g. can be sliced)
@@ -80,6 +81,7 @@ class TestBasic():
         assert iers.IERS_A.iers_table is not None
         assert isinstance(iers.IERS_A.iers_table, QTable)
         iers.IERS_A.close()
+
 
 class TestIERS_AExcerpt():
     def test_simple(self):

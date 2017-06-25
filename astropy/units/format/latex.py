@@ -116,11 +116,12 @@ class Latex(base.Base):
             if np.isnan(val):
                 return r'{\rm NaN}'
             elif val > 0:
-                #positive infinity
+                # positive infinity
                 return r'\infty'
             else:
-                #negative infinity
+                # negative infinity
                 return r'-\infty'
+
 
 class LatexInline(Latex):
     """

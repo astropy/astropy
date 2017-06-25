@@ -103,6 +103,7 @@ class Conf(_config.ConfigNamespace):
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
 
+
 conf = Conf()
 
 # If internet is off for testing then do not download.  This
@@ -114,6 +115,7 @@ class IERSRangeError(IndexError):
     """
     Any error for when dates are outside of the valid range for IERS
     """
+
 
 class IERS(QTable):
     """Generic IERS table class, defining interpolation functions.
@@ -530,6 +532,7 @@ class IERS_B(IERS):
         """Set PM source flag for entries in IERS table"""
         return np.ones_like(i) * FROM_IERS_B
 
+
 class IERS_Auto(IERS_A):
     """
     Provide most-recent IERS data and automatically handle downloading
@@ -624,7 +627,6 @@ class IERS_Auto(IERS_A):
         # the available definitive values.
         fpi = self.meta['predictive_index']
         predictive_mjd = self.meta['predictive_mjd']
-
 
         # Update table in place if necessary
         auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None

@@ -9,8 +9,10 @@ from ...tests.helper import catch_warnings
 from ...table import Table, Column
 from ...utils.exceptions import AstropyUserWarning
 
+
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
+
 
 def test_column_group_by(T1):
     for masked in (False, True):
@@ -28,6 +30,7 @@ def test_column_group_by(T1):
         # Group by a numpy structured array
         t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+
 
 def test_table_group_by(T1):
     """
@@ -454,8 +457,10 @@ def test_table_aggregate_reduceat(T1):
     # Comparison functions without reduceat
     def np_mean(x):
         return np.mean(x)
+
     def np_sum(x):
         return np.sum(x)
+
     def np_add(x):
         return np.add(x)
 

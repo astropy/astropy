@@ -5,8 +5,6 @@ relevant to FITS) or that otherwise require workarounds.
 """
 
 
-
-
 def realign_dtype(dtype, offsets):
     """
     Given a Numpy struct dtype object an a list of integer offsets, with one

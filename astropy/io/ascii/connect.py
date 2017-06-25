@@ -21,12 +21,14 @@ def read_asciitable(filename, **kwargs):
     from .ui import read
     return read(filename, **kwargs)
 
+
 io_registry.register_reader('ascii', Table, read_asciitable)
 
 
 def write_asciitable(table, filename, **kwargs):
     from .ui import write
     return write(table, filename, **kwargs)
+
 
 io_registry.register_writer('ascii', Table, write_asciitable)
 

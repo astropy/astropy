@@ -173,7 +173,6 @@ def test_show_in_notebook():
     <tr><td>4</td><td>5</td><td>e</td></tr>
     """).strip() in htmlstr_windx)
 
-
     assert '<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>' in htmlstr_windx_named
 
     assert '<thead><tr><th>a</th><th>b</th></tr></thead>' in htmlstr_woindx

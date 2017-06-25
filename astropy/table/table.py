@@ -51,7 +51,6 @@ class TableReplaceWarning(UserWarning):
 
 
 def descr(col):
-
     """Array-interface compliant full description of a column.
 
     This returns a 3-tuple (name, type, shape) that can always be
@@ -184,6 +183,7 @@ class TableColumns(OrderedDict):
         cols = [col for col in self.values() if not isinstance(col, cls)]
         return cols
 
+
 class Table(object):
     """A class to represent tables of heterogeneous data.
 
@@ -290,8 +290,8 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
-        self._copy_indices = True # copy indices from this Table by default
-        self._init_indices = copy_indices # whether to copy indices in init
+        self._copy_indices = True  # copy indices from this Table by default
+        self._init_indices = copy_indices  # whether to copy indices in init
         self.primary_key = None
 
         # Must copy if dtype are changing
@@ -485,7 +485,7 @@ class Table(object):
         lst = []
         for column in self.columns.values():
             for index in column.info.indices:
-                if sum([index is x for x in lst]) == 0: # ensure uniqueness
+                if sum([index is x for x in lst]) == 0:  # ensure uniqueness
                     lst.append(index)
         return TableIndices(lst)
 
@@ -1035,7 +1035,6 @@ class Table(object):
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
                         css=None, show_row_index='idx'):
-
         """Render the table in HTML and show it in a web browser.
 
         Parameters
@@ -1991,7 +1990,6 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-
     def _convert_string_dtype(self, in_kind, out_kind, python3_only):
         """
         Convert string-like columns to/from bytestring and unicode (internal only).
@@ -2471,7 +2469,6 @@ class Table(object):
             # now relabel the sort index appropriately
             sort_index.sort()
 
-
     def reverse(self):
         '''
         Reverse the row order of table rows.  The table is reversed
@@ -2794,6 +2791,7 @@ class QTable(Table):
         Additional keyword args when converting table-like object.
 
     """
+
     def _add_as_mixin_column(self, col):
         """
         Determine if ``col`` should be added to the table directly as
@@ -2813,6 +2811,7 @@ class QTable(Table):
             col = super(QTable, self)._convert_col_for_table(col)
 
         return col
+
 
 class NdarrayMixin(np.ndarray):
     """
