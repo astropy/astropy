@@ -192,22 +192,19 @@ class DataInfo(object):
     _represent_as_dict_attrs= ()
     _parent = None
 
-    def __init__(self, bound=False):
-        # If bound to a data object instance then create the dict of attributes
-        # which stores the info attribute values.
-        if bound:
-            self._attrs = dict((attr, None) for attr in self.attr_names)
-
     def __get__(self, instance, owner_cls):
         if instance is None:
             # This is an unbound descriptor on the class
             info = self
             info._parent_cls = owner_cls
         else:
-            info = instance.__dict__.get('info')
-            if info is None:
-                info = instance.__dict__['info'] = self.__class__(bound=True)
+            info = self.__class__()
             info._parent = instance
+            attrs = instance.__dict__.get('info')
+            if attrs is None:
+                attrs = instance.__dict__['info'] = dict(
+                    (attr, None) for attr in self.attr_names)
+            info._attrs = attrs
         return info
 
     def __set__(self, instance, value):
@@ -216,9 +213,11 @@ class DataInfo(object):
             raise ValueError('cannot set unbound descriptor')
 
         if isinstance(value, DataInfo):
-            info = instance.__dict__['info'] = self.__class__(bound=True)
+            info = self.__get__(instance, owner_cls=None)
+            attrs = info._attrs
+
             for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
-                info._attrs[attr] = deepcopy(getattr(value, attr))
+                attrs[attr] = deepcopy(getattr(value, attr))
 
         else:
             raise TypeError('info must be set with a DataInfo instance')
