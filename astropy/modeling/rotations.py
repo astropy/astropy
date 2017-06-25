@@ -38,11 +38,11 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
 
 
-
 class _EulerRotation(object):
     """
     Base class which does the actual computation.
     """
+
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
         for angle, axis in zip([phi, theta, psi], axes_order):
@@ -65,7 +65,7 @@ class _EulerRotation(object):
     @staticmethod
     def cartesian2spherical(x, y, z):
         h = np.hypot(x, y)
-        alpha  = np.rad2deg(np.arctan2(y, x))
+        alpha = np.rad2deg(np.arctan2(y, x))
         delta = np.rad2deg(np.arctan2(z, h))
         return alpha, delta
 
@@ -321,7 +321,7 @@ class RotateCelestial2Native(_SkyRotation):
             lon_pole = lon_pole.value
         # Convert to Euler angles
         phi = (np.pi / 2 + lon)
-        theta =  (np.pi / 2 - lat)
+        theta = (np.pi / 2 - lat)
         psi = -(lon_pole - np.pi / 2)
         phi_N, theta_N = super(RotateCelestial2Native, self)._evaluate(alpha_C, delta_C,
                                                                        phi, theta, psi)

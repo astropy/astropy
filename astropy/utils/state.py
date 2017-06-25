@@ -4,7 +4,6 @@ A simple class to manage a piece of global science state.  See
 """
 
 
-
 __all__ = ['ScienceState']
 
 

@@ -257,7 +257,7 @@ def test_masking_regression_1795():
     assert np.all(t['c2'].mask == np.array([False, False]))
     assert np.all(t['c3'].mask == np.array([False, False]))
     assert np.all(t['c4'].mask == np.array([False, False]))
-    assert np.all(t['c1'].data == np.array([1,2]))
+    assert np.all(t['c1'].data == np.array([1, 2]))
     assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
@@ -268,10 +268,10 @@ def test_scale_error():
     b = [2.0, 5.0, 8.2]
     c = ['x', 'y', 'z']
     t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
-    t['a'].unit='1.2'
+    t['a'].unit = '1.2'
     with pytest.raises(UnitScaleError) as exc:
-        t.write('t.fits',format='fits', overwrite=True)
-    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
+        t.write('t.fits', format='fits', overwrite=True)
+    assert exc.value.args[0] == "The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
 
 
 def test_bool_column(tmpdir):

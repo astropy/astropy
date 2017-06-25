@@ -148,7 +148,6 @@ class _Tabular(Model):
 
         return '\n'.join(parts)
 
-
     @property
     def bounding_box(self):
         """
@@ -275,7 +274,7 @@ _tab_docs = """
 """
 
 
-Tabular1D.__doc__  =  """
+Tabular1D.__doc__ = """
     Tabular model in 1D.
     Returns an interpolated lookup table value.
 
@@ -288,7 +287,7 @@ Tabular1D.__doc__  =  """
 """ + _tab_docs
 
 
-Tabular2D.__doc__  =  """
+Tabular2D.__doc__ = """
     Tabular model in 2D.
     Returns an interpolated lookup table value.
 

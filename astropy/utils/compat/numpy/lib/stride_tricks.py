@@ -43,7 +43,6 @@ else:
                 new_array.__array_finalize__(original_array)
         return new_array
 
-
     def as_strided(x, shape=None, strides=None, subok=False):
         """ Make an ndarray from the given array with the given shape and strides.
         """
@@ -62,7 +61,6 @@ else:
 
         return _maybe_view_as_subclass(x, array)
 
-
     def _broadcast_to(array, shape, subok, readonly):
         shape = tuple(shape) if np.iterable(shape) else (shape,)
         array = np.array(array, copy=False, subok=subok)
@@ -78,7 +76,6 @@ else:
         if not readonly and array.flags.writeable:
             result.flags.writeable = True
         return result
-
 
     def broadcast_to(array, shape, subok=False):
         """Broadcast an array to a new shape.
@@ -116,7 +113,6 @@ else:
         """
         return _broadcast_to(array, shape, subok=subok, readonly=True)
 
-
     def _broadcast_shape(*args):
         """Returns the shape of the arrays that would result from broadcasting the
         supplied arrays against each other.
@@ -133,7 +129,6 @@ else:
         for pos in range(32, len(args), 31):
             b = np.broadcast(b, *args[pos:(pos + 31)])
         return b.shape
-
 
     def broadcast_arrays(*args, **kwargs):
         """

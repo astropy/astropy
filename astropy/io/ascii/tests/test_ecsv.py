@@ -78,6 +78,7 @@ def test_write_simple():
     t.write(out, format='ascii.ecsv')
     assert out.getvalue().splitlines() == SIMPLE_LINES
 
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_write_full():
     """
@@ -119,6 +120,7 @@ def test_write_full():
     t.write(out, format='ascii.ecsv')
     assert out.getvalue().splitlines() == lines
 
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_write_read_roundtrip():
     """
@@ -130,7 +132,7 @@ def test_write_read_roundtrip():
         out = StringIO()
         t.write(out, format='ascii.ecsv', delimiter=delimiter)
 
-        t2s  = [Table.read(out.getvalue(), format='ascii.ecsv'),
+        t2s = [Table.read(out.getvalue(), format='ascii.ecsv'),
                 Table.read(out.getvalue(), format='ascii'),
                 ascii.read(out.getvalue()),
                 ascii.read(out.getvalue(), format='ecsv', guess=False),
@@ -140,6 +142,7 @@ def test_write_read_roundtrip():
             for name in t.colnames:
                 assert t[name].attrs_equal(t2[name])
                 assert np.all(t[name] == t2[name])
+
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter():
@@ -151,15 +154,17 @@ def test_bad_delimiter():
         T_DTYPES.write(out, format='ascii.ecsv', delimiter='|')
     assert 'only space and comma are allowed' in str(err.value)
 
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_header_start():
     """
     Bad header without initial # %ECSV x.x
     """
     lines = copy.copy(SIMPLE_LINES)
-    lines[0]  = '# %ECV 0.9'
+    lines[0] = '# %ECV 0.9'
     with pytest.raises(ascii.InconsistentTableError):
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
+
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter_input():
@@ -172,6 +177,7 @@ def test_bad_delimiter_input():
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
     assert 'only space and comma are allowed' in str(err.value)
 
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_multidim_input():
     """
@@ -182,6 +188,7 @@ def test_multidim_input():
     with pytest.raises(ValueError) as err:
         t.write(out, format='ascii.ecsv')
     assert 'ECSV format does not support multidimensional column' in str(err.value)
+
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_empty_table():

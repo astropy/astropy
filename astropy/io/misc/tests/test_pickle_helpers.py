@@ -5,6 +5,7 @@ import pytest
 from .. import fnpickle, fnunpickle
 from ....extern.six.moves import range
 
+
 def test_fnpickling_simple(tmpdir):
     """
     Tests the `fnpickle` and `fnupickle` functions' basic operation by
@@ -18,19 +19,19 @@ def test_fnpickling_simple(tmpdir):
     res = fnunpickle(fn)
     assert obj1 == res
 
-    #try without cPickle
+    # try without cPickle
     fnpickle(obj1, fn, usecPickle=False)
     res = fnunpickle(fn, usecPickle=False)
     assert obj1 == res
 
-    #now try with a file-like object instead of a string
+    # now try with a file-like object instead of a string
     with open(fn, 'wb') as f:
         fnpickle(obj1, f)
     with open(fn, 'rb') as f:
         res = fnunpickle(f)
         assert obj1 == res
 
-    #same without cPickle
+    # same without cPickle
     with open(fn, 'wb') as f:
         fnpickle(obj1, f, usecPickle=False)
     with open(fn, 'rb') as f:
@@ -88,7 +89,7 @@ def test_fnpickling_many(tmpdir):
 
     fn = str(tmpdir.join('test3.pickle'))
 
-    #now try multiples
+    # now try multiples
     obj3 = 328.3432
     obj4 = 'blahblahfoo'
     fnpickle(obj3, fn)

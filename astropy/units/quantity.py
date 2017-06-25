@@ -42,6 +42,7 @@ __doctest_skip__ = ['Quantity.*']
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
 _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for Quantity
@@ -52,6 +53,8 @@ class Conf(_config.ConfigNamespace):
         'and last few elements are shown with "..." between). Setting this to a '
         'negative number means that the value will instead be whatever numpy '
         'gets from get_printoptions.')
+
+
 conf = Conf()
 
 
@@ -77,6 +80,7 @@ class QuantityIterator(object):
     is not exported by the `~astropy.units` module.  Instead of
     instantiating a `QuantityIterator` directly, use `Quantity.flat`.
     """
+
     def __init__(self, q):
         self._quantity = q
         self._dataiter = q.view(np.ndarray).flat

@@ -35,6 +35,7 @@ def fix_id(ID):
         return corrected
     return ''
 
+
 _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 
 

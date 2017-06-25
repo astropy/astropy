@@ -88,6 +88,7 @@ def test_evaluate_with_quantities_and_equivalencies():
 class MyTestModel(Model):
     inputs = ('a', 'b')
     outputs = ('f',)
+
     def evaluate(self, a, b):
         print('a', a)
         print('b', b)

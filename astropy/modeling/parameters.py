@@ -329,7 +329,7 @@ class Parameter(OrderedDescriptor):
         oldvalue = self.value
         n_models = len(self._model)
 
-        #if n_models == 1:
+        # if n_models == 1:
         #    # Convert the single-dimension value to a list to allow some slices
         #    # that would be compatible with a length-1 array like [:] and [0:]
         #    oldvalue = [oldvalue]

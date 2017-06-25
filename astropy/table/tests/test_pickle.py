@@ -59,7 +59,7 @@ def test_pickle_table(protocol):
         t = table_class([a, b], meta={'a': 1, 'b': Quantity(10, unit='s')})
         t['c'] = Quantity([1, 2], unit='m')
         t['d'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
-        t['e'] = SkyCoord([125.0,180.0]*deg, [-45.0,36.5]*deg)
+        t['e'] = SkyCoord([125.0, 180.0]*deg, [-45.0, 36.5]*deg)
 
         ts = pickle.dumps(t)
         tp = pickle.loads(ts)
@@ -80,6 +80,7 @@ def test_pickle_table(protocol):
         assert type(tp) is type(t)
 
         assert isinstance(tp['c'], Quantity if (table_class is QTable) else Column)
+
 
 def test_pickle_masked_table(protocol):
     a = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})

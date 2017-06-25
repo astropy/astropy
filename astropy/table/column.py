@@ -353,7 +353,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        if not hasattr(self, 'indices'): # may have been copied in __new__
+        if not hasattr(self, 'indices'):  # may have been copied in __new__
             self.indices = []
         self._copy_attrs(obj)
 
@@ -915,6 +915,7 @@ class Column(BaseColumn):
         Make comparison methods which encode the ``other`` object to utf-8
         in the case of a bytestring dtype for Py3+.
         """
+
         def _compare(self, other):
             if not six.PY2 and self.dtype.char == 'S':
                 other = self._encode_str(other)

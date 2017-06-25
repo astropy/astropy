@@ -34,7 +34,7 @@ def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          doc="Solar radius", prefixes=False,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['jupiterRad', 'R_jup', 'Rjup','R_jupiter', 'Rjupiter'],
+def_unit(['jupiterRad', 'R_jup', 'Rjup', 'R_jupiter', 'Rjupiter'],
          _si.R_jup, namespace=_ns, prefixes=False, doc="Jupiter radius",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'R_{\rm J}', 'unicode': 'R♃'})
@@ -67,7 +67,7 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
          prefixes=False, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
-def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
+def_unit(['jupiterMass', 'M_jup', 'Mjup', 'M_jupiter', 'Mjupiter'],
          _si.M_jup, namespace=_ns, prefixes=False, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
          format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})

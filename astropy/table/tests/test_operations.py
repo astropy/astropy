@@ -397,19 +397,18 @@ class TestJoin():
         # on multi-dimensional columns.
 
         t1 = operation_table_type()
-        t1['a'] = [1,2,3]
-        t1['b'] = np.ones((3,4))
+        t1['a'] = [1, 2, 3]
+        t1['b'] = np.ones((3, 4))
 
         t2 = operation_table_type()
-        t2['a'] = [1,2,3]
-        t2['c'] = [4,5,6]
+        t2['a'] = [1, 2, 3]
+        t2['c'] = [4, 5, 6]
 
         t3 = table.join(t1, t2)
 
         np.testing.assert_allclose(t3['a'], t1['a'])
         np.testing.assert_allclose(t3['b'], t1['b'])
         np.testing.assert_allclose(t3['c'], t2['c'])
-
 
     def test_join_multidimensional_masked(self, operation_table_type):
         self._setup(operation_table_type)
@@ -437,7 +436,7 @@ class TestJoin():
         t2 = operation_table_type([a2, c])
         t12 = table.join(t1, t2, join_type='inner')
 
-        assert np.all(t12['b'].mask == [[ True, False],
+        assert np.all(t12['b'].mask == [[True, False],
                                         [False, False]])
         assert np.all(t12['c'].mask == [[False, False],
                                         [False, False]])
@@ -446,7 +445,7 @@ class TestJoin():
         assert np.all(t12['b'].mask == [[True, False],
                                         [False, True],
                                         [False, False],
-                                        [ True, True]])
+                                        [True, True]])
         assert np.all(t12['c'].mask == [[False, False],
                                         [True, True],
                                         [False, False],
@@ -527,7 +526,6 @@ class TestVStack():
 
         with pytest.raises(ValueError):
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
-
 
     def test_bad_input_type(self, operation_table_type):
         self._setup(operation_table_type)
@@ -616,7 +614,6 @@ class TestVStack():
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, t1_reshape])
         assert "have different shape" in str(excinfo)
-
 
     def test_vstack_one_masked(self, operation_table_type):
         if operation_table_type is QTable:
@@ -973,7 +970,6 @@ class TestHStack():
             for name in t.colnames:
                 for attr in ('meta', 'unit', 'format', 'description'):
                     assert getattr(out[name].info, attr) == getattr(t[name].info, attr)
-
 
         # Make sure we got a copy of meta, not ref
         t1['b'].info.meta['b'] = None

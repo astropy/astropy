@@ -22,6 +22,7 @@ from .base import Base
 from ...utils import classproperty
 from ...utils.misc import did_you_mean
 
+
 def _to_string(cls, unit):
     if isinstance(unit, core.CompositeUnit):
         parts = []

@@ -41,7 +41,6 @@ class CdsHeader(core.BaseHeader):
                 col.raw_type, col.name))
         return match.group(1)
 
-
     def get_cols(self, lines):
         """
         Initialize the header Column objects from the table ``lines`` for a CDS
@@ -95,8 +94,8 @@ class CdsHeader(core.BaseHeader):
         for i_col_def, line in enumerate(lines):
             if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
                 found_line = True
-            elif found_line: # First line after list of file descriptions
-                i_col_def -= 1 # Set i_col_def to last description line
+            elif found_line:  # First line after list of file descriptions
+                i_col_def -= 1  # Set i_col_def to last description line
                 break
 
         re_col_def = re.compile(r"""\s*
@@ -128,7 +127,7 @@ class CdsHeader(core.BaseHeader):
                 match = re.match(
                     r'\? (?P<equal> =)? (?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?', col.description, re.VERBOSE)
                 if match:
-                    col.description=(match.group('descriptiontext') or '').strip()
+                    col.description = (match.group('descriptiontext') or '').strip()
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
                     else:

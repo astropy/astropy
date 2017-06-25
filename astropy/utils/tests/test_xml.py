@@ -10,7 +10,6 @@ from ..xml import check, unescaper, writer
 from ...extern import six
 
 
-
 def test_writer():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)

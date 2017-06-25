@@ -89,12 +89,12 @@ class FitsHDU(NonstandardExtHDU):
         bs.seek(0)
 
         cards = [
-            ('XTENSION',  cls._extension, 'FITS extension'),
-            ('BITPIX',    8, 'array data type'),
-            ('NAXIS',     1, 'number of array dimensions'),
-            ('NAXIS1',    len(bs.getvalue()), 'Axis length'),
-            ('PCOUNT',    0, 'number of parameters'),
-            ('GCOUNT',    1, 'number of groups'),
+            ('XTENSION', cls._extension, 'FITS extension'),
+            ('BITPIX', 8, 'array data type'),
+            ('NAXIS', 1, 'number of array dimensions'),
+            ('NAXIS1', len(bs.getvalue()), 'Axis length'),
+            ('PCOUNT', 0, 'number of parameters'),
+            ('GCOUNT', 1, 'number of groups'),
         ]
 
         # Add the XINDn keywords proposed by Perry, though nothing is done with
@@ -104,7 +104,7 @@ class FitsHDU(NonstandardExtHDU):
                 cards.append(('XIND' + str(idx + 1), hdu._header_offset,
                               'byte offset of extension {}'.format(idx + 1)))
 
-        cards.append(('COMPRESS',  compress, 'Uses gzip compression'))
+        cards.append(('COMPRESS', compress, 'Uses gzip compression'))
         header = Header(cards)
         return cls._readfrom_internal(_File(bs), header=header)
 

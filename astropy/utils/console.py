@@ -513,6 +513,7 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
+
     def __init__(self, total_or_items, ipython_widget=False, file=None):
         """
         Parameters
@@ -557,7 +558,6 @@ class ProgressBar(six.Iterator):
         self._human_total = human_file_size(self._total)
         self._ipython_widget = ipython_widget
 
-
         self._signal_set = False
         if not ipython_widget:
             self._should_handle_resize = (
@@ -597,7 +597,6 @@ class ProgressBar(six.Iterator):
         else:
             self.update()
             return rv
-
 
     def update(self, value=None):
         """
@@ -686,8 +685,7 @@ class ProgressBar(six.Iterator):
         # Calculate percent completion, and update progress bar
         frac = (value/self._total)
         self._widget.value = frac * 100
-        self._widget.description =' ({:>6.2%})'.format(frac)
-
+        self._widget.description = ' ({:>6.2%})'.format(frac)
 
     def _silent_update(self, value=None):
         pass
@@ -1039,6 +1037,7 @@ class Getch(object):
     -------
     char : str (one character)
     """
+
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -1091,6 +1090,7 @@ class _GetchMacCarbon(object):
     page http://www.mactech.com/macintosh-c/chap02-1.html was
     very helpful in figuring out how to do this.
     """
+
     def __init__(self):
         import Carbon
         Carbon.Evt  # see if it has this (in Unix, it doesn't)

@@ -2088,6 +2088,7 @@ def _scalar_to_format(value):
     except KeyError:
         return "A" + str(len(value))
 
+
 def _cmp_recformats(f1, f2):
     """
     Compares two numpy recformats using the ordering given by FORMATORDER.

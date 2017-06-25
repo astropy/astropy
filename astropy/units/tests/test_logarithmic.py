@@ -353,7 +353,7 @@ class TestLogUnitArithmetic(object):
             lu1 + 1.
 
         with pytest.raises(TypeError):
-            lu1 - [1.,2.,3.]
+            lu1 - [1., 2., 3.]
 
     @pytest.mark.parametrize(
         'other', (u.mag, u.mag(), u.mag(u.Jy), u.mag(u.m),
@@ -424,7 +424,7 @@ class TestLogQuantityCreation(object):
     def test_subclass_creation(self, lq_cls, physical_unit):
         """Create LogQuantity subclass objects for some physical units,
         and basic check on transformations"""
-        value = np.arange(1.,10.)
+        value = np.arange(1., 10.)
         log_q = lq_cls(value * physical_unit)
         assert log_q.unit.physical_unit == physical_unit
         assert log_q.unit.function_unit == log_q.unit._default_function_unit
@@ -441,6 +441,7 @@ class TestLogQuantityCreation(object):
         assert q.unit.function_unit == getattr(unit, 'function_unit', unit)
         assert q.unit.physical_unit is getattr(unit, 'physical_unit',
                                                u.dimensionless_unscaled)
+
     @pytest.mark.parametrize('value, unit', (
         (1.*u.mag(u.Jy), None),
         (1.*u.dex(u.Jy), None),
@@ -669,7 +670,7 @@ class TestLogQuantityArithmetic(object):
 
     @pytest.mark.parametrize('other', pu_sample)
     def test_addition_subtraction_to_normal_units_fails(self, other):
-        lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
+        lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
         q = 1.23 * other
         with pytest.raises(u.UnitsError):
             lq + q
@@ -688,7 +689,7 @@ class TestLogQuantityArithmetic(object):
         """Check that addition/subtraction with quantities with magnitude or
         MagUnit units works, and that it changes the physical units
         appropriately."""
-        lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
+        lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
         other_physical = other.to(getattr(other.unit, 'physical_unit',
                                           u.dimensionless_unscaled),
                                   equivalencies=u.logarithmic())
@@ -708,7 +709,7 @@ class TestLogQuantityArithmetic(object):
     @pytest.mark.parametrize('other', pu_sample)
     def test_inplace_addition_subtraction_unit_checks(self, other):
         lu1 = u.mag(u.Jy)
-        lq1 = u.Magnitude(np.arange(1.,10.), lu1)
+        lq1 = u.Magnitude(np.arange(1., 10.), lu1)
         with pytest.raises(u.UnitsError):
             lq1 += other
 
@@ -729,7 +730,7 @@ class TestLogQuantityArithmetic(object):
         """Check that inplace addition/subtraction with quantities with
         magnitude or MagUnit units works, and that it changes the physical
         units appropriately."""
-        lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
+        lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
         other_physical = other.to(getattr(other.unit, 'physical_unit',
                                           u.dimensionless_unscaled),
                                   equivalencies=u.logarithmic())
@@ -755,7 +756,7 @@ class TestLogQuantityArithmetic(object):
 
 class TestLogQuantityComparisons(object):
     def test_comparison_to_non_quantities_fails(self):
-        lq = u.Magnitude(np.arange(1.,10.)*u.Jy)
+        lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
         # On python2, ordering operations always succeed, given essentially
         # meaningless results.
         if not six.PY2:
@@ -766,7 +767,7 @@ class TestLogQuantityComparisons(object):
         assert lq != 'a'
 
     def test_comparison(self):
-        lq1 = u.Magnitude(np.arange(1.,4.)*u.Jy)
+        lq1 = u.Magnitude(np.arange(1., 4.)*u.Jy)
         lq2 = u.Magnitude(2.*u.Jy)
         assert np.all((lq1 > lq2) == np.array([True, False, False]))
         assert np.all((lq1 == lq2) == np.array([False, True, False]))
@@ -792,6 +793,7 @@ class TestLogQuantityComparisons(object):
         # but not some arbitrary unit, of course.
         with pytest.raises(u.UnitsError):
             lq6 < 2.*u.m
+
 
 class TestLogQuantityMethods(object):
     def setup(self):
@@ -842,6 +844,7 @@ class TestLogQuantityMethods(object):
 
 class TestLogQuantityUfuncs(object):
     """Spot checks on ufuncs."""
+
     def setup(self):
         self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
         self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()

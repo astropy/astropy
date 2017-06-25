@@ -6,6 +6,7 @@
 from ... import table
 from .. import pprint
 
+
 class MyRow(table.Row):
     def __str__(self):
         return str(self.as_void())
@@ -33,6 +34,7 @@ class MyTable(table.Table):
     MaskedColumn = MyMaskedColumn
     TableColumns = MyTableColumns
     TableFormatter = MyTableFormatter
+
 
 def test_simple_subclass():
     t = MyTable([[1, 2], [3, 4]])
@@ -65,6 +67,7 @@ class ParamsRow(table.Row):
     Row class that allows access to an arbitrary dict of parameters
     stored as a dict object in the ``params`` column.
     """
+
     def __getitem__(self, item):
         if item not in self.colnames:
             return super(ParamsRow, self).__getitem__('params')[item]
@@ -82,6 +85,7 @@ class ParamsRow(table.Row):
 
 class ParamsTable(table.Table):
     Row = ParamsRow
+
 
 def test_params_table():
     t = ParamsTable(names=['a', 'b', 'params'], dtype=['i', 'f', 'O'])

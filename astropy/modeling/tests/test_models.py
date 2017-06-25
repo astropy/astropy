@@ -604,7 +604,7 @@ def test_with_bounding_box():
         m.parameters = np.random.rand(12)
 
     m.bounding_box = ((3, 9), (1, 8))
-    x, y = np.mgrid[ :10, :10]
+    x, y = np.mgrid[:10, :10]
     a, b = m(x, y)
     aw, bw = m(x, y, with_bounding_box=True)
     ind = (~np.isnan(aw)).nonzero()

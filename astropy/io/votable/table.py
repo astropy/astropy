@@ -122,14 +122,14 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         datatype_mapping = {}
 
     config = {
-        'columns'          : columns,
-        'invalid'          : invalid,
-        'pedantic'         : pedantic,
-        'chunk_size'       : chunk_size,
-        'table_number'     : table_number,
-        'filename'         : filename,
-        'unit_format'      : unit_format,
-        'datatype_mapping' : datatype_mapping
+        'columns': columns,
+        'invalid': invalid,
+        'pedantic': pedantic,
+        'chunk_size': chunk_size,
+        'table_number': table_number,
+        'filename': filename,
+        'unit_format': unit_format,
+        'datatype_mapping': datatype_mapping
     }
 
     if filename is None and isinstance(source, six.string_types):
@@ -380,12 +380,12 @@ def reset_vo_warnings():
     """
     from . import converters, xmlutil
 
-    #-----------------------------------------------------------#
-    # This is a special variable used by the Python warnings    #
-    # infrastructure to keep track of warnings that have        #
-    # already been seen.  Since we want to get every single     #
-    # warning out of this, we have to delete all of them first. #
-    #-----------------------------------------------------------#
+    # -----------------------------------------------------------#
+    #  This is a special variable used by the Python warnings    #
+    #  infrastructure to keep track of warnings that have        #
+    #  already been seen.  Since we want to get every single     #
+    #  warning out of this, we have to delete all of them first. #
+    # -----------------------------------------------------------#
     for module in (converters, exceptions, tree, xmlutil):
         if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__

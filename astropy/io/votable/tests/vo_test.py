@@ -408,16 +408,16 @@ class TestParse:
                           np.bool_)
         assert self.array['bitarray'].shape == (5, 3, 2)
         assert_array_equal(self.array['bitarray'],
-                           [[[ True, False],
-                             [ True,  True],
-                             [False,  True]],
+                           [[[True, False],
+                             [True, True],
+                             [False, True]],
 
-                            [[False,  True],
+                            [[False, True],
                              [False, False],
-                             [ True,  True]],
+                             [True, True]],
 
-                            [[ True,  True],
-                             [ True, False],
+                            [[True, True],
+                             [True, False],
                              [False, False]],
 
                             [[False, False],
@@ -442,20 +442,20 @@ class TestParse:
                              [False, False],
                              [False, False]],
 
-                            [[ True,  True],
-                             [ True,  True],
-                             [ True,  True]],
+                            [[True, True],
+                             [True, True],
+                             [True, True]],
 
-                            [[ True,  True],
-                             [ True,  True],
-                             [ True,  True]]])
+                            [[True, True],
+                             [True, True],
+                             [True, True]]])
 
     def test_bitvararray(self):
         assert issubclass(self.array['bitvararray'].dtype.type,
                           np.object_)
-        match = [[ True,  True,  True],
+        match = [[True, True, True],
                  [False, False, False, False, False],
-                 [ True, False,  True, False,  True],
+                 [True, False, True, False, True],
                  [], []]
         for a, b in zip(self.array['bitvararray'], match):
             assert_array_equal(a, b)
@@ -471,16 +471,16 @@ class TestParse:
                           np.object_)
         match = [[],
 
-                 [[[False,  True],
+                 [[[False, True],
                    [False, False],
-                   [ True, False]],
-                  [[ True, False],
-                   [ True, False],
-                   [ True, False]]],
+                   [True, False]],
+                  [[True, False],
+                   [True, False],
+                   [True, False]]],
 
-                 [[[ True,  True],
-                   [ True,  True],
-                   [ True,  True]]],
+                 [[[True, True],
+                   [True, True],
+                   [True, True]]],
 
                  [],
 
@@ -528,9 +528,9 @@ class TestParse:
         assert issubclass(self.array['booleanArray'].dtype.type,
                           np.bool_)
         assert_array_equal(self.array['booleanArray'],
-                           [[ True,  True,  True,  True],
-                            [ True,  True, False,  True],
-                            [ True,  True, False,  True],
+                           [[True, True, True, True],
+                            [True, True, False, True],
+                            [True, True, False, True],
                             [False, False, False, False],
                             [False, False, False, False]])
 
@@ -538,9 +538,9 @@ class TestParse:
         assert_array_equal(self.mask['booleanArray'],
                            [[False, False, False, False],
                             [False, False, False, False],
-                            [False, False,  True, False],
-                            [ True,  True,  True,  True],
-                            [ True,  True,  True,  True]])
+                            [False, False, True, False],
+                            [True, True, True, True],
+                            [True, True, True, True]])
 
     def test_nulls(self):
         assert_array_equal(self.array['nulls'],
@@ -556,20 +556,20 @@ class TestParse:
                             [[0, -9], [1, -9]],
                             [[-9, -9], [-9, -9]]])
         assert_array_equal(self.mask['nulls_array'],
-                           [[[ True,  True],
-                             [ True,  True]],
+                           [[[True, True],
+                             [True, True]],
 
                             [[False, False],
                              [False, False]],
 
-                            [[ True, False],
-                             [ True, False]],
+                            [[True, False],
+                             [True, False]],
 
-                            [[False,  True],
-                             [False,  True]],
+                            [[False, True],
+                             [False, True]],
 
-                            [[ True,  True],
-                             [ True,  True]]])
+                            [[True, True],
+                             [True, True]]])
 
     def test_double_array(self):
         assert issubclass(self.array['doublearray'].dtype.type,
@@ -847,7 +847,6 @@ def test_gzip_filehandles(tmpdir):
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
         pedantic=False)
-
 
     with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
         votable.to_xml(
