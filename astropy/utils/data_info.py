@@ -25,6 +25,7 @@ from functools import partial
 import warnings
 import re
 from collections import OrderedDict
+from contextlib import contextmanager
 
 from ..extern import six
 from ..extern.six.moves import zip, cStringIO as StringIO
@@ -42,6 +43,26 @@ STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
                      (True, 'S'): 'bytes', # PY3
                      (True, 'U'): 'str'}
+
+
+@contextmanager
+def serialize_context_as(context):
+    """Set context for serialization.
+
+    This will allow downstream code to understand the context in which a column
+    is being serialized.  Objects like Time or SkyCoord will have different
+    default serialization representations depending on context.
+
+    Parameters
+    ----------
+    context : str
+        Context name, e.g. 'fits', 'hdf5', 'ecsv', 'yaml'
+    """
+    old_context = BaseColumnInfo._serialize_context
+    BaseColumnInfo._serialize_context = context
+    yield
+    BaseColumnInfo._serialize_context = old_context
+
 
 def dtype_info_name(dtype):
     """Return a human-oriented string name of the ``dtype`` arg.
@@ -189,7 +210,7 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _represent_as_dict_attrs= ()
+    _represent_as_dict_attrs = ()
     _parent = None
 
     def __init__(self, bound=False):
@@ -283,10 +304,7 @@ class DataInfo(object):
         self._attrs[attr] = value
 
     def _represent_as_dict(self):
-        """
-        Get the values for the parent ``attrs`` and return as a dict.
-        This is typically used for serializing the parent.
-        """
+        """Get the values for the parent ``attrs`` and return as a dict."""
         return _get_obj_attrs_map(self._parent, self._represent_as_dict_attrs)
 
     def _construct_from_dict(self, map):
@@ -423,6 +441,14 @@ class BaseColumnInfo(DataInfo):
     """
     attr_names = DataInfo.attr_names.union(['parent_table', 'indices'])
     _attrs_no_copy = set(['parent_table'])
+
+    # Context for serialization.  This can be set temporarily via
+    # ``serialize_context_as(context)`` context manager to allow downstream
+    # code to understand the context in which a column is being serialized.
+    # Typical values are 'fits', 'hdf5', 'ecsv', 'yaml'.  Objects like Time or
+    # SkyCoord will have different default serialization representations
+    # depending on context.
+    _serialize_context = None
 
     def iter_str_vals(self):
         """

@@ -17,6 +17,8 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.Angle`
 - `astropy.coordinates.Latitude`
 - `astropy.coordinates.Longitude`
+- `astropy.coordinates.EarthLocation`
+- `astropy.table.SerializedColumn`
 
 .. Note ::
 
@@ -75,6 +77,7 @@ from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
 from ...extern import six
+from ...table import SerializedColumn
 
 
 try:
@@ -96,6 +99,16 @@ def _unit_representer(dumper, obj):
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
     return u.Unit(map['unit'])
+
+
+def _serialized_column_representer(dumper, obj):
+    out = dumper.represent_mapping('!astropy.table.SerializedColumn', obj)
+    return out
+
+
+def _serialized_column_constructor(loader, node):
+    map = loader.construct_mapping(node)
+    return SerializedColumn(map)
 
 
 def _time_representer(dumper, obj):
@@ -241,6 +254,7 @@ AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
+AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_,
@@ -269,6 +283,8 @@ AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
 AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
                               _skycoord_constructor)
+AstropyLoader.add_constructor('!astropy.table.SerializedColumn',
+                              _serialized_column_constructor)
 
 for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
                  (coords.Angle, '!astropy.coordinates.Angle'),

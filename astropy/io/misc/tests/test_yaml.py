@@ -12,7 +12,7 @@ import numpy as np
 from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
 from .... import units as u
 from ....time import Time
-from ....table import QTable
+from ....table import QTable, SerializedColumn
 from ....extern.six.moves import StringIO
 
 try:
@@ -131,6 +131,13 @@ def test_timedelta():
     assert type(dt) is type(dty)
     for attr in ('shape', 'jd1', 'jd2', 'format', 'scale'):
         assert np.all(getattr(dt, attr) == getattr(dty, attr))
+
+
+def test_serialized_column():
+    sc = SerializedColumn({'name': 'hello', 'other': 1, 'other2': 2.0})
+    scy = load(dump(sc))
+
+    assert sc == scy
 
 
 def test_load_all():
