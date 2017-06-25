@@ -769,7 +769,9 @@ class TestVStack():
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        implemented_mixin_classes = ['Quantity']
+        implemented_mixin_classes = ['Quantity', 'Angle',
+                                     'Latitude', 'Longitude',
+                                     'EarthLocation']
         if cls_name in implemented_mixin_classes:
             table.vstack([t, t])
         else:

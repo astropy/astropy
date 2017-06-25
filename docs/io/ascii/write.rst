@@ -269,3 +269,104 @@ details.
   Note: Reader classes and Writer classes are synonymous, in other
   words Reader classes can also write, but for historical reasons they are
   often called Reader classes.
+
+
+.. _ecsv_format:
+
+ECSV format
+===========
+
+The `Enhanced Character-Separated Values (ECSV) format
+<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ can be used to
+write astropy `~astropy.table.Table` or `~astropy.table.QTable` datasets to a
+text-only data file and then read the table back without loss of information.
+The format handles the key issue of serializing column specifications and table
+metadata by using a YAML-encoded data structure. The actual tabular data are
+stored in a standard character separated values (CSV) format, giving
+compatibility with a wide variety of non-specialized CSV table readers.
+
+Mixin columns
+-------------
+
+Starting with astropy 2.0 it is possible to store not only standard
+`~astropy.table.Column` objects to ECSV but also the following
+:ref:`mixin_columns`:
+
+- `astropy.time.Time`
+- `astropy.time.TimeDelta`
+- `astropy.units.Quantity`
+- `astropy.coordinates.Latitude`
+- `astropy.coordinates.Longitude`
+- `astropy.coordinates.Angle`
+- `astropy.coordinates.EarthLocation`
+- `astropy.coordinates.SkyCoord`
+
+In general a mixin column may contain multiple data components as well as
+object attributes beyond the standard `~astropy.table.Column` attributes like
+``format`` or ``description``.  Storing such mixin columns is done by replacing
+the mixin column with column(s) representing the underlying data component(s)
+and then inserting meta data which informs the reader how to reconstruct the
+original column.  For example a `~astropy.coordinates.SkyCoord` mixin column in
+``'spherical'`` representation would have data attributes ``ra``, ``dec``,
+``distance``, along with object attributes like ``representation`` or ``frame``.
+For example::
+
+  >>> from astropy.io import ascii
+  >>> from astropy.coordinates import SkyCoord
+  >>> import astropy.units as u
+  >>> from astropy.time import Time
+  >>> from astropy.table import QTable, Column
+
+  >>> sc = SkyCoord(ra=[1,2]*u.deg, dec=[3,4]*u.deg, distance=[5,6]*u.m,
+  ...               frame='fk4', obstime=Time('2000:001'))
+  >>> sc.info.description = 'flying circus'
+  >>> c = Column([1,2])
+  >>> q = [1,2]*u.m
+  >>> q.info.format = '.2f'
+  >>> t = QTable([c, q, sc], names=['c', 'q', 'sc'])
+
+  >>> ascii.write(t, format='ecsv')   # doctest: +SKIP
+  # %ECSV 0.9
+  # ---
+  # datatype:
+  # - {name: c, datatype: int64}
+  # - {name: q, unit: m, datatype: float64}
+  # - {name: sc.ra, unit: deg, datatype: float64}
+  # - {name: sc.dec, unit: deg, datatype: float64}
+  # - {name: sc.distance, unit: m, datatype: float64}
+  # meta: !!omap
+  # - __serialized_columns__:
+  #     q:
+  #       __class__: astropy.units.quantity.Quantity
+  #       value: !astropy.table.SerializedColumn {name: q}
+  #     sc:
+  #       __class__: astropy.coordinates.sky_coordinate.SkyCoord
+  #       __info__: {description: flying circus}
+  #       dec: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.angles.Latitude
+  #         value: !astropy.table.SerializedColumn {name: sc.dec}
+  #       distance: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.distances.Distance
+  #         value: !astropy.table.SerializedColumn {name: sc.distance}
+  #       equinox: !astropy.time.Time {format: byear_str, in_subfmt: '*', jd1: 2400000.5,
+  #         jd2: 33281.92345905, out_subfmt: '*', precision: 3, scale: tai}
+  #       frame: fk4
+  #       obstime: !astropy.time.Time {format: yday, in_subfmt: '*', jd1: 2451544.5, jd2: 0.0,
+  #         out_subfmt: '*', precision: 3, scale: utc}
+  #       ra: !astropy.table.SerializedColumn
+  #         __class__: astropy.coordinates.angles.Longitude
+  #         value: !astropy.table.SerializedColumn {name: sc.ra}
+  #         wrap_angle: !astropy.coordinates.Angle
+  #           unit: !astropy.units.Unit {unit: deg}
+  #           value: 360.0
+  #       representation: spherical
+  # schema: astropy-2.0
+  c q sc.ra sc.dec sc.distance
+  1 1.0 1.0 3.0 5.0
+  2 2.0 2.0 4.0 6.0
+
+The ``'__class__'`` keyword gives the fully-qualified class name, and must be
+one of the specifically-allowed astropy classes.  There is no option to add
+user-specified allowed classes.  The ``'__info__'`` keyword contains values for
+standard `~astropy.table.Column` attributes like ``description`` or ``format``,
+for any mixin columns that are represented by more than one serialized column.

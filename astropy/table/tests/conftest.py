@@ -139,6 +139,9 @@ def table_type(request):
 # Stuff for testing mixin columns
 
 MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
+              'longitude' : coordinates.Longitude([0., 1., 5., 6.]*u.deg,
+                                                  wrap_angle=180.*u.deg),
+              'latitude' : coordinates.Latitude([5., 6., 10., 11.]*u.deg),
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
@@ -146,6 +149,10 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                            dtype='<i4,|S1').view(table.NdarrayMixin),
               }
+MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
+    lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
+    height=MIXIN_COLS['quantity'])
+
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):

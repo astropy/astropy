@@ -63,7 +63,10 @@ def test_attributes(mixin_cols):
 
 
 def check_mixin_type(table, table_col, in_col):
-    if ((isinstance(in_col, u.Quantity) and type(table) is not QTable)
+    # We check for QuantityInfo rather than just isinstance(col, u.Quantity)
+    # since we want to treat EarthLocation as a mixin, even though it is
+    # a Quantity subclass.
+    if ((isinstance(in_col.info, u.QuantityInfo) and type(table) is not QTable)
             or isinstance(in_col, Column)):
         assert type(table_col) is table.ColumnClass
     else:
@@ -239,7 +242,7 @@ def assert_table_name_col_equal(t, name, col):
         assert np.all(t[name].dec == col.dec)
     elif isinstance(col, u.Quantity):
         if type(t) is QTable:
-            assert np.all(t[name].value == col.value)
+            assert np.all(t[name] == col)
     elif isinstance(col, table_helpers.ArrayWrapper):
         assert np.all(t[name].data == col.data)
     else:

@@ -141,21 +141,24 @@ class TestTimeDelta():
         assert allclose_jd(out.jd, [0.0, -100.0])
         assert not out.isscalar
 
-    def test_copy_timedelta(self):
+    @pytest.mark.parametrize('values', [(2455197.5, 2455198.5),
+                                        ([2455197.5], [2455198.5])])
+    def test_copy_timedelta(self, values):
         """Test copying the values of a TimeDelta object by passing it into the
         Time initializer.
         """
-        t = Time(2455197.5, format='jd', scale='utc')
-        t2 = Time(2455198.5, format='jd', scale='utc')
+        val1, val2 = values
+        t = Time(val1, format='jd', scale='utc')
+        t2 = Time(val2, format='jd', scale='utc')
         dt = t2 - t
 
         dt2 = TimeDelta(dt, copy=False)
-        assert dt.jd == dt2.jd
+        assert np.all(dt.jd == dt2.jd)
         assert dt._time.jd1 is dt2._time.jd1
         assert dt._time.jd2 is dt2._time.jd2
 
         dt2 = TimeDelta(dt, copy=True)
-        assert dt.jd == dt2.jd
+        assert np.all(dt.jd == dt2.jd)
         assert dt._time.jd1 is not dt2._time.jd1
         assert dt._time.jd2 is not dt2._time.jd2
 

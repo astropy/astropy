@@ -6,11 +6,13 @@ writing all the meta data associated with an astropy Table object.
 
 import re
 from collections import OrderedDict
+import contextlib
 
 from ...extern import six
 
 from . import core, basic
-from ...table import meta
+from ...table import meta, serialize
+from ...utils.data_info import serialize_context_as
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -58,7 +60,7 @@ class EcsvHeader(basic.BasicHeader):
                                  .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
-        header = {'cols': self.cols}
+        header = {'cols': self.cols, 'schema': 'astropy-2.0'}
 
         if self.table_meta:
             header['meta'] = self.table_meta
@@ -151,7 +153,9 @@ class EcsvHeader(basic.BasicHeader):
                              'match names from header line of CSV data {}'
                              .format(self.names, header_names))
 
-        self._set_cols_from_names()  # BaseHeader method to create self.cols
+        # BaseHeader method to create self.cols, which is a list of
+        # io.ascii.core.Column objects (*not* Table Column objects).
+        self._set_cols_from_names()
 
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
@@ -169,11 +173,25 @@ class EcsvHeader(basic.BasicHeader):
 
 class EcsvOutputter(core.TableOutputter):
     """
-    Output the table as an astropy.table.Table object.  This overrides the
-    default converters to be an empty list because there is no "guessing"
-    of the conversion function.
+    After reading the input lines and processing, convert the Reader columns
+    and metadata to an astropy.table.Table object.  This overrides the default
+    converters to be an empty list because there is no "guessing" of the
+    conversion function.
     """
     default_converters = []
+
+    def __call__(self, cols, meta):
+        # Convert to a Table with all plain Column subclass columns
+        out = super(EcsvOutputter, self).__call__(cols, meta)
+
+        # If mixin columns exist (based on the special '__mixin_columns__'
+        # key in the table ``meta``), then use that information to construct
+        # appropriate mixin columns and remove the original data columns.
+        # If no __mixin_columns__ exists then this function just passes back
+        # the input table.
+        out = serialize._construct_mixins_from_columns(out)
+
+        return out
 
 
 class Ecsv(basic.Basic):
@@ -210,3 +228,25 @@ class Ecsv(basic.Basic):
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter
+
+    def update_table_data(self, table):
+        """
+        Update table columns in place if mixin columns are present.
+
+        This is a hook to allow updating the table columns after name
+        filtering but before setting up to write the data.  This is currently
+        only used by ECSV and is otherwise just a pass-through.
+
+        Parameters
+        ----------
+        table : `astropy.table.Table`
+            Input table for writing
+
+        Returns
+        -------
+        table : `astropy.table.Table`
+            Output table for writing
+        """
+        with serialize_context_as('ecsv'):
+            out = serialize._represent_mixins_as_columns(table)
+        return out
