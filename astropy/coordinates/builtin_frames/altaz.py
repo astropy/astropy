@@ -96,13 +96,13 @@ class AltAz(BaseCoordinateFrame):
             RepresentationMapping('lat', 'alt')
         ],
         r.SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_az', u.mas/u.yr),
+            RepresentationMapping('d_lon_coslat', 'pm_az_coslat', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_alt', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ],
         r.SphericalDifferential: [
-            RepresentationMapping('d_lon', 'pm_ra', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_dec', u.mas/u.yr),
+            RepresentationMapping('d_lon', 'pm_az', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_alt', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s)
         ],
         r.CartesianDifferential: [

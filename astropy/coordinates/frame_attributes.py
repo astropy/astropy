@@ -444,7 +444,7 @@ class DifferentialFrameAttribute(FrameAttribute):
         if allowed_classes is not None:
             self.allowed_classes = tuple(allowed_classes)
         else:
-            self.allowed_classes = None
+            self.allowed_classes = BaseDifferential
 
         super(DifferentialFrameAttribute, self).__init__(default,
                                                          secondary_attribute)
@@ -474,13 +474,12 @@ class DifferentialFrameAttribute(FrameAttribute):
             raise TypeError('Tried to set a DifferentialFrameAttribute with '
                             'an invalid class ({0})'.format(value.__class__))
 
-        if (self.allowed_classes is not None and
-                not isinstance(value, self.allowed_classes)):
+        if isinstance(value, self.allowed_classes):
             raise TypeError('Tried to set a DifferentialFrameAttribute with '
                             'an unsupported Differential type {0}. Allowed '
                             'classes are: {1}'
                             .format(value.__class__,
-                                    self.allowed_classes.__class__))
+                                    self.allowed_classes))
 
         return value, True
 

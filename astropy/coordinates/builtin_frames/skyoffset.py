@@ -107,6 +107,9 @@ def make_skyoffset_cls(framecls):
                         rmlat = RepresentationMapping('lat', 'lat', 'recommended')
                         component_list.insert(0, rmlat)
 
+                    # TODO: we could support proper motions / velocities in sky
+                    # offset frames.
+
                     lists_done.append(component_list)
 
             return res

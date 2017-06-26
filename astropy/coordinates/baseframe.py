@@ -1027,7 +1027,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             data_repr = 'Data:\n' + data_repr
 
         if (getattr(self.data, 'differentials', None) and
-           's' in self.data.differentials):
+                's' in self.data.differentials):
             data_repr_spl = data_repr.split('\n')
             if 'has differentials' in data_repr_spl[-1]:
                 diffrepr = repr(self.data.differentials['s']).split('\n')
