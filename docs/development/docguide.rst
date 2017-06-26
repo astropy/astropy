@@ -59,7 +59,7 @@ The details of the docstring format are described on a separate page:
 Sphinx Documentation Themes
 ===========================
 
-A custom Sphinx HTML theme is included in the `astropy-helpers`_ package. 
+A custom Sphinx HTML theme is included in the `astropy-helpers`_ package.
 This allows the
 theme to be used by both Astropy and affiliated packages. This is done by
 setting the theme in the global Astropy sphinx configuration, which is imported
@@ -94,21 +94,13 @@ editing ``astropy/astropy/sphinx/setup_package.py`` to include the theme
 Sphinx extensions
 =================
 
-Astropy-helpers includes a number of sphinx extensions that are used in Astropy
-and its affiliated packages to facilitate easily documenting code in a
-homogeneous and readable way.
-
-
-automodapi Extension
---------------------
-
-.. automodule:: astropy_helpers.sphinx.ext.automodapi
-
-
-automodsumm Extension
----------------------
-
-.. automodule:: astropy_helpers.sphinx.ext.automodsumm
+Astropy-helpers includes a number of sphinx extensions (some via the
+`sphinx-automodapi`_ package) that are used in Astropy and its affiliated
+packages to facilitate easily documenting code in a homogeneous and readable
+way. The two main extensions are `~sphinx_automodapi.automodapi` for
+generating module documentation and `~sphinx_automodapi.automodsumm` for
+generating tables of module objects. Please see their documentation about
+usage.
 
 
 edit_on_github Extension
@@ -131,10 +123,10 @@ processed automatically.
 Other Extensions
 ----------------
 
-``astropy_helpers.sphinx.ext`` includes a few other extensions that are
-primarily helpers for the other extensions or workarounds for undesired
-behavior.  Their APIs are not included here because we may change them in the
-future.
+``astropy_helpers.sphinx.ext`` and `sphinx-automodapi`_ includes a few other
+extensions that are primarily helpers for the other extensions or
+workarounds for undesired behavior.  Their APIs are not included here
+because we may change them in the future.
 
 
 .. _NumPy: http://numpy.scipy.org/
@@ -143,3 +135,4 @@ future.
 .. _SciPy: http://www.scipy.org
 .. _Sphinx: http://sphinx.pocoo.org
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers
+.. _sphinx-automodapi: https://github.com/astropy/sphinx-automodapi
