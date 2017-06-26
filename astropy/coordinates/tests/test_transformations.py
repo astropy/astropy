@@ -418,8 +418,8 @@ def test_function_transform_with_differentials():
     ftrans = t.FunctionTransform(tfun, TCoo3, TCoo2,
                                  register_graph=frame_transform_graph)
 
-    t3 = TCoo3(ra=1*u.deg, dec=2*u.deg,
-               pm_ra=1*u.marcsec/u.yr, pm_dec=1*u.marcsec/u.yr,)
+    t3 = TCoo3(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=1*u.marcsec/u.yr,
+               pm_dec=1*u.marcsec/u.yr,)
 
     with catch_warnings() as w:
         t2 = t3.transform_to(TCoo2)

@@ -34,7 +34,7 @@ def test_faux_lsr(dt, symmetric):
                                      symmetric_finite_difference=symmetric)
     def icrs_to_lsr(icrs_coo, lsr_frame):
         dt = lsr_frame.obstime - J2000
-        offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
+        offset = lsr_frame.v_bary * dt.to(u.second)
         return  lsr_frame.realize_frame(icrs_coo.data.without_differentials() + offset)
 
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
@@ -42,30 +42,30 @@ def test_faux_lsr(dt, symmetric):
                                      symmetric_finite_difference=symmetric)
     def lsr_to_icrs(lsr_coo, icrs_frame):
         dt = lsr_frame.obstime - J2000
-        offset = lsr_frame.v_bary.cartesian * dt.to(u.second)
+        offset = lsr_frame.v_bary * dt.to(u.second)
         return icrs_frame.realize_frame(lsr_coo.data - offset)
 
 
     ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
-              pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
+              pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
               radial_velocity=0*u.km/u.s)
     lsrc = ic.transform_to(LSR2())
 
     assert quantity_allclose(ic.cartesian.xyz, lsrc.cartesian.xyz)
 
-    idiff = ic.data.to_cartesian(True).differentials[0]
-    ldiff = lsrc.data.to_cartesian(True).differentials[0]
+    idiff = ic.cartesian.differentials['s']
+    ldiff = lsrc.cartesian.differentials['s']
     change = (ldiff.d_xyz - idiff.d_xyz).to(u.km/u.s)
     totchange = np.sum(change**2)**0.5
-    assert quantity_allclose(totchange, lsrc.v_bary.distance)
+    assert quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2)**0.5)
 
 
     ic2 = ICRS(ra=120.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
-              pm_ra=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
+              pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
               radial_velocity=1000*u.km/u.s)
     lsrc2 = ic2.transform_to(LSR2())
 
-    tot = np.sum(lsrc2.data.to_cartesian(True).differentials[0].d_xyz**2)**0.5
+    tot = np.sum(lsrc2.cartesian.differentials['s'].d_xyz**2)**0.5
     assert np.abs(tot.to('km/s') - 1000*u.km/u.s) < 20*u.km/u.s
 
 def test_gcrs_diffs():
@@ -79,10 +79,10 @@ def test_gcrs_diffs():
     #now we use those directions to
     msungr = CartesianRepresentation(-sung.cartesian.xyz).represent_as(SphericalRepresentation)
     suni = ICRS(ra=msungr.lon, dec=msungr.lat, distance=100*u.au,
-                pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
+                pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
                 radial_velocity=0*u.km/u.s)
     qtrsuni = ICRS(ra=qtrsung.ra, dec=qtrsung.dec, distance=100*u.au,
-                   pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
+                   pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
                    radial_velocity=0*u.km/u.s)
     sung = suni.transform_to(gf)
     qtrsung = qtrsuni.transform_to(gf)
@@ -94,9 +94,9 @@ def test_gcrs_diffs():
     assert np.abs(sung.radial_velocity) < 1*u.km/u.s
 
     suni2 = sung.transform_to(ICRS)
-    assert np.all(suni2.data.differentials[0].d_xyz < 1e-5*u.km/u.s)
+    assert np.all(suni2.data.differentials['s'].d_xyz < 1e-5*u.km/u.s)
     qtrisun2 = qtrsung.transform_to(ICRS)
-    assert np.all(qtrisun2.data.differentials[0].d_xyz < 1e-5*u.km/u.s)
+    assert np.all(qtrisun2.data.differentials['s'].d_xyz < 3e-5*u.km/u.s)
 
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
@@ -104,7 +104,7 @@ def test_altaz_diffs():
     aa = AltAz(obstime=time, location=loc)
 
     icoo = ICRS(np.zeros_like(time)*u.deg, 10*u.deg, 100*u.au,
-         pm_ra=np.zeros_like(time)*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
+         pm_ra_cosdec=np.zeros_like(time)*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
          radial_velocity=0*u.km/u.s)
 
     acoo = icoo.transform_to(aa)
@@ -113,7 +113,7 @@ def test_altaz_diffs():
     # the rotation speed of the Earth
     assert np.ptp(acoo.radial_velocity)/2 < (2*np.pi*constants.R_earth/u.day)*1.2
 
-    cdiff = acoo.data.differentials[0].represent_as(CartesianDifferential,
+    cdiff = acoo.data.differentials['s'].represent_as(CartesianDifferential,
                                                     acoo.data)
 
     # The "total" velocity should be > c, because the *tangential* velocity
@@ -135,7 +135,7 @@ def test_numerical_limits(distance):
     time = Time('J2017') + np.linspace(-.5, .5, 100)*u.year
 
     icoo = ICRS(ra=0*u.deg, dec=10*u.deg, distance=distance,
-                pm_ra=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
+                pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
                 radial_velocity=0*u.km/u.s)
     gcoo = icoo.transform_to(GCRS(obstime=time))
     rv =  gcoo.radial_velocity.to('km/s')
@@ -152,14 +152,14 @@ def diff_info_plot(frame, times):
     from matplotlib import pyplot as plt
 
     fig, ((ax1, ax2), (ax3,ax4)) = plt.subplots( 2, 2, figsize=(20, 12))
-    ax1.plot_date(time.plot_date, frame.data.differentials[0].d_xyz.to(u.km/u.s).T, fmt='-')
+    ax1.plot_date(time.plot_date, frame.data.differentials['s'].d_xyz.to(u.km/u.s).T, fmt='-')
     ax1.legend(['x', 'y', 'z'])
 
-    ax2.plot_date(time.plot_date, np.sum(frame.data.differentials[0].d_xyz.to(u.km/u.s)**2,axis=0)**0.5, fmt='-')
+    ax2.plot_date(time.plot_date, np.sum(frame.data.differentials['s'].d_xyz.to(u.km/u.s)**2,axis=0)**0.5, fmt='-')
     ax2.set_title('total')
 
 
-    sd = frame.data.differentials[0].represent_as(SphericalDifferential, frame.data)
+    sd = frame.data.differentials['s'].represent_as(SphericalDifferential, frame.data)
 
     ax3.plot_date(time.plot_date, sd.d_distance.to(u.km/u.s), fmt='-')
     ax3.set_title('radial')
