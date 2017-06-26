@@ -88,6 +88,7 @@ New Features
 
   - Writing latex tables with only a ``tabular`` environment is now possible by
     setting ``latexdict['tabletyle']`` to ``None``. [#6205]
+
   - Allow ECSV format to support reading and writing mixin columns like
     ``Time``, ``SkyCoord``, ``Latitude``, and ``EarthLocation``. [#6181]
 
@@ -186,6 +187,10 @@ New Features
 
   - Added functionality to allow ``astropy.units.Quantity`` to be read
     from and written to a VOtable file. [#6132]
+
+  - Added support for reading and writing a table with mixin columns like
+    ``Time``, ``SkyCoord``, ``Latitude``, and ``EarthLocation`` via the
+    ASCII ECSV format. [#6181]
 
 - ``astropy.tests``
 
