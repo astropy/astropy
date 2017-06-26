@@ -834,16 +834,18 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
             # first we use the existing differential to compute an offset due to
             # the already-existing velocity, but in the new frame
+            fromcoord_cart = fromcoord.cartesian
             if self.symmetric_finite_difference:
-                fwdxyz = (fromcoord.data.to_cartesian().xyz +
-                          fromcoord.cartesian.differentials['s'].d_xyz*dt/2)
+                halfdt = dt/2
+                fwdxyz = (fromcoord_cart.xyz +
+                          fromcoord_cart.differentials['s'].d_xyz*halfdt)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
-                backxyz = (fromcoord.data.to_cartesian().xyz -
-                           fromcoord.cartesian.differentials['s'].d_xyz*dt/2)
+                backxyz = (fromcoord_cart.xyz -
+                           fromcoord_cart.differentials['s'].d_xyz*halfdt)
                 back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
             else:
-                fwdxyz = (fromcoord.data.to_cartesian().xyz +
-                          fromcoord.cartesian.differentials['s'].d_xyz*dt)
+                fwdxyz = (fromcoord_cart.xyz +
+                          fromcoord_cart.differentials['s'].d_xyz*dt)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
                 back = reprwithoutdiff
             diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
