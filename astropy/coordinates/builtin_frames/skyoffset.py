@@ -221,3 +221,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
                              'data.')
         if self.has_data and hasattr(self.data, 'lon'):
             self.data.lon.wrap_angle = 180*u.deg
+        if (self.origin is not None and getattr(self.origin.data, 'differentials', None) or
+           (self.has_data and getattr(self.data, 'differentials', None))):
+            raise NotImplementedError('SkyOffsetFrame currently does not '
+                                      'support velocities.')
