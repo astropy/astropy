@@ -12,12 +12,7 @@ from .utils import EQUINOX_J2000
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
 
-
-class BaseEclipticFrame(BaseCoordinateFrame):
-    """
-    A base class for frames that have names and conventions like that of
-    ecliptic frames.
-
+_base_ecliptic_docstring = """
     .. warning::
         In the current version of astropy, the ecliptic frames do not yet have
         stringent accuracy tests.  We recommend you test to "known-good" cases
@@ -52,6 +47,14 @@ class BaseEclipticFrame(BaseCoordinateFrame):
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
+"""
+
+class BaseEclipticFrame(BaseCoordinateFrame):
+    """
+    A base class for frames that have names and conventions like that of
+    ecliptic frames.
+
+    {params}
     """
 
     frame_specific_representation_info = {
@@ -75,6 +78,8 @@ class BaseEclipticFrame(BaseCoordinateFrame):
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
+BaseEclipticFrame.__doc__ = BaseEclipticFrame.__doc__.format(
+    params=_base_ecliptic_docstring)
 
 class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
@@ -103,7 +108,7 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
 
 
 GeocentricTrueEcliptic.__doc__ = GeocentricTrueEcliptic.__doc__.format(
-    params=BaseEclipticFrame.__doc__.format("geocenter"))
+    params=_base_ecliptic_docstring.format("geocenter"))
 
 
 class BarycentricTrueEcliptic(BaseEclipticFrame):
@@ -129,7 +134,7 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
 
 
 BarycentricTrueEcliptic.__doc__ = BarycentricTrueEcliptic.__doc__.format(
-    params=BaseEclipticFrame.__doc__.format("sun's center"))
+    params=_base_ecliptic_docstring.format("sun's center"))
 
 
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
@@ -155,4 +160,4 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
 
 HeliocentricTrueEcliptic.__doc__ = HeliocentricTrueEcliptic.__doc__.format(
-    params=BaseEclipticFrame.__doc__.format("sun's center"))
+    params=_base_ecliptic_docstring.format("sun's center"))

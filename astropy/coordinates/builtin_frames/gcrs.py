@@ -4,10 +4,10 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..baseframe import BaseRADecFrame
 from ..frame_attributes import (TimeFrameAttribute,
                                 CartesianRepresentationFrameAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
 
 class GCRS(BaseRADecFrame):
@@ -54,7 +54,7 @@ class GCRS(BaseRADecFrame):
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
                                                       unit=u.m/u.s)
 
-GCRS.__doc__ = GCRS.__doc__.format(params=BaseRADecFrame.__doc__)
+GCRS.__doc__ = GCRS.__doc__.format(params=_base_radec_docstring)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like CIRS)
@@ -97,4 +97,4 @@ class PrecessedGeocentric(BaseRADecFrame):
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m/u.s)
 
 PrecessedGeocentric.__doc__ = PrecessedGeocentric.__doc__.format(
-    params=BaseRADecFrame.__doc__)
+    params=_base_radec_docstring)

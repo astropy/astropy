@@ -7,10 +7,11 @@ from ... import units as u
 from ...time import Time
 from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         frame_transform_graph, BaseRADecFrame)
+                         frame_transform_graph)
 from ..transformations import AffineTransform
 from ..frame_attributes import DifferentialFrameAttribute
 
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .icrs import ICRS
 from .galactic import Galactic
 
@@ -58,7 +59,7 @@ class LSR(BaseRADecFrame):
     v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010,
                                         allowed_classes=[r.CartesianDifferential])
 
-LSR.__doc__ = LSR.__doc__.format(params=BaseRADecFrame.__doc__)
+LSR.__doc__ = LSR.__doc__.format(params=_base_radec_docstring)
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):

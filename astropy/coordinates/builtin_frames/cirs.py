@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ..frame_attributes import TimeFrameAttribute
 
-from ..baseframe import BaseRADecFrame
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .utils import DEFAULT_OBSTIME
 
 class CIRS(BaseRADecFrame):
@@ -25,7 +25,7 @@ class CIRS(BaseRADecFrame):
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
-CIRS.__doc__ = CIRS.__doc__.format(params=BaseRADecFrame.__doc__)
+CIRS.__doc__ = CIRS.__doc__.format(params=_base_radec_docstring)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like GCRS)
