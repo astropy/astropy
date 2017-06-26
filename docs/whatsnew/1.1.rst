@@ -84,6 +84,7 @@ Bayesian models such as `Knuth's rule
 .. plot::
    :align: center
 
+    import warnings
     import numpy as np
     from astropy.visualization import hist
 
@@ -105,8 +106,10 @@ Bayesian models such as `Knuth's rule
     fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15)
     for i, bins in enumerate(['scott', 'freedman', 'knuth', 'blocks']):
         ax = fig.add_subplot(2,2,i+1)
-        hist(t, bins=bins, ax=ax, histtype='stepfilled',
-             alpha=0.4, normed=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # Ignore bayesian block p0 warning
+            hist(t, bins=bins, ax=ax, histtype='stepfilled',
+                 alpha=0.4, normed=True)
         ax.set_xlabel('t')
         ax.set_ylabel('P(t)')
         ax.set_title('hist(t, bins="{0}")'.format(bins),
@@ -320,4 +323,3 @@ To see a detailed list of all changes in version v1.1, including changes in
 API, please see the :ref:`changelog`.
 
 .. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
-
