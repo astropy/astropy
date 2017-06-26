@@ -228,7 +228,9 @@ Image resizing
 The functions `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` resize images. The example below reduces the
 size of the image by a factor of 4. Note that the result is a `numpy.ndarray`;
-the mask, metadata, etc are discarded::
+the mask, metadata, etc are discarded:
+
+.. doctest_requires:: skimage
 
     >>> from astropy.nddata import block_reduce, block_replicate
     >>> smaller = block_reduce(ccd, 4)
