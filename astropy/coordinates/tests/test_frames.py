@@ -199,6 +199,17 @@ def test_frame_repr():
                         '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
 
 
+def test_frame_repr_vels():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(ra=1*u.deg, dec=2*u.deg,
+             pm_ra_cosdec=1*u.marcsec/u.yr, pm_dec=2*u.marcsec/u.yr)
+    assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                       '    ( 1.,  2.)\n'
+                       ' (pm_ra_cosdec, pm_dec) in marcsec / yr\n'
+                       '    ( 1.,  2.)>')
+
+
 def test_converting_units():
     import re
     from ..baseframe import RepresentationMapping
