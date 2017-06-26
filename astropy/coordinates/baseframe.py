@@ -350,9 +350,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError("Cannot pass in differential component data "
                              "without positional (representation) data.")
 
-        self._data = representation_data
-        if self._data and differential_data is not None:
-            self._data = self._data.with_differentials({'s': differential_data})
+        if differential_data:
+            self._data = representation_data.with_differentials(
+                {'s': differential_data})
+        else:
+            self._data= representation_data  # possibly None.
 
         values = {}
         for fnm, fdefault in self.get_frame_attr_names().items():
