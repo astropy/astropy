@@ -470,11 +470,8 @@ class DifferentialFrameAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        if not isinstance(value, BaseDifferential):
-            raise TypeError('Tried to set a DifferentialFrameAttribute with '
-                            'an invalid class ({0})'.format(value.__class__))
 
-        if isinstance(value, self.allowed_classes):
+        if not isinstance(value, self.allowed_classes):
             raise TypeError('Tried to set a DifferentialFrameAttribute with '
                             'an unsupported Differential type {0}. Allowed '
                             'classes are: {1}'
