@@ -858,7 +858,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         if (getattr(self.data, 'differentials', None) and
            hasattr(self, 'obstime') and hasattr(new_frame, 'obstime') and
-           np.all(self.obstime == new_frame.obstime)):
+           np.any(self.obstime != new_frame.obstime)):
             raise NotImplementedError('You cannot transform a frame that has '
                                       'velocities to another frame at a '
                                       'different obstime. If you think this '
