@@ -298,6 +298,7 @@ Starting with astropy 2.0 it is possible to store not only standard
 - `astropy.coordinates.Latitude`
 - `astropy.coordinates.Longitude`
 - `astropy.coordinates.Angle`
+- `astropy.coordinates.Distance`
 - `astropy.coordinates.EarthLocation`
 - `astropy.coordinates.SkyCoord`
 
