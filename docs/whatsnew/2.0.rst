@@ -279,7 +279,7 @@ For example::
     >>> g2.n_submodels()
     2
 
-.. _whatsnew-2.0-no-bundled-pytest:
+.. _whatsnew-2.0-with-bounding-box:
 
 Two new optional arguments when evaluating a model - ``with_bounding_box`` and ``fill_value``
 =============================================================================================
@@ -297,7 +297,8 @@ For example::
     >>> p(x, with_bounding_box=True, fill_value=-100)
     array([-100., -100., -100., -100.,   -1.,    2.,    5.,    8.,   11.,   14.])
 
-.. _whatsnew-2.0-with-bounding-box:
+
+.. _whatsnew-2.0-no-bundled-pytest:
 
 No more bundled ``pytest`` with Astropy distribution
 ====================================================
