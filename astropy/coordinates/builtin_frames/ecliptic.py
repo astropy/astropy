@@ -10,11 +10,14 @@ from ..frame_attributes import TimeFrameAttribute
 from .utils import EQUINOX_J2000
 
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic']
+           'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
 
 
 class BaseEclipticFrame(BaseCoordinateFrame):
     """
+    A base class for frames that have names and conventions like that of
+    ecliptic frames.
+
     .. warning::
         In the current version of astropy, the ecliptic frames do not yet have
         stringent accuracy tests.  We recommend you test to "known-good" cases

@@ -1330,10 +1330,12 @@ class GenericFrame(BaseCoordinateFrame):
         else:
             super(GenericFrame, self).__setattr__(name, value)
 
-# Note: this is a base class that defines default representation info for frames
-# that represent longitude and latitude with RA, Dec
+
 class BaseRADecFrame(BaseCoordinateFrame):
     """
+    A base class that defines default representation info for frames that
+    represent longitude and latitude as Right Ascension and Declination
+    following typical "equatorial" conventions.
 
     Parameters
     ----------
