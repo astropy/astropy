@@ -836,14 +836,14 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             # the already-existing velocity, but in the new frame
             if self.symmetric_finite_difference:
                 fwdxyz = (fromcoord.data.to_cartesian().xyz +
-                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
+                          fromcoord.cartesian.differentials['s'].d_xyz*dt/2)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
                 backxyz = (fromcoord.data.to_cartesian().xyz -
-                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt/2)
+                           fromcoord.cartesian.differentials['s'].d_xyz*dt/2)
                 back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
             else:
                 fwdxyz = (fromcoord.data.to_cartesian().xyz +
-                          fromcoord.data.differentials[0].to_cartesian(fromcoord.data).xyz*dt)
+                          fromcoord.cartesian.differentials['s'].d_xyz*dt)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
                 back = reprwithoutdiff
             diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
@@ -893,7 +893,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                 diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
 
             newdiff = CartesianDifferential(diffxyz)
-            reprwithdiff = reprwithoutdiff.data.with_differentials(newdiff)
+            reprwithdiff = reprwithoutdiff.data.to_cartesian().with_differentials(newdiff)
             return reprwithoutdiff.realize_frame(reprwithdiff)
         else:
             return supcall(fromcoord, toframe)
