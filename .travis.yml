@@ -72,6 +72,7 @@ matrix:
           env: SETUP_CMD='build_docs -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='sphinx-gallery>=0.1.9 pillow --no-deps jplephem'
+               SPHINX_VERSION='>1.6'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
