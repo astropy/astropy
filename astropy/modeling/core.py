@@ -1824,7 +1824,13 @@ class Model(object):
                     "{1!r}".format(self.__class__.__name__, name))
 
             param_metrics[name]['orig_unit'] = unit
-
+            param_metrics[name]['raw_unit'] = None
+            if param_descr._setter is not None:
+                _val = param_descr._setter(value)
+                if isinstance(_val, Quantity):
+                    param_metrics[name]['raw_unit'] = _val.unit
+                else:
+                    param_metrics[name]['raw_unit'] = None
             total_size += param_size
 
         self._param_metrics = param_metrics
@@ -1840,9 +1846,10 @@ class Model(object):
         for name, value in params.items():
             param_descr = getattr(self, name)
             value = np.array(value)
+            orig_unit = param_metrics[name]['orig_unit']
             if param_descr._setter is not None:
                 if unit is not None:
-                    value = np.asarray(param_descr._setter(value * unit).value)
+                    value = np.asarray(param_descr._setter(value * orig_unit).value)
                 else:
                     value = param_descr._setter(value)
             self._parameters[param_metrics[name]['slice']] = value.ravel()
@@ -1960,8 +1967,13 @@ class Model(object):
                 # consistency
                 value = np.array([value])
 
-            if units and param.unit is not None:
-                value = Quantity(value, param.unit)
+            if units:
+                if raw and self._param_metrics[name]['raw_unit'] is not None:
+                    unit = self._param_metrics[name]['raw_unit']
+                else:
+                    unit = param.unit
+                if unit is not None:
+                    value = Quantity(value, unit)
 
             values.append(value)
 
@@ -2297,7 +2309,6 @@ class _CompoundModelMeta(_ModelMeta):
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
-
         if cls.n_outputs == 1:
             return result[0]
         else:
