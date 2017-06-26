@@ -65,6 +65,11 @@ New Features
     matrix transform classes now subclass from the base affine transform.
     [#6218]
 
+  - Frame objects can now store velocities via their representations holding
+    differentials, and those differentials transform correctly for 
+    transformations that use the ``AffineTransform`` transformation
+    mechanism.  [#6219]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
