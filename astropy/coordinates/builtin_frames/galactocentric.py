@@ -194,10 +194,10 @@ class Galactocentric(BaseCoordinateFrame):
                           " as a CoordinateAttribute using the 'galcen_coord' "
                           "argument", AstropyDeprecationWarning)
 
-        galcen_kw = dict()
-        galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
-        galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
-        kwargs['galcen_coord'] = ICRS(**galcen_kw)
+            galcen_kw = dict()
+            galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
+            galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
+            kwargs['galcen_coord'] = ICRS(**galcen_kw)
 
         super(Galactocentric, self).__init__(*args, **kwargs)
 
@@ -229,7 +229,7 @@ class Galactocentric(BaseCoordinateFrame):
 # ICRS to/from Galactocentric ----------------------->
 def get_matrix_vectors(galactocentric_frame, inverse=False):
     """
-    Use the ``inv`` argument to get the inverse transformation, matrix and
+    Use the ``inverse`` argument to get the inverse transformation, matrix and
     offsets to go from Galactocentric to ICRS.
     """
     # shorthand
@@ -262,8 +262,8 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
         #   and more stable to compute
         A = matrix_transpose(A)
         offset = (-offset).transform(A)
-        offset_v = r.CartesianDifferential(
-            (-gcf.galcen_v_sun).to_cartesian().transform(A).xyz)
+        offset_v = r.CartesianDifferential.from_cartesian(
+            (-gcf.galcen_v_sun).to_cartesian().transform(A))
         offset = offset.with_differentials(offset_v)
 
     else:
