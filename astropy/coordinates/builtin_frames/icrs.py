@@ -3,7 +3,8 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..baseframe import BaseRADecFrame
+from .baseradec import _base_radec_docstring, BaseRADecFrame
+
 
 class ICRS(BaseRADecFrame):
     """
@@ -17,6 +18,8 @@ class ICRS(BaseRADecFrame):
     For more background on the ICRS and related coordinate transformations, see the
     references provided in the  :ref:`astropy-coordinates-seealso` section of the
     documentation.
+
+    {params}
     """
 
-ICRS.__doc__ += BaseRADecFrame.__doc__
+ICRS.__doc__ = ICRS.__doc__.format(params=_base_radec_docstring)

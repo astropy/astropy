@@ -24,6 +24,7 @@ imported.  Placing the trasnformation functions in separate modules avoids
 circular dependencies, because they need references to the frame classes.
 """
 
+from .baseradec import BaseRADecFrame
 from .icrs import ICRS
 from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
@@ -54,7 +55,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'BaseEclipticFrame']
+           'SkyOffsetFrame', 'GalacticLSR', 'LSR',
+           'BaseEclipticFrame', 'BaseRADecFrame']
 
 
 def _make_transform_graph_docs():

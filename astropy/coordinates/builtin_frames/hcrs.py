@@ -3,9 +3,9 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..baseframe import BaseRADecFrame
 from ..frame_attributes import TimeFrameAttribute
 from .utils import DEFAULT_OBSTIME
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
 
 class HCRS(BaseRADecFrame):
@@ -38,6 +38,6 @@ class HCRS(BaseRADecFrame):
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
-HCRS.__doc__ = HCRS.__doc__.format(params=BaseRADecFrame.__doc__)
+HCRS.__doc__ = HCRS.__doc__.format(params=_base_radec_docstring)
 
 # Transformations are defined in icrs_circ_transforms.py

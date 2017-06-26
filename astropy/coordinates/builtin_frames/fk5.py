@@ -3,11 +3,12 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..baseframe import BaseRADecFrame, frame_transform_graph
+from ..baseframe import frame_transform_graph
 from ..frame_attributes import TimeFrameAttribute
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .utils import EQUINOX_J2000
 
 
@@ -50,7 +51,7 @@ class FK5(BaseRADecFrame):
         """
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
-FK5.__doc__ = FK5.__doc__.format(params=BaseRADecFrame.__doc__)
+FK5.__doc__ = FK5.__doc__.format(params=_base_radec_docstring)
 
 # This is the "self-transform".  Defined at module level because the decorator
 #  needs a reference to the FK5 class

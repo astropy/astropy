@@ -5,8 +5,9 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
+from ...extern.six.moves import range
 from ... import units as u
-from ..baseframe import BaseRADecFrame, frame_transform_graph
+from ..baseframe import frame_transform_graph
 from ..frame_attributes import TimeFrameAttribute
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from ..representation import (CartesianRepresentation,
@@ -14,9 +15,7 @@ from ..representation import (CartesianRepresentation,
 from .. import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
-
-from ...extern.six.moves import range
-
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
 class FK4(BaseRADecFrame):
     """
@@ -41,7 +40,7 @@ class FK4(BaseRADecFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
-FK4.__doc__ = FK4.__doc__.format(params=BaseRADecFrame.__doc__)
+FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
@@ -58,12 +57,15 @@ class FK4NoETerms(BaseRADecFrame):
     A coordinate or frame in the FK4 system, but with the E-terms of aberration
     removed.
 
-    This frame has two frame attributes:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The equinox of this frame.
-
-    * ``obstime``
+    obstime : `~astropy.time.Time`
         The time this frame was observed.  If ``None``, will be the same as
         ``equinox``.
     """
@@ -91,7 +93,7 @@ class FK4NoETerms(BaseRADecFrame):
         """
         return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
-FK4NoETerms.__doc__ += BaseRADecFrame.__doc__
+FK4NoETerms.__doc__ = FK4NoETerms.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
