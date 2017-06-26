@@ -139,7 +139,7 @@ Image utilities
 ---------------
 
 Cutouts
-+++++++
+^^^^^^^
 
 Though slicing directly is one way to extract a subframe,
 `~astropy.nddata.Cutout2D` provides more convenient access to cutouts from the
@@ -223,7 +223,7 @@ the options for handling cutouts that go beyond the bounds of the original
 image, see :ref:`cutout_images`.
 
 Image resizing
-++++++++++++++
+^^^^^^^^^^^^^^
 
 The functions `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` resize images. The example below reduces the
@@ -311,12 +311,12 @@ Using ``nddata``
 .. toctree::
    :maxdepth: 2
 
-   nddata.rst
    ccddata.rst
+   utils.rst
    decorator.rst
+   nddata.rst
    mixins/index.rst
    subclassing.rst
-   utils.rst
 
 Reference/API
 =============
