@@ -94,9 +94,10 @@ def test_gcrs_diffs():
     assert np.abs(sung.radial_velocity) < 1*u.km/u.s
 
     suni2 = sung.transform_to(ICRS)
-    assert np.all(suni2.data.differentials['s'].d_xyz < 1e-5*u.km/u.s)
+    assert np.all(np.abs(suni2.data.differentials['s'].d_xyz) < 3e-5*u.km/u.s)
     qtrisun2 = qtrsung.transform_to(ICRS)
-    assert np.all(qtrisun2.data.differentials['s'].d_xyz < 3e-5*u.km/u.s)
+    assert np.all(np.abs(qtrisun2.data.differentials['s'].d_xyz) < 3e-5*u.km/u.s)
+
 
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
