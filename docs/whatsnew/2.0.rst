@@ -29,6 +29,7 @@ In particular, this release includes:
 * :ref:`whatsnew-2.0-n-submodels`
 * :ref:`whatsnew-2.0-no-bundled-pytest`
 * :ref:`whatsnew-2.0-ccddata-class`
+* :ref:`whatsnew-2.0-ascii-ecsv-mixins`
 
 In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -298,6 +299,27 @@ New image class ``CCDData`` added
 A new class, ``CCDData``, has been added to the ``nddata`` package. It can
 read from/write to FITS files, provides methods for arithmetic operations
 with propagation of uncertainty, and support for binary masks.
+
+
+.. _whatsnew-2.0-ascii-ecsv-mixins:
+
+Store astropy core object types in ASCII ECSV table file
+========================================================
+
+It is now possible to store the following :ref:`mixin column
+<mixin_columns>` types in an ASCII :ref:`ECSV
+<ecsv_format>` table file.  The table file can then be read back
+into astropy with no loss of object data or attributes.
+
+- `astropy.time.Time`
+- `astropy.time.TimeDelta`
+- `astropy.units.Quantity`
+- `astropy.coordinates.Latitude`
+- `astropy.coordinates.Longitude`
+- `astropy.coordinates.Angle`
+- `astropy.coordinates.Distance`
+- `astropy.coordinates.EarthLocation`
+- `astropy.coordinates.SkyCoord`
 
 
 Full change log
