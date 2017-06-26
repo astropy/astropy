@@ -312,6 +312,7 @@ Using ``nddata``
    :maxdepth: 2
 
    nddata.rst
+   ccddata.rst
    decorator.rst
    mixins/index.rst
    subclassing.rst
