@@ -376,7 +376,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         diffstr = ''
         if getattr(self, 'differentials', None):
-            diffstr = '\n (has differentials: {0})'.format(
+            diffstr = '\n (has differentials w.r.t.: {0})'.format(
                 ', '.join([repr(key) for key in self.differentials.keys()]))
 
         unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
