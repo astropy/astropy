@@ -36,7 +36,8 @@ from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 from .hcrs import HCRS
-from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
+from .ecliptic import (GeocentricTrueEcliptic, BarycentricTrueEcliptic,
+                       HeliocentricTrueEcliptic, BaseEclipticFrame)
 from .skyoffset import SkyOffsetFrame
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
