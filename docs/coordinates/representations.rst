@@ -343,7 +343,7 @@ classes. For example, to store a single velocity differential with a position::
   >>> rep
   <SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)
       ( 0.,  0.,  1.)
-   (has differentials: 's')>
+   (has differentials w.r.t.: 's')>
   >>> rep.differentials
   {'s': <SphericalDifferential (d_lon, d_lat, d_distance) in (mas / yr, mas / yr, km / s)
        ( 1.,  2.,  3.)>}
@@ -378,7 +378,7 @@ differentials::
   >>> rep
   <CartesianRepresentation (x, y, z) in kpc
       ( 1.,  2.,  3.)
-   (has differentials: 's')>
+   (has differentials w.r.t.: 's')>
 
 This also works for array data as well, as long as the shape of the
 ``Differential`` data is the same as that of the ``Representation``::
@@ -391,7 +391,7 @@ This also works for array data as well, as long as the shape of the
   >>> rep
   <CartesianRepresentation (x, y, z) in AU
       [( 0.,  4.,   8.), ( 1.,  5.,   9.), ( 2.,  6.,  10.), ( 3.,  7.,  11.)]
-   (has differentials: 's')>
+   (has differentials w.r.t.: 's')>
 
 As with a ``Representation`` instance without a differential, to convert the
 positional data to a new representation, use the ``.represent_as()``::
@@ -415,7 +415,7 @@ specify target classes for the ``Differential`` as well::
      ( 1.37340077,  1.05532979,  10.34408043),
      ( 1.24904577,  1.00685369,  11.83215957),
      ( 1.16590454,  0.96522779,  13.37908816)]
-   (has differentials: 's')>
+   (has differentials w.r.t.: 's')>
   >>> rep2.differentials['s']  # doctest: +FLOAT_CMP
   <SphericalDifferential (d_lon, d_lat, d_distance) in (km rad / (AU s), km rad / (AU s), km / s)
       [(  6.12323400e-17,   1.11022302e-16,   8.94427191),

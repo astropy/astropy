@@ -1311,6 +1311,13 @@ class TestCartesianRepresentationWithDifferential(object):
         assert 's2' not in r1.differentials
         assert 's2' in r2.differentials
 
+
+def test_repr_with_differentials():
+    diff = CartesianDifferential([.1, .2, .3]*u.km/u.s)
+    cr = CartesianRepresentation([1, 2, 3]*u.kpc, differentials=diff)
+    assert "has differentials w.r.t.: 's'" in repr(cr)
+
+
 def test_to_cartesian():
     """
     Test that to_cartesian drops the differential.
