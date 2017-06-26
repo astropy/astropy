@@ -116,9 +116,9 @@ def test_Sky2Pix_unit(code):
     wcs_pix = w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
     model = getattr(projections, 'Sky2Pix_' + code)
     tinv = model(*params)
-    x, y = tinv(wcslibout['phi']*u.deg, wcslibout['theta']*u.deg)
-    assert_quantity_allclose(x, wcs_pix[:, 0]*u.pix)
-    assert_quantity_allclose(y, wcs_pix[:, 1]*u.pix)
+    x, y = tinv(wcslibout['phi'] * u.deg, wcslibout['theta'] * u.deg)
+    assert_quantity_allclose(x, wcs_pix[:, 0] * u.deg)
+    assert_quantity_allclose(y, wcs_pix[:, 1] * u.deg)
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -145,9 +145,15 @@ def test_Pix2Sky_unit(code):
     wcs_theta = wcslibout['theta']
     model = getattr(projections, 'Pix2Sky_' + code)
     tanprj = model(*params)
-    phi, theta = tanprj(*PIX_COORDINATES*u.pix)
-    assert_quantity_allclose(phi, wcs_phi*u.deg)
-    assert_quantity_allclose(theta, wcs_theta*u.deg)
+    phi, theta = tanprj(*PIX_COORDINATES * u.deg)
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
+    phi, theta = tanprj(*(PIX_COORDINATES * u.deg).to(u.rad))
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
+    phi, theta = tanprj(*(PIX_COORDINATES * u.deg).to(u.arcmin))
+    assert_quantity_allclose(phi, wcs_phi * u.deg)
+    assert_quantity_allclose(theta, wcs_theta * u.deg)
 
 
 @pytest.mark.parametrize(('code',), pars)
@@ -295,10 +301,10 @@ def test_c_projections_shaped():
 
     utils.assert_allclose(
         phi,
-        [[0., 90., 90., 90., 90.,],
+        [[0., 90., 90., 90., 90.],
          [180., 165.96375653, 153.43494882, 143.13010235, 135.]])
 
     utils.assert_allclose(
         theta,
         [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
-         [89.00010152, 88.96933478, 88.88210788, 88.75019826,  88.58607353]])
+         [89.00010152, 88.96933478, 88.88210788, 88.75019826, 88.58607353]])
