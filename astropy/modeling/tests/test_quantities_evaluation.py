@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 
 
 from ..core import Model
-from ..parameters import Parameter
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError
@@ -84,7 +83,6 @@ def test_evaluate_with_quantities_and_equivalencies():
     # But it should now work if we pass equivalencies when evaluating
     assert_quantity_allclose(g(30 * u.PHz, equivalencies={'x': u.spectral()}),
                              g(9.993081933333332 * u.nm))
-
 
 
 class MyTestModel(Model):
