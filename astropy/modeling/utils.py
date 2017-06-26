@@ -645,7 +645,7 @@ def _to_radian(value):
 
 
 def _to_orig_unit(value, raw_unit=None, orig_unit=None):
-    """ Conver value with ``raw_unit`` to ``orig_unit``. """
+    """ Convert value with ``raw_unit`` to ``orig_unit``. """
     if raw_unit is not None:
         return (value * raw_unit).to(orig_unit)
     else:
