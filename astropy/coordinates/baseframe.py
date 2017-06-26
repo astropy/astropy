@@ -856,6 +856,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if self._data is None:
             raise ValueError('Cannot transform a frame with no data')
 
+        if (getattr(self.data, 'differentials', None) and
+           hasattr(self, 'obstime') and hasattr(new_frame, 'obstime') and
+           np.all(self.obstime == new_frame.obstime)):
+            raise NotImplementedError('You cannot transform a frame that has '
+                                      'velocities to another frame at a '
+                                      'different obstime. If you think this '
+                                      'should (or should not) be possible, '
+                                      'please comment at https://github.com/astropy/astropy/issues/6280')
+
         if inspect.isclass(new_frame):
             # Use the default frame attributes for this class
             new_frame = new_frame()
