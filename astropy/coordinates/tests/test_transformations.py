@@ -9,7 +9,7 @@ import pytest
 
 from ... import units as u
 from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import assert_quantity_allclose as assert_allclose
@@ -379,3 +379,32 @@ def test_unit_spherical_with_differentials(rep):
         c.transform_to(TCoo2)
 
     trans.unregister(frame_transform_graph)
+
+
+def test_vel_transformation_obstime_err():
+    # TODO: replace after a final decision on PR #6280
+    from .. import EarthLocation
+
+    diff = r.CartesianDifferential([.1, .2, .3]*u.km/u.s)
+    rep = r.CartesianRepresentation([1, 2, 3]*u.au, differentials=diff)
+
+    loc = EarthLocation.of_site('example_site')
+
+    aaf = AltAz(obstime='J2010', location=loc)
+    aaf2 = AltAz(obstime=aaf.obstime + 3*u.day, location=loc)
+    aaf3 = AltAz(obstime=aaf.obstime + np.arange(3)*u.day, location=loc)
+    aaf4 = AltAz(obstime=aaf.obstime, location=loc)
+
+    aa = aaf.realize_frame(rep)
+
+    with pytest.raises(NotImplementedError) as exc:
+        aa.transform_to(aaf2)
+    assert 'cannot transform' in exc.value.args[0]
+
+    with pytest.raises(NotImplementedError) as exc:
+        aa.transform_to(aaf3)
+    assert 'cannot transform' in exc.value.args[0]
+
+    aa.transform_to(aaf4)
+
+    aa.transform_to(ICRS())
