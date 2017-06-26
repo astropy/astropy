@@ -91,13 +91,24 @@ except:
     use_setuptools()
 
 
+# typing as a dependency for 1.6.1+ Sphinx causes issues when imported after
+# initializing submodule with ah_boostrap.py
+# See discussion and references in
+# https://github.com/astropy/astropy-helpers/issues/302
+
+try:
+    import typing   # noqa
+except ImportError:
+    pass
+
+
 # Note: The following import is required as a workaround to
 # https://github.com/astropy/astropy-helpers/issues/89; if we don't import this
 # module now, it will get cleaned up after `run_setup` is called, but that will
 # later cause the TemporaryDirectory class defined in it to stop working when
 # used later on by setuptools
 try:
-    import setuptools.py31compat
+    import setuptools.py31compat   # noqa
 except ImportError:
     pass
 
@@ -702,7 +713,7 @@ class _Bootstrapper(object):
             if self.offline:
                 cmd.append('--no-fetch')
         elif status == 'U':
-            raise _AHBoostrapSystemExit(
+            raise _AHBootstrapSystemExit(
                 'Error: Submodule {0} contains unresolved merge conflicts.  '
                 'Please complete or abandon any changes in the submodule so that '
                 'it is in a usable state, then try again.'.format(submodule))
@@ -763,7 +774,7 @@ def run_cmd(cmd):
             msg = 'Command not found: `{0}`'.format(' '.join(cmd))
             raise _CommandNotFound(msg, cmd)
         else:
-            raise _AHBoostrapSystemExit(
+            raise _AHBootstrapSystemExit(
                 'An unexpected error occurred when running the '
                 '`{0}` command:\n{1}'.format(' '.join(cmd), str(e)))
 
@@ -876,46 +887,6 @@ class _AHBootstrapSystemExit(SystemExit):
         msg += '\n' + _err_help_msg
 
         super(_AHBootstrapSystemExit, self).__init__(msg, *args[1:])
-
-
-if sys.version_info[:2] < (2, 7):
-    # In Python 2.6 the distutils log does not log warnings, errors, etc. to
-    # stderr so we have to wrap it to ensure consistency at least in this
-    # module
-    import distutils
-
-    class log(object):
-        def __getattr__(self, attr):
-            return getattr(distutils.log, attr)
-
-        def warn(self, msg, *args):
-            self._log_to_stderr(distutils.log.WARN, msg, *args)
-
-        def error(self, msg):
-            self._log_to_stderr(distutils.log.ERROR, msg, *args)
-
-        def fatal(self, msg):
-            self._log_to_stderr(distutils.log.FATAL, msg, *args)
-
-        def log(self, level, msg, *args):
-            if level in (distutils.log.WARN, distutils.log.ERROR,
-                         distutils.log.FATAL):
-                self._log_to_stderr(level, msg, *args)
-            else:
-                distutils.log.log(level, msg, *args)
-
-        def _log_to_stderr(self, level, msg, *args):
-            # This is the only truly 'public' way to get the current threshold
-            # of the log
-            current_threshold = distutils.log.set_threshold(distutils.log.WARN)
-            distutils.log.set_threshold(current_threshold)
-            if level >= current_threshold:
-                if args:
-                    msg = msg % args
-                sys.stderr.write('%s\n' % msg)
-                sys.stderr.flush()
-
-    log = log()
 
 
 BOOTSTRAPPER = _Bootstrapper.main()

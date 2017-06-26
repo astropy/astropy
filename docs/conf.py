@@ -75,6 +75,7 @@ del intersphinx_mapping['astropy']
 intersphinx_mapping['pytest'] = ('https://pytest.org/en/latest/', None)
 intersphinx_mapping['ipython'] = ('http://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('http://pandas.pydata.org/pandas-docs/stable/', None)
+intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
