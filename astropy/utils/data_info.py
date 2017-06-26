@@ -189,23 +189,30 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _represent_as_dict_attrs= ()
+    _represent_as_dict_attrs = ()
     _parent = None
+
+    def __init__(self, instance=None, initialize=False):
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if instance is None:
+            self._info = {}
+        else:
+            self._parent = instance
+            if initialize or 'info' not in instance.__dict__:
+                self._info = instance.__dict__['info'] = {}
+                self._info['attrs'] = dict((attr, None)
+                                           for attr in self.attr_names)
+            else:
+                self._info = instance.__dict__['info']
 
     def __get__(self, instance, owner_cls):
         if instance is None:
             # This is an unbound descriptor on the class
-            info = self
-            info._parent_cls = owner_cls
+            self._parent_cls = owner_cls
+            return self
         else:
-            info = self.__class__()
-            info._parent = instance
-            attrs = instance.__dict__.get('info')
-            if attrs is None:
-                attrs = instance.__dict__['info'] = dict(
-                    (attr, None) for attr in self.attr_names)
-            info._attrs = attrs
-        return info
+            return self.__class__(instance)
 
     def __set__(self, instance, value):
         if instance is None:
@@ -213,10 +220,11 @@ class DataInfo(object):
             raise ValueError('cannot set unbound descriptor')
 
         if isinstance(value, DataInfo):
-            info = self.__get__(instance, owner_cls=None)
-            attrs = info._attrs
-
-            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
+            # initialize new instance with new info
+            info = self.__class__(instance, initialize=True)
+            attrs = info._info['attrs']
+            # update with info from value
+            for attr in self.attr_names - self.attrs_from_parent - self._attrs_no_copy:
                 attrs[attr] = deepcopy(getattr(value, attr))
 
         else:
@@ -229,14 +237,19 @@ class DataInfo(object):
         self._attrs = state
 
     def __getattr__(self, attr):
+        # we store private attributes in _info, which is on the parent,
+        # so that they do not get lost.
         if attr.startswith('_'):
-            return super(DataInfo, self).__getattribute__(attr)
+            try:
+                return self._info[attr]
+            except KeyError:
+                super(DataInfo, self).__getattribute__(attr)  # Generate AttributeError
 
         if attr in self.attrs_from_parent:
             return getattr(self._parent, attr)
 
         try:
-            value = self._attrs[attr]
+            value = self._info['attrs'][attr]
         except KeyError:
             super(DataInfo, self).__getattribute__(attr)  # Generate AttributeError
 
@@ -267,9 +280,15 @@ class DataInfo(object):
             propobj.fset(self, value)
             return
 
-        # Private attr names get directly set
-        if attr.startswith('_'):
+        # Some private attr names get directly set
+        if attr == '_info' or attr.startswith('_parent'):
             super(DataInfo, self).__setattr__(attr, value)
+            return
+
+        # But all others we store in _info, which for info on instances
+        # links to _parent.__dict__['info'], so that it is kept.
+        if attr.startswith('_'):
+            self._info[attr] = value
             return
 
         # Finally this must be an actual data attribute that this class is handling.
@@ -279,7 +298,7 @@ class DataInfo(object):
         if attr == 'parent_table':
             value = None if value is None else weakref.ref(value)
 
-        self._attrs[attr] = value
+        self._info['attrs'][attr] = value
 
     def _represent_as_dict(self):
         """
