@@ -12,8 +12,7 @@ from .utils import EQUINOX_J2000
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
 
-_base_ecliptic_docstring = """
-    .. warning::
+_base_ecliptic_docstring = """.. warning::
         In the current version of astropy, the ecliptic frames do not yet have
         stringent accuracy tests.  We recommend you test to "known-good" cases
         to ensure this frames are what you are looking for. (and then ideally
