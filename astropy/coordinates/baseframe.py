@@ -1017,6 +1017,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data_repr = 'Data:\n' + data_repr
 
+        if (getattr(self.data, 'differentials', None) and
+           's' in self.data.differentials):
+            data_repr_spl = data_repr.split('\n')
+            if 'has differentials' in data_repr_spl[-1]:
+                diffrepr = repr(self.data.differentials['s']).split('\n')
+                if diffrepr[0].startswith('<'):
+                    diffrepr[0] = ' ' + ' '.join(diffrepr[0].split(' ')[1:])
+                for frm_nm, rep_nm in self.get_representation_component_names('s').items():
+                    diffrepr[0] = diffrepr[0].replace(rep_nm, frm_nm)
+                if diffrepr[-1].endswith('>'):
+                    diffrepr[-1] = diffrepr[-1][:-1]
+                data_repr_spl[-1] = '\n'.join(diffrepr)
+
+            data_repr = '\n'.join(data_repr_spl)
+
         return data_repr
 
     def _frame_attrs_repr(self):
