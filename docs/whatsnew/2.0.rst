@@ -27,6 +27,7 @@ In particular, this release includes:
 * :ref:`whatsnew-2.0-molar-mass`
 * :ref:`whatsnew-2.0-models-units`
 * :ref:`whatsnew-2.0-n-submodels`
+* :ref:`whatsnew-2.0-with-bounding-box`
 * :ref:`whatsnew-2.0-no-bundled-pytest`
 * :ref:`whatsnew-2.0-ccddata-class`
 
@@ -279,6 +280,24 @@ For example::
     2
 
 .. _whatsnew-2.0-no-bundled-pytest:
+
+Two new optional arguments when evaluating a model - ``with_bounding_box`` and ``fill_value``
+=============================================================================================
+
+Two new arguments can be passed when evaluating a model to specify the bounding box
+should be respected. If ``with_bounding_box=True`` and a model has a bounding_box,
+the output values corresponding to inputs outside the bounding box are set to ``fill_value``.
+For example::
+
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> import numpy as np
+    >>> x = np.arange(-5, 5)
+    >>> p = Polynomial1D(1, c0=2, c1=3)
+    >>> p.bounding_box = (-1, 5)
+    >>> p(x, with_bounding_box=True, fill_value=-100)
+    array([-100., -100., -100., -100.,   -1.,    2.,    5.,    8.,   11.,   14.])
+
+.. _whatsnew-2.0-with-bounding-box:
 
 No more bundled ``pytest`` with Astropy distribution
 ====================================================
