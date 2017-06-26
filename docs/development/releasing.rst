@@ -607,7 +607,8 @@ applies both for regular release *and* release candidates are the same
       $ git fetch upstream  # you probably did this already in the previous step
       $ git checkout upstream/tmp-release-v<version>
       $ cd ..
-      $ git add astropy_helpers
+      $ cp astropy_helpers/ah_bootstrap.py .
+      $ git add astropy_helpers ah_bootstrap.py
       $ git commit -m "updated helpers to v<version>"
 
 #. Wait for the continuous integration services (e.g., Travis) to run on the PR
@@ -629,6 +630,9 @@ applies both for regular release *and* release candidates are the same
       $ git checkout <maintenance branch name>
       $ git merge --no-ff tmp-release-v<version>
       $ git tag -s "v<version>" -m "Tagging v<version>"
+      $ git clean -dfx
+      $ umask 0022
+      $ chmod -R a+Xr .
       $ python setup.py build sdist register upload
       $ git push upstream --tags <maintenance branch name>
 
