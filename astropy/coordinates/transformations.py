@@ -33,7 +33,6 @@ from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyWarning
 from ..extern import six
 from ..extern.six.moves import range
-from .. import units as u
 
 from .representation import REPRESENTATION_CLASSES
 
@@ -749,8 +748,7 @@ class FunctionTransform(CoordinateTransform):
         if not isinstance(res, self.tosys):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
-        if (getattr(fromcoord.data, 'differentials', None) and not
-            getattr(res.data, 'differentials', None)):
+        if fromcoord.data.differentials and not res.data.differentials:
             warn("Applied a FunctionTransform to a coordinate frame with "
                  "differentials, but the FunctionTransform does not handle "
                  "differentials, so they have been dropped.", AstropyWarning)
@@ -764,14 +762,24 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     the differential at all in this case, as any differentials will be
     overridden.
 
+    When a differential is in the from coordinate, the finite difference
+    calculation has two components. The first part is simple the existing
+    differential, but re-orientation (using finite-difference techniques) to
+    point in the direction the velocity vector has in the *new* frame. The
+    second component is the "induced" velocity.  That is, the velocity
+    intrinsic to the frame itself, estimated by shifting the frame using the
+    ``finite_difference_frameattr_name`` frame attribute a small amount
+    (``finite_difference_dt``) in time and re-calculating the position.
+
     Parameters
     ----------
     finite_difference_frameattr_name : str or None
         The name of the frame attribute on the frames to use for the finite
         difference.  Both the to and the from frame will be checked for this
-        attribute, but only one needs to have it. If None, only the
-        re-orientation of the existing differential will be computed.
-    finite_difference_dt : Quantity or callable
+        attribute, but only one needs to have it. If None, no velocity
+        component induced from the frame itself will be included - only the
+        re-orientation of any exsiting differential.
+    finite_difference_dt : `~astropy.units.Quantity` or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
         ``(fromcoord, toframe)`` and return the ``dt`` value.
@@ -782,7 +790,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         case has slightly better performance (and more stable finite difference
         behavior).
 
-    All other paramters are identical to the initializer for
+    All other parameters are identical to the initializer for
     `FunctionTransform`.
 
     """
@@ -821,22 +829,22 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                                      CartesianDifferential)
 
         supcall = self.func
-        if getattr(fromcoord.data, 'differentials', False):
+        if fromcoord.data.differentials:
             # this is the finite difference case
 
             if callable(self.finite_difference_dt):
                 dt = self.finite_difference_dt(fromcoord, toframe)
             else:
                 dt = self.finite_difference_dt
+            halfdt = dt/2
 
-            fromdiffless = fromcoord.realize_frame(fromcoord.data.without_differentials())
-            reprwithoutdiff = supcall(fromdiffless, toframe)
+            from_diffless = fromcoord.realize_frame(fromcoord.data.without_differentials())
+            reprwithoutdiff = supcall(from_diffless, toframe)
 
             # first we use the existing differential to compute an offset due to
             # the already-existing velocity, but in the new frame
             fromcoord_cart = fromcoord.cartesian
             if self.symmetric_finite_difference:
-                halfdt = dt/2
                 fwdxyz = (fromcoord_cart.xyz +
                           fromcoord_cart.differentials['s'].d_xyz*halfdt)
                 fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
@@ -850,46 +858,46 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                 back = reprwithoutdiff
             diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
 
-            # now we compute the "induced" velocities due to any movement in the
-            # frame itself over time
+            # now we compute the "induced" velocities due to any movement in
+            # the frame itself over time
             attrname = self.finite_difference_frameattr_name
             if attrname is not None:
                 if self.symmetric_finite_difference:
                     if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(fromdiffless, attrname) + dt/2}
-                        fromdifflessfwd = fromdiffless.replicate(**kws)
+                        kws = {attrname: getattr(from_diffless, attrname) + halfdt}
+                        from_diffless_fwd = from_diffless.replicate(**kws)
                     else:
-                        fromdifflessfwd = fromdiffless
+                        from_diffless_fwd = from_diffless
                     if self._diff_attr_in_tosys:
-                        kws = {attrname: getattr(toframe, attrname) + dt/2}
+                        kws = {attrname: getattr(toframe, attrname) + halfdt}
                         fwd_frame = toframe.replicate_without_data(**kws)
                     else:
                         fwd_frame = toframe
-                    fwd = supcall(fromdifflessfwd, fwd_frame)
+                    fwd = supcall(from_diffless_fwd, fwd_frame)
 
                     if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(fromdiffless, attrname) - dt/2}
-                        fromdifflessback = fromdiffless.replicate(**kws)
+                        kws = {attrname: getattr(from_diffless, attrname) - halfdt}
+                        from_diffless_back = from_diffless.replicate(**kws)
                     else:
-                        fromdifflessback = fromdiffless
+                        from_diffless_back = from_diffless
                     if self._diff_attr_in_tosys:
-                        kws = {attrname: getattr(toframe, attrname) - dt/2}
+                        kws = {attrname: getattr(toframe, attrname) - halfdt}
                         back_frame = toframe.replicate_without_data(**kws)
                     else:
                         back_frame = toframe
-                    back = supcall(fromdifflessback, back_frame)
+                    back = supcall(from_diffless_back, back_frame)
                 else:
                     if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(fromdiffless, attrname) + dt}
-                        fromdifflessfwd = fromdiffless.replicate(**kws)
+                        kws = {attrname: getattr(from_diffless, attrname) + dt}
+                        from_diffless_fwd = from_diffless.replicate(**kws)
                     else:
-                        fromdifflessfwd = fromdiffless
+                        from_diffless_fwd = from_diffless
                     if self._diff_attr_in_tosys:
                         kws = {attrname: getattr(toframe, attrname) + dt}
                         fwd_frame = toframe.replicate_without_data(**kws)
                     else:
                         fwd_frame = toframe
-                    fwd = supcall(fromdifflessfwd, fwd_frame)
+                    fwd = supcall(from_diffless_fwd, fwd_frame)
                     back = reprwithoutdiff
 
                 diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
