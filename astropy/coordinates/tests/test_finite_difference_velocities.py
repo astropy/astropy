@@ -13,7 +13,8 @@ from ... import constants
 from ...time import Time
 from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
 from ..baseframe import frame_transform_graph
-from .. import (EarthLocation, TimeFrameAttribute,
+from ..sites import get_builtin_sites
+from .. import (TimeFrameAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
                 CartesianDifferential, SphericalDifferential,
@@ -101,8 +102,8 @@ def test_faux_fk5_galactic():
     c3 = c1.transform_to(Galactic)
 
     # compare the matrix and finite-difference calculations
-    assert quantity_allclose(c2.pm_l_cosb, c3.pm_l_cosb, rtol=5e-3)
-    assert quantity_allclose(c2.pm_b, c3.pm_b, rtol=5e-3)
+    assert quantity_allclose(c2.pm_l_cosb, c3.pm_l_cosb, rtol=1e-2)
+    assert quantity_allclose(c2.pm_b, c3.pm_b, rtol=1e-2)
 
 
 def test_gcrs_diffs():
@@ -144,7 +145,7 @@ def test_gcrs_diffs():
 
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
-    loc = EarthLocation.of_site('greenwich')  # built-in
+    loc = get_builtin_sites()['greenwich']
     aa = AltAz(obstime=time, location=loc)
 
     icoo = ICRS(np.zeros_like(time)*u.deg, 10*u.deg, 100*u.au,
