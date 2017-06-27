@@ -172,8 +172,14 @@ def test_altaz_diffs():
 _xfail = pytest.mark.xfail
 @pytest.mark.parametrize('distance', [1000*u.au,
                                       10*u.pc,
-                                      pytest.param(10*u.kpc, marks=_xfail),
-                                      pytest.param(100*u.kpc, marks=_xfail)])
+                                      pytest.mark.xfail(10*u.kpc),
+                                      pytest.mark.xfail(100*u.kpc)])
+                                      # below is xfail syntax for pytest >=3.1
+                                      # TODO: change to this when the above
+                                      # way of xfailing is turned off in pytest
+                                      # >=4.0
+                                      #pytest.param(10*u.kpc, marks=_xfail),
+                                      #pytest.param(100*u.kpc, marks=_xfail)])
                                       # TODO:  make these not fail when the
                                       # finite-difference numerical stability
                                       # is improved
