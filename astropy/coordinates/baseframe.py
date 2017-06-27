@@ -803,6 +803,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 data = data.__class__(copy=False, **datakwargs)
 
             if differential_cls:
+                # the original differential
+                data_diff = self.data.differentials['s']
+
                 # If the new differential is known to this frame and has a
                 # defined set of names and units, then use that.
                 new_attrs = self.representation_info.get(differential_cls)
@@ -811,8 +814,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                                       for comp in diff.components)
                     for comp, new_attr_unit in zip(diff.components,
                                                    new_attrs['units']):
-                        if (new_attr_unit and
-                                hasattr(self._data.differentials['s'], comp)):
+                        # Some special-casing to treat a situation where the
+                        # input data has a UnitSphericalDifferential or a
+                        # RadialDifferential. It is re-represented to the
+                        # frame's differential class (which might be, e.g., a
+                        # dimensional Differential), so we don't want to try to
+                        # convert the empty component units
+                        if (isinstance(data_diff,
+                                       (r.UnitSphericalDifferential,
+                                        r.UnitSphericalCosLatDifferential)) and
+                                comp not in data_diff.__class__.attr_classes):
+                            continue
+
+                        elif (isinstance(data_diff, r.RadialDifferential) and
+                              comp not in data_diff.__class__.attr_classes):
+                            continue
+
+                        if new_attr_unit and hasattr(diff, comp):
                             diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
 
                     diff = diff.__class__(copy=False, **diffkwargs)
@@ -1007,11 +1025,22 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if self.representation:
             if (issubclass(self.representation, r.SphericalRepresentation) and
                     isinstance(self.data, r.UnitSphericalRepresentation)):
-                data = self.represent_as(self.data.__class__,
-                                         in_frame_units=True)
+                rep_cls = self.data.__class__
             else:
-                data = self.represent_as(self.representation,
-                                         in_frame_units=True)
+                rep_cls = self.representation
+
+            if 's' in self.data.differentials:
+                dif_cls = self.get_representation_cls('s')
+                dif_data = self.data.differentials['s']
+                if isinstance(dif_data, (r.UnitSphericalDifferential,
+                                         r.UnitSphericalCosLatDifferential,
+                                         r.RadialDifferential)):
+                    dif_cls = dif_data.__class__
+
+            else:
+                dif_cls = None
+
+            data = self.represent_as(rep_cls, dif_cls, in_frame_units=True)
 
             data_repr = repr(data)
             for nmpref, nmrepr in self.representation_component_names.items():
@@ -1028,11 +1057,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data_repr = 'Data:\n' + data_repr
 
-        if (getattr(self.data, 'differentials', None) and
-                's' in self.data.differentials):
+        if 's' in self.data.differentials:
             data_repr_spl = data_repr.split('\n')
             if 'has differentials' in data_repr_spl[-1]:
-                diffrepr = repr(self.data.differentials['s']).split('\n')
+                diffrepr = repr(data.differentials['s']).split('\n')
                 if diffrepr[0].startswith('<'):
                     diffrepr[0] = ' ' + ' '.join(diffrepr[0].split(' ')[1:])
                 for frm_nm, rep_nm in self.get_representation_component_names('s').items():

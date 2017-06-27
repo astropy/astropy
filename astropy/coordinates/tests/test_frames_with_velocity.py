@@ -56,10 +56,26 @@ def test_all_arg_options(kwargs):
     # access to the relevant attributes from the resulting object
     icrs = ICRS(**kwargs)
     gal = icrs.transform_to(Galactic)
+    repr_gal = repr(gal)
 
     for k in kwargs:
         getattr(icrs, k)
 
+    if 'pm_ra_cosdec' in kwargs: # should have both
+        assert 'pm_l_cosb' in repr_gal
+        assert 'pm_b' in repr_gal
+        assert 'mas / yr' in repr_gal
+
+        if 'radial_velocity' not in kwargs:
+            assert 'radial_velocity' not in repr_gal
+
+    if 'radial_velocity' in kwargs:
+        assert 'radial_velocity' in repr_gal
+        assert 'km / s' in repr_gal
+
+        if 'pm_ra_cosdec' not in kwargs:
+            assert 'pm_l_cosb' not in repr_gal
+            assert 'pm_b' not in repr_gal
 
 @pytest.mark.parametrize('cls,lon,lat', [
     [bf.ICRS, 'ra', 'dec'], [bf.FK4, 'ra', 'dec'], [bf.FK4NoETerms, 'ra', 'dec'],
