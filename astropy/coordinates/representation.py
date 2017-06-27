@@ -510,10 +510,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise TypeError("'differentials' argument must be a "
                                 "dictionary-like object")
 
-            if diff.__class__ not in self._compatible_differentials:
-                raise TypeError("Differential '{0}' is not compatible with "
-                                "this representation '{1}'".format(repr(diff),
-                                                                   repr(self)))
+            diff._check_base(self)
 
             if (isinstance(diff, RadialDifferential) and
                     isinstance(self, UnitSphericalRepresentation)):
@@ -1990,10 +1987,10 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     @classmethod
     def _check_base(cls, base):
-        if not isinstance(base, cls.base_representation):
-            raise TypeError('need a base of the correct representation type, '
-                            '{0}, not {1}.'.format(cls.base_representation,
-                                                   type(base)))
+        if cls not in base._compatible_differentials:
+            raise TypeError("Differential class {0} is not compatible with the "
+                            "base (representation) class {1}"
+                            .format(cls, base.__class__))
 
     def _get_deriv_key(self, base):
         """Given a base (representation instance), determine the unit of the
@@ -2003,10 +2000,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         # This check is just a last resort so we don't return a strange unit key
         # from accidentally passing in the wrong base.
-        if self.__class__ not in base._compatible_differentials:
-            raise TypeError("Differential class {0} is not compatible with the "
-                            "base (representation) class {1}"
-                            .format(self.__class__, base.__class__))
+        self._check_base(base)
 
         for name in base.components:
             comp = getattr(base, name)
