@@ -42,7 +42,7 @@ Getting Started
    :maxdepth: 1
 
    install
-   whatsnew/1.3
+   whatsnew/2.0
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <http://tutorials.astropy.org/>
