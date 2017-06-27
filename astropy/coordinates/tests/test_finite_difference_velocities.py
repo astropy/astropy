@@ -76,7 +76,8 @@ def test_gcrs_diffs():
     # qtr-year off sun location should be the direction of ~ maximal vhelio
     qtrsung = get_sun(time-.25*u.year)
 
-    #now we use those directions to
+    # now we use those essentially as directions where the velocities should
+    #be either maximal or minimal - with or perpendiculat to Earh's orbit
     msungr = CartesianRepresentation(-sung.cartesian.xyz).represent_as(SphericalRepresentation)
     suni = ICRS(ra=msungr.lon, dec=msungr.lat, distance=100*u.au,
                 pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
@@ -84,6 +85,11 @@ def test_gcrs_diffs():
     qtrsuni = ICRS(ra=qtrsung.ra, dec=qtrsung.dec, distance=100*u.au,
                    pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
                    radial_velocity=0*u.km/u.s)
+
+    # Now we transform those parallel- and perpendicular-to Earth's orbit
+    # directions to GCRS, which should shift the velocity to either include
+    # the Earth's velocity vector, or not (for parallel and perpendicular,
+    # respectively).
     sung = suni.transform_to(gf)
     qtrsung = qtrsuni.transform_to(gf)
 
@@ -101,18 +107,21 @@ def test_gcrs_diffs():
 
 def test_altaz_diffs():
     time = Time('J2015') + np.linspace(-1, 1, 1000)*u.day
-    loc = EarthLocation.of_site('greenwich')  #built-in
+    loc = EarthLocation.of_site('greenwich')  # built-in
     aa = AltAz(obstime=time, location=loc)
 
     icoo = ICRS(np.zeros_like(time)*u.deg, 10*u.deg, 100*u.au,
-         pm_ra_cosdec=np.zeros_like(time)*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
-         radial_velocity=0*u.km/u.s)
+                pm_ra_cosdec=np.zeros_like(time)*u.marcsec/u.yr,
+                pm_dec=0*u.marcsec/u.yr,
+                radial_velocity=0*u.km/u.s)
 
     acoo = icoo.transform_to(aa)
 
-    # make sure the change in radial velocity over ~2 days isn't much more than
-    # the rotation speed of the Earth
-    assert np.ptp(acoo.radial_velocity)/2 < (2*np.pi*constants.R_earth/u.day)*1.2
+    # Make sure the change in radial velocity over ~2 days isn't too much
+    # more than the rotation speed of the Earth - some excess is expected
+    # because the orbit also shifts the RV, but it should be pretty small
+    # over this short a time.
+    assert np.ptp(acoo.radial_velocity)/2 < (2*np.pi*constants.R_earth/u.day)*1.2  # MAGIC NUMBER
 
     cdiff = acoo.data.differentials['s'].represent_as(CartesianDifferential,
                                                     acoo.data)
@@ -122,11 +131,15 @@ def test_altaz_diffs():
     # rotation at a distance of 100 AU
     assert np.all(np.sum(cdiff.d_xyz**2, axis=0)**0.5 > constants.c)
 
+
 _xfail = pytest.mark.xfail
 @pytest.mark.parametrize('distance', [1000*u.au,
                                       10*u.pc,
                                       pytest.param(10*u.kpc, marks=_xfail),
                                       pytest.param(100*u.kpc, marks=_xfail)])
+                                      # TODO:  make these not fail when the
+                                      # finite-difference numerical stability
+                                      # is improved
 def test_numerical_limits(distance):
     """
     Tests the numerical stability of the default settings for the finite
@@ -139,9 +152,11 @@ def test_numerical_limits(distance):
                 pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
                 radial_velocity=0*u.km/u.s)
     gcoo = icoo.transform_to(GCRS(obstime=time))
-    rv =  gcoo.radial_velocity.to('km/s')
+    rv = gcoo.radial_velocity.to('km/s')
 
-    # if its a lot bigger than this, finite-difference noise has ruined things
+    # if its a lot bigger than this - ~the maximal velocity shift along
+    # the direction above with a small allowance for noise - finite-difference
+    # rounding errors have ruined the calculation
     assert np.ptp(rv) < 65*u.km/u.s
 
 def diff_info_plot(frame, times):
