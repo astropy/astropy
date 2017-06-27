@@ -987,8 +987,8 @@ def test_subclass_representation():
 
     class ICRSWrap180(ICRS):
         frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
-        frame_specific_representation_info['sphericalwrap180'] = \
-            frame_specific_representation_info['spherical']
+        frame_specific_representation_info[SphericalWrap180Representation] = \
+            frame_specific_representation_info[SphericalRepresentation]
         default_representation = SphericalWrap180Representation
 
     c = ICRSWrap180(ra=-1 * u.deg, dec=-2 * u.deg, distance=1 * u.m)

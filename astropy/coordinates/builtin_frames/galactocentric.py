@@ -3,14 +3,20 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import warnings
+
 import numpy as np
 
 from ... import units as u
+from ...utils.exceptions import AstropyDeprecationWarning
 from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
-from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, frame_transform_graph
-from ..frame_attributes import FrameAttribute
+from .. import representation as r
+from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                         RepresentationMapping)
+from ..frame_attributes import (FrameAttribute, CoordinateAttribute,
+                                QuantityFrameAttribute,
+                                DifferentialFrameAttribute)
 from ..transformations import AffineTransform
 from ..errors import ConvertError
 
@@ -46,38 +52,65 @@ class Galactocentric(BaseCoordinateFrame):
         {\rm Dec} = -28:56:10.23~{\rm deg}
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
-    Gillessen et al. 2009,
-    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
+    Gillessen et al. (2009),
+    https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G/abstract
 
     The default height of the Sun above the Galactic midplane is taken to
-    be 27 pc, as measured by
-    http://adsabs.harvard.edu/abs/2001ApJ...553..184C.
+    be 27 pc, as measured by Chen et al. (2001),
+    https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
+
+    The default solar motion relative to the Galactic center is taken from a
+    combination of Schönrich et al. (2010) [for the peculiar velocity] and
+    Bovy (2015) [for the circular velocity at the solar radius],
+    https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S/abstract
+    https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B/abstract
 
     For a more detailed look at the math behind this transformation, see
     the document :ref:`coordinates-galactocentric`.
 
+    The frame attributes are listed under **Other Parameters**.
+
     Parameters
     ----------
-    representation : `BaseRepresentation` or None
+    representation : `~astropy.coordinates.representation.BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
+
+    x : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`x` position component.
+    y : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`y` position component.
+    z : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`z` position component.
+
+    v_x : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_x` velocity component.
+    v_y : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_y` velocity component.
+    v_z : `~astropy.units.Quantity`, optional
+        Cartesian, Galactocentric :math:`v_z` velocity component.
+
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
+
+    Other parameters
+    ----------------
+    galcen_coord : `ICRS`, optional, must be keyword
+        The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
-        The distance from the Sun to the Galactic center.
-    galcen_ra : `Angle`, optional, must be keyword
-        The Right Ascension (RA) of the Galactic center in the ICRS frame.
-    galcen_dec : `Angle`, optional, must be keyword
-        The Declination (Dec) of the Galactic center in the ICRS frame.
+        The distance from the sun to the Galactic center.
+    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, optional, must be keyword
+        The velocity of the sun *in the Galactocentric frame* as Cartesian
+        velocity components.
     z_sun : `~astropy.units.Quantity`, optional, must be keyword
-        The distance from the Sun to the Galactic midplane.
+        The distance from the sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
         The angle to rotate about the final x-axis, relative to the
         orientation for Galactic. For example, if this roll angle is 0,
         the final x-z plane will align with the Galactic coordinates x-z
         plane. Unless you really know what this means, you probably should
         not change this!
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
 
     Examples
     --------
@@ -92,15 +125,17 @@ class Galactocentric(BaseCoordinateFrame):
         ...                dec=[-17.3, 81.52] * u.degree,
         ...                distance=[11.5, 24.12] * u.kpc)
         >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_distance=8.3 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
-            [( -9.6083819 , -9.40062188,  6.52056066),
-             (-21.28302307, 18.76334013,  7.84693855)]>
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            ( 266.4051, -28.936175)>, galcen_distance=8.3 kpc, galcen_v_sun=(-11.1,  244.,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+            [( -9.6083819 ,  -9.40062188,  6.52056066),
+             (-21.28302307,  18.76334013,  7.84693855)]>
 
     To specify a custom set of parameters, you have to include extra keyword
     arguments when initializing the Galactocentric frame object::
 
         >>> c.transform_to(coord.Galactocentric(galcen_distance=8.1*u.kpc)) # doctest: +FLOAT_CMP
-        <Galactocentric Coordinate (galcen_distance=8.1 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        <Galactocentric Coordinate (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
+            ( 266.4051, -28.936175)>, galcen_distance=8.1 kpc, galcen_v_sun=(-11.1,  244.,  7.25) km / s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.40785924,  -9.40062188,  6.52066574),
              (-21.08239383,  18.76334013,  7.84798135)]>
 
@@ -126,14 +161,57 @@ class Galactocentric(BaseCoordinateFrame):
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
 
     """
-    default_representation = CartesianRepresentation
+    frame_specific_representation_info = {
+        r.CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s),
+        ],
+    }
 
-    # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
-    galcen_distance = FrameAttribute(default=8.3*u.kpc)
-    galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
-    galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
+    default_representation = r.CartesianRepresentation
+    default_differential = r.CartesianDifferential
+
+    # frame attributes
+    galcen_coord = CoordinateAttribute(default=ICRS(ra=266.4051*u.degree,
+                                                    dec=-28.936175*u.degree),
+                                       frame=ICRS)
+    galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
+
+    galcen_v_sun = DifferentialFrameAttribute(
+        default=r.CartesianDifferential([-11.1, 244, 7.25] * u.km/u.s),
+        allowed_classes=[r.CartesianDifferential])
+
     z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
+
+    def __init__(self, *args, **kwargs):
+
+        # backwards-compatibility
+        if ('galcen_ra' in kwargs or 'galcen_dec' in kwargs):
+            warnings.warn("The arguments 'galcen_ra', and 'galcen_dec' are "
+                          "deprecated in favor of specifying the sky coordinate"
+                          " as a CoordinateAttribute using the 'galcen_coord' "
+                          "argument", AstropyDeprecationWarning)
+
+            galcen_kw = dict()
+            galcen_kw['ra'] = kwargs.pop('galcen_ra', self.galcen_coord.ra)
+            galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
+            kwargs['galcen_coord'] = ICRS(**galcen_kw)
+
+        super(Galactocentric, self).__init__(*args, **kwargs)
+
+    @property
+    def galcen_ra(self):
+        warnings.warn("The attribute 'galcen_ra' is deprecated. Use "
+                      "'.galcen_coord.ra' instead.", AstropyDeprecationWarning)
+        return self.galcen_coord.ra
+
+    @property
+    def galcen_dec(self):
+        warnings.warn("The attribute 'galcen_dec' is deprecated. Use "
+                      "'.galcen_coord.dec' instead.", AstropyDeprecationWarning)
+        return self.galcen_coord.dec
 
     @classmethod
     def get_roll0(cls):
@@ -149,13 +227,17 @@ class Galactocentric(BaseCoordinateFrame):
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
-def get_matrix_vectors(galactocentric_frame):
+def get_matrix_vectors(galactocentric_frame, inverse=False):
+    """
+    Use the ``inverse`` argument to get the inverse transformation, matrix and
+    offsets to go from Galactocentric to ICRS.
+    """
     # shorthand
     gcf = galactocentric_frame
 
-    # define rotation matrix to align x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(-gcf.galcen_dec, 'y')
-    mat2 = rotation_matrix(gcf.galcen_ra, 'z')
+    # rotation matrix to align x(ICRS) with the vector to the Galactic center
+    mat1 = rotation_matrix(-gcf.galcen_coord.dec, 'y')
+    mat2 = rotation_matrix(gcf.galcen_coord.ra, 'z')
     # extra roll away from the Galactic x-z plane
     mat0 = rotation_matrix(gcf.get_roll0() - gcf.roll, 'x')
 
@@ -164,7 +246,7 @@ def get_matrix_vectors(galactocentric_frame):
 
     # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
-    translation = CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
+    translation = r.CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
     z_d = gcf.z_sun / gcf.galcen_distance
     H = rotation_matrix(-np.arcsin(z_d), 'y')
 
@@ -175,31 +257,41 @@ def get_matrix_vectors(galactocentric_frame):
     # above the midplane
     offset = -translation.transform(H)
 
-    # TODO: need to get the velocity offset and save as a differential on
-    #       `offset` - leaving this to the next PR
-    # vel_vec = matrix_product(H, -gcf.v_sun.xyz)
+    if inverse:
+        # the inverse of a rotation matrix is a transpose, which is much faster
+        #   and more stable to compute
+        A = matrix_transpose(A)
+        offset = (-offset).transform(A)
+        offset_v = r.CartesianDifferential.from_cartesian(
+            (-gcf.galcen_v_sun).to_cartesian().transform(A))
+        offset = offset.with_differentials(offset_v)
+
+    else:
+        offset = offset.with_differentials(gcf.galcen_v_sun)
 
     return A, offset
 
+def _check_coord_repr_diff_types(c):
+    if isinstance(c.data, r.UnitSphericalRepresentation):
+        raise ConvertError("Transforming to/from a Galactocentric frame "
+                           "requires a 3D coordinate, e.g. (angle, angle, "
+                           "distance) or (x, y, z).")
+
+    if ('s' in c.data.differentials and
+            isinstance(c.data.differentials['s'],
+                       (r.UnitSphericalDifferential,
+                        r.UnitSphericalCosLatDifferential,
+                        r.RadialDifferential))):
+        raise ConvertError("Transforming to/from a Galactocentric frame "
+                           "requires a 3D velocity, e.g., proper motion "
+                           "components and radial velocity.")
+
 @frame_transform_graph.transform(AffineTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
-    if isinstance(icrs_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming to a Galactocentric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
-
+    _check_coord_repr_diff_types(icrs_coord)
     return get_matrix_vectors(galactocentric_frame)
 
 @frame_transform_graph.transform(AffineTransform, Galactocentric, ICRS)
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
-    if isinstance(galactocentric_coord.data, UnitSphericalRepresentation):
-        raise ConvertError("Transforming from a Galactocentric frame requires "
-                           "a 3D coordinate, e.g. (angle, angle, distance) or"
-                           " (x, y, z).")
-
-    A, offset = get_matrix_vectors(galactocentric_coord)
-
-    # the inverse of a rotation matrix is a transpose, which is much faster and
-    #   more stable to compute
-    A_T = matrix_transpose(A)
-    return A_T, -offset.transform(A_T)
+    _check_coord_repr_diff_types(galactocentric_coord)
+    return get_matrix_vectors(galactocentric_coord, inverse=True)

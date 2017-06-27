@@ -9,7 +9,7 @@ import numpy as np
 from ... import units as u
 from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
-                              Supergalactic, Galactocentric, HCRS, GCRS)
+                              Supergalactic, Galactocentric, HCRS, GCRS, LSR)
 from .. import SkyCoord
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -261,3 +261,31 @@ class TestHelioBaryCentric():
         bary_slalib = [-0.6869012079, 0.6472893646, 0.2805661191] * u.au
         assert np.sqrt(((bary.cartesian.xyz -
                          bary_slalib)**2).sum()) < 14. * u.km
+
+def test_lsr_sanity():
+
+    # random numbers, but zero velocity in ICRS frame
+    icrs = ICRS(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                radial_velocity=0*u.km/u.s)
+    lsr = icrs.transform_to(LSR)
+
+    lsr_diff = lsr.data.differentials['s']
+    cart_lsr_vel = lsr_diff.represent_as(CartesianRepresentation, base=lsr.data)
+    lsr_vel = ICRS(cart_lsr_vel)
+    gal_lsr = lsr_vel.transform_to(Galactic).cartesian.xyz
+    assert allclose(gal_lsr.to(u.km/u.s, u.dimensionless_angles()),
+                    lsr.v_bary.d_xyz)
+
+    # moving with LSR velocity
+    lsr = LSR(ra=15.1241*u.deg, dec=17.5143*u.deg, distance=150.12*u.pc,
+              pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+              radial_velocity=0*u.km/u.s)
+    icrs = lsr.transform_to(ICRS)
+
+    icrs_diff = icrs.data.differentials['s']
+    cart_vel = icrs_diff.represent_as(CartesianRepresentation, base=icrs.data)
+    vel = ICRS(cart_vel)
+    gal_icrs = vel.transform_to(Galactic).cartesian.xyz
+    assert allclose(gal_icrs.to(u.km/u.s, u.dimensionless_angles()),
+                    -lsr.v_bary.d_xyz)

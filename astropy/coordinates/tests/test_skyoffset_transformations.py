@@ -286,7 +286,25 @@ def test_skyoffset_origindata():
     with pytest.raises(ValueError):
         SkyOffsetFrame(origin=origin)
 
+
 def test_skyoffset_lonwrap():
     origin = ICRS(45*u.deg, 45*u.deg)
     sc = SkyCoord(190*u.deg, -45*u.deg, frame=SkyOffsetFrame(origin=origin))
     assert sc.lon < 180 * u.deg
+
+
+def test_skyoffset_velerr():
+    #TODO: remove this when the SkyOffsetFrame's support velocities
+    origin = ICRS(45*u.deg, 45*u.deg)
+    originwvel = ICRS(45*u.deg, 45*u.deg, radial_velocity=1*u.km/u.s)
+
+    SkyOffsetFrame(origin=origin)
+    with pytest.raises(NotImplementedError):
+        SkyOffsetFrame(origin=originwvel)
+    SkyOffsetFrame(origin.data, origin=origin)
+    with pytest.raises(NotImplementedError):
+        SkyOffsetFrame(originwvel.data, origin=origin)
+    with pytest.raises(NotImplementedError):
+        SkyOffsetFrame(origin.data, origin=originwvel)
+    with pytest.raises(NotImplementedError):
+        SkyOffsetFrame(originwvel.data, origin=originwvel)

@@ -3,11 +3,10 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
 
-class ICRS(BaseCoordinateFrame):
+class ICRS(BaseRADecFrame):
     """
     A coordinate or frame in the ICRS system.
 
@@ -20,29 +19,7 @@ class ICRS(BaseCoordinateFrame):
     references provided in the  :ref:`astropy-coordinates-seealso` section of the
     documentation.
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
+    {params}
     """
 
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
-
-    default_representation = SphericalRepresentation
+ICRS.__doc__ = ICRS.__doc__.format(params=_base_radec_docstring)

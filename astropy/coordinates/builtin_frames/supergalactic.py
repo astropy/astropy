@@ -4,7 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..representation import SphericalRepresentation
+from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from .galactic import Galactic
 
@@ -19,6 +19,7 @@ class Supergalactic(BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
+
     sgl : `Angle`, optional, must be keyword
         The supergalactic longitude for this object (``sgb`` must also be given and
         ``representation`` must be None).
@@ -27,22 +28,56 @@ class Supergalactic(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
+
+    pm_sgl_cossgb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Right Ascension for this object (``pm_sgb`` must
+        also be given).
+    pm_sgb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_sgl_cossgb`` must
+        also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'sgl'),
-                      RepresentationMapping('lat', 'sgb')],
-        'cartesian': [RepresentationMapping('x', 'sgx'),
-                      RepresentationMapping('y', 'sgy'),
-                      RepresentationMapping('z', 'sgz')]
+        r.SphericalRepresentation: [
+            RepresentationMapping('lon', 'sgl'),
+            RepresentationMapping('lat', 'sgb')
+        ],
+        r.CartesianRepresentation: [
+            RepresentationMapping('x', 'sgx'),
+            RepresentationMapping('y', 'sgy'),
+            RepresentationMapping('z', 'sgz')
+        ],
+        r.SphericalCosLatDifferential: [
+            RepresentationMapping('d_lon_coslat', 'pm_sgl_cossgb', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
+        ],
+        r.SphericalDifferential: [
+            RepresentationMapping('d_lon', 'pm_sgl', u.mas/u.yr),
+            RepresentationMapping('d_lat', 'pm_sgb', u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
+        ],
+        r.CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)
+        ],
     }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[r.SphericalRepresentation]
+    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[r.SphericalCosLatDifferential]
+    frame_specific_representation_info[r.UnitSphericalDifferential] = \
+        frame_specific_representation_info[r.SphericalDifferential]
 
-    default_representation = SphericalRepresentation
+    default_representation = r.SphericalRepresentation
+    default_differential = r.SphericalCosLatDifferential
 
     # North supergalactic pole in Galactic coordinates.
     # Needed for transformations to/from Galactic coordinates.

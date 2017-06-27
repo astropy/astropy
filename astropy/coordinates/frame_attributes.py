@@ -14,7 +14,8 @@ from ..utils import OrderedDescriptor, ShapedLikeNDArray
 
 __all__ = ['FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
-           'CartesianRepresentationFrameAttribute']
+           'CartesianRepresentationFrameAttribute',
+           'DifferentialFrameAttribute']
 
 class FrameAttribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
@@ -420,6 +421,65 @@ class CoordinateAttribute(FrameAttribute):
                 transformedobj = transformedobj.frame
             return transformedobj, True
 
+class DifferentialFrameAttribute(FrameAttribute):
+    """A frame attribute which is a differential instance.
+
+    The optional ``allowed_classes`` argument allows specifying a restricted
+    set of valid differential classes to check the input against. Otherwise,
+    any `~astropy.coordinates.BaseDifferential` subclass instance is valid.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    allowed_classes : tuple, optional
+        A list of allowed differential classes for this attribute to have.
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+    def __init__(self, default=None, allowed_classes=None,
+                 secondary_attribute=''):
+
+        if allowed_classes is not None:
+            self.allowed_classes = tuple(allowed_classes)
+        else:
+            self.allowed_classes = BaseDifferential
+
+        super(DifferentialFrameAttribute, self).__init__(default,
+                                                         secondary_attribute)
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a differential object and is one of the
+        allowed class types.
+
+        Parameters
+        ----------
+        value : object
+            Input value.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+
+        if not isinstance(value, self.allowed_classes):
+            raise TypeError('Tried to set a DifferentialFrameAttribute with '
+                            'an unsupported Differential type {0}. Allowed '
+                            'classes are: {1}'
+                            .format(value.__class__,
+                                    self.allowed_classes))
+
+        return value, True
+
 # do this here to prevent a series of complicated circular imports
 from .earth import EarthLocation
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, BaseDifferential

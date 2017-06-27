@@ -4,14 +4,13 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ... import units as u
-from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..frame_attributes import (TimeFrameAttribute,
                                 CartesianRepresentationFrameAttribute)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
 
-class GCRS(BaseCoordinateFrame):
+class GCRS(BaseRADecFrame):
     """
     A coordinate or frame in the Geocentric Celestial Reference System (GCRS).
 
@@ -26,51 +25,28 @@ class GCRS(BaseCoordinateFrame):
     This frame also includes frames that are defined *relative* to the Earth,
     but that are offset (in both position and velocity) from the Earth.
 
+    The frame attributes are listed under **Other Parameters**.
 
-    This frame has these frame attributes:
+    {params}
 
-    * ``obstime``
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
-    * ``obsgeoloc``
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The position of the observer relative to the center-of-mass of the
         Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
         Defaults to [0, 0, 0], meaning "true" GCRS.
-    * ``obsgeovel``
+    obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The velocity of the observer relative to the center-of-mass of the
         Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity
         units.  Defaults to [0, 0, 0], meaning "true" GCRS.
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
-
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
-
-    default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
     obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
@@ -78,11 +54,13 @@ class GCRS(BaseCoordinateFrame):
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
                                                       unit=u.m/u.s)
 
+GCRS.__doc__ = GCRS.__doc__.format(params=_base_radec_docstring)
+
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
 # the current implementation it goes through ICRS (like CIRS)
 
 
-class PrecessedGeocentric(BaseCoordinateFrame):
+class PrecessedGeocentric(BaseRADecFrame):
     """
     A coordinate frame defined in a similar manner as GCRS, but precessed to a
     requested (mean) equinox.  Note that this does *not* end up the same as
@@ -90,52 +68,33 @@ class PrecessedGeocentric(BaseCoordinateFrame):
     to that of ICRS, which is not quite the same as the dynamical J2000
     orientation.
 
-    This frame has these frame attributes:
+    The frame attributes are listed under **Other Parameters**
 
-    * ``equinox``
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
         The (mean) equinox to precess the coordinates to.
-    * ``obstime``
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
-    * ``obsgeoloc``
+    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The position of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS. Either [0, 0, 0], `~astropy.coordinates.CartesianRepresentation`,
         or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
         Defaults to [0, 0, 0], meaning "true" Geocentric.
-    * ``obsgeovel``
+    obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The velocity of the observer relative to the center-of-mass of the Earth,
         oriented the same as BCRS/ICRS. Either 0, `~astropy.coordinates.CartesianRepresentation`,
         or proper input for one, i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity units.
         Defaults to [0, 0, 0], meaning "true" Geocentric.
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
-
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
-
-    default_representation = SphericalRepresentation
 
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
     obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m)
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m/u.s)
+
+PrecessedGeocentric.__doc__ = PrecessedGeocentric.__doc__.format(
+    params=_base_radec_docstring)
