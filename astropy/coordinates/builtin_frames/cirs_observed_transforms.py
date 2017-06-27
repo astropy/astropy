@@ -11,7 +11,7 @@ import numpy as np
 
 from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform
+from ..transformations import FunctionTransformWithFiniteDifference
 from ..representation import (SphericalRepresentation,
                               UnitSphericalRepresentation)
 from ... import _erfa as erfa
@@ -21,7 +21,7 @@ from .altaz import AltAz
 from .utils import get_polar_motion, get_dut1utc, get_jd12, PIOVER2
 
 
-@frame_transform_graph.transform(FunctionTransform, CIRS, AltAz)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
 def cirs_to_altaz(cirs_coo, altaz_frame):
     if np.any(cirs_coo.obstime != altaz_frame.obstime):
         # the only frame attribute for the current CIRS is the obstime, but this
@@ -83,7 +83,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     return altaz_frame.realize_frame(rep)
 
 
-@frame_transform_graph.transform(FunctionTransform, AltAz, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, CIRS)
 def altaz_to_cirs(altaz_coo, cirs_frame):
     usrepr = altaz_coo.represent_as(UnitSphericalRepresentation)
     az = usrepr.lon.to_value(u.radian)
@@ -126,7 +126,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     return cirs_at_aa_time.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransform, AltAz, AltAz)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)
 def altaz_to_altaz(from_coo, to_frame):
     # for now we just implement this through CIRS to make sure we get everything
     # covered

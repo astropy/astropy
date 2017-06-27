@@ -11,7 +11,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform
+from ..transformations import FunctionTransformWithFiniteDifference
 from ..matrix_utilities import matrix_transpose
 from ... import _erfa as erfa
 
@@ -46,7 +46,7 @@ def gcrs_precession_mat(equinox):
 
 # now the actual transforms
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, CIRS)
 def gcrs_to_cirs(gcrs_coo, cirs_frame):
     # first get us to a 0 pos/vel GCRS at the target obstime
     gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime))
@@ -57,7 +57,7 @@ def gcrs_to_cirs(gcrs_coo, cirs_frame):
     return cirs_frame.realize_frame(crepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, CIRS, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, GCRS)
 def cirs_to_gcrs(cirs_coo, gcrs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
@@ -68,7 +68,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     return gcrs.transform_to(gcrs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransform, CIRS, ITRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ITRS)
 def cirs_to_itrs(cirs_coo, itrs_frame):
     # first get us to CIRS at the target obstime
     cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime))
@@ -79,7 +79,7 @@ def cirs_to_itrs(cirs_coo, itrs_frame):
     return itrs_frame.realize_frame(crepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, ITRS, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, CIRS)
 def itrs_to_cirs(itrs_coo, cirs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = cirs_to_itrs_mat(itrs_coo.obstime)
@@ -90,7 +90,7 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
     return cirs.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransform, ITRS, ITRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, ITRS)
 def itrs_to_itrs(from_coo, to_frame):
     # this self-transform goes through CIRS right now, which implicitly also
     # goes back to ICRS
@@ -102,7 +102,7 @@ def itrs_to_itrs(from_coo, to_frame):
 #two steps anyway
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, PrecessedGeocentric)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, PrecessedGeocentric)
 def gcrs_to_precessedgeo(from_coo, to_frame):
     # first get us to GCRS with the right attributes (might be a no-op)
     gcrs_coo = from_coo.transform_to(GCRS(obstime=to_frame.obstime,
@@ -115,7 +115,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
     return to_frame.realize_frame(crepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, PrecessedGeocentric, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, PrecessedGeocentric, GCRS)
 def precessedgeo_to_gcrs(from_coo, to_frame):
     # first un-precess
     pmat = gcrs_precession_mat(from_coo.equinox)
