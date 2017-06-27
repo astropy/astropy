@@ -64,12 +64,14 @@ def test_all_arg_options(kwargs):
     if 'pm_ra_cosdec' in kwargs: # should have both
         assert 'pm_l_cosb' in repr_gal
         assert 'pm_b' in repr_gal
+        assert 'mas / yr' in repr_gal
 
         if 'radial_velocity' not in kwargs:
             assert 'radial_velocity' not in repr_gal
 
     if 'radial_velocity' in kwargs:
         assert 'radial_velocity' in repr_gal
+        assert 'km / s' in repr_gal
 
         if 'pm_ra_cosdec' not in kwargs:
             assert 'pm_l_cosb' not in repr_gal

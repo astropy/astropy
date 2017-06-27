@@ -803,6 +803,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 data = data.__class__(copy=False, **datakwargs)
 
             if differential_cls:
+                # the original differential
+                data_diff = self.data.differentials['s']
+
                 # If the new differential is known to this frame and has a
                 # defined set of names and units, then use that.
                 new_attrs = self.representation_info.get(differential_cls)
@@ -811,8 +814,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                                       for comp in diff.components)
                     for comp, new_attr_unit in zip(diff.components,
                                                    new_attrs['units']):
-                        if (new_attr_unit and
-                                hasattr(self._data.differentials['s'], comp)):
+                        # Some special-casing to treat a situation where the
+                        # input data has a UnitSphericalDifferential or a
+                        # RadialDifferential. It is re-represented to the
+                        # frame's differential class (which might be, e.g., a
+                        # dimensional Differential), so we don't want to try to
+                        # convert the empty component units
+                        if (isinstance(data_diff,
+                                       (r.UnitSphericalDifferential,
+                                        r.UnitSphericalCosLatDifferential)) and
+                                comp not in data_diff.__class__.attr_classes):
+                            continue
+
+                        elif (isinstance(data_diff, r.RadialDifferential) and
+                              comp not in data_diff.__class__.attr_classes):
+                            continue
+
+                        if new_attr_unit and hasattr(diff, comp):
                             diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
 
                     diff = diff.__class__(copy=False, **diffkwargs)
