@@ -101,6 +101,8 @@ Having a setter for the data
     >>> ndd.data
     array([3, 2, 1])
 
+.. _NDDataRef:
+
 `~astropy.nddata.NDDataRef`
 ===========================
 
