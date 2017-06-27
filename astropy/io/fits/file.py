@@ -74,6 +74,7 @@ except ImportError:
 else:
     HAS_PATHLIB = True
 
+
 class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
@@ -120,7 +121,7 @@ class _File(object):
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            _is_url(fileobj)): # This is an URL.
+            _is_url(fileobj)):  # This is an URL.
             self.name = download_file(fileobj, cache=cache)
         else:
             self.name = fileobj_name(fileobj)

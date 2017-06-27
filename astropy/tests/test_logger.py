@@ -47,7 +47,9 @@ def setup_function(function):
     if log.exception_logging_enabled():
         log.disable_exception_logging()
 
+
 teardown_module = setup_function
+
 
 def test_warnings_logging_disable_no_enable():
     with pytest.raises(LoggingError) as e:

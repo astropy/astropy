@@ -29,6 +29,8 @@ from ....utils.decorators import deprecated_renamed_argument
 
 class _Delayed(object):
     pass
+
+
 DELAYED = _Delayed()
 
 
@@ -86,6 +88,7 @@ def _hdu_class_from_header(cls, header):
                 break
 
     return klass
+
 
 class _BaseHDUMeta(type):
     def __init__(cls, name, bases, members):
@@ -324,7 +327,6 @@ class _BaseHDU(object):
         if not isinstance(fileobj, _File):
             fileobj = _File(fileobj)
 
-
         hdu = cls._readfrom_internal(fileobj, checksum=checksum,
                                      ignore_missing_end=ignore_missing_end,
                                      **kwargs)
@@ -461,7 +463,6 @@ class _BaseHDU(object):
             hdu._verify_checksum_datasum(checksum)
 
         return hdu
-
 
     def _get_raw_data(self, shape, code, offset):
         """
@@ -607,7 +608,6 @@ class _BaseHDU(object):
             # existing file or buffer
             size += self._writedata_direct_copy(fileobj)
 
-
         # flush, to make sure the content is written
         if not fileobj.simulateonly:
             fileobj.flush()
@@ -731,6 +731,7 @@ class _BaseHDU(object):
         if (closed and self._data_loaded and
                 _get_array_mmap(self.data) is not None):
             del self.data
+
 
 # For backwards-compatibility, though nobody should have
 # been using this directly:
@@ -1613,6 +1614,8 @@ class ExtensionHDU(_ValidHDU):
                        1, option, errs)
 
         return errs
+
+
 # For backwards compatibility, though this needs to be deprecated
 # TODO: Mark this as deprecated
 _ExtensionHDU = ExtensionHDU
@@ -1662,6 +1665,7 @@ class NonstandardExtHDU(ExtensionHDU):
         """
 
         return self._get_raw_data(self.size, 'ubyte', self._data_offset)
+
 
 # TODO: Mark this as deprecated
 _NonstandardExtHDU = NonstandardExtHDU

@@ -34,6 +34,8 @@ class Undefined(object):
     def __init__(self):
         # This __init__ is required to be here for Sphinx documentation
         pass
+
+
 UNDEFINED = Undefined()
 
 

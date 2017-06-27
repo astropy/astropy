@@ -13,7 +13,7 @@ from ...utils.misc import NumpyRNGContext
 
 from ... import wcs
 
-#hdr_map_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
+# hdr_map_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 
 # use the base name of the file, because everything we yield
 # will show up in the test name in the pandokia report
@@ -27,6 +27,7 @@ hdr_map_file_list = [os.path.basename(fname) for fname in get_pkg_data_filenames
 # so we will have skipped some tests.  Without this check, both cases
 # happen silently!
 
+
 def test_read_map_files():
     # how many map files we expect to see
     n_map_files = 28
@@ -34,6 +35,7 @@ def test_read_map_files():
     assert len(hdr_map_file_list) == n_map_files, (
            "test_read_map_files has wrong number data files: found {}, expected "
            " {}".format(len(hdr_map_file_list), n_map_files))
+
 
 @pytest.mark.parametrize("filename", hdr_map_file_list)
 def test_map(filename):
@@ -45,7 +47,9 @@ def test_map(filename):
             world = wcsobj.wcs_pix2world(x, 1)
             pix = wcsobj.wcs_world2pix(x, 1)
 
+
 hdr_spec_file_list = [os.path.basename(fname) for fname in get_pkg_data_filenames("spectra", pattern="*.hdr")]
+
 
 def test_read_spec_files():
     # how many spec files expected
@@ -56,6 +60,7 @@ def test_read_spec_files():
             " {}".format(len(hdr_spec_file_list), n_spec_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
+
 
 @pytest.mark.parametrize("filename", hdr_spec_file_list)
 def test_spectrum(filename):

@@ -20,6 +20,8 @@ from ... import config as _config
 # Set module-global boolean variables
 # TODO: Make it possible to set these variables via environment variables
 # again, once support for that is added to Astropy
+
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.io.fits`.
@@ -58,6 +60,7 @@ class Conf(_config.ConfigNamespace):
         'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
         'and BZERO = 2**BITPIX, represent the data as unsigned integers '
         'per this convention.')
+
 
 conf = Conf()
 

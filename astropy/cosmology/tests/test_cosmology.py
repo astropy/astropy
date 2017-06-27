@@ -55,6 +55,7 @@ def test_init():
     with pytest.raises(TypeError):
         core.default_cosmology.validate(4)
 
+
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
                                Ob0=0.05)
@@ -426,10 +427,12 @@ class test_cos_sub(core.FLRW):
         return self._w0 * np.ones_like(z)
 
 # Similar, but with neutrinos
+
+
 class test_cos_subnu(core.FLRW):
     def __init__(self):
         core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=3.0,
-                           m_nu = 0.1 * u.eV, name="test_cos_nu")
+                           m_nu=0.1 * u.eV, name="test_cos_nu")
         self._w0 = -0.8
 
     def w(self, z):
@@ -460,7 +463,6 @@ def test_de_subclass():
                     [1.12934694, 1.23114444], rtol=1e-4)
 
     # Add neutrinos for efunc, inv_efunc
-
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1046,7 +1048,7 @@ def test_age():
 
     # And massive neutrinos
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0,
-                              m_nu = 0.1 * u.eV)
+                              m_nu=0.1 * u.eV)
     assert allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
     assert allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
 
@@ -1092,7 +1094,7 @@ def test_critical_density():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_distance_z1z2():
     tcos = core.LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
-    with pytest.raises(ValueError): # test diff size z1, z2 fail
+    with pytest.raises(ValueError):  # test diff size z1, z2 fail
         tcos._comoving_distance_z1z2((1, 2), (3, 4, 5))
     # Comoving distances are invertible
     assert allclose(tcos._comoving_distance_z1z2(1, 2),
@@ -1113,7 +1115,7 @@ def test_comoving_distance_z1z2():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_transverse_distance_z1z2():
     tcos = core.FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
-    with pytest.raises(ValueError): # test diff size z1, z2 fail
+    with pytest.raises(ValueError):  # test diff size z1, z2 fail
         tcos._comoving_transverse_distance_z1z2((1, 2), (3, 4, 5))
     # Tests that should actually work, target values computed with
     # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
@@ -1224,7 +1226,7 @@ def test_massivenu_basic():
                     rtol=1e-6)
 
     # Alternative no neutrinos case
-    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0 * u.K,
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0 * u.K,
                               m_nu=u.Quantity(0.4, u.eV))
     assert not tcos.has_massive_nu
     assert tcos.m_nu is None
@@ -1273,7 +1275,7 @@ def test_distances():
     cos = core.LambdaCDM(75.0, 0.3, 0.4, Tcmb0=3.0, Neff=3,
                          m_nu=u.Quantity(10.0, u.eV))
     assert allclose(cos.comoving_distance(z),
-                    [2471.80626824, 3567.1902565 , 4207.15995626,
+                    [2471.80626824, 3567.1902565, 4207.15995626,
                      4638.20476018] * u.Mpc, rtol=1e-4)
     # Flat
     cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=0.0)
@@ -1293,7 +1295,7 @@ def test_distances():
     # Add w
     cos = core.FlatwCDM(75.0, 0.25, w0=-1.05, Tcmb0=0.0)
     assert allclose(cos.comoving_distance(z),
-                    [3216.8296894 , 5117.2097601 , 6317.05995437,
+                    [3216.8296894, 5117.2097601, 6317.05995437,
                      7149.68648536] * u.Mpc, rtol=1e-4)
     cos = core.FlatwCDM(75.0, 0.25, w0=-0.95, Tcmb0=3.0, Neff=3,
                     m_nu=u.Quantity(0.0, u.eV))
@@ -1308,7 +1310,7 @@ def test_distances():
     # Non-flat w
     cos = core.wCDM(75.0, 0.25, 0.4, w0=-0.9, Tcmb0=0.0)
     assert allclose(cos.comoving_distance(z),
-                    [2849.6163356 , 4428.71661565, 5450.97862778,
+                    [2849.6163356, 4428.71661565, 5450.97862778,
                      6179.37072324] * u.Mpc, rtol=1e-4)
     cos = core.wCDM(75.0, 0.25, 0.4, w0=-1.1, Tcmb0=3.0, Neff=3,
                     m_nu=u.Quantity(0.0, u.eV))
@@ -1374,7 +1376,7 @@ def test_distances():
     cos = core.w0wzCDM(75.0, 0.25, 0.5, w0=-0.9, wz=0.1,
                        Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.0, u.eV))
     assert allclose(cos.comoving_distance(z),
-                    [2997.8115653 , 4686.45599916, 5764.54388557,
+                    [2997.8115653, 4686.45599916, 5764.54388557,
                      6524.17408738] * u.Mpc, rtol=1e-4)
     cos = core.w0wzCDM(75.0, 0.25, 0.5, w0=-0.9, wz=0.1, Tcmb0=3.0,
                        Neff=4, m_nu=u.Quantity(5.0, u.eV))
@@ -1398,7 +1400,7 @@ def test_distances():
     cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0,
                              m_nu=u.Quantity([4.0, 5, 9], u.eV))
     assert allclose(cos.comoving_distance(z),
-                    [2563.5093049 , 3776.63362071, 4506.83448243,
+                    [2563.5093049, 3776.63362071, 4506.83448243,
                      5006.50158829] * u.Mpc, rtol=1e-4)
     cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=4.2,
                              m_nu=u.Quantity([1.0, 4.0, 5, 9], u.eV))

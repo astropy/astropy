@@ -266,14 +266,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             # construct a list of cards of minimal header
             cards = [
-                ('XTENSION',      '', ''),
-                ('BITPIX',         8, 'array data type'),
-                ('NAXIS',          2, 'number of array dimensions'),
-                ('NAXIS1',         0, 'length of dimension 1'),
-                ('NAXIS2',         0, 'length of dimension 2'),
-                ('PCOUNT',         0, 'number of group parameters'),
-                ('GCOUNT',         1, 'number of groups'),
-                ('TFIELDS',        0, 'number of table fields')]
+                ('XTENSION', '', ''),
+                ('BITPIX', 8, 'array data type'),
+                ('NAXIS', 2, 'number of array dimensions'),
+                ('NAXIS1', 0, 'length of dimension 1'),
+                ('NAXIS2', 0, 'length of dimension 2'),
+                ('PCOUNT', 0, 'number of group parameters'),
+                ('GCOUNT', 1, 'number of groups'),
+                ('TFIELDS', 0, 'number of table fields')]
 
             if header is not None:
                 # Make a "copy" (not just a view) of the input header, since it

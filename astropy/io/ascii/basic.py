@@ -16,6 +16,7 @@ import re
 from . import core
 from ...extern.six.moves import zip
 
+
 class BasicHeader(core.BaseHeader):
     """
     Basic table Header Reader
@@ -83,6 +84,7 @@ class NoHeaderHeader(BasicHeader):
     """
     start_line = None
 
+
 class NoHeaderData(BasicData):
     """
     Reader for table data without a header
@@ -90,6 +92,7 @@ class NoHeaderData(BasicData):
     Data starts at first uncommented line since there is no header line.
     """
     start_line = 0
+
 
 class NoHeader(Basic):
     """
@@ -112,6 +115,7 @@ class CommentedHeaderHeader(BasicHeader):
     Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
+
     def process_lines(self, lines):
         """
         Return only lines that start with the comment regexp.  For these
@@ -145,7 +149,6 @@ class CommentedHeader(Basic):
 
     header_class = CommentedHeaderHeader
     data_class = NoHeaderData
-
 
     def read(self, table):
         """
@@ -183,6 +186,7 @@ class TabDataSplitter(TabHeaderSplitter):
     """
     process_val = None
     skipinitialspace = False
+
 
 class TabHeader(BasicHeader):
     """
@@ -308,10 +312,8 @@ class RdbHeader(TabHeader):
     col_type_map = {'n': core.NumType,
                     's': core.StrType}
 
-
     def get_type_map_key(self, col):
         return col.raw_type[-1]
-
 
     def get_cols(self, lines):
         """
@@ -349,7 +351,6 @@ class RdbHeader(TabHeader):
         for col, raw_type in zip(self.cols, raw_types):
             col.raw_type = raw_type
             col.type = self.get_col_type(col)
-
 
     def write(self, lines):
         lines.append(self.splitter.join(self.colnames))

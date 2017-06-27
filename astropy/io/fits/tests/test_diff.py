@@ -108,7 +108,6 @@ class TestDiff(FitsTestCase):
         assert ("Inconsistent duplicates of keyword 'A'     :\n"
                 "  Occurs 3 time(s) in a, 1 times in (b)") in report
 
-
     def test_floating_point_rtol(self):
         ha = Header([('A', 1), ('B', 2.00001), ('C', 3.000001)])
         hb = ha.copy()

@@ -10,16 +10,18 @@ from .py3_test_quantity_annotations import *
 # list of pairs (target unit/physical type, input unit)
 x_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
             (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s),
-            ([u.arcsec, u.km], u.deg), ([u.arcsec, u.km], u.km), # multiple allowed
+            ([u.arcsec, u.km], u.deg), ([u.arcsec, u.km], u.km),  # multiple allowed
             (['angle', 'length'], u.deg), (['angle', 'length'], u.km)]
 
 y_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
             (u.kpc/u.Myr, u.km/u.s), ('speed', u.km/u.s)]
 
+
 @pytest.fixture(scope="module",
                 params=list(range(len(x_inputs))))
 def x_input(request):
     return x_inputs[request.param]
+
 
 @pytest.fixture(scope="module",
                 params=list(range(len(y_inputs))))
@@ -27,6 +29,7 @@ def y_input(request):
     return y_inputs[request.param]
 
 # ---- Tests that use the fixtures defined above ----
+
 
 def test_args(x_input, y_input):
     x_target, x_unit = x_input
@@ -44,6 +47,7 @@ def test_args(x_input, y_input):
     assert x.unit == x_unit
     assert y.unit == y_unit
 
+
 def test_args_nonquantity(x_input):
     x_target, x_unit = x_input
 
@@ -58,6 +62,7 @@ def test_args_nonquantity(x_input):
 
     assert x.unit == x_unit
 
+
 def test_wrong_unit(x_input, y_input):
     x_target, x_unit = x_input
     y_target, y_unit = y_input
@@ -67,10 +72,11 @@ def test_wrong_unit(x_input, y_input):
         return x, y
 
     with pytest.raises(u.UnitsError) as e:
-        x, y = myfunc_args(1*x_unit, 100*u.Joule) # has to be an unspecified unit
+        x, y = myfunc_args(1*x_unit, 100*u.Joule)  # has to be an unspecified unit
 
     str_to = str(y_target)
     assert str(e.value) == "Argument 'y' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
+
 
 def test_not_quantity(x_input, y_input):
     x_target, x_unit = x_input
@@ -83,6 +89,7 @@ def test_not_quantity(x_input, y_input):
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(1*x_unit, 100)
     assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+
 
 def test_kwargs(x_input, y_input):
     x_target, x_unit = x_input
@@ -99,6 +106,7 @@ def test_kwargs(x_input, y_input):
     assert isinstance(y, u.Quantity)
 
     assert y.unit == y_unit
+
 
 def test_unused_kwargs(x_input, y_input):
     x_target, x_unit = x_input
@@ -119,6 +127,7 @@ def test_unused_kwargs(x_input, y_input):
     assert y.unit == y_unit
     assert my_arg2 == 10
 
+
 def test_kwarg_wrong_unit(x_input, y_input):
     x_target, x_unit = x_input
     y_target, y_unit = y_input
@@ -133,6 +142,7 @@ def test_kwarg_wrong_unit(x_input, y_input):
     str_to = str(y_target)
     assert str(e.value) == "Argument 'y' to function 'myfunc_args' must be in units convertible to '{0}'.".format(str_to)
 
+
 def test_kwarg_not_quantity(x_input, y_input):
     x_target, x_unit = x_input
     y_target, y_unit = y_input
@@ -144,6 +154,7 @@ def test_kwarg_not_quantity(x_input, y_input):
     with pytest.raises(TypeError) as e:
         x, y = myfunc_args(1*x_unit, y=100)
     assert str(e.value) == "Argument 'y' to function 'myfunc_args' has no 'unit' attribute. You may want to pass in an astropy Quantity instead."
+
 
 def test_kwarg_default(x_input, y_input):
     x_target, x_unit = x_input
@@ -161,6 +172,7 @@ def test_kwarg_default(x_input, y_input):
     assert x.unit == x_unit
     assert y.unit == y_unit
 
+
 def test_kwargs_input(x_input, y_input):
     x_target, x_unit = x_input
     y_target, y_unit = y_input
@@ -169,7 +181,7 @@ def test_kwargs_input(x_input, y_input):
     def myfunc_args(x=1*x_unit, y=1*y_unit):
         return x, y
 
-    kwargs = {'x':10*x_unit, 'y':10*y_unit}
+    kwargs = {'x': 10*x_unit, 'y': 10*y_unit}
     x, y = myfunc_args(**kwargs)
 
     assert isinstance(x, u.Quantity)
@@ -177,6 +189,7 @@ def test_kwargs_input(x_input, y_input):
 
     assert x.unit == x_unit
     assert y.unit == y_unit
+
 
 def test_kwargs_extra(x_input):
     x_target, x_unit = x_input
@@ -192,6 +205,7 @@ def test_kwargs_extra(x_input):
     assert x.unit == x_unit
 
 # ---- Tests that don't used the fixtures ----
+
 
 @pytest.mark.parametrize("x_unit,y_unit", [
                          (u.arcsec, u.eV),
@@ -210,6 +224,7 @@ def test_arg_equivalencies(x_unit, y_unit):
     assert x.unit == u.arcsec
     assert y.unit == u.gram
 
+
 @pytest.mark.parametrize("x_unit,energy_unit", [
                          (u.arcsec, u.eV),
                          ('angle', 'energy')])
@@ -226,9 +241,11 @@ def test_kwarg_equivalencies(x_unit, energy_unit):
     assert x.unit == u.arcsec
     assert energy.unit == u.gram
 
+
 def test_no_equivalent():
     class test_unit(object):
         pass
+
     class test_quantity(object):
         unit = test_unit()
 
@@ -241,6 +258,7 @@ def test_no_equivalent():
 
         assert str(e.value) == "Argument 'x' to function 'myfunc_args' has a 'unit' attribute without an 'is_equivalent' method. You may want to pass in an astropy Quantity instead."
 
+
 def test_kwarg_invalid_physical_type():
     @u.quantity_input(x='angle', y='africanswallow')
     def myfunc_args(x, y=10*u.deg):
@@ -249,6 +267,7 @@ def test_kwarg_invalid_physical_type():
     with pytest.raises(ValueError) as e:
         x, y = myfunc_args(1*u.arcsec, y=100*u.deg)
     assert str(e.value) == "Invalid unit or physical type 'africanswallow'."
+
 
 def test_default_value_check():
     x_target = u.deg
@@ -264,6 +283,7 @@ def test_default_value_check():
     x = myfunc_args(1*x_unit)
     assert isinstance(x, u.Quantity)
     assert x.unit == x_unit
+
 
 def test_args_None():
     x_target = u.deg
@@ -284,6 +304,7 @@ def test_args_None():
     assert isinstance(y, u.Quantity)
     assert y.unit == y_unit
     assert x is None
+
 
 def test_args_None_kwarg():
     x_target = u.deg

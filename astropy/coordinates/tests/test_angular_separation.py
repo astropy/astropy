@@ -71,7 +71,7 @@ def test_proj_separations():
     c2 = ICRS(ra=0*u.deg, dec=1*u.deg)
 
     sep = c2.separation(c1)
-    #returns an Angle object
+    # returns an Angle object
     assert isinstance(sep, Angle)
 
     assert sep.degree == 1

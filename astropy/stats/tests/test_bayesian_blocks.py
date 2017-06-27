@@ -112,7 +112,7 @@ def test_errors():
 
     # sigma must be broadcastable with x
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='measures',  x=t, sigma=t[:-1])
+        bayesian_blocks(t, fitness='measures', x=t, sigma=t[:-1])
 
 
 def test_fitness_function_results():

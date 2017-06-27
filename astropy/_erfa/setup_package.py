@@ -20,6 +20,7 @@ SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
 
 GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'), os.path.join(ERFAPKGDIR, 'core.c')]
 
+
 def pre_build_py_hook(cmd_obj):
     preprocess_source()
 

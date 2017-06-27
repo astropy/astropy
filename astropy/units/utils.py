@@ -123,6 +123,7 @@ def generate_unit_summary(namespace):
 
     return docstring.getvalue()
 
+
 def generate_prefixonly_unit_summary(namespace):
     """
     Generates table entries for units in a namespace that are just prefixes

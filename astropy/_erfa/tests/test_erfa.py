@@ -15,13 +15,13 @@ def test_erfa_wrapper():
     ra = np.linspace(0.0, np.pi*2.0, 5)
     dec = np.linspace(-np.pi/2.0, np.pi/2.0, 4)
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0,0.0,0.0,0.0,0.0,0.0,jd,0.0,0.0,0.0,np.pi/4.0,0.0,0.0,0.0,1014.0,0.0,0.0,0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd, 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
     assert aob.shape == (121,)
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0,0.0,0.0,0.0,0.0,0.0,jd[0],0.0,0.0,0.0,np.pi/4.0,0.0,0.0,0.0,1014.0,0.0,0.0,0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, jd[0], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
     assert aob.shape == ()
 
-    aob, zob, hob, dob, rob, eo = erfa.atco13(ra[:,None,None],dec[None,:,None],0.0,0.0,0.0,0.0,jd[None,None,:],0.0,0.0,0.0,np.pi/4.0,0.0,0.0,0.0,1014.0,0.0,0.0,0.5)
+    aob, zob, hob, dob, rob, eo = erfa.atco13(ra[:, None, None], dec[None, :, None], 0.0, 0.0, 0.0, 0.0, jd[None, None, :], 0.0, 0.0, 0.0, np.pi/4.0, 0.0, 0.0, 0.0, 1014.0, 0.0, 0.0, 0.5)
     (aob.shape) == (5, 4, 121)
 
     iy, im, id, ihmsf = erfa.d2dtf("UTC", 3, jd, 0.0)
@@ -39,11 +39,11 @@ def test_angle_ops():
 
     sign, idmsf = erfa.a2af(6, -np.pi)
     assert sign == b'-'
-    assert (idmsf == [180,0,0,0]).all()
+    assert (idmsf == [180, 0, 0, 0]).all()
 
     sign, ihmsf = erfa.a2tf(6, np.pi)
     assert sign == b'+'
-    assert (ihmsf == [12,0,0,0]).all()
+    assert (ihmsf == [12, 0, 0, 0]).all()
 
     rad = erfa.af2a('-', 180, 0, 0.0)
     np.testing.assert_allclose(rad, -np.pi)
@@ -59,7 +59,7 @@ def test_angle_ops():
 
     sign, ihmsf = erfa.d2tf(1, -1.5)
     assert sign == b'-'
-    assert (ihmsf == [36,0,0,0]).all()
+    assert (ihmsf == [36, 0, 0, 0]).all()
 
     days = erfa.tf2d('+', 3, 0, 0.0)
     np.testing.assert_allclose(days, 0.125)
@@ -67,16 +67,16 @@ def test_angle_ops():
 
 def test_spherical_cartesian():
 
-    theta, phi = erfa.c2s([0.0,np.sqrt(2.0),np.sqrt(2.0)])
+    theta, phi = erfa.c2s([0.0, np.sqrt(2.0), np.sqrt(2.0)])
     np.testing.assert_allclose(theta, np.pi/2.0)
     np.testing.assert_allclose(phi, np.pi/4.0)
 
-    theta, phi, r = erfa.p2s([0.0,np.sqrt(2.0),np.sqrt(2.0)])
+    theta, phi, r = erfa.p2s([0.0, np.sqrt(2.0), np.sqrt(2.0)])
     np.testing.assert_allclose(theta, np.pi/2.0)
     np.testing.assert_allclose(phi, np.pi/4.0)
     np.testing.assert_allclose(r, 2.0)
 
-    theta, phi, r, td, pd, rd = erfa.pv2s([[0.0,np.sqrt(2.0),np.sqrt(2.0)],[1.0,0.0,0.0]])
+    theta, phi, r, td, pd, rd = erfa.pv2s([[0.0, np.sqrt(2.0), np.sqrt(2.0)], [1.0, 0.0, 0.0]])
     np.testing.assert_allclose(theta, np.pi/2.0)
     np.testing.assert_allclose(phi, np.pi/4.0)
     np.testing.assert_allclose(r, 2.0)
@@ -91,7 +91,7 @@ def test_spherical_cartesian():
     np.testing.assert_allclose(c, [0.0, np.sqrt(2.0)/2.0, np.sqrt(2.0)/2.0], atol=1e-14)
 
     pv = erfa.s2pv(np.pi/2.0, np.pi/4.0, 2.0, np.sqrt(2.0)/2.0, 0.0, 0.0)
-    np.testing.assert_allclose(pv, [[0.0,np.sqrt(2.0),np.sqrt(2.0)],[-1.0,0.0,0.0]], atol=1e-14)
+    np.testing.assert_allclose(pv, [[0.0, np.sqrt(2.0), np.sqrt(2.0)], [-1.0, 0.0, 0.0]], atol=1e-14)
 
 
 def test_errwarn_reporting():
@@ -134,11 +134,11 @@ def test_vector_inouts():
     Tests that ERFA functions working with vectors are correctly consumed and spit out
     """
 
-    #values are from test_erfa.c t_ab function
+    # values are from test_erfa.c t_ab function
     pnat = [-0.76321968546737951,
             -0.60869453983060384,
             -0.21676408580639883]
-    v = [ 2.1044018893653786e-5,
+    v = [2.1044018893653786e-5,
          -8.9108923304429319e-5,
          -3.8633714797716569e-5]
     s = 0.99980921395708788
@@ -189,7 +189,7 @@ def test_matrix_in():
                                              -.1809906511146821008])
     np.testing.assert_allclose(astrom['bpn'], np.eye(3))
 
-    #first make sure it *fails* if we mess with the input orders
+    # first make sure it *fails* if we mess with the input orders
     pvmatbad = np.roll(pvmat.ravel(), 1).reshape((2, 3))
     astrombad = erfa.apcs13(jd1, jd2, pvmatbad)
     assert not np.allclose(astrombad['em'], 1.010428384373318379)
@@ -199,13 +199,13 @@ def test_matrix_in():
     assert astrom2.shape == (3,)
     np.testing.assert_allclose(astrom2['em'], 1.010428384373318379)
 
-    #try striding of the input array to make non-contiguous
+    # try striding of the input array to make non-contiguous
     pvmatarr = np.array([pvmat]*9)[::3]
     astrom3 = erfa.apcs13(jd1, jd2, pvmatarr)
     assert astrom3.shape == (3,)
     np.testing.assert_allclose(astrom3['em'], 1.010428384373318379)
 
-    #try fortran-order
+    # try fortran-order
     pvmatarr = np.array([pvmat]*3, order='F')
     astrom4 = erfa.apcs13(jd1, jd2, pvmatarr)
     assert astrom4.shape == (3,)

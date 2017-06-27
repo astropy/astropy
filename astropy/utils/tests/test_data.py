@@ -32,7 +32,7 @@ else:
     HAS_BZ2 = True
 
 try:
-    if sys.version_info >= (3,3,0):
+    if sys.version_info >= (3, 3, 0):
         import lzma
     else:
         from backports import lzma  # pylint: disable=W0611
@@ -47,6 +47,7 @@ except ImportError:
     HAS_PATHLIB = False
 else:
     HAS_PATHLIB = True
+
 
 @remote_data
 def test_download_nocache():
@@ -105,6 +106,7 @@ def test_url_nocache():
     with get_readable_fileobj(TESTURL, cache=False, encoding='utf-8') as page:
         assert page.read().find('Astropy') > -1
 
+
 @remote_data
 def test_find_by_hash():
 
@@ -128,10 +130,9 @@ def test_find_by_hash():
 def test_find_by_hash():
     from ..data import get_pkg_data_filename
 
-    #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
+    # this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
     with pytest.raises(urllib.error.URLError):
         get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
-
 
 
 # Package data functions
@@ -171,13 +172,13 @@ def test_local_data_name():
     fnout = get_pkg_data_filename('data/local.dat')
     assert os.path.isfile(fnout) and fnout.endswith('local.dat')
 
-    #TODO: if in the future, the root data/ directory is added in, the below
-    #test should be uncommented and the README.rst should be replaced with
-    #whatever file is there
+    # TODO: if in the future, the root data/ directory is added in, the below
+    # test should be uncommented and the README.rst should be replaced with
+    # whatever file is there
 
-    #get something in the astropy root
-    #fnout2 = get_pkg_data_filename('../../data/README.rst')
-    #assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
+    # get something in the astropy root
+    # fnout2 = get_pkg_data_filename('../../data/README.rst')
+    # assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
 
 
 def test_data_name_third_party_package():
@@ -206,7 +207,7 @@ def test_data_name_third_party_package():
 def test_local_data_nonlocalfail():
     from ..data import get_pkg_data_filename
 
-    #this would go *outside* the atropy tree
+    # this would go *outside* the atropy tree
     get_pkg_data_filename('../../../data/README.rst')
 
 
@@ -307,7 +308,7 @@ def test_data_noastropy_fallback(monkeypatch):
     assert w3.category == data.CacheMissingWarning
     assert 'Not clearing data cache - cache inacessable' in str(w3.message)
 
-    #now try with no cache
+    # now try with no cache
     with catch_warnings(CacheMissingWarning) as w:
         fnnocache = data.download_file(TESTURL, cache=False)
     with open(fnnocache, 'rb') as page:
@@ -324,7 +325,7 @@ def test_data_noastropy_fallback(monkeypatch):
     'unicode.txt',
     'unicode.txt.gz',
     pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')('unicode.txt.bz2'),
-    pytest.mark.xfail(not HAS_XZ, reason='no lzma support')('unicode.txt.xz') ])
+    pytest.mark.xfail(not HAS_XZ, reason='no lzma support')('unicode.txt.xz')])
 def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
@@ -351,6 +352,7 @@ def test_compressed_stream():
         """
         A fake stream that has `read`, but no `seek`.
         """
+
         def __init__(self, data):
             self.data = data
 
@@ -391,6 +393,7 @@ def test_invalid_location_download_noconnect():
     with pytest.raises(IOError):
         download_file('http://astropy.org/nonexistentfile')
 
+
 @remote_data
 def test_is_url_in_cache():
     from ..data import download_file, is_url_in_cache
@@ -421,11 +424,13 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     # context manager finished running
     assert len(tempdir_listing) == 0
 
+
 @pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_objects_get_readable_fileobj():
     fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
     with get_readable_fileobj(fpath) as f:
         assert f.read().rstrip() == 'This file is used in the test_local_data_* testing functions\nCONTENT'
+
 
 @remote_data
 def test_get_cached_urls():

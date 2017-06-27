@@ -101,7 +101,7 @@ def _make_transform_graph_docs():
     # colors are in dictionary at the bottom of transformations.py
     from ..transformations import trans_to_color
     html_list_items = []
-    for cls,color in trans_to_color.items():
+    for cls, color in trans_to_color.items():
         block = u"""
             <li style='list-style: none;'>
                 <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
@@ -122,5 +122,6 @@ def _make_transform_graph_docs():
     docstr = docstr + dedent(graph_legend)
 
     return docstr
+
 
 _transform_graph_docs = _make_transform_graph_docs()

@@ -52,7 +52,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(obstime)
 
-    #first set up the astrometry context for CIRS<->AltAz
+    # first set up the astrometry context for CIRS<->AltAz
     jd1, jd2 = get_jd12(obstime, 'utc')
     astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(obstime),
@@ -92,7 +92,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     lon, lat, height = altaz_coo.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(altaz_coo.obstime)
 
-    #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
+    # first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
     jd1, jd2 = get_jd12(altaz_coo.obstime, 'utc')
     astrom = erfa.apio13(jd1, jd2,
                          get_dut1utc(altaz_coo.obstime),
@@ -122,7 +122,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
         newrepr = astrometric_rep + loccirs.cartesian
         cirs_at_aa_time = CIRS(newrepr, obstime=altaz_coo.obstime)
 
-    #this final transform may be a no-op if the obstimes are the same
+    # this final transform may be a no-op if the obstimes are the same
     return cirs_at_aa_time.transform_to(cirs_frame)
 
 

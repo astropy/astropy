@@ -159,7 +159,6 @@ def _initialize_module():
                   doc="Crab (X-ray) flux")
 
 
-
 _initialize_module()
 
 

@@ -5,10 +5,10 @@ This file contains routines to verify the correctness of UCD strings.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-#STDLIB
+# STDLIB
 import re
 
-#LOCAL
+# LOCAL
 from ...utils import data
 
 __all__ = ['parse_ucd', 'check_ucd']
@@ -21,6 +21,7 @@ class UCDWords:
     Works by reading in a data file exactly as provided by IVOA.  This
     file resides in data/ucd1p-words.txt.
     """
+
     def __init__(self):
         self._primary = set()
         self._secondary = set()
@@ -64,6 +65,7 @@ class UCDWords:
         Returns the standard capitalization form of the given name.
         """
         return self._capitalization[name.lower()]
+
 
 _ucd_singleton = None
 

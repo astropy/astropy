@@ -60,6 +60,7 @@ def test_all_arg_options(kwargs):
     for k in kwargs:
         getattr(icrs, k)
 
+
 @pytest.mark.parametrize('cls,lon,lat', [
     [bf.ICRS, 'ra', 'dec'], [bf.FK4, 'ra', 'dec'], [bf.FK4NoETerms, 'ra', 'dec'],
     [bf.FK5, 'ra', 'dec'], [bf.GCRS, 'ra', 'dec'], [bf.HCRS, 'ra', 'dec'],
@@ -76,6 +77,7 @@ def test_expected_arg_names(cls, lon, lat):
               'pm_{0}'.format(lat): 17.1*u.mas/u.yr,
               'radial_velocity': 105.7*u.km/u.s}
     frame = cls(**kwargs)
+
 
 # these data are extracted from the vizier copy of XHIP:
 # http://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=+V/137A/XHIP
@@ -97,9 +99,11 @@ _xhip_data = """
 
 # in principal we could parse the above as a table, but doing it "manually"
 # makes this test less tied to Table working correctly
+
+
 @pytest.mark.parametrize('hip,ra,dec,pmra,pmdec,glon,glat,dist,pmglon,pmglat,rv,U,V,W',
                          [[float(val) for val in row.split()] for row in _xhip_data.split('\n')])
-def test_xhip_galactic(hip,ra, dec, pmra, pmdec, glon, glat, dist, pmglon, pmglat, rv, U, V, W):
+def test_xhip_galactic(hip, ra, dec, pmra, pmdec, glon, glat, dist, pmglon, pmglat, rv, U, V, W):
     i = ICRS(ra*u.deg, dec*u.deg, dist*u.pc,
              pm_ra_cosdec=pmra*u.marcsec/u.yr, pm_dec=pmdec*u.marcsec/u.yr,
              radial_velocity=rv*u.km/u.s)

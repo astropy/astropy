@@ -578,7 +578,6 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-
     @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
                        reason='https://github.com/astropy/astropy/issues/5797')
     def test_update_resized_header(self):
@@ -773,7 +772,6 @@ class TestHDUListFunctions(FitsTestCase):
 
             # Finally, without mmaping B
             test(True, False)
-
 
     def test_replace_mmap_data_2(self):
         """Regression test for

@@ -211,10 +211,10 @@ class FixedWidthHeader(basic.BasicHeader):
             # exactly one of col_starts or col_ends is given...
             if self.col_starts is not None:
                 starts = list(self.col_starts)
-                ends = starts[1:] + [None] # Assume each col ends where the next starts
-            else: # self.col_ends is not None
+                ends = starts[1:] + [None]  # Assume each col ends where the next starts
+            else:  # self.col_ends is not None
                 ends = [x + 1 for x in self.col_ends]
-                starts = [0] + ends[:-1] # Assume each col starts where the last ended
+                starts = [0] + ends[:-1]  # Assume each col starts where the last ended
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
 
         return vals, starts, ends
@@ -295,7 +295,6 @@ class FixedWidth(basic.Basic):
     header_class = FixedWidthHeader
     data_class = FixedWidthData
 
-
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         super(FixedWidth, self).__init__()
         self.data.splitter.delimiter_pad = delimiter_pad
@@ -344,7 +343,6 @@ class FixedWidthNoHeader(FixedWidth):
     _description = 'Fixed width with no header'
     header_class = FixedWidthNoHeaderHeader
     data_class = FixedWidthNoHeaderData
-
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         super(FixedWidthNoHeader, self).__init__(col_starts, col_ends,

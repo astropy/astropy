@@ -66,5 +66,5 @@ def random_id(length=16):
 
 def random_params(directory):
     return {'verification_file': os.path.join(directory, random_id()),
-            'parameter1':'abcde',
-            'parameter2':1331}
+            'parameter1': 'abcde',
+            'parameter2': 1331}

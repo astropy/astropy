@@ -54,6 +54,7 @@ class GCRS(BaseRADecFrame):
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0],
                                                       unit=u.m/u.s)
 
+
 GCRS.__doc__ = GCRS.__doc__.format(params=_base_radec_docstring)
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
@@ -95,6 +96,7 @@ class PrecessedGeocentric(BaseRADecFrame):
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
     obsgeoloc = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m)
     obsgeovel = CartesianRepresentationFrameAttribute(default=[0, 0, 0], unit=u.m/u.s)
+
 
 PrecessedGeocentric.__doc__ = PrecessedGeocentric.__doc__.format(
     params=_base_radec_docstring)

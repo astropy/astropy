@@ -81,6 +81,8 @@ class Conf(_config.ConfigNamespace):
         "%(asctime)r, "
         "%(origin)r, %(levelname)r, %(message)r",
         "Format for log file entries.")
+
+
 conf = Conf()
 
 
@@ -316,14 +318,14 @@ class AstropyLogger(Logger):
             raise LoggingError("Exception logging has already been enabled")
 
         if ip is None:
-            #standard python interpreter
+            # standard python interpreter
             self._excepthook_orig = sys.excepthook
             sys.excepthook = self._excepthook
         else:
-            #IPython has its own way of dealing with excepthook
+            # IPython has its own way of dealing with excepthook
 
-            #We need to locally define the function here, because IPython
-            #actually makes this a member function of their own class
+            # We need to locally define the function here, because IPython
+            # actually makes this a member function of their own class
             def ipy_exc_handler(ipyshell, etype, evalue, tb, tb_offset=None):
                 # First use our excepthook
                 self._excepthook(etype, evalue, tb)
@@ -331,12 +333,12 @@ class AstropyLogger(Logger):
                 # Now also do IPython's traceback
                 ipyshell.showtraceback((etype, evalue, tb), tb_offset=tb_offset)
 
-            #now register the function with IPython
-            #note that we include _AstLogIPYExc so `disable_exception_logging`
-            #knows that it's disabling the right thing
+            # now register the function with IPython
+            # note that we include _AstLogIPYExc so `disable_exception_logging`
+            # knows that it's disabling the right thing
             ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
 
-            #and set self._excepthook_orig to a no-op
+            # and set self._excepthook_orig to a no-op
             self._excepthook_orig = lambda etype, evalue, tb: None
 
     def disable_exception_logging(self):
@@ -357,7 +359,7 @@ class AstropyLogger(Logger):
             raise LoggingError("Exception logging has not been enabled")
 
         if ip is None:
-            #standard python interpreter
+            # standard python interpreter
             if sys.excepthook != self._excepthook:
                 raise LoggingError("Cannot disable exception logging: "
                                    "sys.excepthook was not set by this logger, "
@@ -365,7 +367,7 @@ class AstropyLogger(Logger):
             sys.excepthook = self._excepthook_orig
             self._excepthook_orig = None
         else:
-            #IPython has its own way of dealing with exceptions
+            # IPython has its own way of dealing with exceptions
             ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
@@ -567,6 +569,7 @@ class StreamHandler(logging.StreamHandler):
 
 class FilterOrigin(object):
     '''A filter for the record origin'''
+
     def __init__(self, origin):
         self.origin = origin
 

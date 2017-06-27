@@ -193,15 +193,15 @@ class TestColumn():
         np.testing.assert_allclose(d.to(u.km).value, ([.001, .002, .003] * u.km).value)
         np.testing.assert_allclose(d.to('km').value, ([.001, .002, .003] * u.km).value)
 
-        np.testing.assert_allclose(d.to(u.MHz,u.equivalencies.spectral()).value,
-                                   [299.792458, 149.896229,  99.93081933])
+        np.testing.assert_allclose(d.to(u.MHz, u.equivalencies.spectral()).value,
+                                   [299.792458, 149.896229, 99.93081933])
 
         d_nounit = Column([1, 2, 3], name='a', dtype="f8", unit=None)
         with pytest.raises(u.UnitsError):
             d_nounit.to(u.km)
         assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
 
-        #make sure the correct copy/no copy behavior is happening
+        # make sure the correct copy/no copy behavior is happening
         q = [1, 3, 5]*u.km
 
         # to should always make a copy
@@ -216,12 +216,12 @@ class TestColumn():
         d.quantity[:] = q
         np.testing.assert_allclose(d, [1000, 3000, 5000])
 
-        #view should also work for integers
+        # view should also work for integers
         d2 = Column([1, 2, 3], name='a', dtype=int, unit="m")
         d2.quantity[:] = q
         np.testing.assert_allclose(d2, [1000, 3000, 5000])
 
-        #but it should fail for strings or other non-numeric tables
+        # but it should fail for strings or other non-numeric tables
         d3 = Column(['arg', 'name', 'stuff'], name='a', unit="m")
         with pytest.raises(TypeError):
             d3.quantity
@@ -284,7 +284,7 @@ class TestColumn():
         # Out of bounds index
         with pytest.raises((ValueError, IndexError)):
             c1 = c.insert(-4, 100)
-        with pytest.raises((ValueError,IndexError)):
+        with pytest.raises((ValueError, IndexError)):
             c1 = c.insert(4, 100)
 
     def test_insert_axis(self, Column):
@@ -437,6 +437,7 @@ class TestAttrEqual():
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
 
+
 from ...utils.tests.test_metadata import MetaBaseTest
 
 
@@ -459,14 +460,14 @@ def test_getitem_metadata_regression():
 
     # Make sure that meta-data gets propagated with __getitem__
 
-    c = table.Column(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.Column(data=[1, 2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     assert c[1:2].name == 'a'
     assert c[1:2].description == 'b'
     assert c[1:2].unit == 'm'
     assert c[1:2].format == '%i'
     assert c[1:2].meta['c'] == 8
 
-    c = table.MaskedColumn(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.MaskedColumn(data=[1, 2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     assert c[1:2].name == 'a'
     assert c[1:2].description == 'b'
     assert c[1:2].unit == 'm'
@@ -475,7 +476,7 @@ def test_getitem_metadata_regression():
 
     # As above, but with take() - check the method and the function
 
-    c = table.Column(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.Column(data=[1, 2, 3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
         assert subset.name == 'a'
         assert subset.description == 'b'
@@ -489,7 +490,7 @@ def test_getitem_metadata_regression():
         assert subset.shape == ()
         assert not isinstance(subset, table.Column)
 
-    c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    c = table.MaskedColumn(data=[1, 2, 3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
         assert subset.name == 'a'
         assert subset.description == 'b'

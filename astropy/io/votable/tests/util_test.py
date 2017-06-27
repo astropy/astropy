@@ -5,7 +5,7 @@ A set of tests for the util.py module
 
 # TEST_UNICODE_LITERALS
 
-#LOCAL
+# LOCAL
 from .. import util
 from ....tests.helper import raises
 

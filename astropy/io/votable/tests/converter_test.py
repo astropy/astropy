@@ -267,6 +267,7 @@ def test_vararray():
     buff = io.BytesIO()
     votable.to_xml(buff)
 
+
 def test_gemini_v1_2():
     '''
     see Pull Request 4782 or Issue 4781 for details

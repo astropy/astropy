@@ -11,6 +11,7 @@ def t():
     rand = np.random.RandomState(42)
     return 10 * rand.rand(10)
 
+
 @pytest.mark.parametrize('freq', [1.0, 2])
 @pytest.mark.parametrize('dy', [None, 2.0])
 @pytest.mark.parametrize('bias', [True, False])

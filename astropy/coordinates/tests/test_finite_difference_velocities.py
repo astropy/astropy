@@ -22,6 +22,7 @@ from .. import (TimeFrameAttribute,
 
 J2000 = Time('J2000')
 
+
 @pytest.mark.parametrize("dt, symmetric", [(1*u.second, True),
                                            (1*u.year, True),
                                            (1*u.second, False),
@@ -36,7 +37,7 @@ def test_faux_lsr(dt, symmetric):
     def icrs_to_lsr(icrs_coo, lsr_frame):
         dt = lsr_frame.obstime - J2000
         offset = lsr_frame.v_bary * dt.to(u.second)
-        return  lsr_frame.realize_frame(icrs_coo.data.without_differentials() + offset)
+        return lsr_frame.realize_frame(icrs_coo.data.without_differentials() + offset)
 
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                      LSR2, ICRS, finite_difference_dt=dt,
@@ -45,7 +46,6 @@ def test_faux_lsr(dt, symmetric):
         dt = lsr_frame.obstime - J2000
         offset = lsr_frame.v_bary * dt.to(u.second)
         return icrs_frame.realize_frame(lsr_coo.data - offset)
-
 
     ic = ICRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
               pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
@@ -59,7 +59,6 @@ def test_faux_lsr(dt, symmetric):
     change = (ldiff.d_xyz - idiff.d_xyz).to(u.km/u.s)
     totchange = np.sum(change**2)**0.5
     assert quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2)**0.5)
-
 
     ic2 = ICRS(ra=120.3*u.deg, dec=45.6*u.deg, distance=7.8*u.au,
               pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=10*u.marcsec/u.yr,
@@ -115,7 +114,7 @@ def test_gcrs_diffs():
     qtrsung = get_sun(time-.25*u.year)
 
     # now we use those essentially as directions where the velocities should
-    #be either maximal or minimal - with or perpendiculat to Earh's orbit
+    # be either maximal or minimal - with or perpendiculat to Earh's orbit
     msungr = CartesianRepresentation(-sung.cartesian.xyz).represent_as(SphericalRepresentation)
     suni = ICRS(ra=msungr.lon, dec=msungr.lat, distance=100*u.au,
                 pm_ra_cosdec=0*u.marcsec/u.yr, pm_dec=0*u.marcsec/u.yr,
@@ -171,6 +170,8 @@ def test_altaz_diffs():
 
 
 _xfail = pytest.mark.xfail
+
+
 @pytest.mark.parametrize('distance', [1000*u.au,
                                       10*u.pc,
                                       pytest.mark.xfail(10*u.kpc),
@@ -179,8 +180,8 @@ _xfail = pytest.mark.xfail
                                       # TODO: change to this when the above
                                       # way of xfailing is turned off in pytest
                                       # >=4.0
-                                      #pytest.param(10*u.kpc, marks=_xfail),
-                                      #pytest.param(100*u.kpc, marks=_xfail)])
+                                      # pytest.param(10*u.kpc, marks=_xfail),
+                                      # pytest.param(100*u.kpc, marks=_xfail)])
                                       # TODO:  make these not fail when the
                                       # finite-difference numerical stability
                                       # is improved

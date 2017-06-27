@@ -98,6 +98,8 @@ UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
                                            ([None], dimensionless_unscaled))
 
 # ufuncs that require dimensionless input and and give dimensionless output
+
+
 def helper_dimensionless_to_dimensionless(f, unit):
     if unit is None:
         return [None], dimensionless_unscaled
@@ -109,6 +111,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
         raise UnitTypeError("Can only apply '{0}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
+
 
 UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
@@ -131,6 +134,7 @@ def helper_modf(f, unit):
                             "dimensionless quantities"
                             .format(f.__name__))
 
+
 UFUNC_HELPERS[np.modf] = helper_modf
 
 
@@ -146,6 +150,7 @@ def helper_dimensionless_to_radian(f, unit):
         raise UnitTypeError("Can only apply '{0}' function to "
                             "dimensionless quantities"
                             .format(f.__name__))
+
 
 UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
 UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
@@ -165,6 +170,7 @@ def helper_degree_to_radian(f, unit):
                             "quantities with angle units"
                             .format(f.__name__))
 
+
 UFUNC_HELPERS[np.radians] = helper_degree_to_radian
 UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
 
@@ -179,6 +185,7 @@ def helper_radian_to_degree(f, unit):
                             "quantities with angle units"
                             .format(f.__name__))
 
+
 UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
 UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
 
@@ -192,6 +199,7 @@ def helper_radian_to_dimensionless(f, unit):
         raise UnitTypeError("Can only apply '{0}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
+
 
 UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
 UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
@@ -209,6 +217,7 @@ def helper_frexp(f, unit):
                             .format(f.__name__))
     return [None], (None, None)
 
+
 UFUNC_HELPERS[np.frexp] = helper_frexp
 
 
@@ -216,11 +225,13 @@ UFUNC_HELPERS[np.frexp] = helper_frexp
 def helper_multiplication(f, unit1, unit2):
     return [None, None], _d(unit1) * _d(unit2)
 
+
 UFUNC_HELPERS[np.multiply] = helper_multiplication
 
 
 def helper_division(f, unit1, unit2):
     return [None, None], _d(unit1) / _d(unit2)
+
 
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
@@ -238,6 +249,7 @@ def helper_power(f, unit1, unit2):
         raise UnitTypeError("Can only raise something to a "
                             "dimensionless quantity")
 
+
 UFUNC_HELPERS[np.power] = helper_power
 # float_power was added in numpy 1.12
 if isinstance(getattr(np, 'float_power', None), np.ufunc):
@@ -251,6 +263,7 @@ def helper_ldexp(f, unit1, unit2):
     else:
         return [None, None], _d(unit1)
 
+
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
 
 
@@ -260,6 +273,7 @@ def helper_copysign(f, unit1, unit2):
         return [None, None], None
     else:
         return [None, None], unit1
+
 
 UFUNC_HELPERS[np.copysign] = helper_copysign
 
@@ -288,6 +302,7 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
                             "dimensionless quantities"
                             .format(f.__name__))
     return ([converter1, converter2], dimensionless_unscaled)
+
 
 UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
 UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
@@ -328,6 +343,7 @@ def get_converters_and_unit(f, *units):
 def helper_twoarg_invariant(f, unit1, unit2):
     return get_converters_and_unit(f, unit1, unit2)
 
+
 UFUNC_HELPERS[np.add] = helper_twoarg_invariant
 UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
 UFUNC_HELPERS[np.hypot] = helper_twoarg_invariant
@@ -345,6 +361,7 @@ def helper_twoarg_comparison(f, unit1, unit2):
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, None
 
+
 UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
 UFUNC_HELPERS[np.greater_equal] = helper_twoarg_comparison
 UFUNC_HELPERS[np.less] = helper_twoarg_comparison
@@ -358,6 +375,7 @@ def helper_twoarg_invtrig(f, unit1, unit2):
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, radian
 
+
 UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
 # another private function in numpy; use getattr in case it disappears
 if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
@@ -367,6 +385,7 @@ if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
 def helper_twoarg_floor_divide(f, unit1, unit2):
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, dimensionless_unscaled
+
 
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
 

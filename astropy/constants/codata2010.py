@@ -28,7 +28,6 @@ class EMCODATA2010(CODATA2010, EMConstant):
     _registry = CODATA2010._registry
 
 
-
 h = CODATA2010('h', "Planck constant", 6.62606957e-34, 'J s',
                     0.00000029e-34, system='si')
 

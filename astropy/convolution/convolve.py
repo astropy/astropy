@@ -26,6 +26,7 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
@@ -566,7 +567,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                             .format(1. / MAX_NORMALIZATION))
         kernel_scale = kernel.sum()
         normalized_kernel = kernel / kernel_scale
-        kernel_scale = 1 # if we want to normalize it, leave it normed!
+        kernel_scale = 1  # if we want to normalize it, leave it normed!
     elif normalize_kernel:
         # try this.  If a function is not passed, the code will just crash... I
         # think type checking would be better but PEPs say otherwise...
@@ -620,8 +621,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # find ideal size (power of 2) for fft.
     # Can add shapes because they are tuples
-    if fft_pad: # default=True
-        if psf_pad: # default=False
+    if fft_pad:  # default=True
+        if psf_pad:  # default=False
             # add the dimensions and then take the max (bigger)
             fsize = 2 ** np.ceil(np.log2(
                 np.max(np.array(arrayshape) + np.array(kernshape))))
@@ -652,7 +653,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     #         (kernel*array)fft +
     #         optional(weight image + weight_fft + weight_ifft) +
     #         optional(returned_fft))
-    #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
+    # total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
     #                        * (5 + 3*((interpolate_nan or ) and kernel_is_normalized))
     #                        + (1 + (not return_fft)) *
     #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize

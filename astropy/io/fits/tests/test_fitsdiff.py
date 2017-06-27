@@ -12,6 +12,7 @@ from ....tests.helper import pytest
 from ....utils.exceptions import AstropyDeprecationWarning
 from ....version import version
 
+
 class TestFITSDiff_script(FitsTestCase):
     def setup_method(self, method):
         self.sys_argv_orig = sys.argv
@@ -86,7 +87,7 @@ class TestFITSDiff_script(FitsTestCase):
         tmp_b = self.temp('testb.fits')
         hdu_a.writeto(tmp_a)
         hdu_b.writeto(tmp_b)
-        testargs = [ "-r", "1e-2", tmp_a, tmp_b]
+        testargs = ["-r", "1e-2", tmp_a, tmp_b]
         sys.argv += testargs
         numdiff = fitsdiff.main()
         assert numdiff == 1

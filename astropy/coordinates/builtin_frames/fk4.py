@@ -18,6 +18,7 @@ from .. import earth_orientation as earth
 from .utils import EQUINOX_B1950
 from .baseradec import _base_radec_docstring, BaseRADecFrame
 
+
 class FK4(BaseRADecFrame):
     """
     A coordinate or frame in the FK4 system.
@@ -41,9 +42,12 @@ class FK4(BaseRADecFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
+
 FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
+
+
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4)
 def fk4_to_fk4(fk4coord1, fk4frame2):
     # deceptively complicated: need to transform to No E-terms FK4, precess, and
@@ -94,9 +98,12 @@ class FK4NoETerms(BaseRADecFrame):
         """
         return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
+
 FK4NoETerms.__doc__ = FK4NoETerms.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
+
+
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
 def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
     return fk4necoord1._precession_matrix(fk4necoord1.equinox, fk4neframe2.equinox)
@@ -160,7 +167,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # Renormalize
     rep *= d_orig / d_new
 
-    #now re-cast into an appropriate Representation, and precess if need be
+    # now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4coord.data, UnitSphericalRepresentation):
         rep = rep.represent_as(UnitSphericalRepresentation)
 
@@ -169,14 +176,14 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
 
     fk4noe = FK4NoETerms(rep, equinox=fk4coord.equinox, obstime=newobstime)
     if fk4coord.equinox != fk4noeframe.equinox:
-        #precession
+        # precession
         fk4noe = fk4noe.transform_to(fk4noeframe)
     return fk4noe
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4NoETerms, FK4)
 def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
-    #first precess, if necessary
+    # first precess, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
         fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox,
                                           obstime=fk4noecoord.obstime)
@@ -206,7 +213,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # Renormalize
     rep *= d_orig / d_new
 
-    #now re-cast into an appropriate Representation, and precess if need be
+    # now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4noecoord.data, UnitSphericalRepresentation):
         rep = rep.represent_as(UnitSphericalRepresentation)
 

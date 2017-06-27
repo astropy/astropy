@@ -110,7 +110,7 @@ def preprocess_source():
 
     from jinja2 import Environment, FileSystemLoader
 
-    #Prepare the jinja2 templating environment
+    # Prepare the jinja2 templating environment
     env = Environment(loader=FileSystemLoader(MODELING_SRC))
 
     c_in = env.get_template('projections.c.templ')
@@ -118,7 +118,6 @@ def preprocess_source():
 
     with open(join(MODELING_SRC, 'projections.c'), 'w') as fd:
         fd.write(c_out)
-
 
 
 def get_package_data():

@@ -14,7 +14,6 @@ from ...extern.six.moves import range
 __all__ = ['fnpickle', 'fnunpickle']
 
 
-
 def fnunpickle(fileorname, number=0, usecPickle=True):
     """ Unpickle pickled objects from a specified file and return the contents.
 

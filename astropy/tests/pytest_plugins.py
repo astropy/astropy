@@ -124,6 +124,7 @@ def pytest_generate_tests(metafunc):
         metafunc.fixturenames.append('tmp_ct')
         metafunc.parametrize('tmp_ct', range(count))
 
+
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when
 # using doctest.testfile, unfortunately.
@@ -497,6 +498,7 @@ def pytest_runtest_setup(item):
             if source == 'any':
                 pytest.skip("need --remote-data option to run")
 
+
 def pytest_runtest_teardown(item, nextitem):
     if hasattr(item, 'set_temp_cache'):
         item.set_temp_cache.__exit__()
@@ -666,6 +668,7 @@ class Pair(pytest.File):
     This class treats a given test .py file as a pair of .py files
     where one has __future__ unicode_literals and the other does not.
     """
+
     def collect(self):
         # First, just do the regular import of the module to make
         # sure it's sane and valid.  This block is copied directly

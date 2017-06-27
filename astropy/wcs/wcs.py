@@ -135,6 +135,7 @@ WCSHDO_SIP = 0x80000
 # Keyword optionally ends with a capital letter.
 SIP_KW = re.compile('''^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$''')
 
+
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -189,6 +190,7 @@ class NoConvergence(Exception):
         then ``slow_conv`` will be set to `None`.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(NoConvergence, self).__init__(*args)
 
@@ -705,12 +707,12 @@ reduce these to 2 dimensions using the naxis kwarg.
             corners = np.array([[1, 1],
                                 [1, naxis2],
                                 [naxis1, naxis2],
-                                [naxis1, 1]], dtype = np.float64)
+                                [naxis1, 1]], dtype=np.float64)
         else:
             corners = np.array([[0.5, 0.5],
                                 [0.5, naxis2 + 0.5],
                                 [naxis1 + 0.5, naxis2 + 0.5],
-                                [naxis1 + 0.5, 0.5]], dtype = np.float64)
+                                [naxis1 + 0.5, 0.5]], dtype=np.float64)
 
         if undistort:
             return self.all_pix2world(corners, 1)
@@ -859,7 +861,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                                      'Coordinate increment along axis')
             header[str('CDELT2')] = (det2im.cdelt[1],
                                      'Coordinate increment along axis')
-            image.ver =  int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
+            image.ver = int(hdulist[0].header[str('{0}{1:d}.EXTVER').format(d_kw, num)])
             hdulist.append(image)
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
@@ -1414,12 +1416,11 @@ reduce these to 2 dimensions using the naxis kwarg.
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('world coordinates, in degrees', 8))
 
-
     def _all_world2pix(self, world, origin, tolerance, maxiter, adaptive,
                        detect_divergence, quiet):
-        #############################################################
-        ##          DESCRIPTION OF THE NUMERICAL METHOD            ##
-        #############################################################
+        # ############################################################
+        # #          DESCRIPTION OF THE NUMERICAL METHOD            ##
+        # ############################################################
         # In this section I will outline the method of solving
         # the inverse problem of converting world coordinates to
         # pixel coordinates (*inverse* of the direct transformation
@@ -1461,14 +1462,14 @@ reduce these to 2 dimensions using the naxis kwarg.
         # `all_pix2world`. Below I summarize the notations and their
         # equivalents in `astropy.wcs.WCS`:
         #
-        #| Equation term | astropy.WCS/meaning          |
-        #| ------------- | ---------------------------- |
-        #| `x`           | pixel coordinates            |
-        #| `w`           | world coordinates            |
-        #| `W`           | `wcs_pix2world()`            |
-        #| `W^{-1}`      | `wcs_world2pix()`            |
-        #| `T`           | `all_pix2world()`            |
-        #| `x+f(x)`      | `pix2foc()`                  |
+        # | Equation term | astropy.WCS/meaning          |
+        # | ------------- | ---------------------------- |
+        # | `x`           | pixel coordinates            |
+        # | `w`           | world coordinates            |
+        # | `W`           | `wcs_pix2world()`            |
+        # | `W^{-1}`      | `wcs_world2pix()`            |
+        # | `T`           | `all_pix2world()`            |
+        # | `x+f(x)`      | `pix2foc()`                  |
         #
         #
         #      ### Direct Solving of Equation (2)  ###
@@ -1619,9 +1620,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         # wcs_world2pix(all_pix2world(pix_list, origin), origin)
         #
 
-        #############################################################
-        ##            INITIALIZE ITERATIVE PROCESS:                ##
-        #############################################################
+        # ############################################################
+        # #            INITIALIZE ITERATIVE PROCESS:                ##
+        # ############################################################
 
         # initial approximation (linear WCS based only)
         pix0 = self.wcs_world2pix(world, origin)
@@ -1660,9 +1661,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         old_over = np.geterr()['over']
         np.seterr(invalid='ignore', over='ignore')
 
-        #############################################################
-        ##                NON-ADAPTIVE ITERATIONS:                 ##
-        #############################################################
+        # ############################################################
+        # #                NON-ADAPTIVE ITERATIONS:                 ##
+        # ############################################################
         if not adaptive:
             # Fixed-point iterations:
             while (np.nanmax(dn) >= tol2 and k < maxiter):
@@ -1711,9 +1712,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                 pix -= dpix
                 k += 1
 
-        #############################################################
-        ##                  ADAPTIVE ITERATIONS:                   ##
-        #############################################################
+        # ############################################################
+        # #                  ADAPTIVE ITERATIONS:                   ##
+        # ############################################################
         if adaptive:
             if ind is None:
                 ind, = np.where(np.isfinite(pix).all(axis=1))
@@ -1762,10 +1763,10 @@ reduce these to 2 dimensions using the naxis kwarg.
 
                 k += 1
 
-        #############################################################
-        ##         FINAL DETECTION OF INVALID, DIVERGING,          ##
-        ##         AND FAILED-TO-CONVERGE POINTS                   ##
-        #############################################################
+        # ############################################################
+        # #         FINAL DETECTION OF INVALID, DIVERGING,          ##
+        # #         AND FAILED-TO-CONVERGE POINTS                   ##
+        # ############################################################
         # Identify diverging and/or invalid points:
         invalid = ((~np.all(np.isfinite(pix), axis=1)) &
                    (np.all(np.isfinite(world), axis=1)))
@@ -1789,10 +1790,10 @@ reduce these to 2 dimensions using the naxis kwarg.
         # Restore previous numpy error settings:
         np.seterr(invalid=old_invalid, over=old_over)
 
-        #############################################################
-        ##  RAISE EXCEPTION IF DIVERGING OR TOO SLOWLY CONVERGING  ##
-        ##  DATA POINTS HAVE BEEN DETECTED:                        ##
-        #############################################################
+        # ############################################################
+        # #  RAISE EXCEPTION IF DIVERGING OR TOO SLOWLY CONVERGING  ##
+        # #  DATA POINTS HAVE BEEN DETECTED:                        ##
+        # ############################################################
         if (ind is not None or inddiv is not None) and not quiet:
             if inddiv is None:
                 raise NoConvergence(
@@ -1817,11 +1818,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
 
-        tolerance  = kwargs.pop('tolerance', 1e-4)
-        maxiter    = kwargs.pop('maxiter', 20)
-        adaptive   = kwargs.pop('adaptive', False)
+        tolerance = kwargs.pop('tolerance', 1e-4)
+        maxiter = kwargs.pop('maxiter', 20)
+        adaptive = kwargs.pop('adaptive', False)
         detect_div = kwargs.pop('detect_divergence', True)
-        quiet      = kwargs.pop('quiet', False)
+        quiet = kwargs.pop('quiet', False)
 
         return self._array_converter(
             lambda *args, **kwargs:
@@ -2157,7 +2158,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))
-
 
     def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
@@ -2541,7 +2541,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             for kw, val in self._write_sip_kw().items():
                 header[kw] = val
 
-
         if not do_sip and self.wcs is not None and any(self.wcs.ctype) and self.sip is not None:
             # This is called when relax is not False or WCSHDO_SIP
             # The default case of ``relax=None`` is handled further in the code.
@@ -2712,7 +2711,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         '''
         description = ["WCS Keywords\n",
                        "Number of WCS axes: {0!r}".format(self.naxis)]
-        sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
+        sfmt = ' : ' + "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
 
         keywords = ['CTYPE', 'CRVAL', 'CRPIX']
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
@@ -2893,7 +2892,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         swapped
         """
         inds = list(range(self.wcs.naxis))
-        inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
+        inds[ax0], inds[ax1] = inds[ax1], inds[ax0]
 
         return self.sub([i+1 for i in inds])
 
@@ -2930,7 +2929,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         if hasattr(view, '__len__') and len(view) > self.wcs.naxis:
             raise ValueError("Must have # of slices <= # of WCS axes")
-        elif not hasattr(view, '__len__'): # view MUST be an iterable
+        elif not hasattr(view, '__len__'):  # view MUST be an iterable
             view = [view]
 
         if not all(isinstance(x, slice) for x in view):
@@ -3023,7 +3022,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     @property
     def is_celestial(self):
-        return self.has_celestial and self.naxis==2
+        return self.has_celestial and self.naxis == 2
 
     @property
     def has_celestial(self):

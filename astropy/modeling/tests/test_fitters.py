@@ -142,6 +142,7 @@ class TestJointFitter(object):
     """
     Tests the joint fitting routine using 2 gaussian models
     """
+
     def setup_class(self):
         """
         Create 2 gaussian models and some data with noise.
@@ -287,7 +288,7 @@ class TestLinearLSQFitter(object):
         """
         init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
                                          n_models=2,
-                                         fixed={'c1_0' : True, 'c0_1' : True})
+                                         fixed={'c1_0': True, 'c0_1': True})
 
         x, y = np.mgrid[0:5, 0:5]
         zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
@@ -390,7 +391,6 @@ class TestNonLinearFitters(object):
 
         assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
 
-
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
@@ -456,13 +456,13 @@ class TestNonLinearFitters(object):
             # non-negligible
             y = x*a + b + np.random.randn(len(x))
 
-        #first compute the ordinary least squares covariance matrix
+        # first compute the ordinary least squares covariance matrix
         X = np.matrix(np.vstack([x, np.ones(len(x))]).T)
         beta = np.linalg.inv(X.T * X) * X.T * np.matrix(y).T
         s2 = np.sum((y - (X * beta).A.ravel())**2) / (len(y) - len(beta))
         olscov = np.linalg.inv(X.T * X) * s2
 
-        #now do the non-linear least squares fit
+        # now do the non-linear least squares fit
         mod = models.Linear1D(a, b)
         fitter = LevMarLSQFitter()
 
@@ -508,7 +508,6 @@ class TestEntryPoint(object):
         mock_entry_working.name = "Working"
         mock_entry_working.load = self.successfulimport
         populate_entry_points([mock_entry_working])
-
 
     def test_import_error(self):
         """This raises an import error on load to test that it is handled correctly"""
@@ -682,8 +681,8 @@ def test_fitters_with_weights():
     assert_allclose(gmod.parameters, g2.parameters, atol=10 ** (-2))
 
     # Linear model
-    p2=models.Polynomial2D(3)
-    p2.parameters=np.arange(10)/1.2
+    p2 = models.Polynomial2D(3)
+    p2.parameters = np.arange(10)/1.2
     z = p2(Xin, Yin)
     pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))

@@ -15,6 +15,7 @@ from ...utils.compat import NUMPY_LT_1_13
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
+
     def test_coverage(self):
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
@@ -269,7 +270,6 @@ class TestQuantityMathFuncs(object):
             with pytest.raises(TypeError):
                 np.divmod(dividend, u.km)
 
-
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
 
@@ -386,7 +386,7 @@ class TestQuantityMathFuncs(object):
     def test_copysign_array(self):
         assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) == -np.array([1., 2., 3.]) * u.s)
         assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) == -np.array([1., 2., 3.]) * u.s)
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2.,2.,-4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2., 2., -4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
 
         q = np.copysign(np.array([1., 2., 3.]), -3 * u.m)
         assert np.all(q == np.array([-1., -2., -3.]))
@@ -769,6 +769,7 @@ class TestInplaceUfuncs(object):
         with pytest.raises(TypeError):
             a4 += u.Quantity(10, u.mm, dtype=np.int64)
 
+
 @pytest.mark.xfail("NUMPY_LT_1_13")
 class TestUfuncAt(object):
     """Test that 'at' method for ufuncs (calculates in-place at given indices)
@@ -776,6 +777,7 @@ class TestUfuncAt(object):
     For Quantities, since calculations are in-place, it makes sense only
     if the result is still a quantity, and if the unit does not have to change
     """
+
     def test_one_argument_ufunc_at(self):
         q = np.arange(10.) * u.m
         i = np.array([1, 2])
@@ -863,6 +865,7 @@ class TestUfuncReduceReduceatAccumulate(object):
 
     For Quantities, it makes sense only if the unit does not have to change
     """
+
     def test_one_argument_ufunc_reduce_accumulate(self):
         # one argument cannot be used
         s = np.arange(10.) * u.radian
@@ -938,6 +941,7 @@ class TestUfuncOuter(object):
     Just a few spot checks, since it uses the same code as the regular
     ufunc call
     """
+
     def test_one_argument_ufunc_outer(self):
         # one argument cannot be used
         s = np.arange(10.) * u.radian

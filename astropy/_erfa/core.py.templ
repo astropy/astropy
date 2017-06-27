@@ -52,7 +52,7 @@ __all__ = ['ErfaError', 'ErfaWarning',
            'dt_eraASTROM', 'dt_eraLDBODY']
 
 
-#<---------------------------------Error-handling----------------------------->
+# <---------------------------------Error-handling---------------------------->
 
 class ErfaError(ValueError):
     """
@@ -119,7 +119,7 @@ def check_errwarn(statcodes, func_name):
         warnings.warn('ERFA function "' + func_name + '" yielded ' + wmsg, ErfaWarning)
 
 
-#<-------------------------trailing shape verification------------------------>
+# <-------------------------trailing shape verification----------------------->
 
 def check_trailing_shape(arr, shape, name):
     try:
@@ -128,7 +128,7 @@ def check_trailing_shape(arr, shape, name):
     except:
         raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
 
-#<--------------------------Actual ERFA-wrapping code------------------------->
+# <--------------------------Actual ERFA-wrapping code------------------------>
 
 dt_eraASTROM = numpy.dtype([('pmt','d'),
                          ('eb','d',(3,)),

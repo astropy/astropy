@@ -26,6 +26,7 @@ WCSVERSION = "5.16"
 def b(s):
     return s.encode('ascii')
 
+
 if six.PY2:
     def string_escape(s):
         # string_escape has subtle differences with the escaping done in Python
@@ -245,7 +246,6 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
                 '-Wno-unused-function',
                 '-Wno-unused-value',
                 '-Wno-uninitialized'])
-
 
 
 def get_extensions():

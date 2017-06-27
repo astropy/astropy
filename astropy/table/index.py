@@ -94,7 +94,7 @@ class Index(object):
         # by default, use SortedArray
         self.engine = engine or SortedArray
 
-        if columns is None: # this creates a special exception for deep copying
+        if columns is None:  # this creates a special exception for deep copying
             columns = []
             data = []
             row_index = []
@@ -122,7 +122,7 @@ class Index(object):
             sort_columns = new_columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
-            except TypeError: # arbitrary mixins might not work with lexsort
+            except TypeError:  # arbitrary mixins might not work with lexsort
                 lines = table[table.argsort()]
             data = lines[lines.colnames[:-1]]
             row_index = lines[lines.colnames[-1]]
@@ -186,7 +186,7 @@ class Index(object):
         for i, col in enumerate(columns):
             try:
                 key[i] = vals[self.col_position(col.info.name)]
-            except ValueError: # not a member of index
+            except ValueError:  # not a member of index
                 continue
         num_rows = len(self.columns[0])
         if pos < num_rows:
@@ -407,7 +407,7 @@ class Index(object):
         index = super(Index, Index).__new__(Index)
         index.__init__(None, engine=self.engine)
         index.data = deepcopy(self.data, memo)
-        index.columns = self.columns[:] # new list, same columns
+        index.columns = self.columns[:]  # new list, same columns
         memo[id(self)] = index
         return index
 
@@ -432,6 +432,7 @@ class SlicedIndex(object):
         copying operations are avoided, and the slice retains the
         length of the actual index despite modification.
     '''
+
     def __init__(self, index, index_slice, original=False):
         self.index = index
         self.original = original
@@ -439,7 +440,7 @@ class SlicedIndex(object):
 
         if isinstance(index_slice, tuple):
             self.start, self._stop, self.step = index_slice
-        else: # index_slice is an actual slice
+        else:  # index_slice is an actual slice
             num_rows = len(index.columns[0])
             self.start, self._stop, self.step = index_slice.indices(num_rows)
 
@@ -737,6 +738,7 @@ class TableIndices(list):
     lst : list
         List of indices
     '''
+
     def __init__(self, lst):
         super(TableIndices, self).__init__(lst)
 
@@ -777,6 +779,7 @@ class TableLoc(object):
     table : Table
         Indexed table to use
     '''
+
     def __init__(self, table):
         self.table = table
         self.indices = table.indices
@@ -812,16 +815,16 @@ class TableLoc(object):
             stop = MaxValue() if item.stop is None else item.stop
             rows = index.range((start,), (stop,))
         else:
-            if not isinstance(item, (list, np.ndarray)): # single element
+            if not isinstance(item, (list, np.ndarray)):  # single element
                 item = [item]
             # item should be a list or ndarray of values
             rows = []
             for key in item:
                 rows.extend(index.find((key,)))
 
-        if len(rows) == 0: # no matches found
+        if len(rows) == 0:  # no matches found
             raise KeyError('No matches found for key {0}'.format(item))
-        elif len(rows) == 1: # single row
+        elif len(rows) == 1:  # single row
             return self.table[rows[0]]
         return self.table[rows]
 
@@ -836,6 +839,7 @@ class TableILoc(TableLoc):
     table : Table
         Indexed table to use
     '''
+
     def __init__(self, table):
         super(TableILoc, self).__init__(table)
 
@@ -848,7 +852,7 @@ class TableILoc(TableLoc):
         rows = index.sorted_data()[item]
         table_slice = self.table[rows]
 
-        if len(table_slice) == 0: # no matches found
+        if len(table_slice) == 0:  # no matches found
             raise IndexError('Invalid index for iloc: {0}'.format(item))
 
         return table_slice

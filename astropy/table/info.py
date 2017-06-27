@@ -12,6 +12,7 @@ from ..utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo']
 
+
 def table_info(tbl, option='attributes', out=''):
     """
     Write summary information about column to the ``out`` filehandle.
@@ -113,6 +114,7 @@ def table_info(tbl, option='attributes', out=''):
         outlines.append('<No columns>')
 
     out.writelines(outline + os.linesep for outline in outlines)
+
 
 class TableInfo(DataInfo):
     _parent = None

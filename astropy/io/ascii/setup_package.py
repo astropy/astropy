@@ -6,6 +6,7 @@ from distutils.extension import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
 
+
 def get_extensions():
     sources = [os.path.join(ROOT, 'cparser.pyx'),
                os.path.join(ROOT, 'src', 'tokenizer.c')]
@@ -14,6 +15,7 @@ def get_extensions():
         include_dirs=["numpy"],
         sources=sources)
     return [ascii_ext]
+
 
 def get_package_data():
     # Installs the testing data files.  Unable to get package_data

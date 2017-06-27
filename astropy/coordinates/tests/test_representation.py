@@ -650,12 +650,11 @@ class TestCartesianRepresentation(object):
         with pytest.raises(TypeError):
             s_slc = s[0]
 
-
     def test_transform(self):
 
-        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6] * u.kpc)
+        s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6] * u.kpc)
 
-        matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
+        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         s2 = s1.transform(matrix)
 
@@ -931,7 +930,7 @@ def test_representation_repr():
 
 def test_representation_repr_multi_d():
     """Regression test for #5889."""
-    cr = CartesianRepresentation(np.arange(27).reshape(3,3,3), unit='m')
+    cr = CartesianRepresentation(np.arange(27).reshape(3, 3, 3), unit='m')
     assert repr(cr) == (
         '<CartesianRepresentation (x, y, z) in m\n'
         '    [[( 0.,   9.,  18.), ( 1.,  10.,  19.), ( 2.,  11.,  20.)],\n'
@@ -958,7 +957,7 @@ def test_representation_str():
 
 def test_representation_str_multi_d():
     """Regression test for #5889."""
-    cr = CartesianRepresentation(np.arange(27).reshape(3,3,3), unit='m')
+    cr = CartesianRepresentation(np.arange(27).reshape(3, 3, 3), unit='m')
     assert str(cr) == (
         '[[( 0.,   9.,  18.), ( 1.,  10.,  19.), ( 2.,  11.,  20.)],\n'
         ' [( 3.,  12.,  21.), ( 4.,  13.,  22.), ( 5.,  14.,  23.)],\n'
@@ -1023,15 +1022,15 @@ def test_minimal_subclass():
 
     ld1 = LogDRepresentation(90.*u.deg, 0.*u.deg, 1.*u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.*u.deg, lat=0.*u.deg, logd=1.*u.dex(u.kpc))
-    assert np.all(ld1.lon==ld2.lon)
-    assert np.all(ld1.lat==ld2.lat)
-    assert np.all(ld1.logd==ld2.logd)
+    assert np.all(ld1.lon == ld2.lon)
+    assert np.all(ld1.lat == ld2.lat)
+    assert np.all(ld1.logd == ld2.logd)
     c = ld1.to_cartesian()
     assert_allclose_quantity(c.xyz, [0., 10., 0.] * u.kpc, atol=1.*u.npc)
     ld3 = LogDRepresentation.from_cartesian(c)
-    assert np.all(ld3.lon==ld2.lon)
-    assert np.all(ld3.lat==ld2.lat)
-    assert np.all(ld3.logd==ld2.logd)
+    assert np.all(ld3.lon == ld2.lon)
+    assert np.all(ld3.lat == ld2.lat)
+    assert np.all(ld3.logd == ld2.logd)
     s = ld1.represent_as(SphericalRepresentation)
     assert_allclose_quantity(s.lon, ld1.lon)
     assert_allclose_quantity(s.distance, 10.*u.kpc)
@@ -1053,16 +1052,17 @@ def test_minimal_subclass():
                                         ('lat', Latitude),
                                         ('logr', u.Dex)])
 
+
 def test_combine_xyz():
 
-    x,y,z = np.arange(27).reshape(3, 9) * u.kpc
+    x, y, z = np.arange(27).reshape(3, 9) * u.kpc
     xyz = _combine_xyz(x, y, z, xyz_axis=0)
     assert xyz.shape == (3, 9)
     assert np.all(xyz[0] == x)
     assert np.all(xyz[1] == y)
     assert np.all(xyz[2] == z)
 
-    x,y,z = np.arange(27).reshape(3, 3, 3) * u.kpc
+    x, y, z = np.arange(27).reshape(3, 3, 3) * u.kpc
     xyz = _combine_xyz(x, y, z, xyz_axis=0)
     assert xyz.ndim == 3
     assert np.all(xyz[0] == x)
@@ -1071,15 +1071,16 @@ def test_combine_xyz():
 
     xyz = _combine_xyz(x, y, z, xyz_axis=1)
     assert xyz.ndim == 3
-    assert np.all(xyz[:,0] == x)
-    assert np.all(xyz[:,1] == y)
-    assert np.all(xyz[:,2] == z)
+    assert np.all(xyz[:, 0] == x)
+    assert np.all(xyz[:, 1] == y)
+    assert np.all(xyz[:, 2] == z)
 
     xyz = _combine_xyz(x, y, z, xyz_axis=-1)
     assert xyz.ndim == 3
-    assert np.all(xyz[...,0] == x)
-    assert np.all(xyz[...,1] == y)
-    assert np.all(xyz[...,2] == z)
+    assert np.all(xyz[..., 0] == x)
+    assert np.all(xyz[..., 1] == y)
+    assert np.all(xyz[..., 2] == z)
+
 
 class TestCartesianRepresentationWithDifferential(object):
 
@@ -1116,7 +1117,7 @@ class TestCartesianRepresentationWithDifferential(object):
         assert len(s1.differentials) == 1
         assert s1.differentials['s'] is diff
 
-        with pytest.raises(TypeError): # invalid type passed to differentials
+        with pytest.raises(TypeError):  # invalid type passed to differentials
             CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
                                     differentials='garmonbozia')
 
@@ -1146,8 +1147,8 @@ class TestCartesianRepresentationWithDifferential(object):
                                      differentials=diff)
 
     def test_init_differential_multiple_equivalent_keys(self):
-        d1 = CartesianDifferential(*[1,2,3] * u.km/u.s)
-        d2 = CartesianDifferential(*[4,5,6] * u.km/u.s)
+        d1 = CartesianDifferential(*[1, 2, 3] * u.km/u.s)
+        d2 = CartesianDifferential(*[4, 5, 6] * u.km/u.s)
 
         # verify that the check against expected_unit validates against passing
         # in two different but equivalent keys
@@ -1157,16 +1158,16 @@ class TestCartesianRepresentationWithDifferential(object):
 
     def test_init_array_broadcasting(self):
 
-        arr1 = np.arange(8).reshape(4,2) * u.km/u.s
+        arr1 = np.arange(8).reshape(4, 2) * u.km/u.s
         diff = CartesianDifferential(d_x=arr1, d_y=arr1, d_z=arr1)
 
         # shapes aren't compatible
-        arr2 = np.arange(27).reshape(3,9) * u.kpc
+        arr2 = np.arange(27).reshape(3, 9) * u.kpc
         with pytest.raises(ValueError):
             rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
                                           differentials=diff)
 
-        arr2 = np.arange(8).reshape(4,2) * u.kpc
+        arr2 = np.arange(8).reshape(4, 2) * u.kpc
         rep = CartesianRepresentation(x=arr2, y=arr2, z=arr2,
                                       differentials=diff)
 
@@ -1197,7 +1198,7 @@ class TestCartesianRepresentationWithDifferential(object):
 
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
 
-        with pytest.raises(AttributeError): # attribute is not settable
+        with pytest.raises(AttributeError):  # attribute is not settable
             s1.differentials = 'thing'
 
     def test_represent_as(self):
@@ -1211,7 +1212,7 @@ class TestCartesianRepresentationWithDifferential(object):
         # Only change the representation, drop the differential
         new_rep = rep1.represent_as(SphericalRepresentation)
         assert new_rep.get_name() == 'spherical'
-        assert not new_rep.differentials # dropped
+        assert not new_rep.differentials  # dropped
 
         # Pass in separate classes for representation, differential
         new_rep = rep1.represent_as(SphericalRepresentation,
@@ -1266,12 +1267,12 @@ class TestCartesianRepresentationWithDifferential(object):
         d1 = CartesianDifferential(d_x=[1, 2] * u.km/u.s,
                                    d_y=[3, 4] * u.km/u.s,
                                    d_z=[5, 6] * u.km/u.s)
-        r1 = CartesianRepresentation(x=[1,2] * u.kpc,
-                                     y=[3,4] * u.kpc,
-                                     z=[5,6] * u.kpc,
+        r1 = CartesianRepresentation(x=[1, 2] * u.kpc,
+                                     y=[3, 4] * u.kpc,
+                                     z=[5, 6] * u.kpc,
                                      differentials=d1)
 
-        matrix = np.array([[1,2,3], [4,5,6], [7,8,9]])
+        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         r2 = r1.transform(matrix)
         d2 = r2.differentials['s']

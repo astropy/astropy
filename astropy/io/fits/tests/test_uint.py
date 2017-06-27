@@ -13,16 +13,16 @@ from ....tests.helper import ignore_warnings
 class TestUintFunctions(FitsTestCase):
     @classmethod
     def setup_class(cls):
-        cls.utypes = ('u2','u4','u8')
+        cls.utypes = ('u2', 'u4', 'u8')
         cls.utype_map = {'u2': np.uint16, 'u4': np.uint32, 'u8': np.uint64}
         cls.itype_map = {'u2': np.int16, 'u4': np.int32, 'u8': np.int64}
         cls.format_map = {'u2': 'I', 'u4': 'J', 'u8': 'K'}
 
     # Test of 64-bit compressed image is disabled.  cfitsio library doesn't
     # like it
-    @pytest.mark.parametrize(('utype','compressed'),
+    @pytest.mark.parametrize(('utype', 'compressed'),
         [('u2', False), ('u4', False), ('u8', False), ('u2', True),
-         ('u4',True)]) #,('u8',True)])
+         ('u4', True)])  # ,('u8',True)])
     def test_uint(self, utype, compressed):
         bits = 8*int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:
@@ -68,7 +68,7 @@ class TestUintFunctions(FitsTestCase):
         if platform.architecture()[0] == '64bit' or bits != 64:
             bzero = self.utype_map[utype](2**(bits-1))
             one = self.utype_map[utype](1)
-            u0 = np.arange(bits+1,dtype=self.utype_map[utype])
+            u0 = np.arange(bits+1, dtype=self.utype_map[utype])
             u = 2**u0 - one
             if bits == 64:
                 u[63] = bzero - one
@@ -87,7 +87,7 @@ class TestUintFunctions(FitsTestCase):
             # table.data.base.base
             assert (table.data.base.base[utype] == uu).all()
             hdu0 = fits.PrimaryHDU()
-            hdulist = fits.HDUList([hdu0,table])
+            hdulist = fits.HDUList([hdu0, table])
 
             with ignore_warnings():
                 hdulist.writeto(self.temp('tempfile.fits'), overwrite=True)

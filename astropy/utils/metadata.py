@@ -21,6 +21,7 @@ __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
            'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',
            'MergeStrategyMeta', 'enable_merge_strategies', 'merge', 'MetaData']
 
+
 class MergeConflictError(TypeError):
     pass
 
@@ -69,6 +70,7 @@ def common_dtype(arrs):
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
 
+
 class MergeStrategyMeta(type):
     """
     Metaclass that registers MergeStrategy subclasses into the
@@ -82,6 +84,7 @@ class MergeStrategyMeta(type):
         # MergeConflictError.
         if 'merge' in members and isinstance(members['merge'], classmethod):
             orig_merge = members['merge'].__func__
+
             @wraps(orig_merge)
             def merge(cls, left, right):
                 try:
@@ -159,6 +162,7 @@ class MergeStrategy(object):
     enabled = False
 
     # types = [(left_types, right_types), ...]
+
 
 class MergePlus(MergeStrategy):
     """
@@ -383,6 +387,7 @@ class MetaData(object):
 
         .. versionadded:: 1.2
     """
+
     def __init__(self, doc="", copy=True):
         self.__doc__ = doc
         self.copy = copy

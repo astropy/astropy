@@ -18,16 +18,16 @@ import os.path
 from collections import OrderedDict
 
 
-ctype_to_dtype = {'double'     : "numpy.double",
-                  'int'        : "numpy.intc",
-                  'eraASTROM'  : "dt_eraASTROM",
-                  'eraLDBODY'  : "dt_eraLDBODY",
-                  'char'       : "numpy.dtype('S1')",
-                  'const char' : "numpy.dtype('S16')",
+ctype_to_dtype = {'double': "numpy.double",
+                  'int': "numpy.intc",
+                  'eraASTROM': "dt_eraASTROM",
+                  'eraLDBODY': "dt_eraLDBODY",
+                  'char': "numpy.dtype('S1')",
+                  'const char': "numpy.dtype('S16')",
                   }
 
 
-NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*','.*').replace(r'\<', '(').replace(r'\>',')'))
+NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*', '.*').replace(r'\<', '(').replace(r'\>', ')'))
 
 
 class FunctionDoc(object):
@@ -155,21 +155,21 @@ class Argument(object):
 
     @property
     def ctype_ptr(self):
-        if (self.is_ptr) | (len(self.shape)>0):
+        if (self.is_ptr) | (len(self.shape) > 0):
             return self.ctype+" *"
         else:
             return self.ctype
 
     @property
     def name_in_broadcast(self):
-        if len(self.shape)>0:
+        if len(self.shape) > 0:
             return "{0}_in[...{1}]".format(self.name, ",0"*len(self.shape))
         else:
             return "{0}_in".format(self.name)
 
     @property
     def name_out_broadcast(self):
-        if len(self.shape)>0:
+        if len(self.shape) > 0:
             return "{0}_out[...{1}]".format(self.name, ",0"*len(self.shape))
         else:
             return "{0}_out".format(self.name)
@@ -301,7 +301,7 @@ class Function(object):
                 filecontents = f.read()
 
         pattern = r"\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
-        p = re.compile(pattern, flags=re.DOTALL|re.MULTILINE)
+        p = re.compile(pattern, flags=re.DOTALL | re.MULTILINE)
 
         search = p.search(filecontents)
         self.cfunc = " ".join(search.group(1).split())
@@ -350,8 +350,8 @@ class Function(object):
 class Constant(object):
 
     def __init__(self, name, value, doc):
-        self.name = name.replace("ERFA_","")
-        self.value = value.replace("ERFA_","")
+        self.name = name.replace("ERFA_", "")
+        self.value = value.replace("ERFA_", "")
         self.doc = doc
 
 
@@ -369,6 +369,7 @@ class ExtraFunction(Function):
         The path to a file that contains the prototype, with the documentation
         as a multiline string *before* it.
     """
+
     def __init__(self, cname, prototype, pathfordoc):
         self.name = cname
         self.pyname = cname.split('era')[-1].lower()
@@ -427,13 +428,15 @@ def main(srcdir, outfn, templateloc, verbose=True):
     else:
         print_ = lambda *args, **kwargs: None
 
-    #Prepare the jinja2 templating environment
+    # Prepare the jinja2 templating environment
     env = Environment(loader=FileSystemLoader(templateloc))
 
     def prefix(a_list, pre):
         return [pre+'{0}'.format(an_element) for an_element in a_list]
+
     def postfix(a_list, post):
         return ['{0}'.format(an_element)+post for an_element in a_list]
+
     def surround(a_list, pre, post):
         return [pre+'{0}'.format(an_element)+post for an_element in a_list]
     env.filters['prefix'] = prefix
@@ -443,7 +446,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     erfa_c_in = env.get_template('core.c.templ')
     erfa_py_in = env.get_template('core.py.templ')
 
-    #Extract all the ERFA function names from erfa.h
+    # Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
         erfahfn = os.path.join(srcdir, 'erfa.h')
         multifilserc = True
@@ -456,7 +459,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
 
     funcs = OrderedDict()
     section_subsection_functions = re.findall(r'/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
-                                              erfa_h, flags=re.DOTALL|re.MULTILINE)
+                                              erfa_h, flags=re.DOTALL | re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
         print_("{0}.{1}".format(section, subsection))
         if ((section == "Astronomy") or (subsection == "AngleOps")
@@ -491,13 +494,13 @@ def main(srcdir, outfn, templateloc, verbose=True):
 
     funcs = list(funcs.values())
 
-    #Extract all the ERFA constants from erfam.h
+    # Extract all the ERFA constants from erfam.h
     erfamhfn = os.path.join(srcdir, 'erfam.h')
     with open(erfamhfn, 'r') as f:
         erfa_m_h = f.read()
     constants = []
     for chunk in erfa_m_h.split("\n\n"):
-        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL|re.MULTILINE)
+        result = re.findall(r"#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL | re.MULTILINE)
         if result:
             doc = re.findall(r"/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
             for (name, value) in result:
@@ -514,7 +517,6 @@ def main(srcdir, outfn, templateloc, verbose=True):
     #             print_("Extra:  {0} ...".format(match.group(1)))
     #             funcs.append(ExtraFunction(match.group(1), ls, erfaextrahfn))
 
-
     print_("Rendering template")
     erfa_c = erfa_c_in.render(funcs=funcs)
     erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
@@ -530,6 +532,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     print_("Done!")
 
     return erfa_c, erfa_py, funcs
+
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')

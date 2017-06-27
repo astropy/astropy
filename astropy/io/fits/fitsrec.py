@@ -1206,7 +1206,6 @@ class FITS_rec(np.recarray):
         # and #111
         _rstrip_inplace(output_field)
 
-
     def _scale_back_ascii(self, col_idx, input_field, output_field):
         """
         Convert internal array values back to ASCII table representation.

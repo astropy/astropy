@@ -10,7 +10,6 @@ import pytest
 import numpy as np
 
 
-
 @pytest.mark.usefixtures('table_data')
 class BaseTestItems():
     pass

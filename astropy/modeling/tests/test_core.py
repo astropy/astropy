@@ -121,6 +121,7 @@ def test_custom_model_signature():
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',
                                            'equivalencies']
+
     @custom_model
     def model_c(x, y, a=1, b=2):
         return x + y + a + b
@@ -207,6 +208,7 @@ def test_custom_inverse_reset():
     class TestModel(Model):
         inputs = ()
         outputs = ('y',)
+
         @property
         def inverse(self):
             return models.Shift()
@@ -368,6 +370,7 @@ def test_custom_bounding_box_1d():
     # assign the same bounding_box, now through the bounding_box setter
     g2.bounding_box = bb
     assert_allclose(g2.render(), expected)
+
 
 def test_n_submodels_in_single_models():
     assert models.Gaussian1D.n_submodels() == 1

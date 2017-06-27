@@ -16,6 +16,7 @@ from ... import units as u
 from ...units import UnitsError
 from ...tests.helper import pytest, assert_quantity_allclose
 
+
 class BaseTestModel(Fittable1DModel):
     @staticmethod
     def evaluate(x, a):
@@ -186,7 +187,6 @@ def test_parameter_default_units_match():
                                  "equivalent to the required unit Jy")
 
 
-
 @pytest.mark.parametrize(('unit', 'default'), ((u.m, 1.0), (None, 1 * u.m)))
 def test_parameter_defaults(unit, default):
     """
@@ -249,7 +249,6 @@ def test_parameter_quantity_arithmetic():
     # Addition should work if units are compatible
     assert g.mean + (1 * u.m) == 2 * u.m
     assert (1 * u.m) + g.mean == 2 * u.m
-
 
     # Multiplication by a scalar should also preserve the quantity-ness
     assert g.mean * 2 == (2 * u.m)

@@ -50,18 +50,18 @@ def test_median_absolute_deviation():
         mad = funcs.median_absolute_deviation(a)
         assert mad == 389.5
         mad = funcs.median_absolute_deviation(a, axis=0)
-        assert_allclose(mad, [[210.,  230.,  250.,  270.,  290.],
-                              [310.,  330.,  350.,  370.,  390.],
-                              [410.,  430.,  450.,  470.,  490.],
-                              [510.,  530.,  550.,  570.,  590.]])
+        assert_allclose(mad, [[210., 230., 250., 270., 290.],
+                              [310., 330., 350., 370., 390.],
+                              [410., 430., 450., 470., 490.],
+                              [510., 530., 550., 570., 590.]])
         mad = funcs.median_absolute_deviation(a, axis=1)
-        assert_allclose(mad, [[27.5,   32.5,   37.5,   42.5,   47.5],
-                              [127.5,  132.5,  137.5,  142.5,  147.5],
-                              [227.5,  232.5,  237.5,  242.5,  247.5]])
+        assert_allclose(mad, [[27.5, 32.5, 37.5, 42.5, 47.5],
+                              [127.5, 132.5, 137.5, 142.5, 147.5],
+                              [227.5, 232.5, 237.5, 242.5, 247.5]])
         mad = funcs.median_absolute_deviation(a, axis=2)
-        assert_allclose(mad, [[3.,   8.,  13.,  18.],
-                              [23.,  28.,  33.,  38.],
-                              [43.,  48.,  53.,  58.]])
+        assert_allclose(mad, [[3., 8., 13., 18.],
+                              [23., 28., 33., 38.],
+                              [43., 48., 53., 58.]])
 
 
 def test_median_absolute_deviation_masked():
@@ -367,7 +367,7 @@ def test_mad_std_withnan():
 
     if not NUMPY_LT_1_10:
         assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
-    assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan],  ignore_nan=True),
+    assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
                     1.482602218505602)
 
 
