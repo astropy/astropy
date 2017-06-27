@@ -867,13 +867,18 @@ class BaseAffineTransform(CoordinateTransform):
                 # differentials and re-represent as their original forms
                 newdiff = newrep.differentials['s']
                 _unit_cls = fromcoord.data.differentials['s']._unit_differential
-                newdiff = newdiff.represent_as(_unit_cls, fromcoord.data)
+                newdiff = newdiff.represent_as(_unit_cls, newrep)
 
                 kwargs = dict([(comp, getattr(newdiff, comp))
                                for comp in newdiff.components])
                 kwargs['d_distance'] = fromcoord.data.differentials['s'].d_distance
                 diffs = {'s': fromcoord.data.differentials['s'].__class__(
                     copy=False, **kwargs)}
+
+            elif has_velocity and unit_vel_diff:
+                newdiff = newrep.differentials['s'].represent_as(
+                    fromcoord.data.differentials['s'].__class__, newrep)
+                diffs = {'s': newdiff}
 
             else:
                 diffs = newrep.differentials
@@ -887,7 +892,8 @@ class BaseAffineTransform(CoordinateTransform):
         # having a RadialDifferential
         if has_velocity and rad_vel_diff:
             newrep = newrep.represent_as(fromcoord.data.__class__)
-            newrep = newrep.with_differentials({'s': fromcoord.data.differentials['s']})
+            newrep = newrep.with_differentials(
+                {'s': fromcoord.data.differentials['s']})
 
         return newrep
 

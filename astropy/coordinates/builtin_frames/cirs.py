@@ -3,49 +3,29 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..frame_attributes import TimeFrameAttribute
+
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .utils import DEFAULT_OBSTIME
 
-class CIRS(BaseCoordinateFrame):
+class CIRS(BaseRADecFrame):
     """
     A coordinate or frame in the Celestial Intermediate Reference System (CIRS).
 
-    This frame has one frame attribute:
+    The frame attributes are listed under **Other Parameters**.
 
-    * ``obstime``
+    {params}
+
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth and its precession.
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
-
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
-
-    default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
-#The "self-transform" is defined in icrs_cirs_transformations.py, because in
-#the current implementation it goes through ICRS (like GCRS)
+CIRS.__doc__ = CIRS.__doc__.format(params=_base_radec_docstring)
+
+# The "self-transform" is defined in icrs_cirs_transformations.py, because in
+# the current implementation it goes through ICRS (like GCRS)

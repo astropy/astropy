@@ -5,13 +5,14 @@
 from __future__ import (absolute_import, division, print_function)
 
 from ... import units as u
+from ...utils.compat import namedtuple_asdict
+from .. import representation as r
 from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
 from ..frame_attributes import CoordinateAttribute, QuantityFrameAttribute
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
-from ...utils.compat import namedtuple_asdict
 
 _skyoffset_cache = {}
 
@@ -66,6 +67,7 @@ def make_skyoffset_cls(framecls):
             # SkyOffsetFrame class initially.
             members['_frame_specific_representation_info'] = framecls._frame_specific_representation_info
             members['_default_representation'] = framecls._default_representation
+            members['_default_differential'] = framecls._default_differential
 
             newname = name[:-5] if name.endswith('Frame') else name
             newname += framecls.__name__
@@ -76,8 +78,9 @@ def make_skyoffset_cls(framecls):
             # instead of e.g. "ra" and "dec"
 
             lists_done = []
-            for nm, component_list in res._frame_specific_representation_info.items():
-                if nm in ('spherical', 'unitspherical'):
+            for cls_, component_list in res._frame_specific_representation_info.items():
+                if cls_ in (r.SphericalRepresentation,
+                            r.UnitSphericalRepresentation):
                     gotlatlon = []
                     for i, comp in enumerate(component_list):
                         if component_list in lists_done:
@@ -95,12 +98,18 @@ def make_skyoffset_cls(framecls):
                             dct['framename'] = comp.reprname
                             component_list[i] = type(comp)(**dct)
                             gotlatlon.append(comp.reprname)
+
                     if 'lon' not in gotlatlon:
                         rmlon = RepresentationMapping('lon', 'lon', 'recommended')
                         component_list.insert(0, rmlon)
+
                     if 'lat' not in gotlatlon:
                         rmlat = RepresentationMapping('lat', 'lat', 'recommended')
                         component_list.insert(0, rmlat)
+
+                    # TODO: we could support proper motions / velocities in sky
+                    # offset frames.
+
                     lists_done.append(component_list)
 
             return res
@@ -215,3 +224,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
                              'data.')
         if self.has_data and hasattr(self.data, 'lon'):
             self.data.lon.wrap_angle = 180*u.deg
+        if (self.origin is not None and getattr(self.origin.data, 'differentials', None) or
+           (self.has_data and getattr(self.data, 'differentials', None))):
+            raise NotImplementedError('SkyOffsetFrame currently does not '
+                                      'support velocities.')

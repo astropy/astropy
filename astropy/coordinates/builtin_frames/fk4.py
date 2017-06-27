@@ -5,59 +5,42 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
+from ...extern.six.moves import range
 from ... import units as u
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                              UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping)
+from ..baseframe import frame_transform_graph
 from ..frame_attributes import TimeFrameAttribute
 from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..representation import (CartesianRepresentation,
+                              UnitSphericalRepresentation)
 from .. import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
+from .baseradec import _base_radec_docstring, BaseRADecFrame
 
-from ...extern.six.moves import range
-
-
-class FK4(BaseCoordinateFrame):
+class FK4(BaseRADecFrame):
     """
     A coordinate or frame in the FK4 system.
 
     Note that this is a barycentric version of FK4 - that is, the origin for
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    equinox : astropy.time.Time, optional, must be keyword
-        The equinox of this frame.
-    obstime : astropy.time.Time, optional, must be keyword
-        The time this frame was observed.  If None, will be the same as
-        ``equinox``.
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-    """
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    The frame attributes are listed under **Other Parameters**.
 
-    default_representation = SphericalRepresentation
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The equinox of this frame.
+    obstime : `~astropy.time.Time`
+        The time this frame was observed.  If ``None``, will be the same as
+        ``equinox``.
+    """
+
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+
+FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
@@ -69,39 +52,24 @@ def fk4_to_fk4(fk4coord1, fk4frame2):
     return fnoe_w_eqx2.transform_to(fk4frame2)
 
 
-class FK4NoETerms(BaseCoordinateFrame):
+class FK4NoETerms(BaseRADecFrame):
     """
     A coordinate or frame in the FK4 system, but with the E-terms of aberration
     removed.
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-    ra : `Angle`, optional, must be keyword
-        The RA for this object (``dec`` must also be given and ``representation``
-        must be None).
-    dec : `Angle`, optional, must be keyword
-        The Declination for this object (``ra`` must also be given and
-        ``representation`` must be None).
-    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-    obstime : astropy.time.Time, optional, must be keyword
-        The time this frame was observed.  If None, will be the same as
-        ``equinox``.
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-    """
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
+    The frame attributes are listed under **Other Parameters**.
 
-    default_representation = SphericalRepresentation
+    {params}
+
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The equinox of this frame.
+    obstime : `~astropy.time.Time`
+        The time this frame was observed.  If ``None``, will be the same as
+        ``equinox``.
+    """
+
     equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
@@ -125,6 +93,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         """
         return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
+FK4NoETerms.__doc__ = FK4NoETerms.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
