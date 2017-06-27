@@ -386,12 +386,12 @@ def test_unit_spherical_with_differentials(rep):
 
 def test_vel_transformation_obstime_err():
     # TODO: replace after a final decision on PR #6280
-    from .. import EarthLocation
+    from ..sites import get_builtin_sites
 
     diff = r.CartesianDifferential([.1, .2, .3]*u.km/u.s)
     rep = r.CartesianRepresentation([1, 2, 3]*u.au, differentials=diff)
 
-    loc = EarthLocation.of_site('example_site')
+    loc = get_builtin_sites()['example_site']
 
     aaf = AltAz(obstime='J2010', location=loc)
     aaf2 = AltAz(obstime=aaf.obstime + 3*u.day, location=loc)
