@@ -11,12 +11,13 @@ from ...tests.helper import quantity_allclose
 from ... import units as u
 from ... import constants
 from ...time import Time
-from ..builtin_frames import ICRS, AltAz, LSR, GCRS
+from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
 from ..baseframe import frame_transform_graph
 from .. import (EarthLocation, TimeFrameAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
-                CartesianDifferential, SphericalDifferential)
+                CartesianDifferential, SphericalDifferential,
+                DynamicMatrixTransform)
 
 J2000 = Time('J2000')
 
@@ -66,6 +67,43 @@ def test_faux_lsr(dt, symmetric):
 
     tot = np.sum(lsrc2.cartesian.differentials['s'].d_xyz**2)**0.5
     assert np.abs(tot.to('km/s') - 1000*u.km/u.s) < 20*u.km/u.s
+
+
+def test_faux_fk5_galactic():
+
+    from ..builtin_frames.galactic_transforms import fk5_to_gal, _gal_to_fk5
+
+    class Galactic2(Galactic):
+        pass
+
+    dt = 1*u.s
+
+    @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                     FK5, Galactic2, finite_difference_dt=dt,
+                                     symmetric_finite_difference=True,
+                                     finite_difference_frameattr_name=None)
+    def fk5_to_gal2(fk5_coo, gal_frame):
+        trans = DynamicMatrixTransform(fk5_to_gal, FK5, Galactic2)
+        return trans(fk5_coo, gal_frame)
+
+    @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                     Galactic2, ICRS, finite_difference_dt=dt,
+                                     symmetric_finite_difference=True,
+                                     finite_difference_frameattr_name=None)
+    def gal2_to_fk5(gal_coo, fk5_frame):
+        trans = DynamicMatrixTransform(_gal_to_fk5, Galactic2, FK5)
+        return trans(gal_coo, fk5_frame)
+
+    c1 = FK5(ra=150*u.deg, dec=-17*u.deg, radial_velocity=83*u.km/u.s,
+             pm_ra_cosdec=-41*u.mas/u.yr, pm_dec=16*u.mas/u.yr,
+             distance=150*u.pc)
+    c2 = c1.transform_to(Galactic2)
+    c3 = c1.transform_to(Galactic)
+
+    # compare the matrix and finite-difference calculations
+    assert quantity_allclose(c2.pm_l_cosb, c3.pm_l_cosb, rtol=5e-3)
+    assert quantity_allclose(c2.pm_b, c3.pm_b, rtol=5e-3)
+
 
 def test_gcrs_diffs():
     time = Time('J2017')
