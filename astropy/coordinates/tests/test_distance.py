@@ -35,7 +35,7 @@ def test_distances():
     coordinate.
     '''
 
-    #try all the different ways to initialize a Distance
+    # try all the different ways to initialize a Distance
     distance = Distance(12, u.parsec)
     Distance(40, unit=u.au)
     Distance(value=5, unit=u.kpc)
@@ -53,12 +53,11 @@ def test_distances():
     c = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree,
                  distance=Distance(12, u.parsec))
 
-    #or initialize distances via redshifts - this is actually tested in the
-    #function below that checks for scipy. This is kept here as an example
-    #c.distance = Distance(z=0.2)  # uses current cosmology
-    #with whatever your preferred cosmology may be
-    #c.distance = Distance(z=0.2, cosmology=WMAP5)
-
+    # or initialize distances via redshifts - this is actually tested in the
+    # function below that checks for scipy. This is kept here as an example
+    # c.distance = Distance(z=0.2)  # uses current cosmology
+    # with whatever your preferred cosmology may be
+    # c.distance = Distance(z=0.2, cosmology=WMAP5)
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
@@ -98,7 +97,7 @@ def test_distances():
     # CartesianRepresentation objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
-    #csum = ICRS(c1.cartesian + c2.cartesian)
+    # csum = ICRS(c1.cartesian + c2.cartesian)
     csumrep = CartesianRepresentation(c1.cartesian.xyz + c2.cartesian.xyz)
     csum = ICRS(csumrep)
 
@@ -118,7 +117,7 @@ def test_distances_scipy():
     """
     from ...cosmology import WMAP5
 
-    #try different ways to initialize a Distance
+    # try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
     npt.assert_allclose(d4.z, 0.23, rtol=1e-8)
 
@@ -138,11 +137,11 @@ def test_distance_change():
     oldx = c1.cartesian.x.value
     assert (oldx - 0.35284083171901953) < 1e-10
 
-    #first make sure distances are immutible
+    # first make sure distances are immutible
     with pytest.raises(AttributeError):
         c1.distance = Distance(2, unit=u.kpc)
 
-    #now x should increase with a bigger distance increases
+    # now x should increase with a bigger distance increases
     c2 = ICRS(ra, dec, Distance(2, unit=u.kpc))
     assert c2.cartesian.x.value == oldx * 2
 
@@ -195,15 +194,14 @@ def test_distmod():
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
 
-    #check the Mpc/kpc/pc behavior
+    # check the Mpc/kpc/pc behavior
     assert Distance(distmod=1).unit == u.pc
     assert Distance(distmod=11).unit == u.kpc
     assert Distance(distmod=26).unit == u.Mpc
     assert Distance(distmod=-21).unit == u.AU
 
-    #if an array, uses the mean of the log of the distances
+    # if an array, uses the mean of the log of the distances
     assert Distance(distmod=[1, 11, 26]).unit == u.kpc
-
 
 
 def test_distance_in_coordinates():

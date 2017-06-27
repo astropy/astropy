@@ -13,10 +13,11 @@ from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_contents
 from ....extern.six.moves import range
 
-#the number of tests to run
+# the number of tests to run
 from . import N_ACCURACY_TESTS
 
 TOLERANCE = 0.3  # arcseconds
+
 
 def test_galactic_fk4():
     lines = get_pkg_data_contents('galactic_fk4.csv').split('\n')

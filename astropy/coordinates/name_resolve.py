@@ -152,7 +152,7 @@ def get_icrs_coordinates(name):
     # All Sesame URL's failed...
     else:
         messages = ["{url}: {e.reason}".format(url=url, e=e)
-                    for url,e in zip(urls, exceptions)]
+                    for url, e in zip(urls, exceptions)]
         raise NameResolveError("All Sesame queries failed. Unable to "
                                "retrieve coordinates. See errors per URL "
                                "below: \n {}".format("\n".join(messages)))

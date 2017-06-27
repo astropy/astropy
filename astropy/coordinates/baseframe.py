@@ -354,7 +354,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             self._data = representation_data.with_differentials(
                 {'s': differential_data})
         else:
-            self._data= representation_data  # possibly None.
+            self._data = representation_data  # possibly None.
 
         values = {}
         for fnm, fdefault in self.get_frame_attr_names().items():

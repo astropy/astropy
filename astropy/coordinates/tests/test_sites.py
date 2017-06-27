@@ -8,6 +8,7 @@ from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
 
+
 def test_builtin_sites():
     reg = get_builtin_sites()
 
@@ -26,6 +27,7 @@ def test_builtin_sites():
     with pytest.raises(KeyError) as exc:
         reg['nonexistent site']
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
+
 
 @remote_data(source='astropy')
 def test_online_stes():
@@ -72,6 +74,7 @@ def test_EarthLocation_basic():
         EarthLocation.of_site('nonexistent site')
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use EarthLocation.get_site_names to see available sites."
 
+
 def test_EarthLocation_state_offline():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_builtin=True)
@@ -103,7 +106,7 @@ def test_registry():
     assert len(reg.names) == 0
 
     names = ['sitea', 'site A']
-    loc = EarthLocation.from_geodetic(lat=1*u.deg, lon=2*u.deg,height=3*u.km)
+    loc = EarthLocation.from_geodetic(lat=1*u.deg, lon=2*u.deg, height=3*u.km)
     reg.add_site(names, loc)
 
     assert len(reg.names) == 2
@@ -113,6 +116,7 @@ def test_registry():
 
     loc2 = reg['sIte a']
     assert loc2 is loc
+
 
 def test_non_EarthLocation():
     """
@@ -130,6 +134,7 @@ def test_non_EarthLocation():
     el2 = EarthLocation2.of_site('greenwich')
     assert type(el2) is EarthLocation2
     assert el2.info.name == 'Royal Observatory Greenwich'
+
 
 def check_builtin_matches_remote(download_url=True):
     """

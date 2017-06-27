@@ -197,7 +197,6 @@ class SkyCoord(ShapedLikeNDArray):
     # info property.
     info = SkyCoordInfo()
 
-
     def __init__(self, *args, **kwargs):
 
         # Parse the args and kwargs to assemble a sanitized and validated
@@ -696,7 +695,7 @@ class SkyCoord(ShapedLikeNDArray):
                     return False
             return True
         else:
-            #not a BaseCoordinateFrame nor a SkyCoord object
+            # not a BaseCoordinateFrame nor a SkyCoord object
             raise TypeError("Tried to do is_equivalent_frame on something that "
                             "isn't frame-like")
 
@@ -1313,7 +1312,7 @@ class SkyCoord(ShapedLikeNDArray):
                              'also a  `location` attribute on this SkyCoord or '
                              'the passed-in `obstime`.')
 
-        #obstime validation
+        # obstime validation
         if obstime is None:
             obstime = self.obstime
             if obstime is None:
@@ -1326,8 +1325,6 @@ class SkyCoord(ShapedLikeNDArray):
                              '`obstime` argument is passed in and it is '
                              'inconsistent with the `obstime` frame '
                              'attribute on the SkyCoord')
-
-
 
         if kind == 'barycentric':
             v_origin_to_earth = get_body_barycentric_posvel('earth', obstime)[1]
@@ -1399,8 +1396,8 @@ class SkyCoord(ShapedLikeNDArray):
             # this part matches stuff like 'center_ra', but *not*
             # 'aura'
             ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
-            #the final regex ORs together the two patterns
-            rex = re.compile('(' +starts_with_comp + ')|(' + ends_with_comp + ')',
+            # the final regex ORs together the two patterns
+            rex = re.compile('(' + starts_with_comp + ')|(' + ends_with_comp + ')',
                              re.IGNORECASE | re.UNICODE)
 
             for col_name in table.colnames:
@@ -1700,7 +1697,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             values = []
             for data_attr_name, repr_attr_name in zip(frame_attr_names, repr_attr_names):
                 if allunitsphrepr and repr_attr_name == 'distance':
-                    #if they are *all* UnitSpherical, don't give a distance
+                    # if they are *all* UnitSpherical, don't give a distance
                     continue
                 data_vals = []
                 for sc in scs:
@@ -1712,8 +1709,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                     concat_vals._unit = data_val.unit
                 values.append(concat_vals)
         else:
-            #none of the elements are "frame-like"
-            #turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+            # none of the elements are "frame-like"
+            # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
             for coord in coords:
                 if isinstance(coord, six.string_types):
                     coord1 = coord.split()
