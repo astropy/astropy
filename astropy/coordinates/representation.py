@@ -2350,6 +2350,10 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
     """
     base_representation = UnitSphericalRepresentation
 
+    @classproperty
+    def _dimensional_differential(cls):
+        return SphericalDifferential
+
     def __init__(self, d_lon, d_lat, copy=True):
         super(UnitSphericalDifferential,
               self).__init__(d_lon, d_lat, copy=copy)
@@ -2550,6 +2554,10 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     base_representation = UnitSphericalRepresentation
     attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
                                 ('d_lat', u.Quantity)])
+
+    @classproperty
+    def _dimensional_differential(cls):
+        return SphericalCosLatDifferential
 
     def __init__(self, d_lon_coslat, d_lat, copy=True):
         super(UnitSphericalCosLatDifferential,
