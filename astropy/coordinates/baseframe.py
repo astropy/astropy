@@ -1012,11 +1012,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 rep_cls = self.representation
 
             if 's' in self.data.differentials:
-                data = self.represent_as(rep_cls,
-                                         self.get_representation_cls('s'),
-                                         in_frame_units=True)
+                dif_cls = self.get_representation_cls('s')
+                dif_data = self.data.differentials['s']
+                if isinstance(dif_data, (r.UnitSphericalDifferential,
+                                         r.UnitSphericalCosLatDifferential,
+                                         r.RadialDifferential)):
+                    dif_cls = dif_data.__class__
+
             else:
-                data = self.represent_as(rep_cls, in_frame_units=True)
+                dif_cls = None
+
+            data = self.represent_as(rep_cls, dif_cls, in_frame_units=True)
 
             data_repr = repr(data)
             for nmpref, nmrepr in self.representation_component_names.items():
