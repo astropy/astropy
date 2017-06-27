@@ -31,6 +31,8 @@ In particular, this release includes:
 * :ref:`whatsnew-2.0-no-bundled-pytest`
 * :ref:`whatsnew-2.0-ccddata-class`
 * :ref:`whatsnew-2.0-ascii-ecsv-mixins`
+* :ref:`whatsnew-2.0-velocity-corrections`
+* :ref:`whatsnew-2.0-coordinates-velocities`
 
 In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -340,6 +342,29 @@ into astropy with no loss of object data or attributes.
 - `astropy.coordinates.Distance`
 - `astropy.coordinates.EarthLocation`
 - `astropy.coordinates.SkyCoord`
+
+
+.. _whatsnew-2.0-velocity-corrections:
+
+Barycentric/heliocentric radial velocity corrections
+====================================================
+
+`astropy.coordinates.SkyCoord` now have a
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` method which can be
+used to compute heliocentric and barycentric corrections for radial velocity
+measurements.  While in the future this may use the mechanisms described
+in :ref:`whatsnew-2.0-coordinates-velocities`, currently it uses a simpler
+algorithm for numerical stability.
+
+
+.. _whatsnew-2.0-coordinates-velocities:
+
+Experimental velocity support in ``astropy.coordinates``
+========================================================
+
+``astropy.coordinates`` frame objects now contains experimental support for
+storing and transforming velocities.  This includes support for "differential"
+objects which contain differences of representations.
 
 
 Full change log
