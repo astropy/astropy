@@ -755,7 +755,7 @@ class FunctionTransform(CoordinateTransform):
         return res
 
 class FunctionTransformWithFiniteDifference(FunctionTransform):
-    """
+    r"""
     A coordinate transformation that works like a `FunctionTransform`, but
     computes velocity shifts based on the finite-difference relative to one of
     the frame attributes.  Note that the transform function should *not* change
