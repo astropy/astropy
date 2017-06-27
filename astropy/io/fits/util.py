@@ -592,6 +592,7 @@ def fill(text, width, *args, **kwargs):
 # time it is needed.
 CHUNKED_FROMFILE = None
 
+
 def _array_from_file(infile, dtype, count, sep):
     """Create a numpy array from a file or a file-like object."""
 
@@ -629,6 +630,7 @@ def _array_from_file(infile, dtype, count, sep):
 _OSX_WRITE_LIMIT = (2 ** 32) - 1
 _WIN_WRITE_LIMIT = (2 ** 31) - 1
 
+
 def _array_to_file(arr, outfile):
     """
     Write a numpy array to a file or a file-like object.
@@ -645,7 +647,6 @@ def _array_to_file(arr, outfile):
     If writing directly to an on-disk file this delegates directly to
     `ndarray.tofile`.  Otherwise a slower Python implementation is used.
     """
-
 
     if isfile(outfile):
         write = lambda a, f: a.tofile(f)

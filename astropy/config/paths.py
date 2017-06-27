@@ -29,7 +29,6 @@ def _find_home():
         directories.
     """
 
-
     # this is used below to make fix up encoding issues that sometimes crop up
     # in py2.x but not in py3.x
     if six.PY2:

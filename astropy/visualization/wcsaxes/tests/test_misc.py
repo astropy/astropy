@@ -90,6 +90,7 @@ def test_invalid_frame_overlay():
         get_coord_meta('banana')
     assert exc.value.args[0] == 'Unknown frame: banana'
 
+
 def test_plot_coord_transform():
 
     twoMASS_k_header = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), 'data')), '2MASS_k_header')
@@ -146,6 +147,7 @@ CRVAL3  =                  0.0
 CDELT3  =                0.125
 CRPIX3  =                241.0
 """, sep='\n')
+
 
 def test_slicing_warnings(tmpdir):
 

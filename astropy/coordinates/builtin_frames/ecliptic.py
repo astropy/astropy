@@ -48,6 +48,7 @@ _base_ecliptic_docstring = """.. warning::
         Can only be passed in as a keyword argument.
 """
 
+
 class BaseEclipticFrame(BaseCoordinateFrame):
     """
     A base class for frames that have names and conventions like that of
@@ -77,8 +78,10 @@ class BaseEclipticFrame(BaseCoordinateFrame):
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
+
 BaseEclipticFrame.__doc__ = BaseEclipticFrame.__doc__.format(
     params=_base_ecliptic_docstring)
+
 
 class GeocentricTrueEcliptic(BaseEclipticFrame):
     """

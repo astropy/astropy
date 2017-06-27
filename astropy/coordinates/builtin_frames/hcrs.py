@@ -38,6 +38,7 @@ class HCRS(BaseRADecFrame):
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
+
 HCRS.__doc__ = HCRS.__doc__.format(params=_base_radec_docstring)
 
 # Transformations are defined in icrs_circ_transforms.py

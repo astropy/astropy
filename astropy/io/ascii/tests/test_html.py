@@ -30,6 +30,7 @@ try:
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
 
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_soupstring():
     """
@@ -42,6 +43,7 @@ def test_soupstring():
     assert isinstance(soup_str, html.SoupString)
     assert soup_str == '<html><head></head><body><p>foo</p></body></html>'
     assert soup_str.soup is soup
+
 
 def test_listwriter():
     """
@@ -58,6 +60,7 @@ def test_listwriter():
 
     assert lst == [0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e']
 
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_identify_table():
     """
@@ -73,7 +76,7 @@ def test_identify_table():
     soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
                          '<td>B</td></tr></table>').table
     assert html.identify_table(soup, {}, 2) is False
-    assert html.identify_table(soup, {}, 1) is True # Default index of 1
+    assert html.identify_table(soup, {}, 1) is True  # Default index of 1
 
     # Same tests, but with explicit parameter
     assert html.identify_table(soup, {'table_id': 2}, 1) is False
@@ -192,6 +195,7 @@ def test_backend_parsers():
         Table.read('t/html2.html', format='ascii.html',
                    htmldict={'parser': 'foo'}, guess=False)
 
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
@@ -202,6 +206,7 @@ def test_htmlinputter_no_bs4():
     inputter = html.HTMLInputter()
     with pytest.raises(core.OptionalTableImportError):
         inputter.process_lines([])
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter():
@@ -245,6 +250,7 @@ def test_htmlinputter():
                 '<tr><td>9</td><td>i</td><td>-125.0</td></tr>']
     assert [str(x) for x in inputter.get_lines(table)] == expected
 
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlsplitter():
     """
@@ -268,6 +274,7 @@ def test_htmlsplitter():
     # Make sure that passing an empty list triggers an error
     with pytest.raises(core.InconsistentTableError):
         list(splitter([]))
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlheader_start():
@@ -306,6 +313,7 @@ def test_htmlheader_start():
     lines.append('<tr><th>Header</th></tr>')
     with pytest.raises(TypeError):
         header.start_line(lines)
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmldata():
@@ -359,6 +367,7 @@ def test_htmldata():
         data.start_line(lines)
     with pytest.raises(TypeError):
         data.end_line(lines)
+
 
 def test_multicolumn_write():
     """
@@ -416,6 +425,7 @@ def test_multicolumn_write():
     """
     out = html.HTML().write(table)[0].strip()
     assert out == expected.strip()
+
 
 @pytest.mark.skipif('not HAS_BLEACH')
 def test_multicolumn_write_escape():
@@ -475,6 +485,7 @@ def test_multicolumn_write_escape():
     out = html.HTML(htmldict={'raw_html_cols': 'C3'}).write(table)[0].strip()
     assert out == expected.strip()
 
+
 def test_write_no_multicols():
     """
     Test to make sure that the HTML writer will not use
@@ -520,8 +531,9 @@ def test_write_no_multicols():
  </body>
 </html>
     """
-    assert html.HTML({'multicol':False}).write(table)[0].strip() == \
+    assert html.HTML({'multicol': False}).write(table)[0].strip() == \
                                                    expected.strip()
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_multicolumn_read():
@@ -540,6 +552,7 @@ def test_multicolumn_read():
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))
     assert np.all(table == expected)
+
 
 @pytest.mark.skipif('not HAS_BLEACH')
 def test_raw_html_write():
@@ -607,6 +620,7 @@ def test_raw_html_write_clean():
    </tr>"""
     assert expected in out.getvalue()
 
+
 def test_write_table_html_fill_values():
     """
     Test that passing fill_values should replace any matching row
@@ -621,6 +635,7 @@ def test_write_table_html_fill_values():
     ascii.write(t_expected, buffer_expected, format='html')
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
+
 
 def test_write_table_html_fill_values_optional_columns():
     """
@@ -638,6 +653,7 @@ def test_write_table_html_fill_values_optional_columns():
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
 
+
 def test_write_table_html_fill_values_masked():
     """
     Test that passing masked values in fill_values should only replace
@@ -654,6 +670,7 @@ def test_write_table_html_fill_values_masked():
     ascii.write(t_expected, buffer_expected, format='html')
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
+
 
 def test_multicolumn_table_html_fill_values():
     """
@@ -679,6 +696,7 @@ def test_multicolumn_table_html_fill_values():
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
 
+
 def test_multi_column_write_table_html_fill_values_masked():
     """
     Test that passing masked values in fill_values should only replace
@@ -697,6 +715,7 @@ def test_multi_column_write_table_html_fill_values_masked():
     print(buffer_expected.getvalue())
 
     assert buffer_output.getvalue() == buffer_expected.getvalue()
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_read_html_unicode():

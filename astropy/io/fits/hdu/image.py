@@ -73,17 +73,17 @@ class _ImageBaseHDU(_ValidHDU):
                 c0 = ('SIMPLE', True, self.standard_keyword_comments['SIMPLE'])
             cards = [
                 c0,
-                ('BITPIX',    8, self.standard_keyword_comments['BITPIX']),
-                ('NAXIS',     0, self.standard_keyword_comments['NAXIS'])]
+                ('BITPIX', 8, self.standard_keyword_comments['BITPIX']),
+                ('NAXIS', 0, self.standard_keyword_comments['NAXIS'])]
 
             if isinstance(self, GroupsHDU):
                 cards.append(('GROUPS', True,
                              self.standard_keyword_comments['GROUPS']))
 
             if isinstance(self, (ExtensionHDU, GroupsHDU)):
-                cards.append(('PCOUNT',    0,
+                cards.append(('PCOUNT', 0,
                               self.standard_keyword_comments['PCOUNT']))
-                cards.append(('GCOUNT',    1,
+                cards.append(('GCOUNT', 1,
                               self.standard_keyword_comments['GCOUNT']))
 
             if header is not None:
@@ -302,7 +302,6 @@ class _ImageBaseHDU(_ValidHDU):
         self._orig_bitpix = self._bitpix
         self._orig_bscale = self._bscale
         self._orig_bzero = self._bzero
-
 
         # returning the data signals to lazyproperty that we've already handled
         # setting self.__dict__['data']

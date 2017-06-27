@@ -238,22 +238,22 @@ class Result(object):
 
 
 def get_result_subsets(results, root, s=None):
-    all_results      = []
-    correct          = []
-    not_expected     = []
-    fail_schema      = []
-    schema_mismatch  = []
-    fail_votlint     = []
+    all_results = []
+    correct = []
+    not_expected = []
+    fail_schema = []
+    schema_mismatch = []
+    fail_votlint = []
     votlint_mismatch = []
     network_failures = []
-    version_10       = []
-    version_11       = []
-    version_12       = []
-    version_unknown  = []
-    has_warnings     = []
-    warning_set      = {}
-    has_exceptions   = []
-    exception_set    = {}
+    version_10 = []
+    version_11 = []
+    version_12 = []
+    version_unknown = []
+    has_warnings = []
+    warning_set = {}
+    has_exceptions = []
+    exception_set = {}
 
     for url in results:
         if s:

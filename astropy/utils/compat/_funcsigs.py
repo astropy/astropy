@@ -192,11 +192,11 @@ class _ParameterKind(int):
         return '<_ParameterKind: {0!r}>'.format(self._name)
 
 
-_POSITIONAL_ONLY        = _ParameterKind(0, name='POSITIONAL_ONLY')
-_POSITIONAL_OR_KEYWORD  = _ParameterKind(1, name='POSITIONAL_OR_KEYWORD')
-_VAR_POSITIONAL         = _ParameterKind(2, name='VAR_POSITIONAL')
-_KEYWORD_ONLY           = _ParameterKind(3, name='KEYWORD_ONLY')
-_VAR_KEYWORD            = _ParameterKind(4, name='VAR_KEYWORD')
+_POSITIONAL_ONLY = _ParameterKind(0, name='POSITIONAL_ONLY')
+_POSITIONAL_OR_KEYWORD = _ParameterKind(1, name='POSITIONAL_OR_KEYWORD')
+_VAR_POSITIONAL = _ParameterKind(2, name='VAR_POSITIONAL')
+_KEYWORD_ONLY = _ParameterKind(3, name='KEYWORD_ONLY')
+_VAR_KEYWORD = _ParameterKind(4, name='VAR_KEYWORD')
 
 
 class Parameter(object):
@@ -221,11 +221,11 @@ class Parameter(object):
 
     __slots__ = ('_name', '_kind', '_default', '_annotation', '_partial_kwarg')
 
-    POSITIONAL_ONLY         = _POSITIONAL_ONLY
-    POSITIONAL_OR_KEYWORD   = _POSITIONAL_OR_KEYWORD
-    VAR_POSITIONAL          = _VAR_POSITIONAL
-    KEYWORD_ONLY            = _KEYWORD_ONLY
-    VAR_KEYWORD             = _VAR_KEYWORD
+    POSITIONAL_ONLY = _POSITIONAL_ONLY
+    POSITIONAL_OR_KEYWORD = _POSITIONAL_OR_KEYWORD
+    VAR_POSITIONAL = _VAR_POSITIONAL
+    KEYWORD_ONLY = _KEYWORD_ONLY
+    VAR_KEYWORD = _VAR_KEYWORD
 
     empty = _empty
 

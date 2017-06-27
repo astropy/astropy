@@ -17,6 +17,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+
 class TestConvolve1DModels(object):
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')

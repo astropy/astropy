@@ -30,6 +30,7 @@ def internet_on():
         except Exception:
             return False
 
+
 __all__ = ["SAMPMsgReplierWrapper"]
 
 __doctest_skip__ = ['.']

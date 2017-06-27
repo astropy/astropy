@@ -22,4 +22,5 @@ class ICRS(BaseRADecFrame):
     {params}
     """
 
+
 ICRS.__doc__ = ICRS.__doc__.format(params=_base_radec_docstring)

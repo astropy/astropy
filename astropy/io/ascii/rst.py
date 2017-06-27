@@ -11,6 +11,7 @@ from .fixedwidth import (FixedWidth,
                          FixedWidthHeader,
                          FixedWidthTwoLineDataSplitter)
 
+
 class SimpleRSTHeader(FixedWidthHeader):
     position_line = 0
     start_line = 1
@@ -23,10 +24,12 @@ class SimpleRSTHeader(FixedWidthHeader):
         ends[-1] = None
         return vals, starts, ends
 
+
 class SimpleRSTData(FixedWidthData):
     start_line = 3
     end_line = -1
     splitter_class = FixedWidthTwoLineDataSplitter
+
 
 class RST(FixedWidth):
     """

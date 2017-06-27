@@ -104,7 +104,7 @@ class TestKernels(object):
         assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
 
     @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
-    def test_delta_data(self, kernel_type,  width):
+    def test_delta_data(self, kernel_type, width):
         """
         Test smoothing of an image with a single positive pixel
         """
@@ -271,7 +271,7 @@ class TestKernels(object):
         """
         Check CustomKernel against Box1DKernel.
         """
-        #Define one dimensional array:
+        # Define one dimensional array:
         array = np.ones(5)
         custom = CustomKernel(array)
         custom.normalize()
@@ -285,7 +285,7 @@ class TestKernels(object):
         """
         Check CustomKernel against Box2DKernel.
         """
-        #Define one dimensional array:
+        # Define one dimensional array:
         array = np.ones((5, 5))
         custom = CustomKernel(array)
         custom.normalize()

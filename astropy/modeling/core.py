@@ -434,13 +434,13 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             cls.__init__ = new_init
 
     # *** Arithmetic operators for creating compound models ***
-    __add__ =     _model_oper('+')
-    __sub__ =     _model_oper('-')
-    __mul__ =     _model_oper('*')
+    __add__ = _model_oper('+')
+    __sub__ = _model_oper('-')
+    __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ =     _model_oper('**')
-    __or__ =      _model_oper('|')
-    __and__ =     _model_oper('&')
+    __pow__ = _model_oper('**')
+    __or__ = _model_oper('|')
+    __and__ = _model_oper('&')
 
     if six.PY2:
         # The classic __div__ operator need only be implemented for Python 2
@@ -806,13 +806,13 @@ class Model(object):
             return outputs
 
     # *** Arithmetic operators for creating compound models ***
-    __add__ =     _model_oper('+')
-    __sub__ =     _model_oper('-')
-    __mul__ =     _model_oper('*')
+    __add__ = _model_oper('+')
+    __sub__ = _model_oper('-')
+    __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ =     _model_oper('**')
-    __or__ =      _model_oper('|')
-    __and__ =     _model_oper('&')
+    __pow__ = _model_oper('**')
+    __or__ = _model_oper('|')
+    __and__ = _model_oper('&')
 
     if six.PY2:
         __div__ = _model_oper('/')
@@ -1664,7 +1664,7 @@ class Model(object):
         n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
-                    (isinstance(n_models, (int, np.integer)) and n_models >=1)):
+                    (isinstance(n_models, (int, np.integer)) and n_models >= 1)):
             raise ValueError(
                 "n_models must be either None (in which case it is "
                 "determined from the model_set_axis of the parameter initial "
@@ -2067,6 +2067,7 @@ class Model(object):
 
         return '\n'.join(parts)
 
+
 class FittableModel(Model):
     """
     Base class for models that can be fitted using the built-in fitting
@@ -2258,7 +2259,6 @@ class _CompoundModelMeta(_ModelMeta):
                 del rv[1][2]['_evaluate']
 
         return rv
-
 
     @property
     def submodel_names(cls):
@@ -2613,7 +2613,7 @@ class _CompoundModelMeta(_ModelMeta):
                 # here specifically to support the legacy compat
                 # _CompositeModel which can be considered a pathological case
                 # in the context of the new framework
-                #if not isinstance(getattr(model, param_name, None),
+                # if not isinstance(getattr(model, param_name, None),
                 #                  Parameter):
                 #    break
                 name = '{0}_{1}'.format(param_name, param_suffix + idx)
@@ -2874,7 +2874,6 @@ class _CompoundModel(Model):
                     "defined in order for the composite model to have an "
                     "inverse.  {0!r} does not have an inverse.".format(model))
 
-
         return self._tree.evaluate(operators, getter=getter)
 
     @sharedmethod
@@ -2889,6 +2888,7 @@ class _CompoundModel(Model):
                 param = self._param_map_inverse[(imodel, param_sub)]
                 units_for_data[param] = units_for_data_sub[param_sub]
         return units_for_data
+
 
 def custom_model(*args, **kwargs):
     """
@@ -3337,6 +3337,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
+
 
 copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)
 copyreg.pickle(_CompoundModelMeta, _CompoundModelMeta.__reduce__)

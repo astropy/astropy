@@ -140,7 +140,6 @@ class CompImageHeader(Header):
 
         super(CompImageHeader, self).__setitem__(key, value)
 
-
         if index is not None:
             remapped_keyword = self._remap_keyword(keyword)
             self._table_header[remapped_keyword, index] = value
@@ -1508,7 +1507,6 @@ class CompImageHDU(BinTableHDU):
         else:
             image_header.set('XTENSION', 'IMAGE', before=0)
 
-
         image_header.set('BITPIX', self._header['ZBITPIX'],
                          self._header.comments['ZBITPIX'], before=1)
 
@@ -1670,7 +1668,6 @@ class CompImageHDU(BinTableHDU):
 
             # First delete the original compressed data, if it exists
             del self.compressed_data
-
 
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty

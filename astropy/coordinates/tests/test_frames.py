@@ -93,11 +93,11 @@ def test_frame_subclass_attribute_descriptor():
 def test_create_data_frames():
     from ..builtin_frames import ICRS
 
-    #from repr
+    # from repr
     i1 = ICRS(r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
     i2 = ICRS(r.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
 
-    #from preferred name
+    # from preferred name
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
     i4 = ICRS(ra=1*u.deg, dec=2*u.deg)
 
@@ -108,7 +108,7 @@ def test_create_data_frames():
     assert i2.data.lat == i4.data.lat
     assert i2.data.lon == i4.data.lon
 
-    #now make sure the preferred names work as properties
+    # now make sure the preferred names work as properties
     assert_allclose(i1.ra, i3.ra)
     assert_allclose(i2.ra, i4.ra)
     assert_allclose(i1.distance, i3.distance)
@@ -154,9 +154,10 @@ def test_create_nodata_frames():
     f4 = FK4()
     assert f4.equinox == FK4.get_frame_attr_names()['equinox']
 
-    #obstime is special because it's a property that uses equinox if obstime is not set
+    # obstime is special because it's a property that uses equinox if obstime is not set
     assert f4.obstime in (FK4.get_frame_attr_names()['obstime'],
                           FK4.get_frame_attr_names()['equinox'])
+
 
 def test_no_data_nonscalar_frames():
     from ..builtin_frames import AltAz
@@ -190,8 +191,8 @@ def test_frame_repr():
                         '    ( 1.,  2.,  3.)>')
 
     # try with arrays
-    i2 = ICRS(ra=[1.1,2.1]*u.deg, dec=[2.1,3.1]*u.deg)
-    i3 = ICRS(ra=[1.1,2.1]*u.deg, dec=[-15.6,17.1]*u.deg, distance=[11.,21.]*u.kpc)
+    i2 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[2.1, 3.1]*u.deg)
+    i3 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[-15.6, 17.1]*u.deg, distance=[11., 21.]*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
                         '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
@@ -221,9 +222,9 @@ def test_converting_units():
 
     # Use values that aren't subject to rounding down to X.9999...
     i2 = ICRS(ra=2.*u.deg, dec=2.*u.deg)
-    i2_many = ICRS(ra=[2.,4.]*u.deg, dec=[2.,-8.1]*u.deg)
+    i2_many = ICRS(ra=[2., 4.]*u.deg, dec=[2., -8.1]*u.deg)
 
-    #converting from FK5 to ICRS and back changes the *internal* representation,
+    # converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
     i4 = i2.transform_to(FK5).transform_to(ICRS)
@@ -240,7 +241,7 @@ def test_converting_units():
     assert ri2_many == ri4_many
     assert i2_many.data.lon.unit != i4_many.data.lon.unit  # Internal repr changed
 
-    #but that *shouldn't* hold if we turn off units for the representation
+    # but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         frame_specific_representation_info = {
             'spherical': {'names': ('ra', 'dec', 'distance'),
@@ -305,7 +306,6 @@ def test_replicating():
     assert np.all(i.data.lat == irepl.data.lat)
     assert np.all(i.data.lat != icopy.data.lat)
 
-
     iclone = i.replicate_without_data()
     assert i.has_data
     assert not iclone.has_data
@@ -333,6 +333,7 @@ def test_getitem():
     iidx2 = i[0]
     assert iidx2.ra.isscalar
 
+
 def test_transform():
     """
     This test just makes sure the transform architecture works, but does *not*
@@ -350,24 +351,21 @@ def test_transform():
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
 
-
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
     assert i2.data.__class__ != r.UnitSphericalRepresentation
 
-
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
     f4 = f.transform_to(FK4)
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
-    #make sure attributes are copied over correctly
+    # make sure attributes are copied over correctly
     assert f4.equinox == FK4.get_frame_attr_names()['equinox']
     assert f4_2.equinox == f.equinox
 
-
-    #make sure self-transforms also work
+    # make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     i2 = i.transform_to(ICRS)
 
@@ -382,8 +380,7 @@ def test_transform():
     with pytest.raises(AssertionError):
         assert_allclose(f.dec, f2.dec)
 
-
-    #finally, check Galactic round-tripping
+    # finally, check Galactic round-tripping
     i1 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     i2 = i1.transform_to(Galactic).transform_to(ICRS)
 
@@ -395,7 +392,7 @@ def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
     from ..builtin_frames import ICRS, FK5
     from ...time import Time
-    times = Time('2016-08-23') + np.linspace(0,10,12)*u.day
+    times = Time('2016-08-23') + np.linspace(0, 10, 12)*u.day
     coo1 = ICRS(ra=[[0.], [10.], [20.]]*u.deg,
                 dec=[[-30.], [30.], [60.]]*u.deg)
     coo2 = coo1.transform_to(FK5(equinox=times))
@@ -439,7 +436,7 @@ def test_time_inputs():
 
     # A vector time should work if the shapes match, but we don't automatically
     # broadcast the basic data (just like time).
-    FK4([1, 2]* u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
+    FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
     with pytest.raises(ValueError) as err:
         FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
     assert 'shape' in str(err)
@@ -591,11 +588,12 @@ def test_represent_as():
     with pytest.raises(ValueError):
         icrs.represent_as('odaigahara')
 
+
 def test_shorthand_representations():
     from ..builtin_frames import ICRS
 
-    rep = r.CartesianRepresentation([1,2,3]*u.pc)
-    dif = r.CartesianDifferential([1,2,3]*u.km/u.s)
+    rep = r.CartesianRepresentation([1, 2, 3]*u.pc)
+    dif = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
     rep = rep.with_differentials(dif)
 
     icrs = ICRS(rep)
@@ -607,6 +605,7 @@ def test_shorthand_representations():
     sph = icrs.sphericalcoslat
     assert isinstance(sph, r.SphericalRepresentation)
     assert isinstance(sph.differentials['s'], r.SphericalCosLatDifferential)
+
 
 def test_dynamic_attrs():
     from ..builtin_frames import ICRS
@@ -625,6 +624,7 @@ def test_dynamic_attrs():
     c.blahblah = 1
     assert c.blahblah == 1
 
+
 def test_nodata_error():
     from ..builtin_frames import ICRS
 
@@ -634,6 +634,7 @@ def test_nodata_error():
 
     assert 'does not have associated data' in str(excinfo.value)
 
+
 def test_len0_data():
     from ..builtin_frames import ICRS
 
@@ -641,19 +642,21 @@ def test_len0_data():
     assert i.has_data
     repr(i)
 
+
 def test_quantity_attributes():
     from ..builtin_frames import GCRS
 
-    #make sure we can create a GCRS frame with valid inputs
+    # make sure we can create a GCRS frame with valid inputs
     GCRS(obstime='J2002', obsgeoloc=[1, 2, 3]*u.km, obsgeovel=[4, 5, 6]*u.km/u.s)
 
-    #make sure it fails for invalid lovs or vels
+    # make sure it fails for invalid lovs or vels
     with pytest.raises(TypeError):
-        GCRS(obsgeoloc=[1, 2, 3])  #no unit
+        GCRS(obsgeoloc=[1, 2, 3])  # no unit
     with pytest.raises(u.UnitsError):
-        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  #incorrect unit
+        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  # incorrect unit
     with pytest.raises(ValueError):
-        GCRS(obsgeoloc=[1, 3]*u.km)  #incorrect shape
+        GCRS(obsgeoloc=[1, 3]*u.km)  # incorrect shape
+
 
 def test_eloc_attributes():
     from .. import AltAz, ITRS, GCRS, EarthLocation
@@ -755,6 +758,7 @@ def test_representation_subclass():
 
     class NewUnitSphericalRepresentation(r.UnitSphericalRepresentation):
         attr_classes = r.UnitSphericalRepresentation.attr_classes
+
         def __repr__(self):
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
@@ -858,8 +862,8 @@ def test_inplace_change():
 def test_representation_with_multiple_differentials():
     from ..builtin_frames import ICRS
 
-    dif1 = r.CartesianDifferential([1,2,3]*u.km/u.s)
-    dif2 = r.CartesianDifferential([1,2,3]*u.km/u.s**2)
+    dif1 = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
+    dif2 = r.CartesianDifferential([1, 2, 3]*u.km/u.s**2)
     rep = r.CartesianRepresentation([1, 2, 3]*u.pc,
                                     differentials={'s': dif1, 's2': dif2})
 

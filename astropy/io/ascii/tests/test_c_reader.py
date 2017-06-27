@@ -2,7 +2,7 @@
 
 try:
     from cStringIO import StringIO
-except ImportError: # cStringIO doesn't exist in Python 3
+except ImportError:  # cStringIO doesn't exist in Python 3
     from io import BytesIO
     StringIO = lambda x: BytesIO(x.encode('ascii'))
 
@@ -27,6 +27,7 @@ from ....extern.six.moves import range
 
 TRAVIS = os.environ.get('TRAVIS', False)
 
+
 def assert_table_equal(t1, t2, check_meta=False):
     assert_equal(len(t1), len(t2))
     assert_equal(t1.colnames, t2.colnames)
@@ -45,11 +46,13 @@ def assert_table_equal(t1, t2, check_meta=False):
                     else:
                         assert_almost_equal(el, t2[name][i])
                 except (TypeError, NotImplementedError):
-                    pass # ignore for now
+                    pass  # ignore for now
+
 
 # Use this counter to create a unique filename for each file created in a test
 # if this function is called more than once in a single test
 _filename_counter = 0
+
 
 def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=False, **kwargs):
     # make sure we have a newline so table can't be misinterpreted as a filename
@@ -142,7 +145,7 @@ def test_read_types():
     strings, and lists of strings in addition to file-like objects.
     """
     t1 = ascii.read("a b c\n1 2 3\n4 5 6", format='fast_basic', guess=False)
-    #TODO: also read from file
+    # TODO: also read from file
     t2 = ascii.read(StringIO("a b c\n1 2 3\n4 5 6"), format='fast_basic', guess=False)
     t3 = ascii.read(["a b c", "1 2 3", "4 5 6"], format='fast_basic', guess=False)
     assert_table_equal(t1, t2)
@@ -335,15 +338,15 @@ def test_invalid_parameters():
     """
     int_converter = ascii.convert_numpy(np.uint)
     converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-    invalid_params = {'delimiter': ',,', # multi-char delimiter
-                      'comment': '##', # multi-char comment
-                      'data_start': None, # data_start=None
-                      'quotechar': '##', # multi-char quote signifier
-                      'data_start': -1, # negative data_start
-                      'header_start': -1, # negative header_start
-                      'converters': converters, # passing converters
-                      'Inputter': ascii.ContinuationLinesInputter, # passing Inputter
-                      'header_Splitter': ascii.DefaultSplitter, # passing Splitter
+    invalid_params = {'delimiter': ',,',  # multi-char delimiter
+                      'comment': '##',  # multi-char comment
+                      'data_start': None,  # data_start=None
+                      'quotechar': '##',  # multi-char quote signifier
+                      'data_start': -1,  # negative data_start
+                      'header_start': -1,  # negative header_start
+                      'converters': converters,  # passing converters
+                      'Inputter': ascii.ContinuationLinesInputter,  # passing Inputter
+                      'header_Splitter': ascii.DefaultSplitter,  # passing Splitter
                       'data_Splitter': ascii.DefaultSplitter
                       }
     for key, val in invalid_params.items():
@@ -355,8 +358,8 @@ def test_invalid_parameters():
             table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
 
     with pytest.raises(TypeError):
-        table = FastBasic(foo=7).read('1 2 3\n4 5 6') # unexpected argument
-    with pytest.raises(FastOptionsError): # don't fall back on the slow reader
+        table = FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
+    with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
         table = ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
     with pytest.raises(ParameterError):
         # Outputter cannot be specified in constructor
@@ -520,8 +523,8 @@ nan, 5, -9999
 
     table = read_basic(text, delimiter=',', fill_values=('-999', '0'), parallel=parallel)
     assert isinstance(table['B'], MaskedColumn)
-    assert table['A'][0] is not ma.masked # empty value unaffected
-    assert table['C'][2] is not ma.masked # -9999 is not an exact match
+    assert table['A'][0] is not ma.masked  # empty value unaffected
+    assert table['C'][2] is not ma.masked  # -9999 is not an exact match
     assert table['B'][1] is ma.masked
     # Numeric because the rest of the column contains numeric data
     assert_equal(table['B'].data.data[1], 0.0)
@@ -534,15 +537,15 @@ nan, 5, -9999
 
     table = read_basic(text, delimiter=',', fill_values=[('', '0', 'A'),
                                 ('nan', '999', 'A', 'C')], parallel=parallel)
-    assert np.isnan(table['B'][3]) # nan filling skips column B
-    assert table['B'][3] is not ma.masked # should skip masking as well as replacing nan
+    assert np.isnan(table['B'][3])  # nan filling skips column B
+    assert table['B'][3] is not ma.masked  # should skip masking as well as replacing nan
     assert table['A'][0] is ma.masked
     assert table['A'][2] is ma.masked
     assert_equal(table['A'].data.data[0], '0')
     assert_equal(table['A'].data.data[2], '999')
     assert table['C'][0] is ma.masked
     assert_almost_equal(table['C'].data.data[0], 999.0)
-    assert_almost_equal(table['C'][1], -3.4) # column is still of type float
+    assert_almost_equal(table['C'][1], -3.4)  # column is still of type float
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -560,16 +563,16 @@ A, B, C
     table = read_csv(text, fill_include_names=['A', 'B'], parallel=parallel)
     assert table['A'][0] is ma.masked
     assert table['B'][1] is ma.masked
-    assert table['C'][2] is not ma.masked # C not in fill_include_names
+    assert table['C'][2] is not ma.masked  # C not in fill_include_names
 
     table = read_csv(text, fill_exclude_names=['A', 'B'], parallel=parallel)
     assert table['C'][2] is ma.masked
     assert table['A'][0] is not ma.masked
-    assert table['B'][1] is not ma.masked # A and B excluded from fill handling
+    assert table['B'][1] is not ma.masked  # A and B excluded from fill handling
 
     table = read_csv(text, fill_include_names=['A', 'B'], fill_exclude_names=['B'], parallel=parallel)
     assert table['A'][0] is ma.masked
-    assert table['B'][1] is not ma.masked # fill_exclude_names applies after fill_include_names
+    assert table['B'][1] is not ma.masked  # fill_exclude_names applies after fill_include_names
     assert table['C'][2] is not ma.masked
 
 
@@ -580,7 +583,7 @@ def test_many_rows(parallel, read_basic):
     is large (so that each column string is longer than INITIAL_COL_SIZE).
     """
     text = 'A B C\n'
-    for i in range(500): # create 500 rows
+    for i in range(500):  # create 500 rows
         text += ' '.join([str(i) for i in range(3)])
         text += '\n'
 
@@ -609,7 +612,7 @@ def test_fast_reader():
     fast_reader specified.
     """
     text = 'a b c\n1 2 3\n4 5 6'
-    with pytest.raises(ParameterError): # C reader can't handle regex comment
+    with pytest.raises(ParameterError):  # C reader can't handle regex comment
         ascii.read(text, format='fast_basic', guess=False, comment='##')
 
     # Enable multiprocessing and the fast converter
@@ -682,7 +685,7 @@ def test_commented_header(parallel, read_commented_header):
     text = '# first commented line\n # second commented line\n\n' + text
     t2 = read_commented_header(text, header_start=2, data_start=0, parallel=parallel)
     assert_table_equal(t2, expected)
-    t3 = read_commented_header(text, header_start=-1, data_start=0, parallel=parallel) # negative indexing allowed
+    t3 = read_commented_header(text, header_start=-1, data_start=0, parallel=parallel)  # negative indexing allowed
     assert_table_equal(t3, expected)
 
     text += '7 8 9'
@@ -691,7 +694,7 @@ def test_commented_header(parallel, read_commented_header):
     assert_table_equal(t4, expected)
 
     with pytest.raises(ParameterError):
-        read_commented_header(text, header_start=-1, data_start=-1, parallel=parallel) # data_start cannot be negative
+        read_commented_header(text, header_start=-1, data_start=-1, parallel=parallel)  # data_start cannot be negative
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -713,17 +716,17 @@ A\tB\tC
     assert_equal(table['C'].dtype.kind, 'f')
 
     with pytest.raises(ValueError) as e:
-        text = 'A\tB\tC\nN\tS\tN\n4\tb\ta' # C column contains non-numeric data
+        text = 'A\tB\tC\nN\tS\tN\n4\tb\ta'  # C column contains non-numeric data
         read_rdb(text, parallel=parallel)
     assert 'Column C failed to convert' in str(e)
 
     with pytest.raises(ValueError) as e:
-        text = 'A\tB\tC\nN\tN\n1\t2\t3' # not enough types specified
+        text = 'A\tB\tC\nN\tN\n1\t2\t3'  # not enough types specified
         read_rdb(text, parallel=parallel)
     assert 'mismatch between number of column names and column types' in str(e)
 
     with pytest.raises(ValueError) as e:
-        text = 'A\tB\tC\nN\tN\t5\n1\t2\t3' # invalid type for column C
+        text = 'A\tB\tC\nN\tN\t5\n1\t2\t3'  # invalid type for column C
         read_rdb(text, parallel=parallel)
     assert 'type definitions do not all match [num](N|S)' in str(e)
 
@@ -789,7 +792,7 @@ def test_quoted_empty_values(parallel, read_basic):
         pytest.xfail("Multiprocessing can fail with quoted fields")
     text = 'a b c\n1 2 " \n "'
     table = read_basic(text, parallel=parallel)
-    assert table['c'][0] is ma.masked # empty value masked by default
+    assert table['c'][0] is ma.masked  # empty value masked by default
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -897,6 +900,7 @@ a b c
     assert_equal(table.meta['comments'],
                  ['header comment', 'comment 2', 'comment 3'])
 
+
 @pytest.mark.parametrize("parallel", [True, False])
 def test_empty_quotes(parallel, read_basic):
     """
@@ -906,6 +910,7 @@ def test_empty_quotes(parallel, read_basic):
     table = read_basic('a b\n1 ""\n2 ""', parallel=parallel)
     expected = Table([[1, 2], [0, 0]], names=('a', 'b'))
     assert_table_equal(table, expected)
+
 
 @pytest.mark.parametrize("parallel", [True, False])
 def test_fast_tab_with_names(parallel, read_tab):
@@ -956,12 +961,10 @@ def test_read_big_table(tmpdir):
 
 
 # fast_reader configurations: False| 'use_fast_converter'=False|True
-@pytest.mark.parametrize('reader', [ 0, 1, 2])
+@pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
-@pytest.mark.parametrize("parallel", [ False,
-    pytest.mark.xfail(os.name == 'nt', reason=
-                      "Multiprocessing is currently unsupported on Windows")(True)])
-
+@pytest.mark.parametrize("parallel", [False,
+    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True)])
 def test_data_out_of_range(parallel, reader):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -984,28 +987,28 @@ def test_data_out_of_range(parallel, reader):
         elif TRAVIS:
             pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
-    fields = [ '10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345' ]
-    values = np.array([ 1.01e200, np.inf, np.inf, 0.0, -np.inf ])
+    fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
+    values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
                    fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
     # test some additional corner cases
-    fields = [ '.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.2e-323',
-               '2500e-327', ' 0.0000000000000000000001024E+330' ]
-    values = np.array([ 1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308 ])
+    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.2e-323',
+               '2500e-327', ' 0.0000000000000000000001024E+330']
+    values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
                    fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
     # test corner cases again with non-standard exponent_style (auto-detection)
-    if  reader < 2:
+    if reader < 2:
         pytest.skip("Fortran exponent style only available in fast converter")
     fast_reader.update({'exponent_style': 'A'})
-    fields = [ '.0101D202', '0.000000314d+314', '1777+305', '-1799E+305', '0.2e-323',
-               '2500-327', ' 0.0000000000000000000001024Q+330' ]
+    fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305', '0.2e-323',
+               '2500-327', ' 0.0000000000000000000001024Q+330']
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
                    fast_reader=fast_reader)
     read_values = np.array([col[0] for col in t.itercols()])
@@ -1014,10 +1017,8 @@ def test_data_out_of_range(parallel, reader):
 
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason=
-                      "Multiprocessing is currently unsupported on Windows")(True),
+    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
     False])
-
 def test_int_out_of_range(parallel):
     """
     Integer numbers outside int range shall be returned as string columns
@@ -1055,10 +1056,8 @@ def test_int_out_of_range(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason=
-                      "Multiprocessing is currently unsupported on Windows")(True),
+    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
     False])
-
 def test_fortran_reader(parallel):
     """
     Make sure that ascii.read() can read Fortran-style exponential notation
@@ -1068,8 +1067,8 @@ def test_fortran_reader(parallel):
     expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]],
                      names=('A', 'B', 'C'))
 
-    expstyles = { 'e': 4*('E'), 'D': ('D', 'd', 'd', 'D'), 'Q': 2*('q', 'Q'),
-                  'fortran': ('D', 'E', 'Q', 'd') }
+    expstyles = {'e': 4*('E'), 'D': ('D', 'd', 'd', 'D'), 'Q': 2*('q', 'Q'),
+                  'fortran': ('D', 'E', 'Q', 'd')}
 
     # C strtod (not-fast converter) can't handle Fortran exp
     with pytest.raises(FastOptionsError) as e:
@@ -1100,8 +1099,7 @@ def test_fortran_reader(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason=
-                      "Multiprocessing is currently unsupported on Windows")(True),
+    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
     False])
 def test_fortran_invalid_exp(parallel):
     """
@@ -1112,10 +1110,10 @@ def test_fortran_invalid_exp(parallel):
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
-    fields = [ '1.0001+1', '.42d1', '2.3+10', '0.5', '3+1001', '3000.',
-               '2', '4.56e-2.3', '8000', '4.2-122' ]
-    values = [ '1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
-               2, '4.56e-2.3', 8000, 4.2e-122 ]
+    fields = ['1.0001+1', '.42d1', '2.3+10', '0.5', '3+1001', '3000.',
+               '2', '4.56e-2.3', '8000', '4.2-122']
+    values = ['1.0001+1', 4.2, '2.3+10', 0.5, '3+1001', 3.e3,
+               2, '4.56e-2.3', 8000, 4.2e-122]
 
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
                    fast_reader={'parallel': parallel, 'exponent_style': 'A'})

@@ -50,6 +50,7 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
                          .format(ellipsoid, ELLIPSOIDS))
     return ellipsoid
 
+
 def _get_json_result(url, err_str):
     # need to do this here to prevent a series of complicated circular imports
     from .name_resolve import NameResolveError
@@ -679,7 +680,7 @@ class EarthLocation(u.Quantity):
     if NUMPY_LT_1_12:
         def __repr__(self):
             # Use the numpy >=1.12 way to format structured arrays.
-            from  .representation import _array2string
+            from .representation import _array2string
             prefixstr = '<' + self.__class__.__name__ + ' '
             arrstr = _array2string(self.view(np.ndarray), prefix=prefixstr)
             return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)

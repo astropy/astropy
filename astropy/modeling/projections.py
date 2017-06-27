@@ -106,7 +106,7 @@ class Projection(Model):
 
     # Radius of the generating sphere.
     # This sets the circumference to 360 deg so that arc length is measured in deg.
-    r0 = 180 * u.deg/ np.pi
+    r0 = 180 * u.deg / np.pi
 
     @abc.abstractproperty
     def inverse(self):
@@ -937,6 +937,7 @@ class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
     def evaluate(cls, x, y):
         return _projections.merx2s(x, y)
 
+
 Pix2Sky_MER = Pix2Sky_Mercator
 
 
@@ -992,6 +993,7 @@ class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
     def evaluate(cls, x, y):
         return _projections.sflx2s(x, y)
 
+
 Pix2Sky_SFL = Pix2Sky_SansonFlamsteed
 
 
@@ -1037,6 +1039,7 @@ class Pix2Sky_Parabolic(Pix2SkyProjection, PseudoCylindrical):
     def evaluate(cls, x, y):
         return _projections.parx2s(x, y)
 
+
 Pix2Sky_PAR = Pix2Sky_Parabolic
 
 
@@ -1081,6 +1084,7 @@ class Pix2Sky_Molleweide(Pix2SkyProjection, PseudoCylindrical):
     @classmethod
     def evaluate(cls, x, y):
         return _projections.molx2s(x, y)
+
 
 Pix2Sky_MOL = Pix2Sky_Molleweide
 
@@ -1134,6 +1138,7 @@ class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
     def evaluate(cls, x, y):
         return _projections.aitx2s(x, y)
 
+
 Pix2Sky_AIT = Pix2Sky_HammerAitoff
 
 
@@ -1160,6 +1165,7 @@ class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.aits2x(phi, theta)
+
 
 Sky2Pix_AIT = Sky2Pix_HammerAitoff
 
@@ -1227,6 +1233,7 @@ class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
     def evaluate(cls, x, y, sigma, delta):
         return _projections.copx2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
 
+
 Pix2Sky_COP = Pix2Sky_ConicPerspective
 
 
@@ -1265,6 +1272,7 @@ class Sky2Pix_ConicPerspective(Sky2PixProjection, Conic):
     def evaluate(cls, phi, theta, sigma, delta):
         return _projections.cops2x(phi, theta,
                                    _to_orig_unit(sigma), _to_orig_unit(delta))
+
 
 Sky2Pix_COP = Sky2Pix_ConicPerspective
 
@@ -1308,6 +1316,7 @@ class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
     @classmethod
     def evaluate(cls, x, y, sigma, delta):
         return _projections.coex2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
+
 
 Pix2Sky_COE = Pix2Sky_ConicEqualArea
 
@@ -1353,6 +1362,7 @@ class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
         return _projections.coes2x(phi, theta,
                                    _to_orig_unit(sigma), _to_orig_unit(delta))
 
+
 Sky2Pix_COE = Sky2Pix_ConicEqualArea
 
 
@@ -1391,6 +1401,7 @@ class Pix2Sky_ConicEquidistant(Pix2SkyProjection, Conic):
     @classmethod
     def evaluate(cls, x, y, sigma, delta):
         return _projections.codx2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
+
 
 Pix2Sky_COD = Pix2Sky_ConicEquidistant
 
@@ -1431,6 +1442,7 @@ class Sky2Pix_ConicEquidistant(Sky2PixProjection, Conic):
     def evaluate(cls, phi, theta, sigma, delta):
         return _projections.cods2x(phi, theta,
                                    _to_orig_unit(sigma), _to_orig_unit(delta))
+
 
 Sky2Pix_COD = Sky2Pix_ConicEquidistant
 
@@ -1479,6 +1491,7 @@ class Pix2Sky_ConicOrthomorphic(Pix2SkyProjection, Conic):
     @classmethod
     def evaluate(cls, x, y, sigma, delta):
         return _projections.coox2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
+
 
 Pix2Sky_COO = Pix2Sky_ConicOrthomorphic
 
@@ -1529,6 +1542,7 @@ class Sky2Pix_ConicOrthomorphic(Sky2PixProjection, Conic):
         return _projections.coos2x(phi, theta,
                                    _to_orig_unit(sigma), _to_orig_unit(delta))
 
+
 Sky2Pix_COO = Sky2Pix_ConicOrthomorphic
 
 
@@ -1572,6 +1586,7 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
     def evaluate(cls, x, y, theta1):
         return _projections.bonx2s(x, y, _to_orig_unit(theta1))
 
+
 Pix2Sky_BON = Pix2Sky_BonneEqualArea
 
 
@@ -1608,6 +1623,7 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
         return _projections.bons2x(phi, theta,
                                    _to_orig_unit(theta1))
 
+
 Sky2Pix_BON = Sky2Pix_BonneEqualArea
 
 
@@ -1625,6 +1641,7 @@ class Pix2Sky_Polyconic(Pix2SkyProjection, PseudoConic):
     def evaluate(cls, x, y):
         return _projections.pcox2s(x, y)
 
+
 Pix2Sky_PCO = Pix2Sky_Polyconic
 
 
@@ -1641,6 +1658,7 @@ class Sky2Pix_Polyconic(Sky2PixProjection, PseudoConic):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.pcos2x(phi, theta)
+
 
 Sky2Pix_PCO = Sky2Pix_Polyconic
 
@@ -1676,6 +1694,7 @@ class Pix2Sky_TangentialSphericalCube(Pix2SkyProjection, QuadCube):
     def evaluate(cls, x, y):
         return _projections.tscx2s(x, y)
 
+
 Pix2Sky_TSC = Pix2Sky_TangentialSphericalCube
 
 
@@ -1692,6 +1711,7 @@ class Sky2Pix_TangentialSphericalCube(Sky2PixProjection, QuadCube):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.tscs2x(phi, theta)
+
 
 Sky2Pix_TSC = Sky2Pix_TangentialSphericalCube
 
@@ -1710,6 +1730,7 @@ class Pix2Sky_COBEQuadSphericalCube(Pix2SkyProjection, QuadCube):
     def evaluate(cls, x, y):
         return _projections.cscx2s(x, y)
 
+
 Pix2Sky_CSC = Pix2Sky_COBEQuadSphericalCube
 
 
@@ -1726,6 +1747,7 @@ class Sky2Pix_COBEQuadSphericalCube(Sky2PixProjection, QuadCube):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.cscs2x(phi, theta)
+
 
 Sky2Pix_CSC = Sky2Pix_COBEQuadSphericalCube
 
@@ -1744,6 +1766,7 @@ class Pix2Sky_QuadSphericalCube(Pix2SkyProjection, QuadCube):
     def evaluate(cls, x, y):
         return _projections.qscx2s(x, y)
 
+
 Pix2Sky_QSC = Pix2Sky_QuadSphericalCube
 
 
@@ -1760,6 +1783,7 @@ class Sky2Pix_QuadSphericalCube(Sky2PixProjection, QuadCube):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.qscs2x(phi, theta)
+
 
 Sky2Pix_QSC = Sky2Pix_QuadSphericalCube
 
@@ -1794,6 +1818,7 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
     def evaluate(cls, x, y, H, X):
         return _projections.hpxx2s(x, y, H, X)
 
+
 Pix2Sky_HPX = Pix2Sky_HEALPix
 
 
@@ -1822,6 +1847,7 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
     def evaluate(cls, phi, theta, H, X):
         return _projections.hpxs2x(phi, theta, H, X)
 
+
 Sky2Pix_HPX = Sky2Pix_HEALPix
 
 
@@ -1839,6 +1865,7 @@ class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
     def evaluate(cls, x, y):
         return _projections.xphx2s(x, y)
 
+
 Pix2Sky_XPH = Pix2Sky_HEALPixPolar
 
 
@@ -1855,6 +1882,7 @@ class Sky2Pix_HEALPixPolar(Sky2PixProjection, HEALPix):
     @classmethod
     def evaluate(cls, phi, theta):
         return _projections.hpxs2x(phi, theta)
+
 
 Sky2Pix_XPH = Sky2Pix_HEALPixPolar
 

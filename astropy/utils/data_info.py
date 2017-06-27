@@ -41,7 +41,7 @@ IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
-                     (True, 'S'): 'bytes', # PY3
+                     (True, 'S'): 'bytes',  # PY3
                      (True, 'U'): 'str'}
 
 
@@ -100,6 +100,7 @@ def dtype_info_name(dtype):
         out = dtype.name
 
     return out
+
 
 def data_info_factory(names, funcs):
     """
@@ -237,7 +238,6 @@ you accessed ``info`` from a temporary slice object ``col[3:5]`` that
 only exists momentarily.  This has failed because the reference to
 that temporary object is now lost.  Instead force a permanent
 reference with ``c = col[3:5]`` followed by ``c.info``.""")
-
 
     @_parent.setter
     def _parent(self, value):
@@ -517,10 +517,10 @@ class BaseColumnInfo(DataInfo):
         elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
             # boolean mask
             keys = np.where(index)[0]
-        else: # single int
+        else:  # single int
             keys = [index]
 
-        value = np.atleast_1d(value) # turn array(x) into array([x])
+        value = np.atleast_1d(value)  # turn array(x) into array([x])
         if value.size == 1:
             # repeat single value
             value = list(value) * len(keys)

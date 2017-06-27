@@ -348,6 +348,7 @@ for val in u.cgs.__dict__.values():
             val != u.cgs.deg_C):
         COMPOSE_CGS_TO_SI.add(val)
 
+
 @pytest.mark.parametrize('unit', sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str),
                          ids=_unit_as_str)
 def test_compose_cgs_to_si(unit):
@@ -366,6 +367,7 @@ for val in u.si.__dict__.values():
             val != u.si.deg_C):
         COMPOSE_SI_TO_CGS.add(val)
 
+
 @pytest.mark.parametrize('unit', sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str)
 def test_compose_si_to_cgs(unit):
 
@@ -380,7 +382,6 @@ def test_compose_si_to_cgs(unit):
     else:
         assert [x.is_equivalent(unit) for x in cgs]
         assert cgs[0] == unit.cgs
-
 
 
 def test_to_cgs():
@@ -472,7 +473,7 @@ def test_endian_independence():
     for endian in ['<', '>']:
         for ntype in ['i', 'f']:
             for byte in ['4', '8']:
-                x = np.array([1,2,3], dtype=(endian + ntype + byte))
+                x = np.array([1, 2, 3], dtype=(endian + ntype + byte))
                 u.m.to(u.cm, x)
 
 
@@ -496,6 +497,7 @@ def test_no_duplicates_in_names():
     assert u.ct.short_names == ['ct', 'count']
     assert u.ct.long_names == ['count']
     assert set(u.ph.names) == set(u.ph.short_names) | set(u.ph.long_names)
+
 
 def test_pickling():
     p = pickle.dumps(u.m)
@@ -530,6 +532,7 @@ def test_pickling():
 
     # And just to be sure, that it gets removed outside of the context.
     assert 'foo' not in u.get_current_unit_registry().registry
+
 
 def test_pickle_unrecognized_unit():
     """

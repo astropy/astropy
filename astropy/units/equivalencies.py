@@ -258,7 +258,6 @@ def doppler_radio(rest):
         voverc = x/ckms
         return restfreq * (1-voverc)
 
-
     def to_vel_wav(x):
         restwav = rest.to_value(si.AA, spectral())
         return (x-restwav) / (x) * ckms
@@ -266,7 +265,6 @@ def doppler_radio(rest):
     def from_vel_wav(x):
         restwav = rest.to_value(si.AA, spectral())
         return restwav * ckms / (ckms-x)
-
 
     def to_vel_en(x):
         resten = rest.to_value(si.eV, equivalencies=spectral())
@@ -325,7 +323,6 @@ def doppler_optical(rest):
         voverc = x/ckms
         return restfreq / (1+voverc)
 
-
     def to_vel_wav(x):
         restwav = rest.to_value(si.AA, spectral())
         return ckms * (x/restwav-1)
@@ -334,7 +331,6 @@ def doppler_optical(rest):
         restwav = rest.to_value(si.AA, spectral())
         voverc = x/ckms
         return restwav * (1+voverc)
-
 
     def to_vel_en(x):
         resten = rest.to_value(si.eV, equivalencies=spectral())
@@ -400,7 +396,6 @@ def doppler_relativistic(rest):
         voverc = x/ckms
         return restfreq * ((1-voverc) / (1+(voverc)))**0.5
 
-
     def to_vel_wav(x):
         restwav = rest.to_value(si.AA, spectral())
         return (x**2-restwav**2) / (restwav**2+x**2) * ckms
@@ -409,7 +404,6 @@ def doppler_relativistic(rest):
         restwav = rest.to_value(si.AA, spectral())
         voverc = x/ckms
         return restwav * ((1+voverc) / (1-voverc))**0.5
-
 
     def to_vel_en(x):
         resten = rest.to_value(si.eV, spectral())
@@ -443,15 +437,16 @@ def mass_energy():
 
     return [(si.kg, si.J, lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 2, si.J / si.m ** 2 ,
+            (si.kg / si.m ** 2, si.J / si.m ** 2,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 3, si.J / si.m ** 3 ,
+            (si.kg / si.m ** 3, si.J / si.m ** 3,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.s, si.J / si.s , lambda x: x * _si.c.value ** 2,
+            (si.kg / si.s, si.J / si.s, lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
     ]
+
 
 def brightness_temperature(beam_area, disp):
     r"""

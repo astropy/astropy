@@ -13,7 +13,7 @@ from ..data_info import dtype_info_name
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # PY2
                      (False, 'U'): 'unicode',
-                     (True, 'S'): 'bytes', # not PY2
+                     (True, 'S'): 'bytes',  # not PY2
                      (True, 'U'): 'str'}
 
 DTYPE_TESTS = ((np.array(b'abcd').dtype, STRING_TYPE_NAMES[(not six.PY2, 'S')] + '4'),
@@ -29,6 +29,7 @@ DTYPE_TESTS = ((np.array(b'abcd').dtype, STRING_TYPE_NAMES[(not six.PY2, 'S')] +
                ('u8', 'uint64'),
                ('c16', 'complex128'),
                ('object', 'object'))
+
 
 @pytest.mark.parametrize('input,output', DTYPE_TESTS)
 def test_dtype_info_name(input, output):

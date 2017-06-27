@@ -40,7 +40,7 @@ def test_representations_api():
         CartesianRepresentation
     from ... coordinates import Angle, Longitude, Latitude, Distance
 
-    #<-----------------Classes for representation of coordinate data--------------->
+    # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
     # objects, which are arrays (although they may act as scalars, like numpy's
     # length-0  "arrays")
@@ -81,7 +81,7 @@ def test_representations_api():
     # numpy's standard broadcasting rules.
     c2 = SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, distance=10*u.kpc)
     assert len(c2.distance) == 2
-    #when they can't be broadcast, it is a ValueError (same as Numpy)
+    # when they can't be broadcast, it is a ValueError (same as Numpy)
     with raises(ValueError):
         c2 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
 
@@ -131,7 +131,7 @@ def test_representations_api():
     xarr, yarr, zarr = randn(3, 100)
     c1 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
-    assert c1.xyz.unit ==  c2.xyz.unit == u.kpc
+    assert c1.xyz.unit == c2.xyz.unit == u.kpc
     assert_allclose((c1.z / 1000) - c2.z, 0*u.kpc, atol=1e-10*u.kpc)
 
     # representations convert into other representations via  `represent_as`
@@ -150,7 +150,7 @@ def test_frame_api():
     from ..representation import SphericalRepresentation, \
                                  UnitSphericalRepresentation
     from ..builtin_frames import ICRS, FK5
-    #<---------------------Reference Frame/"Low-level" classes--------------------->
+    # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate
     # frames and they *may* also contain data as one of the representation objects,
     # in which case they are the actual coordinate objects themselves.
@@ -210,8 +210,8 @@ def test_frame_api():
     assert_allclose(icrs.ra, icrs_2.ra)
 
     # and these are taken as the default if keywords are not given:
-    #icrs_nokwarg = ICRS(8*u.hour, 5*u.deg, distance=1*u.kpc)
-    #assert icrs_nokwarg.ra == icrs_2.ra and icrs_nokwarg.dec == icrs_2.dec
+    # icrs_nokwarg = ICRS(8*u.hour, 5*u.deg, distance=1*u.kpc)
+    # assert icrs_nokwarg.ra == icrs_2.ra and icrs_nokwarg.dec == icrs_2.dec
 
     # they also are capable of computing on-sky or 3d separations from each other,
     # which will be a direct port of the existing methods:
@@ -230,7 +230,7 @@ def test_frame_api():
         assert coo1.separation_3d(coo2).kpc == 1.0
 
     # repr/str also shows info, with frame and data
-    #assert repr(fk5) == ''
+    # assert repr(fk5) == ''
 
 
 def test_transform_api():
@@ -238,11 +238,11 @@ def test_transform_api():
     from ..builtin_frames import ICRS, FK5
     from ..baseframe import frame_transform_graph, BaseCoordinateFrame
     from ..transformations import DynamicMatrixTransform
-    #<-------------------------Transformations------------------------------------->
+    # <------------------------Transformations------------------------------------->
     # Transformation functionality is the key to the whole scheme: they transform
     # low-level classes from one frame to another.
 
-    #(used below but defined above in the API)
+    # (used below but defined above in the API)
     fk5 = FK5(ra=8*u.hour, dec=5*u.deg)
 
     # If no data (or `None`) is given, the class acts as a specifier of a frame, but
@@ -294,7 +294,6 @@ def test_transform_api():
     with raises(ValueError):
         FK5(equinox=J2001).transform_to(ICRS)
 
-
     # To actually define a new transformation, the same scheme as in the
     # 0.2/0.3 coordinates framework can be re-used - a graph of transform functions
     # connecting various coordinate classes together.  The main changes are:
@@ -306,6 +305,7 @@ def test_transform_api():
     # An example transform function:
     class SomeNewSystem(BaseCoordinateFrame):
         pass
+
     @frame_transform_graph.transform(DynamicMatrixTransform, SomeNewSystem, FK5)
     def new_to_fk5(newobj, fk5frame):
         ot = newobj.obstime
@@ -323,7 +323,7 @@ def test_transform_api():
 def test_highlevel_api():
     J2001 = time.Time('J2001', scale='utc')
 
-    #<---------------------------"High-level" class-------------------------------->
+    # <--------------------------"High-level" class-------------------------------->
     # The "high-level" class is intended to wrap the lower-level classes in such a
     # way that they can be round-tripped, as well as providing a variety of
     # convenience functionality.  This document is not intended to show *all* of the
@@ -354,9 +354,9 @@ def test_highlevel_api():
 
     # similarly, the low-level object can always be accessed
 
-    #this is how it's supposed to look, but sometimes the numbers get rounded in
-    #funny ways
-    #assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
+    # this is how it's supposed to look, but sometimes the numbers get rounded in
+    # funny ways
+    # assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
     rscf = repr(sc.frame)
     assert rscf.startswith('<ICRS Coordinate: (ra, dec) in deg')
 
@@ -364,7 +364,7 @@ def test_highlevel_api():
 
     # same deal, should loook like this, but different archituectures/ python
     # versions may round the numbers differently
-    #assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'
+    # assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'
     rsc = repr(sc)
     assert rsc.startswith('<SkyCoord (ICRS): (ra, dec) in deg')
 
@@ -414,9 +414,9 @@ def test_highlevel_api():
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.
 
-    #in remote-data test below!
-    #m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
-    #assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
+    # in remote-data test below!
+    # m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
+    # assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
 
     if HAS_SCIPY:
         cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg, distance=[5, 6]*u.kpc, frame='icrs')
@@ -442,7 +442,7 @@ def test_highlevel_api_remote():
     # The above is essentially a replacement of the below, but tweaked so that
     # small/moderate changes in what `from_name` returns don't cause the tests
     # to fail
-    #assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
+    # assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
     m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 

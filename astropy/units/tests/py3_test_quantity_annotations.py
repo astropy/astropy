@@ -9,6 +9,7 @@ import pytest
 from ... import units as u  # pylint: disable=W0611
 from ...extern import six
 
+
 def py3only(func):
     if six.PY2:
         return pytest.mark.skipif('six.PY2')(func)
@@ -275,6 +276,7 @@ def test_kwarg_default3(solarx_unit, solary_unit):
     solarx, solary = myfunc_args(1*u.arcsec)
     """.format(solarx_unit, solary_unit)
     return src
+
 
 @py3only
 def test_return_annotation():

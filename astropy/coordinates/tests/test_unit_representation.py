@@ -41,12 +41,10 @@ def test_unit_representation_subclass():
                                                     wrap_angle=wrap_angle, **kwargs)
             return self
 
-
     class UnitSphericalWrap180Representation(UnitSphericalRepresentation):
         attr_classes = OrderedDict([('lon', Longitude180),
                                     ('lat', Latitude)])
         recommended_units = {'lon': u.deg, 'lat': u.deg}
-
 
     class SphericalWrap180Representation(SphericalRepresentation):
         attr_classes = OrderedDict([('lon', Longitude180),
@@ -55,7 +53,6 @@ def test_unit_representation_subclass():
         recommended_units = {'lon': u.deg, 'lat': u.deg}
 
         _unit_representation = UnitSphericalWrap180Representation
-
 
     class myframe(ICRS):
         default_representation = SphericalWrap180Representation
@@ -67,7 +64,6 @@ def test_unit_representation_subclass():
         frame_specific_representation_info['unitsphericalwrap180'] = \
         frame_specific_representation_info['sphericalwrap180'] = \
             frame_specific_representation_info['spherical']
-
 
     @frame_transform_graph.transform(FunctionTransform,
                                      myframe, astropy.coordinates.ICRS)

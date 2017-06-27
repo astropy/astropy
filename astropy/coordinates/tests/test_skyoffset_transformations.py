@@ -47,7 +47,7 @@ def test_skyoffset_functional_ra():
                       dec=input_dec*u.deg,
                       distance=1.*u.kpc)
 
-    for ra in np.linspace(0,360,24):
+    for ra in np.linspace(0, 360, 24):
         # expected rotation
         expected = ICRS(ra=np.linspace(0-ra, 360-ra, 12)[1:-1]*u.deg,
                         dec=np.linspace(-90, 90, 12)[1:-1]*u.deg,
@@ -67,7 +67,7 @@ def test_skyoffset_functional_ra():
         assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
         assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1E-5*u.deg)
         assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1E-5*u.deg)
-        assert_allclose(icrs_coord.distance, roundtrip.distance, atol = 1E-5*u.kpc)
+        assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1E-5*u.kpc)
 
 
 def test_skyoffset_functional_dec():
@@ -82,8 +82,8 @@ def test_skyoffset_functional_dec():
     icrs_coord = ICRS(ra=input_ra*u.deg,
                       dec=input_dec*u.deg,
                       distance=1.*u.kpc)
-    #Dec rotations
-    #Done in xyz space because dec must be [-90,90]
+    # Dec rotations
+    # Done in xyz space because dec must be [-90,90]
 
     for dec in np.linspace(-90, 90, 13):
         # expected rotation
@@ -122,8 +122,8 @@ def test_skyoffset_functional_ra_dec():
     input_dec = np.linspace(-90, 90, 12)[1:-1]
     input_ra_rad = np.deg2rad(input_ra)
     input_dec_rad = np.deg2rad(input_dec)
-    icrs_coord = ICRS(ra = input_ra*u.deg,
-                      dec = input_dec*u.deg,
+    icrs_coord = ICRS(ra=input_ra*u.deg,
+                      dec=input_dec*u.deg,
                       distance=1.*u.kpc)
 
     for ra in np.linspace(0, 360, 10):
@@ -157,6 +157,7 @@ def test_skyoffset_functional_ra_dec():
             assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1E-4*u.deg)
             assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1E-5*u.deg)
             assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1E-5*u.kpc)
+
 
 def test_skycoord_skyoffset_frame():
     m31 = SkyCoord(10.6847083, 41.26875, frame='icrs', unit=u.deg)
@@ -236,6 +237,7 @@ def test_altaz_attribute_transforms():
     assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
                     [1*u.deg, 1*u.deg], atol=convert_precision)
 
+
 @pytest.mark.parametrize("rotation, expectedlatlon", [
     (0*u.deg, [0, 1]*u.deg),
     (180*u.deg, [0, -1]*u.deg),
@@ -294,7 +296,7 @@ def test_skyoffset_lonwrap():
 
 
 def test_skyoffset_velerr():
-    #TODO: remove this when the SkyOffsetFrame's support velocities
+    # TODO: remove this when the SkyOffsetFrame's support velocities
     origin = ICRS(45*u.deg, 45*u.deg)
     originwvel = ICRS(45*u.deg, 45*u.deg, radial_velocity=1*u.km/u.s)
 

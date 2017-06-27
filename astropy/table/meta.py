@@ -6,11 +6,13 @@ from ..extern import six
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
+
 class ColumnOrderList(list):
     """
     List of tuples that sorts in a specific order that makes sense for
     astropy table column attributes.
     """
+
     def sort(self, *args, **kwargs):
         super(ColumnOrderList, self).sort()
 
@@ -30,6 +32,7 @@ class ColumnOrderList(list):
 
         self.extend(out_list)
 
+
 class ColumnDict(dict):
     """
     Specialized dict subclass to represent attributes of a Column
@@ -43,6 +46,7 @@ class ColumnDict(dict):
         way for column attributes.
         """
         return ColumnOrderList(super(ColumnDict, self).items())
+
 
 def _construct_odict(load, node):
     """
@@ -236,6 +240,7 @@ def get_yaml_from_header(header):
         """
         Custom Dumper that represents OrderedDict as an !!omap object.
         """
+
         def represent_mapping(self, tag, mapping, flow_style=None):
             """
             This is a combination of the Python 2 and 3 versions of this method

@@ -10,6 +10,7 @@ from ..utils.misc import isiterable
 from .core import Unit, UnitsError, add_enabled_equivalencies
 from .physical import _unit_physical_mapping
 
+
 def _get_allowed_units(targets):
     """
     From a list of target units (either as strings or unit objects) and physical
@@ -19,15 +20,15 @@ def _get_allowed_units(targets):
     allowed_units = []
     for target in targets:
 
-        try: # unit passed in as a string
+        try:  # unit passed in as a string
             target_unit = Unit(target)
 
         except ValueError:
 
-            try: # See if the function writer specified a physical type
+            try:  # See if the function writer specified a physical type
                 physical_type_id = _unit_physical_mapping[target]
 
-            except KeyError: # Function argument target is invalid
+            except KeyError:  # Function argument target is invalid
                 raise ValueError("Invalid unit or physical type '{0}'."
                                  .format(target))
 
@@ -37,6 +38,7 @@ def _get_allowed_units(targets):
         allowed_units.append(target_unit)
 
     return allowed_units
+
 
 def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
     """
@@ -54,7 +56,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
             if is_equivalent:
                 break
 
-        except AttributeError: # Either there is no .unit or no .is_equivalent
+        except AttributeError:  # Either there is no .unit or no .is_equivalent
             if hasattr(arg, "unit"):
                 error_msg = "a 'unit' attribute without an 'is_equivalent' method"
             else:
@@ -75,6 +77,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
                              " convertible to '{2}'."
                              .format(param_name, func_name,
                                      str(targets[0])))
+
 
 class QuantityInput(object):
 
@@ -224,5 +227,6 @@ class QuantityInput(object):
                 return return_
 
         return wrapper
+
 
 quantity_input = QuantityInput.as_decorator

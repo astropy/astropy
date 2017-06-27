@@ -29,7 +29,6 @@ except ImportError:
         s = s.replace(">", "&gt;")
         return s
 
-
     def xml_escape(s):
         """
         Escapes &, ', ", < and > in an XML attribute value.

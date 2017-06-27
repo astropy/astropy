@@ -117,6 +117,7 @@ class TimeFormat(object):
     from_jd : bool
         If true then val1, val2 are jd1, jd2
     """
+
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale  # validation of scale done later with _check_scale
@@ -332,6 +333,7 @@ class TimeFromEpoch(TimeFormat):
     epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
+
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
@@ -623,6 +625,7 @@ class TimeDatetime(TimeUnique):
 
     value = property(to_value)
 
+
 class TimezoneInfo(datetime.tzinfo):
     """
     Subclass of the `~datetime.tzinfo` object, used in the
@@ -673,6 +676,7 @@ class TimezoneInfo(datetime.tzinfo):
     def dst(self, dt):
         return self._dst
 
+
 class TimeString(TimeUnique):
     """
     Base class for string-like time representations.
@@ -682,6 +686,7 @@ class TimeString(TimeUnique):
 
     This is a reference implementation can be made much faster with effort.
     """
+
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
         if val1.dtype.kind not in ('S', 'U'):
@@ -737,7 +742,6 @@ class TimeString(TimeUnique):
 
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
-
 
         for val, iy, im, id, ihr, imin, dsec in iterator:
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
@@ -1011,6 +1015,7 @@ class TimeEpochDate(TimeFormat):
     """
     Base class for support floating point Besselian and Julian epoch dates
     """
+
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # validate scale.
         epoch_to_jd = getattr(erfa, self.epoch_to_jd)
@@ -1052,6 +1057,7 @@ class TimeEpochDateString(TimeString):
     Base class to support string Besselian and Julian epoch dates
     such as 'B1950.0' or 'J2000.0' respectively.
     """
+
     def set_jds(self, val1, val2):
         epoch_prefix = self.epoch_prefix
         iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])

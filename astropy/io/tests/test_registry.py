@@ -367,6 +367,7 @@ class TestSubclass:
     """
     Test using registry with a Table sub-class
     """
+
     def test_read_table_subclass(self):
         class MyTable(Table):
             pass
@@ -379,6 +380,7 @@ class TestSubclass:
 
     def test_write_table_subclass(self):
         buffer = StringIO()
+
         class MyTable(Table):
             pass
         mt = MyTable([[1], [2]], names=['a', 'b'])

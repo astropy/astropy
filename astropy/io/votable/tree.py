@@ -110,6 +110,7 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
     factory : function
         A function that looks up an element by the given attribute.
     """
+
     def lookup_by_attr(self, ref, before=None):
         """
         Given a string *ref*, finds the first element in the iterator
@@ -148,6 +149,7 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     Like `_lookup_by_attr_factory`, but looks in both the "ID" and
     "name" attributes.
     """
+
     def lookup_by_id_or_name(self, ref, before=None):
         """
         Given an key *ref*, finds the first element in the iterator
@@ -191,7 +193,6 @@ def _get_unit_format(config):
     else:
         format = config['unit_format']
     return format
-
 
 
 ######################################################################
@@ -474,6 +475,7 @@ class SimpleElement(Element):
     A base class for simple elements, such as FIELD, PARAM and INFO
     that don't require any special parsing or outputting machinery.
     """
+
     def __init__(self):
         Element.__init__(self)
 
@@ -501,6 +503,7 @@ class SimpleElementWithContent(SimpleElement):
     A base class for simple elements, such as FIELD, PARAM and INFO
     that don't require any special parsing or outputting machinery.
     """
+
     def __init__(self):
         SimpleElement.__init__(self)
 
@@ -562,13 +565,13 @@ class Link(SimpleElement, _IDProperty):
         if 'gref' in kwargs:
             warn_or_raise(W11, W11, (), config, pos)
 
-        self.ID           = resolve_id(ID, id, config, pos)
+        self.ID = resolve_id(ID, id, config, pos)
         self.content_role = content_role
         self.content_type = content_type
-        self.title        = title
-        self.value        = value
-        self.href         = href
-        self.action       = action
+        self.title = title
+        self.value = value
+        self.href = href
+        self.action = action
 
         warn_unknown_attrs(
             'LINK', six.iterkeys(kwargs), config, pos,
@@ -666,15 +669,15 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
         SimpleElementWithContent.__init__(self)
 
-        self.ID      = (resolve_id(ID, id, config, pos) or
+        self.ID = (resolve_id(ID, id, config, pos) or
                         xmlutil.fix_id(name, config, pos))
-        self.name    = name
-        self.value   = value
-        self.xtype   = xtype
-        self.ref     = ref
-        self.unit    = unit
-        self.ucd     = ucd
-        self.utype   = utype
+        self.name = name
+        self.value = value
+        self.xtype = xtype
+        self.ref = ref
+        self.unit = unit
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -821,27 +824,28 @@ class Values(Element, _IDProperty):
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, votable, field, ID=None, null=None, ref=None,
                  type="legal", id=None, config=None, pos=None, **extras):
         if config is None:
             config = {}
-        self._config  = config
+        self._config = config
         self._pos = pos
 
         Element.__init__(self)
 
         self._votable = votable
-        self._field   = field
-        self.ID       = resolve_id(ID, id, config, pos)
-        self.null     = null
-        self._ref     = ref
-        self.type     = type
+        self._field = field
+        self.ID = resolve_id(ID, id, config, pos)
+        self.null = null
+        self._ref = ref
+        self.type = type
 
-        self.min           = None
-        self.max           = None
+        self.min = None
+        self.max = None
         self.min_inclusive = True
         self.max_inclusive = True
-        self._options      = []
+        self._options = []
 
         warn_unknown_attrs('VALUES', six.iterkeys(extras), config, pos)
 
@@ -1203,16 +1207,16 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             vo_raise(W12, self._element_name, config, pos)
 
         datatype_mapping = {
-            'string'        : 'char',
-            'unicodeString' : 'unicodeChar',
-            'int16'         : 'short',
-            'int32'         : 'int',
-            'int64'         : 'long',
-            'float32'       : 'float',
-            'float64'       : 'double',
+            'string': 'char',
+            'unicodeString': 'unicodeChar',
+            'int16': 'short',
+            'int32': 'int',
+            'int64': 'long',
+            'float32': 'float',
+            'float64': 'double',
             # The following appear in some Vizier tables
-            'unsignedInt'   : 'long',
-            'unsignedShort' : 'int'
+            'unsignedInt': 'long',
+            'unsignedShort': 'int'
         }
 
         datatype_mapping.update(config.get('datatype_mapping', {}))
@@ -1222,19 +1226,19 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                           config, pos)
             datatype = datatype_mapping[datatype]
 
-        self.ref        = ref
-        self.datatype   = datatype
-        self.arraysize  = arraysize
-        self.ucd        = ucd
-        self.unit       = unit
-        self.width      = width
-        self.precision  = precision
-        self.utype      = utype
-        self.type       = type
-        self._links     = HomogeneousList(Link)
-        self.title      = self.name
-        self.values     = Values(self._votable, self)
-        self.xtype      = xtype
+        self.ref = ref
+        self.datatype = datatype
+        self.arraysize = arraysize
+        self.ucd = ucd
+        self.unit = unit
+        self.width = width
+        self.precision = precision
+        self.utype = utype
+        self.type = type
+        self._links = HomogeneousList(Link)
+        self.title = self.name
+        self.values = Values(self._votable, self)
+        self.xtype = xtype
 
         self._setup(config, pos)
 
@@ -1649,10 +1653,10 @@ class CooSys(SimpleElement):
 
         SimpleElement.__init__(self)
 
-        self.ID      = resolve_id(ID, id, config, pos)
+        self.ID = resolve_id(ID, id, config, pos)
         self.equinox = equinox
-        self.epoch   = epoch
-        self.system  = system
+        self.epoch = epoch
+        self.system = system
 
         warn_unknown_attrs('COOSYS', six.iterkeys(extra), config, pos)
 
@@ -1757,9 +1761,9 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
         SimpleElement.__init__(self)
         self._table = table
-        self.ref    = ref
-        self.ucd    = ucd
-        self.utype  = utype
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -1823,9 +1827,9 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
         Element.__init__(self)
         self._table = table
-        self.ref    = ref
-        self.ucd    = ucd
-        self.utype  = utype
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
 
         if config.get('version_1_2_or_later'):
             self._attr_list = self._attr_list_12
@@ -1881,18 +1885,18 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
                  utype=None, id=None, config=None, pos=None, **extra):
         if config is None:
             config = {}
-        self._config     = config
-        self._pos        = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
         self._table = table
 
-        self.ID          = (resolve_id(ID, id, config, pos)
+        self.ID = (resolve_id(ID, id, config, pos)
                             or xmlutil.fix_id(name, config, pos))
-        self.name        = name
-        self.ref         = ref
-        self.ucd         = ucd
-        self.utype       = utype
+        self.name = name
+        self.ref = ref
+        self.ucd = ucd
+        self.utype = utype
         self.description = None
 
         self._entries = HomogeneousList(
@@ -1953,11 +1957,11 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def parse(self, iterator, config):
         tag_mapping = {
-            'FIELDref'    : self._add_fieldref,
-            'PARAMref'    : self._add_paramref,
-            'PARAM'       : self._add_param,
-            'GROUP'       : self._add_group,
-            'DESCRIPTION' : self._ignore_add}
+            'FIELDref': self._add_fieldref,
+            'PARAMref': self._add_paramref,
+            'PARAM': self._add_param,
+            'GROUP': self._add_group,
+            'DESCRIPTION': self._ignore_add}
 
         for start, tag, data, pos in iterator:
             if start:
@@ -2028,6 +2032,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, votable, ID=None, name=None, ref=None, ucd=None,
                  utype=None, nrows=None, id=None, config=None, pos=None,
                  **extra):
@@ -2058,8 +2063,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self._fields = HomogeneousList(Field)
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
-        self._links  = HomogeneousList(Link)
-        self._infos  = HomogeneousList(Info)
+        self._links = HomogeneousList(Link)
+        self._infos = HomogeneousList(Info)
 
         self.array = ma.array([])
 
@@ -2104,7 +2109,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 self._fields = table.fields
                 self._params = table.params
                 self._groups = table.groups
-                self._links  = table.links
+                self._links = table.links
         else:
             del self._fields[:]
             del self._params[:]
@@ -2337,12 +2342,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         self.description = data or None
         else:
             tag_mapping = {
-                'FIELD'       : self._add_field,
-                'PARAM'       : self._add_param,
-                'GROUP'       : self._add_group,
-                'LINK'        : self._add_link,
-                'INFO'        : self._add_info,
-                'DESCRIPTION' : self._ignore_add}
+                'FIELD': self._add_field,
+                'PARAM': self._add_param,
+                'GROUP': self._add_group,
+                'LINK': self._add_link,
+                'INFO': self._add_info,
+                'DESCRIPTION': self._ignore_add}
 
             for start, tag, data, pos in iterator:
                 if start:
@@ -2991,27 +2996,28 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
+
     def __init__(self, name=None, ID=None, utype=None, type='results',
                  id=None, config=None, pos=None, **kwargs):
         if config is None:
             config = {}
-        self._config           = config
-        self._pos              = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
-        self.name              = name
-        self.ID                = resolve_id(ID, id, config, pos)
-        self.utype             = utype
-        self.type              = type
+        self.name = name
+        self.ID = resolve_id(ID, id, config, pos)
+        self.utype = utype
+        self.type = type
         self._extra_attributes = kwargs
-        self.description       = None
+        self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
-        self._params             = HomogeneousList(Param)
-        self._infos              = HomogeneousList(Info)
-        self._links              = HomogeneousList(Link)
-        self._tables             = HomogeneousList(Table)
-        self._resources          = HomogeneousList(Resource)
+        self._params = HomogeneousList(Param)
+        self._infos = HomogeneousList(Info)
+        self._links = HomogeneousList(Link)
+        self._tables = HomogeneousList(Table)
+        self._resources = HomogeneousList(Resource)
 
         warn_unknown_attrs('RESOURCE', six.iterkeys(kwargs), config, pos)
 
@@ -3135,13 +3141,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self._votable = votable
 
         tag_mapping = {
-            'TABLE'       : self._add_table,
-            'INFO'        : self._add_info,
-            'PARAM'       : self._add_param,
-            'COOSYS'      : self._add_coosys,
-            'RESOURCE'    : self._add_resource,
-            'LINK'        : self._add_link,
-            'DESCRIPTION' : self._ignore_add
+            'TABLE': self._add_table,
+            'INFO': self._add_info,
+            'PARAM': self._add_param,
+            'COOSYS': self._add_coosys,
+            'RESOURCE': self._add_resource,
+            'LINK': self._add_link,
+            'DESCRIPTION': self._ignore_add
             }
 
         for start, tag, data, pos in iterator:
@@ -3236,25 +3242,25 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     def __init__(self, ID=None, id=None, config=None, pos=None, version="1.2"):
         if config is None:
             config = {}
-        self._config             = config
-        self._pos                = pos
+        self._config = config
+        self._pos = pos
 
         Element.__init__(self)
-        self.ID                  = resolve_id(ID, id, config, pos)
-        self.description         = None
+        self.ID = resolve_id(ID, id, config, pos)
+        self.description = None
 
         self._coordinate_systems = HomogeneousList(CooSys)
-        self._params             = HomogeneousList(Param)
-        self._infos              = HomogeneousList(Info)
-        self._resources          = HomogeneousList(Resource)
-        self._groups             = HomogeneousList(Group)
+        self._params = HomogeneousList(Param)
+        self._infos = HomogeneousList(Info)
+        self._resources = HomogeneousList(Resource)
+        self._groups = HomogeneousList(Group)
 
         version = str(version)
         if version not in ("1.0", "1.1", "1.2"):
             raise ValueError("'version' should be one of '1.0', '1.1', "
                              "or '1.2'")
 
-        self._version            = version
+        self._version = version
 
     def __repr__(self):
         n_tables = len(list(self.iter_tables()))
@@ -3385,13 +3391,13 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             util.version_compare(config['version'], '1.3') >= 0
 
         tag_mapping = {
-            'PARAM'       : self._add_param,
-            'RESOURCE'    : self._add_resource,
-            'COOSYS'      : self._add_coosys,
-            'INFO'        : self._add_info,
-            'DEFINITIONS' : self._add_definitions,
-            'DESCRIPTION' : self._ignore_add,
-            'GROUP'       : self._add_group}
+            'PARAM': self._add_param,
+            'RESOURCE': self._add_resource,
+            'COOSYS': self._add_coosys,
+            'INFO': self._add_info,
+            'DEFINITIONS': self._add_definitions,
+            'DESCRIPTION': self._ignore_add,
+            'GROUP': self._add_group}
 
         for start, tag, data, pos in iterator:
             if start:
