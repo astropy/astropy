@@ -50,6 +50,9 @@ def test_all_arg_options():
                         radial_velocity=105.7*u.km/u.s)]
     all_kwargs += [dict(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
                         radial_velocity=105.7*u.km/u.s)]
+    all_kwargs += [dict(ra=37.4*u.deg, dec=-55.8*u.deg,
+                        radial_velocity=105.7*u.km/u.s,
+                        pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr)]
 
     all_kwargs += [dict(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
                         pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
@@ -57,6 +60,7 @@ def test_all_arg_options():
 
     for i, kwargs in enumerate(all_kwargs):
         icrs = ICRS(**kwargs)
+        gal = icrs.transform_to(Galactic)
 
         for k in kwargs:
             getattr(icrs, k)
