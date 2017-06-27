@@ -258,7 +258,7 @@ the mask, metadata, etc are discarded:
     ccd = CCDData(data, mask=mask,
                   meta={'object': 'fake galaxy', 'filter': 'R'},
                   unit='adu')
-    smaller = block_reduce(ccd, 4)
+    smaller = block_reduce(ccd.data, 4)
     plt.imshow(smaller, origin='lower')
 
 By default, both `~astropy.nddata.block_reduce` and
