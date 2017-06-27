@@ -16,7 +16,7 @@ from ..baseframe import frame_transform_graph
 from .. import (EarthLocation, TimeFrameAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
-                CartesianDifferential)
+                CartesianDifferential, SphericalDifferential)
 
 J2000 = Time('J2000')
 
@@ -28,7 +28,6 @@ def test_faux_lsr(dt, symmetric):
     class LSR2(LSR):
         obstime = TimeFrameAttribute(default=J2000)
 
-    dt = 1*u.s
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                      ICRS, LSR2, finite_difference_dt=dt,
                                      symmetric_finite_difference=symmetric)
@@ -159,7 +158,8 @@ def test_numerical_limits(distance):
     # rounding errors have ruined the calculation
     assert np.ptp(rv) < 65*u.km/u.s
 
-def diff_info_plot(frame, times):
+
+def diff_info_plot(frame, time):
     """
     Useful for plotting a frame with multiple times. *Not* used in the testing
     suite per se, but extremely useful for interactive plotting of results from
@@ -167,19 +167,17 @@ def diff_info_plot(frame, times):
     """
     from matplotlib import pyplot as plt
 
-    fig, ((ax1, ax2), (ax3,ax4)) = plt.subplots( 2, 2, figsize=(20, 12))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 12))
     ax1.plot_date(time.plot_date, frame.data.differentials['s'].d_xyz.to(u.km/u.s).T, fmt='-')
     ax1.legend(['x', 'y', 'z'])
 
-    ax2.plot_date(time.plot_date, np.sum(frame.data.differentials['s'].d_xyz.to(u.km/u.s)**2,axis=0)**0.5, fmt='-')
+    ax2.plot_date(time.plot_date, np.sum(frame.data.differentials['s'].d_xyz.to(u.km/u.s)**2, axis=0)**0.5, fmt='-')
     ax2.set_title('total')
-
 
     sd = frame.data.differentials['s'].represent_as(SphericalDifferential, frame.data)
 
     ax3.plot_date(time.plot_date, sd.d_distance.to(u.km/u.s), fmt='-')
     ax3.set_title('radial')
-
 
     ax4.plot_date(time.plot_date, sd.d_lat.to(u.marcsec/u.yr), fmt='-', label='lat')
     ax4.plot_date(time.plot_date, sd.d_lon.to(u.marcsec/u.yr), fmt='-', label='lon')
