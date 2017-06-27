@@ -228,8 +228,12 @@ New Features
 
   - Frame objects now have experimental support for velocity components. Most
     frames default to accepting proper motion components and radial velocity,
-    and the velocitiestransform correctly for any transformation that uses one 
-    of the ``AffineTransform``-type transformations. [#6219]
+    and the velocities transform correctly for any transformation that uses
+    one of the ``AffineTransform``-type transformations.  For other
+    transformations a finite-difference velocity transformation is available,
+    although it is not as numerically stable as those that use
+    ``AffineTransform``-type transformations. [#6219, #6226]
+
 
 - ``astropy.cosmology``
 
