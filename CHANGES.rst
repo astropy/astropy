@@ -65,10 +65,10 @@ New Features
     matrix transform classes now subclass from the base affine transform.
     [#6218]
 
-  - Frame objects now support velocity components. Most frames default to
-    accepting proper motion components and radial velocity, and the velocities
-    transform correctly for any transformation that uses one of the
-    ``AffineTransform``-type transformations. [#6219]
+  - Frame objects now have experimental support for velocity components. Most
+    frames default to accepting proper motion components and radial velocity,
+    and the velocitiestransform correctly for any transformation that uses one 
+    of the ``AffineTransform``-type transformations. [#6219]
 
 - ``astropy.cosmology``
 
