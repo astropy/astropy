@@ -678,7 +678,6 @@ class SAMPHubServer(object):
 
             server_proxy_pool = None
 
-
             server_proxy_pool = ServerProxyPool(self._pool_size,
                                                 xmlrpc.ServerProxy,
                                                 xmlrpc_addr, allow_none=1)
@@ -1238,7 +1237,6 @@ class SAMPHubServer(object):
         # If we are here, then the above attempts failed
         error_message = samp_method_name + " failed after " + conf.n_retries + " attempts"
         raise SAMPHubError(error_message)
-
 
     def _public_id_to_private_key(self, public_id):
 

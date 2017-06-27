@@ -56,7 +56,7 @@ class SExtractorHeader(core.BaseHeader):
                     colnumber = int(match.group('colnumber'))
                     colname = match.group('colname')
                     coldescr = match.group('coldescr')
-                    colunit = match.group('colunit') # If no units are given, colunit = None
+                    colunit = match.group('colunit')  # If no units are given, colunit = None
                     columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)

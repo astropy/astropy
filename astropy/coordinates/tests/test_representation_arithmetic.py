@@ -44,6 +44,7 @@ def representation_equal(first, second):
                              getattr(second, component)
                              for component in first.components))
 
+
 class TestArithmetic():
 
     def setup(self):
@@ -807,7 +808,7 @@ class TestUnitSphericalDifferential():
         expected0 = self.USD_cls(1.*u.mas/u.yr, 0.*u.mas/u.yr)
         assert_differential_allclose(o_lon3[0], expected0)
         # Part of motion kept.
-        part_kept = s.cross(CartesianRepresentation(0,1,0, unit=u.one)).norm()
+        part_kept = s.cross(CartesianRepresentation(0, 1, 0, unit=u.one)).norm()
         assert_quantity_allclose(o_lon3.norm(s), 4.74047*part_kept*kks,
                                  atol=1e-10*kks)
         # (lat[0]=0, so works for both normal and CosLat differential)
@@ -863,6 +864,7 @@ class TestRadialDifferential():
 
 class TestPhysicsSphericalDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
+
     def setup(self):
         s = PhysicsSphericalRepresentation(phi=[0., 90., 315.] * u.deg,
                                            theta=[90., 120., 5.] * u.deg,
@@ -919,6 +921,7 @@ class TestPhysicsSphericalDifferential():
 
 class TestCylindricalDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
+
     def setup(self):
         s = CylindricalRepresentation(rho=[1, 2, 3] * u.kpc,
                                       phi=[0., 90., 315.] * u.deg,
@@ -970,6 +973,7 @@ class TestCylindricalDifferential():
 
 class TestCartesianDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
+
     def setup(self):
         s = CartesianRepresentation(x=[1, 2, 3] * u.kpc,
                                     y=[2, 3, 1] * u.kpc,
@@ -1014,7 +1018,6 @@ class TestCartesianDifferential():
             CartesianDifferential(1.*u.kpc, 2.*u.kpc, 3.*u.kpc, xyz_axis=1)
 
 
-
 class TestDifferentialConversion():
     def setup(self):
         self.s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
@@ -1056,7 +1059,6 @@ class TestDifferentialConversion():
         assert np.all(representation_equal(uo_coslat2, uo_coslat))
         uo_coslat3 = uo.represent_as(UnitSphericalCosLatDifferential, base=us)
         assert np.all(representation_equal(uo_coslat3, uo_coslat))
-
 
     @pytest.mark.parametrize('sd_cls', [SphericalDifferential,
                                         SphericalCosLatDifferential])
@@ -1189,6 +1191,7 @@ class TestDifferentialConversion():
         so5c = sd_cls(0*u.deg, 0.*u.deg, ro.d_distance)
         assert np.all(representation_equal(so5, so5c))
         assert_representation_allclose(self.s + (uo+ro), self.s+so1)
+
 
 @pytest.mark.parametrize('rep,dif', [
     [CartesianRepresentation([1, 2, 3]*u.kpc),

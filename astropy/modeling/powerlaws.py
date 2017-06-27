@@ -267,10 +267,10 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law model function"""
 
-        #Pre-calculate `x/x_b`
+        # Pre-calculate `x/x_b`
         xx = x / x_break
 
-        #Initialize the return value
+        # Initialize the return value
         f = np.zeros_like(xx, subok=False)
 
         if isinstance(amplitude, Quantity):
@@ -279,36 +279,36 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         else:
             return_unit = None
 
-        #The quantity `t = (x / x_b)^(1 / delta)` can become quite
-        #large.  To avoid overflow errors we will start by calculating
-        #its natural logarithm:
+        # The quantity `t = (x / x_b)^(1 / delta)` can become quite
+        # large.  To avoid overflow errors we will start by calculating
+        # its natural logarithm:
         logt = np.log(xx) / delta
 
-        #When `t >> 1` or `t << 1` we don't actually need to compute
-        #the `t` value since the main formula (see docstring) can be
-        #significantly simplified by neglecting `1` or `t`
-        #respectively.  In the following we will check whether `t` is
-        #much greater, much smaller, or comparable to 1 by comparing
-        #the `logt` value with an appropriate threshold.
-        threshold = 30 #corresponding to exp(30) ~ 1e13
+        # When `t >> 1` or `t << 1` we don't actually need to compute
+        # the `t` value since the main formula (see docstring) can be
+        # significantly simplified by neglecting `1` or `t`
+        # respectively.  In the following we will check whether `t` is
+        # much greater, much smaller, or comparable to 1 by comparing
+        # the `logt` value with an appropriate threshold.
+        threshold = 30  # corresponding to exp(30) ~ 1e13
         i = logt > threshold
         if (i.max()):
-            #In this case the main formula reduces to a simple power
-            #law with index `alpha_2`.
+            # In this case the main formula reduces to a simple power
+            # law with index `alpha_2`.
             f[i] = amplitude * xx[i] ** (-alpha_2) \
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = logt < -threshold
         if (i.max()):
-            #In this case the main formula reduces to a simple power
-            #law with index `alpha_1`.
+            # In this case the main formula reduces to a simple power
+            # law with index `alpha_1`.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
                    / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = np.abs(logt) <= threshold
         if (i.max()):
-            #In this case the `t` value is "comparable" to 1, hence we
-            #we will evaluate the whole formula.
+            # In this case the `t` value is "comparable" to 1, hence we
+            # we will evaluate the whole formula.
             t = np.exp(logt[i])
             r = (1. + t) / 2.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
@@ -324,12 +324,12 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         """One dimensional smoothly broken power law derivative with respect
            to parameters"""
 
-        #Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
-        #SmoothlyBrokenPowerLaw1D.evaluate)
+        # Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
+        # SmoothlyBrokenPowerLaw1D.evaluate)
         xx = x / x_break
         logt = np.log(xx) / delta
 
-        #Initialize the return values
+        # Initialize the return values
         f = np.zeros_like(xx)
         d_amplitude = np.zeros_like(xx)
         d_x_break = np.zeros_like(xx)
@@ -337,7 +337,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         d_alpha_2 = np.zeros_like(xx)
         d_delta = np.zeros_like(xx)
 
-        threshold = 30 #(see comments in SmoothlyBrokenPowerLaw1D.evaluate)
+        threshold = 30  # (see comments in SmoothlyBrokenPowerLaw1D.evaluate)
         i = logt > threshold
         if (i.max()):
             f[i] = amplitude * xx[i] ** (-alpha_2) \

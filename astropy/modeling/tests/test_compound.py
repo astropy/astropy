@@ -180,6 +180,7 @@ def test_simple_two_model_class_compose_2d():
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
 
+
 def test_n_submodels():
     """
     Test that CompoundModel.n_submodels properly returns the number
@@ -201,6 +202,7 @@ def test_n_submodels():
     p = Polynomial1D + Polynomial1D
 
     assert p.n_submodels() == 2
+
 
 def test_expression_formatting():
     """
@@ -422,7 +424,6 @@ def test_indexing_on_instance():
     const.amplitude = 137
     assert m.amplitude_1 == 137
 
-
     # Similar couple of tests, but now where the compound model was created
     # from model instances
     g = Gaussian1D(1, 2, 3, name='g')
@@ -570,7 +571,7 @@ def test_slicing_on_instances_2():
     with pytest.raises(IndexError):
         m['x']
     with pytest.raises(IndexError):
-        m['a' : 'r']
+        m['a': 'r']
 
     with pytest.raises(ModelDefinitionError):
         assert m[-4:4].submodel_names == ('b', 'c', 'd')
@@ -605,7 +606,7 @@ def test_slicing_on_instances_3():
     with pytest.raises(IndexError):
         m['x']
     with pytest.raises(IndexError):
-        m['a' : 'r']
+        m['a': 'r']
     assert m[-4:4].submodel_names == ('b', 'c', 'd')
     assert m[-4:-2].submodel_names == ('b', 'c')
 
@@ -892,7 +893,7 @@ def test_update_parameters():
     m = offx | scl
     assert(m(1) == 4)
 
-    offx.offset=42
+    offx.offset = 42
     assert(m(1) == 4)
 
     m.factor_1 = 100

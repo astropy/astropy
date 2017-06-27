@@ -39,6 +39,7 @@ _base_radec_docstring = """Parameters
         Can only be passed in as a keyword argument.
 """
 
+
 class BaseRADecFrame(BaseCoordinateFrame):
     """
     A base class that defines default representation info for frames that
@@ -77,6 +78,7 @@ class BaseRADecFrame(BaseCoordinateFrame):
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
+
 
 BaseRADecFrame.__doc__ = BaseRADecFrame.__doc__.format(
     params=_base_radec_docstring)

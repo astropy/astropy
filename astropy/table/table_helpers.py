@@ -16,11 +16,13 @@ from .table import Table, Column
 from ..extern.six.moves import zip, range
 from ..utils.data_info import ParentDtypeInfo
 
+
 class TimingTables(object):
     """
     Object which contains two tables and various other attributes that
     are useful for timing and other API tests.
     """
+
     def __init__(self, size=1000, masked=False):
         self.masked = masked
 
@@ -32,17 +34,17 @@ class TimingTables(object):
         self.table['i'] = np.arange(size)
         self.table['a'] = np.random.random(size)  # float
         self.table['b'] = np.random.random(size) > 0.5  # bool
-        self.table['c'] = np.random.random((size,10))  # 2d column
-        self.table['d'] = np.random.choice(np.array(list(string.ascii_letters)),size)
+        self.table['c'] = np.random.random((size, 10))  # 2d column
+        self.table['d'] = np.random.choice(np.array(list(string.ascii_letters)), size)
 
-        self.extra_row = {'a':1.2, 'b':True, 'c':np.repeat(1, 10), 'd':'Z'}
+        self.extra_row = {'a': 1.2, 'b': True, 'c': np.repeat(1, 10), 'd': 'Z'}
         self.extra_column = np.random.randint(0, 100, size)
         self.row_indices = np.where(self.table['a'] > 0.9)[0]
         self.table_grouped = self.table.group_by('d')
 
         # Another table for testing joining
         self.other_table = Table(masked=self.masked)
-        self.other_table['i'] = np.arange(1,size,3)
+        self.other_table['i'] = np.arange(1, size, 3)
         self.other_table['f'] = np.random.random()
         self.other_table.sort('f')
 
@@ -128,7 +130,6 @@ def complex_table():
     from ..io.votable.table import parse
     import warnings
 
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         votable = parse(get_pkg_data_filename('../io/votable/tests/data/regression.xml'),
@@ -137,6 +138,7 @@ def complex_table():
     table = first_table.to_table()
 
     return table
+
 
 class ArrayWrapper(object):
     """

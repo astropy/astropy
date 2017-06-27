@@ -34,6 +34,7 @@ class SoupString(str):
     def __init__(self, val):
         self.soup = val
 
+
 class ListWriter:
     """
     Allows for XMLWriter to write to a list instead of a file.
@@ -45,6 +46,7 @@ class ListWriter:
     def write(self, data):
         self.out.append(data)
 
+
 def identify_table(soup, htmldict, numtable):
     """
     Checks whether the given BeautifulSoup tag is the table
@@ -52,7 +54,7 @@ def identify_table(soup, htmldict, numtable):
     """
 
     if soup is None or soup.name != 'table':
-        return False # Tag is not a <table>
+        return False  # Tag is not a <table>
 
     elif 'table_id' not in htmldict:
         return numtable == 1
@@ -92,12 +94,12 @@ class HTMLInputter(core.BaseInputter):
                 # Ignore bs4 parser warning #4550.
                 warnings.filterwarnings('ignore', '.*no parser was explicitly specified.*')
                 soup = BeautifulSoup('\n'.join(lines))
-        else: # use a custom backend parser
+        else:  # use a custom backend parser
             soup = BeautifulSoup('\n'.join(lines), self.html['parser'])
         tables = soup.find_all('table')
         for i, possible_table in enumerate(tables):
             if identify_table(possible_table, self.html, i + 1):
-                table = possible_table # Find the correct table
+                table = possible_table  # Find the correct table
                 break
         else:
             if isinstance(self.html['table_id'], int):
@@ -111,6 +113,7 @@ class HTMLInputter(core.BaseInputter):
         soup_list = [SoupString(x) for x in table.find_all('tr')]
 
         return soup_list
+
 
 class HTMLSplitter(core.BaseSplitter):
     """
@@ -136,6 +139,7 @@ class HTMLSplitter(core.BaseSplitter):
         if len(lines) == 0:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')
+
 
 class HTMLOutputter(core.TableOutputter):
     """
@@ -253,6 +257,7 @@ class HTMLData(core.BaseData):
             return None
         return last_index + 1
 
+
 class HTML(core.BaseReader):
     """Read and write HTML tables.
 
@@ -369,10 +374,10 @@ class HTML(core.BaseReader):
         with w.tag('html'):
             with w.tag('head'):
                 # Declare encoding and set CSS style for table
-                with w.tag('meta', attrib={'charset':'utf-8'}):
+                with w.tag('meta', attrib={'charset': 'utf-8'}):
                     pass
-                with w.tag('meta', attrib={'http-equiv':'Content-type',
-                                    'content':'text/html;charset=UTF-8'}):
+                with w.tag('meta', attrib={'http-equiv': 'Content-type',
+                                    'content': 'text/html;charset=UTF-8'}):
                     pass
                 if 'css' in self.html:
                     with w.tag('style'):
@@ -396,9 +401,9 @@ class HTML(core.BaseReader):
                     html_table_id = None
                 if 'table_class' in self.html:
                     html_table_class = self.html['table_class']
-                    attrib={"class":html_table_class}
+                    attrib = {"class": html_table_class}
                 else:
-                    attrib={}
+                    attrib = {}
                 with w.tag('table', id=html_table_id, attrib=attrib):
                     with w.tag('thead'):
                         with w.tag('tr'):

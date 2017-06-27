@@ -8,6 +8,7 @@ import sys
 
 import pytest
 
+
 def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
 

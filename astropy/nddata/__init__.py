@@ -46,4 +46,5 @@ class Conf(_config.ConfigNamespace):
         'that data values/uncertainties are not scaled with the unit change.'
     )
 
+
 conf = Conf()

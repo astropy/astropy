@@ -111,6 +111,7 @@ def test_html_escaping():
         '<tr><td>3</td></tr>',
         '</table>']
 
+
 @pytest.mark.usefixtures('table_type')
 class TestPprint():
 
@@ -238,7 +239,6 @@ class TestPprint():
                          '   15    16    17',
                          'Length = 6 rows']
 
-
     def test_clip3(self, table_type):
         """Max lines below hard limit of 8 and max width below hard limit
         of 10
@@ -260,7 +260,6 @@ class TestPprint():
         for max_lines in (0, 1, 4, 5, 6, 7, 8, 100, 101, 102, 103, 104, 130):
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(8, min(102, max_lines))
-
 
 
 @pytest.mark.usefixtures('table_type')
@@ -463,6 +462,7 @@ class TestFormatWithMaskedElements():
         t = Table([[1., 2., 3.], [3, 4, 5]], names=('a', 'b'), masked=True)
         t['a'].mask = [True, False, True]
         # mathematical function
+
         def format_func(x):
             if x is np.ma.masked:
                 return '!!'
@@ -577,6 +577,7 @@ def test_html():
         u'<tr><td>2.0</td></tr>',
         u'</table>']
 
+
 def test_align():
     t = simple_table(2, kinds='iS')
     assert t.pformat() == [' a   b ',
@@ -640,7 +641,7 @@ def test_align():
                             '##1.00#       1',
                             '##2.00#       2']
 
-    assert t1.pformat(align='!<') ==  ['column1 column2',
+    assert t1.pformat(align='!<') == ['column1 column2',
                                        '------- -------',
                                        '1.00!!! 1!!!!!!',
                                        '2.00!!! 2!!!!!!']

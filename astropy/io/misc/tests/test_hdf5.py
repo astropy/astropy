@@ -437,6 +437,7 @@ def test_skip_meta(tmpdir):
     assert str(w[0].message).startswith(
         "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
+
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_h5py_objects(tmpdir):
 

@@ -170,6 +170,7 @@ class Converter(object):
         found.  Used for error messages.
 
     """
+
     def __init__(self, field, config=None, pos=None):
         pass
 
@@ -445,6 +446,7 @@ class Array(Converter):
     """
     Handles both fixed and variable-lengths arrays.
     """
+
     def __init__(self, field, config=None, pos=None):
         if config is None:
             config = {}
@@ -515,6 +517,7 @@ class ArrayVarArray(VarArray):
     Handles an array of variable-length arrays, i.e. where *arraysize*
     ends in '*'.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
@@ -538,6 +541,7 @@ class ScalarVarArray(VarArray):
     """
     Handles a variable-length array of numeric scalars.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
@@ -902,6 +906,7 @@ class ComplexArrayVarArray(VarArray):
     """
     Handles an array of variable-length arrays of complex numbers.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
@@ -925,6 +930,7 @@ class ComplexVarArray(VarArray):
     """
     Handles a variable-length array of complex numbers.
     """
+
     def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
@@ -1175,16 +1181,16 @@ class Boolean(Converter):
             return False, True
         if value is False:
             return False, True
-        mapping = {'TRUE'  : (True, False),
-                   'FALSE' : (False, False),
-                   '1'     : (True, False),
-                   '0'     : (False, False),
-                   'T'     : (True, False),
-                   'F'     : (False, False),
-                   '\0'    : (False, True),
-                   ' '     : (False, True),
-                   '?'     : (False, True),
-                   ''      : (False, True)}
+        mapping = {'TRUE': (True, False),
+                   'FALSE': (False, False),
+                   '1': (True, False),
+                   '0': (False, False),
+                   'T': (True, False),
+                   'F': (False, False),
+                   '\0': (False, True),
+                   ' ': (False, True),
+                   '?': (False, True),
+                   '': (False, True)}
         try:
             return mapping[value.upper()]
         except KeyError:
@@ -1202,15 +1208,15 @@ class Boolean(Converter):
         return self.binparse_value(value)
 
     _binparse_mapping = {
-        ord('T')  : (True, False),
-        ord('t')  : (True, False),
-        ord('1')  : (True, False),
-        ord('F')  : (False, False),
-        ord('f')  : (False, False),
-        ord('0')  : (False, False),
-        ord('\0') : (False, True),
-        ord(' ')  : (False, True),
-        ord('?')  : (False, True)}
+        ord('T'): (True, False),
+        ord('t'): (True, False),
+        ord('1'): (True, False),
+        ord('F'): (False, False),
+        ord('f'): (False, False),
+        ord('0'): (False, False),
+        ord('\0'): (False, True),
+        ord(' '): (False, True),
+        ord('?'): (False, True)}
 
     def binparse_value(self, value):
         try:
@@ -1227,18 +1233,18 @@ class Boolean(Converter):
 
 
 converter_mapping = {
-    'double'        : Double,
-    'float'         : Float,
-    'bit'           : Bit,
-    'boolean'       : Boolean,
-    'unsignedByte'  : UnsignedByte,
-    'short'         : Short,
-    'int'           : Int,
-    'long'          : Long,
-    'floatComplex'  : FloatComplex,
-    'doubleComplex' : DoubleComplex,
-    'char'          : Char,
-    'unicodeChar'   : UnicodeChar }
+    'double': Double,
+    'float': Float,
+    'bit': Bit,
+    'boolean': Boolean,
+    'unsignedByte': UnsignedByte,
+    'short': Short,
+    'int': Int,
+    'long': Long,
+    'floatComplex': FloatComplex,
+    'doubleComplex': DoubleComplex,
+    'char': Char,
+    'unicodeChar': UnicodeChar}
 
 
 def get_converter(field, config=None, pos=None):
@@ -1303,16 +1309,16 @@ def get_converter(field, config=None, pos=None):
 
 
 numpy_dtype_to_field_mapping = {
-    np.float64().dtype.num    : 'double',
-    np.float32().dtype.num    : 'float',
-    np.bool_().dtype.num      : 'bit',
-    np.uint8().dtype.num      : 'unsignedByte',
-    np.int16().dtype.num      : 'short',
-    np.int32().dtype.num      : 'int',
-    np.int64().dtype.num      : 'long',
-    np.complex64().dtype.num  : 'floatComplex',
-    np.complex128().dtype.num : 'doubleComplex',
-    np.unicode_().dtype.num   : 'unicodeChar'
+    np.float64().dtype.num: 'double',
+    np.float32().dtype.num: 'float',
+    np.bool_().dtype.num: 'bit',
+    np.uint8().dtype.num: 'unsignedByte',
+    np.int16().dtype.num: 'short',
+    np.int32().dtype.num: 'int',
+    np.int64().dtype.num: 'long',
+    np.complex64().dtype.num: 'floatComplex',
+    np.complex128().dtype.num: 'doubleComplex',
+    np.unicode_().dtype.num: 'unicodeChar'
 }
 
 

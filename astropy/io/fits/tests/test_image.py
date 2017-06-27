@@ -291,9 +291,9 @@ class TestImageFunctions(FitsTestCase):
         data = np.ones((3, 5), dtype=np.float32)
         hdu = fits.ImageHDU(data=data, name='SCI')
         assert np.array_equal(hdu.data,
-                              np.array([[1.,  1.,  1.,  1.,  1.],
-                                        [1.,  1.,  1.,  1.,  1.],
-                                        [1.,  1.,  1.,  1.,  1.]],
+                              np.array([[1., 1., 1., 1., 1.],
+                                        [1., 1., 1., 1., 1.],
+                                        [1., 1., 1., 1., 1.]],
                                        dtype=np.float32))
 
         # create an HDU with header and data
@@ -371,8 +371,8 @@ class TestImageFunctions(FitsTestCase):
                                          [572, 573, 574]]]))
 
         assert np.array_equal(fs[0].section[:, :, :][:3, :2, :2],
-                              np.array([[[0,   1],
-                                         [11,  12]],
+                              np.array([[[0, 1],
+                                         [11, 12]],
                                         [[110, 111],
                                          [121, 122]],
                                         [[220, 221],
@@ -1464,7 +1464,7 @@ class TestCompressedImage(FitsTestCase):
             assert 'test1' in hdul[1].header
             assert hdul[1].header['test1'] == 'test'
             assert 'test2' in hdul[1].header
-            assert  hdul[1].header['test2'] == 'test2'
+            assert hdul[1].header['test2'] == 'test2'
 
         # Test update via index now:
         with fits.open(self.temp('comp.fits'), mode='update') as hdul:
@@ -1811,7 +1811,7 @@ def test_image_write_readonly(tmpdir):
 
     # Regression test to make sure that we can write out read-only arrays (#5512)
 
-    x = np.array([1,2,3])
+    x = np.array([1, 2, 3])
     x.setflags(write=False)
     ghdu = fits.ImageHDU(data=x)
     ghdu.add_datasum()

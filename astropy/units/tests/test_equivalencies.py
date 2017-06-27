@@ -125,7 +125,9 @@ def test_doppler_energy_circle(function):
     np.testing.assert_almost_equal(en.value, shifted.value, decimal=7)
 
 
-values_ghz = (999.899940784289,999.8999307714406,999.8999357778647)
+values_ghz = (999.899940784289, 999.8999307714406, 999.8999357778647)
+
+
 @pytest.mark.parametrize(('function', 'value'),
                          list(zip(doppler_functions, values_ghz)))
 def test_30kms(function, value):
@@ -136,11 +138,14 @@ def test_30kms(function, value):
 
 
 bad_values = (5, 5*u.Jy, None)
+
+
 @pytest.mark.parametrize(('function', 'value'),
                          list(zip(doppler_functions, bad_values)))
 def test_bad_restfreqs(function, value):
     with pytest.raises(u.UnitsError):
         function(value)
+
 
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
@@ -408,6 +413,7 @@ def test_spectraldensity4():
     assert_allclose(u.ABmag.to(
         photlam, flux_abmag, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
 
+
 def test_spectraldensity5():
     """ Test photon luminosity density conversions. """
     L_la = u.erg / (u.s * u.AA)
@@ -566,6 +572,7 @@ def test_equivalency_context():
     with u.set_enabled_equivalencies(l2v):
         assert l1 > 100. * u.km / u.s
         assert abs((l1 - 500. * u.km / u.s).to(u.angstrom)) < 1. * u.km/u.s
+
 
 def test_equivalency_context_manager():
     base_registry = u.get_current_unit_registry()

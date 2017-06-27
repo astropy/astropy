@@ -198,6 +198,8 @@ def concatenate(coords):
 
 # global dictionary that caches repeatedly-needed info for get_constellation
 _constellation_data = {}
+
+
 def get_constellation(coord, short_name=False, constellation_list='iau'):
     """
     Determines the constellation(s) a given coordinate object contains.

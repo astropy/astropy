@@ -625,7 +625,7 @@ class TestHeaderFunctions(FitsTestCase):
         del header['abcdefghij']
         header.insert(2, ('abcdefghij', 10))
         del header[2]
-        assert list(header.keys())[2]=='abcdefg'.upper()
+        assert list(header.keys())[2] == 'abcdefg'.upper()
 
     def test_hierarch_create_and_update(self):
         """
@@ -1676,8 +1676,8 @@ class TestHeaderFunctions(FitsTestCase):
 
         with catch_warnings() as w:
             h = fits.getheader(self.temp('test2.fits'))
-            assert h['FOO'] ==  'B?R'
-            assert h['COMMENT'] ==  'h?llo'
+            assert h['FOO'] == 'B?R'
+            assert h['COMMENT'] == 'h?llo'
             assert len(w) == 1
             assert str(w[0].message).startswith(
                 "non-ASCII characters are present in the FITS file")

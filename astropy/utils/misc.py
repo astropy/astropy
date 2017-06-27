@@ -143,6 +143,7 @@ class NumpyRNGContext(object):
 
 
     """
+
     def __init__(self, seed):
         self.seed = seed
 
@@ -247,7 +248,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
             headerlines.append(oiread[(oldidx+1):idx].decode('utf-8'))
 
         # intersphinx version line, project name, and project version
-        ivers, proj, vers, compr  = headerlines
+        ivers, proj, vers, compr = headerlines
         if 'The remainder of this file is compressed using zlib' not in compr:
             raise ValueError('The file downloaded from {0} does not seem to be'
                              'the usual Sphinx objects.inv format.  Maybe it '
@@ -380,6 +381,7 @@ class JsonCustomEncoder(json.JSONEncoder):
     '[0, 1, 2]'
 
     """
+
     def default(self, obj):
         import numpy as np
         if isinstance(obj, (np.ndarray, np.number)):
@@ -816,6 +818,7 @@ class OrderedDescriptorContainer(type):
 
 
 LOCALE_LOCK = threading.Lock()
+
 
 @contextmanager
 def set_locale(name):

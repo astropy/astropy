@@ -31,5 +31,5 @@ def test_homogeneous_list4():
 
 @raises(TypeError)
 def test_homogeneous_list5():
-    l = collections.HomogeneousList(int, [1,2,3])
+    l = collections.HomogeneousList(int, [1, 2, 3])
     l[1] = 5.0

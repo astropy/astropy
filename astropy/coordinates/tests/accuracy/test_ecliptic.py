@@ -93,6 +93,7 @@ def test_arraytransforms():
     geo_gcrs = geo_arr.transform_to(GCRS)
     assert geo_gcrs.shape == test_gcrs.shape
 
+
 def test_roundtrip_scalar():
     icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.au)
     gcrs = GCRS(icrs.cartesian)

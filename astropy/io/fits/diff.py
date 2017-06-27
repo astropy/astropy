@@ -927,7 +927,6 @@ class ImageDataDiff(_BaseDiff):
                                               self.diff_ratio))
 
 
-
 class RawDataDiff(ImageDataDiff):
     """
     `RawDataDiff` is just a special case of `ImageDataDiff` where the images

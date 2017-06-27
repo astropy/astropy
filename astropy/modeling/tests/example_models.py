@@ -64,7 +64,7 @@ from ..powerlaws import (
     LogParabola1D)
 import numpy as np
 
-#1D Models
+# 1D Models
 models_1D = {
     Gaussian1D: {
         'parameters': [1, 0, 1],
@@ -201,7 +201,7 @@ models_1D = {
         'y_values': [2.78629391e+02, 5.69791430e+01, 3.38788244e+00,
                      2.23941982e-02],
         'requires_scipy': True,
-        'x_lim': [0,10],
+        'x_lim': [0, 10],
         'log_fit': True
     },
 

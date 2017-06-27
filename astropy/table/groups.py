@@ -15,10 +15,12 @@ from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
+
 def table_group_by(table, keys):
     # index copies are unnecessary and slow down _table_group_by
     with table.index_mode('discard_on_copy'):
         return _table_group_by(table, keys)
+
 
 def _table_group_by(table, keys):
     """

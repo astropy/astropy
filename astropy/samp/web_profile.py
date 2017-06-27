@@ -153,6 +153,7 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
             # clients.
             pass
 
+
 def web_profile_text_dialog(request, queue):
 
     samp_name = "unknown"

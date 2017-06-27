@@ -304,6 +304,7 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
 
     return None, bary_sun_pos
 
+
 @frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
     # this is just an origin translation so without a distance it cannot go ahead

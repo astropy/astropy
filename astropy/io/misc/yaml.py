@@ -91,6 +91,7 @@ YAML_LT_3_12 = not minversion(yaml, '3.12')
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 
+
 def _unit_representer(dumper, obj):
     out = {'unit': str(obj.to_string())}
     return dumper.represent_mapping('!astropy.units.Unit', out)
@@ -215,11 +216,13 @@ class AstropyLoader(yaml.SafeLoader):
     <http://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
     class signature.
     """
+
     def _construct_python_tuple(self, node):
         return tuple(self.construct_sequence(node))
 
     def _construct_python_unicode(self, node):
         return self.construct_scalar(node)
+
 
 class AstropyDumper(yaml.SafeDumper):
     """
@@ -232,6 +235,7 @@ class AstropyDumper(yaml.SafeDumper):
     `PyYaml documentation <http://pyyaml.org/wiki/PyYAMLDocumentation>`_
     for details of the class signature.
     """
+
     def _represent_tuple(self, data):
         return self.represent_sequence('tag:yaml.org,2002:python/tuple', data)
 
@@ -245,6 +249,7 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, six.string_types + (bool, int, float)):
                 return True
+
 
 AstropyDumper.add_representer(u.IrreducibleUnit, _unit_representer)
 AstropyDumper.add_representer(u.CompositeUnit, _unit_representer)

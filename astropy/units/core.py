@@ -112,6 +112,7 @@ class _UnitRegistry(object):
     """
     Manages a registry of the enabled units.
     """
+
     def __init__(self, init=[], equivalencies=[]):
 
         if isinstance(init, _UnitRegistry):
@@ -1365,6 +1366,7 @@ class UnitBase(object):
         A class to handle pretty-printing the result of
         `find_equivalent_units`.
         """
+
         def __repr__(self):
             if len(self) == 0:
                 return "[]"
@@ -1473,6 +1475,7 @@ class NamedUnit(UnitBase):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
+
     def __init__(self, st, doc=None, format=None, namespace=None):
 
         UnitBase.__init__(self)
@@ -1627,6 +1630,7 @@ class IrreducibleUnit(NamedUnit):
     Examples are meters, seconds, kilograms, amperes, etc.  There is
     only once instance of such a unit per type.
     """
+
     def __reduce__(self):
         # When IrreducibleUnit objects are passed to other processes
         # over multiprocessing, they need to be recreated to be the
@@ -1978,6 +1982,7 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
+
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
         # There are many cases internal to astropy.units where we
@@ -2318,6 +2323,7 @@ def _condition_arg(value):
         raise ValueError("Value not scalar compatible or convertible to "
                          "an int, float, or complex array")
     return avalue
+
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980

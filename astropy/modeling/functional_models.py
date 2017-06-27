@@ -1492,7 +1492,6 @@ class Disk2D(Fittable2DModel):
         return ((self.y_0 - self.R_0, self.y_0 + self.R_0),
                 (self.x_0 - self.R_0, self.x_0 + self.R_0))
 
-
     @property
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
@@ -1619,6 +1618,7 @@ class Ring2D(Fittable2DModel):
                             ('r_in', inputs_unit['x']),
                             ('width', inputs_unit['x']),
                             ('amplitude', outputs_unit['z'])])
+
 
 class Delta1D(Fittable1DModel):
     """One dimensional Dirac delta function."""
@@ -1795,7 +1795,6 @@ class Box2D(Fittable2DModel):
             return Quantity(result, unit=amplitude.unit, copy=False)
         else:
             return result
-
 
     @property
     def bounding_box(self):
@@ -2089,7 +2088,6 @@ class MexicanHat1D(Fittable1DModel):
         return OrderedDict([('x_0', inputs_unit['x']),
                             ('sigma', inputs_unit['x']),
                             ('amplitude', outputs_unit['y'])])
-
 
 
 class MexicanHat2D(Fittable2DModel):

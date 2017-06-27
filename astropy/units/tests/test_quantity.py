@@ -94,7 +94,7 @@ class TestQuantityCreation(object):
         q = u.Quantity('NaN', unit='cm')
         assert np.isnan(q.value)
 
-        q = u.Quantity('-nan', unit='cm') # float() allows this
+        q = u.Quantity('-nan', unit='cm')  # float() allows this
         assert np.isnan(q.value)
 
         q = u.Quantity('nan cm')
@@ -112,7 +112,7 @@ class TestQuantityCreation(object):
         assert np.isinf(q.value)
         assert q.unit == u.cm
 
-        q = u.Quantity('Infinity', unit='cm') # float() allows this
+        q = u.Quantity('Infinity', unit='cm')  # float() allows this
         assert np.isinf(q.value)
 
         # make sure these strings don't parse...
@@ -144,7 +144,7 @@ class TestQuantityCreation(object):
         assert q2.unit == q1.unit
 
         # but we should preserve float32
-        a3 = np.array([1.,2.], dtype=np.float32)
+        a3 = np.array([1., 2.], dtype=np.float32)
         q3 = u.Quantity(a3, u.yr)
         assert q3.dtype == a3.dtype
         # items stored as objects by numpy should be converted to float
@@ -376,7 +376,7 @@ class TestQuantityOperations(object):
         result2 = eval("a @ q")
         assert np.all(result2 == q)
         result3 = eval("q @ q")
-        assert np.all(result3 == a * u.m **2)
+        assert np.all(result3 == a * u.m ** 2)
         # less trivial case.
         q2 = np.array([[[1., 0., 0.],
                         [0., 1., 0.],
@@ -699,9 +699,12 @@ def test_quantity_conversion_equivalency_passed_on():
     assert_allclose(q4.value, q5.value)
 
 # Regression test for issue #2315, divide-by-zero error when examining 0*unit
+
+
 def test_self_equivalency():
     assert u.deg.is_equivalent(0*u.radian)
     assert u.deg.is_equivalent(1*u.radian)
+
 
 def test_si():
     q1 = 10. * u.m * u.s ** 2 / (200. * u.ms) ** 2  # 250 meters
@@ -834,7 +837,7 @@ class TestQuantityDisplay(object):
         pops = np.get_printoptions()
         oldlat = conf.latex_array_threshold
         try:
-            #check thresholding behavior
+            # check thresholding behavior
             conf.latex_array_threshold = 100  # should be default
             lsmed = qmed._repr_latex_()
             assert r'\dots' not in lsmed
@@ -851,7 +854,6 @@ class TestQuantityDisplay(object):
             lsvbig = qvbig._repr_latex_()
             assert r'\dots' in lsvbig
 
-
             conf.latex_array_threshold = -1  # means use the numpy threshold
             np.set_printoptions(threshold=99)
             lsmed = qmed._repr_latex_()
@@ -867,7 +869,6 @@ class TestQuantityDisplay(object):
 
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
-
 
 
 def test_decompose():
@@ -925,7 +926,7 @@ def test_arrays():
 
     # but with multiple dtypes, single elements are OK; need to use str()
     # since numpy under python2 cannot handle unicode literals
-    a = np.array([(1.,2.,3.), (4.,5.,6.), (7.,8.,9.)],
+    a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
                  dtype=[(str('x'), np.float),
                         (str('y'), np.float),
                         (str('z'), np.float)])
@@ -987,7 +988,7 @@ def test_array_indexing_slicing():
 
 
 def test_array_setslice():
-    q = np.array([1., 2., 3. ]) * u.m
+    q = np.array([1., 2., 3.]) * u.m
     q[1:2] = np.array([400.]) * u.cm
     assert np.all(q == np.array([1., 4., 3.]) * u.m)
 
@@ -1237,6 +1238,7 @@ def test_quantity_fraction_power():
     # the value of the quantity to a Fraction. [#3922]
     assert q.dtype.kind == 'f'
 
+
 def test_inherit_docstrings():
     assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__
 
@@ -1270,6 +1272,7 @@ def test_quantity_from_table():
     assert qbp.unit == u.pc
     assert_array_equal(qbp.value, t['b'])
 
+
 def test_insert():
     """
     Test Quantity.insert method.  This does not test the full capabilities
@@ -1280,7 +1283,7 @@ def test_insert():
 
     # Insert a compatible float with different units
     q2 = q.insert(0, 1 * u.km)
-    assert np.all(q2.value == [ 1000,  1,  2])
+    assert np.all(q2.value == [1000, 1, 2])
     assert q2.unit is u.m
     assert q2.dtype.kind == 'f'
 
@@ -1296,17 +1299,17 @@ def test_insert():
     # Tests with multi-dim quantity
     q = [[1, 2], [3, 4]] * u.m
     q2 = q.insert(1, [10, 20] * u.m, axis=0)
-    assert np.all(q2.value == [[  1,  2],
-                               [ 10, 20],
-                               [  3,  4]])
+    assert np.all(q2.value == [[1, 2],
+                               [10, 20],
+                               [3, 4]])
 
     q2 = q.insert(1, [10, 20] * u.m, axis=1)
-    assert np.all(q2.value == [[  1, 10,  2],
-                               [  3, 20,  4]])
+    assert np.all(q2.value == [[1, 10, 2],
+                               [3, 20, 4]])
 
     q2 = q.insert(1, 10 * u.m, axis=1)
-    assert np.all(q2.value == [[  1,  10, 2],
-                               [  3,  10, 4]])
+    assert np.all(q2.value == [[1, 10, 2],
+                               [3, 10, 4]])
 
 
 def test_repr_array_of_quantity():
@@ -1364,7 +1367,7 @@ class TestSpecificTypeQuantity(object):
         assert type(v) is self.Length
         assert v._unit is None
 
-        l3 = np.ones((2,2)).view(self.Length3)
+        l3 = np.ones((2, 2)).view(self.Length3)
         assert type(l3) is self.Length3
         assert l3.unit is self.Length3._unit
 
@@ -1414,4 +1417,4 @@ def test_unit_class_override():
     q1 = u.Quantity(1., my_unit)
     assert type(q1) is u.Quantity
     q2 = u.Quantity(1., my_unit, subok=True)
-    assert type(q2) is  MyQuantity
+    assert type(q2) is MyQuantity

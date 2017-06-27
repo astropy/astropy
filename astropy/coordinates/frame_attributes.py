@@ -17,6 +17,7 @@ __all__ = ['FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
            'CartesianRepresentationFrameAttribute',
            'DifferentialFrameAttribute']
 
+
 class FrameAttribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
 
@@ -204,6 +205,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
         Name of a unit that the input will be converted into. If None, no
         unit-checking or conversion is performed
     """
+
     def __init__(self, default=None, secondary_attribute='', unit=None):
         super(CartesianRepresentationFrameAttribute, self).__init__(default, secondary_attribute)
         self.unit = unit
@@ -270,6 +272,7 @@ class QuantityFrameAttribute(FrameAttribute):
     shape : tuple or None
         If given, specifies the shape the attribute must be
     """
+
     def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
         super(QuantityFrameAttribute, self).__init__(default, secondary_attribute)
         self.unit = unit
@@ -355,7 +358,7 @@ class EarthLocationAttribute(FrameAttribute):
         elif isinstance(value, EarthLocation):
             return value, False
         else:
-            #we have to do the import here because of some tricky circular deps
+            # we have to do the import here because of some tricky circular deps
             from .builtin_frames import ITRS
 
             if not hasattr(value, 'transform_to'):
@@ -382,6 +385,7 @@ class CoordinateAttribute(FrameAttribute):
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
     """
+
     def __init__(self, frame, default=None, secondary_attribute=''):
         self._frame = frame
         super(CoordinateAttribute, self).__init__(default, secondary_attribute)
@@ -421,6 +425,7 @@ class CoordinateAttribute(FrameAttribute):
                 transformedobj = transformedobj.frame
             return transformedobj, True
 
+
 class DifferentialFrameAttribute(FrameAttribute):
     """A frame attribute which is a differential instance.
 
@@ -438,6 +443,7 @@ class DifferentialFrameAttribute(FrameAttribute):
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
     """
+
     def __init__(self, default=None, allowed_classes=None,
                  secondary_attribute=''):
 
@@ -479,6 +485,7 @@ class DifferentialFrameAttribute(FrameAttribute):
                                     self.allowed_classes))
 
         return value, True
+
 
 # do this here to prevent a series of complicated circular imports
 from .earth import EarthLocation

@@ -28,7 +28,7 @@ def default_format_func(format_, val):
 _format_funcs = {}
 
 
-### The first three functions are helpers for _auto_format_func
+# The first three functions are helpers for _auto_format_func
 
 
 def _use_str_for_masked_values(format_func):
@@ -40,6 +40,7 @@ def _use_str_for_masked_values(format_func):
     return lambda format_, val: (str(val) if val is np.ma.masked
                                  else format_func(format_, val))
 
+
 def _possible_string_format_functions(format_):
     """Iterate through possible string-derived format functions.
 
@@ -49,6 +50,7 @@ def _possible_string_format_functions(format_):
     yield lambda format_, val: format(val, format_)
     yield lambda format_, val: format_.format(val)
     yield lambda format_, val: format_ % val
+
 
 def get_auto_format_func(
         col_name=None,

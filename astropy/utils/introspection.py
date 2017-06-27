@@ -67,7 +67,7 @@ def resolve_name(name, *additional_parts):
     if len(parts) == 1:
         # No dots in the name--just a straight up module import
         cursor = 1
-        fromlist=[]
+        fromlist = []
     else:
         cursor = len(parts) - 1
         fromlist = [parts[-1]]

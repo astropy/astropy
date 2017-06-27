@@ -10,6 +10,7 @@ from . import cparser
 from ...extern.six.moves import zip
 from ...utils import set_locale
 
+
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
     """
@@ -35,7 +36,7 @@ class FastBasic(object):
             raise ValueError('header_start cannot be set to None for this Reader')
 
         kwargs = default_kwargs.copy()
-        kwargs.update(user_kwargs) # user kwargs take precedence over defaults
+        kwargs.update(user_kwargs)  # user kwargs take precedence over defaults
         delimiter = kwargs.pop('delimiter', ' ')
         self.delimiter = str(delimiter) if delimiter is not None else None
         self.write_comment = kwargs.get('comment', '# ')
@@ -154,6 +155,7 @@ class FastBasic(object):
         writer = cparser.FastWriter(table, **write_kwargs)
         writer.write(output, header_output, output_types)
 
+
 class FastCsv(FastBasic):
     """
     A faster version of the ordinary :class:`Csv` writer that uses the
@@ -174,7 +176,8 @@ class FastCsv(FastBasic):
         Override the default write method of `FastBasic` to
         output masked values as empty fields.
         """
-        self._write(table, output, { 'fill_values': [(core.masked, '')] })
+        self._write(table, output, {'fill_values': [(core.masked, '')]})
+
 
 class FastTab(FastBasic):
     """
@@ -189,6 +192,7 @@ class FastTab(FastBasic):
         super(FastTab, self).__init__({'delimiter': '\t'}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
+
 
 class FastNoHeader(FastBasic):
     """
@@ -209,6 +213,7 @@ class FastNoHeader(FastBasic):
         that columns names are not included in output.
         """
         self._write(table, output, {}, header_output=None)
+
 
 class FastCommentedHeader(FastBasic):
     """
@@ -249,7 +254,7 @@ class FastCommentedHeader(FastBasic):
 
         for line in tmp.splitlines():
             line = line.lstrip()
-            if line and line[0] == self.comment: # line begins with a comment
+            if line and line[0] == self.comment:  # line begins with a comment
                 commented_lines.append(line[1:])
                 if len(commented_lines) == self.header_start + 1:
                     break
@@ -268,6 +273,7 @@ class FastCommentedHeader(FastBasic):
         that column names are commented.
         """
         self._write(table, output, {}, header_output='comment')
+
 
 class FastRdb(FastBasic):
     """
@@ -295,7 +301,7 @@ class FastRdb(FastBasic):
             elif not line2 and line.strip() and line.lstrip()[0] != self.comment:
                 line2 = line
                 break
-        else: # less than 2 lines in table
+        else:  # less than 2 lines in table
             raise ValueError('RDB header requires 2 lines')
 
         # tokenize the two header lines separately
