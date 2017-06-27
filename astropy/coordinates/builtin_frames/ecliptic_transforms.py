@@ -8,7 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..transformations import FunctionTransformWithFiniteDifference, DynamicMatrixTransform
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
 from ..representation import CartesianRepresentation
@@ -28,7 +28,9 @@ def _ecliptic_rotation_matrix(equinox):
     return matrix_product(rotation_matrix(obl, 'x'), rnpb)
 
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, GeocentricTrueEcliptic)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 GCRS, GeocentricTrueEcliptic,
+                                 finite_difference_frameattr_name='equinox')
 def gcrs_to_geoecliptic(gcrs_coo, to_frame):
     # first get us to a 0 pos/vel GCRS at the target equinox
     gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=to_frame.equinox))
@@ -38,7 +40,7 @@ def gcrs_to_geoecliptic(gcrs_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, GeocentricTrueEcliptic, GCRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricTrueEcliptic, GCRS)
 def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
@@ -64,7 +66,9 @@ _NEED_ORIGIN_HINT = ("The input {0} coordinates do not have length units. This "
                      "function in this case because there is an origin shift.")
 
 
-@frame_transform_graph.transform(FunctionTransform, ICRS, HeliocentricTrueEcliptic)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 ICRS, HeliocentricTrueEcliptic,
+                                 finite_difference_frameattr_name='equinox')
 def icrs_to_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
@@ -84,7 +88,9 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     return to_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransform, HeliocentricTrueEcliptic, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
+                                 HeliocentricTrueEcliptic, ICRS,
+                                 finite_difference_frameattr_name='equinox')
 def helioecliptic_to_icrs(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
