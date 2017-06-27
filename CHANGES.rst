@@ -404,6 +404,8 @@ API Changes
   - Removed the deprecated compatibility modules for Python 2.6 (``argparse``,
     ``fractions``, ``gzip``, ``odict``, ``subprocess``) [#5975,#6157,#6164]
 
+  - Removed the deprecated ``zest.releaser`` machinery. [#6282]
+
 - ``astropy.visualization``
 
   - Removed the deprecated ``scale_image`` function. [#6170]
