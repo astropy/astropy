@@ -1005,12 +1005,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return ''
 
         if self.representation:
+            dif_cls = self.get_representation_cls('s')
             if (issubclass(self.representation, r.SphericalRepresentation) and
                     isinstance(self.data, r.UnitSphericalRepresentation)):
-                data = self.represent_as(self.data.__class__,
+                data = self.represent_as(self.data.__class__, dif_cls,
                                          in_frame_units=True)
             else:
-                data = self.represent_as(self.representation,
+                data = self.represent_as(self.representation, dif_cls,
                                          in_frame_units=True)
 
             data_repr = repr(data)
