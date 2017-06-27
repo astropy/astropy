@@ -60,6 +60,14 @@ def test_all_arg_options(kwargs):
     for k in kwargs:
         getattr(icrs, k)
 
+    if 'pm_ra_cosdec' in kwargs:
+        assert 'pm_l_cosb' in repr(gal)
+
+    if 'pm_dec' in kwargs:
+        assert 'pm_b' in repr(gal)
+
+    if 'radial_velocity' in kwargs:
+        assert 'radial_velocity' in repr(gal)
 
 @pytest.mark.parametrize('cls,lon,lat', [
     [bf.ICRS, 'ra', 'dec'], [bf.FK4, 'ra', 'dec'], [bf.FK4NoETerms, 'ra', 'dec'],
