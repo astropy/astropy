@@ -17,7 +17,7 @@ from ...tests.helper import (assert_quantity_allclose as assert_allclose,
 from ...time import Time
 
 
-#Coordinates just for these tests.
+# Coordinates just for these tests.
 class TCoo1(ICRS):
     pass
 
@@ -43,7 +43,6 @@ def test_transform_classes():
     c2 = c1.transform_to(TCoo2)
     assert_allclose(c2.ra.radian, 1)
     assert_allclose(c2.dec.radian, 0.5)
-
 
     def matfunc(coo, fr):
         return [[1, 0, 0],
@@ -99,13 +98,13 @@ def test_shortest_path():
 
     g = t.TransformGraph()
 
-    #cheating by adding graph elements directly that are not classes - the
-    #graphing algorithm still works fine with integers - it just isn't a valid
-    #TransformGraph
+    # cheating by adding graph elements directly that are not classes - the
+    # graphing algorithm still works fine with integers - it just isn't a valid
+    # TransformGraph
 
-    #the graph looks is a down-going diamond graph with the lower-right slightly
-    #heavier and a cycle from the bottom to the top
-    #also, a pair of nodes isolated from 1
+    # the graph looks is a down-going diamond graph with the lower-right slightly
+    # heavier and a cycle from the bottom to the top
+    # also, a pair of nodes isolated from 1
 
     g._graph[1][2] = FakeTransform(1)
     g._graph[1][3] = FakeTransform(1)
@@ -126,7 +125,7 @@ def test_shortest_path():
     assert path == [1, 2, 4]
     assert d == 2
 
-    #unreachable
+    # unreachable
     path, d = g.find_shortest_path(1, 5)
     assert path is None
     assert d == float('inf')
@@ -163,7 +162,7 @@ def test_sphere_cart():
     assert_allclose(lat, 0 * u.deg)
     assert_allclose(lon, np.pi / 2 * u.rad)
 
-    #test round-tripping
+    # test round-tripping
     with NumpyRNGContext(13579):
         x, y, z = np.random.randn(3, 5)
 
@@ -186,7 +185,7 @@ def test_transform_path_pri():
     assert tpath == [ICRS, FK5, Galactic]
     assert td == 2
 
-    #but direct from FK4 to Galactic should still be possible
+    # but direct from FK4 to Galactic should still be possible
     tpath, td = frame_transform_graph.find_shortest_path(FK4, Galactic)
     assert tpath == [FK4, FK4NoETerms, Galactic]
     assert td == 2
@@ -215,6 +214,8 @@ def test_obstime():
 # Affine transform tests and helpers:
 
 # just acting as a namespace
+
+
 class transfunc(object):
     rep = r.CartesianRepresentation(np.arange(3)*u.pc)
     dif = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
@@ -247,6 +248,7 @@ class transfunc(object):
     @classmethod
     def no_vel(cls, coo, fr):
         return None, cls.rep
+
 
 @pytest.mark.parametrize('transfunc', [transfunc.both, transfunc.no_matrix,
                                        transfunc.no_pos, transfunc.no_vel,
@@ -307,6 +309,8 @@ def transfunc_invalid_matrix(coo, fr):
     return np.eye(4), None
 
 # Leaving this open in case we want to add more functions to check for failures
+
+
 @pytest.mark.parametrize('transfunc', [transfunc_invalid_matrix])
 def test_affine_transform_fail(transfunc):
     diff = r.CartesianDifferential(8, 9, 10, unit=u.pc/u.Myr)
@@ -346,6 +350,8 @@ def test_too_many_differentials():
     trans.unregister(frame_transform_graph)
 
 # A matrix transform of a unit spherical with differentials should work
+
+
 @pytest.mark.parametrize('rep', [
     r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
         differentials=r.SphericalDifferential(d_lon=15*u.mas/u.yr,
@@ -383,6 +389,7 @@ def test_unit_spherical_with_differentials(rep):
         c.transform_to(TCoo2)
 
     trans.unregister(frame_transform_graph)
+
 
 def test_vel_transformation_obstime_err():
     # TODO: replace after a final decision on PR #6280

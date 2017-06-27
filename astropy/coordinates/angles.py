@@ -128,6 +128,7 @@ class Angle(u.SpecificTypeQuantity):
         else:
             raise u.UnitsError("Can not parse '{0}' as unit '{1}'"
                                .format(angle, unit))
+
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
         return u.hourangle if unit is u.hour else unit

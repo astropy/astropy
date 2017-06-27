@@ -41,6 +41,7 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 
+
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
@@ -66,6 +67,7 @@ def _array2string(values, prefix=''):
 
     return np.array2string(values, formatter=formatter, style=fmt,
                            separator=', ', prefix=prefix)
+
 
 def _combine_xyz(x, y, z, xyz_axis=0):
     """
@@ -397,6 +399,7 @@ def _make_getter(component):
     # This has to be done in a function to ensure the reference to component
     # is not lost/redirected.
     component = '_' + component
+
     def get_component(self):
         return getattr(self, component)
     return get_component
@@ -1919,6 +1922,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
+
 class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
     """Set default ``attr_classes`` and component getters on a Differential.
 
@@ -2223,6 +2227,7 @@ class CartesianDifferential(BaseDifferential):
         If `True` (default), arrays will be copied rather than referenced.
     """
     base_representation = CartesianRepresentation
+
     def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None,
                  copy=True):
 
@@ -2331,12 +2336,13 @@ class BaseSphericalDifferential(BaseDifferential):
                 isinstance(other, RadialDifferential)):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
-            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+            result_args = {c: op(getattr(first, c, 0.), getattr(second, c, 0.))
                            for c in all_components}
             return SphericalDifferential(**result_args)
 
         return super(BaseSphericalDifferential,
                      self)._combine_operation(op, other, reverse)
+
 
 class UnitSphericalDifferential(BaseSphericalDifferential):
     """Differential(s) of points on a unit sphere.
@@ -2390,6 +2396,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
 
         return super(UnitSphericalDifferential,
                      cls).from_representation(representation, base)
+
 
 class SphericalDifferential(BaseSphericalDifferential):
     """Differential(s) of points in 3D spherical coordinates.
@@ -2528,7 +2535,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
                 isinstance(other, RadialDifferential)):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
-            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+            result_args = {c: op(getattr(first, c, 0.), getattr(second, c, 0.))
                            for c in all_components}
             return SphericalCosLatDifferential(**result_args)
 
@@ -2698,7 +2705,7 @@ class RadialDifferential(BaseDifferential):
                                 BaseSphericalCosLatDifferential)):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
-            result_args = {c : op(getattr(first, c, 0.), getattr(second, c, 0.))
+            result_args = {c: op(getattr(first, c, 0.), getattr(second, c, 0.))
                            for c in all_components}
             return SphericalDifferential(**result_args)
 

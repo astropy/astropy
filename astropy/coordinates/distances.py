@@ -127,7 +127,7 @@ class Distance(u.SpecificTypeQuantity):
                         unit = u.Mpc
                     elif meanlogval > 3:
                         unit = u.kpc
-                    elif meanlogval < -3: #~200 AU
+                    elif meanlogval < -3:  # ~200 AU
                         unit = u.AU
                     else:
                         unit = u.pc

@@ -36,6 +36,7 @@ C_ICRS = ICRS(RA, DEC)
 C_FK5 = C_ICRS.transform_to(FK5)
 J2001 = Time('J2001', scale='utc')
 
+
 def allclose(a, b, rtol=0.0, atol=None):
     if atol is None:
         atol = 1.e-8 * getattr(a, 'unit', 1.)
@@ -78,7 +79,7 @@ for rt_frame0 in rt_frames:
                         rt_sets.append((rt_frame0, rt_frame1,
                                         equinox0, equinox1,
                                         obstime0, obstime1))
-rt_args = ('frame0','frame1','equinox0','equinox1','obstime0','obstime1')
+rt_args = ('frame0', 'frame1', 'equinox0', 'equinox1', 'obstime0', 'obstime1')
 
 
 @pytest.mark.parametrize(rt_args, rt_sets)
@@ -311,6 +312,7 @@ FRAME_DEPRECATION_WARNING = ("Passing a frame as a positional argument is now "
                              "deprecated, use the frame= keyword argument "
                              "instead.")
 
+
 def test_frame_init():
     """
     Different ways of providing the frame.
@@ -483,6 +485,7 @@ def test_seps():
 
     assert sep3d == 1 * u.kpc
 
+
 def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
@@ -499,6 +502,7 @@ def test_repr():
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                                 '    ( 0.,  1.)>')
 
+
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
@@ -510,6 +514,7 @@ def test_repr_altaz():
                          "temperature=0.0 deg_C, relative_humidity=0, "
                          "obswl=1.0 micron): (az, alt, distance) in "
                          "(deg, deg, m)\n")
+
 
 def test_ops():
     """
@@ -690,7 +695,7 @@ for base_unit_attr_set in base_unit_attr_sets:
                     c2 = np.array(c2)
                     c3 = np.array(c3)
                 units_attr_sets.append(base_unit_attr_set + (representation, c1, c2, c3))
-units_attr_args = ('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','attr3','representation','c1','c2','c3')
+units_attr_args = ('repr_name', 'unit1', 'unit2', 'unit3', 'cls2', 'attr1', 'attr2', 'attr3', 'representation', 'c1', 'c2', 'c3')
 
 
 @pytest.mark.parametrize(units_attr_args,
@@ -798,7 +803,7 @@ def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
 
 
-@pytest.mark.parametrize(('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','attr3'),
+@pytest.mark.parametrize(('repr_name', 'unit1', 'unit2', 'unit3', 'cls2', 'attr1', 'attr2', 'attr3'),
                          [x for x in base_unit_attr_sets if x[0] != 'unitspherical'])
 def test_skycoord_coordinate_input(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3):
     c1, c2, c3 = 1, 2, 3
@@ -882,12 +887,12 @@ def test_wcs_methods(mode, origin):
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
 
-    #also try to round-trip with `from_pixel`
+    # also try to round-trip with `from_pixel`
     scnew = SkyCoord.from_pixel(xp, yp, wcs, mode=mode, origin=origin).transform_to('icrs')
     assert_allclose(scnew.ra.degree, ref.ra.degree)
     assert_allclose(scnew.dec.degree, ref.dec.degree)
 
-    #Also make sure the right type comes out
+    # Also make sure the right type comes out
     class SkyCoord2(SkyCoord):
         pass
     scnew2 = SkyCoord2.from_pixel(xp, yp, wcs, mode=mode, origin=origin)
@@ -929,10 +934,10 @@ def test_frame_attr_transform_inherit():
     assert c2.obstime.value == 'J1980.000'
 
     # The work-around for #5722
-    c  = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5')
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5')
     c1 = SkyCoord(1 * u.deg, 2 * u.deg, frame='fk5', equinox='B1950.000')
     c2 = c1.transform_to(c)
-    assert not c2.is_equivalent_frame(c) # counterintuitive, but documented
+    assert not c2.is_equivalent_frame(c)  # counterintuitive, but documented
     assert c2.equinox.value == 'B1950.000'
     c3 = c1.transform_to(c, merge_attributes=False)
     assert c3.equinox.value == 'J2000.000'
@@ -944,7 +949,7 @@ def test_deepcopy():
     c2 = copy.copy(c1)
     c3 = copy.deepcopy(c1)
 
-    c4 = SkyCoord([1, 2] * u.m, [2, 3] *u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
+    c4 = SkyCoord([1, 2] * u.m, [2, 3] * u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
                   obstime='J1999.9', equinox='J1988.8')
     c5 = copy.deepcopy(c4)
     assert np.all(c5.x == c4.x)  # and y and z
@@ -1057,8 +1062,8 @@ def test_guess_from_table():
 
     tab = Table()
     with NumpyRNGContext(987654321):
-        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='RA[J2000]'))
-        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='DEC[J2000]'))
+        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='DEC[J2000]'))
 
     sc = SkyCoord.guess_from_table(tab)
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
@@ -1110,7 +1115,7 @@ def test_guess_from_table():
     npt.assert_array_equal(sc_gal.l, l)
     npt.assert_array_equal(sc_gal.b, b)
 
-    #also try some column names that *end* with the attribute name
+    # also try some column names that *end* with the attribute name
     tabgal['b'].name = 'gal_b'
     tabgal['l'].name = 'gal_l'
     SkyCoord.guess_from_table(tabgal, frame='galactic')
@@ -1133,20 +1138,20 @@ def test_skycoord_list_creation():
     assert np.all(scnew.ra == [1, 3]*u.deg)
     assert np.all(scnew.dec == [4, 6]*u.deg)
 
-    #also check ranges
+    # also check ranges
     sc01 = sc[:2]
     scnew2 = SkyCoord([sc01, sc2])
     assert np.all(scnew2.ra == sc.ra)
     assert np.all(scnew2.dec == sc.dec)
 
-    #now try with a mix of skycoord, frame, and repr objects
+    # now try with a mix of skycoord, frame, and repr objects
     frobj = ICRS(2*u.deg, 5*u.deg)
     reprobj = UnitSphericalRepresentation(3*u.deg, 6*u.deg)
     scnew3 = SkyCoord([sc0, frobj, reprobj])
     assert np.all(scnew3.ra == sc.ra)
     assert np.all(scnew3.dec == sc.dec)
 
-    #should *fail* if different frame attributes or types are passed in
+    # should *fail* if different frame attributes or types are passed in
     scfk5_j2000 = SkyCoord(1*u.deg, 4*u.deg, frame='fk5')
     with pytest.raises(ValueError):
         SkyCoord([sc0, scfk5_j2000])
@@ -1184,8 +1189,8 @@ def test_equiv_skycoord():
 
     scf1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5')
     scf2 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', equinox='J2005')
-    #obstime is *not* an FK5 attribute, but we still want scf1 and scf3 to come
-    #to come out different because they're part of SkyCoord
+    # obstime is *not* an FK5 attribute, but we still want scf1 and scf3 to come
+    # to come out different because they're part of SkyCoord
     scf3 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', obstime='J2005')
 
     assert scf1.is_equivalent_frame(scf1)
@@ -1214,15 +1219,15 @@ def test_constellations():
 def test_constellations_with_nameresolve():
     assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
 
-    #you'd think "And ..." should be in Andromeda.  But you'd be wrong.
+    # you'd think "And ..." should be in Andromeda.  But you'd be wrong.
     assert SkyCoord.from_name('And VI').get_constellation() == 'Pegasus'
 
-    #maybe it's because And VI isn't really a galaxy?
+    # maybe it's because And VI isn't really a galaxy?
     assert SkyCoord.from_name('And XXII').get_constellation() == 'Pisces'
     assert SkyCoord.from_name('And XXX').get_constellation() == 'Cassiopeia'
-    #ok maybe not
+    # ok maybe not
 
-    #ok, but at least some of the others do make sense...
+    # ok, but at least some of the others do make sense...
     assert SkyCoord.from_name('Coma Cluster').get_constellation(short_name=True) == 'Com'
     assert SkyCoord.from_name('UMa II').get_constellation() == 'Ursa Major'
     assert SkyCoord.from_name('Triangulum Galaxy').get_constellation() == 'Triangulum'
@@ -1236,6 +1241,7 @@ def test_getitem_representation():
     sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
     sc.representation = 'cartesian'
     assert sc[0].representation is CartesianRepresentation
+
 
 def test_spherical_offsets():
     i00 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='icrs')
@@ -1296,7 +1302,7 @@ def test_frame_attr_changes():
 
     # doesn't matter what this does as long as it just puts the frame in the
     # transform graph
-    transset = (ICRS, FakeFrame, lambda c,f:c)
+    transset = (ICRS, FakeFrame, lambda c, f: c)
     frame_transform_graph.add_transform(*transset)
     try:
         assert 'fakeattr' in dir(sc_before)
@@ -1351,7 +1357,7 @@ def test_extra_attributes():
 
     Regression test against #5743.
     """
-    obstime_string = ['2017-01-01T00:00','2017-01-01T00:10']
+    obstime_string = ['2017-01-01T00:00', '2017-01-01T00:10']
     obstime = Time(obstime_string)
     sc = SkyCoord([5, 10], [20, 30], unit=u.deg, obstime=obstime_string)
     assert not hasattr(sc.frame, 'obstime')

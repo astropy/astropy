@@ -51,10 +51,13 @@ class FK5(BaseRADecFrame):
         """
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
+
 FK5.__doc__ = FK5.__doc__.format(params=_base_radec_docstring)
 
 # This is the "self-transform".  Defined at module level because the decorator
 #  needs a reference to the FK5 class
+
+
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK5)
 def fk5_to_fk5(fk5coord1, fk5frame2):
     return fk5coord1._precession_matrix(fk5coord1.equinox, fk5frame2.equinox)

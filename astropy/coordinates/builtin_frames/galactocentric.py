@@ -28,6 +28,7 @@ from .icrs import ICRS
 # prevent having to create new Angle objects every time `get_roll0` is called.
 _ROLL0 = Angle(58.5986320306*u.degree)
 
+
 class Galactocentric(BaseCoordinateFrame):
     r"""
     A coordinate or frame in the Galactocentric system. This frame
@@ -227,6 +228,8 @@ class Galactocentric(BaseCoordinateFrame):
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
+
+
 def get_matrix_vectors(galactocentric_frame, inverse=False):
     """
     Use the ``inverse`` argument to get the inverse transformation, matrix and
@@ -271,6 +274,7 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
 
     return A, offset
 
+
 def _check_coord_repr_diff_types(c):
     if isinstance(c.data, r.UnitSphericalRepresentation):
         raise ConvertError("Transforming to/from a Galactocentric frame "
@@ -286,10 +290,12 @@ def _check_coord_repr_diff_types(c):
                            "requires a 3D velocity, e.g., proper motion "
                            "components and radial velocity.")
 
+
 @frame_transform_graph.transform(AffineTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     _check_coord_repr_diff_types(icrs_coord)
     return get_matrix_vectors(galactocentric_frame)
+
 
 @frame_transform_graph.transform(AffineTransform, Galactocentric, ICRS)
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):

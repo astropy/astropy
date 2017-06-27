@@ -8,6 +8,7 @@ from ..frame_attributes import TimeFrameAttribute
 from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .utils import DEFAULT_OBSTIME
 
+
 class CIRS(BaseRADecFrame):
     """
     A coordinate or frame in the Celestial Intermediate Reference System (CIRS).
@@ -24,6 +25,7 @@ class CIRS(BaseRADecFrame):
     """
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+
 
 CIRS.__doc__ = CIRS.__doc__.format(params=_base_radec_docstring)
 

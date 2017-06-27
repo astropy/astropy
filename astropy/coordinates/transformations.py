@@ -41,6 +41,7 @@ __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform',
            'FunctionTransformWithFiniteDifference', 'CompositeTransform']
 
+
 class TransformGraph(object):
     """
     A graph representing the paths between coordinate frames.
@@ -218,7 +219,7 @@ class TransformGraph(object):
             t = self._graph[fromsys][tosys]
             return [fromsys, tosys], float(t.priority if hasattr(t, 'priority') else 1)
 
-        #otherwise, need to construct the path:
+        # otherwise, need to construct the path:
 
         if fromsys in self._shortestpaths:
             # already have a cached result
@@ -592,7 +593,7 @@ class TransformGraph(object):
         return deco
 
 
-#<--------------------Define the builtin transform classes--------------------->
+# <-------------------Define the builtin transform classes-------------------->
 
 @six.add_metaclass(ABCMeta)
 class CoordinateTransform(object):
@@ -636,8 +637,8 @@ class CoordinateTransform(object):
         self.overlapping_frame_attr_names = overlap = []
         if (hasattr(fromsys, 'get_frame_attr_names') and
                 hasattr(tosys, 'get_frame_attr_names')):
-            #the if statement is there so that non-frame things might be usable
-            #if it makes sense
+            # the if statement is there so that non-frame things might be usable
+            # if it makes sense
             for from_nm in fromsys.get_frame_attr_names():
                 if from_nm in tosys.get_frame_attr_names():
                     overlap.append(from_nm)
@@ -727,6 +728,7 @@ class FunctionTransform(CoordinateTransform):
 
 
     """
+
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
         if not six.callable(func):
             raise TypeError('func must be callable')
@@ -753,6 +755,7 @@ class FunctionTransform(CoordinateTransform):
                  "differentials, but the FunctionTransform does not handle "
                  "differentials, so they have been dropped.", AstropyWarning)
         return res
+
 
 class FunctionTransformWithFiniteDifference(FunctionTransform):
     r"""
@@ -794,6 +797,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     `FunctionTransform`.
 
     """
+
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None,
                  finite_difference_frameattr_name='obstime',
                  finite_difference_dt=1*u.second,
@@ -807,6 +811,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
     @property
     def finite_difference_frameattr_name(self):
         return self._finite_difference_frameattr_name
+
     @finite_difference_frameattr_name.setter
     def finite_difference_frameattr_name(self, value):
         if value is None:
@@ -908,6 +913,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         else:
             return supcall(fromcoord, toframe)
 
+
 class BaseAffineTransform(CoordinateTransform):
     """Base class for common functionality between the ``AffineTransform``-type
     subclasses.
@@ -976,7 +982,7 @@ class BaseAffineTransform(CoordinateTransform):
             # retrieve just velocity differential
             unit_diff = data.differentials['s'].represent_as(
                 data.differentials['s']._unit_differential, data)
-            data = data.with_differentials({'s': unit_diff}) # updates key
+            data = data.with_differentials({'s': unit_diff})  # updates key
 
         # If it's a RadialDifferential, we flat-out ignore the differentials
         # This is because, by this point (past the validation above), we can
@@ -1009,7 +1015,7 @@ class BaseAffineTransform(CoordinateTransform):
         # We need a velocity (time derivative) and, for now, are strict: the
         # representation can only contain a velocity differential and no others.
         if has_velocity and not rad_vel_diff:
-            veldiff = rep.differentials['s'] # already in Cartesian form
+            veldiff = rep.differentials['s']  # already in Cartesian form
 
             if offset is not None and 's' in offset.differentials:
                 veldiff = veldiff + offset.differentials['s']
@@ -1043,7 +1049,7 @@ class BaseAffineTransform(CoordinateTransform):
             else:
                 diffs = newrep.differentials
 
-            newrep = newrep.represent_as(fromcoord.data.__class__) # drops diffs
+            newrep = newrep.represent_as(fromcoord.data.__class__)  # drops diffs
             newrep = newrep.with_differentials(diffs)
 
         # We pulled the radial differential off of the representation
@@ -1056,6 +1062,7 @@ class BaseAffineTransform(CoordinateTransform):
                 {'s': fromcoord.data.differentials['s']})
 
         return newrep
+
 
 class AffineTransform(BaseAffineTransform):
     """
@@ -1091,6 +1098,7 @@ class AffineTransform(BaseAffineTransform):
         If ``transform_func`` is not callable
 
     """
+
     def __init__(self, transform_func, fromsys, tosys, priority=1,
                  register_graph=None):
 
@@ -1107,6 +1115,7 @@ class AffineTransform(BaseAffineTransform):
         newrep = self._apply_transform(fromcoord, M, vec)
 
         return toframe.realize_frame(newrep)
+
 
 class StaticMatrixTransform(BaseAffineTransform):
     """
@@ -1140,6 +1149,7 @@ class StaticMatrixTransform(BaseAffineTransform):
         If the matrix is not 3 x 3
 
     """
+
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
         if six.callable(matrix):
             matrix = matrix()
@@ -1188,6 +1198,7 @@ class DynamicMatrixTransform(BaseAffineTransform):
         If ``matrix_func`` is not callable
 
     """
+
     def __init__(self, matrix_func, fromsys, tosys, priority=1,
                  register_graph=None):
         if not six.callable(matrix_func):
@@ -1236,6 +1247,7 @@ class CompositeTransform(CoordinateTransform):
         single transformation to speed up the calculation.
 
     """
+
     def __init__(self, transforms, fromsys, tosys, priority=1,
                  register_graph=None, collapse_static_mats=True):
         super(CompositeTransform, self).__init__(fromsys, tosys,
@@ -1269,10 +1281,10 @@ class CompositeTransform(CoordinateTransform):
     def __call__(self, fromcoord, toframe):
         curr_coord = fromcoord
         for t in self.transforms:
-            #build an intermediate frame with attributes taken from either
-            #`fromframe`, or if not there, `toframe`, or if not there, use
-            #the defaults
-            #TODO: caching this information when creating the transform may
+            # build an intermediate frame with attributes taken from either
+            # `fromframe`, or if not there, `toframe`, or if not there, use
+            # the defaults
+            # TODO: caching this information when creating the transform may
             # speed things up a lot
             frattrs = {}
             for inter_frame_attr_nm in t.tosys.get_frame_attr_names():
@@ -1290,10 +1302,11 @@ class CompositeTransform(CoordinateTransform):
         # coordinate objects are immutible, so copying is not needed
         return curr_coord
 
+
 # map class names to colorblind-safe colors
 trans_to_color = OrderedDict()
-trans_to_color[AffineTransform] = '#555555' # gray
-trans_to_color[FunctionTransform] = '#783001' # dark red-ish/brown
-trans_to_color[FunctionTransformWithFiniteDifference] = '#d95f02' # red-ish
-trans_to_color[StaticMatrixTransform] = '#7570b3' # blue-ish
-trans_to_color[DynamicMatrixTransform] = '#1b9e77' # green-ish
+trans_to_color[AffineTransform] = '#555555'  # gray
+trans_to_color[FunctionTransform] = '#783001'  # dark red-ish/brown
+trans_to_color[FunctionTransformWithFiniteDifference] = '#d95f02'  # red-ish
+trans_to_color[StaticMatrixTransform] = '#7570b3'  # blue-ish
+trans_to_color[DynamicMatrixTransform] = '#1b9e77'  # green-ish

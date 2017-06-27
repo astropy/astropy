@@ -37,7 +37,7 @@ BODY_NAME_TO_KERNEL_SPEC = OrderedDict(
                                        ('mercury', [(0, 1), (1, 199)]),
                                        ('venus', [(0, 2), (2, 299)]),
                                        ('earth-moon-barycenter', [(0, 3)]),
-                                       ('earth',  [(0, 3), (3, 399)]),
+                                       ('earth', [(0, 3), (3, 399)]),
                                        ('moon', [(0, 3), (3, 301)]),
                                        ('mars', [(0, 4)]),
                                        ('jupiter', [(0, 5)]),
@@ -415,6 +415,7 @@ def _get_apparent_body_position(body, time, ephemeris):
 
     return get_body_barycentric(body, emitted_time, ephemeris)
 
+
 _get_apparent_body_position.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
@@ -461,6 +462,7 @@ def get_body(body, time, location=None, ephemeris=None):
         gcrs = icrs.transform_to(GCRS(obstime=time))
     return SkyCoord(gcrs)
 
+
 get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
@@ -491,6 +493,7 @@ def get_moon(time, location=None, ephemeris=None):
     """
 
     return get_body('moon', time, location=location, ephemeris=ephemeris)
+
 
 get_moon.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 

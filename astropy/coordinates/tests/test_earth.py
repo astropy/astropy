@@ -20,10 +20,12 @@ from ...extern.six.moves import zip
 from ... import units as u
 from ..name_resolve import NameResolveError
 
+
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
     if atol is None:
         atol = 1.e-14 * getattr(a, 'unit', 1)
     return quantity_allclose(a, b, rtol, atol)
+
 
 def allclose_m8(a, b, rtol=1.e-8, atol=None):
     if atol is None:
@@ -33,6 +35,7 @@ def allclose_m8(a, b, rtol=1.e-8, atol=None):
 
 def isclose_m14(val, ref):
     return np.array([allclose_m14(v, r) for (v, r) in zip(val, ref)])
+
 
 def isclose_m8(val, ref):
     return np.array([allclose_m8(v, r) for (v, r) in zip(val, ref)])
@@ -101,7 +104,7 @@ class TestInput():
         self.lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg,
                              wrap_angle=180*u.deg)
         self.lat = Latitude([+0., 30., 60., +90., -90., -60., -30., 0.], u.deg)
-        self.h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11.,-.1], u.m)
+        self.h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11., -.1], u.m)
         self.location = EarthLocation.from_geodetic(self.lon, self.lat, self.h)
         self.x, self.y, self.z = self.location.to_geocentric()
 
@@ -273,6 +276,7 @@ def test_pickling():
     s = pickle.dumps(el)
     el2 = pickle.loads(s)
     assert el == el2
+
 
 def test_repr_latex():
     """
