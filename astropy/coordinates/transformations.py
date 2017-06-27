@@ -1020,7 +1020,7 @@ class BaseAffineTransform(CoordinateTransform):
             if offset is not None and 's' in offset.differentials:
                 veldiff = veldiff + offset.differentials['s']
 
-            newrep = newrep.with_differentials(veldiff)
+            newrep = newrep.with_differentials({'s': veldiff})
 
         if isinstance(fromcoord.data, UnitSphericalRepresentation):
             # Special-case this because otherwise the return object will think
@@ -1051,6 +1051,21 @@ class BaseAffineTransform(CoordinateTransform):
 
             newrep = newrep.represent_as(fromcoord.data.__class__)  # drops diffs
             newrep = newrep.with_differentials(diffs)
+
+        elif has_velocity and unit_vel_diff:
+            # Here, we're in the case where the representation is not
+            # UnitSpherical, but the differential *is* one of the UnitSpherical
+            # types. We have to convert back to that differential class or the
+            # resulting frame will think it has a valid radial_velocity. This
+            # can probably be cleaned up: we currently have to go through the
+            # dimensional version of the differential before representing as the
+            # unit differential so that the units work out (the distance length
+            # unit shouldn't appear in the resulting proper motions)
+
+            diff_cls = fromcoord.data.differentials['s'].__class__
+            newrep = newrep.represent_as(fromcoord.data.__class__,
+                                         diff_cls._dimensional_differential)
+            newrep = newrep.represent_as(fromcoord.data.__class__, diff_cls)
 
         # We pulled the radial differential off of the representation
         # earlier, so now we need to put it back. But, in order to do that, we
