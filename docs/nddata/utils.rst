@@ -1,7 +1,7 @@
 .. _nddata_utils:
 
-astropy.nddata.utils
-********************
+Image utilities
+***************
 
 Overview
 ========
@@ -340,7 +340,6 @@ position, and ``wcs`` object from above to create a cutout with size
     size = u.Quantity((1.5, 2.5), u.arcsec)
     cutout = Cutout2D(data, position, size, wcs=wcs)
     plt.imshow(cutout.data, origin='lower')
-
 
 Reference/API
 =============
