@@ -293,7 +293,7 @@ Modifications for a beta/release candidate release
      If an RC goes well, there's no need for a "dev" stage, as the same version
      will be released with only minor doc updates, and strings like "x.yrcz.dev"
      confuse some version number parsing tools.
-   * Do not do step #22 or later, as those are tasks for an actual release.
+   * Do not do step #26 or later, as those are tasks for an actual release.
 
 
 Performing a Feature Freeze/Branching new Major Versions
