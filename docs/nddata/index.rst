@@ -305,6 +305,27 @@ is not an image.
   `~astropy.nddata.NDData` interface. More details are in
   :ref:`nddata_subclassing`.
 
+Additional examples
+===================
+
+The list of packages below that use the ``nddata`` framework is intended to be
+useful to either people writing their own image classes or for those looking
+for an image class that goes beyond what `~astropy.nddata.CCDData` does.
+
++ The `SunPy project <http://sunpy.org/>`_ uses `~astropy.nddata.NDData` as the
+  foundation for its
+  `Map classes <http://docs.sunpy.org/en/stable/code_ref/map.html>`_.
++ The class `~astropy.nddata.NDDataRef` is used in
+  `specutils <http://specutils.readthedocs.io/en/latest/>`_ as the basis for
+  `Spectrum1D <http://specutils.readthedocs.io/en/latest/api/specutils.Spectrum1D.html>`_, which adds several methods useful for
+  spectra.
++ The package `ndmapper <http://ndmapper.readthedocs.io/en/latest/>`_, which
+  makes it easy to build reduction pipelines for optical data, uses
+  `~astropy.nddata.NDDataArray` as its image object.
++ The package `ccdproc <http://ccdproc.readthedocs.io/en/latest/>`_ uses the
+  `~astropy.nddata.CCDData` class throughout for implementing optical/IR image
+  reduction.
+
 Using ``nddata``
 ================
 
