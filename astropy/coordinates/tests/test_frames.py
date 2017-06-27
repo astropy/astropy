@@ -205,9 +205,12 @@ def test_frame_repr_vels():
 
     i = ICRS(ra=1*u.deg, dec=2*u.deg,
              pm_ra_cosdec=1*u.marcsec/u.yr, pm_dec=2*u.marcsec/u.yr)
+
+    # unit comes out as mas/yr because of the preferred units defined in the
+    # frame RepresentationMapping
     assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
                        '    ( 1.,  2.)\n'
-                       ' (pm_ra_cosdec, pm_dec) in marcsec / yr\n'
+                       ' (pm_ra_cosdec, pm_dec) in mas / yr\n'
                        '    ( 1.,  2.)>')
 
 
