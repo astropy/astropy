@@ -1,10 +1,8 @@
-2.0 (unreleased)
-----------------
+2.0rc1 (2017-06-27)
+-------------------
 
 New Features
 ^^^^^^^^^^^^
-
-- ``astropy.config``
 
 - ``astropy.constants``
 
@@ -29,9 +27,11 @@ New Features
 
   - Convolution with un-normalized and un-normalizable kernels is now possible.
     [#5782]
+
   - Add a new argument, ``normalization_rtol``, to ``convolve_fft``, allowing
     the user to specify the relative error tolerance in the normalization of
     the convolution kernel. [#5649, #5177]
+
   - Models can now be convoluted using ``convolve`` or ``convolve_fft``,
     which generates a regular compound model. [#6015]
 
@@ -78,9 +78,6 @@ New Features
     although it is not as numerically stable as those that use
     ``AffineTransform``-type transformations. [#6219, #6226]
 
-
-- ``astropy.cosmology``
-
 - ``astropy.io.ascii``
 
   - Allow to specify encoding in ``ascii.read``, only for Python 3 and with the
@@ -103,9 +100,6 @@ New Features
 
   - New convenience function ``printdiff`` to print out diff reports. [#5759]
 
-  - Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
-    Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
-
   - Allow to instantiate a ``BinTableHDU`` directly from a ``Table`` object.
     [#6139]
 
@@ -116,8 +110,6 @@ New Features
 - ``astropy.io.registry``
 
   - New functions to unregister readers, writers, and identifiers. [#6217]
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -163,8 +155,6 @@ New Features
   - Added ``std_ddof`` keyword option to ``sigma_clipped_stats``.
     [#6066, #6207]
 
-- ``astropy.sphinx``
-
 - ``astropy.table``
 
   - Issue a warning when assigning a string value to a column and
@@ -196,8 +186,6 @@ New Features
 
   - ``enable_deprecations_as_exceptions`` function now accepts additional
     user-defined module imports and warning messages to ignore. [#6223]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -243,15 +231,10 @@ New Features
   - Added a new convenience method ``get_cached_urls`` to ``astropy.utils.data``
     for getting a list of the URLs in your cache. [#6242]
 
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - Upgraded the included wcslib to version 5.16. [#6225]
 
-- ``astropy.extern``
 
 API Changes
 ^^^^^^^^^^^
@@ -260,10 +243,6 @@ API Changes
 
   - This entire sub-package is deprecated because blackbody has been moved to
     ``astropy.modeling.blackbody``. [#6191]
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -292,9 +271,10 @@ API Changes
     by default -- that is, the default value of Tcmb0 is 0.  This does not affect
     built in models (such as WMAP or Planck). [#6112]
 
-- ``astropy.io.ascii``
-
 - ``astropy.io.fits``
+
+  - Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
+    Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
 
   - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
     to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
@@ -308,12 +288,6 @@ API Changes
   - Deprecated ``clobber`` keyword; use ``overwrite``. [#6203]
 
   - Add EXTVER column to the output of ``HDUList.info()``. [#6124]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -376,8 +350,6 @@ API Changes
     force a reference with ``c = col[3:5]`` followed by
     ``c.info.indices``. [#6277]
 
-- ``astropy.time``
-
 - ``astropy.units``
 
   - Moved ``units.cgs.emu`` to ``units.deprecated.emu`` due to ambiguous
@@ -423,14 +395,9 @@ API Changes
 
   - Removed deprecated ``wcs.rotateCD``. [#6170]
 
-- ``astropy.extern``
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -442,14 +409,6 @@ Bug Fixes
   - Direct convolution previously implemented the wrong definition of
     convolution.  This error only affects *asymmetric* kernels.  [#6267]
 
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.extern``
-
-- ``astropy.io.ascii``
-
 - ``astropy.io.fits``
 
   - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
@@ -460,12 +419,6 @@ Bug Fixes
 
   - Close file on error to avoid creating a ``ResourceWarning`` warning
     about an unclosed file. [#6168, #6177]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -487,8 +440,6 @@ Bug Fixes
     parameters and allow ``Shift`` and ``Scale`` to be fitted with
     ``LinearLSQFitter`` and ``LevMarLSQFitter``. [#6174]
 
-- ``astropy.nddata``
-
 - ``astropy.stats``
 
   - Allow to choose which median function is used in ``mad_std`` and
@@ -497,8 +448,6 @@ Bug Fixes
 
   - Fixed ``biweight_midvariance`` so that by default it returns a
     variance that agrees with the standard definition. [#5991]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -510,29 +459,15 @@ Bug Fixes
     object was not releasing the memory due to a reference cycle
     in the column ``info`` attributes. [#6277]
 
-- ``astropy.table``
-
-- ``astropy.tests``
-
 - ``astropy.time``
 
   - Fixed the initial condition of ``TimeFITS`` to allow scale, FITS scale
     and FITS realization to be checked and equated properly. [#6202]
 
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
 - ``astropy.vo``
 
   - Fixed a bug in vo.samp when stopping a hub for which a lockfile was
     not created. [#6211]
-
-- ``astropy.wcs``
-
-- ``astropy.extern``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -549,6 +484,7 @@ Other Changes and Additions
   directly rather than from astropy.tests.helper. This also means that
   pytest is now a formal requirement for testing for both Astropy and
   for affiliated packages. [#5694]
+
 
 1.3.3 (2017-05-29)
 ------------------
@@ -1709,8 +1645,6 @@ Bug fixes
   - Fixed a problem with the ``Quantity._repr_latex_`` method causing errors
     when showing an ``EarthLocation`` in a Jupyter notebook. [#4542, #5068]
 
-- ``astropy.cosmology``
-
 - ``astropy.io.ascii``
 
   - Fix a problem where the fast reader (with use_fast_converter=False) can
@@ -1731,8 +1665,6 @@ Bug fixes
 
   - Made TFORMx keyword check more flexible in test of compressed images to
     enable compatibility of the test with cfitsio 3.380. [#4646, #4653]
-
-- ``astropy.io.misc``
 
 - ``astropy.io.votable``
 
@@ -2111,6 +2043,7 @@ New Features
 
   - Added the ``bayesian_blocks`` routine, which implements a dynamic algorithm
     for locating change-points in various time series. [#3756]
+
   - A new function ``poisson_conf_interval()`` was added to allow easy calculation
     of several standard formulae for the error bars on the mean of a Poisson variable
     estimated from a single sample.
@@ -2196,8 +2129,11 @@ New Features
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]
+
   - Added mil to imperial units. [#3716]
+
   - Added stone to imperial units. [#4192]
+
   - Added Earth Mass (``M_earth``) and Jupiter mass (``M_jup``) to units [#3907]
 
   - Added support for functional units, in particular the logarithmic ones
@@ -2230,6 +2166,7 @@ New Features
 
   - Added ``classproperty`` decorator--this is to ``property`` as
     ``classmethod`` is to normal instance methods. [#3982]
+
   - ``iers.open`` now handles network URLs, as well as local paths. [#3850]
 
   - The ``astropy.utils.wraps`` decorator now takes an optional
@@ -3448,6 +3385,7 @@ Miscellaneous
 
   - The ERFA wrappers are now written directly in the Python/C API
     rather than using Cython, for greater performance. [#3521]
+
 - Miscellaneous
 
   - Improve import time of astropy [#3488].
