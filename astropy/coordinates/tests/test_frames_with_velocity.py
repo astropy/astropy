@@ -8,6 +8,7 @@ import pytest
 
 from ... import units as u
 from ..builtin_frames import ICRS, Galactic, Galactocentric
+from .. import builtin_frames as bf
 from ...tests.helper import quantity_allclose
 
 
@@ -60,6 +61,22 @@ def test_all_arg_options():
         for k in kwargs:
             getattr(icrs, k)
 
+@pytest.mark.parametrize('cls,lon,lat', [
+    [bf.ICRS, 'ra', 'dec'], [bf.FK4, 'ra', 'dec'], [bf.FK4NoETerms, 'ra', 'dec'],
+    [bf.FK5, 'ra', 'dec'], [bf.GCRS, 'ra', 'dec'], [bf.HCRS, 'ra', 'dec'],
+    [bf.LSR, 'ra', 'dec'], [bf.CIRS, 'ra', 'dec'], [bf.Galactic, 'l', 'b'],
+    [bf.AltAz, 'az', 'alt'], [bf.Supergalactic, 'sgl', 'sgb'],
+    [bf.GalacticLSR, 'l', 'b'], [bf.HeliocentricTrueEcliptic, 'lon', 'lat'],
+    [bf.GeocentricTrueEcliptic, 'lon', 'lat'],
+    [bf.BarycentricTrueEcliptic, 'lon', 'lat'],
+    [bf.PrecessedGeocentric, 'ra', 'dec']
+])
+def test_expected_arg_names(cls, lon, lat):
+    kwargs = {lon: 37.4*u.deg, lat: -55.8*u.deg, 'distance': 150*u.pc,
+              'pm_{0}_cos{1}'.format(lon, lat): -21.2*u.mas/u.yr,
+              'pm_{0}'.format(lat): 17.1*u.mas/u.yr,
+              'radial_velocity': 105.7*u.km/u.s}
+    frame = cls(**kwargs)
 
 # these data are extracted from the vizier copy of XHIP:
 # http://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=+V/137A/XHIP
