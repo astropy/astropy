@@ -9,10 +9,12 @@ import numpy as np
 
 from ... import units as u
 from ...extern import six
-from ...tests.helper import (pytest, quantity_allclose as allclose,
+from ...tests.helper import (catch_warnings,
+                             pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
-from .. import representation
+from ...utils.exceptions import AstropyWarning
+from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
 
 
@@ -92,8 +94,8 @@ def test_create_data_frames():
     from ..builtin_frames import ICRS
 
     #from repr
-    i1 = ICRS(representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
-    i2 = ICRS(representation.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
+    i1 = ICRS(r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
+    i2 = ICRS(r.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
 
     #from preferred name
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
@@ -136,7 +138,7 @@ def test_create_orderered_data():
         ICRS(1*u.deg, 2*u.deg, 1*u.deg, 2*u.deg)
 
     with pytest.raises(TypeError):
-        sph = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+        sph = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
         ICRS(sph, 1*u.deg, 2*u.deg)
 
 
@@ -195,6 +197,17 @@ def test_frame_repr():
                         '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
                         '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+
+
+def test_frame_repr_vels():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(ra=1*u.deg, dec=2*u.deg,
+             pm_ra_cosdec=1*u.marcsec/u.yr, pm_dec=2*u.marcsec/u.yr)
+    assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                       '    ( 1.,  2.)\n'
+                       ' (pm_ra_cosdec, pm_dec) in marcsec / yr\n'
+                       '    ( 1.,  2.)>')
 
 
 def test_converting_units():
@@ -262,7 +275,7 @@ def test_realizing():
     from ..builtin_frames import ICRS, FK5
     from ...time import Time
 
-    rep = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+    rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
 
     i = ICRS()
     i2 = i.realize_frame(rep)
@@ -308,7 +321,7 @@ def test_replicating():
 def test_getitem():
     from ..builtin_frames import ICRS
 
-    rep = representation.SphericalRepresentation(
+    rep = r.SphericalRepresentation(
         [1, 2, 3]*u.deg, [4, 5, 6]*u.deg, [7, 8, 9]*u.kpc)
 
     i = ICRS(rep)
@@ -332,7 +345,7 @@ def test_transform():
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ == representation.UnitSphericalRepresentation
+    assert i2.data.__class__ == r.UnitSphericalRepresentation
 
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
@@ -342,7 +355,7 @@ def test_transform():
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ != representation.UnitSphericalRepresentation
+    assert i2.data.__class__ != r.UnitSphericalRepresentation
 
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
@@ -450,8 +463,8 @@ def test_is_frame_attr_default():
     assert not c2.is_frame_attr_default('equinox')
     assert not c3.is_frame_attr_default('equinox')
 
-    c4 = c1.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
-    c5 = c2.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c4 = c1.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c5 = c2.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
 
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
@@ -487,9 +500,9 @@ def test_representation():
     icrs_spher = icrs.spherical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
-    icrs.representation = representation.CartesianRepresentation
+    icrs.representation = r.CartesianRepresentation
 
-    assert icrs.representation == representation.CartesianRepresentation
+    assert icrs.representation == r.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
@@ -502,15 +515,15 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
-    icrs.representation = representation.CylindricalRepresentation
+    icrs.representation = r.CylindricalRepresentation
 
-    assert icrs.representation == representation.CylindricalRepresentation
+    assert icrs.representation == r.CylindricalRepresentation
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
 
-    assert icrs.representation is representation.SphericalRepresentation
+    assert icrs.representation is r.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -525,7 +538,7 @@ def test_representation():
     # Testing setter input using text argument for cylindrical.
     icrs.representation = 'cylindrical'
 
-    assert icrs.representation is representation.CylindricalRepresentation
+    assert icrs.representation is r.CylindricalRepresentation
     assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
@@ -543,12 +556,57 @@ def test_represent_as():
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
 
     cart1 = icrs.represent_as('cartesian')
-    cart2 = icrs.represent_as(representation.CartesianRepresentation)
+    cart2 = icrs.represent_as(r.CartesianRepresentation)
 
     cart1.x == cart2.x
     cart1.y == cart2.y
     cart1.z == cart2.z
 
+    # now try with velocities
+    icrs = ICRS(ra=0*u.deg, dec=0*u.deg, distance=10*u.kpc,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                radial_velocity=1*u.km/u.s)
+
+    # single string
+    rep2 = icrs.represent_as('cylindrical')
+    assert isinstance(rep2, r.CylindricalRepresentation)
+    assert isinstance(rep2.differentials['s'], r.CylindricalDifferential)
+
+    # single class with positional in_frame_units, verify that warning raised
+    with catch_warnings() as w:
+        icrs.represent_as(r.CylindricalRepresentation, False)
+        assert len(w) == 1
+        assert w[0].category == AstropyWarning
+        assert 'argument position' in str(w[0].message)
+
+    # TODO: this should probably fail in the future once we figure out a better
+    # workaround for dealing with UnitSphericalRepresentation's with
+    # RadialDifferential's
+    # two classes
+    # rep2 = icrs.represent_as(r.CartesianRepresentation,
+    #                          r.SphericalCosLatDifferential)
+    # assert isinstance(rep2, r.CartesianRepresentation)
+    # assert isinstance(rep2.differentials['s'], r.SphericalCosLatDifferential)
+
+    with pytest.raises(ValueError):
+        icrs.represent_as('odaigahara')
+
+def test_shorthand_representations():
+    from ..builtin_frames import ICRS
+
+    rep = r.CartesianRepresentation([1,2,3]*u.pc)
+    dif = r.CartesianDifferential([1,2,3]*u.km/u.s)
+    rep = rep.with_differentials(dif)
+
+    icrs = ICRS(rep)
+
+    sph = icrs.spherical
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalDifferential)
+
+    sph = icrs.sphericalcoslat
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalCosLatDifferential)
 
 def test_dynamic_attrs():
     from ..builtin_frames import ICRS
@@ -601,7 +659,7 @@ def test_eloc_attributes():
     from .. import AltAz, ITRS, GCRS, EarthLocation
 
     el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
-    it = ITRS(representation.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
+    it = ITRS(r.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
     gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
 
     el1 = AltAz(location=el).location
@@ -673,17 +731,17 @@ def test_representation_subclass():
     # Normally when instantiating a frame without a distance the frame will try
     # and use UnitSphericalRepresentation internally instead of
     # SphericalRepresentation.
-    frame = FK5(representation=representation.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
-    assert frame.representation == representation.SphericalRepresentation
+    frame = FK5(representation=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    assert type(frame._data) == r.UnitSphericalRepresentation
+    assert frame.representation == r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
-    class NewSphericalRepresentation(representation.SphericalRepresentation):
-        attr_classes = representation.SphericalRepresentation.attr_classes
+    class NewSphericalRepresentation(r.SphericalRepresentation):
+        attr_classes = r.SphericalRepresentation.attr_classes
 
     frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
+    assert type(frame._data) == r.UnitSphericalRepresentation
     assert frame.representation == NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
@@ -695,8 +753,8 @@ def test_representation_subclass():
     # UnitSphericalRepresentation subclass for the data and
     # SphericalRepresentation or a subclass for the representation.
 
-    class NewUnitSphericalRepresentation(representation.UnitSphericalRepresentation):
-        attr_classes = representation.UnitSphericalRepresentation.attr_classes
+    class NewUnitSphericalRepresentation(r.UnitSphericalRepresentation):
+        attr_classes = r.UnitSphericalRepresentation.attr_classes
         def __repr__(self):
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
@@ -714,7 +772,7 @@ def test_getitem_representation():
     from ..builtin_frames import ICRS
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
     c.representation = 'cartesian'
-    assert c[0].representation is representation.CartesianRepresentation
+    assert c[0].representation is r.CartesianRepresentation
 
 
 def test_component_error_useful():
@@ -795,3 +853,16 @@ def test_inplace_change():
     # This will use a second (potentially cached rep)
     assert i.ra == 10 * u.deg
     assert i.dec == 2 * u.deg
+
+
+def test_representation_with_multiple_differentials():
+    from ..builtin_frames import ICRS
+
+    dif1 = r.CartesianDifferential([1,2,3]*u.km/u.s)
+    dif2 = r.CartesianDifferential([1,2,3]*u.km/u.s**2)
+    rep = r.CartesianRepresentation([1, 2, 3]*u.pc,
+                                    differentials={'s': dif1, 's2': dif2})
+
+    # check warning is raised for a scalar
+    with pytest.raises(ValueError):
+        ICRS(rep)
