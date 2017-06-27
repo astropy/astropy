@@ -234,8 +234,8 @@ the mask, metadata, etc are discarded:
 
     >>> from astropy.nddata import block_reduce, block_replicate
     >>> smaller = block_reduce(ccd, 4)
-    >>> type(smaller)
-    numpy.ndarray
+    >>> smaller
+    array(...)
     >>> plt.imshow(smaller, origin='lower')  # doctest: +SKIP
 
 .. plot::
