@@ -41,6 +41,10 @@ Project Status
 For an overview of the testing and build status of all packages associated
 with the Astropy Project, see http://dashboard.astropy.org.
 
+.. image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
+    :target: http://numfocus.org
+    :alt: Powered by NumFOCUS
+
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
