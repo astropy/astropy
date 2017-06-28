@@ -31,12 +31,15 @@ Project Status
 
 .. image:: https://travis-ci.org/astropy/astropy.svg
     :target: https://travis-ci.org/astropy/astropy
+    :alt: Astropy's Travis CI Status
 
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.svg
     :target: https://coveralls.io/r/astropy/astropy
+    :alt: Astropy's Coveralls Status
 
 .. image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
     :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
+    :alt: Astropy's Appveyor Status
 
 For an overview of the testing and build status of all packages associated
 with the Astropy Project, see http://dashboard.astropy.org.
