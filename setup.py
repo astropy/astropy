@@ -62,7 +62,8 @@ entry_points['console_scripts'] = [
     'wcslint = astropy.wcs.wcslint:main',
 ]
 
-setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__,
+                  'cython>=0.21', 'jinja2>=2.7']
 install_requires = ['pytest>=2.8', 'numpy>=' + astropy.__minimum_numpy_version__]
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
