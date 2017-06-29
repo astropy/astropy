@@ -146,11 +146,16 @@ _warnings_to_ignore_by_pyver = {
         r"The value of convert_charrefs will become True in 3\.5\. "
         r"You are encouraged to set the value explicitly\."]),
     (3, 5): set([
-        # py.test raises this warning on Python 3.5.
-        # This can be removed when fixed in py.test.
+        # py.test raised this warning in inspect on Python 3.5.
         # See https://github.com/pytest-dev/pytest/pull/1009
+        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
-        r"inspect\.signature\(\) instead"])}
+        r"inspect\.signature\(\) instead"]),
+    (3, 6): set([
+        # inspect raises this slightly different warning on Python 3.6.
+        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
+        r"inspect\.getargspec\(\) is deprecated, use "
+        r"inspect\.signature\(\) or inspect\.getfullargspec\(\)"])}
 
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
