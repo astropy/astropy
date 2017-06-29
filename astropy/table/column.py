@@ -12,6 +12,10 @@ from copy import deepcopy
 
 import numpy as np
 from numpy import ma
+
+# Remove this when Numpy no longer emits this warning and that Numpy version
+# becomes the minimum required version for Astropy.
+# https://github.com/astropy/astropy/issues/6285
 try:
     from numpy.ma.core import MaskedArrayFutureWarning
 except ImportError:
@@ -1238,6 +1242,10 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         # update indices
         self.info.adjust_indices(index, value, len(self))
+
+        # Remove this when Numpy no longer emits this warning and that
+        # Numpy version becomes the minimum required version for Astropy.
+        # https://github.com/astropy/astropy/issues/6285
         if MaskedArrayFutureWarning is None:
             ma.MaskedArray.__setitem__(self, index, value)
         else:
