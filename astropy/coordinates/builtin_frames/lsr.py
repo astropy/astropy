@@ -18,7 +18,7 @@ from .galactic import Galactic
 # For speed
 J2000 = Time('J2000')
 
-v_bary_Schoenrich2010 = r.CartesianDifferential([-11.1, 12.24, 7.25]*u.km/u.s)
+v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25]*u.km/u.s)
 
 __all__ = ['LSR', 'GalacticLSR']
 
@@ -38,9 +38,9 @@ class LSR(BaseRADecFrame):
     velocity frame.
 
     We use default values from Schönrich et al. (2010) for the barycentric
-    velocity relative to the LSR, which is defined in Galactic cartesian
-    velocity components
-    :math:`(U, V, W) = (-11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
+    velocity relative to the LSR, which is defined in Galactic (right-handed)
+    cartesian velocity components
+    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
     values are customizable via the ``v_bary`` argument which specifies the
     velocity of the solar system barycenter with respect to the LSR.
 
@@ -100,11 +100,11 @@ class GalacticLSR(BaseCoordinateFrame):
     velocity frame.
 
     We use default values from Schönrich et al. (2010) for the barycentric
-    velocity relative to the LSR, which is defined in Galactic cartesian
-    velocity components :math:`(U, V, W) = (-11.1, 12.24, 7.25)~
-    {\rm km}~{\rm s}^{-1}`. These values are customizable via the ``v_bary``
-    argument which specifies the velocity of the solar system barycenter with
-    respect to the LSR.
+    velocity relative to the LSR, which is defined in Galactic (right-handed)
+    cartesian velocity components
+    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
+    values are customizable via the ``v_bary`` argument which specifies the
+    velocity of the solar system barycenter with respect to the LSR.
 
     The frame attributes are listed under **Other Parameters**.
 
