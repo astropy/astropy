@@ -444,10 +444,16 @@ file that has multiple datasets, use *both* the ``overwrite=True`` and
 
 If the metadata of the table cannot be written directly to the HDF5 file 
 (e.g. dictionaries), or if you want to preserve the units and description
-of tables and columns, use using ``serialize_meta=True``::
+of tables and columns, use ``serialize_meta=True``::
 
     >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True)
- 
+
+The way serialized meta are saved in the HDF5 dataset have changed in Astropy 3.0.
+Files in the old format are still read correctly. If for some reason the user wants to *write*
+in the old format, they will specify the (deprecated) `compatibility_mode` keyword
+
+    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True, compatibility_mode=True)
+
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
