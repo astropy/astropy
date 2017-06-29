@@ -180,7 +180,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
 
     galcen_v_sun = DifferentialFrameAttribute(
-        default=r.CartesianDifferential([-11.1, 244, 7.25] * u.km/u.s),
+        default=r.CartesianDifferential([11.1, 220+12.24, 7.25] * u.km/u.s),
         allowed_classes=[r.CartesianDifferential])
 
     z_sun = FrameAttribute(default=27.*u.pc)
