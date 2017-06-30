@@ -25,24 +25,28 @@ class FITS_time(object):
 
     # Global time reference coordinate keywords
     TIME_KEYWORDS = {'TIMESYS' : 'scale',
-                     'MJDREF' : 'mjd',
-                     'JDREF' : 'jd',
-                     'DATEREF' : 'date',
+                     'MJDREF' : 'mjdref',
+                     'JDREF' : 'jdref',
+                     'DATEREF' : 'dateref',
                      'TREFPOS' : 'pos',
                      'TREFDIR' : 'dir',
                      'TIMEUNIT' : 'unit',
                      'TIMEOFFS' : 'offs',
                      'OBSGEO-X' : 'loc_x',
                      'OBSGEO-Y' : 'loc_y',
-                     'OBSGEO-Z' : 'loc_z'}
+                     'OBSGEO-Z' : 'loc_z',
+                     'DATE' : 'date',
+                     'DATE-OBS' : 'date_obs',
+                     'DATE-END' : 'date_end'}
 
     # Column-specific time override keywords
     COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
                             'TRPOS' : 'pos',
                             'TCUNI' : 'unit'}
 
-    # AstroPy-specific keywords
-    ASTROPY_TIME_KEYWORDS = {'FORMAT' : 'format'}
+    # AstroPy FITS File specification
+    ASTROPY_SPECIFIER = ('+---AstroPy FITS File---+', 
+                         '/ Time information block')
 
     # Set AstroPy Time global information
     GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
@@ -57,15 +61,14 @@ class FITS_time(object):
                       'tcg' : 'GEOCENTER',
                       'tcb' : 'BARYCENTER'}
 
-    astropy_namespace = 'HIERARCH ASTROPY TIME'
-
     def __init__(self):
         # Set defaults for global time scale, reference, etc.
         self.global_info = {'scale' : 'UTC',
-                            'mjd' : None,
+                            'mjdref' : None,
                             'unit' : 's'}
         # Set default dictionary for time columns
         self.time_columns = defaultdict(OrderedDict)
+        self.astropy_file = None
 
     @classmethod
     def is_time_column_keyword(cls, keyword):
@@ -118,27 +121,6 @@ class FITS_time(object):
         else:
             raise ValueError('Illegal column-specific time keyword.')
 
-    def set_astropy_time(self, key, value, comment=None):
-        """
-        Set the astropy namespace attributes. 
-
-        Parameters
-        ----------
-        key : str
-            FITS astropy time specific keyword.
-        value : int, str, list
-            value associated with specified keyword.
-        comment : str
-            comment associated with specified keyword.
-        """
-        if key.startswith('ASTROPY TIME'):
-            sub_keys = re.split('(\d+)', key)
-            if len(sub_keys) > 1 and sub_keys[-1] == '':
-                idx = sub_keys[-2]
-                self.time_columns[int(idx)][self.ASTROPY_TIME_KEYWORDS[key[13:-len(idx)]]] = value
-        else:
-            raise ValueError('Illegal astropy time keyword.')
-
     def convert_time_columns(self, table):
         """
         Convert time columns to Astropy Time columns.
@@ -150,10 +132,9 @@ class FITS_time(object):
         """
         for idx, time_col in self.time_columns.items():
             time_colname = table.colnames[idx - 1]
-            if time_col['format'] is not None:
+            if self.astropy_file is not None:
                 table[time_colname] = Time(table[time_colname][:,0], table[time_colname][:,1],
                                            format='jd', scale=time_col['scale'].lower())
-                table[time_colname].format = time_col['format'].lower()
                 try:
                     if time_col['pos'] == 'TOPOCENTER':
                         table[time_colname].location = EarthLocation(self.global_info['loc_x'],
@@ -214,8 +195,11 @@ class FITS_time(object):
         # Shallow copy of the input table
         newtable = table.copy(copy_data=False)
 
+        # AstroPy FITS File specification
+        hdr = Header([Card(key='COMMENT', value=val) for val in cls.ASTROPY_SPECIFIER])
+
         # Global time coordinate frame keywords
-        hdr = Header([Card(keyword=key, value=val[0], comment=val[1]) 
+        hdr.extend([Card(keyword=key, value=val[0], comment=val[1]) 
                      for key, val in cls.GLOBAL_TIME_INFO.items()])
 
         time_cols = table.columns.isinstance(Time)
@@ -234,9 +218,6 @@ class FITS_time(object):
             # Time column override keywords
             hdr.append(Card(keyword='TCTYP%d' %n, value=col.scale.upper()))
 
-            # Astropy specific keyword for storing Time format
-            hdr.append(Card(keyword='{0} FORMAT%d'.format(cls.astropy_namespace) %n, value=col.format.upper()))
-
             # Time column reference positions
             if col.location is None:
                 if pos_geo is not None:
@@ -246,25 +227,23 @@ class FITS_time(object):
                         'FITS specification.'.format(col.info.name),
                         AstropyUserWarning)
             else:
+                hdr.append(Card(keyword='TRPOS%d' %n, value='TOPOCENTER'))
                 # Compatibility of Time Scales and Reference Positions
-                pos_ref = cls.TIME_SCALE_REF[col.scale]
-                hdr.append(Card(keyword='TRPOS%d' %n, value=pos_ref))
-                if pos_ref == 'TOPOCENTER':
-                    if col.location.size > 1:
-                        raise ValueError('Vectorized Location of Time Column "{0}" cannot be written, '
-                                         'as it is not yet supported'.format(col.info.name))
-                    if pos_geo is None:
-                        hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value) for dim in ('x', 'y', 'z')])
-                        pos_geo = col.location
-                    elif pos_geo != col.location:
-                        raise ValueError('Multiple Time Columns with different geocentric observatory '
-                                         'locations ({0}, {1}, {2}) , ({3}, {4}, {5}) are encountered. '
-                                         'These are not yet supported.'.format(pos_geo.x, pos_geo.y,
-                                         pos_geo.z, col.location.x, col.location.y, col.location.z))
-                else:
+                if cls.TIME_SCALE_REF[col.scale] != 'TOPOCENTER':
                     warnings.warn(
-                        'Location cannot be written for "{0}" due to incompatability of '
-                        '{1} and TOPOCENTER.'.format(col.info.name, col.scale.upper()),
+                        'Earth Location "TOPOCENTER" for Time Column "{0}" is incompatabile '
+                        'with scale "{1}".'.format(col.info.name, col.scale.upper()),
                         AstropyUserWarning)
+                if col.location.size > 1:
+                    raise ValueError('Vectorized Location of Time Column "{0}" cannot be written, '
+                                     'as it is not yet supported'.format(col.info.name))
+                if pos_geo is None:
+                    hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value) for dim in ('x', 'y', 'z')])
+                    pos_geo = col.location
+                elif pos_geo != col.location:
+                    raise ValueError('Multiple Time Columns with different geocentric observatory '
+                                     'locations ({0}, {1}, {2}) , ({3}, {4}, {5}) are encountered. '
+                                     'These are not yet supported.'.format(pos_geo.x, pos_geo.y,
+                                     pos_geo.z, col.location.x, col.location.y, col.location.z))
 
         return newtable, hdr

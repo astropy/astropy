@@ -78,8 +78,6 @@ class Test_FITS_time(FitsTestCase):
             assert len(w) == 0
 
         # Check compatibility of Time Scales and Reference Positions
-        t['b'].location = EarthLocation(2, 3, 4)
-
         time_ref = FITS_time.TIME_SCALE_REF
         uncomp_scales = [scale for scale in time_ref if time_ref[scale]!='TOPOCENTER']
 
@@ -88,8 +86,7 @@ class Test_FITS_time(FitsTestCase):
             with catch_warnings() as w:
                 table, hdr = FITS_time.replace_time_table(t)
                 assert len(w) == 1
-                assert str(w[0].message).startswith('Location cannot be written for "a"'
-                                                    ' due to incompatability')
+                assert str(w[0].message).startswith('Earth Location "TOPOCENTER" for Time Column')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_replace_time_table_header(self, table_types):
@@ -106,10 +103,8 @@ class Test_FITS_time(FitsTestCase):
                          'OBSGEO-Y' : t['a'].location.y.value,
                          'OBSGEO-Z' : t['a'].location.z.value,
                          'TCTYP1' : t['a'].scale.upper(),
-                         'HIERARCH ASTROPY TIME FORMAT1' : t['a'].format.upper(),
-                         'TRPOS1' : FITS_time.TIME_SCALE_REF[t['a'].scale],
-                         'TCTYP2' : t['b'].scale.upper(),
-                         'HIERARCH ASTROPY TIME FORMAT2' : t['b'].format.upper()}
+                         'TRPOS1' : 'TOPOCENTER',
+                         'TCTYP2' : t['b'].scale.upper()}
    
         table, hdr = FITS_time.replace_time_table(t)
 
@@ -124,4 +119,4 @@ class Test_FITS_time(FitsTestCase):
             assert hdr[key] == value
             hdr.remove(key)
 
-        assert len(hdr) == 0
+        assert len(hdr) == 2
