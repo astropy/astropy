@@ -213,14 +213,6 @@ def read_table_fits(input, hdu=None):
 
             time_state.set_column_override(key, value, comment)
 
-        elif (key.startswith('ASTROPY TIME')):
-
-            if time_state == None:
-                # Create a FITS_time object to facilitate reading in time
-                time_state = FITS_time()
-
-            time_state.set_astropy_time(key, value, comment)
-
         else:
 
             t.meta[key] = value
