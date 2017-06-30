@@ -331,6 +331,9 @@ astropy.io.fits
 
 - Fix the ``fitscheck`` script for updating invalid checksums, or removing
   checksums. [#6571]
+  - Strip leading/trailing white-space from latex lines to avoid issues when matching ``\begin{tabular}`` statements.  This is done by introducing a new ``LatexInputter`` class to override the ``BaseInputter``.
+
+- ``astropy.io.fits``
 
 - Fixed potential problems with the compression module [#6732]
 
