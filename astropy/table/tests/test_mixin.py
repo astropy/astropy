@@ -195,6 +195,7 @@ def test_io_write_fail(mixin_cols):
     # Only do this test if there are unsupported column types (i.e. anything besides
     # BaseColumn, Quantity class instances).
     unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
+    # Partially supported columns (FITS)
     fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
 
     if not unsupported_cols:
