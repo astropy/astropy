@@ -238,7 +238,8 @@ class FITS_time(object):
                     raise ValueError('Vectorized Location of Time Column "{0}" cannot be written, '
                                      'as it is not yet supported'.format(col.info.name))
                 if pos_geo is None:
-                    hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value) for dim in ('x', 'y', 'z')])
+                    hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(), value=getattr(col.location, dim).value)
+                                for dim in ('x', 'y', 'z')])
                     pos_geo = col.location
                 elif pos_geo != col.location:
                     raise ValueError('Multiple Time Columns with different geocentric observatory '
