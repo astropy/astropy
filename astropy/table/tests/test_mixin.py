@@ -136,12 +136,12 @@ def test_io_quantity_write(tmpdir):
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
-def test_io_time_write(tmpdir, table_types):
+def test_io_time_write_fits(tmpdir, table_types):
     """
-    Test that table with Time mixin column can be written by io.fits but
-    not by io.votable and io.misc.hdf5. Validation of the output is done.
-    Test that io.fits writes a table containing Time mixin columns that can
-    be considerably round-tripped (metadata scale, format).
+    Test that table with Time mixin column can be written by io.fits.
+    Validation of the output is done. Test that io.fits writes a table
+    containing Time mixin columns that can be considerably round-tripped
+    (metadata scale, location).
     """
     t = table_types([[1,2], ['string', 'column']])
     for scale in time.TIME_SCALES:
@@ -152,8 +152,7 @@ def test_io_time_write(tmpdir, table_types):
                                   '2010-01-01T00:00:00'], format='isot', scale='utc')
     t['c'] = [3., 4.]
 
-    filename = tmpdir.join("table-tmp").strpath
-    open(filename, 'w').close()
+    filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
     t.write(filename, format='fits', overwrite=True)
@@ -169,8 +168,8 @@ def test_io_time_write(tmpdir, table_types):
             # Assert that the scales round-trip
             assert tm[name].scale == t[name].scale
 
-            # Assert that the formats round-trip
-            assert tm[name].format == t[name].format
+            # Assert that the format is jd
+            assert tm[name].format == 'jd'
 
             # Assert that the location round-trips
             assert tm[name].location == t[name].location
@@ -184,27 +183,25 @@ def test_io_time_write(tmpdir, table_types):
 
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
-    
-    for fmt in ('votable', 'hdf5'):
-        if fmt == 'hdf5' and not HAS_H5PY:
-            continue
-        with pytest.raises(ValueError) as err:
-            t.write(filename, format=fmt, overwrite=True)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
 def test_io_write_fail(mixin_cols):
     """
-    Test that table with mixin column (excluding Quantity and Time) cannot be written by
-    io.votable, io.fits and io.misc.hdf5.
+    Test that table with mixin columns (excluding Quantity) cannot be written by
+    io.votable, io.fits and io.misc.hdf5. Also test that table with Time mixin
+    columns are not supported by io.votable and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
-    # BaseColumn, Quantity and Time class instances).
-    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
+    # BaseColumn, Quantity class instances).
+    unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
+    fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
+
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
     for fmt in ('fits', 'votable', 'hdf5'):
+        if fmt == 'fits' and not fits_unsupported_cols:
+            pytest.skip("no unsupported column types")
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
         out = StringIO()

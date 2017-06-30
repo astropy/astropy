@@ -179,6 +179,11 @@ def read_table_fits(input, hdu=None):
                 t.meta[key].append(value)
             else:
                 t.meta[key] = [value]
+            if 'AstroPy' in value:
+                if time_state == None:
+                    # Create a FITS_time object to facilitate reading in time
+                    time_state = FITS_time()
+                time_state.astropy_file = True
 
         elif key in t.meta:  # key is duplicate
 
