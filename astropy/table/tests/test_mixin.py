@@ -189,11 +189,11 @@ def test_io_write_fail(mixin_cols):
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
     io.votable, io.fits and io.misc.hdf5. Also test that table with Time mixin
-    columns are not supported by io.votable and io.misc.hdf5.
+    columns cannot be written by io.votable and io.misc.hdf5.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
-    # BaseColumn, Quantity class instances).
+    # BaseColumn and Quantity class instances).
     unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
     # Partially supported columns (FITS)
     fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
