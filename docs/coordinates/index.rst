@@ -52,22 +52,6 @@ coordinate object:
   `~astropy.units.Quantity` object (e.g., ``10.5*u.degree``), by including them
   in the value (e.g., ``'+41d12m00s'``), or via the ``unit`` keyword.
 
-Passing velocity information to |skycoord| follows similar rules:
-
-- The velocity component names are frame-dependent. However, when supported in a
-  frame, the proper motion components all begin with ``pm_``. By default the
-  longitudinal component should already include the ``cos(latitude)`` term. For
-  example, the proper motion components for the ICRS frame are
-  (``pm_ra_cosdec``, ``pm_dec``). These must be passed in as
-  `~astropy.units.Quantity` objects.
-- Any frame that supports spherical velocity components (proper motions) also
-  accept a radial/line-of-sight velocity through the ``radial_velocity``
-  keyword, which must also be a `~astropy.units.Quantity` object.
-
-
-
-  >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
-
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
 they store multiple coordinates in a single object.  When you're going
@@ -92,11 +76,13 @@ that contain the data, |skycoord| objects can be sliced, reshaped, etc.::
 Coordinate access
 -----------------
 
-Once you have a coordinate object you can now access the components of that
-coordinate (e.g., RA, Dec) and get a specific string representation of the full
+Once you have a coordinate object you can access the components of that
+coordinate (e.g., RA, Dec) and get string representations of the full
 coordinate.
 
-The component values are accessed using aptly named attributes::
+The component values are accessed using (typically lower-case) named attributes
+that depend on the coordinate frame (e.g., ICRS, Galactic, etc.). For the
+default, ICRS, the coordinate component names are `ra` and `dec`::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
     >>> c.ra  # doctest: +FLOAT_CMP
@@ -112,7 +98,7 @@ The component values are accessed using aptly named attributes::
     >>> c.dec.radian  # doctest: +FLOAT_CMP
     0.7202828960652683
 
-Coordinates can easily be converted to strings using the
+Coordinates can be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
@@ -189,12 +175,12 @@ For all the details see :ref:`astropy-skycoord-representations`.
 Distance
 --------
 
-Distance from the origin (which is system-dependent, but often the Earth
-center) can also be assigned to a |skycoord|. With two angles and a
-distance, a unique point in 3D space is available, which also allows
-conversion to the Cartesian representation of this location::
+|SkyCoord| and the individual frame classes also support specifying a distance
+from the frame origin. The origin depends on the particular coordiante frame;
+this can be, e.g., centered on the earth, centered on the solar system
+barycenter, etc. Two angles and a distance specify a unique point in 3D space,
+which also allows converting the coordinates to a Cartesian representation::
 
-    >>> from astropy.coordinates import Distance
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, distance=770*u.kpc)
     >>> c.cartesian.x  # doctest: +FLOAT_CMP
     <Quantity 568.7128654235232 kpc>
@@ -204,7 +190,8 @@ conversion to the Cartesian representation of this location::
     <Quantity 507.88994291875713 kpc>
 
 With distances assigned, |skycoord| convenience methods are more powerful, as
-they can make use of the 3D information. For example::
+they can make use of the 3D information. For example, to compute the physical,
+3D separation between two points in space::
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
@@ -214,14 +201,21 @@ they can make use of the 3D information. For example::
 Convenience methods
 -------------------
 
-|skycoord| defines a number of convenience methods as well, like on-sky
-separation between two coordinates and catalog matching (detailed in
-:ref:`astropy-coordinates-matching`)::
+|skycoord| defines a number of convenience methods that support, for example,
+computing on-sky (i.e. angular) and 3D separations between two coordinates::
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
     >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
     <Angle 1.4045335865905868 deg>
+
+and cross-matching catalog coordinates (detailed in
+:ref:`astropy-coordinates-matching`)::
+
+    >>> target_c = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
+    >>> # read in coordinates from a catalog...
+    >>> catalog_c = ... # doctest: +SKIP
+    >>> idx, sep, _ = target_c.match_to_catalog_sky(catalog_c) # doctest: +SKIP
 
 The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects assuming you have an active internet
