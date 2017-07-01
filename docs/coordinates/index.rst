@@ -334,6 +334,7 @@ listed below.
    matchsep
    representations
    frames
+   velocities
    galactocentric
    remote_methods
    definitions
