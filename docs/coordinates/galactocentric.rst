@@ -14,9 +14,8 @@ documentation.
 
 We assume that we start with a 3D position in the ICRS reference frame:
 a Right Ascension, Declination, and heliocentric distance,
-:math:`(\alpha, \delta, d)`. We can trivially convert this to a
-Cartesian position using the standard transformation from Cartesian to
-spherical coordinates:
+:math:`(\alpha, \delta, d)`. We can convert this to a Cartesian position using
+the standard transformation from Cartesian to spherical coordinates:
 
 .. math::
 
@@ -32,8 +31,7 @@ spherical coordinates:
 
 The first transformations will rotate the :math:`x_{\rm icrs}` axis so
 that the new :math:`x'` axis points towards the Galactic Center (GC),
-specified by the ICRS position
-:math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
+specified by the ICRS position :math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
 
 .. math::
 
