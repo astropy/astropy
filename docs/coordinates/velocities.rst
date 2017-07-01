@@ -14,10 +14,38 @@ Working with velocity data in Astropy coordinates
 
 .. _astropy-coordinate-custom-frame-with-velocities:
 
-Creating frame objects with velocities
-======================================
+Creating frame objects with velocity data
+=========================================
 
-content
+The coordinate frame classes now support storing and transforming velocity data
+along with positional coordinate data. Similar to the positional data --- that
+use the ``Representation`` classes to abstract away the particular
+representation and allow re-representing from, e.g., Cartesian to Spherical
+--- the velocity information makes use of ``Differential`` classes to do the
+same. For more information about the differential classes, see
+:ref:`astropy-coordinates-differentials`. Also like the positional data, the
+names of the differential (velocity) components depend on the particular
+coordinate frame.
+
+The default differential for most frames is the
+`~astropy.coordinates.SphericalCosLatDifferential` class, meaning that most
+frames expect velocity data in the form of two proper motion components and/or a
+radial velocity. When supported, the proper motion components all begin with
+``pm_`` and, by default, the longitudinal component should already include the
+``cos(latitude)`` term. For example, the proper motion components for the ICRS
+frame are (``pm_ra_cosdec``, ``pm_dec``)::
+
+    >>> coord.ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
+    ...            pm_ra_cosdec=11*u.mas/u.yr, pm_dec=-27*u.mas/u.yr)
+    <ICRS Coordinate: (ra, dec) in deg
+        ( 8.67,  53.09)
+     (pm_ra_cosdec, pm_dec) in mas / yr
+        ( 11., -27.)>
+
+Like the positional data, velocity data must be passed in as
+`~astropy.units.Quantity` objects.
+
+TODO: more stuff...
 
 .. _astropy-coordinate-transform-with-velocities:
 
