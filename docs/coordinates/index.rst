@@ -155,7 +155,7 @@ So far we have been using a spherical coordinate representation in the all the
 examples, and this is the default for the built-in frames.  Frequently it is
 convenient to initialize or work with a coordinate using a different
 representation such as cartesian or cylindrical.  This can be done by setting
-the ``representation`` for either |SkyCoord| objects or low-level frame
+the ``representation`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
@@ -175,7 +175,7 @@ For all the details see :ref:`astropy-skycoord-representations`.
 Distance
 --------
 
-|SkyCoord| and the individual frame classes also support specifying a distance
+|skycoord| and the individual frame classes also support specifying a distance
 from the frame origin. The origin depends on the particular coordiante frame;
 this can be, e.g., centered on the earth, centered on the solar system
 barycenter, etc. Two angles and a distance specify a unique point in 3D space,
@@ -272,7 +272,7 @@ Velocity data
 
 New in Astropy v2.0, the :doc:`coordinate frame classes <frames>` can now store
 and transform velocity data along with positional coordinate information. This
-is not available from the |SkyCoord| class as this new functionality is
+is not available from the |skycoord| class as this new functionality is
 experimental, but for more information see the :doc:`velocities` page.
 
 .. _astropy-coordinates-overview:
