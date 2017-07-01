@@ -213,3 +213,41 @@ axes[1].plot(icrs.ra.wrap_at(180*u.deg).radian, icrs.dec.radian,
              linestyle='none', marker='.')
 
 plt.show()
+
+##############################################################################
+# This particular transformation is just a spherical rotation, which is a
+# special case of an Affine transformation with no vector offset. The
+# transformation of velocity components is therefore natively supported as
+# well:
+
+sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
+                  Beta=np.zeros(128)*u.radian,
+                  pm_Lambda_cosBeta=np.random.uniform(-5, 5, 128)*u.mas/u.yr,
+                  pm_Beta=np.zeors(128)*u.mas/u.yr)
+icrs = sgr.transform_to(coord.ICRS)
+print(icrs)
+
+fig, axes = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
+
+axes[0].set_title("Sagittarius")
+axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).degree,
+             sgr.pm_Lambda_cosBeta.value,
+             linestyle='none', marker='.')
+axes[0].set_xlabel(r"$\Lambda$ [deg]")
+axes[1].set_ylabel(r"$\mu_\Lambda \, \cos\Beta$ [{0}]"
+                   .format(sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')))
+
+axes[1].set_title("ICRS")
+axes[1].plot(icrs.ra.degree, icrs.pm_ra_cosdec.value,
+             linestyle='none', marker='.')
+axes[1].set_ylabel(r"$\mu_\alpha \, \cos\delta$ [{0}]"
+                   .format(icrs.pm_ra_cosdec.unit.to_string('latex_inline')))
+
+axes[2].set_title("ICRS")
+axes[2].plot(icrs.ra.degree, icrs.pm_dec.value,
+             linestyle='none', marker='.')
+axes[2].set_xlabel("RA [deg]")
+axes[2].set_ylabel(r"$\mu_\delta$ [{0}]"
+                   .format(icrs.pm_dec.unit.to_string('latex_inline')))
+
+plt.show()
