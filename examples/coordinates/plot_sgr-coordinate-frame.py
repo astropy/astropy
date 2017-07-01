@@ -103,7 +103,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
             coord.RepresentationMapping('lat', 'Beta'),
             coord.RepresentationMapping('distance', 'distance')],
         coord.SphericalCosLatDifferential: [
-            coord.RepresentationMapping('d_lon', 'pm_Lambda_cosBeta'),
+            coord.RepresentationMapping('d_lon_coslat', 'pm_Lambda_cosBeta'),
             coord.RepresentationMapping('d_lat', 'pm_Beta'),
             coord.RepresentationMapping('d_distance', 'radial_velocity')],
         coord.SphericalDifferential: [
@@ -223,7 +223,7 @@ plt.show()
 sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
                   Beta=np.zeros(128)*u.radian,
                   pm_Lambda_cosBeta=np.random.uniform(-5, 5, 128)*u.mas/u.yr,
-                  pm_Beta=np.zeors(128)*u.mas/u.yr)
+                  pm_Beta=np.zeros(128)*u.mas/u.yr)
 icrs = sgr.transform_to(coord.ICRS)
 print(icrs)
 
