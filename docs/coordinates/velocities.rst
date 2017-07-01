@@ -2,20 +2,24 @@
 
 .. _astropy-coordinates-velocities:
 
-Velocities (Radial and Proper Motions) in Coordinates
-*****************************************************
+Working with velocity data in Astropy coordinates
+*************************************************
 
 .. warning::
     Velocities support, new in Astropy v2.0, is an experimental feature and is
     subject to change based on user feedback.  While we do not expect major API
     changes, the possibility exists based on the precedent of earlier changes
-    in the ``coordinates`` subpackage due to user feedback in previous versions
-    of Astropy.
+    in the ``coordinates`` subpackage based on user feedback from previous
+    versions of Astropy.
+
+.. _astropy-coordinate-custom-frame-with-velocities:
 
 Creating frame objects with velocities
 ======================================
 
 content
+
+.. _astropy-coordinate-transform-with-velocities:
 
 Transforming frames with velocities
 ===================================
