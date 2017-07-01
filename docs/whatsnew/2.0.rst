@@ -364,7 +364,8 @@ Experimental velocity support in ``astropy.coordinates``
 
 ``astropy.coordinates`` frame objects now contains experimental support for
 storing and transforming velocities.  This includes support for "differential"
-objects which contain differences of representations.
+objects which contain differences of representations. For more details, see
+:ref:`astropy-coordinates-velocities`.
 
 
 Full change log
