@@ -230,11 +230,11 @@ print(icrs)
 fig, axes = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
 
 axes[0].set_title("Sagittarius")
-axes[0].plot(sgr.Lambda.wrap_at(180*u.deg).degree,
+axes[0].plot(sgr.Lambda.degree,
              sgr.pm_Lambda_cosBeta.value,
              linestyle='none', marker='.')
 axes[0].set_xlabel(r"$\Lambda$ [deg]")
-axes[1].set_ylabel(r"$\mu_\Lambda \, \cos\Beta$ [{0}]"
+axes[0].set_ylabel(r"$\mu_\Lambda \, \cos\Beta$ [{0}]"
                    .format(sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')))
 
 axes[1].set_title("ICRS")
