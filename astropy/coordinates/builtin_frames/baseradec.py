@@ -28,9 +28,9 @@ _base_radec_docstring = """Parameters
     pm_ra_cosdec : :class:`~astropy.units.Quantity`, optional, must be keyword
         The proper motion in Right Ascension (including the ``cos(dec)`` factor)
         for this object (``pm_dec`` must also be given).
-    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword The
-        proper motion in Declination for this object (``pm_ra_cosdec`` must also
-        be given).
+    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_ra_cosdec`` must
+        also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
 
