@@ -76,6 +76,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
+
     Lambda : `Angle`, optional, must be keyword
         The longitude-like angle corresponding to Sagittarius' orbit.
     Beta : `Angle`, optional, must be keyword
@@ -83,33 +84,60 @@ class Sagittarius(coord.BaseCoordinateFrame):
     distance : `Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
 
+    pm_Lambda_cosBeta : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion along the stream in ``Lambda`` (including the
+        ``cos(Beta)`` factor) for this object (``pm_Beta`` must also be given).
+    pm_Beta : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Declination for this object (``pm_ra_cosdec`` must
+        also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+
     """
     default_representation = coord.SphericalRepresentation
+    default_differential = coord.SphericalCosLatDifferential
 
     frame_specific_representation_info = {
-        'spherical': [coord.RepresentationMapping('lon', 'Lambda'),
-                      coord.RepresentationMapping('lat', 'Beta'),
-                      coord.RepresentationMapping('distance', 'distance')],
-        'unitspherical': [coord.RepresentationMapping('lon', 'Lambda'),
-                          coord.RepresentationMapping('lat', 'Beta')]
+        coord.SphericalRepresentation: [
+            coord.RepresentationMapping('lon', 'Lambda'),
+            coord.RepresentationMapping('lat', 'Beta'),
+            coord.RepresentationMapping('distance', 'distance')],
+        coord.SphericalCosLatDifferential: [
+            coord.RepresentationMapping('d_lon', 'pm_Lambda_cosBeta'),
+            coord.RepresentationMapping('d_lat', 'pm_Beta'),
+            coord.RepresentationMapping('d_distance', 'radial_velocity')],
+        coord.SphericalDifferential: [
+            coord.RepresentationMapping('d_lon', 'pm_Lambda'),
+            coord.RepresentationMapping('d_lat', 'pm_Beta'),
+            coord.RepresentationMapping('d_distance', 'radial_velocity')]
     }
+
+    frame_specific_representation_info[coord.UnitSphericalRepresentation] = \
+        frame_specific_representation_info[coord.SphericalRepresentation]
+    frame_specific_representation_info[coord.UnitSphericalCosLatDifferential] = \
+        frame_specific_representation_info[coord.SphericalCosLatDifferential]
+    frame_specific_representation_info[coord.UnitSphericalDifferential] = \
+        frame_specific_representation_info[coord.SphericalDifferential]
 
 ##############################################################################
 # Breaking this down line-by-line, we define the class as a subclass of
 # `~astropy.coordinates.BaseCoordinateFrame`. Then we include a descriptive
 # docstring.  The final lines are class-level attributes that specify the
-# default representation for the data and mappings from the attribute names used
-# by representation objects to the names that are to be used by ``Sagittarius``.
-# In this case we override the names in the spherical representations but don't
-# do anything with other representations like cartesian or cylindrical.
+# default representation for the data, default differential for the velocity
+# information, and mappings from the attribute names used by representation
+# objects to the names that are to be used by the ``Sagittarius`` frame. In this
+# case we override the names in the spherical representations but don't do
+# anything with other representations like cartesian or cylindrical.
 #
 # Next we have to define the transformation from this coordinate system to some
 # other built-in coordinate system; we will use Galactic coordinates. We can do
 # this by defining functions that return transformation matrices, or by simply
 # defining a function that accepts a coordinate and returns a new coordinate in
-# the new system. We'll start by constructing the transformation matrix using
-# pre-deteremined Euler angles and the ``rotation_matrix`` helper function
-# since both systems are Heliocentric:
+# the new system. Because the transformation to the Sagittarius coordinate
+# system is just a spherical rotation from Galactic coordinates, we'll just
+# define a function that returns this matrix. We'll start by constructing the
+# transformation matrix using pre-deteremined Euler angles and the
+# ``rotation_matrix`` helper function:
 
 SGR_PHI = (180 + 3.75) * u.degree # Euler angles (from Law & Majewski 2010)
 SGR_THETA = (90 - 13.46) * u.degree
@@ -155,7 +183,7 @@ def sgr_to_galactic():
 # `~astropy.coordinates.Galactic`, we can transform between *any* coordinate
 # system and ``Sagittarius`` (as long as the other system has a path to
 # transform to `~astropy.coordinates.Galactic`). For example, to transform from
-# ICRS coordinates to ``Sagittarius``, we simply:
+# ICRS coordinates to ``Sagittarius``, we would do:
 
 icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
 sgr = icrs.transform_to(Sagittarius)
@@ -171,7 +199,7 @@ icrs = sgr.transform_to(coord.ICRS)
 print(icrs)
 
 ##############################################################################
-# And then to plot the points in both coordinate systems:
+# As an example, we'll now plot the points in both coordinate systems:
 
 fig, axes = plt.subplots(2, 1, figsize=(8, 10),
                          subplot_kw={'projection': 'aitoff'})
