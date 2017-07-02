@@ -68,7 +68,7 @@ print(rv_gsr)
 ################################################################################
 # We could wrap this in a function so we can control the solar velocity and
 # re-use the above code:
-def to_v_gsr(c, v_sun=None):
+def rv_to_gsr(c, v_sun=None):
     """Transform a barycentric radial velocity to the Galactic Standard of Rest
     (GSR).
 
@@ -101,5 +101,5 @@ def to_v_gsr(c, v_sun=None):
 
     return c.radial_velocity + v_proj
 
-rv_gsr = to_v_gsr(icrs)
+rv_gsr = rv_to_gsr(icrs)
 print(rv_gsr)
