@@ -266,9 +266,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # TODO: we should be able to deal with an instance, not just a
         # class or string.
         representation = kwargs.pop('representation', None)
+        differential_cls = kwargs.pop('differential_cls', None)
 
-        if representation is not None:
-            self.set_representation_cls(representation)
+        if representation is not None or differential_cls is not None:
+
+            if representation is None:
+                representation = self.default_representation
+
+            if (inspect.isclass(differential_cls) and
+                    issubclass(differential_cls, r.BaseDifferential)):
+                # TODO: assumes the differential class is for the velocity
+                # differential
+                differential_cls = {'s': differential_cls}
+
+            elif differential_cls is None:
+                differential_cls = {'s': 'base'} # see set_representation_cls()
+
+            self.set_representation_cls(representation, **differential_cls)
 
         # if not set below, this is a frame with no data
         representation_data = None
@@ -508,12 +522,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                                     's': self.default_differential}
         return self._representation[which] if which is not None else self._representation
 
-    def set_representation_cls(self, base, s='base'):
+    def set_representation_cls(self, base=None, s='base'):
         """Set representation and/or differential class for this frame's data.
 
         Parameters
         ----------
-        base : str or `~astropy.coordinates.BaseRepresentation` subclass
+        base : str, `~astropy.coordinates.BaseRepresentation` subclass, optional
             The name or subclass to use to represent the coordinate data.
         s : `~astropy.coordinates.BaseDifferential` subclass, optional
             The differential subclass to use to represent any velocities,
@@ -521,6 +535,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             which is the default, it will be inferred from the representation.
             If `None`, the representation will drop any differentials.
         """
+        if base is None:
+            base = self._representation['base']
         self._representation = _get_repr_classes(base=base, s=s)
 
     representation = property(
