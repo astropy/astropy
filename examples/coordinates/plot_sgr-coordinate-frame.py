@@ -234,7 +234,7 @@ axes[0].plot(sgr.Lambda.degree,
              sgr.pm_Lambda_cosBeta.value,
              linestyle='none', marker='.')
 axes[0].set_xlabel(r"$\Lambda$ [deg]")
-axes[0].set_ylabel(r"$\mu_\Lambda \, \cos\Beta$ [{0}]"
+axes[0].set_ylabel(r"$\mu_\Lambda \, \cos B$ [{0}]"
                    .format(sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')))
 
 axes[1].set_title("ICRS")
