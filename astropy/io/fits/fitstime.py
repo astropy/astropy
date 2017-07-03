@@ -59,7 +59,8 @@ class FITS_time(object):
                       'ut1' : 'TOPOCENTER',
                       'utc' : 'TOPOCENTER',
                       'tcg' : 'GEOCENTER',
-                      'tcb' : 'BARYCENTER'}
+                      'tcb' : 'BARYCENTER',
+                      'tdb' : 'BARYCENTER'}
 
     def __init__(self):
         # Set defaults for global time scale, reference, etc.
@@ -133,7 +134,7 @@ class FITS_time(object):
         for idx, time_col in self.time_columns.items():
             time_colname = table.colnames[idx - 1]
             if self.astropy_file is not None:
-                table[time_colname] = Time(table[time_colname][:,0], table[time_colname][:,1],
+                table[time_colname] = Time(table[time_colname][...,0], table[time_colname][...,1],
                                            format='jd', scale=time_col['scale'].lower())
                 try:
                     if time_col['pos'] == 'TOPOCENTER':

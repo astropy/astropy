@@ -248,6 +248,25 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     """
 
     def __init__(self, data=None, header=None, name=None, uint=False):
+        """
+        Parameters
+        ----------
+        header : Header instance
+            header to be used
+
+        data : array
+            data to be used
+
+        name : str
+            name to be populated in ``EXTNAME`` keyword
+
+        uint : bool, optional
+            set to `True` if the table contains unsigned integer columns.
+        """
+
+        # Avoid circular imports
+        from ..fitstime import FITS_time
+
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
 
@@ -285,7 +304,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 # Separate global and column-specific keywords
                 for key in hcopy.keys():
-                    if re.search(r'\d+$', key):
+                    if FITS_time.is_time_column_keyword(key.upper()):
                         self._header_column.append(hcopy.cards[key])
                         hcopy.remove(key)
 

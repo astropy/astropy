@@ -13,9 +13,10 @@ from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from .convenience import table_to_hdu
+from .fitstime import FITS_time
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
-from .convenience import table_to_hdu
 
 
 # FITS file signature as per RFC 4047
@@ -93,9 +94,6 @@ def read_table_fits(input, hdu=None):
     hdu : int or str, optional
         The HDU to read the table from.
     """
-
-    # Avoid circular imports
-    from .fitstime import FITS_time
 
     if isinstance(input, HDUList):
 

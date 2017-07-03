@@ -18,10 +18,13 @@ class Test_FITS_time(FitsTestCase):
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
-        assert FITS_time.is_time_column_keyword('TRPOS') == False
+        assert FITS_time.is_time_column_keyword('TRPOS') is False
 
         # Global time column keyword
-        assert FITS_time.is_time_column_keyword('TIMESYS') == False
+        assert FITS_time.is_time_column_keyword('TIMESYS') is False
+
+        # Valid time column keyword
+        assert FITS_time.is_time_column_keyword('TRPOS12') is True
 
     def test_set_time(self):
         """
@@ -79,7 +82,7 @@ class Test_FITS_time(FitsTestCase):
 
         # Check compatibility of Time Scales and Reference Positions
         time_ref = FITS_time.TIME_SCALE_REF
-        uncomp_scales = [scale for scale in time_ref if time_ref[scale]!='TOPOCENTER']
+        uncomp_scales = [scale for scale in time_ref if time_ref[scale] != 'TOPOCENTER']
 
         for scale in uncomp_scales:
             t.replace_column('a', getattr(t['a'], scale))
