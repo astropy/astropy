@@ -138,14 +138,14 @@ def test_io_quantity_write(tmpdir):
 @pytest.mark.parametrize('table_types', (Table, QTable))
 def test_io_time_write_fits(tmpdir, table_types):
     """
-    Test that table with Time mixin column can be written by io.fits.
+    Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
     containing Time mixin columns that can be considerably round-tripped
     (metadata scale, location).
     """
     t = table_types([[1,2], ['string', 'column']])
     for scale in time.TIME_SCALES:
-        t['a'+scale] = time.Time([1,2], format='cxcsec', scale='tai',
+        t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale='tai',
                                   location=EarthLocation(-2446353.80003635,
                                   4237209.07495215, 4077985.57220038, unit='m'))
         t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789', 
