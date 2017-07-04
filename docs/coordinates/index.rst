@@ -267,13 +267,13 @@ names, and etc.::
     updated, so if you need to guarantee that your scripts are reproducible
     in the long term, see the :doc:`remote_methods` section.
 
-Velocity data
--------------
+Velocities (Proper Motions and Radial Velocities)
+-------------------------------------------------
 
 New in Astropy v2.0, the :doc:`coordinate frame classes <frames>` can now store
-and transform velocity data along with positional coordinate information. This
+and transform velocities along with positional coordinate information. This
 is not available from the |skycoord| class as this new functionality is
-experimental, but for more information see the :doc:`velocities` page.
+experimental, but is accessible  for more information see the :doc:`velocities` page.
 
 .. _astropy-coordinates-overview:
 
