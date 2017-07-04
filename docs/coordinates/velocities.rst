@@ -247,5 +247,19 @@ details).
 
 A usage example of this functionality is::
 
-    sc = SkyCoord()
-    MORE_NEEDED = True
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import SkyCoord, EarthLocation
+    >>> # keck = EarthLocation.of_site('Keck')  # the easiest way... but requires internet
+    >>> keck = EarthLocation.from_geodetic(lat=19.8283*u.deg, lon=-155.4783*u.deg, height=4160*u.m)
+    >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
+    >>> barycorr = sc.radial_velocity_correction(obstime=Time('2017-2-14'), location=keck)
+    >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
+    <Quantity -21.32997887557401 km / s>
+    >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2017-2-14'), location=keck)
+    >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
+    <Quantity -21.329103385785288 km / s>
+
+Note that there are a few different ways to specify the options for the
+correction (e.g., the location, observation time, etc).  See the
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` docs for more
+information.
