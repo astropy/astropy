@@ -163,10 +163,10 @@ def read_table_fits(input, hdu=None):
 
     # TODO: deal properly with unsigned integers
 
-    # Initial `Time` state information
-    time_state = None
+    # Read time coordinates as Time
+    hdr = FITS_time().read_time(table.header, t)
 
-    for key, value, comment in table.header.cards:
+    for key, value, comment in hdr.cards:
 
         if key in ['COMMENT', 'HISTORY']:
             # Convert to io.ascii format
@@ -177,11 +177,6 @@ def read_table_fits(input, hdu=None):
                 t.meta[key].append(value)
             else:
                 t.meta[key] = [value]
-            if 'AstroPy' in value:
-                if time_state == None:
-                    # Create a FITS_time object to facilitate reading in time
-                    time_state = FITS_time()
-                time_state.astropy_file = True
 
         elif key in t.meta:  # key is duplicate
 
@@ -195,29 +190,9 @@ def read_table_fits(input, hdu=None):
 
             pass
 
-        elif (key.upper() in FITS_time.TIME_KEYWORDS):
-
-            if time_state == None:
-                # Create a FITS_time object to facilitate reading in time
-                time_state = FITS_time()
-
-            time_state.set_global_time(key, value, comment)
-
-        elif (FITS_time.is_time_column_keyword(key.upper())):
-
-            if time_state == None:
-                # Create a FITS_time object to facilitate reading in time
-                time_state = FITS_time()
-
-            time_state.set_column_override(key, value, comment)
-
         else:
 
             t.meta[key] = value
-
-    # Convert time columns to astropy Time
-    if time_state != None:
-        time_state.convert_time_columns(t)
 
     # TODO: implement masking
 

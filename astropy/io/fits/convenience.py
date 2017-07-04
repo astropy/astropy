@@ -459,7 +459,6 @@ def table_to_hdu(table):
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
         from ...table.column import BaseColumn
-        from ...table import Column
         from ...time import Time
         from .fitstime import FITS_time
 
