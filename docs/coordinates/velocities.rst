@@ -127,9 +127,104 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
 Finite Difference Transformations
 ---------------------------------
 
-details, particularly *examples* of the finite difference problem
+Some frame transformations  cannot be expressed as affine transformations.
+For example, transformations from the `~astropy.coordinates.AltAz` frame can
+include an atmospheric dispersion correction, which is inherently non-linear.
+Additionally, some frames are simply more easily implemented as functions, even
+if they can be cast as affine transformations. For these frames, a finite
+difference approach to transforming velocities is available.  Note that this
+approach is implemented such that user-defined frames can use it in the exact
+same manner as (by defining a transformation of the
+`~astropy.coordinates.FunctionTransformWithFiniteDifference` type).
+
+This finite difference approach actually combines two separate (but important)
+elements of the transformation:
+
+  * Transformation of the *direction* of the velocity vector that already exists
+    in the starting frame.  That is, a frame transformation sometimes involves
+    re-orienting the coordinate frame (e.g., rotation), and the velocity vector
+    in the new frame must account for this.  The finite difference approach
+    models this by moving the position of the starting frame along the velocity
+    vector, and computing this offset in the target frame.
+  * The "induced" velocity due to motion of the frame *itself*.  For example,
+    shifting from a frame centered at the solar system barycenter to one
+    centered on the Earth includes a velocity component due entirely to the
+    Earth's motion around the barycenter.  This is accounted for by computing
+    the location of the starting frame in the target frame at slightly different
+    times, and computing the difference between those.  Note that this step
+    depends on assuming that a particular frame attribute represents a "time"
+    of relevance for the induced velocity.  By convention this is typically the
+    ``obtime`` frame attribute, although it is an option that can be set when
+    defining a finite difference transformation function.
 
 
+However, it is important to recognize that the finite difference transformations
+have inherent limits set by the finite difference algorithm and machine
+precision. To illustrate this problem, consider the AltAz to GCRS  (i.e.,
+geocentric) transformation. Lets try to compute the radial velocity in the GCRS
+frame for something observed from the Earth at a distance of 100 AU with a
+radial velocity of 10 km/s:
+
+.. plot::
+    :context: reset
+    :include-source:
+
+    import numpy as np
+    from matplotlib import pyplot as plt
+
+    from astropy import units as u
+    from astropy.time import Time
+    from astropy.coordinates import EarthLocation, AltAz, GCRS
+
+    time = Time('J2010') + np.linspace(-1,1,1000)*u.min
+    location = EarthLocation(lon=0*u.deg, lat=45*u.deg)
+    aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.au,
+               radial_velocity=[10]*1000*u.km/u.s,
+               location=location, obstime=time)
+    gcrs = aa.transform_to(GCRS(obstime=time)
+    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
+    plt.ylabel('RV [km/s]')
+
+This seems plausible: the radial velocity should indeed be very close to 10 km/s
+because the frame does not involve a velocity shift.
+
+Now let's consider 100 *kiloparsecs* as the distance.  In this case we expect
+the same: the radial velocity should be essentially the same in both frames:
+
+.. plot::
+    :context:
+    :include-source:
+
+    time = Time('J2010') + np.linspace(-1,1,1000)*u.min
+    location = EarthLocation(lon=0*u.deg, lat=45*u.deg)
+    aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.kpc,
+               radial_velocity=[10]*1000*u.km/u.s,
+               location=location, obstime=time)
+    gcrs = aa.transform_to(GCRS(obstime=time)
+    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
+    plt.ylabel('RV [km/s]')
+
+but this result is clearly nonsense, with values from -1000 to 1000 km/s.  The
+root of the problem here is that the machine precision is not sufficient to
+computedifferences of order km over distances of order kiloparsecs.  Hence, the
+straightforward finite difference method will not work for this use case with
+the default values.
+
+It is possible to override the timestep over which the finite difference occurs.
+For example::
+
+    >>> from astropy.coordinates import frame_transform_graph, CIRS
+    >>> trans = frame_transform_graph.get_transform(AltAz, CIRS).transforms[0]
+    >>> trans.finite_difference_dt = 1*u.year
+    >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +SKIP
+    >>> trans.finite_difference_dt = 1*u.second  # return to default
+
+But beware that this will *not* help in cases like the above, where the relevant
+timescales for the velocities are seconds (the velocity of the earth relative to
+a particular direction changes dramatically over the course of one year).
+
+Future versions of Astropy will improve on this algorithm to make the results
+more numerically stable and practical for use in these (not unusual) use cases.
 
 
 ``SkyCoord`` support for Velocities
