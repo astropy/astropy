@@ -122,4 +122,4 @@ class Test_FITS_time(FitsTestCase):
             assert hdr[key] == value
             hdr.remove(key)
 
-        assert len(hdr) == 2
+        assert len(hdr) == 0
