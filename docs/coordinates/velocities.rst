@@ -2,8 +2,8 @@
 
 .. _astropy-coordinates-velocities:
 
-Working with velocity data in Astropy coordinates
-*************************************************
+Working with velocities in Astropy coordinates
+**********************************************
 
 .. warning::
     Velocities support, new in Astropy v2.0, is an experimental feature and is
@@ -18,8 +18,8 @@ Creating frame objects with velocity data
 =========================================
 
 The coordinate frame classes now support storing and transforming velocity data
-along with positional coordinate data. Similar to the positional data --- that
-use the ``Representation`` classes to abstract away the particular
+(along side the positional coordinate data). Similar to the positional data ---
+that use the ``Representation`` classes to abstract away the particular
 representation and allow re-representing from, e.g., Cartesian to Spherical
 --- the velocity data makes use of ``Differential`` classes to do the
 same (for more information about the differential classes, see
@@ -61,8 +61,9 @@ TODO: how to change the differential class to specify other velocity components
 Transforming frames with velocities
 ===================================
 
-Transforming coordinate frame instances that contain velocity data is the same
-as transforming position-only frame instances::
+Transforming coordinate frame instances that contain velocity data to a
+different frame (which may involve both position and velocity trasnfromations)
+is done  exactly the same way transforming position-only frame instances::
 
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
@@ -74,9 +75,10 @@ as transforming position-only frame instances::
         ( 3.78957965, -15.44359693)
 
 However, the details of how the velocity components are transformed depends on
-the particular path taken through the frame transform graph. If all frames
-between the initial frame and the desired frame support transformations with a
-`~astropy.coordinates.BaseAffineTransform` subclass (i.e. are matrix
+the particular set of transforms required to get from the starting frame to the
+desired frame (i.e., the path taken through the frame transform graph). If all
+frames in the chain of transformations are transformed to each other via
+`~astropy.coordinates.BaseAffineTransform` subclasses (i.e. are matrix
 transformations or affine transformations), then the transformations can be
 applied explicitly to the velocity data. If this is not the case, the velocity
 transformation is computed numerically by finite-differencing the positional
