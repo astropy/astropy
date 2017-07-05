@@ -1314,8 +1314,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        return Distance((self.cartesian -
-                         other_in_self_system.cartesian).norm())
+        # drop the differentials to ensure they don't do anything odd in the
+        # subtraction
+        self_car = self.data.without_differentials().represent_as(r.CartesianRepresentation)
+        other_car = other_in_self_system.data.without_differentials().represent_as(r.CartesianRepresentation)
+        return Distance((self_car - other_car).norm())
 
     @property
     def cartesian(self):
