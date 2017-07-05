@@ -233,7 +233,7 @@ radial velocity of 10 km/s:
     aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.au,
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
-    gcrs = aa.transform_to(GCRS(obstime=time)
+    gcrs = aa.transform_to(GCRS(obstime=time))
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
 
@@ -252,7 +252,7 @@ the same: the radial velocity should be essentially the same in both frames:
     aa = AltAz(alt=[45]*1000*u.deg, az=90*u.deg, distance=100*u.kpc,
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
-    gcrs = aa.transform_to(GCRS(obstime=time)
+    gcrs = aa.transform_to(GCRS(obstime=time))
     plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
     plt.ylabel('RV [km/s]')
 
