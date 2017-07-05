@@ -265,7 +265,7 @@ the default values.
 It is possible to override the timestep over which the finite difference occurs.
 For example::
 
-    >>> from astropy.coordinates import frame_transform_graph, CIRS
+    >>> from astropy.coordinates import frame_transform_graph, AltAz, CIRS
     >>> trans = frame_transform_graph.get_transform(AltAz, CIRS).transforms[0]
     >>> trans.finite_difference_dt = 1*u.year
     >>> gcrs = aa.transform_to(GCRS(obstime=time))  # doctest: +SKIP
