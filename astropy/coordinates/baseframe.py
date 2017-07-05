@@ -1137,6 +1137,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         representation_cls = kwargs.pop('representation_cls',
                                         self.representation)
 
+        differential_cls = kwargs.pop('differential_cls',
+                                      self.get_representation_cls('s'))
+
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
                 if method == 'replicate' and not hasattr(value, method):
@@ -1156,7 +1159,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             data = apply_method(data)
 
         # TODO: change to representation_cls in __init__ - gh-6219.
-        frattrs = {'representation': representation_cls}
+        frattrs = {'representation': representation_cls,
+                   'differential_cls': differential_cls}
         for attr in self.get_frame_attr_names():
             if attr not in self._attr_names_with_defaults:
                 if (method == 'copy' or method == 'replicate') and attr in kwargs:
