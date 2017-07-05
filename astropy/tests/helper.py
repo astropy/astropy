@@ -136,6 +136,7 @@ _modules_to_ignore_on_import = set([
     'pygments',
     'ipykernel',
     'setuptools'])
+_warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
     (3, 4): set([
         # py.test reads files with the 'U' flag, which is now
@@ -160,6 +161,7 @@ _warnings_to_ignore_by_pyver = {
 
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
                                       modules_to_ignore_on_import=[],
+                                      warnings_to_ignore_entire_module=[],
                                       warnings_to_ignore_by_pyver={}):
     """
     Turn on the feature that turns deprecations into exceptions.
@@ -176,6 +178,10 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
         included: ``compiler``, ``scipy``, ``pygments``, ``ipykernel``, and
         ``setuptools``.
 
+    warnings_to_ignore_entire_module : list of str
+        List of modules with deprecation warnings to ignore completely,
+        not just during import.
+
     warnings_to_ignore_by_pyver : dict
         Dictionary mapping tuple of ``(major, minor)`` Python version to
         a list of deprecation warning messages to ignore. This is in
@@ -191,6 +197,9 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
 
     global _modules_to_ignore_on_import
     _modules_to_ignore_on_import.update(modules_to_ignore_on_import)
+
+    global _warnings_to_ignore_entire_module
+    _warnings_to_ignore_entire_module.update(warnings_to_ignore_entire_module)
 
     global _warnings_to_ignore_by_pyver
     for key, val in six.iteritems(warnings_to_ignore_by_pyver):
@@ -247,6 +256,12 @@ def treat_deprecations_as_exceptions():
     if _include_astropy_deprecations:
         warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
         warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
+
+    # This ignores all deprecation warnings from given module(s),
+    # not just on import, for use of Astropy affiliated packages.
+    for m in _warnings_to_ignore_entire_module:
+        warnings.filterwarnings('ignore', category=DeprecationWarning,
+                                module=m)
 
     for v in _warnings_to_ignore_by_pyver:
         if sys.version_info[:2] >= v:
