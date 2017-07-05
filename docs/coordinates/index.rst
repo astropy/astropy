@@ -82,7 +82,7 @@ coordinate.
 
 The component values are accessed using (typically lower-case) named attributes
 that depend on the coordinate frame (e.g., ICRS, Galactic, etc.). For the
-default, ICRS, the coordinate component names are `ra` and `dec`::
+default, ICRS, the coordinate component names are ``ra`` and ``dec``::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
     >>> c.ra  # doctest: +FLOAT_CMP
