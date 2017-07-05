@@ -125,17 +125,17 @@ print(gc3.v_x, gc3.v_y, gc3.v_z)
 # Galactocentric radii with the same circular velocity, and transform them to
 # Heliocentric coordinates:
 
-ring_distances = [4, 8, 12, 16] * u.kpc
+ring_distances = np.arange(10, 25+1, 5) * u.kpc
 circ_velocity = 220 * u.km/u.s
 
-phi_grid = np.linspace(0, 360, 256) * u.degree # grid of azimuths
+phi_grid = np.linspace(90, 270, 512) * u.degree # grid of azimuths
 ring_rep = coord.CylindricalRepresentation(
     rho=ring_distances[:,np.newaxis],
     phi=phi_grid[np.newaxis],
     z=np.zeros_like(ring_distances)[:,np.newaxis])
 
-angular_velocity = (circ_velocity / ring_distances).to(u.mas/u.yr,
-                                                       u.dimensionless_angles())
+angular_velocity = (-circ_velocity / ring_distances).to(u.mas/u.yr,
+                                                        u.dimensionless_angles())
 ring_dif = coord.CylindricalDifferential(
     d_rho=np.zeros(phi_grid.shape)[np.newaxis]*u.km/u.s,
     d_phi=angular_velocity[:,np.newaxis],
@@ -144,15 +144,46 @@ ring_dif = coord.CylindricalDifferential(
 
 ring_rep = ring_rep.with_differentials(ring_dif)
 gc_rings = coord.Galactocentric(ring_rep)
+
+##############################################################################
+# First, let's visualize the geometry in Galactocentric coordinates. Here are
+# the positions and velocities of the rings; note that in the velocity plot,
+# the velocities of the 4 rings are identical and thus overlaid under the same
+# curve:
+fig,axes = plt.subplots(1, 2, figsize=(12,6))
+
+# Positions
+axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker='None', linewidth=3)
+axes[0].text(-8., 0, r'$\odot$', fontsize=20)
+
+axes[0].set_xlim(-30, 30)
+axes[0].set_ylim(-30, 30)
+
+axes[0].set_xlabel('$x$ [kpc]')
+axes[0].set_ylabel('$y$ [kpc]')
+
+# Velocities
+axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker='None', linewidth=3)
+
+axes[1].set_xlim(-250, 250)
+axes[1].set_ylim(-250, 250)
+
+axes[1].set_xlabel('$v_x$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
+axes[1].set_ylabel('$v_y$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
+
+fig.tight_layout()
+
+##############################################################################
+# Now we can transform to Galactic coordinates and visualize the rings in
+# observable coordinates:
 gal_rings = gc_rings.transform_to(coord.Galactic)
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 for i in range(len(ring_distances)):
-    ax.scatter(gal_rings[i].l.degree, gal_rings[i].pm_l_cosb.value,
-               label=str(ring_distances[i]), marker='.')
+    ax.plot(gal_rings[i].l.degree, gal_rings[i].pm_l_cosb.value,
+            label=str(ring_distances[i]), marker='None', linewidth=3)
 
 ax.set_xlim(360, 0)
-ax.set_ylim(-12.5, 2.5)
 
 ax.set_xlabel('$l$ [deg]')
 ax.set_ylabel(r'$\mu_l \, \cos b$ [{0}]'.format((u.mas/u.yr).to_string('latex_inline')))
