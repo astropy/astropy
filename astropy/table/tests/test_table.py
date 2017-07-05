@@ -1013,6 +1013,10 @@ class TestSort():
         assert np.all(t['x'] == x[idx])
         assert np.all(t['y'] == y[idx])
 
+    def test_empty(self, table_types):
+        t = table_types.Table([[], []], dtype=['f4', 'U1'])
+        t.sort('col1')
+
     def test_multiple(self, table_types):
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
