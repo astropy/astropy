@@ -1310,8 +1310,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        return Distance((self.cartesian -
-                         other_in_self_system.cartesian).norm())
+        # TODO: these represent_as calls drop the differentials, but assume a
+        # velocity differential with key "s"
+        self_car = self.represent_as(r.CartesianRepresentation, s=None)
+        other_car = other_in_self_system.represent_as(r.CartesianRepresentation,
+                                                      s=None)
+        return Distance((self_car - other_car).norm())
 
     @property
     def cartesian(self):
