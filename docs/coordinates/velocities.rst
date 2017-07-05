@@ -80,6 +80,34 @@ changed by specifying the `~astropy.coordinates.SphericalDifferential` class
      (pm_l, pm_b) in mas / yr
         ( 21.34, -55.89)>
 
+This works in parallel to specifying the expected representation class, as long
+as the differential class is compatible with the representation. For example, to
+specify all coordinate and velocity components in Cartesian::
+
+    >>> from astropy.coordinates import (CartesianRepresentation,
+    ...                                  CartesianDifferential)
+    >>> Galactic(u=103*u.pc, v=-11*u.pc, w=93.*u.pc,
+    ...          U=31*u.km/u.s, V=-10*u.km/u.s, W=75*u.km/u.s,
+    ...          representation=CartesianRepresentation,
+    ...          differential_cls=CartesianDifferential)
+    <Galactic Coordinate: (u, v, w) in pc
+        ( 103., -11.,  93.)
+     (U, V, W) in km / s
+        ( 31., -10.,  75.)>
+
+Note that the ``Galactic`` frame has special, standard names for Cartesian
+position and velocity components. For other frames, these are just ``x,y,z`` and
+``v_x,v_y,v_z``::
+
+    >>> ICRS(x=103*u.pc, y=-11*u.pc, z=93.*u.pc,
+    ...      v_x=31*u.km/u.s, v_y=-10*u.km/u.s, v_z=75*u.km/u.s,
+    ...      representation=CartesianRepresentation,
+    ...      differential_cls=CartesianDifferential)
+    <ICRS Coordinate: (x, y, z) in pc
+        ( 103., -11.,  93.)
+     (v_x, v_y, v_z) in km / s
+        ( 31., -10.,  75.)>
+
 .. _astropy-coordinate-transform-with-velocities:
 
 Transforming frames with velocities
