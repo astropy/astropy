@@ -84,7 +84,7 @@ print(gc1.v_x, gc1.v_y, gc1.v_z)
 # `~astropy.coordinates.CartesianDifferential` instance, as in the example
 # below. Note that, as with the positions, the Galactocentric frame is a
 # right-handed system - the x-axis is positive towards the Galactic center, so
-# `v_x` is opposite of the Galactocentric radial velocity:
+# ``v_x`` is opposite of the Galactocentric radial velocity:
 
 v_sun = coord.CartesianDifferential([11.1, 244, 7.25]*u.km/u.s)
 gc_frame = coord.Galactocentric(galcen_distance=8*u.kpc,

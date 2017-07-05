@@ -16,7 +16,7 @@ transformation using a sky position and barycentric radial-velocity.
 
 -------------------
 
-*By: Adrian Price-Whelan
+*By: Adrian Price-Whelan*
 
 *License: BSD*
 
