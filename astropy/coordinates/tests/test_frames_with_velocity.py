@@ -32,8 +32,7 @@ def test_api():
                 radial_velocity=71*u.km/u.s)
     icrs.transform_to(Galactocentric)
 
-
-@pytest.mark.parametrize('kwargs', [
+all_kwargs = [
     dict(ra=37.4*u.deg, dec=-55.8*u.deg),
     dict(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc),
     dict(ra=37.4*u.deg, dec=-55.8*u.deg,
@@ -50,7 +49,9 @@ def test_api():
     dict(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
          pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
          radial_velocity=105.7*u.km/u.s)
-])
+]
+
+@pytest.mark.parametrize('kwargs', all_kwargs)
 def test_all_arg_options(kwargs):
     # Above is a list of all possible valid combinations of arguments.
     # Here we do a simple thing and just verify that passing them in, we have
@@ -207,3 +208,16 @@ def test_differential_cls_arg():
     assert icrs.v_x == 1*u.km/u.s
     assert icrs.v_y == 2*u.km/u.s
     assert icrs.v_z == 3*u.km/u.s
+
+
+def test_slicing_preserves_differential():
+    icrs = ICRS(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
+                pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
+                radial_velocity=105.7*u.km/u.s)
+    icrs2 = icrs.reshape(1,1)[:1,0]
+
+    for name in icrs.representation_component_names.keys():
+        assert getattr(icrs, name) == getattr(icrs2, name)[0]
+
+    for name in icrs.get_representation_component_names('s').keys():
+        assert getattr(icrs, name) == getattr(icrs2, name)[0]
