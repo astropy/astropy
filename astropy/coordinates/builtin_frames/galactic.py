@@ -59,14 +59,14 @@ class Galactic(BaseCoordinateFrame):
             RepresentationMapping('lat', 'b')
         ],
         r.CartesianRepresentation: [
-            RepresentationMapping('x', 'w'),
-            RepresentationMapping('y', 'u'),
-            RepresentationMapping('z', 'v')
+            RepresentationMapping('x', 'u'),
+            RepresentationMapping('y', 'v'),
+            RepresentationMapping('z', 'w')
         ],
         r.CartesianDifferential: [
-            RepresentationMapping('d_x', 'W', u.km/u.s),
-            RepresentationMapping('d_y', 'U', u.km/u.s),
-            RepresentationMapping('d_z', 'V', u.km/u.s)
+            RepresentationMapping('d_x', 'U', u.km/u.s),
+            RepresentationMapping('d_y', 'V', u.km/u.s),
+            RepresentationMapping('d_z', 'W', u.km/u.s)
         ],
         r.SphericalCosLatDifferential: [
             RepresentationMapping('d_lon_coslat', 'pm_l_cosb', u.mas/u.yr),
