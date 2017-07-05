@@ -49,7 +49,7 @@ specified by the ICRS position :math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
 
 The transformation thus far has aligned the :math:`x'` axis with the
 vector pointing from the Sun to the GC, but the :math:`y'` and
-:math:`z'` axes point in an arbitrary direction. We adopt the
+:math:`z'` axes point in arbitrary directions. We adopt the
 orientation of the Galactic plane as the normal to the north pole of
 Galactic coordinates defined by the IAU
 (`Blaauw et. al. 1960 <http://adsabs.harvard.edu/abs/1960MNRAS.121..164B>`_).
@@ -92,7 +92,7 @@ distance to the GC, :math:`d_{\rm GC}`, which is purely along the
 
 where :math:`\hat{\boldsymbol{x}}_{\rm GC} = (1,0,0)^{\mathsf{T}}`.
 
-The final transformation is to account for the height of the Sun above
+The final transformation accounts for the (specified) height of the Sun above
 the Galactic midplane by rotating about the final :math:`y''` axis by
 the angle :math:`\theta= \sin^{-1}(z_\odot / d_{\rm GC})`:
 
@@ -112,3 +112,9 @@ midplane.
 The full transformation is then:
 
 .. math:: \boldsymbol{r}_{\rm GC} = \boldsymbol{H} \left( \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - d_{\rm GC}\hat{\boldsymbol{x}}_{\rm GC}\right).
+
+.. topic:: Examples:
+
+    For an example of how to use the `~astropy.coordinates.Galactocentric`
+    frame, see
+    :ref:`sphx_glr_generated_examples_coordinates_plot_galactocentric-frame.py`.
