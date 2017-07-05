@@ -417,6 +417,16 @@ def test_sep():
     sep3d = i3.separation_3d(i4)
     assert_allclose(sep3d.to(u.kpc), np.array([1, 1])*u.kpc)
 
+    # check that it works even with velocities
+    i5 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc,
+              pm_ra_cosdec=[1, 2]*u.mas/u.yr, pm_dec=[3, 4]*u.mas/u.yr,
+              radial_velocity=[5, 6]*u.km/u.s)
+    i6 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[7, 8]*u.kpc,
+              pm_ra_cosdec=[1, 2]*u.mas/u.yr, pm_dec=[3, 4]*u.mas/u.yr,
+              radial_velocity=[5, 6]*u.km/u.s)
+
+    sep3d = i5.separation_3d(i6)
+    assert_allclose(sep3d.to(u.kpc), np.array([2, 2])*u.kpc)
 
 def test_time_inputs():
     """
