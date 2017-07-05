@@ -257,6 +257,12 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - The `~astropy.coordinates.Galactic` frame previously was had the cartesian
+    ordering 'w', 'u', 'v' (for 'x', 'y', and 'z', respectively).  This was an
+    error and against the common convention.  The 'x', 'y', and 'z' axes now
+    map to 'u', 'v', and 'w', following the right-handed ('u' points to
+    the Galactic center) convention. [#6330]
+
   - Removed deprecated ``angles.rotation_matrix`` and
     ``angles.angle_axis``. Use the routines in
     ``coordinates.matrix_utilities`` instead. [#6170]
@@ -408,6 +414,17 @@ Bug Fixes
 
   - Direct convolution previously implemented the wrong definition of
     convolution.  This error only affects *asymmetric* kernels.  [#6267]
+
+- ``astropy.coordinates``
+
+  - The `~astropy.coordinates.Galactic` frame had an incorrect ording for the
+    'u', 'v', and 'w' cartesian coordinates. [#6330]
+
+- ``astropy.cosmology``
+
+- ``astropy.extern``
+
+- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
