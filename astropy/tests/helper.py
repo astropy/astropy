@@ -180,7 +180,9 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
 
     warnings_to_ignore_entire_module : list of str
         List of modules with deprecation warnings to ignore completely,
-        not just during import.
+        not just during import. If ``include_astropy_deprecations=True``
+        is given, ``AstropyDeprecationWarning`` and
+        ``AstropyPendingDeprecationWarning`` are also ignored for the modules.
 
     warnings_to_ignore_by_pyver : dict
         Dictionary mapping tuple of ``(major, minor)`` Python version to
@@ -250,18 +252,21 @@ def treat_deprecations_as_exceptions():
     # Now, start over again with the warning filters
     warnings.resetwarnings()
     # Now, turn DeprecationWarnings into exceptions
-    warnings.filterwarnings("error", ".*", DeprecationWarning)
+    _all_warns = [DeprecationWarning]
 
     # Only turn astropy deprecation warnings into exceptions if requested
     if _include_astropy_deprecations:
-        warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
-        warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
+        _all_warns += [AstropyDeprecationWarning,
+                       AstropyPendingDeprecationWarning]
+
+    for w in _all_warns:
+        warnings.filterwarnings("error", ".*", w)
 
     # This ignores all deprecation warnings from given module(s),
     # not just on import, for use of Astropy affiliated packages.
     for m in _warnings_to_ignore_entire_module:
-        warnings.filterwarnings('ignore', category=DeprecationWarning,
-                                module=m)
+        for w in _all_warns:
+            warnings.filterwarnings('ignore', category=w, module=m)
 
     for v in _warnings_to_ignore_by_pyver:
         if sys.version_info[:2] >= v:
