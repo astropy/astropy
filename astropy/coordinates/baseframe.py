@@ -242,6 +242,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         arguments)
     *args, **kwargs
         Coordinates, with names that depend on the subclass.
+    differential_cls : `BaseDifferential`, dict, optional
+        A differential class or dictionary of differential classes (currently
+        only a velocity differential with key 's' is supported). This sets
+        the expected input differential class, thereby changing the expected
+        keyword arguments of the data passed in. For example, passing
+        ``differential_cls=CartesianDifferential`` will make the classes
+        expect velocity data with the argument names ``v_x, v_y, v_z``.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
