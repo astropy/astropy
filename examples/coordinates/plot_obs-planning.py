@@ -27,10 +27,10 @@ package.
 """
 
 ##############################################################################
-# Let’s suppose you are planning to visit picturesque Bear Mountain State Park
-# in New York, USA. You’re bringing your telescope with you (of course), and
+# Let's suppose you are planning to visit picturesque Bear Mountain State Park
+# in New York, USA. You're bringing your telescope with you (of course), and
 # someone told you M33 is a great target to observe there. You happen to know
-# you’re free at 11:00 pm local time, and you want to know if it will be up.
+# you're free at 11:00 pm local time, and you want to know if it will be up.
 # Astropy can answer that.
 #
 # Make print work the same in all versions of Python, set up numpy,
