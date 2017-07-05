@@ -72,7 +72,7 @@ is done  exactly the same way transforming position-only frame instances::
     <Galactic Coordinate: (l, b) in deg
         ( 120.38084191, -9.69872044)
      (pm_l_cosb, pm_b) in mas / yr
-        ( 3.78957965, -15.44359693)
+        ( 3.78957965, -15.44359693)>
 
 However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
