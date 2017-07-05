@@ -680,7 +680,7 @@ base_unit_attr_sets = [
     ('spherical', u.karcsec, u.karcsec, u.kpc, Latitude, 'l', 'b', 'distance'),
     ('unitspherical', u.karcsec, u.karcsec, None, Latitude, 'l', 'b', None),
     ('physicsspherical', u.karcsec, u.karcsec, u.kpc, Angle, 'phi', 'theta', 'r'),
-    ('cartesian', u.km, u.km, u.km, u.Quantity, 'w', 'u', 'v'),
+    ('cartesian', u.km, u.km, u.km, u.Quantity, 'u', 'v', 'w'),
     ('cylindrical', u.km, u.karcsec, u.km, Angle, 'rho', 'phi', 'z')
 ]
 
