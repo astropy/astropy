@@ -75,7 +75,10 @@ changed by specifying the `~astropy.coordinates.SphericalDifferential` class
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
     ...          pm_l=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
     ...          differential_cls=SphericalDifferential)
-
+    <Galactic Coordinate: (l, b) in deg
+        ( 11.23,  58.13)
+     (pm_l, pm_b) in mas / yr
+        ( 21.34, -55.89)>
 
 .. _astropy-coordinate-transform-with-velocities:
 
