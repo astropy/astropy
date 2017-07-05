@@ -1276,7 +1276,8 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         vcorr : `~astropy.units.Quantity` with velocity units
             The  correction with a positive sign.  I.e., *add* this
-            to an observed radial velocity to get the heliocentric velocity.
+            to an observed radial velocity to get the barycentric (or
+            heliocentric) velocity.
 
         Notes
         -----
