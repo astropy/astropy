@@ -401,6 +401,11 @@ New Features
 
 - ``astropy.visualization``
 
+  - Added a new ``scatter_contour`` plotting function for scatter plots with
+    large numbers of points. The function visualizes dense regions with contours
+    and sparse regions with point markers. This was originally implemented in
+    the astroML package. [#6069]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
