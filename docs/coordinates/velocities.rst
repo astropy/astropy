@@ -32,7 +32,7 @@ and/or a radial velocity because the default differential for most frames is the
 `~astropy.coordinates.SphericalCosLatDifferential` class. When supported, the
 proper motion components all begin with ``pm_`` and, by default, the
 longitudinal component is expected to already include the ``cos(latitude)``
-term. For example, the proper motion components for the ICRS frame are
+term. For example, the proper motion components for the ``ICRS`` frame are
 (``pm_ra_cosdec``, ``pm_dec``)::
 
     >>> from astropy.coordinates import ICRS
@@ -51,10 +51,31 @@ term. For example, the proper motion components for the ICRS frame are
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
         ( 4.8, -15.16,  23.42)>
 
+For proper motion components in the ``Galactic`` frame, the names track the
+longitude and latitude names::
+
+    >>> from astropy.coordinates import Galactic
+    >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
+    ...          pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr)
+    <Galactic Coordinate: (l, b) in deg
+        ( 11.23,  58.13)
+     (pm_l_cosb, pm_b) in mas / yr
+        ( 21.34, -55.89)>
+
 Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
 
-TODO: how to change the differential class to specify other velocity components
+The expected differential class can be changed to control the argument names
+that the frame expects. As mentioned above, by default the proper motions
+components are expected to contain the ``cos(latitude)``, but this can be
+changed by specifying the `~astropy.coordinates.SphericalDifferential` class
+(instead of the default `~astropy.coordinates.SphericalCosLatDifferential`)::
+
+    >>> from astropy.coordinates import SphericalDifferential
+    >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
+    ...          pm_l=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
+    ...          differential_cls=SphericalDifferential)
+
 
 .. _astropy-coordinate-transform-with-velocities:
 
