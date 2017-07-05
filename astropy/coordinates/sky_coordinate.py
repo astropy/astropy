@@ -337,6 +337,17 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Error if anything is still left in kwargs
         if kwargs:
+
+            # TODO: remove this when velocities are supported in SkyCoord
+            vel_url = 'http://docs.astropy.org/en/stable/coordinates/velocities.html'
+            for k in kwargs:
+                if k.startswith('pm_') or k == 'radial_velocity':
+                    raise ValueError('Velocity data is currently only supported'
+                                     ' in the coordinate frame objects, not in '
+                                     'SkyCoord. See the velocities '
+                                     'documentation page for more information: '
+                                     '{0}'.format(vel_url))
+
             raise ValueError('Unrecognized keyword argument(s) {0}'
                              .format(', '.join("'{0}'".format(key) for key in kwargs)))
 

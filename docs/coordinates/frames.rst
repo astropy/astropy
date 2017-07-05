@@ -273,21 +273,22 @@ initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::
 
   >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute, RepresentationMapping
+  >>> import astropy.coordinates.representation as r
   >>> class MyFrame(BaseCoordinateFrame):
   ...     # Specify how coordinate values are represented when outputted
-  ...      default_representation = SphericalRepresentation
+  ...      default_representation = r.SphericalRepresentation
   ...
   ...      # Specify overrides to the default names and units for all available
   ...      # representations (subclasses of BaseRepresentation).
   ...      frame_specific_representation_info = {
-  ...          'spherical': [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
-  ...                        RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad),
-  ...                        RepresentationMapping(reprname='distance', framename='DIST', defaultunit=None)],
-  ...          'unitspherical': [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
-  ...                            RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad)],
-  ...          'cartesian': [RepresentationMapping(reprname='x', framename='X'),
-  ...                        RepresentationMapping(reprname='y', framename='Y'),
-  ...                        RepresentationMapping(reprname='z', framename='Z')]
+  ...          r.SphericalRepresentation: [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
+  ...                                      RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad),
+  ...                                      RepresentationMapping(reprname='distance', framename='DIST', defaultunit=None)],
+  ...          r.UnitSphericalRepresentation: [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
+  ...                                          RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad)],
+  ...          r.CartesianRepresentation: [RepresentationMapping(reprname='x', framename='X'),
+  ...                                      RepresentationMapping(reprname='y', framename='Y'),
+  ...                                      RepresentationMapping(reprname='z', framename='Z')]
   ...      }
   ...
   ...      # Specify frame attributes required to fully specify the frame
@@ -301,6 +302,10 @@ the way you want.  As an example::
       ( 0.17453293,  0.34906585)>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
+
+If you also want to support velocity data in your coordinate frame, see the
+velocities documentation at
+:ref:`astropy-coordinate-custom-frame-with-velocities`.
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will
@@ -400,3 +405,7 @@ matrix).  Hence, in general, it is better to define whatever are the
 most natural transformations for a user-defined frame, rather than
 worrying about optimizing or caching a transformation to speed up the
 process.
+
+For a demonstration of how to define transformation functions that also work for
+transforming velocity components, see
+:ref:`astropy-coordinate-transform-with-velocities`.
