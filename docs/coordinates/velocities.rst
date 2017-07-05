@@ -287,29 +287,34 @@ an intentional choice, allowing the "power-user" community to provide feedback
 on the API and functionality in the frame-level classes before it is adopted in
 |skycoord| (currently planned for the next Astropy version, v3.0).
 
+.. _astropy-coordinates-rv-corrs:
+
 Radial Velocity Corrections
 ===========================
 
-Sperately from the above, Astropy supports computing barycentric or heliocentric
-radial velocity corrections.  While in the future this may simply be a
+Seperately from the above, Astropy supports computing barycentric or
+heliocentric radial velocity corrections.  While in the future this may be a
 high-level convenience function using the framework described above, the
 current implementation is independent to ensure sufficient accuracy (see the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` API docs for
 details).
 
-A usage example of this functionality is::
+An example of this is below.  It demonstrates how to compute this correction if
+observing some object at a known RA and Dec from the Keck observatory at a
+particular time.  The computed correction would then be added to any observed
+radial velocity to determine the final heliocentric radial velocity::
 
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> # keck = EarthLocation.of_site('Keck')  # the easiest way... but requires internet
     >>> keck = EarthLocation.from_geodetic(lat=19.8283*u.deg, lon=-155.4783*u.deg, height=4160*u.m)
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
-    >>> barycorr = sc.radial_velocity_correction(obstime=Time('2017-2-14'), location=keck)
+    >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
     >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity -21.32997887557401 km / s>
-    >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2017-2-14'), location=keck)
+    <Quantity 20.07369348639167 km / s>
+    >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
     >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity -21.329103385785288 km / s>
+    <Quantity 20.071122815002827 km / s>
 
 Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc).  See the

@@ -209,7 +209,7 @@ computing on-sky (i.e. angular) and 3D separations between two coordinates::
     >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
     <Angle 1.4045335865905868 deg>
 
-and cross-matching catalog coordinates (detailed in
+cross-matching catalog coordinates (detailed in
 :ref:`astropy-coordinates-matching`)::
 
     >>> target_c = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
@@ -266,6 +266,17 @@ names, and etc.::
     determine the celestial or Earth coordinates. The online data may be
     updated, so if you need to guarantee that your scripts are reproducible
     in the long term, see the :doc:`remote_methods` section.
+
+This functionality can be combined to do more complicated tasks like computing
+barycentric corrections to radial velocity observations (also a supported
+high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
+
+    >>> from astropy.time import Time
+    >>> obstime = Time('2017-2-14')
+    >>> target = SkyCoord.from_name('M31')  # doctest: +REMOTE_DATA
+    >>> keck = EarthLocation.of_site('Keck')  # doctest: +REMOTE_DATA
+    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <Quantity -22.363056056262263 km / s>
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
