@@ -128,7 +128,7 @@ print(gc3.v_x, gc3.v_y, gc3.v_z)
 ring_distances = np.arange(10, 25+1, 5) * u.kpc
 circ_velocity = 220 * u.km/u.s
 
-phi_grid = np.linspace(0, 360, 256) * u.degree # grid of azimuths
+phi_grid = np.linspace(90, 270, 512) * u.degree # grid of azimuths
 ring_rep = coord.CylindricalRepresentation(
     rho=ring_distances[:,np.newaxis],
     phi=phi_grid[np.newaxis],
@@ -156,8 +156,8 @@ fig,axes = plt.subplots(1, 2, figsize=(12,6))
 axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker='None', linewidth=3)
 axes[0].text(-8., 0, r'$\odot$', fontsize=20)
 
-axes[0].set_xlim(-15, 15)
-axes[0].set_ylim(-15, 15)
+axes[0].set_xlim(-30, 30)
+axes[0].set_ylim(-30, 30)
 
 axes[0].set_xlabel('$x$ [kpc]')
 axes[0].set_ylabel('$y$ [kpc]')
