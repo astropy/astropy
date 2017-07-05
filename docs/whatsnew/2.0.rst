@@ -243,18 +243,17 @@ Store astropy core object types in ASCII ECSV table file
 
 It is now possible to store the following :ref:`mixin column
 <mixin_columns>` types in an ASCII :ref:`ECSV
-<ecsv_format>` table file.  The table file can then be read back
+<ecsv_format>` table file:
+:class:`~astropy.time.Time`,
+:class:`~astropy.time.TimeDelta`,
+:class:`~astropy.units.Quantity`,
+:class:`~astropy.coordinates.Latitude`,
+:class:`~astropy.coordinates.Longitude`,
+:class:`~astropy.coordinates.Angle`,
+:class:`~astropy.coordinates.Distance`,
+:class:`~astropy.coordinates.EarthLocation`,
+:class:`~astropy.coordinates.SkyCoord`. The table file can then be read back
 into astropy with no loss of object data or attributes.
-
-- `astropy.time.Time`
-- `astropy.time.TimeDelta`
-- `astropy.units.Quantity`
-- `astropy.coordinates.Latitude`
-- `astropy.coordinates.Longitude`
-- `astropy.coordinates.Angle`
-- `astropy.coordinates.Distance`
-- `astropy.coordinates.EarthLocation`
-- `astropy.coordinates.SkyCoord`
 
 .. _whatsnew-2.0-convolution:
 
