@@ -14,9 +14,8 @@ documentation.
 
 We assume that we start with a 3D position in the ICRS reference frame:
 a Right Ascension, Declination, and heliocentric distance,
-:math:`(\alpha, \delta, d)`. We can trivially convert this to a
-Cartesian position using the standard transformation from Cartesian to
-spherical coordinates:
+:math:`(\alpha, \delta, d)`. We can convert this to a Cartesian position using
+the standard transformation from Cartesian to spherical coordinates:
 
 .. math::
 
@@ -32,8 +31,7 @@ spherical coordinates:
 
 The first transformations will rotate the :math:`x_{\rm icrs}` axis so
 that the new :math:`x'` axis points towards the Galactic Center (GC),
-specified by the ICRS position
-:math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
+specified by the ICRS position :math:`(\alpha_{\rm GC}, \delta_{\rm GC})`:
 
 .. math::
 
@@ -51,7 +49,7 @@ specified by the ICRS position
 
 The transformation thus far has aligned the :math:`x'` axis with the
 vector pointing from the Sun to the GC, but the :math:`y'` and
-:math:`z'` axes point in an arbitrary direction. We adopt the
+:math:`z'` axes point in arbitrary directions. We adopt the
 orientation of the Galactic plane as the normal to the north pole of
 Galactic coordinates defined by the IAU
 (`Blaauw et. al. 1960 <http://adsabs.harvard.edu/abs/1960MNRAS.121..164B>`_).
@@ -94,7 +92,7 @@ distance to the GC, :math:`d_{\rm GC}`, which is purely along the
 
 where :math:`\hat{\boldsymbol{x}}_{\rm GC} = (1,0,0)^{\mathsf{T}}`.
 
-The final transformation is to account for the height of the Sun above
+The final transformation accounts for the (specified) height of the Sun above
 the Galactic midplane by rotating about the final :math:`y''` axis by
 the angle :math:`\theta= \sin^{-1}(z_\odot / d_{\rm GC})`:
 
@@ -114,3 +112,9 @@ midplane.
 The full transformation is then:
 
 .. math:: \boldsymbol{r}_{\rm GC} = \boldsymbol{H} \left( \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - d_{\rm GC}\hat{\boldsymbol{x}}_{\rm GC}\right).
+
+.. topic:: Examples:
+
+    For an example of how to use the `~astropy.coordinates.Galactocentric`
+    frame, see
+    :ref:`sphx_glr_generated_examples_coordinates_plot_galactocentric-frame.py`.

@@ -212,6 +212,8 @@ To see how the operations work, consider the following examples::
         (  3.06161700e-16,  -5.00000000e+00,  12.),
         ( -4.00000000e+00,  -3.00000000e+00, -12.)]]>
 
+.. _astropy-coordinates-differentials:
+
 Differentials and derivatives of Representations
 ================================================
 In addition to positions in 3D space, coordinates also deal with proper motions
