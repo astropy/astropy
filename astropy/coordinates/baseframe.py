@@ -224,6 +224,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         treated as the default representation of this frame.  This is the
         representation assumed by default when the frame is created.
 
+    * `default_differential`
+        A subclass of `~astropy.coordinates.BaseDifferential` that will be
+        treated as the default differential class of this frame.  This is the
+        differential class assumed by default when the frame is created.
+
     * `~astropy.coordinates.FrameAttribute` class attributes
        Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
        using a descriptor class.  See the narrative documentation or
