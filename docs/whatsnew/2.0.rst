@@ -12,35 +12,147 @@ Overview
 Astropy 2.0 is a major release that adds significant new functionality since
 the 1.3.x series of releases.
 
-In particular, this release includes:
+On this page, you can read about some of the big changes in this release:
 
+* :ref:`whatsnew-2.0-models-units`
+* :ref:`whatsnew-2.0-ccddata-class`
+* :ref:`whatsnew-2.0-coordinates-velocities`
+* :ref:`whatsnew-2.0-stats`
 * :ref:`whatsnew-2.0-table-uni-sandwich`
-* :ref:`whatsnew-2.0-cosmo-def`
-* :ref:`whatsnew-2.0-conesearch-astroquery`
-* :ref:`whatsnew-2.0-samp-moved`
-* :ref:`whatsnew-2.0-SigmaClip`
-* :ref:`whatsnew-2.0-ddof`
-* :ref:`whatsnew-2.0-stats-biweight-midcov`
-* :ref:`whatsnew-2.0-stats-k-func`
 * :ref:`whatsnew-2.0-bintablehdu-from_table`
 * :ref:`whatsnew-2.0-fits-printdiff`
 * :ref:`whatsnew-2.0-molar-mass`
-* :ref:`whatsnew-2.0-models-units`
-* :ref:`whatsnew-2.0-n-submodels`
-* :ref:`whatsnew-2.0-with-bounding-box`
-* :ref:`whatsnew-2.0-no-bundled-pytest`
-* :ref:`whatsnew-2.0-ccddata-class`
 * :ref:`whatsnew-2.0-ascii-ecsv-mixins`
-* :ref:`whatsnew-2.0-velocity-corrections`
-* :ref:`whatsnew-2.0-coordinates-velocities`
+* :ref:`whatsnew-2.0-convolution`
+* :ref:`whatsnew-2.0-cosmo-def`
+* :ref:`whatsnew-2.0-renamed-removed`
 
 In addition to these major changes, Astropy 2.0 includes a large number of
-smaller improvements and bug fixes, which are described in the
-:ref:`changelog`. By the numbers:
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
 
 * xxx issues have been closed since v1.3
 * xxx pull requests have been merged since v1.3
 * xxx distinct people have contributed code
+
+.. _whatsnew-2.0-models-units:
+
+New unit support for most models
+================================
+
+Most Astropy models now can handle inputs with units, and produce the
+appropriate outputs with units as well. Some models cannot support this due
+to their definitions (e.g., Legendre, Hermite, etc), while some will have
+this capability added in a future release. Example usage::
+
+    >>> from astropy import units as u
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> g = Gaussian1D(amplitude=1*u.J, mean=1*u.m, stddev=0.1*u.m)
+    >>> g([3, 4, 5.5] * u.cm)
+    <Quantity [  3.70353198e-21,  9.72098502e-21,  4.05703276e-20] J>
+
+.. _whatsnew-2.0-ccddata-class:
+
+New image class ``CCDData`` added
+=================================
+
+A new class, ``CCDData``, has been added to the ``nddata`` package. It can
+read from/write to FITS files, provides methods for arithmetic operations
+with propagation of uncertainty, and support for binary masks.
+
+.. _whatsnew-2.0-coordinates-velocities:
+
+Experimental velocity support in ``astropy.coordinates``
+========================================================
+
+Astropy coordinate frame objects now contains experimental support for
+storing and transforming velocities. This includes, among other things, support
+for transforming proper motion components between coordinate frames and
+transforming full-space velocities to/from a local standard of rest (``LSR``)
+frame and a ``Galactocentric`` frame. This works by adding support for
+"differential" objects which contain differences of representations. For more
+details, see :ref:`astropy-coordinates-velocities`. This functionality will
+likely be added to the :class:`~astropy.coordinates.SkyCoord` class in future.
+
+In addition, the :class:`~astropy.coordinates.SkyCoord` class now has a
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` method which can be
+used to compute heliocentric and barycentric corrections for radial velocity
+measurements.  While in the future this may use the mechanisms described above,
+currently it uses a simpler algorithm for numerical stability.
+
+.. _whatsnew-2.0-stats:
+
+New functionality in astropy.stats
+==================================
+
+New sigma-clipping class
+------------------------
+
+A new :class:`~astropy.stats.SigmaClip` class has been added as an
+object-oriented interface for sigma clipping::
+
+    >>> from astropy.stats import SigmaClip
+    >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
+    >>> sigclip = SigmaClip(sigma=2, iters=5)
+    >>> print(sigclip)  # doctest: +SKIP
+    <SigmaClip>
+        sigma: 3
+        sigma_lower: None
+        sigma_upper: None
+        iters: 10
+        cenfunc: <function median at 0x108dbde18>
+        stdfunc: <function std at 0x103ab52f0>
+    >>> sigclip(data)
+    masked_array(data = [1 5 6 8 -- 5 3 2],
+                 mask = [False False False False  True False False False],
+           fill_value = 999999)
+
+Note that once the ``sigclip`` instance is defined above, it can be
+applied to other data, using the same, already-defined, sigma-clipping
+parameters.
+
+New covariance matrix function
+------------------------------
+
+A new ``biweight_midcovariance`` function was added to `astropy.stats`.
+This is a robust and resistant estimator of the covariance matrix.
+For example::
+
+    >>> import numpy as np
+    >>> from astropy.stats import biweight_midcovariance
+    >>> # Generate 2D normal sampling of points
+    >>> rng = np.random.RandomState(1)
+    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
+    >>> # Introduce an obvious outlier
+    >>> d[0,0] = 30.0
+    >>> # Calculate biweight covariances
+    >>> bw_cov = biweight_midcovariance(d)
+    >>> # Print out recovered standard deviations
+    >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
+    [ 0.9  3.1]
+
+New statistical estimators for Ripley's K Function
+--------------------------------------------------
+
+New statistical estimators for Ripley's K Function, ``RipleysKEstimator``,
+in `astropy.stats`. For example:
+
+.. plot::
+   :include-source:
+
+    import numpy as np
+    from matplotlib import pyplot as plt
+    from astropy.stats import RipleysKEstimator
+    z = np.random.uniform(low=5, high=10, size=(100, 2))
+    Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
+    r = np.linspace(0, 2.5, 100)
+    plt.plot(r, Kest.poisson(r), label='poisson')
+    plt.plot(r, Kest(data=z, radii=r, mode='none'), label='none')
+    plt.plot(r, Kest(data=z, radii=r, mode='translation'), label='translation')
+    plt.plot(r, Kest(data=z, radii=r, mode='ohser'), label='ohser')
+    plt.plot(r, Kest(data=z, radii=r, mode='var-width'), label='var-width')
+    plt.plot(r, Kest(data=z, radii=r, mode='ripley'), label='ripley')
+    plt.legend(loc='upper left')
 
 .. _whatsnew-2.0-table-uni-sandwich:
 
@@ -68,131 +180,6 @@ change has been made to behavior for Python 2.
      (and ``bytes`` is really more logical), please open an issue
      on GitHub.
 
-.. _whatsnew-2.0-cosmo-def:
-
-No relativistic species by default in cosmological models
-=========================================================
-
-For all of the built in cosmological model types (e.g., FlatLambdaCDM)
-the default CMB temperature at z=0 is now 0K, which corresponds to no
-contributions from photons or neutrinos (massive or otherwise).  This
-does not affect built in literature models (such as the WMAP or Planck
-models).  The justification is to avoid including mass-energy components
-that the user has not explicitly requested.  This is a non-backwards
-compatible change, although the effects are small for most use cases.
-
-Convolution has undergone a significant overhaul to make fft and direct
-convolution consistent.  They keyword arguments have changed and the behavior
-of `~astropy.convolution.convolve` is no longer the same as in versions prior to
-2.0 (although `~astropy.convolution.convolve_fft`'s behavior remains unchanged).
-The details are given on the :ref:`astropy convolution <astropy_convolve>`.
-
-.. _whatsnew-2.0-conesearch-astroquery:
-
-Cone search module (``astropy.vo.conesearch``) moved to astroquery
-==================================================================
-
-The cone search module has been moved to `Astroquery
-<http://astroquery.readthedocs.io>`_ (0.3.5 and later) and will be removed from
-Astropy in a future version. The API here will be preserved as "classic" API in
-Astroquery, however some configuration behavior might change; See the Astroquery
-documentation for new usage details.
-
-.. _whatsnew-2.0-samp-moved:
-
-SAMP module moved to `astropy.samp`
-===================================
-
-The SAMP (Simple Application Messaging Protocol) module, formerly available
-in ``astropy.samp``, has now been moved to `astropy.samp`, so you should
-update any imports to this module.
-
-.. _whatsnew-2.0-SigmaClip:
-
-New `~astropy.stats.SigmaClip` class
-====================================
-
-A new :class:`~astropy.stats.SigmaClip` class was added as an
-object-oriented interface for sigma clipping::
-
-    >>> from astropy.stats import SigmaClip
-    >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
-    >>> sigclip = SigmaClip(sigma=2, iters=5)
-    >>> print(sigclip)  # doctest: +SKIP
-    <SigmaClip>
-        sigma: 3
-        sigma_lower: None
-        sigma_upper: None
-        iters: 10
-        cenfunc: <function median at 0x108dbde18>
-        stdfunc: <function std at 0x103ab52f0>
-    >>> sigclip(data)
-    masked_array(data = [1 5 6 8 -- 5 3 2],
-                 mask = [False False False False  True False False False],
-           fill_value = 999999)
-
-Note that once the ``sigclip`` instance is defined above, it can be
-applied to other data, using the same, already-defined, sigma-clipping
-parameters.
-
-.. _whatsnew-2.0-ddof:
-
-New ``std_ddof`` keyword to :func:`~astropy.stats.sigma_clipped_stats`
-======================================================================
-
-A new ``std_ddof`` keyword option was added to
-:func:`~astropy.stats.sigma_clipped_stats`.  This keyword represents
-the delta degrees of freedom for the standard deviation calculation.
-Specifically, the divisor used in the calculation is ``N - std_ddof``,
-where ``N`` represents the number of array elements.  The ``std_ddof``
-default value is zero.
-
-.. _whatsnew-2.0-stats-biweight-midcov:
-
-New ``biweight_midcovariance`` function in `astropy.stats`
-==========================================================
-
-A new ``biweight_midcovariance`` function was added to `astropy.stats`.
-This is a robust and resistant estimator of the covariance matrix.
-For example::
-
-    >>> import numpy as np
-    >>> from astropy.stats import biweight_midcovariance
-    >>> # Generate 2D normal sampling of points
-    >>> rng = np.random.RandomState(1)
-    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
-    >>> # Introduce an obvious outlier
-    >>> d[0,0] = 30.0
-    >>> # Calculate biweight covariances
-    >>> bw_cov = biweight_midcovariance(d)
-    >>> # Print out recovered standard deviations
-    >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
-    [ 0.9  3.1]
-
-.. _whatsnew-2.0-stats-k-func:
-
-New statistical estimators for Ripley's K Function
-==================================================
-
-New statistical estimators for Ripley's K Function, ``RipleysKEstimator``,
-in `astropy.stats`. For example:
-
-.. plot::
-
-    import numpy as np
-    from matplotlib import pyplot as plt
-    from astropy.stats import RipleysKEstimator
-    z = np.random.uniform(low=5, high=10, size=(100, 2))
-    Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
-    r = np.linspace(0, 2.5, 100)
-    plt.plot(r, Kest.poisson(r), label='poisson')
-    plt.plot(r, Kest(data=z, radii=r, mode='none'), label='none')
-    plt.plot(r, Kest(data=z, radii=r, mode='translation'), label='translation')
-    plt.plot(r, Kest(data=z, radii=r, mode='ohser'), label='ohser')
-    plt.plot(r, Kest(data=z, radii=r, mode='var-width'), label='var-width')
-    plt.plot(r, Kest(data=z, radii=r, mode='ripley'), label='ripley')
-    plt.legend(loc='upper left')
-
 .. _whatsnew-2.0-bintablehdu-from_table:
 
 New way to instantiate a ``BinTableHDU`` directly from a ``Table``
@@ -212,8 +199,8 @@ object. For example::
 New ``printdiff`` convenience function for FITS
 ===============================================
 
-A new ``printdiff`` convenience function was added for comparison between
-FITS files. For example::
+A new :func:`~astropy.io.fits.printdiff` convenience function was added for
+comparison between FITS files or HDUs. For example::
 
     >>> from astropy.io import fits
     >>> hdu1 = fits.ImageHDU([1, 2, 3])
@@ -237,8 +224,8 @@ FITS files. For example::
 New ``molar_mass_amu`` unit equivalency
 =======================================
 
-A new equivalency named ``molar_mass_amu`` to convert between ``g/mol`` unit
-to atomic mass unit (amu). For example::
+A new equivalency named :class:`~astropy.units.molar_mass_amu` has been added to
+convert between ``g/mol`` unit to atomic mass unit (amu). For example::
 
     >>> from astropy import constants as const
     >>> from astropy import units as u
@@ -248,80 +235,6 @@ to atomic mass unit (amu). For example::
     <Quantity 1.0 u>
     >>> y.to(u.g/u.mol, equivalencies=u.molar_mass_amu())
     <Quantity 1.0 g / mol>
-
-.. _whatsnew-2.0-models-units:
-
-New unit support for most models
-================================
-
-Most Astropy models now can handle inputs with units, and produce the
-appropriate outputs with units as well. Some models cannot support this due
-to their definitions (e.g., Legendre, Hermite, etc), while some will have
-this capability added in a future release. Example usage::
-
-    >>> from astropy import units as u
-    >>> from astropy.modeling.models import Gaussian1D
-    >>> g = Gaussian1D(amplitude=1*u.J, mean=1*u.m, stddev=0.1*u.m)
-    >>> g([3, 4, 5.5] * u.cm)
-    <Quantity [  3.70353198e-21,  9.72098502e-21,  4.05703276e-20] J>
-
-.. _whatsnew-2.0-n-submodels:
-
-New ``n_submodels`` shared method in single and compound models
-===============================================================
-
-A new ``n_submodels`` shared method in single and compound models.
-This enables accurate reporting of number of sub-models in a given model.
-For example::
-
-    >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
-    >>> g1 = Gaussian1D()
-    >>> g1.n_submodels()
-    1
-    >>> g2 = g1 + Gaussian1D()
-    >>> g2.n_submodels()
-    2
-
-.. _whatsnew-2.0-with-bounding-box:
-
-Two new optional arguments when evaluating a model - ``with_bounding_box`` and ``fill_value``
-=============================================================================================
-
-Two new arguments can be passed when evaluating a model to specify the bounding box
-should be respected. If ``with_bounding_box=True`` and a model has a bounding_box,
-the output values corresponding to inputs outside the bounding box are set to ``fill_value``.
-For example::
-
-    >>> from astropy.modeling.models import Polynomial1D
-    >>> import numpy as np
-    >>> x = np.arange(-5, 5)
-    >>> p = Polynomial1D(1, c0=2, c1=3)
-    >>> p.bounding_box = (-1, 5)
-    >>> p(x, with_bounding_box=True, fill_value=-100)
-    array([-100., -100., -100., -100.,   -1.,    2.,    5.,    8.,   11.,   14.])
-
-
-.. _whatsnew-2.0-no-bundled-pytest:
-
-No more bundled ``pytest`` with Astropy distribution
-====================================================
-
-The bundled version of ``pytest`` has now been removed, but the
-``astropy.tests.helper.pytest`` import will continue to work properly.
-Affiliated packages should nevertheless transition to importing ``pytest``
-directly rather than from `astropy.tests.helper`. This also means that
-``pytest`` is now a formal requirement for testing for both Astropy and
-for affiliated packages.
-
-.. _whatsnew-2.0-ccddata-class:
-
-New image class ``CCDData`` added
-=================================
-
-A new class, ``CCDData``, has been added to the ``nddata`` package. It can
-read from/write to FITS files, provides methods for arithmetic operations
-with propagation of uncertainty, and support for binary masks.
-
 
 .. _whatsnew-2.0-ascii-ecsv-mixins:
 
@@ -343,33 +256,106 @@ into astropy with no loss of object data or attributes.
 - `astropy.coordinates.EarthLocation`
 - `astropy.coordinates.SkyCoord`
 
+.. _whatsnew-2.0-convolution:
 
-.. _whatsnew-2.0-velocity-corrections:
+Improvements to astropy.convolution
+===================================
 
-Barycentric/heliocentric radial velocity corrections
-====================================================
+Convolution has undergone a significant overhaul to make fft and direct
+convolution consistent.  They keyword arguments have changed and the behavior
+of `~astropy.convolution.convolve` is no longer the same as in versions prior to
+2.0 (although `~astropy.convolution.convolve_fft`'s behavior remains unchanged).
+The details are given on the :ref:`astropy convolution <astropy_convolve>`.
 
-`astropy.coordinates.SkyCoord` now have a
-`~astropy.coordinates.SkyCoord.radial_velocity_correction` method which can be
-used to compute heliocentric and barycentric corrections for radial velocity
-measurements.  While in the future this may use the mechanisms described
-in :ref:`whatsnew-2.0-coordinates-velocities`, currently it uses a simpler
-algorithm for numerical stability.
+.. _whatsnew-2.0-cosmo-def:
 
+No relativistic species by default in cosmological models
+=========================================================
 
-.. _whatsnew-2.0-coordinates-velocities:
+For all of the built in cosmological model types (e.g.,
+:class:`~astropy.cosmology.FlatLambdaCDM`) the default CMB temperature at z=0 is
+now 0K, which corresponds to no contributions from photons or neutrinos (massive
+or otherwise).  This does not affect built in literature models (such as the
+WMAP or Planck models).  The justification is to avoid including mass-energy
+components that the user has not explicitly requested.  This is a non-backwards
+compatible change, although the effects are small for most use cases.
 
-Experimental velocity support in ``astropy.coordinates``
-========================================================
+.. _whatsnew-2.0-renamed-removed:
 
-``astropy.coordinates`` frame objects now contains experimental support for
-storing and transforming velocities. This includes, among other things, support
-for transforming proper motion components between coordinate frames and
-transforming full-space velocities to/from a local standard of rest (``LSR``)
-frame and a ``Galactocentric`` frame. This works by adding support for
-"differential" objects which contain differences of representations. For more
-details, see :ref:`astropy-coordinates-velocities`.
+Renamed/removed functionality
+=============================
 
+Several sub-packages have been moved or removed, and these are described in the
+following sections.
+
+astropy.tests.helper.pytest
+---------------------------
+
+The bundled version of ``pytest`` has now been removed, but the
+``astropy.tests.helper.pytest`` import will continue to work properly.
+Affiliated packages should nevertheless transition to importing ``pytest``
+directly rather than from ``astropy.tests.helper``. This also means that
+``pytest`` is now a formal requirement for testing for both Astropy and for
+affiliated packages.
+
+astropy.vo.conesearch
+---------------------
+
+The cone search module has been moved to `Astroquery
+<http://astroquery.readthedocs.io>`_ (0.3.5 and later) and will be removed from
+Astropy in a future version. The API here will be preserved as the "classic" API
+in Astroquery, however some configuration behavior might change; See the
+Astroquery `documentation
+<http://astroquery.readthedocs.io/en/latest/vo_conesearch/vo_conesearch.html>`_
+for new usage details.
+
+astropy.vo.samp
+---------------
+
+The SAMP (Simple Application Messaging Protocol) module, formerly available in
+``astropy.vo.samp``, has now been moved to ``astropy.samp``, so you should
+update any imports to this module.
+
+REMOVE? - New ``n_submodels`` shared method in single and compound models
+=========================================================================
+
+A new ``n_submodels`` shared method in single and compound models.
+This enables accurate reporting of number of sub-models in a given model.
+For example::
+
+    >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
+    >>> g1 = Gaussian1D()
+    >>> g1.n_submodels()
+    1
+    >>> g2 = g1 + Gaussian1D()
+    >>> g2.n_submodels()
+    2
+
+REMOVE? - Two new optional arguments when evaluating a model - ``with_bounding_box`` and ``fill_value``
+=======================================================================================================
+
+Two new arguments can be passed when evaluating a model to specify the bounding box
+should be respected. If ``with_bounding_box=True`` and a model has a bounding_box,
+the output values corresponding to inputs outside the bounding box are set to ``fill_value``.
+For example::
+
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> import numpy as np
+    >>> x = np.arange(-5, 5)
+    >>> p = Polynomial1D(1, c0=2, c1=3)
+    >>> p.bounding_box = (-1, 5)
+    >>> p(x, with_bounding_box=True, fill_value=-100)
+    array([-100., -100., -100., -100.,   -1.,    2.,    5.,    8.,   11.,   14.])
+
+REMOVE - New ``std_ddof`` keyword to :func:`~astropy.stats.sigma_clipped_stats`
+===============================================================================
+
+A new ``std_ddof`` keyword option was added to
+:func:`~astropy.stats.sigma_clipped_stats`.  This keyword represents
+the delta degrees of freedom for the standard deviation calculation.
+Specifically, the divisor used in the calculation is ``N - std_ddof``,
+where ``N`` represents the number of array elements.  The ``std_ddof``
+default value is zero.
 
 Full change log
 ===============
