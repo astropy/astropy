@@ -880,6 +880,8 @@ class Column(BaseColumn):
         # Convert input ``value`` to the string dtype of this column and
         # find the length of the longest string in the array.
         value = np.asanyarray(value, dtype=self.dtype.type)
+        if value.size == 0:
+            return
         value_str_len = np.char.str_len(value).max()
 
         # Parse the array-protocol typestring (e.g. '|U15') of self.dtype which
