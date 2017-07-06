@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ... import units as u
 from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
-from ..frame_attributes import TimeFrameAttribute
+from ..attributes import TimeAttribute
 from .utils import EQUINOX_J2000
 
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
@@ -114,7 +114,7 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
         non-geocentric systems).
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
 GeocentricTrueEcliptic.__doc__ = GeocentricTrueEcliptic.__doc__.format(
@@ -140,7 +140,7 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
         x-axis and the location of the Earth and Sun.
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
 BarycentricTrueEcliptic.__doc__ = BarycentricTrueEcliptic.__doc__.format(
@@ -166,7 +166,7 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
         x-axis and the location of the Earth and Sun.
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
 HeliocentricTrueEcliptic.__doc__ = HeliocentricTrueEcliptic.__doc__.format(

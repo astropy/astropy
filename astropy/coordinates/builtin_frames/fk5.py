@@ -4,7 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..baseframe import frame_transform_graph
-from ..frame_attributes import TimeFrameAttribute
+from ..attributes import TimeAttribute
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
@@ -29,7 +29,7 @@ class FK5(BaseRADecFrame):
         The equinox of this frame.
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_J2000)
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):

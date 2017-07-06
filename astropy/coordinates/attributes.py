@@ -6,19 +6,21 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Dependencies
 import numpy as np
+import warnings
 
 # Project
 from .. import units as u
 from ..utils.compat.numpy import broadcast_to as np_broadcast_to
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils import OrderedDescriptor, ShapedLikeNDArray
 
-__all__ = ['FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
+__all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
-           'CartesianRepresentationFrameAttribute',
-           'DifferentialFrameAttribute']
+           'CartesianRepresentationAttribute',
+           'DifferentialAttribute']
 
 
-class FrameAttribute(OrderedDescriptor):
+class Attribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
 
     This class must be used to define frame attributes (e.g. ``equinox`` or
@@ -60,7 +62,7 @@ class FrameAttribute(OrderedDescriptor):
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
-        super(FrameAttribute, self).__init__()
+        super(Attribute, self).__init__()
 
     def convert_input(self, value):
         """
@@ -133,10 +135,18 @@ class FrameAttribute(OrderedDescriptor):
         raise AttributeError('Cannot set frame attribute')
 
 
-class TimeFrameAttribute(FrameAttribute):
+class FrameAttribute(Attribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("FrameAttribute has been renamed to Attribute.",
+                      AstropyDeprecationWarning)
+        super(FrameAttribute, self).__init__(*args, **kwargs)
+
+
+class TimeAttribute(Attribute):
     """
     Frame attribute descriptor for quantities that are Time objects.
-    See the `~astropy.coordinates.FrameAttribute` API doc for further
+    See the `~astropy.coordinates.Attribute` API doc for further
     information.
 
     Parameters
@@ -190,7 +200,15 @@ class TimeFrameAttribute(FrameAttribute):
         return out, converted
 
 
-class CartesianRepresentationFrameAttribute(FrameAttribute):
+class TimeFrameAttribute(TimeAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("TimeFrameAttribute has been renamed to TimeAttribute.",
+                      AstropyDeprecationWarning)
+        super(TimeFrameAttribute, self).__init__(*args, **kwargs)
+
+
+class CartesianRepresentationAttribute(Attribute):
     """
     A frame attribute that is a CartesianRepresentation with specified units.
 
@@ -207,7 +225,7 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None):
-        super(CartesianRepresentationFrameAttribute, self).__init__(default, secondary_attribute)
+        super(CartesianRepresentationAttribute, self).__init__(default, secondary_attribute)
         self.unit = unit
 
     def convert_input(self, value):
@@ -254,7 +272,15 @@ class CartesianRepresentationFrameAttribute(FrameAttribute):
             return cartrep, converted
 
 
-class QuantityFrameAttribute(FrameAttribute):
+class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("CartesianRepresentationFrameAttribute has been renamed to CartesianRepresentationAttribute.",
+                      AstropyDeprecationWarning)
+        super(CartesianRepresentationFrameAttribute, self).__init__(*args, **kwargs)
+
+
+class QuantityAttribute(Attribute):
     """
     A frame attribute that is a quantity with specified units and shape
     (optionally).
@@ -274,7 +300,7 @@ class QuantityFrameAttribute(FrameAttribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
-        super(QuantityFrameAttribute, self).__init__(default, secondary_attribute)
+        super(QuantityAttribute, self).__init__(default, secondary_attribute)
         self.unit = unit
         self.shape = shape
 
@@ -315,7 +341,15 @@ class QuantityFrameAttribute(FrameAttribute):
             return value, converted
 
 
-class EarthLocationAttribute(FrameAttribute):
+class QuantityFrameAttribute(QuantityAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("QuantityFrameAttribute has been renamed to QuantityAttribute.",
+                      AstropyDeprecationWarning)
+        super(QuantityFrameAttribute, self).__init__(*args, **kwargs)
+
+
+class EarthLocationAttribute(Attribute):
     """
     A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
     It can be created as anything that can be transformed to the
@@ -363,13 +397,13 @@ class EarthLocationAttribute(FrameAttribute):
 
             if not hasattr(value, 'transform_to'):
                 raise ValueError('"{0}" was passed into an '
-                                 'EarthLocationAttribute, but it does not have '
+                                 'EarthLocationFrameAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
 
 
-class CoordinateAttribute(FrameAttribute):
+class CoordinateAttribute(Attribute):
     """
     A frame attribute which is a coordinate object. It can be given as a
     low-level frame class *or* a `~astropy.coordinates.SkyCoord`, but will
@@ -418,7 +452,7 @@ class CoordinateAttribute(FrameAttribute):
         else:
             if not hasattr(value, 'transform_to'):
                 raise ValueError('"{0}" was passed into a '
-                                 'CoordinateAttribute, but it does not have '
+                                 'CoordinateFrameAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             transformedobj = value.transform_to(self._frame)
             if hasattr(transformedobj, 'frame'):
@@ -426,7 +460,7 @@ class CoordinateAttribute(FrameAttribute):
             return transformedobj, True
 
 
-class DifferentialFrameAttribute(FrameAttribute):
+class DifferentialAttribute(Attribute):
     """A frame attribute which is a differential instance.
 
     The optional ``allowed_classes`` argument allows specifying a restricted
@@ -452,7 +486,7 @@ class DifferentialFrameAttribute(FrameAttribute):
         else:
             self.allowed_classes = BaseDifferential
 
-        super(DifferentialFrameAttribute, self).__init__(default,
+        super(DifferentialAttribute, self).__init__(default,
                                                          secondary_attribute)
 
     def convert_input(self, value):
@@ -478,13 +512,21 @@ class DifferentialFrameAttribute(FrameAttribute):
         """
 
         if not isinstance(value, self.allowed_classes):
-            raise TypeError('Tried to set a DifferentialFrameAttribute with '
+            raise TypeError('Tried to set a DifferentialAttribute with '
                             'an unsupported Differential type {0}. Allowed '
                             'classes are: {1}'
                             .format(value.__class__,
                                     self.allowed_classes))
 
         return value, True
+
+
+class DifferentialFrameAttribute(DifferentialAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("DifferentialFrameAttribute has been renamed to DifferentialAttribute.",
+                      AstropyDeprecationWarning)
+        super(DifferentialFrameAttribute, self).__init__(*args, **kwargs)
 
 
 # do this here to prevent a series of complicated circular imports
