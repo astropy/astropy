@@ -17,7 +17,6 @@ Core Package Contributors
 * Ryan Abernathey
 * Shailesh Ahuja
 * Tom Aldcroft
-* Anthony Horton
 * Anne Archibald
 * Cristian Ardelean
 * Tomas Babej
