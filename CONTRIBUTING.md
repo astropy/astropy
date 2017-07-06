@@ -45,24 +45,21 @@ include the following:
   it to a milestone.
 
   You do not need to include a changelog entry for fixes to bugs introduced in
-  the developer version and which are not present in the stable releases.  In
-  general you do not need to include a changelog entry for minor documentation
-  or test updates.  Only user-visible changes (new features/API changes, fixed
-  issues) need to be mentioned.  If in doubt ask the core maintainer reviewing
-  your changes.
+  the developer version and therefore are not present in the stable releases.
+  In general you do not need to include a changelog entry for minor
+  documentation or test updates.  Only user-visible changes (new features/API
+  changes, fixed issues) need to be mentioned.  If in doubt ask the core
+  maintainer reviewing your changes.
 
 Other Tips
 ----------
 
-- When contributing trivial documentation fixes (i.e. fixes to typos,
-  spelling, grammar) that do not contain any special markup and are not
-  associated with code changes, include the string ``[ci skip]`` in your
-  commit message. For example:
+- To prevent the automated tests from running you can add ``[ci
+  skip]`` to your commit message. This is useful if your PR is a work
+  in progress and you are not yet ready for the tests to run.  For
+  example:
 
-      $ git commit -m "Fixed typo [ci skip]"
-
-  This will prevent automated tests for running against your change, freeing
-  up resources for testing non-trivial changes.
+      $ git commit -m "WIP widget [ci skip]"
 
   - If you already made the commit without including this string, you can edit
     your existing commit message by running:
@@ -75,6 +72,13 @@ Other Tips
 - If your commit makes substantial changes to the documentation, but no code
   changes, the you can use ``[docs only]``, that will skip all but the
   documentation building jobs on Travis.
+
+- When contributing trivial documentation fixes (i.e. fixes to typos,
+  spelling, grammar) that do not contain any special markup and are
+  not associated with code changes, please include the string ``[docs
+  only]`` in your commit message.
+
+      $ git commit -m "Fixed typo [docs only]"
 
 
 Checklist for Contributed Code
@@ -97,7 +101,7 @@ in the package.
     followed?
   * Is the code compatible with Python 2.6, 2.7, as well as >=3.3?
   * Are there dependencies other than the Astropy core, the Python Standard
-    Library, and NumPy 1.6.0 or later?
+    Library, and NumPy 1.9.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies  raise an `ImportError`
@@ -129,6 +133,6 @@ in the package.
   * Are there any conflicts with this code and existing codes?
 
 **astropy requirements**
-  * Do all the tests pass on the Travis and AppVeyor build?
+  * Do all the Travis CI, AppVeyor, and CircleCI tests pass?
   * If applicable, has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?
