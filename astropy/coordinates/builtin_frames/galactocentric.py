@@ -14,9 +14,9 @@ from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          RepresentationMapping)
-from ..frame_attributes import (FrameAttribute, CoordinateAttribute,
-                                QuantityFrameAttribute,
-                                DifferentialFrameAttribute)
+from ..attributes import (Attribute, CoordinateAttribute,
+                          QuantityAttribute,
+                          DifferentialAttribute)
 from ..transformations import AffineTransform
 from ..errors import ConvertError
 
@@ -185,14 +185,14 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_coord = CoordinateAttribute(default=ICRS(ra=266.4051*u.degree,
                                                     dec=-28.936175*u.degree),
                                        frame=ICRS)
-    galcen_distance = QuantityFrameAttribute(default=8.3*u.kpc)
+    galcen_distance = QuantityAttribute(default=8.3*u.kpc)
 
-    galcen_v_sun = DifferentialFrameAttribute(
+    galcen_v_sun = DifferentialAttribute(
         default=r.CartesianDifferential([11.1, 220+12.24, 7.25] * u.km/u.s),
         allowed_classes=[r.CartesianDifferential])
 
-    z_sun = FrameAttribute(default=27.*u.pc)
-    roll = FrameAttribute(default=0.*u.deg)
+    z_sun = QuantityAttribute(default=27.*u.pc)
+    roll = QuantityAttribute(default=0.*u.deg)
 
     def __init__(self, *args, **kwargs):
 

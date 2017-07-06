@@ -9,7 +9,7 @@ from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          frame_transform_graph)
 from ..transformations import AffineTransform
-from ..frame_attributes import DifferentialFrameAttribute
+from ..attributes import DifferentialAttribute
 
 from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .icrs import ICRS
@@ -57,8 +57,8 @@ class LSR(BaseRADecFrame):
     """
 
     # frame attributes:
-    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010,
-                                        allowed_classes=[r.CartesianDifferential])
+    v_bary = DifferentialAttribute(default=v_bary_Schoenrich2010,
+                                   allowed_classes=[r.CartesianDifferential])
 
 
 LSR.__doc__ = LSR.__doc__.format(params=_base_radec_docstring)
@@ -183,7 +183,7 @@ class GalacticLSR(BaseCoordinateFrame):
     default_differential = r.SphericalCosLatDifferential
 
     # frame attributes:
-    v_bary = DifferentialFrameAttribute(default=v_bary_Schoenrich2010)
+    v_bary = DifferentialAttribute(default=v_bary_Schoenrich2010)
 
 
 @frame_transform_graph.transform(AffineTransform, Galactic, GalacticLSR)

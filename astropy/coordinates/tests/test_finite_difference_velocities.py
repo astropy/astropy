@@ -14,7 +14,7 @@ from ...time import Time
 from ..builtin_frames import ICRS, AltAz, LSR, GCRS, Galactic, FK5
 from ..baseframe import frame_transform_graph
 from ..sites import get_builtin_sites
-from .. import (TimeFrameAttribute,
+from .. import (TimeAttribute,
                 FunctionTransformWithFiniteDifference, get_sun,
                 CartesianRepresentation, SphericalRepresentation,
                 CartesianDifferential, SphericalDifferential,
@@ -29,7 +29,7 @@ J2000 = Time('J2000')
                                            (1*u.year, False)])
 def test_faux_lsr(dt, symmetric):
     class LSR2(LSR):
-        obstime = TimeFrameAttribute(default=J2000)
+        obstime = TimeAttribute(default=J2000)
 
     @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                      ICRS, LSR2, finite_difference_dt=dt,

@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..frame_attributes import TimeFrameAttribute
+from ..attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
 from .baseradec import _base_radec_docstring, BaseRADecFrame
 
@@ -36,7 +36,7 @@ class HCRS(BaseRADecFrame):
         position of the Sun.
     """
 
-    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 HCRS.__doc__ = HCRS.__doc__.format(params=_base_radec_docstring)

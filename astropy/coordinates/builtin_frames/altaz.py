@@ -8,8 +8,8 @@ import numpy as np
 from ... import units as u
 from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
-from ..frame_attributes import (FrameAttribute, TimeFrameAttribute,
-                                QuantityFrameAttribute, EarthLocationAttribute)
+from ..attributes import (Attribute, TimeAttribute,
+                          QuantityAttribute, EarthLocationAttribute)
 
 _90DEG = 90*u.deg
 
@@ -129,12 +129,12 @@ class AltAz(BaseCoordinateFrame):
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
-    obstime = TimeFrameAttribute(default=None)
+    obstime = TimeAttribute(default=None)
     location = EarthLocationAttribute(default=None)
-    pressure = QuantityFrameAttribute(default=0, unit=u.hPa)
-    temperature = QuantityFrameAttribute(default=0, unit=u.deg_C)
-    relative_humidity = FrameAttribute(default=0)
-    obswl = QuantityFrameAttribute(default=1*u.micron, unit=u.micron)
+    pressure = QuantityAttribute(default=0, unit=u.hPa)
+    temperature = QuantityAttribute(default=0, unit=u.deg_C)
+    relative_humidity = Attribute(default=0)
+    obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
         super(AltAz, self).__init__(*args, **kwargs)
