@@ -31,9 +31,9 @@ class Attribute(OrderedDescriptor):
     The `~astropy.coordinates.FK4` class uses the following class attributes::
 
       class FK4(BaseCoordinateFrame):
-          equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
-          obstime = TimeFrameAttribute(default=None,
-                                       secondary_attribute='equinox')
+          equinox = TimeAttribute(default=_EQUINOX_B1950)
+          obstime = TimeAttribute(default=None,
+                                  secondary_attribute='equinox')
 
     This means that ``equinox`` and ``obstime`` are available to be set as
     keyword arguments when creating an ``FK4`` class instance and are then
@@ -135,14 +135,6 @@ class Attribute(OrderedDescriptor):
         raise AttributeError('Cannot set frame attribute')
 
 
-class FrameAttribute(Attribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("FrameAttribute has been renamed to Attribute.",
-                      AstropyDeprecationWarning)
-        super(FrameAttribute, self).__init__(*args, **kwargs)
-
-
 class TimeAttribute(Attribute):
     """
     Frame attribute descriptor for quantities that are Time objects.
@@ -200,14 +192,6 @@ class TimeAttribute(Attribute):
         return out, converted
 
 
-class TimeFrameAttribute(TimeAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("TimeFrameAttribute has been renamed to TimeAttribute.",
-                      AstropyDeprecationWarning)
-        super(TimeFrameAttribute, self).__init__(*args, **kwargs)
-
-
 class CartesianRepresentationAttribute(Attribute):
     """
     A frame attribute that is a CartesianRepresentation with specified units.
@@ -225,7 +209,8 @@ class CartesianRepresentationAttribute(Attribute):
     """
 
     def __init__(self, default=None, secondary_attribute='', unit=None):
-        super(CartesianRepresentationAttribute, self).__init__(default, secondary_attribute)
+        super(CartesianRepresentationAttribute, self).__init__(
+            default, secondary_attribute)
         self.unit = unit
 
     def convert_input(self, value):
@@ -262,22 +247,15 @@ class CartesianRepresentationAttribute(Attribute):
             # if it's a CartesianRepresentation, get the xyz Quantity
             value = getattr(value, 'xyz', value)
             if not hasattr(value, 'unit'):
-                raise TypeError('tried to set a CartesianRepresentationFrameAttribute with '
-                                'something that does not have a unit.')
+                raise TypeError('tried to set a {0} with something that does '
+                                'not have a unit.'
+                                .format(self.__class__.__name__))
 
             value = value.to(self.unit)
 
             # now try and make a CartesianRepresentation.
             cartrep = CartesianRepresentation(value, copy=False)
             return cartrep, converted
-
-
-class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("CartesianRepresentationFrameAttribute has been renamed to CartesianRepresentationAttribute.",
-                      AstropyDeprecationWarning)
-        super(CartesianRepresentationFrameAttribute, self).__init__(*args, **kwargs)
 
 
 class QuantityAttribute(Attribute):
@@ -329,7 +307,7 @@ class QuantityAttribute(Attribute):
             return u.Quantity(np.zeros(self.shape), self.unit), True
         else:
             if not hasattr(value, 'unit'):
-                raise TypeError('Tried to set a QuantityFrameAttribute with '
+                raise TypeError('Tried to set a QuantityAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
             value = u.Quantity(oldvalue, self.unit, copy=False)
@@ -339,15 +317,6 @@ class QuantityAttribute(Attribute):
                                                                   self.shape))
             converted = oldvalue is not value
             return value, converted
-
-
-class QuantityFrameAttribute(QuantityAttribute):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn("QuantityFrameAttribute has been renamed to QuantityAttribute.",
-                      AstropyDeprecationWarning)
-        super(QuantityFrameAttribute, self).__init__(*args, **kwargs)
-
 
 class EarthLocationAttribute(Attribute):
     """
@@ -397,7 +366,7 @@ class EarthLocationAttribute(Attribute):
 
             if not hasattr(value, 'transform_to'):
                 raise ValueError('"{0}" was passed into an '
-                                 'EarthLocationFrameAttribute, but it does not have '
+                                 'EarthLocationAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
             return itrsobj.earth_location, True
@@ -452,7 +421,7 @@ class CoordinateAttribute(Attribute):
         else:
             if not hasattr(value, 'transform_to'):
                 raise ValueError('"{0}" was passed into a '
-                                 'CoordinateFrameAttribute, but it does not have '
+                                 'CoordinateAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             transformedobj = value.transform_to(self._frame)
             if hasattr(transformedobj, 'frame'):
@@ -487,7 +456,7 @@ class DifferentialAttribute(Attribute):
             self.allowed_classes = BaseDifferential
 
         super(DifferentialAttribute, self).__init__(default,
-                                                         secondary_attribute)
+                                                    secondary_attribute)
 
     def convert_input(self, value):
         """
@@ -521,12 +490,37 @@ class DifferentialAttribute(Attribute):
         return value, True
 
 
-class DifferentialFrameAttribute(DifferentialAttribute):
+# Backwards-compatibility: these are the only classes that were previously
+# released in v1.3
+class FrameAttribute(Attribute):
 
     def __init__(self, *args, **kwargs):
-        warnings.warn("DifferentialFrameAttribute has been renamed to DifferentialAttribute.",
+        warnings.warn("FrameAttribute has been renamed to Attribute.",
                       AstropyDeprecationWarning)
-        super(DifferentialFrameAttribute, self).__init__(*args, **kwargs)
+        super(FrameAttribute, self).__init__(*args, **kwargs)
+
+class TimeFrameAttribute(TimeAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("TimeFrameAttribute has been renamed to TimeAttribute.",
+                      AstropyDeprecationWarning)
+        super(TimeFrameAttribute, self).__init__(*args, **kwargs)
+
+class QuantityFrameAttribute(QuantityAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("QuantityFrameAttribute has been renamed to "
+                      "QuantityAttribute.", AstropyDeprecationWarning)
+        super(QuantityFrameAttribute, self).__init__(*args, **kwargs)
+
+class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("CartesianRepresentationFrameAttribute has been renamed "
+                      "to CartesianRepresentationAttribute.",
+                      AstropyDeprecationWarning)
+        super(CartesianRepresentationFrameAttribute, self).__init__(
+            *args, **kwargs)
 
 
 # do this here to prevent a series of complicated circular imports
