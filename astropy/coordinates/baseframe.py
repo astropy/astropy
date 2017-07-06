@@ -30,15 +30,19 @@ from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
 from .transformations import TransformGraph
 from . import representation as r
 
-from .frame_attributes import FrameAttribute
+from .attributes import Attribute
 
-# Import all other FrameAttributes so we don't break backwards-compatibility
+# Import all other Attributes so we don't break backwards-compatibility
 # (some users rely on them being here, although that is not
 # encouraged, as this is not the public API location.)
-from .frame_attributes import (
-    TimeFrameAttribute, QuantityFrameAttribute,
+from .attributes import (
+    TimeAttribute, QuantityAttribute,
     EarthLocationAttribute, CoordinateAttribute,
-    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
+    CartesianRepresentationAttribute)  # pylint: disable=W0611
+
+TimeFrameAttribute = TimeAttribute
+QuantityFrameAttribute = QuantityAttribute
+CartesianRepresentationFrameAttribute = CartesianRepresentationAttribute
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
            'GenericFrame', 'RepresentationMapping']
@@ -229,7 +233,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         treated as the default differential class of this frame.  This is the
         differential class assumed by default when the frame is created.
 
-    * `~astropy.coordinates.FrameAttribute` class attributes
+    * `~astropy.coordinates.Attribute` class attributes
        Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
        using a descriptor class.  See the narrative documentation or
        built-in classes code for details.
@@ -266,7 +270,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     # attributes.
     frame_specific_representation_info = {}
 
-    _inherit_descriptors_ = (FrameAttribute,)
+    _inherit_descriptors_ = (Attribute,)
 
     frame_attributes = OrderedDict()
     # Default empty frame_attributes dict
@@ -1378,7 +1382,7 @@ class GenericFrame(BaseCoordinateFrame):
     def __init__(self, frame_attrs):
         self.frame_attributes = OrderedDict()
         for name, default in frame_attrs.items():
-            self.frame_attributes[name] = FrameAttribute(default)
+            self.frame_attributes[name] = Attribute(default)
             setattr(self, '_' + name, default)
 
         super(GenericFrame, self).__init__(None)

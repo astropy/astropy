@@ -28,18 +28,18 @@ def teardown_function(func):
 
 
 def test_frame_attribute_descriptor():
-    """ Unit tests of the FrameAttribute descriptor """
-    from ..baseframe import FrameAttribute
+    """ Unit tests of the Attribute descriptor """
+    from ..baseframe import Attribute
 
     @six.add_metaclass(OrderedDescriptorContainer)
-    class TestFrameAttributes(object):
-        attr_none = FrameAttribute()
-        attr_2 = FrameAttribute(default=2)
-        attr_3_attr2 = FrameAttribute(default=3, secondary_attribute='attr_2')
-        attr_none_attr2 = FrameAttribute(default=None, secondary_attribute='attr_2')
-        attr_none_nonexist = FrameAttribute(default=None, secondary_attribute='nonexist')
+    class TestAttributes(object):
+        attr_none = Attribute()
+        attr_2 = Attribute(default=2)
+        attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')
+        attr_none_attr2 = Attribute(default=None, secondary_attribute='attr_2')
+        attr_none_nonexist = Attribute(default=None, secondary_attribute='nonexist')
 
-    t = TestFrameAttributes()
+    t = TestAttributes()
 
     # Defaults
     assert t.attr_none is None
@@ -68,20 +68,21 @@ def test_frame_attribute_descriptor():
 
 def test_frame_subclass_attribute_descriptor():
     from ..builtin_frames import FK4
-    from ..frame_attributes import FrameAttribute, TimeFrameAttribute
+    from ..attributes import Attribute, TimeAttribute
     from astropy.time import Time
 
     _EQUINOX_B1980 = Time('B1980', scale='tai')
 
     class MyFK4(FK4):
         # equinox inherited from FK4, obstime overridden, and newattr is new
-        obstime = TimeFrameAttribute(default=_EQUINOX_B1980)
-        newattr = FrameAttribute(default='newattr')
+        obstime = TimeAttribute(default=_EQUINOX_B1980)
+        newattr = Attribute(default='newattr')
 
     mfk4 = MyFK4()
     assert mfk4.equinox.value == 'B1950.000'
     assert mfk4.obstime.value == 'B1980.000'
     assert mfk4.newattr == 'newattr'
+
     assert set(mfk4.get_frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
 
     mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')

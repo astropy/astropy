@@ -8,7 +8,7 @@ import numpy as np
 from ...extern.six.moves import range
 from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..frame_attributes import TimeFrameAttribute
+from ..attributes import TimeAttribute
 from ..transformations import (FunctionTransformWithFiniteDifference,
                                FunctionTransform, DynamicMatrixTransform)
 from ..representation import (CartesianRepresentation,
@@ -39,8 +39,8 @@ class FK4(BaseRADecFrame):
         ``equinox``.
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
-    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+    equinox = TimeAttribute(default=EQUINOX_B1950)
+    obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
 
 FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
@@ -75,8 +75,8 @@ class FK4NoETerms(BaseRADecFrame):
         ``equinox``.
     """
 
-    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
-    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+    equinox = TimeAttribute(default=EQUINOX_B1950)
+    obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):

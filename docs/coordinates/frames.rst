@@ -266,13 +266,13 @@ of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
 define the class attributes ``default_representation`` and
 ``frame_specific_representation_info`` along with frame attributes as
-`~astropy.coordinates.FrameAttribute` class instances (or subclasses like
-`~astropy.coordinates.TimeFrameAttribute`).  If these are
+`~astropy.coordinates.Attribute` class instances (or subclasses like
+`~astropy.coordinates.TimeAttribute`).  If these are
 defined, there is often no need to define an ``__init__`` function, as the
 initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::
 
-  >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute, RepresentationMapping
+  >>> from astropy.coordinates import BaseCoordinateFrame, Attribute, TimeAttribute, RepresentationMapping
   >>> import astropy.coordinates.representation as r
   >>> class MyFrame(BaseCoordinateFrame):
   ...     # Specify how coordinate values are represented when outputted
@@ -292,9 +292,9 @@ the way you want.  As an example::
   ...      }
   ...
   ...      # Specify frame attributes required to fully specify the frame
-  ...      location = FrameAttribute(default=None)
-  ...      equinox = TimeFrameAttribute(default='B1950')
-  ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+  ...      location = Attribute(default=None)
+  ...      equinox = TimeAttribute(default='B1950')
+  ...      obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
   >>> c  # doctest: +FLOAT_CMP
