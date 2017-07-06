@@ -31,9 +31,10 @@ In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* xxx issues have been closed since v1.3
-* xxx pull requests have been merged since v1.3
-* xxx distinct people have contributed code
+
+* 696 issues have been closed since v1.3
+* 316 pull requests have been merged since v1.3
+* 232 distinct people have contributed code
 
 .. _whatsnew-2.0-models-units:
 
