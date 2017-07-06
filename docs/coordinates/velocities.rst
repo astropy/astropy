@@ -292,10 +292,11 @@ on the API and functionality in the frame-level classes before it is adopted in
 Radial Velocity Corrections
 ===========================
 
-Seperately from the above, Astropy supports computing barycentric or
-heliocentric radial velocity corrections.  While in the future this may be a
-high-level convenience function using the framework described above, the
-current implementation is independent to ensure sufficient accuracy (see the
+Separately from the above, Astropy supports computing barycentric or
+heliocentric radial velocity corrections.  While in the future this may simply
+be a high-level convenience function using the framework described above, the
+current implementation is independent to ensure sufficient accuracy (see
+:ref:`astropy-coordinates-rv-corrs` and the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` API docs for
 details).
 
