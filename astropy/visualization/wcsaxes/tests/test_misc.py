@@ -36,7 +36,7 @@ def test_format_coord_regression(tmpdir):
     assert ax.coords[0].format_coord(10) == ""
     assert ax.coords[1].format_coord(10) == ""
     fig.savefig(tmpdir.join('nothing').strpath)
-    assert ax.format_coord(10, 10) == "11.0 11.0 (world)"
+    assert ax.format_coord(10, 10) == "10.0 10.0 (world)"
     assert ax.coords[0].format_coord(10) == "10.0"
     assert ax.coords[1].format_coord(10) == "10.0"
 

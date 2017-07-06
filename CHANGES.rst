@@ -589,6 +589,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that caused the default WCS to return coordinates offset by
+  one. [#6339]
+
 astropy.vo
 ^^^^^^^^^^
 
