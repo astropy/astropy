@@ -123,25 +123,38 @@ Note that once the ``sigclip`` instance is defined above, it can be
 applied to other data, using the same, already-defined, sigma-clipping
 parameters.
 
-New covariance matrix function
-------------------------------
+New robust statistical functions
+--------------------------------
 
-A new ``biweight_midcovariance`` function was added to `astropy.stats`.
-This is a robust and resistant estimator of the covariance matrix.
+New :func:`~astropy.stats.biweight_midcovariance` and
+:func:`~astropy.stats.biweight_midcorrelation` functions were added to
+`astropy.stats`.  :func:`~astropy.stats.biweight_midcovariance`
+computes the robust covariance between two or more variables.
+:func:`~astropy.stats.biweight_midcorrelation` computes a robust
+measure of similarity between two variables.
+
 For example::
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcovariance
-    >>> # Generate 2D normal sampling of points
+    >>> from astropy.stats import biweight_midcorrelation
+    >>> # Generate two random variables x and y
     >>> rng = np.random.RandomState(1)
-    >>> d = np.array([rng.normal(0, 1, 200), rng.normal(0, 3, 200)])
+    >>> x = rng.normal(0, 1, 200)
+    >>> y = rng.normal(0, 3, 200)
     >>> # Introduce an obvious outlier
-    >>> d[0,0] = 30.0
-    >>> # Calculate biweight covariances
-    >>> bw_cov = biweight_midcovariance(d)
-    >>> # Print out recovered standard deviations
-    >>> print(np.around(np.sqrt(bw_cov.diagonal()), 1))
-    [ 0.9  3.1]
+    >>> x[0] = 30.0
+    >>> # Calculate the biweight midcovariances between x and y
+    >>> bicov = biweight_midcovariance([x, y])
+    >>> print(bicov)  # doctest: +FLOAT_CMP
+    [[ 0.82483155 -0.18961219]
+     [-0.18961219 9.80265764]]
+    >>> # Print standard deviation estimates
+    >>> print(np.sqrt(bicov.diagonal()))  # doctest: +FLOAT_CMP
+    [ 0.90820237  3.13091961]
+    >>> # Compute the biweight midcorrelation between x and y
+    >>> print(biweight_midcorrelation(x, y))  # doctest: +FLOAT_CMP
+    -0.066682472486875297
 
 New statistical estimators for Ripley's K Function
 --------------------------------------------------
