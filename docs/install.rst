@@ -33,7 +33,7 @@ Astropy also depends on other packages for optional features:
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
-- `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
+- `matplotlib <http://matplotlib.org/>`_ 1.5 or later: To provide plotting functionality that `astropy.visualization` enhances.
 
 - `pytz <http://pythonhosted.org/pytz/>`_: To specify and convert between timezones.
 
