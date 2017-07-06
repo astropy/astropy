@@ -3350,7 +3350,8 @@ astropy.coordinates
 
 - Pickling of ``EarthLocation`` instances now also works on Python 2. [#4304]
 
-``astropy.io.ascii``
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
 
 - Fix fast writer so bytestring column output is not prefixed by 'b' in
   Python 3. [#4350]
@@ -3705,7 +3706,8 @@ astropy.utils
   wrapper function even when ``'__name__'`` is excluded from the ``assigned``
   argument. [#4016]
 
-- Misc
+Misc
+^^^^
 
 - ``fitscheck`` no longer causes scaled image data to be rescaled when
   adding checksums to existing files. [#3884]
@@ -4010,13 +4012,8 @@ astropy.time
 Miscellaneous
 -------------
 
-astropy._erfa
-^^^^^^^^^^^^^
-
 - The ERFA wrappers are now written directly in the Python/C API
   rather than using Cython, for greater performance. [#3521]
-
-- Miscellaneous
 
 - Improve import time of astropy [#3488].
 
@@ -4033,7 +4030,7 @@ Other Changes and Additions
 General
 -------
 
-Astropy now requires a Numpy 1.6.0 or later.
+- Astropy now requires Numpy 1.6.0 or later.
 
 New Features
 ------------
@@ -4321,7 +4318,8 @@ astropy.wcs
 - Added ``is_proj_plane_distorted`` for testing if pixels are
   distorted. [#3329]
 
-- Misc
+Misc
+^^^^
 
 - ``astropy._erfa`` was added as a new subpackage wrapping the functionality
   of the ERFA library in python.  This is primarily of use for other astropy
@@ -4645,7 +4643,8 @@ astropy.wcs
 - ``astropy.wcs.WCS.sub`` now accepts unicode strings as input on
   Python 2.x [#3356]
 
-- Misc
+Misc
+^^^^
 
 - Some modules and tests that would crash upon import when using a non-final
   release of Numpy (e.g. 1.9.0rc1). [#3471]
@@ -4885,7 +4884,8 @@ astropy.wcs
 - Fixed an issue which meant that Python thought ``WCS`` objects were
   iterable. [#3066]
 
-- Misc
+Misc
+^^^^
 
 - Astropy will now work if your Python interpreter does not have the
   ``bz2`` module installed. [#3104]
@@ -5398,7 +5398,8 @@ astropy.wcs
 - New ``astropy.wcs.utils`` module, with a handful of tools for manipulating
   WCS objects, including dropping, swapping, and adding axes.
 
-- Misc
+Misc
+^^^^
 
 - Includes the new astropy-helpers package which separates some of Astropy's
   build, installation, and documentation infrastructure out into an
@@ -5636,7 +5637,8 @@ astropy.wcs
   0.2, have been removed.  Use the shape of the underlying FITS data
   array instead.  [#2386]
 
-- Misc
+Misc
+^^^^
 
 - The ``astropy.setup_helpers`` and ``astropy.version_helpers`` modules are
   deprecated; any non-critical fixes and development to those modules should
@@ -5815,7 +5817,8 @@ astropy.wcs
   `astropy.wcs._wcs` C extension on Microsoft Windows when built
   with a Microsoft compiler. [#2478]
 
-- Misc
+Misc
+^^^^
 
 - Running the test suite with ``python setup.py test`` now works if
   the path to the source contains spaces. [#2488]
@@ -5832,8 +5835,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-python setup.py test --coverage will now give more accurate
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- python setup.py test --coverage will now give more accurate
   results, because the coverage analysis will include early imports of
   astropy.  There doesn't seem to be a way to get this to work when
   doing ``import astropy; astropy.test()``, so the ``coverage``
@@ -6018,7 +6020,8 @@ astropy.wcs
 - Fixed a memory allocation bug in ``astropy.wcs.Wcsprm.sub`` and
   ``astropy.wcs.Wcsprm.copy``.  [#2439]
 
-- Misc
+Misc
+^^^^
 
 - Fixes for compatibility with Python 3.4. [#1945]
 
@@ -6259,7 +6262,8 @@ astropy.wcs
   may not be propagated correctly, resulting in a "NULL error object
   in wcslib" message. [#2106]
 
-- Misc
+Misc
+^^^^
 
 - There are a number of improvements to make Astropy work better on big
   endian platforms, such as MIPS, PPC, s390x and SPARC. [#1849]
@@ -6968,7 +6972,8 @@ astropy.units
 - Directly instantiated ``CompositeUnits`` were made printable without
   crashing. [#1576]
 
-- Misc
+Misc
+^^^^
 
 - Fixed various modules that hard-coded ``sys.stdout`` as default arguments
   to functions at import time, rather than using the runtime value of
@@ -7189,7 +7194,8 @@ astropy.wcs
 - Only headers that are required as part of the WCSLIB C API are installed
   by the package, per request of system packagers. [#1666]
 
-- Misc
+Misc
+^^^^
 
 - Fixed crash when the ``COLUMNS`` environment variable is set to a
   non-integer value. [#1291]
@@ -7284,7 +7290,8 @@ astropy.units
 - Fixed a bug where multiple subsequent calls to the ``.decompose()`` method
   on array quantities applied a scale factor each time. [#1163]
 
-- Misc
+Misc
+^^^^
 
 - Fixed an installation crash that could occur sometimes on Debian/Ubuntu
   and other \*NIX systems where ``pkg_resources`` can be installed without
@@ -7343,7 +7350,8 @@ astropy.time
 
 - Tightened required accuracy in many of the time conversion tests. [#1121]
 
-- Misc
+Misc
+^^^^
 
 - Fixed a regression that was introduced in v0.2.2 by the fix to issue #992
   that was preventing installation of Astropy affiliated packages that use
@@ -7474,7 +7482,8 @@ astropy.units
   field strength', 'radiant intensity', 'data quantity', 'bandwidth'; and
   'knots', 'nautical miles', 'becquerels', and 'curies' respectively. [#1072]
 
-- Misc
+Misc
+^^^^
 
 - Fixed a permission error that could occur when running ``astropy.test()``
   on Python 3 when Astropy is installed as root. [#811]
@@ -7612,8 +7621,8 @@ astropy.wcs
   coordinates to pixel space, including inversion of the astrometric
   distortion correction. [#1066, #1281]
 
-
-- Misc
+Misc
+^^^^
 
 - Fixed a minor issue when installing with ``./setup.py develop`` on a fresh
   git clone.  This is likely only of interest to developers on Astropy.
@@ -7675,15 +7684,13 @@ Other Changes and Additions
 
 - Added previously missing LaTeX formatting for ``L_sun`` and ``R_sun``. [#841]
 
-ConfigurationItem\s now have a more useful and informative __repr__
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- ConfigurationItem\s now have a more useful and informative __repr__
   and improved documentation for how to use them. [#855]
 
 - Added a friendlier error message when trying to import astropy from a source
   checkout without first building the extension modules inplace. [#864]
 
-py.test now outputs more system information for help in debugging issues
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- py.test now outputs more system information for help in debugging issues
   from users. [#869]
 
 - Added unit definitions "mas" and "uas" for "milliarcsecond" and
@@ -7695,9 +7702,6 @@ py.test now outputs more system information for help in debugging issues
 
 New Features
 ------------
-
-This is a brief overview of the new features included in Astropy 0.2--please
-see the "What's New" section of the documentation for more details.
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -7722,8 +7726,7 @@ astropy.cosmology
   Hinshaw et al. 2013. It has also been made the default cosmology.
   [#629, #724]
 
-astropy.table I/O infrastructure for custom readers/writers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- astropy.table I/O infrastructure for custom readers/writers
   implemented. [#305]
 
 - Added support for reading/writing HDF5 files [#461]
@@ -7848,8 +7851,7 @@ Other Changes and Additions
   object. This works for any subclass of ``SphericalCoordinatesBase``, but
   requires an internet connection. [#556]
 
-astropy.nddata.convolution removed requirement of PyFFTW3; uses Numpy's
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- astropy.nddata.convolution removed requirement of PyFFTW3; uses Numpy's
   FFT by default instead with the added ability to specify an FFT
   implementation to use. [#660]
 
