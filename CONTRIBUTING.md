@@ -54,15 +54,12 @@ include the following:
 Other Tips
 ----------
 
-- When contributing trivial documentation fixes (i.e. fixes to typos,
-  spelling, grammar) that do not contain any special markup and are not
-  associated with code changes, include the string ``[ci skip]`` in your
-  commit message. For example:
+- To prevent the automated tests from running you can add ``[ci
+  skip]`` to your commit message. This is useful if your PR is a work
+  in progress and you are not yet ready for the tests to run.  For
+  example:
 
-      $ git commit -m "Fixed typo [ci skip]"
-
-  This will prevent automated tests for running against your change, freeing
-  up resources for testing non-trivial changes.
+      $ git commit -m "WIP widget [ci skip]"
 
   - If you already made the commit without including this string, you can edit
     your existing commit message by running:
@@ -75,6 +72,13 @@ Other Tips
 - If your commit makes substantial changes to the documentation, but no code
   changes, the you can use ``[docs only]``, that will skip all but the
   documentation building jobs on Travis.
+
+- When contributing trivial documentation fixes (i.e. fixes to typos,
+  spelling, grammar) that do not contain any special markup and are
+  not associated with code changes, please include the string ``[docs
+  only]`` in your commit message.
+
+      $ git commit -m "Fixed typo [docs only]"
 
 
 Checklist for Contributed Code
