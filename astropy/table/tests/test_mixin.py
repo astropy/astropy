@@ -148,7 +148,7 @@ def test_io_time_write_fits(tmpdir, table_types):
         t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale='tai',
                                   location=EarthLocation(-2446353.80003635,
                                   4237209.07495215, 4077985.57220038, unit='m'))
-        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789', 
+        t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
                                   '2010-01-01T00:00:00'], format='isot', scale='utc')
     t['c'] = [3., 4.]
 
@@ -161,7 +161,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     for scale in time.TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
-            
+
             # Assert that the time columns are read as Time
             assert isinstance(tm[name], time.Time)
 

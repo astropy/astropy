@@ -80,7 +80,7 @@ class Test_FITStime(FitsTestCase):
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_Time_to_FITS_header(self, table_types):
         """
-        Test the header returned by `Time_to_FITS` explicitly. 
+        Test the header returned by `Time_to_FITS` explicitly.
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
@@ -94,14 +94,14 @@ class Test_FITStime(FitsTestCase):
                          'TCTYP1' : t['a'].scale.upper(),
                          'TRPOS1' : 'TOPOCENTER',
                          'TCTYP2' : t['b'].scale.upper()}
-   
+
         table, hdr = Time_to_FITS(t)
 
         # Check global time keywords
         for key, value in GLOBAL_TIME_INFO.items():
-             assert hdr[key] == value[0]
-             assert hdr.comments[key] == value[1]
-             hdr.remove(key)
+            assert hdr[key] == value[0]
+            assert hdr.comments[key] == value[1]
+            hdr.remove(key)
 
         # Check column-specific(related) keywords
         for key, value in ideal_col_hdr.items():

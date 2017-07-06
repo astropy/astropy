@@ -68,6 +68,12 @@ def is_time_column_keyword(keyword):
     except AttributeError:
         return False
 
+def is_valid_time_info(global_info, time_columns):
+    """
+    Check the validity of the time coordinate information.
+    """
+    
+
 def convert_time_columns(table, global_info, time_columns):
     """
     Convert time columns to Astropy Time columns.
@@ -77,9 +83,9 @@ def convert_time_columns(table, global_info, time_columns):
     table : astropy.table.Table
         The table whose time columns are to be converted.
     global_info : dict
-        
+        Global time reference coordinate information
     time_columns : dict
-        
+        Column-specific time information
     """
 
     # The code might fail while attempting to read FITS files not written by AstroPy.
@@ -87,9 +93,9 @@ def convert_time_columns(table, global_info, time_columns):
     for key in global_info:
         if key.startswith('date'):
             if key not in table.meta:
-                table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'].lower(),
-                                               precision=(lambda x: len(x.split('.')[1]) if '.' in
-                                               x else 0)(global_info[key]))
+                table.meta[key.upper()] = Time(global_info[key]+'({})'.format(global_info['scale']),
+                                               format='fits', precision=(lambda x: len(x.split('.')[1])
+                                               if '.' in x else 0)(global_info[key]))
 
     for idx, time_col in time_columns.items():
         time_colname = table.colnames[idx - 1]
@@ -100,7 +106,7 @@ def convert_time_columns(table, global_info, time_columns):
             if time_col['pos'] == 'TOPOCENTER':
                 table[time_colname].location = EarthLocation(global_info['loc_x'],
                                                              global_info['loc_y'],
-                                                             global_info['loc_z'], 
+                                                             global_info['loc_z'],
                                                              unit='m')
         except KeyError:
             pass
@@ -109,9 +115,9 @@ def FITS_to_Time(hdr, table):
     """
     Read FITS binary table time columns as `~astropy.time.Time`.
 
-    This method reads the metadata associated with time coordinates, as 
-    stored in a FITS binary table header, converts time columns into 
-    `~astropy.time.Time` columns and reads global reference times as 
+    This method reads the metadata associated with time coordinates, as
+    stored in a FITS binary table header, converts time columns into
+    `~astropy.time.Time` columns and reads global reference times as
     `~astropy.time.Time` instances.
 
     Parameters
@@ -152,6 +158,7 @@ def FITS_to_Time(hdr, table):
             hcopy.remove(key)
 
     if len(hcopy) != len(hdr):
+        is_valid_time_info(global_info, time_columns)
         convert_time_columns(table, global_info, time_columns)
 
     return hcopy
@@ -160,9 +167,9 @@ def FITS_to_Time(hdr, table):
 def Time_to_FITS(table):
     """
     Replace Time columns in a Table with non-mixin columns containing
-    each element as a vector of two doubles (jd1, jd2) and return a FITS 
+    each element as a vector of two doubles (jd1, jd2) and return a FITS
     header with appropriate time coordinate keywords.
-    jd = jd1 + jd2 represents time in the Julian Date format with 
+    jd = jd1 + jd2 represents time in the Julian Date format with
     high-precision.
 
     Parameters
@@ -182,7 +189,7 @@ def Time_to_FITS(table):
     newtable = table.copy(copy_data=False)
 
     # Global time coordinate frame keywords
-    hdr = Header([Card(keyword=key, value=val[0], comment=val[1]) 
+    hdr = Header([Card(keyword=key, value=val[0], comment=val[1])
                   for key, val in GLOBAL_TIME_INFO.items()])
 
     time_cols = table.columns.isinstance(Time)
