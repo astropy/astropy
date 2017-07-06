@@ -450,7 +450,7 @@ def table_to_hdu(table):
     """
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
-    
+
     # Header to store Time related metadata
     hdr = None
 
@@ -468,7 +468,7 @@ def table_to_hdu(table):
             unsupported_names = [col.info.name for col in unsupported_cols]
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
-        
+
         time_cols = table.columns.isinstance(Time)
         if time_cols:
             table, hdr = Time_to_FITS(table)
