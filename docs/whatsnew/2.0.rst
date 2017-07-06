@@ -31,9 +31,10 @@ In addition to these major changes, Astropy 2.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* xxx issues have been closed since v1.3
-* xxx pull requests have been merged since v1.3
-* xxx distinct people have contributed code
+
+* 696 issues have been closed since v1.3
+* 316 pull requests have been merged since v1.3
+* 232 distinct people have contributed code
 
 .. _whatsnew-2.0-models-units:
 
@@ -51,26 +52,32 @@ this capability added in a future release. Example usage::
     >>> g([3, 4, 5.5] * u.cm)
     <Quantity [  3.70353198e-21,  9.72098502e-21,  4.05703276e-20] J>
 
+For more information, see :ref:`modeling-units`.
+
 .. _whatsnew-2.0-ccddata-class:
 
-New image class ``CCDData`` added
-=================================
+New image class CCDData added
+=============================
 
-A new class, ``CCDData``, has been added to the ``nddata`` package. It can
-read from/write to FITS files, provides methods for arithmetic operations
-with propagation of uncertainty, and support for binary masks.
+A new class, :class:`~astropy.nddata.CCDData`, has been added to the
+`astropy.nddata` package. It can read from/write to FITS files, provides methods
+for arithmetic operations with propagation of uncertainty, and support for
+binary masks. For examples of how to use this class, see the
+:ref:`astropy_nddata_getting_started` section of the :ref:`astropy.nddata
+<astropy_nddata>` documentation.
 
 .. _whatsnew-2.0-coordinates-velocities:
 
 Experimental velocity support in ``astropy.coordinates``
 ========================================================
 
-Astropy coordinate frame objects now contains experimental support for
-storing and transforming velocities. This includes, among other things, support
-for transforming proper motion components between coordinate frames and
-transforming full-space velocities to/from a local standard of rest (``LSR``)
-frame and a ``Galactocentric`` frame. For example, to transform a set of proper
-motions from the ``Galactic`` frame to the ``ICRS`` frame::
+Astropy coordinate frame objects now contains experimental support for storing
+and transforming velocities. This includes, among other things, support for
+transforming proper motion components between coordinate frames and transforming
+full-space velocities to/from a local standard of rest (``LSR``) frame and a
+:class:`~astropy.coordinates.Galactocentric` frame. For example, to transform a
+set of proper motions from the :class:`~astropy.coordinates.Galactic` frame to
+the :class:`~astropy.coordinates.ICRS` frame::
 
     >>> from astropy.coordinates import Galactic, ICRS
     >>> gal = Galactic(l=8.67*u.degree, b=53.09*u.degree,
@@ -81,9 +88,9 @@ motions from the ``Galactic`` frame to the ``ICRS`` frame::
      (pm_ra_cosdec, pm_dec) in mas / yr
         (-77.61973364, -88.50523685)>
 
-Or, for example, to transform a 3D velocity from the ``ICRS`` frame to a
-Galactocentric frame with custom values for the sun-galactic center distance and
-solar velocity vector::
+Or, for example, to transform a 3D velocity from the
+:class:`~astropy.coordinates.ICRS` frame to a Galactocentric frame with custom
+values for the sun-galactic center distance and solar velocity vector::
 
     >>> icrs = ICRS(ra=11.23*u.degree, dec=58.13*u.degree,
     ...             distance=213.4*u.pc,
@@ -160,8 +167,8 @@ New robust statistical functions
 
 New :func:`~astropy.stats.biweight_midcovariance` and
 :func:`~astropy.stats.biweight_midcorrelation` functions were added to
-`astropy.stats`.  :func:`~astropy.stats.biweight_midcovariance`
-computes the robust covariance between two or more variables.
+`astropy.stats`. The :func:`~astropy.stats.biweight_midcovariance` function
+computes the robust covariance between two or more variables, and
 :func:`~astropy.stats.biweight_midcorrelation` computes a robust
 measure of similarity between two variables.
 
@@ -191,8 +198,8 @@ For example::
 New statistical estimators for Ripley's K Function
 --------------------------------------------------
 
-New statistical estimators for Ripley's K Function, ``RipleysKEstimator``,
-in `astropy.stats`. For example:
+New statistical estimators for Ripley's K Function,
+:class:`~astropy.stats.RipleysKEstimator`, in `astropy.stats`. For example:
 
 .. plot::
    :include-source:
@@ -218,8 +225,8 @@ Easier use of efficient bytestring Table columns in Python 3
 
 Working with bytestring Table columns (numpy ``'S'`` dtype) in Python
 3 has been made more convenient because it is now possible to compare
-and set array elements with the natural Python string (``str``) type.
-Previously one had to use the Python ``bytes`` type and bytestring literals
+and set array elements with the natural Python string (`str`) type.
+Previously one had to use the Python `bytes` type and bytestring literals
 like ``b'hello'``.  This change allows working with ASCII data columns
 in Python 3 using only 1-byte per character instead of the default
 4-bytes per character for the numpy ``'U'`` unicode dtype.  For large
@@ -233,17 +240,17 @@ change has been made to behavior for Python 2.
      This introduces an API change that affects comparison of
      bytestring column elements in Python 3.
 
-     If comparison with ``str`` instead of ``bytes`` is a problem
-     (and ``bytes`` is really more logical), please open an issue
+     If comparison with `str` instead of `bytes` is a problem
+     (and `bytes` is really more logical), please open an issue
      on GitHub.
 
 .. _whatsnew-2.0-bintablehdu-from_table:
 
-New way to instantiate a ``BinTableHDU`` directly from a ``Table``
-==================================================================
+New way to instantiate a BinTableHDU directly from a Table
+==========================================================
 
-A new way to instantiate a FITS ``BinTableHDU`` directly from a ``Table``
-object. For example::
+A new way to instantiate a FITS :class:`~astropy.io.fits.BinTableHDU` directly
+from a :class:`~astropy.table.Table` object. For example::
 
     >>> from astropy.io import fits
     >>> from astropy.table import Table
@@ -369,7 +376,7 @@ astropy.vo.samp
 ---------------
 
 The SAMP (Simple Application Messaging Protocol) module, formerly available in
-``astropy.vo.samp``, has now been moved to ``astropy.samp``, so you should
+``astropy.vo.samp``, has now been moved to `astropy.samp`, so you should
 update any imports to this module.
 
 Full change log
