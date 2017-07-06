@@ -16,7 +16,7 @@ from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
                 GeocentricTrueEcliptic, Longitude, Latitude, GCRS, HCRS,
                 get_moon, FK4, FK4NoETerms, BaseCoordinateFrame,
-                QuantityFrameAttribute, SphericalRepresentation,
+                QuantityAttribute, SphericalRepresentation,
                 UnitSphericalRepresentation, CartesianRepresentation)
 from ..sites import get_builtin_sites
 from ...time import Time
@@ -376,7 +376,7 @@ def test_regression_6236():
     # including via `realize_frame`. Ensure this works.
     class MyFrame(BaseCoordinateFrame):
         default_representation = CartesianRepresentation
-        my_attr = QuantityFrameAttribute(default=0, unit=u.m)
+        my_attr = QuantityAttribute(default=0, unit=u.m)
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):

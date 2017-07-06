@@ -23,7 +23,7 @@ from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
                             UnitSphericalRepresentation, AltAz,
-                            BaseCoordinateFrame, FrameAttribute,
+                            BaseCoordinateFrame, Attribute,
                             frame_transform_graph)
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
@@ -1298,7 +1298,7 @@ def test_frame_attr_changes():
     assert 'fakeattr' not in dir(sc_before)
 
     class FakeFrame(BaseCoordinateFrame):
-        fakeattr = FrameAttribute()
+        fakeattr = Attribute()
 
     # doesn't matter what this does as long as it just puts the frame in the
     # transform graph
