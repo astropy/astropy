@@ -438,7 +438,7 @@ astropy.tests
 ^^^^^^^^^^^^^
 
 - ``enable_deprecations_as_exceptions`` function now accepts additional
-  user-defined module imports and warning messages to ignore. [#6223]
+  user-defined module imports and warning messages to ignore. [#6223, #6334]
 
 astropy.time
 ^^^^^^^^^^^^
