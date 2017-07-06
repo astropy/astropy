@@ -10,7 +10,7 @@ from .. import representation as r
 from ..transformations import DynamicMatrixTransform, FunctionTransform
 from ..baseframe import (frame_transform_graph, RepresentationMapping,
                          BaseCoordinateFrame)
-from ..frame_attributes import CoordinateAttribute, QuantityFrameAttribute
+from ..attributes import CoordinateAttribute, QuantityAttribute
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)
 
@@ -192,7 +192,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     of ``origin``.
     """
 
-    rotation = QuantityFrameAttribute(default=0, unit=u.deg)
+    rotation = QuantityAttribute(default=0, unit=u.deg)
     origin = CoordinateAttribute(default=None, frame=None)
 
     def __new__(cls, *args, **kwargs):

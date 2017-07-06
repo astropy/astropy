@@ -11,7 +11,7 @@ from __future__ import (absolute_import, division, print_function,
 from .errors import *
 from .angles import *
 from .baseframe import *
-from .frame_attributes import *
+from .attributes import *
 from .distances import *
 from .earth import *
 from .transformations import *

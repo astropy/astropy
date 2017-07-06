@@ -547,6 +547,10 @@ astropy.coordinates
   deprecated in favor of ``EarthLocation.lat`` and ``EarthLocation.lon``.
   They former will be removed in a future version. [#6237]
 
+- The ``FrameAttribute`` class and subclasses have been renamed to just contain
+  ``Attribute``. For example, ``QuantityFrameAttribute`` is now
+  ``QuantityAttribute``. [#6300]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

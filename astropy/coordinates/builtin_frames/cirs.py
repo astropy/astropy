@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ..frame_attributes import TimeFrameAttribute
+from ..attributes import TimeAttribute
 
 from .baseradec import _base_radec_docstring, BaseRADecFrame
 from .utils import DEFAULT_OBSTIME
@@ -24,7 +24,7 @@ class CIRS(BaseRADecFrame):
         position of the Earth and its precession.
     """
 
-    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 CIRS.__doc__ = CIRS.__doc__.format(params=_base_radec_docstring)
