@@ -21,7 +21,7 @@ import os
 
 ##############################################################################
 # HDUList objects are used to hold all the HDUs in a FITS file. This
-# ``HDUList`` class is a subclass of Python’s builtin `list`. and can be
+# ``HDUList`` class is a subclass of Python's builtin `list`. and can be
 # created from scratch. For example, to create a FITS file with
 # three extensions:
 

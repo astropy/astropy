@@ -33,13 +33,13 @@ hdu.writeto('large.fits')
 
 ##############################################################################
 # However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
-# systems won’t be able to create that in memory just to write out to disk. In
+# systems won't be able to create that in memory just to write out to disk. In
 # order to create such a large file efficiently requires a little extra work,
 # and a few assumptions.
 #
 # First, it is helpful to anticipate about how large (as in, how many keywords)
 # the header will have in it. FITS headers must be written in 2880 byte
-# blocks–large enough for 36 keywords per block (including the END keyword in
+# blocks, large enough for 36 keywords per block (including the END keyword in
 # the final block). Typical headers have somewhere between 1 and 4 blocks,
 # though sometimes more.
 #
@@ -62,7 +62,7 @@ while len(header) < (36 * 4 - 1):
 ##############################################################################
 # Now adjust the NAXISn keywords to the desired size of the array, and write
 # only the header out to a file. Using the ``hdu.writeto()`` method will cause
-# astropy to “helpfully” reset the NAXISn keywords to match the size of the
+# astropy to "helpfully" reset the NAXISn keywords to match the size of the
 # dummy array. That is because it works hard to ensure that only valid FITS
 # files are written. Instead, we can write just the header to a file using the
 # `astropy.io.fits.Header.tofile` method:
@@ -86,7 +86,7 @@ with open('large.fits', 'rb+') as fobj:
     # write:
     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
     fobj.write(b'\0')
-    
+
 ##############################################################################
 # More generally, this can be written:
 
@@ -102,7 +102,7 @@ with open('large.fits', 'rb+') as fobj:
 # the HFS+ filesystem used by most Macs) this is a very fast, efficient
 # operation. On other systems your mileage may vary.
 #
-# This isn’t the only way to build up a large file, but probably one of the
+# This isn't the only way to build up a large file, but probably one of the
 # safest. This method can also be used to create large multi-extension FITS
 # files, with a little care.
 
