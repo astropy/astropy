@@ -69,10 +69,42 @@ Astropy coordinate frame objects now contains experimental support for
 storing and transforming velocities. This includes, among other things, support
 for transforming proper motion components between coordinate frames and
 transforming full-space velocities to/from a local standard of rest (``LSR``)
-frame and a ``Galactocentric`` frame. This works by adding support for
-"differential" objects which contain differences of representations. For more
-details, see :ref:`astropy-coordinates-velocities`. This functionality will
-likely be added to the :class:`~astropy.coordinates.SkyCoord` class in future.
+frame and a ``Galactocentric`` frame. For example, to transform a set of proper
+motions from the ``Galactic`` frame to the ``ICRS`` frame::
+
+    >>> from astropy.coordinates import Galactic, ICRS
+    >>> gal = Galactic(l=8.67*u.degree, b=53.09*u.degree,
+    ...                pm_l_cosb=-117*u.mas/u.yr, pm_b=13*u.mas/u.yr)
+    >>> gal.transform_to(ICRS)
+    <ICRS Coordinate: (ra, dec) in deg
+        ( 226.45743375,  8.3354549)
+     (pm_ra_cosdec, pm_dec) in mas / yr
+        (-77.61973364, -88.50523685)>
+
+Or, for example, to transform a 3D velocity from the ``ICRS`` frame to a
+Galactocentric frame with custom values for the sun-galactic center distance and
+solar velocity vector::
+
+    >>> icrs = ICRS(ra=11.23*u.degree, dec=58.13*u.degree,
+    ...             distance=213.4*u.pc,
+    ...             pm_ra_cosdec=9*u.mas/u.yr, pm_dec=3*u.mas/u.yr,
+    ...             radial_velocity=-61*u.km/u.s)
+    >>> v_sun = coord.CartesianDifferential([10, 244, 7.])*u.km/u.s
+    >>> gc = icrs.transform_to(coord.Galactocentric(galcen_distance=8*u.kpc,
+                                                    galcen_v_sun=v_sun))
+    >>> gc.x, gc.y, gc.z
+    (<Quantity -8112.928728515727 pc>,
+     <Quantity 180.22175948399217 pc>,
+     <Quantity 9.781203623025618 pc>)
+    >>> gc.v_x, gc.v_y, gc.v_z
+    (<Quantity 34.40211035247248 km / s>,
+     <Quantity 187.80653073084486 km / s>,
+     <Quantity 14.74171285614737 km / s>)
+
+The velocity support works by adding support for "differential" objects which
+contain differences of representations. For more details, see
+:ref:`astropy-coordinates-velocities`. This functionality will likely be added
+to the :class:`~astropy.coordinates.SkyCoord` class in future.
 
 In addition, the :class:`~astropy.coordinates.SkyCoord` class now has a
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` method which can be
