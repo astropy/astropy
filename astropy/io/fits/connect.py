@@ -14,7 +14,7 @@ from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .convenience import table_to_hdu
-from .fitstime import FITS_time
+from .fitstime import FITS_to_Time
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -164,7 +164,7 @@ def read_table_fits(input, hdu=None):
     # TODO: deal properly with unsigned integers
 
     # Read time coordinates as Time
-    hdr = FITS_time().read_time(table.header, t)
+    hdr = FITS_to_Time(table.header, t)
 
     for key, value, comment in hdr.cards:
 

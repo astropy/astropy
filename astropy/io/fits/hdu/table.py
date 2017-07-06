@@ -265,7 +265,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
 
         # Avoid circular imports
-        from ..fitstime import FITS_time
+        from ..fitstime import is_time_column_keyword
 
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
@@ -304,7 +304,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 # Separate global and column-specific keywords
                 for key in hcopy.keys():
-                    if FITS_time.is_time_column_keyword(key.upper()):
+                    if is_time_column_keyword(key.upper()):
                         self._header_column.append(hcopy.cards[key])
                         hcopy.remove(key)
 

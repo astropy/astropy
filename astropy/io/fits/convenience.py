@@ -460,7 +460,7 @@ def table_to_hdu(table):
         # yet available then.
         from ...table.column import BaseColumn
         from ...time import Time
-        from .fitstime import FITS_time
+        from .fitstime import Time_to_FITS
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can be written
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
@@ -471,7 +471,7 @@ def table_to_hdu(table):
         
         time_cols = table.columns.isinstance(Time)
         if time_cols:
-            table, hdr = FITS_time.replace_time_table(table)
+            table, hdr = Time_to_FITS(table)
 
     # Create a new HDU object
     if table.masked:
