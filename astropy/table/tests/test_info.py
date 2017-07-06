@@ -15,7 +15,6 @@ from ... import coordinates
 from ... import table
 from ...utils.data_info import data_info_factory, dtype_info_name
 from ..table_helpers import simple_table
-import pytest
 
 
 def test_table_info_attributes(table_types):
@@ -245,10 +244,3 @@ def test_no_deprecation_warning():
     with warnings.catch_warnings(record=True) as warns:
         t.info()
         assert len(warns) == 0
-
-
-def test_lost_parent_error():
-    c = table.Column([1, 2, 3], name='a')
-    with pytest.raises(AttributeError) as err:
-        c[:].info.name
-    assert 'failed access "info" attribute' in str(err)

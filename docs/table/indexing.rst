@@ -176,12 +176,10 @@ The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
 slicing. In the absence of this mode, table slices will preserve
 indices while column slices will not::
 
-  >>> ca = t['a'][[1, 3]]
-  >>> ca.info.indices
+  >>> t['a'][[1, 3]].info.indices
   []
   >>> with t.index_mode('copy_on_getitem'):
-  ...    ca = t['a'][[1, 3]]
-  ...    print(ca.info.indices)
+  ...    print(t['a'][[1, 3]].info.indices)
   [ a  rows
   --- ----
     2    0
