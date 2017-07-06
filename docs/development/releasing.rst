@@ -633,8 +633,12 @@ applies both for regular release *and* release candidates are the same
       $ git clean -dfx
       $ umask 0022
       $ chmod -R a+Xr .
-      $ python setup.py build sdist register upload
-      $ git push upstream --tags <maintenance branch name>
+      $ python setup.py build sdist
+      $ gpg --detach-sign -a dist/astropy-helpers-<version>.tar.gz
+      $ twine upload dist/astropy-helpers-<version>.tar.gz*
+      $ git push upstream v<version>.x
+      $ git push upstream v<version>
+
 
 #. Update the changelog and version number in *master* of the
    `astropy-helpers repository`_ to reflect the release you just did (detailed
