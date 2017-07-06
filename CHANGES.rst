@@ -274,6 +274,8 @@ astropy.wcs
 
 astropy.extern
 ^^^^^^^^^^^^^^
+  The minimum required version of wcslib in is 5.14.
+
 
 API Changes
 -----------
