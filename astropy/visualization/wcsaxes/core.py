@@ -24,7 +24,7 @@ VISUAL_PROPERTIES = ['facecolor', 'edgecolor', 'linewidth', 'alpha', 'linestyle'
 
 IDENTITY = WCS(naxis=2)
 IDENTITY.wcs.ctype = ["X", "Y"]
-IDENTITY.wcs.crval = [1., 1.]
+IDENTITY.wcs.crval = [0., 0.]
 IDENTITY.wcs.crpix = [1., 1.]
 IDENTITY.wcs.cdelt = [1., 1.]
 
