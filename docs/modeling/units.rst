@@ -1,3 +1,5 @@
+.. _modeling-units:
+
 ********************************
 Support for units and quantities
 ********************************
