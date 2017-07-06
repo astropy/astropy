@@ -116,7 +116,7 @@ Transformation
 
 The simplest way to transform to a new coordinate frame is by accessing
 the appropriately-named attribute.  For instance to get the coordinate in
-the Galactic frame use::
+the `~astropy.coordinates.Galactic` frame use::
 
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP

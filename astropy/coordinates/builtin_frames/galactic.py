@@ -15,7 +15,15 @@ from .fk4 import FK4NoETerms
 
 class Galactic(BaseCoordinateFrame):
     """
-    Galactic Coordinates.
+    A coordinate or frame in the Galactic coordinate system.
+
+    This frame is used in a variety of Galactic contexts because it has as its
+    x-y plane the plane of the Milky Way.  The positive x direction (i.e., the
+    l=0, b=0 direction) points to the center of the Milky Way and the z-axis
+    points toward the North Galactic Pole (following the IAU's 1958 definition
+    [1]_). However, unlike the `~astropy.coordinates.Galactocentric` frame, the
+    *origin* of this frame in 3D space is the solar system barycenter, not
+    the center of the Milky Way.
 
     Parameters
     ----------
@@ -51,6 +59,12 @@ class Galactic(BaseCoordinateFrame):
         keyword arguments of the data passed in. For example, passing
         ``differential_cls=CartesianDifferential`` will make the classes
         expect velocity data with the argument names ``v_x, v_y, v_z``.
+
+    Notes
+    -----
+    .. [1] Blaauw, A.; Gum, C. S.; Pawsey, J. L.; Westerhout, G. (1960), "The
+       new I.A.U. system of galactic coordinates (1958 revision),"
+       `MNRAS, Vol 121, pp.123 <http://adsabs.harvard.edu/abs/1960MNRAS.121..123B>`_.
     """
 
     frame_specific_representation_info = {
