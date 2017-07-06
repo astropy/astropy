@@ -78,7 +78,19 @@ In addition, the :class:`~astropy.coordinates.SkyCoord` class now has a
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` method which can be
 used to compute heliocentric and barycentric corrections for radial velocity
 measurements.  While in the future this may use the mechanisms described above,
-currently it uses a simpler algorithm for numerical stability.
+currently it uses a simpler algorithm for numerical stability. A simple example
+of using this functionality might be::
+
+    >>> from astropy.coordinates import SkyCoord, EarthLocation
+    >>> from astropy.time import Time
+    >>> obstime = Time('2017-2-14')
+    >>> target = SkyCoord.from_name('M31')
+    >>> keck = EarthLocation.of_site('Keck')
+    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')
+    <Quantity -22.363056056262263 km / s>
+
+
+
 
 .. _whatsnew-2.0-stats:
 
