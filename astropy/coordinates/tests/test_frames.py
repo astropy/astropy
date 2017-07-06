@@ -29,7 +29,7 @@ def teardown_function(func):
 
 def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
-    from ..baseframe import Attribute
+    from ..attributes import Attribute
 
     @six.add_metaclass(OrderedDescriptorContainer)
     class TestAttributes(object):
