@@ -4,56 +4,42 @@ import pytest
 
 from . import FitsTestCase
 
-from ..fitstime import FITS_time
+from ..fitstime import GLOBAL_TIME_INFO, TIME_SCALE_REF, is_time_column_keyword, Time_to_FITS
 from ....coordinates import EarthLocation
 from ....table import Table, QTable
 from ....time import Time
 from ....tests.helper import catch_warnings
 
 
-class Test_FITS_time(FitsTestCase):
+class Test_FITStime(FitsTestCase):
 
     def setup_class(self):
-        self.data = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
+        self.time = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
-        assert FITS_time.is_time_column_keyword('TRPOS') is False
+        assert is_time_column_keyword('TRPOS') is False
 
         # Global time column keyword
-        assert FITS_time.is_time_column_keyword('TIMESYS') is False
+        assert is_time_column_keyword('TIMESYS') is False
 
         # Valid time column keyword
-        assert FITS_time.is_time_column_keyword('TRPOS12') is True
-
-    def test_set_time(self):
-        """
-        Test that setting illegal time keywords fails.
-        """
-        ft = FITS_time()
-
-        with pytest.raises(ValueError) as err:
-            ft.set_global_time('TRPOS7', 8)
-            assert 'Illegal global time keyword' in str(err.value)
-
-        with pytest.raises(ValueError) as err:
-            ft.set_column_override('TIMESYS', 8)
-            assert 'Illegal column-specific time keyword' in str(err.value)
+        assert is_time_column_keyword('TRPOS12') is True
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
-    def test_replace_time_table_loc(self, table_types):
+    def test_Time_to_FITS_loc(self, table_types):
         """
-        Test all the unusual conditions for locations of Time columns in a Table.
+        Test all the unusual conditions for locations of `Time` columns in a `Table`.
         """
         t = table_types()
-        t['a'] = Time(self.data, format='isot', scale='utc')
-        t['b'] = Time(self.data, format='isot', scale='tt')
+        t['a'] = Time(self.time, format='isot', scale='utc')
+        t['b'] = Time(self.time, format='isot', scale='tt')
 
         # Check that vectorized location raises an exception
         t['a'].location = EarthLocation([1,2], [2,3], [3,4,])
 
         with pytest.raises(ValueError) as err:
-            table, hdr = FITS_time.replace_time_table(t)
+            table, hdr = Time_to_FITS(t)
         assert 'Vectorized Location of Time Column' in str(err.value)
 
         # Check that multiple Time columns with different locations raise an exception
@@ -61,14 +47,14 @@ class Test_FITS_time(FitsTestCase):
         t['b'].location = EarthLocation(2, 3, 4)
 
         with pytest.raises(ValueError) as err:
-            table, hdr = FITS_time.replace_time_table(t)
+            table, hdr = Time_to_FITS(t)
             assert 'Multiple Time Columns with different geocentric' in str(err.value)
 
         # Check that Time column with no location specified will assume global location
         t['b'].location = None
 
         with catch_warnings() as w:
-            table, hdr = FITS_time.replace_time_table(t)
+            table, hdr = Time_to_FITS(t)
             assert len(w) == 1
             assert str(w[0].message).startswith('Time Column "b" has no specified location,'
                                                 ' but global Time Position is present')
@@ -77,27 +63,27 @@ class Test_FITS_time(FitsTestCase):
         t['b'].location = EarthLocation(1, 2, 3)
 
         with catch_warnings() as w:
-            table, hdr = FITS_time.replace_time_table(t)
+            table, hdr = Time_to_FITS(t)
             assert len(w) == 0
 
         # Check compatibility of Time Scales and Reference Positions
-        time_ref = FITS_time.TIME_SCALE_REF
+        time_ref = TIME_SCALE_REF
         uncomp_scales = [scale for scale in time_ref if time_ref[scale] != 'TOPOCENTER']
 
         for scale in uncomp_scales:
             t.replace_column('a', getattr(t['a'], scale))
             with catch_warnings() as w:
-                table, hdr = FITS_time.replace_time_table(t)
+                table, hdr = Time_to_FITS(t)
                 assert len(w) == 1
                 assert str(w[0].message).startswith('Earth Location "TOPOCENTER" for Time Column')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
-    def test_replace_time_table_header(self, table_types):
+    def test_Time_to_FITS_header(self, table_types):
         """
-        Test the header returned by `replace_time_table` explicitly. 
+        Test the header returned by `Time_to_FITS` explicitly. 
         """
         t = table_types()
-        t['a'] = Time(self.data, format='isot', scale='utc',
+        t['a'] = Time(self.time, format='isot', scale='utc',
                       location=EarthLocation(-2446353.80003635,
                       4237209.07495215, 4077985.57220038, unit='m'))
         t['b'] = Time([1,2], format='cxcsec', scale='tt')
@@ -109,10 +95,10 @@ class Test_FITS_time(FitsTestCase):
                          'TRPOS1' : 'TOPOCENTER',
                          'TCTYP2' : t['b'].scale.upper()}
    
-        table, hdr = FITS_time.replace_time_table(t)
+        table, hdr = Time_to_FITS(t)
 
         # Check global time keywords
-        for key, value in FITS_time.GLOBAL_TIME_INFO.items():
+        for key, value in GLOBAL_TIME_INFO.items():
              assert hdr[key] == value[0]
              assert hdr.comments[key] == value[1]
              hdr.remove(key)
@@ -123,3 +109,32 @@ class Test_FITS_time(FitsTestCase):
             hdr.remove(key)
 
         assert len(hdr) == 0
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_FITS_to_Time_meta(self, table_types):
+        """
+        Test that the relevant global time metadata is read into `Table.meta` as `Time`.
+        """
+        t = Table()
+        t['a'] = Time(self.time, format='isot', scale='utc')
+        t.meta['DATE'] = '1999-01-01T00:00:00'
+
+        t.write(self.temp('time.fits'), format='fits')
+
+        tm = Table.read(self.temp('time.fits'), format='fits')
+
+        assert isinstance(tm.meta['DATE'], Time)
+        assert tm.meta['DATE'].value == t.meta['DATE']
+        # Default time scale according to the FITS standard is UTC
+        assert tm.meta['DATE'].scale == 'utc'
+
+        # Explicitly specified Time Scale
+        t.meta['TIMESYS'] = 'TT'
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+
+        tm = Table.read(self.temp('time.fits'), format='fits')
+
+        assert isinstance(tm.meta['DATE'], Time)
+        assert tm.meta['DATE'].value == t.meta['DATE']
+        assert tm.meta['DATE'].scale == t.meta['TIMESYS'].lower()
