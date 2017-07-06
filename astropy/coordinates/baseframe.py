@@ -32,17 +32,14 @@ from . import representation as r
 
 from .attributes import Attribute
 
-# Import all other Attributes so we don't break backwards-compatibility
-# (some users rely on them being here, although that is not
-# encouraged, as this is not the public API location.)
+# Import old names for Attributes so we don't break backwards-compatibility
+# (some users rely on them being here, although that is not encouraged, as this
+# is not the public API location -- see attributes.py).
 from .attributes import (
-    TimeAttribute, QuantityAttribute,
+    TimeFrameAttribute, QuantityFrameAttribute,
     EarthLocationAttribute, CoordinateAttribute,
-    CartesianRepresentationAttribute)  # pylint: disable=W0611
+    CartesianRepresentationFrameAttribute)  # pylint: disable=W0611
 
-TimeFrameAttribute = TimeAttribute
-QuantityFrameAttribute = QuantityAttribute
-CartesianRepresentationFrameAttribute = CartesianRepresentationAttribute
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
            'GenericFrame', 'RepresentationMapping']
