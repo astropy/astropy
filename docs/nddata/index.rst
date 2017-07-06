@@ -12,6 +12,8 @@ gridded data, some essential functions for manipulating images, and the
 infrastructure for package developers who wish to include support for the
 image classes.
 
+.. _astropy_nddata_getting_started:
+
 Getting started
 ===============
 
