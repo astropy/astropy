@@ -129,6 +129,6 @@ in the package.
   * Are there any conflicts with this code and existing codes?
 
 **astropy requirements**
-  * Do all the tests pass on the Travis and AppVeyor build?
+  * Do all the Travis CI, AppVeyor, and CircleCI tests pass?
   * If applicable, has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?
