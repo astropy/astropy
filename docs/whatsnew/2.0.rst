@@ -51,14 +51,19 @@ this capability added in a future release. Example usage::
     >>> g([3, 4, 5.5] * u.cm)
     <Quantity [  3.70353198e-21,  9.72098502e-21,  4.05703276e-20] J>
 
+For more information, see :ref:`modeling-units`.
+
 .. _whatsnew-2.0-ccddata-class:
 
-New image class ``CCDData`` added
-=================================
+New image class CCDData added
+=============================
 
-A new class, ``CCDData``, has been added to the ``nddata`` package. It can
-read from/write to FITS files, provides methods for arithmetic operations
-with propagation of uncertainty, and support for binary masks.
+A new class, :class:`~astropy.nddata.CCDData`, has been added to the
+`astropy.nddata` package. It can read from/write to FITS files, provides methods
+for arithmetic operations with propagation of uncertainty, and support for
+binary masks. For examples of how to use this class, see the
+:ref:`astropy_nddata_getting_started` section of the :ref:`astropy.nddata
+<astropy_nddata>` documentation.
 
 .. _whatsnew-2.0-coordinates-velocities:
 
@@ -160,8 +165,8 @@ New robust statistical functions
 
 New :func:`~astropy.stats.biweight_midcovariance` and
 :func:`~astropy.stats.biweight_midcorrelation` functions were added to
-`astropy.stats`.  :func:`~astropy.stats.biweight_midcovariance`
-computes the robust covariance between two or more variables.
+`astropy.stats`. The :func:`~astropy.stats.biweight_midcovariance` function
+computes the robust covariance between two or more variables, and
 :func:`~astropy.stats.biweight_midcorrelation` computes a robust
 measure of similarity between two variables.
 
