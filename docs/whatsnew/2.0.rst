@@ -340,47 +340,6 @@ The SAMP (Simple Application Messaging Protocol) module, formerly available in
 ``astropy.vo.samp``, has now been moved to ``astropy.samp``, so you should
 update any imports to this module.
 
-REMOVE? - New ``n_submodels`` shared method in single and compound models
-=========================================================================
-
-A new ``n_submodels`` shared method in single and compound models.
-This enables accurate reporting of number of sub-models in a given model.
-For example::
-
-    >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
-    >>> g1 = Gaussian1D()
-    >>> g1.n_submodels()
-    1
-    >>> g2 = g1 + Gaussian1D()
-    >>> g2.n_submodels()
-    2
-
-REMOVE? - Two new optional arguments when evaluating a model - ``with_bounding_box`` and ``fill_value``
-=======================================================================================================
-
-Two new arguments can be passed when evaluating a model to specify the bounding box
-should be respected. If ``with_bounding_box=True`` and a model has a bounding_box,
-the output values corresponding to inputs outside the bounding box are set to ``fill_value``.
-For example::
-
-    >>> from astropy.modeling.models import Polynomial1D
-    >>> import numpy as np
-    >>> x = np.arange(-5, 5)
-    >>> p = Polynomial1D(1, c0=2, c1=3)
-    >>> p.bounding_box = (-1, 5)
-    >>> p(x, with_bounding_box=True, fill_value=-100)
-    array([-100., -100., -100., -100.,   -1.,    2.,    5.,    8.,   11.,   14.])
-
-REMOVE - New ``std_ddof`` keyword to :func:`~astropy.stats.sigma_clipped_stats`
-===============================================================================
-
-A new ``std_ddof`` keyword option was added to
-:func:`~astropy.stats.sigma_clipped_stats`.  This keyword represents
-the delta degrees of freedom for the standard deviation calculation.
-Specifically, the divisor used in the calculation is ``N - std_ddof``,
-where ``N`` represents the number of array elements.  The ``std_ddof``
-default value is zero.
-
 Full change log
 ===============
 
