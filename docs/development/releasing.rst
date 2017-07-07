@@ -177,13 +177,15 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
+   
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
    to give the release tag to build.  Check the build has passed on on the
    Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.  Now
    follow the instructions in the page above to download the built wheels to a
-   local machine and upload to PyPI.
+   local machine and upload to PyPI. If you use the ``wheel_download.py`` script,
+   make sure you loop through all the available OS to get all the wheels.
 
 #. Now the wheels are built and uploaded, you can upload the source release.
    For safety's sake, you may want to clean the repo yet again to make sure
