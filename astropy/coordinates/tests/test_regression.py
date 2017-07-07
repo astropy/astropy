@@ -429,6 +429,8 @@ def test_regression_6236():
     assert msf4.my_attr == msf3.my_attr
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
+@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_6347():
     sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
     sc2 = SkyCoord([1.1, 2.1]*u.deg, [3.1, 4.1]*u.deg)
@@ -447,6 +449,8 @@ def test_regression_6347():
     assert type(d2d_1) is type(d2d_10)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason='No Scipy')
+@pytest.mark.skipif(OLDER_SCIPY, reason='Scipy too old')
 def test_regression_6347_3d():
     sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5, 6]*u.kpc)
     sc2 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5.1, 6.1]*u.kpc)
