@@ -803,6 +803,9 @@ astropy.table
 
 - Fix QTable add/insert row for multidimensional Quantity. [#6092]
 
+- Fix a reference cycle problem where memory use could continually
+  increase when reassigning a table or table column. [#6346]
+
 astropy.table
 ^^^^^^^^^^^^^
 
