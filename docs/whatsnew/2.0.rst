@@ -32,8 +32,8 @@ smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
 
-* 696 issues have been closed since v1.3
-* 316 pull requests have been merged since v1.3
+* 701 issues have been closed since v1.3
+* 319 pull requests have been merged since v1.3
 * 232 distinct people have contributed code
 
 .. _whatsnew-2.0-models-units:
