@@ -726,7 +726,7 @@ astropy.coordinates
 
 - The `~astropy.coordinates.search_around_sky`,
   `~astropy.coordinates.search_around_3d`, and ``SkyCoord`` equivalent methods
-  now correctly yield an `~astropy.coordinate.Angle` as the third return type
+  now correctly yield an `~astropy.coordinates.Angle` as the third return type
   even if there are no matches (previously it returned a raw Quantity). [#6347]
 
 astropy.cosmology
