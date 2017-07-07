@@ -344,7 +344,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
         else:
             distunit = coords1.distance.unit
         return (np.array([], dtype=np.int), np.array([], dtype=np.int),
-                u.Quantity([], u.deg),
+                Angle([], u.deg),
                 u.Quantity([], distunit))
 
     # we convert coord1 to match coord2's frame.  We do it this way
@@ -388,7 +388,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
             distunit = u.dimensionless_unscaled
         else:
             distunit = coords1.distance.unit
-        d2ds = u.Quantity([], u.deg)
+        d2ds = Angle([], u.deg)
         d3ds = u.Quantity([], distunit)
     else:
         d2ds = coords1[idxs1].separation(coords2[idxs2])
