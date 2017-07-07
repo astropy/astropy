@@ -223,14 +223,87 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
-2.0 (unreleased)
+2.0.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+2.0 (2017-07-07)
 ================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
@@ -252,7 +325,7 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Major change in convolution behavior and keyword arguments.   Additional
+- Major change in convolution behavior and keyword arguments. Additional
   details are in the API section. [#5782]
 
 - Convolution with un-normalized and un-normalizable kernels is now possible.
@@ -309,10 +382,6 @@ astropy.coordinates
   although it is not as numerically stable as those that use
   ``AffineTransform``-type transformations. [#6219, #6226]
 
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -337,9 +406,6 @@ astropy.io.fits
 
 - New convenience function ``printdiff`` to print out diff reports. [#5759]
 
-- Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS ``_ImageBaseHDU``.
-  Use module-level constants ``BITPIX2DTYPE`` and ``DTYPE2BITPIX`` instead. [#4993]
-
 - Allow to instantiate a ``BinTableHDU`` directly from a ``Table`` object.
   [#6139]
 
@@ -352,9 +418,6 @@ astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
 - New functions to unregister readers, writers, and identifiers. [#6217]
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -403,9 +466,6 @@ astropy.stats
 - Added ``std_ddof`` keyword option to ``sigma_clipped_stats``.
   [#6066, #6207]
 
-astropy.sphinx
-^^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -440,13 +500,10 @@ astropy.tests
 - ``enable_deprecations_as_exceptions`` function now accepts additional
   user-defined module imports and warning messages to ignore. [#6223, #6334]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
-- The `~astropy.units.quantity_input` decorator will now convert the output to
+- The ``astropy.units.quantity_input`` decorator will now convert the output to
   the unit specified as a return annotation under Python 3. [#5606]
 
 - Passing a logarithmic unit to the ``Quantity`` constructor now returns the
@@ -489,19 +546,13 @@ astropy.utils
 - Added a new convenience method ``get_cached_urls`` to ``astropy.utils.data``
   for getting a list of the URLs in your cache. [#6242]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
 - Upgraded the included wcslib to version 5.16. [#6225]
 
-astropy.extern
-^^^^^^^^^^^^^^
+  The minimum required version of wcslib in is 5.14.
+
 
 API Changes
 -----------
@@ -512,28 +563,22 @@ astropy.analytic_functions
 - This entire sub-package is deprecated because blackbody has been moved to
   ``astropy.modeling.blackbody``. [#6191]
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Major change in convolution behavior and keyword arguments.
-  `astropy.convolution.convolve_fft` replaced ``interpolate_nan`` with
-  ``nan_treatment``, and `astropy.convolution.convolve` received a new
-  ``nan_treatment`` argument. `astropy.convolution.convolve` also no longer
+  ``astropy.convolution.convolve_fft`` replaced ``interpolate_nan`` with
+  ``nan_treatment``, and ``astropy.convolution.convolve`` received a new
+  ``nan_treatment`` argument. ``astropy.convolution.convolve`` also no longer
   double-interpolates interpolates over NaNs, although that is now available
-  as a separate `astropy.convolution.interpolate_replace_nans` function. See
+  as a separate ``astropy.convolution.interpolate_replace_nans`` function. See
   :ref:`the backwards compatibility note <astropy_convolve_compat>` for more
   on how to get the old behavior (and why you probably don't want to.) [#5782]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The `~astropy.coordinates.Galactic` frame previously was had the cartesian
+- The ``astropy.coordinates.Galactic`` frame previously was had the cartesian
   ordering 'w', 'u', 'v' (for 'x', 'y', and 'z', respectively).  This was an
   error and against the common convention.  The 'x', 'y', and 'z' axes now
   map to 'u', 'v', and 'w', following the right-handed ('u' points to
@@ -558,11 +603,12 @@ astropy.cosmology
   by default -- that is, the default value of Tcmb0 is 0.  This does not affect
   built in models (such as WMAP or Planck). [#6112]
 
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+
+- Remove deprecated ``NumCode`` and ``ImgCode`` properties on FITS
+  ``_ImageBaseHDU``.  Use module-level constants ``BITPIX2DTYPE`` and
+  ``DTYPE2BITPIX`` instead. [#4993]
 
 - ``comments`` meta key (which is ``io.ascii``'s table convention) is output
   to ``COMMENT`` instead of ``COMMENTS`` header. Similarly, ``COMMENT``
@@ -576,15 +622,6 @@ astropy.io.fits
 - Deprecated ``clobber`` keyword; use ``overwrite``. [#6203]
 
 - Add EXTVER column to the output of ``HDUList.info()``. [#6124]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -634,16 +671,14 @@ astropy.table
 - Removed the deprecated functions ``join``, ``hstack``, ``vstack`` and
   ``get_groups`` from np_utils. [#5729]
 
-- Added ``name`` paramater to method `~astropy.table.Table.add_column` and ``names``
-  parameter to method `~astropy.table.Table.add_columns`, to provide the flexibility to
-  add unnamed columns, mixin objects and also to specify explicit names. Default names
-  will be used if not specified. [#5996]
+- Added ``name`` paramater to method ``astropy.table.Table.add_column`` and
+  ``names`` parameter to method ``astropy.table.Table.add_columns``, to
+  provide the flexibility to add unnamed columns, mixin objects and also to
+  specify explicit names. Default names will be used if not
+  specified. [#5996]
 
 - Added optional ``axis`` parameter to ``insert`` method for ``Column`` and
   ``MaskedColumn`` classes. [#6092]
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -695,38 +730,29 @@ astropy.wcs
 
 - Removed deprecated ``wcs.rotateCD``. [#6170]
 
-astropy.extern
-^^^^^^^^^^^^^^
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
 - Major change in convolution behavior and keyword arguments:
-  `~astropy.convolution.convolve` was not performing normalized convolution
-  in earlier versions of astropy.
-  [#5782]
+  ``astropy.convolution.convolve`` was not performing normalized convolution
+  in earlier versions of astropy. [#5782]
 
 - Direct convolution previously implemented the wrong definition of
-  convolution.  This error only affects *asymmetric* kernels.  [#6267]
+  convolution.  This error only affects *asymmetric* kernels. [#6267]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The `~astropy.coordinates.Galactic` frame had an incorrect ording for the
+- The ``astropy.coordinates.Galactic`` frame had an incorrect ording for the
   'u', 'v', and 'w' cartesian coordinates. [#6330]
 
-- The `~astropy.coordinates.search_around_sky`,
-  `~astropy.coordinates.search_around_3d`, and ``SkyCoord`` equivalent methods
-  now correctly yield an `~astropy.coordinates.Angle` as the third return type
+- The ``astropy.coordinates.search_around_sky``,
+  ``astropy.coordinates.search_around_3d``, and ``SkyCoord`` equivalent methods
+  now correctly yield an ``astropy.coordinates.Angle`` as the third return type
   even if there are no matches (previously it returned a raw Quantity). [#6347]
 
 astropy.cosmology
@@ -750,15 +776,6 @@ astropy.io.fits
 - Close file on error to avoid creating a ``ResourceWarning`` warning
   about an unclosed file. [#6168, #6177]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -780,9 +797,6 @@ astropy.modeling
   parameters and allow ``Shift`` and ``Scale`` to be fitted with
   ``LinearLSQFitter`` and ``LevMarLSQFitter``. [#6174]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -793,9 +807,6 @@ astropy.stats
 - Fixed ``biweight_midvariance`` so that by default it returns a
   variance that agrees with the standard definition. [#5991]
 
-astropy.sphinx
-^^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -803,23 +814,11 @@ astropy.table
 
 - Fix QTable add/insert row for multidimensional Quantity. [#6092]
 
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
 - Fixed the initial condition of ``TimeFITS`` to allow scale, FITS scale
   and FITS realization to be checked and equated properly. [#6202]
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -833,11 +832,6 @@ astropy.vo
 - Fixed a bug in vo.samp when stopping a hub for which a lockfile was
   not created. [#6211]
 
-astropy.wcs
-^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
@@ -854,6 +848,7 @@ Other Changes and Additions
   directly rather than from astropy.tests.helper. This also means that
   pytest is now a formal requirement for testing for both Astropy and
   for affiliated packages. [#5694]
+
 
 1.3.3 (2017-05-29)
 ==================
@@ -5810,7 +5805,7 @@ astropy.wcs
   to install ``wcslib`` headers under ``astropy/wcs/include``. [#2536]
 
 - Fixes an unresolved external symbol error in the
-  `astropy.wcs._wcs` C extension on Microsoft Windows when built
+  ``astropy.wcs._wcs`` C extension on Microsoft Windows when built
   with a Microsoft compiler. [#2478]
 
 Misc
@@ -7758,7 +7753,7 @@ astropy.io.ascii
   CDS, DAOphot, and IPAC format readers now provide this type of
   integrated metadata.
 
-- Changed to using `astropy.table` masked tables instead of NumPy
+- Changed to using ``astropy.table`` masked tables instead of NumPy
   masked arrays for tables with missing values.
 
 - Added SExtractor table reader to ``astropy.io.ascii`` [#420]
