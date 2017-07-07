@@ -131,7 +131,6 @@ class TableColumns(OrderedDict):
 
     def __del__(self):
         for col in self.values():
-            col.info._parent_table = None
             col.info._parent = None
 
     def _rename_column(self, name, new_name):
@@ -1727,6 +1726,12 @@ class Table(object):
         # This may raise an exception (e.g. t['a'] = 1) in which case none of
         # the downstream code runs.
         self.replace_column(name, col)
+
+        # This ensures that the refcount of self[name] is the same as if the
+        # table were freshly created by forcing the self.info._parent ref to
+        # be created.  What is not fully understood is why this does not happen
+        # already in all the col.info accesses prior to this one.
+        self[name].info
 
         if 'always' in warns:
             warnings.warn("replaced column '{}'".format(name),
