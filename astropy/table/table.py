@@ -129,6 +129,11 @@ class TableColumns(OrderedDict):
         names = ("'{0}'".format(x) for x in six.iterkeys(self))
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
+    def __del__(self):
+        for col in self.values():
+            col.info._parent_table = None
+            col.info._parent = None
+
     def _rename_column(self, name, new_name):
         if name == new_name:
             return
