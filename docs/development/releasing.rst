@@ -196,10 +196,13 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Upload the source distribution to PyPI; this is preceded by re-running
    the sdist command, which makes sure the source code is packaged up and ready
-   to be uploaded::
+   to be uploaded. You also need to GPG sign the release, before using twine to
+   upload it to PyPI. (You may need to install `twine`_ if you haven't used it yet)::
 
-      $ python setup.py build sdist upload --sign
-
+      $ python setup.py build sdist
+      $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
+      $ twine upload dist/astropy-<version>*
+      
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
    release line are *not* marked hidden.  For example, if v1.2.2 was
@@ -788,3 +791,4 @@ that for you.  You can delete this tag by doing::
 .. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: http://conda.pydata.org/docs/
 .. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
+.. _twine: https://packaging.python.org/key_projects/#twine
