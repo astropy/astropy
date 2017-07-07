@@ -11,6 +11,7 @@ import numpy as np
 from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
+from . import Angle
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']
@@ -238,7 +239,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     if len(coords1) == 0 or len(coords2) == 0:
         # Empty array input: return empty match
         return (np.array([], dtype=np.int), np.array([], dtype=np.int),
-                u.Quantity([], u.deg),
+                Angle([], u.deg),
                 u.Quantity([], coords1.distance.unit))
 
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
@@ -264,7 +265,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     idxs2 = np.array(idxs2, dtype=np.int)
 
     if idxs1.size == 0:
-        d2ds = u.Quantity([], u.deg)
+        d2ds = Angle([], u.deg)
         d3ds = u.Quantity([], coords1.distance.unit)
     else:
         d2ds = coords1[idxs1].separation(coords2[idxs2])
@@ -325,8 +326,6 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     considered an implementation detail, though, so it could change in a future
     release.
     """
-    from . import Angle
-
     if not seplimit.isscalar:
         raise ValueError('seplimit must be a scalar in search_around_sky')
 
