@@ -445,3 +445,21 @@ def test_regression_6347():
 
     assert len(d2d_1) == 0
     assert type(d2d_1) is type(d2d_10)
+
+
+def test_regression_6347_3d():
+    sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5, 6]*u.kpc)
+    sc2 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, [5.1, 6.1]*u.kpc)
+    sc0 = sc1[:0]
+
+    idx1_10, idx2_10, d2d_10, d3d_10 = sc1.search_around_3d(sc2, 500*u.pc)
+    idx1_1, idx2_1, d2d_1, d3d_1 = sc1.search_around_3d(sc2, 50*u.pc)
+    idx1_0, idx2_0, d2d_0, d3d_0 = sc0.search_around_3d(sc2, 500*u.pc)
+
+    assert len(d2d_10) > 0
+
+    assert len(d2d_0) == 0
+    assert type(d2d_0) is type(d2d_10)
+
+    assert len(d2d_1) == 0
+    assert type(d2d_1) is type(d2d_10)
