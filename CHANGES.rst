@@ -244,10 +244,6 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
-- Docs for Onu method on cosmological objects no longer
-  incorrectly state that only massless neutrinos are included. [#6355]
-
-
 astropy.extern
 ^^^^^^^^^^^^^^
 
