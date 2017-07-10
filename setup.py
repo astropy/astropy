@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import glob
 import os
 import sys
+import glob
 
 import ah_bootstrap
 from setuptools import setup
 
 from astropy_helpers.setup_helpers import (
     register_commands, get_package_info, get_debug_option)
-try:
-    from astropy_helpers.distutils_helpers import is_distutils_display_option
-except:
-    # For astropy-helpers v0.4.x
-    from astropy_helpers.setup_helpers import is_distutils_display_option
+from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
@@ -64,7 +60,7 @@ entry_points['console_scripts'] = [
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 
-if 'dev' in VERSION:
+if os.path.isdir(os.path.join(os.path.dirname(__file__), '.git')):
     setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
 install_requires = ['pytest>=2.8', 'numpy>=' + astropy.__minimum_numpy_version__]
