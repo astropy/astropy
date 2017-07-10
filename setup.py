@@ -60,7 +60,7 @@ entry_points['console_scripts'] = [
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 
-if os.path.isdir(os.path.join(os.path.dirname(__file__), '.git')):
+if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
     setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
 install_requires = ['pytest>=2.8', 'numpy>=' + astropy.__minimum_numpy_version__]
