@@ -656,8 +656,7 @@ class FLRW(Cosmology):
         return self._Ogamma0 * (1. + z) ** 4 * self.inv_efunc(z) ** 2
 
     def Onu(self, z):
-        """ Return the density parameter for massless neutrinos at
-        redshift ``z``.
+        """ Return the density parameter for neutrinos at redshift ``z``.
 
         Parameters
         ----------
