@@ -229,7 +229,12 @@ class TestTableFunctions(FitsTestCase):
                 'bzero': ['', '', 0.4, ''],
                 'disp': ['I11', 'A3', 'G15.7', 'L6'],
                 'start': ['', '', '', ''],
-                'dim': ['', '', '', '']}
+                'dim': ['', '', '', ''],
+                'coord_inc': ['', '', '', ''],
+                'coord_type': ['', '', '', ''],
+                'coord_unit': ['', '', '', ''],
+                'ref_point': ['', '', '', ''],
+                'ref_value': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 
