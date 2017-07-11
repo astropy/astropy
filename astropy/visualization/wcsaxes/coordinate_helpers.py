@@ -434,8 +434,6 @@ class CoordinateHelper(object):
         self._update_ticks()
 
         self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox)
 
         if self.grid_lines_kwargs['visible']:
 
@@ -457,6 +455,9 @@ class CoordinateHelper(object):
                 for line in self._grid.collections:
                     line.set(**self.grid_lines_kwargs)
                     line.draw(renderer)
+
+        self.ticklabels.draw(renderer, bboxes=bboxes,
+                             ticklabels_bbox=ticklabels_bbox)
 
         renderer.close_group('coordinate_axis')
 
