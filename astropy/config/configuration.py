@@ -92,6 +92,12 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
                 aliases=['astropy.utils.console.USE_COLOR'])
         conf = Conf()
     """
+
+    rootname = 'astropy'
+    """
+    Rootname sets the base path for all config files.
+    """
+
     def set_temp(self, attr, value):
         """
         Temporarily set a configuration value.
@@ -217,6 +223,11 @@ class ConfigItem(metaclass=InheritDocstrings):
     ``configspec`` file of ``configobj``.
     """
 
+    rootname = 'astropy'
+    """
+    Rootname sets the base path for all config files.
+    """
+
     def __init__(self, defaultvalue='', description=None, cfgtype=None,
                  module=None, aliases=None):
         from ..utils import isiterable
@@ -295,7 +306,7 @@ class ConfigItem(metaclass=InheritDocstrings):
             msg = 'Provided value for configuration item {0} not valid: {1}'
             raise TypeError(msg.format(self.name, e.args[0]))
 
-        sec = get_config(self.module)
+        sec = get_config(self.module, rootname=self.rootname)
 
         sec[self.name] = value
 
@@ -337,7 +348,7 @@ class ConfigItem(metaclass=InheritDocstrings):
             The new value loaded from the configuration file.
         """
         self.set(self.defaultvalue)
-        baseobj = get_config(self.module, True)
+        baseobj = get_config(self.module, True, rootname=self.rootname)
         secname = baseobj.name
 
         cobj = baseobj
@@ -393,13 +404,13 @@ class ConfigItem(metaclass=InheritDocstrings):
                 return 'in section [{0}]'.format(section)
 
         options = []
-        sec = get_config(self.module)
+        sec = get_config(self.module, rootname=self.rootname)
         if self.name in sec:
             options.append((sec[self.name], self.module, self.name))
 
         for alias in self.aliases:
             module, name = alias.rsplit('.', 1)
-            sec = get_config(module)
+            sec = get_config(module, rootname=self.rootname)
             if '.' in module:
                 filename, module = module.split('.', 1)
             else:
@@ -413,7 +424,7 @@ class ConfigItem(metaclass=InheritDocstrings):
                 warn(
                     "Config parameter '{0}' {1} of the file '{2}' "
                     "is deprecated. Use '{3}' {4} instead.".format(
-                        name, section_name(module), get_config_filename(filename),
+                        name, section_name(module), get_config_filename(filename, rootname=self.rootname),
                         self.name, section_name(new_module)),
                     AstropyDeprecationWarning)
                 options.append((sec[name], module, name))
@@ -427,7 +438,7 @@ class ConfigItem(metaclass=InheritDocstrings):
             warn(
                 "Config parameter '{0}' {1} of the file '{2}' is "
                 "given by more than one alias ({3}). Using the first.".format(
-                    self.name, section_name(sec), get_config_filename(filename),
+                    self.name, section_name(sec), get_config_filename(filename, rootname=self.rootname),
                     ', '.join([
                         '.'.join(x[1:3]) for x in options if x[1] is not None])),
                 AstropyDeprecationWarning)
@@ -456,12 +467,12 @@ class ConfigItem(metaclass=InheritDocstrings):
 _cfgobjs = {}
 
 
-def get_config_filename(packageormod=None):
+def get_config_filename(packageormod=None, rootname=None):
     """
     Get the filename of the config file associated with the given
     package or module.
     """
-    cfg = get_config(packageormod)
+    cfg = get_config(packageormod, rootname=None)
     while cfg.parent is not cfg:
         cfg = cfg.parent
     return cfg.filename
@@ -642,7 +653,7 @@ def is_unedited_config_file(content, template_content=None):
 
 
 # this is not in __all__ because it's not intended that a user uses it
-def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
+def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='astropy'):
     """
     Checks if the configuration file for the specified package exists,
     and if not, copy over the default configuration.  If the
@@ -660,6 +671,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     version : str, optional
         The current version of the given package.  If not provided, it will
         be obtained from ``pkg.__version__``.
+    rootname : str
+        Name of the root configuration directory.
 
     Returns
     -------
@@ -684,8 +697,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         # system, so just return.
         return False
 
-    # rootname hard-coded because I think we only ever need to do this for affiliated pkgs?
-    rootname = 'astropy'
     cfgfn = get_config(pkg, rootname=rootname).filename
 
     with open(default_cfgfn, 'rt', encoding='latin-1') as fr:
