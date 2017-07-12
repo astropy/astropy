@@ -390,7 +390,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
 class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     """
-    One dimensional power law model with an exponential cutoff.
+    One dimensional power law model with an exponential cutoff,
+    also referred to as the Schechter function.
 
     Parameters
     ----------
