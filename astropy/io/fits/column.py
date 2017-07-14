@@ -1080,7 +1080,7 @@ class Column(NotifierMixin):
                         'Column {!r} must be a real floating type (got {!r}).  '
                         'The invalid value will be ignored for the purpose of '
                         'formatting the data in this column.'.format(k, v))
-                if msg in None:
+                if msg is None:
                     valid[k] = v
                 else:
                     invalid[k] = (v, msg)
