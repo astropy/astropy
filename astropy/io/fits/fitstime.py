@@ -8,12 +8,17 @@ import numpy as np
 
 from . import Header, Card
 
+from .column import COLUMN_TIME_KEYWORDS, is_time_column_keyword
+
 from ...coordinates import EarthLocation
 from ...table import Column
 from ...time import Time, BARYCENTRIC_SCALES
 from ...time.formats import FITS_DEPRECATED_SCALES
 from ...utils.exceptions import AstropyUserWarning
 
+
+TCTYP_RE_TYPE = re.compile(r'(?P<type>[A-Z]+)[-]+')
+TCTYP_RE_ALGO = re.compile(r'(?P<algo>[A-Z]+)\s*')
 
 # Global time reference coordinate keywords
 TIME_KEYWORDS = {'TIMESYS' : 'scale',
@@ -31,40 +36,25 @@ TIME_KEYWORDS = {'TIMESYS' : 'scale',
                  'DATE-OBS' : 'date-obs',
                  'DATE-END' : 'date-end'}
 
-# Column-specific time override keywords
-COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
-                        'TRPOS' : 'pos',
-                        'TCUNI' : 'unit'}
-
 # Set AstroPy Time global information
 GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
                     'JDREF' : (0.0,'Time columns are jd = jd1 + jd2'),
                     'TREFPOS' : ('TOPOCENTER','Time reference position')}
 
-def is_time_column_keyword(keyword):
-    """
-    Check if the FITS header keyword is a time column-specific keyword.
 
-    Parameters
-    ----------
-    keyword : str
-        FITS keyword.
-    """
+def valid_time_info(time_columns):
 
-    try:
-        key, idx = re.match(r'([A-Z]+)([0-9]+)', keyword).groups()
-        if key in COLUMN_TIME_KEYWORDS:
-            return True
-        return False
-    except AttributeError:
-        return False
-
-def is_valid_time_info(base, value, comment):
-
-    if base == 'TCTYP':
-        if value in FITS_DEPRECATED_SCALES:
-            return True
-        elif re.match(r'([A-Z]+)([-]*)', value[:4]) and value[4] == '-' and re.match(r'([A-Z]+)([]*)' ,value[5:]):
+    for idx, time_col in time_columns.items():
+        scale = time_col['scale']
+        unit = time_col['unit']
+        pos = time_col['pos']
+        if pos is not None:
+            continue
+        if TCTYP_RE_TYPE.match(scale[:5]) and TCTYP_RE_ALGO.match(scale[5:]):
+            # Non-linear coordinate types have "4-3" form and are not time coordinates
+            time_columns.pop(idx)
+        elif scale in FITS_DEPRECATED_SCALES or unit = 's':
+            continue
 
 def convert_time_columns(table, global_info, time_columns):
     """
@@ -147,11 +137,11 @@ def FITS_to_Time(hdr, table):
         elif (is_time_column_keyword(key)):
 
             base, idx = re.match(r'([A-Z]+)([0-9]+)', key).groups()
-            is_valid_time_info(base, value, comment)
             time_columns[int(idx)][COLUMN_TIME_KEYWORDS[base]] = value
             hcopy.remove(key)
 
     if len(hcopy) != len(hdr):
+        is_valid_time_info(time_columns)
         convert_time_columns(table, global_info, time_columns)
 
     return hcopy
@@ -191,8 +181,11 @@ def Time_to_FITS(table):
     pos_geo = None
 
     for col in time_cols:
-        # Add comment
+        # The following is necessary to deal with multi-dimensional ``Time`` objects
+        # (i.e. where Time.shape is non-trivial).
         jd12 = np.array([col.jd1, col.jd2])
+        # Roll the 0th (innermost) axis backwards, until it lies in the last position
+        # (jd12.ndim)
         jd12 = np.rollaxis(jd12, 0, jd12.ndim)
         newtable.replace_column(col.info.name, Column(jd12, unit='d'))
 
