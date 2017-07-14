@@ -23,7 +23,7 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
-                      _cmp_recformats, _get_index)
+                      _cmp_recformats, _get_index, is_time_column_keyword)
 from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, Card, _pad_length
 from ..util import _is_int, _str_to_num
@@ -264,9 +264,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             set to `True` if the table contains unsigned integer columns.
         """
 
-        # Avoid circular imports
-        from ..fitstime import is_time_column_keyword
-
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
 
@@ -304,7 +301,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 # Separate global and column-specific keywords
                 for key in hcopy.keys():
-                    if is_time_column_keyword(key.upper()):
+                    if is_time_column_keyword(key):
                         self._header_column.append(hcopy.cards[key])
                         hcopy.remove(key)
 
