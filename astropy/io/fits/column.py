@@ -466,8 +466,8 @@ class Column(NotifierMixin):
 
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
-                 coord_type=None, coord_unit=None, coord_ref_value=None,
-                 coord_ref_point=None, coord_inc=None, array=None, ascii=None):
+                 coord_type=None, coord_unit=None, coord_ref_point=None,
+                 coord_ref_value=None, coord_inc=None, array=None, ascii=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
