@@ -2975,6 +2975,25 @@ class TestColumnFunctions(FitsTestCase):
         assert np.all(c4.array[0] == c3.array[0])
         assert np.all(c4.array[1] == c3.array[1])
 
+    def test_column_verify_keywords(self):
+        """
+        Test that the keyword arguments used to initialize a Column, specifically
+        those that typically read from a FITS header (so excluding array),
+        are verified to have a valid value.
+        """
+
+        with pytest.raises(AssertionError) as err:
+            c = fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
+        assert 'Column name must be a string able to fit' in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
+                            coord_inc='1')
+        err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
+                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT']
+        for msg in err_msgs:
+            assert msg in str(err.value)
 
 def test_regression_5383():
 

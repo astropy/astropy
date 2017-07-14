@@ -85,11 +85,11 @@ ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
 # Use lists, instead of dictionaries so the names can be displayed in a
 # preferred order.
 KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
-                 'TDISP', 'TBCOL', 'TDIM', 'TCTYP', 'TCUNI', 'TCRVL',
-                 'TCDLT', 'TCRPX')
+                 'TDISP', 'TBCOL', 'TDIM', 'TCTYP', 'TCUNI', 'TCRPX',
+                 'TCRVL', 'TCDLT')
 KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
                       'disp', 'start', 'dim', 'coord_type', 'coord_unit',
-                      'coord_ref_value', 'coord_inc', 'coord_ref_point')
+                      'coord_ref_point', 'coord_ref_value', 'coord_inc')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -467,7 +467,7 @@ class Column(NotifierMixin):
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
                  coord_type=None, coord_unit=None, coord_ref_value=None,
-                 coord_inc=None, coord_ref_point=None, array=None, ascii=None):
+                 coord_ref_point=None, coord_inc=None, array=None, ascii=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
@@ -510,16 +510,16 @@ class Column(NotifierMixin):
         coord_unit : str, optional
             coordinate/axis unit corresponding to ``TCUNI`` keyword
 
+        coord_ref_point : int-like, optional
+            pixel coordinate of the reference point corresponding to ``TCRPX``
+            keyword
+
         coord_ref_value : int-like, optional
             coordinate value at reference point corresponding to ``TCRVL``
             keyword
 
         coord_inc : int-like, optional
             coordinate increment at reference point corresponding to ``TCDLT``
-            keyword
-
-        coord_ref_point : int-like, optional
-            pixel coordinate of the reference point corresponding to ``TCRPX``
             keyword
 
         array : iterable, optional
@@ -793,8 +793,18 @@ class Column(NotifierMixin):
         if (not isinstance(coord_type, string_types)
                 or len(coord_type) > 8):
             raise AssertionError(
-                'Coordinate/axis type must be a string of atmost 8'
+                'Coordinate/axis type must be a string of atmost 8 '
                 'characters.')
+
+    @ColumnAttribute('TCRPX')
+    def coord_ref_point(col, coord_ref_point):
+        if coord_ref_point is None:
+            return
+
+        if not _is_int(coord_ref_point):
+            raise AssertionError(
+                'Pixel coordinate of the reference point must be '
+                'real floating type.')
 
     @ColumnAttribute('TCRVL')
     def coord_ref_value(col, coord_ref_value):
@@ -803,7 +813,7 @@ class Column(NotifierMixin):
 
         if not _is_int(coord_ref_value):
             raise AssertionError(
-                'Coordinate value at reference point must be real'
+                'Coordinate value at reference point must be real '
                 'floating type.')
 
     @ColumnAttribute('TCDLT')
@@ -814,16 +824,6 @@ class Column(NotifierMixin):
         if not _is_int(coord_inc):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
-
-    @ColumnAttribute('TCRPX')
-    def coord_ref_point(col, coord_ref_point):
-        if coord_ref_point is None:
-            return
-
-        if not _is_int(coord_ref_point):
-            raise AssertionError(
-                'Pixel coordinate of the reference point must be'
-                'real floating type.')
 
     format = ColumnAttribute('TFORM')
     unit = ColumnAttribute('TUNIT')
@@ -886,8 +886,8 @@ class Column(NotifierMixin):
     def _verify_keywords(cls, name=None, format=None, unit=None, null=None,
                          bscale=None, bzero=None, disp=None, start=None,
                          dim=None, coord_type=None, coord_unit=None,
-                         coord_ref_value=None, coord_inc=None, coord_ref_point=None,
-                         ascii=None):
+                         coord_ref_point=None, coord_ref_value=None,
+                         coord_inc=None, ascii=None):
         """
         Given the keyword arguments used to initialize a Column, specifically
         those that typically read from a FITS header (so excluding array),
@@ -992,7 +992,7 @@ class Column(NotifierMixin):
             except (TypeError, ValueError):
                 pass
 
-            if not _is_int(start) and start < 1:
+            if not _is_int(start) or start < 1:
                 msg = (
                     'Column start option (TBCOLn) must be a positive integer '
                     '(got {!r}).  The invalid value will be ignored for the '
@@ -1047,12 +1047,17 @@ class Column(NotifierMixin):
 
         if coord_type is not None and coord_type != '':
             msg = None
-            if (not isinstance(coord_type, string_types)
-                    or len(coord_type) > 8):
+            if not isinstance(coord_type, string_types):
                 msg = (
-                    'Coordinate/axis type (TCTYPn) must be a string of atmost 8'
-                    'characters (got {!r}).  The invalid keyword will be ignored '
-                    'for the purpose of formatting this column.'.format(coord_type))
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_type))
+            elif len(coord_type) > 8:
+                msg = (
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "of atmost 8 characters (got {!r}). The invalid keyword "
+                    "will be ignored for the purpose of formatting this "
+                    "column.".format(coord_type))
 
             if msg is None:
                 valid['coord_type'] = coord_type
@@ -1063,23 +1068,25 @@ class Column(NotifierMixin):
             msg = None
             if not isinstance(coord_unit, string_types):
                 msg = (
-                    'Coordinate/axis unit (TCUNIn) must be a string.  The invalid '
-                    'keyword will be ignored for the purpose of formatting this '
-                    'column.'.format(coord_unit))
+                    "Coordinate/axis unit option (TCUNIn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_unit))
+
             if msg is None:
                 valid['coord_unit'] = coord_unit
             else:
                 invalid['coord_unit'] = (coord_unit, msg)
 
-        for k, v in [('coord_ref_value', coord_ref_value), ('coord_inc', coord_inc),
-                     ('coord_ref_point', coord_ref_point)]:
+        for k, v in [('coord_ref_point', coord_ref_point), ('coord_ref_value', coord_ref_value),
+                     ('coord_inc', coord_inc)]:
             if v is not None and v != '':
                 msg = None
                 if not _is_int(v):
                     msg = (
-                        'Column {!r} must be a real floating type (got {!r}).  '
-                        'The invalid value will be ignored for the purpose of '
-                        'formatting the data in this column.'.format(k, v))
+                        "Column {} option ({}n) must be a real floating type (got {!r}). "
+                        "The invalid value will be ignored for the purpose of formatting "
+                        "the data in this column.".format(k, ATTRIBUTE_TO_KEYWORD[k], v))
+
                 if msg is None:
                     valid[k] = v
                 else:
