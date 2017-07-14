@@ -289,6 +289,11 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- The ``astropy.utils.console.ProgressBar.map`` class method now supports the
+  ``ipython_widget`` option. You can now pass it both ``multiprocess=True`` and
+  ``ipython_widget=True`` to get both multiprocess speedup and a progress bar
+  widget in an IPython Notebook. [#6368]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
