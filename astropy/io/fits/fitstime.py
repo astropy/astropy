@@ -10,7 +10,8 @@ from . import Header, Card
 
 from ...coordinates import EarthLocation
 from ...table import Column
-from ...time import Time
+from ...time import Time, BARYCENTRIC_SCALES
+from ...time.formats import FITS_DEPRECATED_SCALES
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -26,7 +27,7 @@ TIME_KEYWORDS = {'TIMESYS' : 'scale',
                  'OBSGEO-X' : 'loc_x',
                  'OBSGEO-Y' : 'loc_y',
                  'OBSGEO-Z' : 'loc_z',
-                 'DATE' : 'date',
+                 'DATE' : 'date', #check if these are always datetime
                  'DATE-OBS' : 'date-obs',
                  'DATE-END' : 'date-end'}
 
@@ -39,16 +40,6 @@ COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
 GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
                     'JDREF' : (0.0,'Time columns are jd = jd1 + jd2'),
                     'TREFPOS' : ('TOPOCENTER','Time reference position')}
-
-# Compatibility of Time Scales and Reference Positions
-TIME_SCALE_REF = {'tai': 'TOPOCENTER',
-                  'tt' : 'TOPOCENTER',
-                  'ut1' : 'TOPOCENTER',
-                  'utc' : 'TOPOCENTER',
-                  'tcg' : 'GEOCENTER',
-                  'tcb' : 'BARYCENTER',
-                  'tdb' : 'BARYCENTER'}
-
 
 def is_time_column_keyword(keyword):
     """
@@ -68,11 +59,12 @@ def is_time_column_keyword(keyword):
     except AttributeError:
         return False
 
-def is_valid_time_info(global_info, time_columns):
-    """
-    Check the validity of the time coordinate information.
-    """
-    
+def is_valid_time_info(base, value, comment):
+
+    if base == 'TCTYP':
+        if value in FITS_DEPRECATED_SCALES:
+            return True
+        elif re.match(r'([A-Z]+)([-]*)', value[:4]) and value[4] == '-' and re.match(r'([A-Z]+)([]*)' ,value[5:]):
 
 def convert_time_columns(table, global_info, time_columns):
     """
@@ -93,7 +85,8 @@ def convert_time_columns(table, global_info, time_columns):
     for key in global_info:
         if key.startswith('date'):
             if key not in table.meta:
-                table.meta[key.upper()] = Time(global_info[key]+'({})'.format(global_info['scale']),
+                try:
+                    table.meta[key.upper()] = Time(global_info[key]+'({})'.format(global_info['scale']),
                                                format='fits', precision=(lambda x: len(x.split('.')[1])
                                                if '.' in x else 0)(global_info[key]))
 
@@ -154,11 +147,11 @@ def FITS_to_Time(hdr, table):
         elif (is_time_column_keyword(key)):
 
             base, idx = re.match(r'([A-Z]+)([0-9]+)', key).groups()
+            is_valid_time_info(base, value, comment)
             time_columns[int(idx)][COLUMN_TIME_KEYWORDS[base]] = value
             hcopy.remove(key)
 
     if len(hcopy) != len(hdr):
-        is_valid_time_info(global_info, time_columns)
         convert_time_columns(table, global_info, time_columns)
 
     return hcopy
@@ -198,6 +191,7 @@ def Time_to_FITS(table):
     pos_geo = None
 
     for col in time_cols:
+        # Add comment
         jd12 = np.array([col.jd1, col.jd2])
         jd12 = np.rollaxis(jd12, 0, jd12.ndim)
         newtable.replace_column(col.info.name, Column(jd12, unit='d'))
@@ -219,7 +213,7 @@ def Time_to_FITS(table):
         else:
             hdr.append(Card(keyword='TRPOS{}'.format(n), value='TOPOCENTER'))
             # Compatibility of Time Scales and Reference Positions
-            if TIME_SCALE_REF[col.scale] != 'TOPOCENTER':
+            if col.scale in BARYCENTRIC_SCALES: #check locations
                 warnings.warn(
                     'Earth Location "TOPOCENTER" for Time Column "{}" is incompatabile '
                     'with scale "{}".'.format(col.info.name, col.scale.upper()),
