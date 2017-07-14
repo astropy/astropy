@@ -801,7 +801,7 @@ class Column(NotifierMixin):
         if coord_ref_point is None:
             return
 
-        if not _is_int(coord_ref_point):
+        if not _is_int(coord_ref_point) and not isinstance(coord_ref_point, float):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be '
                 'real floating type.')
@@ -811,7 +811,7 @@ class Column(NotifierMixin):
         if coord_ref_value is None:
             return
 
-        if not _is_int(coord_ref_value):
+        if not _is_int(coord_ref_value) and not isinstance(coord_ref_value, float):
             raise AssertionError(
                 'Coordinate value at reference point must be real '
                 'floating type.')
@@ -821,7 +821,7 @@ class Column(NotifierMixin):
         if coord_inc is None:
             return
 
-        if not _is_int(coord_inc):
+        if not _is_int(coord_inc) and not isinstance(coord_inc, float):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
@@ -1081,7 +1081,7 @@ class Column(NotifierMixin):
                      ('coord_inc', coord_inc)]:
             if v is not None and v != '':
                 msg = None
-                if not _is_int(v):
+                if not _is_int(v) and not isinstance(v, float):
                     msg = (
                         "Column {} option ({}n) must be a real floating type (got {!r}). "
                         "The invalid value will be ignored for the purpose of formatting "
