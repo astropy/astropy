@@ -4,10 +4,10 @@ import pytest
 
 from . import FitsTestCase
 
-from ..fitstime import GLOBAL_TIME_INFO, TIME_SCALE_REF, is_time_column_keyword, Time_to_FITS
+from ..fitstime import GLOBAL_TIME_INFO, is_time_column_keyword, Time_to_FITS
 from ....coordinates import EarthLocation
 from ....table import Table, QTable
-from ....time import Time
+from ....time import Time, BARYCENTRIC_SCALES
 from ....tests.helper import catch_warnings
 
 
@@ -67,10 +67,8 @@ class Test_FITStime(FitsTestCase):
             assert len(w) == 0
 
         # Check compatibility of Time Scales and Reference Positions
-        time_ref = TIME_SCALE_REF
-        uncomp_scales = [scale for scale in time_ref if time_ref[scale] != 'TOPOCENTER']
 
-        for scale in uncomp_scales:
+        for scale in BARYCENTRIC_SCALES:
             t.replace_column('a', getattr(t['a'], scale))
             with catch_warnings() as w:
                 table, hdr = Time_to_FITS(t)
