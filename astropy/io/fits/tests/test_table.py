@@ -233,8 +233,8 @@ class TestTableFunctions(FitsTestCase):
                 'coord_inc': ['', '', '', ''],
                 'coord_type': ['', '', '', ''],
                 'coord_unit': ['', '', '', ''],
-                'ref_point': ['', '', '', ''],
-                'ref_value': ['', '', '', '']}
+                'coord_ref_point': ['', '', '', ''],
+                'coord_ref_value': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 

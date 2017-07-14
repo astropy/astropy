@@ -89,7 +89,7 @@ KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
                  'TCDLT', 'TCRPX')
 KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
                       'disp', 'start', 'dim', 'coord_type', 'coord_unit',
-                      'ref_value', 'coord_inc', 'ref_point')
+                      'coord_ref_value', 'coord_inc', 'coord_ref_point')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -466,8 +466,8 @@ class Column(NotifierMixin):
 
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
-                 coord_type=None, coord_unit=None, ref_value=None,
-                 coord_inc=None, ref_point=None, array=None, ascii=None):
+                 coord_type=None, coord_unit=None, coord_ref_value=None,
+                 coord_inc=None, coord_ref_point=None, array=None, ascii=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
@@ -510,7 +510,7 @@ class Column(NotifierMixin):
         coord_unit : str, optional
             coordinate/axis unit corresponding to ``TCUNI`` keyword
 
-        ref_value : int-like, optional
+        coord_ref_value : int-like, optional
             coordinate value at reference point corresponding to ``TCRVL``
             keyword
 
@@ -518,7 +518,7 @@ class Column(NotifierMixin):
             coordinate increment at reference point corresponding to ``TCDLT``
             keyword
 
-        ref_point : int-like, optional
+        coord_ref_point : int-like, optional
             pixel coordinate of the reference point corresponding to ``TCRPX``
             keyword
 
@@ -797,11 +797,11 @@ class Column(NotifierMixin):
                 'characters.')
 
     @ColumnAttribute('TCRVL')
-    def ref_value(col, ref_value):
-        if ref_value is None:
+    def coord_ref_value(col, coord_ref_value):
+        if coord_ref_value is None:
             return
 
-        if not _is_int(ref_value):
+        if not _is_int(coord_ref_value):
             raise AssertionError(
                 'Coordinate value at reference point must be real'
                 'floating type.')
@@ -816,11 +816,11 @@ class Column(NotifierMixin):
                 'Coordinate increment must be real floating type.')
 
     @ColumnAttribute('TCRPX')
-    def ref_point(col, ref_point):
-        if ref_point is None:
+    def coord_ref_point(col, coord_ref_point):
+        if coord_ref_point is None:
             return
 
-        if not _is_int(ref_point):
+        if not _is_int(coord_ref_point):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be'
                 'real floating type.')
@@ -885,8 +885,8 @@ class Column(NotifierMixin):
     @classmethod
     def _verify_keywords(cls, name=None, format=None, unit=None, null=None,
                          bscale=None, bzero=None, disp=None, start=None,
-                         dim=None, coord_type=None, coord_unit=None, 
-                         ref_value=None, coord_inc=None, ref_point=None,
+                         dim=None, coord_type=None, coord_unit=None,
+                         coord_ref_value=None, coord_inc=None, coord_ref_point=None,
                          ascii=None):
         """
         Given the keyword arguments used to initialize a Column, specifically
@@ -1066,13 +1066,13 @@ class Column(NotifierMixin):
                     'Coordinate/axis unit (TCUNIn) must be a string.  The invalid '
                     'keyword will be ignored for the purpose of formatting this '
                     'column.'.format(coord_unit))
-            if msg in None:
+            if msg is None:
                 valid['coord_unit'] = coord_unit
             else:
                 invalid['coord_unit'] = (coord_unit, msg)
 
-        for k, v in [('ref_value', ref_value), ('coord_inc', coord_inc),
-                     ('ref_point', ref_point)]:
+        for k, v in [('coord_ref_value', coord_ref_value), ('coord_inc', coord_inc),
+                     ('coord_ref_point', coord_ref_point)]:
             if v is not None and v != '':
                 msg = None
                 if not _is_int(v):
