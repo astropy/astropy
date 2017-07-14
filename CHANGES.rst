@@ -28,6 +28,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Expanded the FITS ``Column`` interface to accept attributes pertaining to coordinate
+  systems. [#6359]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
