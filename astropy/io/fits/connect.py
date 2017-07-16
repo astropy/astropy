@@ -14,7 +14,8 @@ from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .convenience import table_to_hdu
-from .fitstime import FITS_to_Time
+from .column import is_time_column_keyword
+from .fitstime import fits_to_time
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -77,7 +78,7 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None):
+def read_table_fits(input, hdu=None, astropy_native=False):
     """
     Read a Table object from an FITS file
 
@@ -93,6 +94,10 @@ def read_table_fits(input, hdu=None):
         - :class:`~astropy.io.fits.hdu.hdulist.HDUList`
     hdu : int or str, optional
         The HDU to read the table from.
+    astropy_native : bool
+        The option to read in FITS columns as mixins if possible. By default
+        this option is set to False, to read raw fits data as non-mixin Table
+        columns.
     """
 
     if isinstance(input, HDUList):
@@ -134,7 +139,8 @@ def read_table_fits(input, hdu=None):
         hdulist = fits_open(input)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu)
+            return read_table_fits(hdulist, hdu=hdu, 
+                                   astropy_native=astropy_native)
         finally:
             hdulist.close()
 
@@ -163,8 +169,11 @@ def read_table_fits(input, hdu=None):
 
     # TODO: deal properly with unsigned integers
 
+    hdr = table.header
+
     # Read time coordinates as Time
-    hdr = FITS_to_Time(table.header, t)
+    if astropy_native is True:
+        hdr = fits_to_time(table.header, t)
 
     for key, value, comment in hdr.cards:
 
@@ -185,8 +194,9 @@ def read_table_fits(input, hdu=None):
             else:
                 t.meta[key] = [t.meta[key], value]
 
-        elif (is_column_keyword(key.upper()) or
-              key.upper() in REMOVE_KEYWORDS):
+        elif (is_column_keyword(key) or
+              key in REMOVE_KEYWORDS or
+              is_time_column_keyword(key)):
 
             pass
 
@@ -199,7 +209,7 @@ def read_table_fits(input, hdu=None):
     return t
 
 
-def write_table_fits(input, output, overwrite=False):
+def write_table_fits(input, output, overwrite=False, astropy_native=False):
     """
     Write a Table object to a FITS file
 
@@ -213,7 +223,7 @@ def write_table_fits(input, output, overwrite=False):
         Whether to overwrite any existing file without warning.
     """
 
-    table_hdu = table_to_hdu(input)
+    table_hdu = table_to_hdu(input, astropy_native=astropy_native)
 
     # Check if output file already exists
     if isinstance(output, string_types) and os.path.exists(output):
