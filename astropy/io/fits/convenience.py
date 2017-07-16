@@ -433,7 +433,7 @@ def writeto(filename, data, header=None, output_verify='exception',
                 checksum=checksum)
 
 
-def table_to_hdu(table):
+def table_to_hdu(table, astropy_native=False):
     """
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
@@ -442,6 +442,12 @@ def table_to_hdu(table):
     ----------
     table : astropy.table.Table
         The table to convert.
+    astropy_native : bool
+        The option to store `Table` mixins in a FITS Binary Table, by making use
+        of the available FITS standard specifications and conventions. By default
+        this option is set to False, to convert the mixin column raw data in a 
+        `Table` to FITS Binary Table columns (without modifying the data or storing
+        any of its metadata).
 
     Returns
     -------
@@ -458,9 +464,9 @@ def table_to_hdu(table):
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn
+        from ...table.column import BaseColumn, Column
         from ...time import Time
-        from .fitstime import Time_to_FITS
+        from .fitstime import time_to_fits
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can be written
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
@@ -471,7 +477,13 @@ def table_to_hdu(table):
 
         time_cols = table.columns.isinstance(Time)
         if time_cols:
-            table, hdr = Time_to_FITS(table)
+            if astropy_native is True:
+                table, hdr = time_to_fits(table)
+            else:
+                # Shallow copy of the input table
+                table = table.copy(copy_data=False)
+                for col in time_cols:
+                    table.replace_column(col.info.name, Column(col.value))
 
     # Create a new HDU object
     if table.masked:

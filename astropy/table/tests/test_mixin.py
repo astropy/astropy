@@ -145,18 +145,18 @@ def test_io_time_write_fits(tmpdir, table_types):
     """
     t = table_types([[1,2], ['string', 'column']])
     for scale in time.TIME_SCALES:
-        t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale='tai',
+        t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale=scale,
                                   location=EarthLocation(-2446353.80003635,
                                   4237209.07495215, 4077985.57220038, unit='m'))
         t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
-                                  '2010-01-01T00:00:00'], format='isot', scale='utc')
+                                  '2010-01-01T00:00:00'], format='isot', scale=scale)
     t['c'] = [3., 4.]
 
     filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
-    t.write(filename, format='fits', overwrite=True)
-    tm = table_types.read(filename, format='fits')
+    t.write(filename, format='fits', overwrite=True, astropy_native=True)
+    tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for scale in time.TIME_SCALES:
         for ab in ('a', 'b'):
@@ -183,6 +183,17 @@ def test_io_time_write_fits(tmpdir, table_types):
 
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
+
+    # Test for default read/write behaviour (raw data)
+    t.write(filename, format='fits', overwrite=True)
+    tm = table_types.read(filename, format='fits')
+
+    for scale in time.TIME_SCALES:
+        for ab in ('a', 'b'):
+            name = ab + scale
+
+            assert not isinstance(tm[name], time.Time)
+            assert (tm[name] == t[name].value).all()
 
 
 def test_io_write_fail(mixin_cols):
