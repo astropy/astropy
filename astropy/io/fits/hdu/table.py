@@ -248,22 +248,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     """
 
     def __init__(self, data=None, header=None, name=None, uint=False):
-        """
-        Parameters
-        ----------
-        header : Header instance
-            header to be used
-
-        data : array
-            data to be used
-
-        name : str
-            name to be populated in ``EXTNAME`` keyword
-
-        uint : bool, optional
-            set to `True` if the table contains unsigned integer columns.
-        """
-
         super(_TableBaseHDU, self).__init__(data=data, header=header,
                                             name=name)
 
