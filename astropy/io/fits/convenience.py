@@ -61,6 +61,7 @@ import warnings
 
 import numpy as np
 
+from .column import is_time_column_keyword
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
@@ -534,7 +535,8 @@ def table_to_hdu(table, astropy_native=False):
             Unit(col.unit, format='fits', parse_strict='warn')
 
     for key, value in table.meta.items():
-        if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
+        if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS
+                or is_time_column_keyword(key.upper()):
             warnings.warn(
                 "Meta-data keyword {0} will be ignored since it conflicts "
                 "with a FITS reserved keyword".format(key), AstropyUserWarning)
