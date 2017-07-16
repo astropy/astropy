@@ -139,7 +139,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
         hdulist = fits_open(input)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu, 
+            return read_table_fits(hdulist, hdu=hdu,
                                    astropy_native=astropy_native)
         finally:
             hdulist.close()

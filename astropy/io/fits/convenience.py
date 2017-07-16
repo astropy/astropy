@@ -445,7 +445,7 @@ def table_to_hdu(table, astropy_native=False):
     astropy_native : bool
         The option to store `Table` mixins in a FITS Binary Table, by making use
         of the available FITS standard specifications and conventions. By default
-        this option is set to False, to convert the mixin column raw data in a 
+        this option is set to False, to convert the mixin column raw data in a
         `Table` to FITS Binary Table columns (without modifying the data or storing
         any of its metadata).
 
