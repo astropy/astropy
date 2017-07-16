@@ -127,7 +127,7 @@ class TestFitsTime(FitsTestCase):
         # Test DATE/DATE-xxx
         assert isinstance(tm.meta['DATE'], Time)
         assert tm.meta['DATE'].value == t.meta['DATE']
-        assert tm.meta['DATE'].format == 'isot' 
+        assert tm.meta['DATE'].format == 'isot'
         # Default time scale according to the FITS standard is UTC
         assert tm.meta['DATE'].scale == 'utc'
 
