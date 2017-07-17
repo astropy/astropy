@@ -438,13 +438,33 @@ class _File(object):
             self._file = fileobj
         elif isfile(fileobj):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
-        else:
-            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
 
-        if fmode == 'ab+':
-            # Return to the beginning of the file--in Python 3 when opening in
-            # append mode the file pointer is at the end of the file
+        # Attempt to determine if the file represented by the open file object
+        # is compressed
+        try:
+            magic = self._file.read(4)
             self._file.seek(0)
+        except (IOError,OSError):
+            return
+
+        if magic.startswith(GZIP_MAGIC):
+            # Handle gzip files
+            self._file = gzip.GzipFile(
+                fileobj=fileobj, mode=IO_FITS_MODES[mode])
+            self.compression = 'gzip'
+        elif magic.startswith(PKZIP_MAGIC):
+            # Handle zip files
+            self._open_zipfile(self.name, mode)
+            self._file.seek(0)
+        elif magic.startswith(BZIP2_MAGIC):
+            # Handle bzip2 files
+            if mode in ['update', 'append']:
+                raise IOError("update and append modes are not supported "
+                              "with bzip2 files")
+            # bzip2 only supports 'w' and 'r' modes
+            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            self._file = bz2.BZ2File(fileobj, mode=bzip2_mode)
+            self.compression = 'bzip2'
 
     def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
@@ -514,6 +534,7 @@ class _File(object):
             # bzip2 only supports 'w' and 'r' modes
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(self.name, bzip2_mode)
+            self.compression = 'bzip2'
         else:
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
             self.close_on_error = True
