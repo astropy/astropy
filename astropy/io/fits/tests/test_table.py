@@ -3001,6 +3001,8 @@ class TestColumnFunctions(FitsTestCase):
 
         Test the validation of the column start position option (ASCII table only),
         corresponding to ``TBCOL`` keyword.
+        Test whether the VerifyError message generated is the one with highest priority,
+        i.e. the order of error messages to be displayed is maintained.
         """
 
         with pytest.raises(VerifyError) as err:
