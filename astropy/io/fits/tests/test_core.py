@@ -8,7 +8,6 @@ import mmap
 import os
 import warnings
 import zipfile
-import six
 
 import pytest
 import numpy as np
@@ -659,7 +658,6 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'gzip'
                 assert len(fits_handle) == 5
 
-    @pytest.mark.xfail(reason="FITS does not recognize compressed file handle")
     def test_open_gzipped_from_handle(self):
         with open(self._make_gzip_file(), 'rb') as handle:
             with fits.open(handle) as fits_handle:
@@ -705,7 +703,6 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
-    @pytest.mark.xfail(reason="FITS does not recognize compressed file handle")
     @pytest.mark.skipif(six.PY2,
         reason = "API difference in bz2 in 2.7, but will be deprecated anyway")
     def test_open_bzipped_from_handle(self):
@@ -752,7 +749,6 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'zip'
                 assert len(fits_handle) == 5
 
-    @pytest.mark.xfail(reason="FITS does not recognize compressed file handle")
     def test_open_zipped_from_handle(self):
         with open(self._make_zip_file(), 'rb') as handle:
             with fits.open(handle) as fits_handle:

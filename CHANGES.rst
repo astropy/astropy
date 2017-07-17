@@ -126,6 +126,8 @@ astropy.io.ascii
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
+- Automatically detect and handle compression in FITS files that are opened by
+  passing a file handle to ``fits.open`` [#6373]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
