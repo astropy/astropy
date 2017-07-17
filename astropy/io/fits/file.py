@@ -111,15 +111,19 @@ class _File(object):
 
         if mode is None:
             if _is_random_access_file_backed(fileobj):
-                fmode = fileobj_mode(fileobj)
-                # If the mode is unsupported just leave it as None; we'll
-                # catch this case below
-                mode = FILE_MODES.get(fmode)
+                mode = fileobj_mode(fileobj)
             else:
                 mode = 'readonly'  # The default
 
         if mode not in IO_FITS_MODES:
-            raise ValueError("Mode '{}' not recognized".format(mode))
+            if mode in ['r', 'w']:
+                raise ValueError(
+                    ("Text mode '{}' not supported: " +
+                    "files must be opened in binary mode").format(mode))
+            new_mode = FILE_MODES.get(mode)
+            if new_mode not in IO_FITS_MODES:
+                raise ValueError("Mode '{}' not recognized".format(mode))
+            mode = new_mode
 
         # Handle raw URLs
         if (isinstance(fileobj, string_types) and
