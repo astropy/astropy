@@ -27,7 +27,7 @@ from ....utils.decorators import deprecated_renamed_argument
 from ....extern.six.moves import range
 
 
-def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
+def fitsopen(name, mode=None, memmap=None, save_backup=False,
              cache=True, lazy_load_hdus=None, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
