@@ -920,6 +920,8 @@ class Column(NotifierMixin):
                         "the column's character width and will be truncated "
                         "(got {!r}).".format(null))
             else:
+                tnull_formats = ('B', 'I', 'J', 'K')
+
                 if not _is_int(null):
                     # Make this an exception instead of a warning, since any
                     # non-int value is meaningless
@@ -929,11 +931,9 @@ class Column(NotifierMixin):
                         'will be ignored for the purpose of formatting '
                         'the data in this column.'.format(null))
 
-                tnull_formats = ('B', 'I', 'J', 'K')
-
-                if not (format.format in tnull_formats or
-                        (format.format in ('P', 'Q') and
-                         format.p_format in tnull_formats)):
+                elif not (format.format in tnull_formats or
+                          (format.format in ('P', 'Q') and
+                           format.p_format in tnull_formats)):
                     # TODO: We should also check that TNULLn's integer value
                     # is in the range allowed by the column's format
                     msg = (
@@ -957,7 +957,7 @@ class Column(NotifierMixin):
                     'The invalid value will be ignored for the purpose of '
                     'formatting the data in this column.'.format(disp))
 
-            if (isinstance(format, _AsciiColumnFormat) and
+            elif (isinstance(format, _AsciiColumnFormat) and
                     disp[0].upper() == 'L'):
                 # disp is at least one character long and has the 'L' format
                 # which is not recognized for ASCII tables
