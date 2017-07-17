@@ -2995,6 +2995,26 @@ class TestColumnFunctions(FitsTestCase):
         for msg in err_msgs:
             assert msg in str(err.value)
 
+    def test_column_verify_start(self):
+        """
+        Regression test for https://github.com/astropy/astropy/pull/6359
+
+        Test the validation of the column start position option (ASCII table only),
+        corresponding to ``TBCOL`` keyword.
+        """
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='B', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) is not allowed for binary table columns" in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got 'a')." in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
+
 def test_regression_5383():
 
     # Regression test for an undefined variable

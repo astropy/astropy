@@ -6,6 +6,7 @@ import re
 import sys
 import warnings
 import weakref
+import numbers
 
 from functools import reduce
 from collections import OrderedDict
@@ -798,30 +799,24 @@ class Column(NotifierMixin):
 
     @ColumnAttribute('TCRPX')
     def coord_ref_point(col, coord_ref_point):
-        if coord_ref_point is None:
-            return
-
-        if not _is_int(coord_ref_point) and not isinstance(coord_ref_point, float):
+        if (not coord_ref_point is None
+                and not isinstance(coord_ref_point, numbers.Real)):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be '
                 'real floating type.')
 
     @ColumnAttribute('TCRVL')
     def coord_ref_value(col, coord_ref_value):
-        if coord_ref_value is None:
-            return
-
-        if not _is_int(coord_ref_value) and not isinstance(coord_ref_value, float):
+        if (not coord_ref_value is None
+                and not isinstance(coord_ref_value, numbers.Real)):
             raise AssertionError(
                 'Coordinate value at reference point must be real '
                 'floating type.')
 
     @ColumnAttribute('TCDLT')
     def coord_inc(col, coord_inc):
-        if coord_inc is None:
-            return
-
-        if not _is_int(coord_inc) and not isinstance(coord_inc, float):
+        if (not coord_inc is None
+                and not isinstance(coord_inc, numbers.Real)):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
@@ -987,16 +982,17 @@ class Column(NotifierMixin):
                     'table columns (got {!r}).  The invalid keyword will be '
                     'ignored for the purpose of formatting the data in this '
                     'column.'.format(start))
-            try:
-                start = int(start)
-            except (TypeError, ValueError):
-                pass
+            else:
+                try:
+                    start = int(start)
+                except (TypeError, ValueError):
+                    pass
 
-            if not _is_int(start) or start < 1:
-                msg = (
-                    'Column start option (TBCOLn) must be a positive integer '
-                    '(got {!r}).  The invalid value will be ignored for the '
-                    'purpose of formatting the data in this column.'.format(start))
+                if not _is_int(start) or start < 1:
+                    msg = (
+                        'Column start option (TBCOLn) must be a positive integer '
+                        '(got {!r}).  The invalid value will be ignored for the '
+                        'purpose of formatting the data in this column.'.format(start))
 
             if msg is None:
                 valid['start'] = start
@@ -1077,11 +1073,12 @@ class Column(NotifierMixin):
             else:
                 invalid['coord_unit'] = (coord_unit, msg)
 
-        for k, v in [('coord_ref_point', coord_ref_point), ('coord_ref_value', coord_ref_value),
+        for k, v in [('coord_ref_point', coord_ref_point),
+                     ('coord_ref_value', coord_ref_value),
                      ('coord_inc', coord_inc)]:
             if v is not None and v != '':
                 msg = None
-                if not _is_int(v) and not isinstance(v, float):
+                if not isinstance(v, numbers.Real):
                     msg = (
                         "Column {} option ({}n) must be a real floating type (got {!r}). "
                         "The invalid value will be ignored for the purpose of formatting "
