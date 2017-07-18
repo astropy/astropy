@@ -116,7 +116,7 @@ class _File(object):
                 mode = 'readonly'  # The default
 
         if mode not in IO_FITS_MODES:
-            if mode in ['r', 'w']:
+            if mode in ['r', 'w', 'a']:
                 raise ValueError(
                     ("Text mode '{}' not supported: " +
                     "files must be opened in binary mode").format(mode))
@@ -412,6 +412,33 @@ class _File(object):
             else:
                 raise IOError("File {!r} already exists.".format(self.name))
 
+    def _test_for_compression(self, obj_or_name, magic, mode, ext=''):
+        """Attempt to determine if the given file is compressed"""
+        is_compressed = False
+        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+            # Handle gzip files
+            kwargs = dict(mode=IO_FITS_MODES[mode])
+            if isinstance(obj_or_name, string_types):
+                kwargs['filename'] = obj_or_name
+            else:
+                kwargs['fileobj'] = obj_or_name
+            self._file = gzip.GzipFile(**kwargs)
+            self.compression = 'gzip'
+        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
+            # Handle zip files
+            self._open_zipfile(self.name, mode)
+            self.compression = 'zip'
+        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
+            # Handle bzip2 files
+            if mode in ['update', 'append']:
+                raise IOError("update and append modes are not supported "
+                              "with bzip2 files")
+            # bzip2 only supports 'w' and 'r' modes
+            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
+            self.compression = 'bzip2'
+        return self.compression # Will be 'None' if no compression detected
+
     def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object or a GzipFile object."""
 
@@ -447,24 +474,7 @@ class _File(object):
         except (IOError,OSError):
             return
 
-        if magic.startswith(GZIP_MAGIC):
-            # Handle gzip files
-            self._file = gzip.GzipFile(
-                fileobj=fileobj, mode=IO_FITS_MODES[mode])
-            self.compression = 'gzip'
-        elif magic.startswith(PKZIP_MAGIC):
-            # Handle zip files
-            self._open_zipfile(self.name, mode)
-            self._file.seek(0)
-        elif magic.startswith(BZIP2_MAGIC):
-            # Handle bzip2 files
-            if mode in ['update', 'append']:
-                raise IOError("update and append modes are not supported "
-                              "with bzip2 files")
-            # bzip2 only supports 'w' and 'r' modes
-            bzip2_mode = 'w' if mode == 'ostream' else 'r'
-            self._file = bz2.BZ2File(fileobj, mode=bzip2_mode)
-            self.compression = 'bzip2'
+        self._test_for_compression(fileobj, magic, mode)
 
     def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
@@ -519,23 +529,7 @@ class _File(object):
 
         ext = os.path.splitext(self.name)[1]
 
-        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
-            # Handle gzip files
-            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
-            self.compression = 'gzip'
-        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
-            # Handle zip files
-            self._open_zipfile(self.name, mode)
-        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
-            # Handle bzip2 files
-            if mode in ['update', 'append']:
-                raise IOError("update and append modes are not supported "
-                              "with bzip2 files")
-            # bzip2 only supports 'w' and 'r' modes
-            bzip2_mode = 'w' if mode == 'ostream' else 'r'
-            self._file = bz2.BZ2File(self.name, bzip2_mode)
-            self.compression = 'bzip2'
-        else:
+        if not self._test_for_compression(self.name, magic, mode, ext=ext):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
             self.close_on_error = True
 
@@ -611,7 +605,7 @@ class _File(object):
 
         if close:
             zfile.close()
-        self.compression = 'zip'
+        self._file.seek(0)
 
 
 def _is_random_access_file_backed(fileobj):
