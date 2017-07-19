@@ -869,13 +869,13 @@ class Beta1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Amplitude at x=xpos
+        Amplitude at x=xpos.
     beta : float
-        Beta index
+        Beta index.
     r0 : float
-        Core radius
+        Core radius.
     xpos : float
-        Offset from x=0
+        Offset from x=0.
 
     Notes
     -----
@@ -899,13 +899,14 @@ class Beta1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, beta, r0, xpos):
-        d_r0 = (-2 * amplitude * ((x - xpos) / r0) ** 2 / r0 * (-3 * beta + .5)
-                * (1 + ((x - xpos) / r0) ** 2) ** (-3 * beta - .5))
-        d_beta = (- 3 * amplitude * (1 + ((x - xpos) / r0) ** 2) ** (-3 * beta
-                  + .5) * np.log(1 + ((x - xpos) / r0) ** 2))
-        d_xpos = (-2 * amplitude * (-3 * beta + .5) * (1 + ((x - xpos) / r0)
-                  ** 2) ** (-3 * beta - .5) * (x - xpos) / r0 ** 2)
-        d_amplitude = (1 + ((x - xpos) / r0) ** 2) ** (-3 * beta + .5)
+        aux = ((x - xpos) / r0) ** 2 + 1
+
+        d_r0 = (-2 * amplitude * (aux - 1) / r0 * (-3 * beta + .5)
+                * aux ** (-3 * beta - .5))
+        d_beta = (- 3 * amplitude * aux ** (-3 * beta + .5) * np.log(aux))
+        d_xpos = (-2 * amplitude * (-3 * beta + .5) * aux ** (-3 * beta - .5)
+                  * (x - xpos) / r0 ** 2)
+        d_amplitude = aux ** (-3 * beta + .5)
 
         return [d_amplitude, d_beta, d_r0, d_xpos]
 
