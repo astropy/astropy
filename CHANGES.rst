@@ -298,6 +298,7 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fix the missing wcskey part in _read_sip_kw, this will cause error when reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only CRPIX1n CRPIX2n in header. [#6372]
 
 2.0 (2017-07-07)
 ================
