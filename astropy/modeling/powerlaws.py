@@ -16,7 +16,7 @@ from .parameters import Parameter, InputParameterError
 from ..units import Quantity
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
-           'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
+           'ExponentialCutoffPowerLaw1D', 'Schechter1D', 'LogParabola1D']
 
 
 class PowerLaw1D(Fittable1DModel):

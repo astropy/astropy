@@ -61,7 +61,7 @@ from ..functional_models import (
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
-    LogParabola1D)
+    Schechter1D, LogParabola1D)
 import numpy as np
 
 # 1D Models
