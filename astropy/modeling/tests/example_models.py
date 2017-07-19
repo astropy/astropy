@@ -178,6 +178,16 @@ models_1D = {
         'log_fit': True
     },
 
+    Schechter1D: {
+        'parameters': [.01, 1e10, -1],
+        'constraints': {},
+        'x_values': [1e+8, 1e+9, 1e+10, 1e+11],
+        'y_values': [9.90049834e-01, 9.04837418e-02, 3.67879441e-03,
+		     4.53999298e-08],
+        'x_lim': [0.01, 10],
+        'log_fit': True
+    },
+
     LogParabola1D: {
         'parameters': [1, 2, 3, 0.1],
         'constraints': {'fixed': {'x_0': True}},
