@@ -476,8 +476,7 @@ class Schechter1D(Fittable1DModel):
     Notes
     -----
     Model formula taken from
-    Schechter, P. An analytic expression for the luminosity function for galaxies.
-    APJ, 203, 297-306 (1976)
+    (:ref:`Schechter 1976 <ref-schechter1976>`):
     
     (with :math:`\\phi*` for ``phi_star`` and :math:`\\alpha` for ``alpha``):
         .. math:: f(x) = {\\phi*} (L / L*) ^ {\\alpha} \\exp (-L / L*)
@@ -492,6 +491,14 @@ class Schechter1D(Fittable1DModel):
     power-law form of the function cuts off. Note that the default value for
     ``l_star`` is in units of solar luminosities, in erg/s, to avoid overflow
     errors.
+
+    References
+    ----------
+    
+    .. _ref-schechter1976:
+
+    Schechter, P. An analytic expression for the luminosity function for galaxies.
+    APJ, 203, 297-306 (1976)
         
     Example
     -------

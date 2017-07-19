@@ -1,4 +1,4 @@
-3.0 (unreleased)
+﻿3.0 (unreleased)
 =================
 
 New Features
@@ -39,6 +39,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Add astronomical variation of ``ExponentialCutoffPowerLaw1D``, ``Schechter1D``,
+  eliminating a free parameter for better fitting. [#6375]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
