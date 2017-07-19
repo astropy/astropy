@@ -1106,12 +1106,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         if a is None and b is None and ap is None and bp is None:
             return None
 
-        if str("CRPIX1") not in header or str("CRPIX2") not in header:
+        if str("CRPIX1{0}".format(wcskey)) not in header or str("CRPIX2{0}".format(wcskey)) not in header:
             raise ValueError(
                 "Header has SIP keywords without CRPIX keywords")
 
-        crpix1 = header.get("CRPIX1")
-        crpix2 = header.get("CRPIX2")
+        crpix1 = header.get("CRPIX1{0}".format(wcskey))
+        crpix2 = header.get("CRPIX2{0}".format(wcskey))
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
 
