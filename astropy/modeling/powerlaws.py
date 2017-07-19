@@ -463,11 +463,11 @@ class Schechter1D(Fittable1DModel):
     Parameters
     ----------
     phi_star : float
-        Normalization factor
+        Normalization factor.
     l_star : float
-        Reference point
+        Reference point.
     alpha : float
-        Power law index
+        Power law index.
 
     See Also
     --------
@@ -498,7 +498,7 @@ class Schechter1D(Fittable1DModel):
     .. _ref-schechter1976:
 
     Schechter, P. An analytic expression for the luminosity function for galaxies.
-    APJ, 203, 297-306 (1976)
+    APJ, 203, 297-306 (1976).
         
     Example
     -------
