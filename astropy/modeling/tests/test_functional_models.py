@@ -20,6 +20,33 @@ except ImportError:
     HAS_SCIPY = False
 
 
+def test_Beta1D():
+    model = models.Beta1D()
+    x = np.linspace(0, 4, 10)
+    y = model(x)
+    assert y[0] == model.amplitude.value
+    assert (y[:len(y) - 1] > y[1:]).all()
+    assert_allclose(0, model(20), atol=1e-6)
+
+    model = models.Beta1D(beta=1/6)
+    y = model(x)
+    assert (y == model.amplitude.value).all()
+
+    model = models.Beta1D(r0=1e20)
+    y = model(x)
+    assert (y == model.amplitude.value).all()
+
+    model = models.Beta1D(beta=1e20)
+    y = model(x)
+    assert y[0] == model.amplitude.value
+    assert (y[1:] == 0).all()
+
+    model = models.Beta1D(beta=-1e10)
+    y = model(x)
+    assert y[0] == model.amplitude.value
+    assert (y[1:] == np.inf).all()
+
+
 def test_Trapezoid1D():
     """Regression test for https://github.com/astropy/astropy/issues/1721"""
 

@@ -877,7 +877,6 @@ class Beta1D(Fittable1DModel):
     xpos : float
         Offset from x=0
 
-
     Notes
     -----
     Model formula:
