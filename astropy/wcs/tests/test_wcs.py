@@ -1044,3 +1044,18 @@ def test_to_fits_1():
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
     assert isinstance(wfits[1], fits.ImageHDU)
+
+def test_keyedsip():
+    """
+    Test sip reading with extra key.
+    """
+    hdr_name = get_pkg_data_filename('data/sip-broken.hdr')
+    header = fits.Header.fromfile(hdr_name)
+    del header[str("CRPIX1")]
+    del header[str("CRPIX2")]
+
+    w=wcs.WCS(header=header,key="A")
+    assert isinstance( w.sip, wcs.Sip )
+    assert w.sip.crpix[0] == 2048
+    assert w.sip.crpix[1] == 1026
+
