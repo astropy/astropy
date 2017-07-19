@@ -21,7 +21,8 @@ def load_wcs_from_file(filename):
     # Print out all of the settings that were parsed from the header
     w.wcs.print_contents()
 
-    # Some pixel coordinates of interest.
+    # Four pixel coordinates of interest.
+    # Note we've silently assumed a NAXIS=2 image here
     pixcrd = numpy.array([[0, 0], [24, 38], [45, 98]], numpy.float_)
 
     # Convert pixel coordinates to world coordinates

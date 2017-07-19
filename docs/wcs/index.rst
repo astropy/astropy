@@ -89,7 +89,7 @@ The basic workflow is as follows:
            coordinates to image coordinates.  Commonly used for narrow
            column correction.
 
-For example, to convert pixel coordinates to world coordinates::
+For example, to convert pixel coordinates from a two dimensional image to world coordinates::
 
     >>> from astropy.wcs import WCS
     >>> w = WCS('image.fits')
