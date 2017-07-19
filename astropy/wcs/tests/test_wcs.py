@@ -1058,4 +1058,3 @@ def test_keyedsip():
     assert isinstance( w.sip, wcs.Sip )
     assert w.sip.crpix[0] == 2048
     assert w.sip.crpix[1] == 1026
-
