@@ -40,6 +40,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Add Beta1D to models. [#6374]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
