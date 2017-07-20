@@ -5,9 +5,11 @@ Astropy
 .. image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.python.org/pypi/astropy
 
-Astropy (http://www.astropy.org) is a package intended to contain much of
-the core functionality and some common tools needed for performing
-astronomy and astrophysics with Python.
+The Astropy Project (http://astropy.org/) is a community effort to develop a
+single core package for Astronomy in Python and foster interoperability between
+Python astronomy packages. This repository contains the core package which is
+intended to contain much of the core functionality and some common tools needed
+for performing astronomy and astrophysics with Python.
 
 Releases are `registered on PyPI <http://pypi.python.org/pypi/astropy>`_,
 and development is occurring at the
