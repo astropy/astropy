@@ -136,8 +136,8 @@ DEFAULT_ASCII_TNULL = '---'
 
 # Column-specific time override keywords
 COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
-                        'TRPOS' : 'pos',
-                        'TCUNI' : 'unit'}
+                        'TCUNI' : 'unit',
+                        'TRPOS' : 'pos'}
 
 
 def is_time_column_keyword(keyword):
@@ -150,13 +150,8 @@ def is_time_column_keyword(keyword):
         FITS keyword.
     """
 
-    try:
-        key, idx = re.match(r'([A-Z]+)([0-9]+)', keyword).groups()
-        if key in COLUMN_TIME_KEYWORDS:
-            return True
-        return False
-    except AttributeError:
-        return False
+    match = re.match(r'([A-Z]+)([0-9]+)', keyword)
+    return (match and match.group(1) in COLUMN_TIME_KEYWORDS)
 
 
 class Delayed(object):

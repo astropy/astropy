@@ -17,12 +17,16 @@ from ...time.core import BARYCENTRIC_SCALES
 from ...time.formats import FITS_DEPRECATED_SCALES
 from ...utils.exceptions import AstropyUserWarning
 
+# The following is based on the FITS WCS Paper IV, "Representations of time
+# coordinates in FITS".
+# http://adsabs.harvard.edu/abs/2015A%26A...574A..36R
 
-# FITS standard specified "4-3" form for non-linear coordinate types
+
+# FITS WCS standard specified "4-3" form for non-linear coordinate types
 TCTYP_RE_TYPE = re.compile(r'(?P<type>[A-Z]+)[-]+')
 TCTYP_RE_ALGO = re.compile(r'(?P<algo>[A-Z]+)\s*')
 
-# FITS specified time units
+# FITS Time standard specified time units
 FITS_TIME_UNIT = ['s', 'd', 'a', 'cy', 'min', 'h', 'yr', 'ta', 'Ba']
 
 # Global time reference coordinate keywords
@@ -37,7 +41,7 @@ TIME_KEYWORDS = {'TIMESYS' : 'scale', 'MJDREF' : 'ref_mjd',
                  'MJD-OBS' : 'mjd-obs', 'MJD-AVG' : 'mjd-avg',
                  'MJD-BEG' : 'mjd-beg', 'MJD-END' : 'mjd-end'}
 
-# Set AstroPy Time global information
+# Set astropy time global information
 GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
                     'JDREF' : (0.0,'Time columns are jd = jd1 + jd2'),
                     'TREFPOS' : ('TOPOCENTER','Time reference position')}
@@ -75,8 +79,8 @@ def _verify_time_info(global_info, time_columns):
                 if scale in ['GPS', 'LOCAL']:
                     warnings.warn(
                         'Table column {} has a FITS recognized time scale value {}. '
-                        'However, since it is not a valid AstroPy time scale, '
-                        'it will not be converted to AstroPy Time.'.format(idx, scale),
+                        'However, since it is not a valid astropy time scale, '
+                        'it will not be converted to astropy Time.'.format(idx, scale),
                         AstropyUserWarning)
                 # Non-linear coordinate types have "4-3" form and are not time coordinates
                 elif TCTYP_RE_TYPE.match(scale[:5]) and TCTYP_RE_ALGO.match(scale[5:]):
@@ -100,11 +104,11 @@ def _verify_time_info(global_info, time_columns):
 
 def _convert_time_columns(table, global_info, time_columns):
     """
-    Convert time columns to Astropy Time columns.
+    Convert time columns to astropy Time columns.
 
     Parameters
     ----------
-    table : astropy.table.Table
+    table : `~astropy.table.Table`
         The table whose time columns are to be converted.
     global_info : dict
         Global time reference coordinate information
@@ -112,21 +116,22 @@ def _convert_time_columns(table, global_info, time_columns):
         Column-specific time information
     """
 
-    # The code might fail while attempting to read FITS files not written by AstroPy.
+    # The code might fail while attempting to read FITS files not written by astropy.
 
     # Read in Global Informational keywords as Time
     for key in global_info:
         # FITS uses a subset of ISO-8601 for several time-related keywords,
-        # such as DATE-xxx and MJD-xxx
+        # such as DATE-xxx
         if key.startswith('date'):
             if key not in table.meta:
                 try:
-                    table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'],
+                    table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'], #check scale
                                                    precision=(lambda x: len(x.split('.')[1])
                                                    if '.' in x else 0)(global_info[key]))
                 except ValueError:
                     table.meta[key.upper()] = global_info[key]
 
+        # MJD-xxx
         elif key.startswith('mjd-'):
             if key not in table.meta:
                 try:
@@ -141,7 +146,7 @@ def _convert_time_columns(table, global_info, time_columns):
         time_colname = table.colnames[idx - 1]
         table[time_colname] = Time(table[time_colname][...,0], table[time_colname][...,1],
                                    format='jd', scale=time_col['scale'])
-        # Add location if attribute `pos` is set
+        # Add location if attribute ``pos`` is set
         try:
             if time_col['pos'] == 'TOPOCENTER':
                 table[time_colname].location = EarthLocation(global_info['loc_x'],
@@ -164,7 +169,7 @@ def fits_to_time(hdr, table):
     ----------
     hdr : `~astropy.io.fits.header.Header`
         FITS Header
-    table : astropy.table.Table
+    table : `~astropy.table.Table`
         The table whose time columns are to be read as Time
 
     Returns
@@ -214,12 +219,12 @@ def time_to_fits(table):
 
     Parameters
     ----------
-    table : astropy.table.Table
+    table : `~astropy.table.Table`
         The table whose Time columns are to be replaced.
 
     Returns
     -------
-    table : astropy.table.Table
+    table : `~astropy.table.Table`
         The table with replaced Time columns
     hdr : `~astropy.io.fits.header.Header`
         Header containing Cards associated with the FITS time coordinate

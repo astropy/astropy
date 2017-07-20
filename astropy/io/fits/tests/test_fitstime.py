@@ -32,7 +32,8 @@ class TestFitsTime(FitsTestCase):
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_loc(self, table_types):
         """
-        Test all the unusual conditions for locations of `Time` columns in a `Table`.
+        Test all the unusual conditions for locations of ``Time``
+        columns in a ``Table``.
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc')
@@ -59,8 +60,9 @@ class TestFitsTime(FitsTestCase):
         with catch_warnings() as w:
             table, hdr = time_to_fits(t)
             assert len(w) == 1
-            assert str(w[0].message).startswith('Time Column "b" has no specified location,'
-                                                ' but global Time Position is present')
+            assert str(w[0].message).startswith('Time Column "b" has no specified '
+                                                'location, but global Time Position '
+                                                'is present')
 
         # Check that multiple Time columns with same location can be written
         t['b'].location = EarthLocation(1, 2, 3)
@@ -76,12 +78,13 @@ class TestFitsTime(FitsTestCase):
             with catch_warnings() as w:
                 table, hdr = time_to_fits(t)
                 assert len(w) == 1
-                assert str(w[0].message).startswith('Earth Location "TOPOCENTER" for Time Column')
+                assert str(w[0].message).startswith('Earth Location "TOPOCENTER" '
+                                                    'for Time Column')
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_header(self, table_types):
         """
-        Test the header returned by `time_to_fits` explicitly.
+        Test the header returned by ``time_to_fits`` explicitly.
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
@@ -114,7 +117,8 @@ class TestFitsTime(FitsTestCase):
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_fits_to_time_meta(self, table_types):
         """
-        Test that the relevant global time metadata is read into `Table.meta` as `Time`.
+        Test that the relevant global time metadata is read into
+        ``Table.meta`` as ``Time``.
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc')
@@ -122,7 +126,8 @@ class TestFitsTime(FitsTestCase):
         t.meta['MJD-OBS'] = 56670
 
         t.write(self.temp('time.fits'), format='fits', astropy_native=True)
-        tm = table_types.read(self.temp('time.fits'), format='fits', astropy_native=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
 
         # Test DATE/DATE-xxx
         assert isinstance(tm.meta['DATE'], Time)
@@ -140,7 +145,8 @@ class TestFitsTime(FitsTestCase):
         # Explicitly specified Time Scale
         t.meta['TIMESYS'] = 'ET'
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True, astropy_native=True)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True,
+                astropy_native=True)
         tm = Table.read(self.temp('time.fits'), format='fits', astropy_native=True)
 
         assert isinstance(tm.meta['DATE'], Time)

@@ -82,6 +82,13 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     """
     Read a Table object from an FITS file
 
+    If the ``astropy_native`` argument is ``True``, then input FITS columns
+    which are representations of an astropy core object will be converted to
+    that class and stored in the ``Table`` as "mixin columns".  Currently this
+    is limited to FITS columns which adhere to the FITS Time standard, in which
+    case they will be converted to a `~astropy.time.Time` column in the output
+    table.
+
     Parameters
     ----------
     input : str or file-like object or compatible `astropy.io.fits` HDU object
@@ -94,10 +101,9 @@ def read_table_fits(input, hdu=None, astropy_native=False):
         - :class:`~astropy.io.fits.hdu.hdulist.HDUList`
     hdu : int or str, optional
         The HDU to read the table from.
-    astropy_native : bool
-        The option to read in FITS columns as mixins if possible. By default
-        this option is set to False, to read raw fits data as non-mixin Table
-        columns.
+    astropy_native : bool, optional
+        Read in FITS columns as native astropy objects where possible instead
+        of standard Table Column objects. Default is False.
     """
 
     if isinstance(input, HDUList):
@@ -169,11 +175,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     # TODO: deal properly with unsigned integers
 
-    hdr = table.header
-
-    # Read time coordinates as Time
-    if astropy_native is True:
-        hdr = fits_to_time(table.header, t)
+    hdr = fits_to_time(table.header, t) if astropy_native else table.header
 
     for key, value, comment in hdr.cards:
 
@@ -213,6 +215,12 @@ def write_table_fits(input, output, overwrite=False, astropy_native=False):
     """
     Write a Table object to a FITS file
 
+    If the ``astropy_native`` argument is ``True``, then astropy core objects in
+    the input Table, also called "mixin columns", will be converted to their 
+    respective representations in FITS tables. Currently this is limited to
+    `~astropy.time.Time` columns in the input Table, in which case they will be
+    converted to FITS columns which adhere to the FITS Time standard.
+
     Parameters
     ----------
     input : Table
@@ -221,6 +229,9 @@ def write_table_fits(input, output, overwrite=False, astropy_native=False):
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
+    astropy_native : bool, optional
+        Write native astropy objects as per their respective FITS standard
+        specifications. Default is False.
     """
 
     table_hdu = table_to_hdu(input, astropy_native=astropy_native)

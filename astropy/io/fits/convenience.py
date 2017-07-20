@@ -439,16 +439,19 @@ def table_to_hdu(table, astropy_native=False):
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
 
+    If the ``astropy_native`` argument is ``True``, then astropy core objects in
+    the input Table, also called "mixin columns", will be converted to their
+    respective representations in FITS binary tables. Currently this is limited to
+    `~astropy.time.Time` columns in the input Table, in which case they will be
+    converted to FITS columns which adhere to the FITS Time standard.
+
     Parameters
     ----------
     table : astropy.table.Table
         The table to convert.
     astropy_native : bool
-        The option to store `Table` mixins in a FITS Binary Table, by making use
-        of the available FITS standard specifications and conventions. By default
-        this option is set to False, to convert the mixin column raw data in a
-        `Table` to FITS Binary Table columns (without modifying the data or storing
-        any of its metadata).
+        Write native astropy objects as per their respective FITS standard
+        specifications. Default is False.
 
     Returns
     -------
@@ -469,7 +472,8 @@ def table_to_hdu(table, astropy_native=False):
         from ...time import Time
         from .fitstime import time_to_fits
 
-        # Only those columns which are instances of BaseColumn, Quantity or Time can be written
+        # Only those columns which are instances of BaseColumn, Quantity or Time can
+        # be written
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
