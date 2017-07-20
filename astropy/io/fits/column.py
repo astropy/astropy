@@ -87,10 +87,11 @@ ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
 # preferred order.
 KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
                  'TDISP', 'TBCOL', 'TDIM', 'TCTYP', 'TCUNI', 'TCRPX',
-                 'TCRVL', 'TCDLT')
+                 'TCRVL', 'TCDLT', 'TRPOS')
 KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
                       'disp', 'start', 'dim', 'coord_type', 'coord_unit',
-                      'coord_ref_point', 'coord_ref_value', 'coord_inc')
+                      'coord_ref_point', 'coord_ref_value', 'coord_inc',
+                      'time_ref_pos')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -467,8 +468,9 @@ class Column(NotifierMixin):
 
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
-                 coord_type=None, coord_unit=None, coord_ref_point=None,
-                 coord_ref_value=None, coord_inc=None, array=None, ascii=None):
+                 array=None, ascii=None, coord_type=None, coord_unit=None,
+                 coord_ref_point=None, coord_ref_value=None, coord_inc=None,
+                 time_ref_pos=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
@@ -505,6 +507,20 @@ class Column(NotifierMixin):
         dim : str, optional
             column dimension corresponding to ``TDIM`` keyword
 
+        array : iterable, optional
+            a `list`, `numpy.ndarray` (or other iterable that can be used to
+            initialize an ndarray) providing initial data for this column.
+            The array will be automatically converted, if possible, to the data
+            format of the column.  In the case were non-trivial ``bscale``
+            and/or ``bzero`` arguments are given, the values in the array must
+            be the *physical* values--that is, the values of column as if the
+            scaling has already been applied (the array stored on the column
+            object will then be converted back to its storage values).
+
+        ascii : bool, optional
+            set `True` if this describes a column for an ASCII table; this
+            may be required to disambiguate the column format
+
         coord_type : str, optional
             coordinate/axis type corresponding to ``TCTYP`` keyword
 
@@ -523,19 +539,9 @@ class Column(NotifierMixin):
             coordinate increment at reference point corresponding to ``TCDLT``
             keyword
 
-        array : iterable, optional
-            a `list`, `numpy.ndarray` (or other iterable that can be used to
-            initialize an ndarray) providing initial data for this column.
-            The array will be automatically converted, if possible, to the data
-            format of the column.  In the case were non-trivial ``bscale``
-            and/or ``bzero`` arguments are given, the values in the array must
-            be the *physical* values--that is, the values of column as if the
-            scaling has already been applied (the array stored on the column
-            object will then be converted back to its storage values).
-
-        ascii : bool, optional
-            set `True` if this describes a column for an ASCII table; this
-            may be required to disambiguate the column format
+        time_ref_pos : str, optional
+            reference position for a time coordinate column corresponding to
+            ``TRPOS`` keyword
         """
 
         if format is None:
@@ -820,6 +826,13 @@ class Column(NotifierMixin):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
+    @ColumnAttribute('TRPOS')
+    def time_ref_pos(col, time_ref_pos):
+        if (not time_ref_pos is None
+                and not isinstance(time_ref_pos, string_types)):
+            raise AssertionError(
+                'Time reference position must be a string.')
+
     format = ColumnAttribute('TFORM')
     unit = ColumnAttribute('TUNIT')
     null = ColumnAttribute('TNULL')
@@ -832,7 +845,7 @@ class Column(NotifierMixin):
 
     @lazyproperty
     def ascii(self):
-        """Whether this `Column` represents an column in an ASCII table."""
+        """Whether this `Column` represents a column in an ASCII table."""
 
         return isinstance(self.format, _AsciiColumnFormat)
 
@@ -880,9 +893,9 @@ class Column(NotifierMixin):
     @classmethod
     def _verify_keywords(cls, name=None, format=None, unit=None, null=None,
                          bscale=None, bzero=None, disp=None, start=None,
-                         dim=None, coord_type=None, coord_unit=None,
+                         dim=None, ascii=None, coord_type=None, coord_unit=None,
                          coord_ref_point=None, coord_ref_value=None,
-                         coord_inc=None, ascii=None):
+                         coord_inc=None, time_ref_pos=None):
         """
         Given the keyword arguments used to initialize a Column, specifically
         those that typically read from a FITS header (so excluding array),
@@ -1088,6 +1101,19 @@ class Column(NotifierMixin):
                     valid[k] = v
                 else:
                     invalid[k] = (v, msg)
+
+        if time_ref_pos is not None and time_ref_pos!='':
+            msg=None
+            if not isinstance(time_ref_pos, string_types):
+                msg = (
+                    "Time coordinate reference position option (TRPOSn) must be "
+                    "a string (got {!r}). The invalid keyword will be ignored for "
+                    "the purpose of formatting this column.".format(time_ref_pos))
+
+            if msg is None:
+                valid['time_ref_pos'] = time_ref_pos
+            else:
+                invalid['time_ref_pos'] = (time_ref_pos, msg)
 
         return valid, invalid
 

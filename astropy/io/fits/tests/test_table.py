@@ -234,7 +234,8 @@ class TestTableFunctions(FitsTestCase):
                 'coord_type': ['', '', '', ''],
                 'coord_unit': ['', '', '', ''],
                 'coord_ref_point': ['', '', '', ''],
-                'coord_ref_value': ['', '', '', '']}
+                'coord_ref_value': ['', '', '', ''],
+                'time_ref_pos': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 
@@ -2989,9 +2990,9 @@ class TestColumnFunctions(FitsTestCase):
         with pytest.raises(VerifyError) as err:
             c = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
                             coord_unit=2, coord_ref_point='1', coord_ref_value='1',
-                            coord_inc='1')
+                            coord_inc='1', time_ref_pos=1)
         err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
-                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT']
+                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
         for msg in err_msgs:
             assert msg in str(err.value)
 
