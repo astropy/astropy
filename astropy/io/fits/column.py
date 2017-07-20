@@ -151,7 +151,7 @@ def is_time_column_keyword(keyword):
     """
 
     match = re.match(r'([A-Z]+)([0-9]+)', keyword)
-    return (match and match.group(1) in COLUMN_TIME_KEYWORDS)
+    return True if (match and match.group(1) in COLUMN_TIME_KEYWORDS) else False
 
 
 class Delayed(object):
