@@ -60,7 +60,7 @@ from ..functional_models import (
     Ring2D, Sersic1D, Sersic2D, Voigt1D, Planar2D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
-    PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
+    PowerLaw1D, BrokenPowerLaw1D, Beta1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
     LogParabola1D)
 import numpy as np
 
@@ -88,6 +88,12 @@ models_1D = {
         'y_values': [1, 1, 1, 0, 0],
         'x_lim': [-10, 10],
         'integral': 10
+    },
+
+    Beta1D: {
+        'parameters': [1, 1, 1, 0],
+        'x_values': [0, 0.25, 0.5, 1.0],
+        'y_values': [1., 0.85936498, 0.5724334, 0.1767767]
     },
 
     Linear1D: {
