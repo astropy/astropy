@@ -125,7 +125,7 @@ def _convert_time_columns(table, global_info, time_columns):
         if key.startswith('date'):
             if key not in table.meta:
                 try:
-                    table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'], #check scale
+                    table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'],
                                                    precision=(lambda x: len(x.split('.')[1])
                                                    if '.' in x else 0)(global_info[key]))
                 except ValueError:
