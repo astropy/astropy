@@ -49,6 +49,8 @@ with the Astropy Project, see http://dashboard.astropy.org.
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
 
+.. image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
+    :target: https://www.flipcause.com/widget/give_now/MjI1NA==
 
 Contributing Code, Documentation, or Feedback
 ---------------------------------------------
