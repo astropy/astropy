@@ -15,8 +15,65 @@ from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
 from ..units import Quantity
 
-__all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
-           'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
+__all__ = ['PowerLaw1D', 'Beta1D', 'BrokenPowerLaw1D',
+           'SmoothlyBrokenPowerLaw1D', 'ExponentialCutoffPowerLaw1D',
+           'LogParabola1D']
+
+
+class Beta1D(Fittable1DModel):
+    """
+    1-D Lorentz model with a varying power law, a.k.a, beta model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude at x=xpos.
+    beta : float
+        Beta index.
+    r0 : float
+        Core radius.
+    xpos : float
+        Offset from x=0.
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x) = a * (1 + [(x - x_{pos})/r_0] ^ 2)^(-3 * \\beta + 1/2)
+
+    See Also
+    --------
+    Lorentz1D
+    """
+
+    amplitude = Parameter(default=1)
+    beta = Parameter(default=1)
+    r0 = Parameter(default=1)
+    xpos = Parameter(default=0)
+
+    @staticmethod
+    def evaluate(x, amplitude, beta, r0, xpos):
+        return amplitude * (1 + ((x - xpos) / r0) ** 2) ** (-3 * beta + .5)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, beta, r0, xpos):
+        aux = ((x - xpos) / r0) ** 2 + 1
+
+        d_r0 = (-2 * amplitude * (aux - 1) / r0 * (-3 * beta + .5)
+                * aux ** (-3 * beta - .5))
+        d_beta = (- 3 * amplitude * aux ** (-3 * beta + .5) * np.log(aux))
+        d_xpos = (-2 * amplitude * (-3 * beta + .5) * aux ** (-3 * beta - .5)
+                  * (x - xpos) / r0 ** 2)
+        d_amplitude = aux ** (-3 * beta + .5)
+
+        return [d_amplitude, d_beta, d_r0, d_xpos]
+
+    @property
+    def input_units(self):
+        if self.xpos.unit is None:
+            return None
+        else:
+            return {'x': self.xpos.unit}
 
 
 class PowerLaw1D(Fittable1DModel):
