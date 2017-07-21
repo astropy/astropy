@@ -455,11 +455,11 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
 
 class Schechter1D(Fittable1DModel):
-    """
+    r"""
     The Schechter function; a one dimensional power law model with an
     exponential cutoff. It describes the number distribution of galaxies as
     a function of their luminosity.
-    
+
     Parameters
     ----------
     phi_star : float
@@ -472,22 +472,22 @@ class Schechter1D(Fittable1DModel):
     See Also
     --------
     PowerLaw1D, BrokenPowerLaw1D, LogParabola1D, ExponentialCutoffPowerLaw1D
-    
+
     Notes
     -----
     Model formula taken from
     (:ref:`Schechter, P. <ref-schechter1976>`), An analytic expression for the
     luminosity function for galaxies. APJ, 203, 297-306 (1976).
-    
+
     (with :math:`\\phi*` for ``phi_star`` and :math:`\\alpha` for ``alpha``):
         .. math:: f(x) = {\\phi*} (L / L*) ^ {\\alpha} \\exp (-L / L*)
-        
+
     The ``phi_star`` parameter is the normalization factor which defines the
     overall density of galaxes, in units of number/Mpc^3.
-    
+
     The ``alpha`` parameter defines the faint-end slope of the luminosity
     function.
-    
+
     The ``l_star`` parameter is a characteristic galaxy luminosity where the
     power-law form of the function cuts off. Note that the default value for
     ``l_star`` is in units of solar luminosities, in erg/s, to avoid overflow
@@ -504,26 +504,26 @@ class Schechter1D(Fittable1DModel):
     -------
     .. plot::
         :include-source:
-        
+
         import numpy as np
         import matplotlib.pyplot as plt
         from astropy.modeling.fitting import LevMarLSQFitter
         from astropy.modeling import models
-        
+
         # arbitrary data:
         def f(l, phi_star, l_star, alpha):
             return phi_star*(l/l_star)**(alpha)*np.exp(-l/l_star)
         lx = np.logspace(-2, 1, 50)
         l = lx*1.4e10
         # Note that I only used separate l, lx as a preference to easily plot l/l_star
-        
+
         phi = f(l, phi_star = .008, l_star = 1.4e10, alpha = -0.75)
-        
+
         # Fit data to Schechter function using LevMarLSQFitter
         LF_init = models.Schechter1D()
         LF_fit = LevMarLSQFitter()
         LF = LF_fit(LF_init, l, phi)
-        
+
         # Display best fit parameter values
         print('phi_star = %g, l_star = %g, alpha = %g' % (LF.parameters[0], LF.parameters[1], LF.parameters[2]))
 
@@ -534,7 +534,7 @@ class Schechter1D(Fittable1DModel):
         plt.ylabel(r'$\phi$')
         plt.legend()
         plt.show()
-        
+
    """
 
     phi_star = Parameter(default=1.)
@@ -544,7 +544,7 @@ class Schechter1D(Fittable1DModel):
     @staticmethod
     def evaluate(l, phi_star, l_star, alpha):
         """One dimensional exponential cutoff power law model function"""
-        
+
         return phi_star * (l / l_star) ** (alpha) * np.exp(-l / l_star)
 
     @staticmethod
@@ -556,7 +556,7 @@ class Schechter1D(Fittable1DModel):
         d_alpha = phi_star * d_phi_star * np.log(l / l_star)
 
         return [d_phi_star, d_l_star, d_alpha]
-    
+
     @property
     def input_units(self):
         if self.l_star.unit is None:
