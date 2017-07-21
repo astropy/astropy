@@ -216,7 +216,7 @@ def write_table_fits(input, output, overwrite=False, astropy_native=False):
     Write a Table object to a FITS file
 
     If the ``astropy_native`` argument is ``True``, then astropy core objects in
-    the input Table, also called "mixin columns", will be converted to their 
+    the input Table, also called "mixin columns", will be converted to their
     respective representations in FITS tables. Currently this is limited to
     `~astropy.time.Time` columns in the input Table, in which case they will be
     converted to FITS columns which adhere to the FITS Time standard.
