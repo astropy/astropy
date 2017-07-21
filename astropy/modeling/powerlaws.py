@@ -43,7 +43,7 @@ class Beta1D(Fittable1DModel):
 
     See Also
     --------
-    Lorentz1D
+    PowerLaw1D, BrokenPowerLaw1D
     """
 
     amplitude = Parameter(default=1)
@@ -91,7 +91,7 @@ class PowerLaw1D(Fittable1DModel):
 
     See Also
     --------
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D
+    Beta1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D
 
     Notes
     -----
