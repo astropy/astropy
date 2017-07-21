@@ -88,8 +88,8 @@ class TestFitsTime(FitsTestCase):
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
-                      location=EarthLocation(-2446353.80003635,
-                      4237209.07495215, 4077985.57220038, unit='m'))
+                      location=EarthLocation(-2446354,
+                      4237210, 4077985, unit='m'))
         t['b'] = Time([1,2], format='cxcsec', scale='tt')
 
         ideal_col_hdr = {'OBSGEO-X' : t['a'].location.x.value,
