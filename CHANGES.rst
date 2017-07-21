@@ -95,6 +95,7 @@ astropy.tests
 
 - Fixed a bug that meant that the data.astropy.org mirror could not be used when
   using --remote-data=astropy. [#6724]
+- Split pytest plugins into separate modules. [#6384]
 
 astropy.time
 ^^^^^^^^^^^^
