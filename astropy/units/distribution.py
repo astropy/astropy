@@ -44,6 +44,21 @@ class Distribution(Quantity):
 
         return self
 
+    def __repr__(self):
+        superrepr = super().__repr__()
+        toadd = ' with n_samples={}'.format(self.n_samples)
+        return superrepr[:-1] + toadd + superrepr[-1]
+
+    def __str__(self):
+        superstr = super().__str__()
+        toadd = ' with n_samples={}'.format(self.n_samples)
+        return superstr + toadd
+
+    def _repr_latex_(self):
+        superlatex = super()._repr_latex_()
+        toadd = r', \; n_{{\rm samp}}={}'.format(self.n_samples)
+        return superlatex[:-1] + toadd + superlatex[-1]
+
     @property
     def n_samples(self):
         """

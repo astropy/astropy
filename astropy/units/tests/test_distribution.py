@@ -214,8 +214,19 @@ def test_helper_poisson_exact():
     assert exc.value.args[0] == ("Poisson distribution can only be computed "
                                  "for dimensionless quantities")
 
+
 def test_arithmetic_exact():
     pytest.skip('distribution stretch goal not yet implemented')
     dist = (u.NormalDistribution(3 * u.kpc)
             * u.PoissonDistribution(5 * u.one)
             + u.UniformDistribution(3 * u.pc, 5 * u.pc))
+
+
+def test_reprs():
+    darr = np.arange(30).reshape(10, 3)
+    distr = u.Distribution(darr, unit=u.kpc)
+
+    assert 'n_samples=10' in repr(distr)
+    assert 'n_samples=10' in str(distr)
+
+    assert r'n_{\rm samp}=10' in distr._repr_latex_()
