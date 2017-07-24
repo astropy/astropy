@@ -338,4 +338,3 @@ class DocTestFinderPlus(doctest.DocTestFinder):
             tests = list(filter(test_filter, tests))
 
         return tests
-
