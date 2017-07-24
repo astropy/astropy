@@ -3,8 +3,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import os
-
 import numpy as np
 import pytest
 
@@ -15,7 +13,8 @@ from ... import units as u
 from ... import log
 from ...wcs import WCS
 from ...utils import NumpyRNGContext
-from ...utils.data import get_pkg_data_filename, get_pkg_data_filenames, get_pkg_data_contents
+from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
+                           get_pkg_data_contents)
 
 from ..ccddata import CCDData
 
@@ -640,6 +639,11 @@ def test_wcs_keywords_removed_from_header():
     ccd = CCDData.read(data_file)
     wcs_header = ccd.wcs.to_header()
     assert not (set(wcs_header) & set(ccd.meta) - keepers)
+
+    # Make sure that exceptions are not raised when trying to remove missing
+    # keywords. o4sp040b0_raw.fits of io.fits is missing keyword 'PC1_1'.
+    data_file1 = get_pkg_data_filename('../../io/fits/tests/data/o4sp040b0_raw.fits')
+    ccd = CCDData.read(data_file1, unit='count')
 
 
 def test_wcs_keyword_removal_for_wcs_test_files():

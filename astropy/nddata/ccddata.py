@@ -416,11 +416,7 @@ def _generate_wcs_and_update_header(hdr):
     wcs_header = wcs.to_header(relax=True)
     for k in wcs_header:
         if k not in _KEEP_THESE_KEYWORDS_IN_HEADER:
-            try:
-                del new_hdr[k]
-            except KeyError:
-                # Keyword does not exist in the original header
-                pass
+            new_hdr.remove(k, ignore_missing=True)
     return (new_hdr, wcs)
 
 
