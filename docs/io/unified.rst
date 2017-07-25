@@ -279,7 +279,7 @@ columns in FITS while still maintaining considerable ``round-tripping``.
 All the other ``mixin columns`` being quite difficult to store
 in FITS tables, due to reasons including extensive metadata and
 no precise mapping to the FITS standard, are treated separately
-by using the argument ``astropy_native``in the FITS read/write API.
+by using the argument ``astropy_native`` in the FITS read/write API.
 Thus, an Astropy Table or QTable can read/write these mixin columns
 from/to FITS tables. Currently this is limited to `~astropy.time.Time`
 columns since the FITS standard has been extended to include time.
@@ -404,6 +404,9 @@ Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
+
+
+
 
 .. _table_io_votable:
 
