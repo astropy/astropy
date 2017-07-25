@@ -372,3 +372,130 @@ to the HDU's data attribute:
 
 In a future version of Astropy table creation will be simplified and this
 process won't be necessary.
+
+.. _fits_time_column:
+
+FITS time column
+----------------
+
+To create FITS columns which adhere to the FITS Time standard, we need to take
+into account the following important points stated in the standard.
+
+The strategy used to store `~astropy.time.Time` columns in FITS tables is to use
+the `~astropy.io.fits.Header` to create a Header with the appropriate time coordinate
+global reference keywords and the column specific override keywords. The
+`~astropy.io.fits.fitstime` deals with this reading and writing of ``Time`` columns.
+
+The following keywords set the Time coordinate frame:
+
+* Time scale
+  The most important of all the metadata is the time scale which is a a specification
+  for measuring time.
+
+  TIMESYS(string-valued)
+  Time scale; default UTC
+
+  TCTYPn(string-valued)
+  The global time scale may be overridden by a time scale recorded in the table
+  equivalent keyword ``TCTYPn`` for time coordinates in FITS table columns.
+  ``TCTYna`` is used for alternate coordinates.
+
+* Time reference
+  The reference point in time to which all times in the HDU are relative.
+  Since there are no context specific reference times, in case there are multiple time
+  columns in the same table, we need to adjust the reference times for the columns
+  using some other keywords.
+
+  The following keywords are present with decreasing order of preference:
+
+  - MJDREF(floating-valued)
+  - JDREF(floating-valued)
+  - DATEREF(datetime-valued)
+
+  The time reference keywords (MJDREF, JDREF, DATEREF) are interpreted using the
+  time scale specified in TIMESYS.
+
+  .. note::
+
+     If none of the three keywords is present, there is no problem as long as all
+     times in the HDU are expressed in ISO-8601; otherwise MJDREF = 0.0 must be assumed.
+
+     The value of the reference time has global validity for all time values,
+     but it does not have a particular time scale associated with it. Thus we need to
+     use ``TCRVLn` (time coordinate reference value) keyword to compensate for the
+     time scale differences.
+
+* Time reference position		
+  The reference position, specified by the keyword ``TREFPOS``, specifies the spatial
+  location at which the time is valid, either where the observation was made or
+  the point in space for which light-time corrections have been applied.
+  This may be a standard location (such as ``GEOCENTER`` or ``TOPOCENTER``) or a point
+  in space defined by specific coordinates.
+
+  TREFPOS (string-valued)
+  Time reference position; default TOPOCENTER
+
+  TRPOSn (string-valued)
+  Column-specific override keyword
+
+  .. note::
+
+     For TOPOCENTER, we need to specify the observatory location
+     (ITRS cartesian coordinates or geodetic latitude/longitude/height) in the
+     ``OBSGEO-*`` keywords.
+
+* Time reference direction
+  If any pathlength corrections have been applied to the time stamps (i.e., if
+  the reference position is not TOPOCENTER for observational data), the reference
+  direction that is used in calculating the pathlength delay should be provided
+  in order to maintain a proper analysis trail of the data.
+  However, this is useful only if there is also information available on the location
+  from where the observation was made (the observatory location).
+
+  The reference direction is indicated through a reference to specific keywords.
+  These keywords may explicitly hold the direction or indicate columns holding
+  the coordinates.
+
+  TREFDIR (string-valued)
+  Pointer to time reference direction
+
+  TRDIRn (string-valued)
+  Column-specific override keyword
+
+* Time unit
+  The FITS standard recommends the time unit to be one of the allowed ones
+  in the specification.
+
+  TIMEUNIT (string-valued)
+  Time unit; default s 
+
+  TCUNIn (string-valued)
+  Column-specific override
+
+* Time Offset
+  It is sometimes convenient to be able to apply a uniform clock correction
+  in bulk by just putting that number in a single keyword. A second use
+  for a time offset is to set a zero offset to a relative time series,
+  allowing zero-relative times, or just higher precision, in the time stamps.
+  Its default value is zero.
+
+  TIMEOFFS (floating-valued)
+  This has global validity
+
+* The absolute, relative errors and time resolution, time binning can be used
+  when needed.
+
+The following keywords define the global informational keywords:
+
+* DATE and DATE-* keywords
+  These define the date of HDU creation and observation in ISO-8601.
+  These are in UTC if the file is constructed on the Earth’s surface.
+
+* MJD-* keywords
+  These define the same as above, but in ``MJD`` (Modified Julian Date).
+
+The implementation currently writes the above keywords which map to the
+Time metdata. While reading FITS files with time columns, the 
+:func:`astropy.io.fits.fitstime._verify_time_info` verifies if a column
+is indeed time or not, as time is intrinsically a coordinate and hence
+shares keywords with the ``World Coordinate System specification``.
