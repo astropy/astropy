@@ -48,6 +48,11 @@ with the Astropy Project, see http://dashboard.astropy.org.
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
 
+.. image::
+http://depsy.org/api/package/pypi/astropy/badge.svg
+    :target: http://depsy.org/package/python/astropy
+    :alt: Research software impact
+
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
