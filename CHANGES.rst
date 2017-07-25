@@ -55,6 +55,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Split pytest plugins into separate modules. [#6384]
+
 astropy.time
 ^^^^^^^^^^^^
 
