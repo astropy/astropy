@@ -58,7 +58,7 @@ Acknowledging or Citing Astropy
 
 If you use Astropy for work/research presented in a publication
 (whether directly, or as a dependency to another package), we ask that you
-cite the `Astropy Paper <http://dx.doi.org/10.1051/0004-6361/201322068>`
+cite the `Astropy Paper <http://dx.doi.org/10.1051/0004-6361/201322068>`_
 (`ADS<http://adsabs.harvard.edu/abs/2013A%26A...558A..33A>`)
 
 License
