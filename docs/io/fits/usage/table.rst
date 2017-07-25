@@ -422,7 +422,7 @@ The following keywords set the Time coordinate frame:
 
      The value of the reference time has global validity for all time values,
      but it does not have a particular time scale associated with it. Thus we need to
-     use ``TCRVLn` (time coordinate reference value) keyword to compensate for the
+     use ``TCRVLn`` (time coordinate reference value) keyword to compensate for the
      time scale differences.
 
 * Time reference position		
