@@ -48,9 +48,15 @@ with the Astropy Project, see http://dashboard.astropy.org.
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
 
+
+Acknowledging or Citing Astropy
+-------------------------------
+
 .. image:: http://depsy.org/api/package/pypi/astropy/badge.svg
     :target: http://depsy.org/package/python/astropy
     :alt: Research software impact
+
+
 
 License
 -------
