@@ -384,7 +384,7 @@ into account the following important points stated in the standard.
 The strategy used to store `~astropy.time.Time` columns in FITS tables is to use
 the `~astropy.io.fits.Header` to create a Header with the appropriate time coordinate
 global reference keywords and the column specific override keywords. The
-`~astropy.io.fits.fitstime` deals with this reading and writing of ``Time`` columns.
+:mod:`~astropy.io.fits.fitstime` deals with this reading and writing of ``Time`` columns.
 
 The following keywords set the Time coordinate frame:
 
@@ -489,7 +489,8 @@ The following keywords define the global informational keywords:
 
 * DATE and DATE-* keywords
   These define the date of HDU creation and observation in ISO-8601.
-  These are in UTC if the file is constructed on the Earth’s surface.
+  ``DATE`` is in UTC if the file is constructed on the Earth’s surface
+  and others are in the time scale given by ``TIMESYS``.
 
 * MJD-* keywords
   These define the same as above, but in ``MJD`` (Modified Julian Date).
