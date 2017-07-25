@@ -230,6 +230,130 @@ At this time, the ``meta`` attribute of the :class:`~astropy.table.Table` class
 is simply an ordered dictionary and does not fully represent the structure of a
 FITS header (for example, keyword comments are dropped).
 
+Mixin Columns
+^^^^^^^^^^^^^^
+
+Starting with astropy 3.0 it is possible to store not only standard
+`~astropy.table.Column` objects to a FITS table HDU but also the following
+:ref:`mixin_columns`:
+
+-`astropy.time.Time`
+-`astropy.units.Quantity`
+
+Consequently, the ability to convert FITS columns which are representations of
+a ``mixin column`` into that class, while storing in an `~astropy.table.Table`
+has been provided.
+
+In general a mixin column may contain multiple data components as well as
+object attributes beyond the standard Column attributes like
+``format`` or ``description``. Abiding by the rules set by the FITS standard,
+requires mapping of these data components and object attributes to the
+appropriate FITS specification columns and keywords.
+
+Thus, a well defined protocol has been developed to allow the storage of mixin
+columns in FITS while still maintaining considerable ``round-tripping``.
+
+* Quantity
+
+  Since the only difference between `~astropy.table.Table` and
+  `~astropy.table.QTable` is that the former converts columns with an
+  associated ``unit`` attribute to `~astropy.units.Quantity`
+  objects, a Quantity object in a QTable is treated the same way as a
+  standard Column with a unit attribute in a Table. It used the ``TUNITn``
+  column keyword to incorporate the unit attribute of Quantity.  
+
+      >>> from astropy.table import QTable
+      >>> from astropy.units import Quantity
+      >>> t = QTable([Quantity([1, 2], unit='Angstrom')])
+      >>> t.write('my_table.fits', overwrite=True)
+      >>> qt = QTable.read('my_table.fits')
+      >>> qt
+      <QTable length=2>
+        col0
+      Angstrom
+      float64
+      --------
+           1.0
+           2.0
+
+All the other ``mixin columns`` being quite difficult to store
+in FITS tables, due to reasons including extensive metadata and
+no precise mapping to the FITS standard, are treated separately
+by using the argument ``astropy_native``in the FITS read/write API.
+Thus, an Astropy Table or QTable can read/write these mixin columns
+from/to FITS tables. Currently this is limited to `~astropy.time.Time`
+columns since the FITS standard has been extended to include time.
+
+* Time
+
+  Time as a dimension in astronomical data presents challenges in its 
+  representation in FITS files. The standard has therefore been extended to
+  describe rigorously the time coordinate in the ``World Coordinate System``
+  framework. Refer to `FITS WCS paper IV <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_
+  for details.
+
+  Allowing `~astropy.time.Time` columns to be written as normal columns in FITS
+  tables thus involves storing time values in a way to ensure retention
+  of precision and mapping the elaborate metadata associated with it to
+  the relevant FITS keywords.
+
+  In accordance with the standard which states that, in binary tables one
+  may use pairs of doubles, the Astropy Time column is written in such a
+  table as a vector of two doubles ``(TFORM n = ‘2D’)`` (jd1, jd2).
+  This reproduces the time values to double-double precision and is the
+  "lossless" version exploiting the higher precision provided in binary
+  tables. Considerable round-tripping of astropy written FITS binary tables
+  containing time columns has been achieved by mapping metadata,
+  ``scale`` and ``singular location`` to corresponding keywords.
+
+  This new functionality has been provided in both, the Table and QTable API,
+  using the optional argument ``astropy_native``. Users can
+  explicitly set it to `True` to allow the writing and reading of Time
+  to and from FITS without much loss of precision and metadata. By default,
+  this functionality is off and users can store the original time
+  representation values in the specified Time ``format`` instead of (jd1, jd2).
+  This might be useful when dealing with other softwares which do not
+  recognize this format or when users want to serialize their Time object
+  in the format of their choosing.
+
+      >>> from astropy.time import Time
+      >>> from astropy.table import Table
+      >>> from astropy.coordinates import EarthLocation
+      >>> t = Table()
+      >>> t['a'] = Time([1,2], scale='tt', format='cxcsec',
+      ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+      >>> t.write('my_table.fits', overwrite=True, astropy_native=True)
+      >>> tm = Table.read('my_table.fits', astropy_native=True)
+      >>> tm['a']
+      <Time object: scale='tt' format='jd' value=[ 2450814.50001157  2450814.50002315]>
+      >>> tm['a'].location
+      <EarthLocation (-2446354.,  4237210.,  4077985.) m>
+
+  .. note::
+
+     The Astropy Time object does not precisely map to the FITS Time standard.
+
+     ``Location``
+     In Astropy Time, location can be an array which is broadcastable to the
+     Time values. In the FITS standard location is a scalar expressed via
+     keywords.
+
+     ``Format``
+     The FITS format considers only three formats, ISO-8601, JD and MJD.
+     Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
+     for representing the values.
+
+     The support for these is currently under development.
+
+     The reading of non-Astropy written FITS files with time columns is also
+     under development and hence will fail if you try to do so.
+
+  The ability to read in the various time global informational keywords,
+  like the DATE-* ISO-8601 datetime strings and the MJD-* mjd values as
+  ``Time`` objects in the Table ``meta`` has also been provided.
+  For more details regarding the FITS time paper and the implementation,
+  refer to :ref:`fits_time_column`.
+
 .. _table_io_hdf5:
 
 HDF5
@@ -280,9 +404,6 @@ Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
-
-
-
 
 .. _table_io_votable:
 

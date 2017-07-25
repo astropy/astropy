@@ -15,7 +15,6 @@ from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .convenience import table_to_hdu
 from .column import is_time_column_keyword
-from .fitstime import fits_to_time
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -105,6 +104,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
     """
+    # Avoid circular imports
+    from .fitstime import fits_to_time
 
     if isinstance(input, HDUList):
 
