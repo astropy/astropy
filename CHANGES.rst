@@ -243,6 +243,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Added old frame attribute classes back to top-level namespace of
+  ``astropy.coordinates``. [#6357]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
