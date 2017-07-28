@@ -691,8 +691,8 @@ class ProgressBar(six.Iterator):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, ipython_widget=False,
-            file=None, step=100):
+    def map(cls, function, items, multiprocess=False, file=None, step=100,
+            ipython_widget=False):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
