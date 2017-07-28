@@ -66,7 +66,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
-   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree, 
+   ``git clone`` or do ``git clean -dfx``. If you choose to clean the working tree,
    don't forget to clean the ``astropy_helpers`` submodule, too.
 
 #. Be sure you're on the branch appropriate for the version you're about to
@@ -119,12 +119,12 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.2
 
-   Don't forget to remove any non-committed files both from the main working tree 
+   Don't forget to remove any non-committed files both from the main working tree
    and ``astropy_helpers`` submodules with::
 
       $ git clean -dfx
       $ cd astropy_helpers; git clean -dfx; cd ..
-      
+
 #. Make sure the source distribution doesn't inherit limited permissions
    following your default umask::
 
@@ -177,13 +177,15 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
+   
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
    to give the release tag to build.  Check the build has passed on on the
    Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.  Now
    follow the instructions in the page above to download the built wheels to a
-   local machine and upload to PyPI.
+   local machine and upload to PyPI. If you use the ``wheel_download.py`` script,
+   make sure you loop through all the available OS to get all the wheels.
 
 #. Now the wheels are built and uploaded, you can upload the source release.
    For safety's sake, you may want to clean the repo yet again to make sure
@@ -194,10 +196,13 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Upload the source distribution to PyPI; this is preceded by re-running
    the sdist command, which makes sure the source code is packaged up and ready
-   to be uploaded::
+   to be uploaded. You also need to GPG sign the release, before using twine to
+   upload it to PyPI. (You may need to install `twine`_ if you haven't used it yet)::
 
-      $ python setup.py build sdist upload --sign
-
+      $ python setup.py build sdist
+      $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
+      $ twine upload dist/astropy-<version>*
+      
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
    release line are *not* marked hidden.  For example, if v1.2.2 was
@@ -293,7 +298,7 @@ Modifications for a beta/release candidate release
      If an RC goes well, there's no need for a "dev" stage, as the same version
      will be released with only minor doc updates, and strings like "x.yrcz.dev"
      confuse some version number parsing tools.
-   * Do not do step #22 or later, as those are tasks for an actual release.
+   * Do not do step #26 or later, as those are tasks for an actual release.
 
 
 Performing a Feature Freeze/Branching new Major Versions
@@ -311,9 +316,8 @@ The procedure for this is straightforward:
 
 #. Make sure you're on master, and updated to the latest version from github::
 
-      $ git checkout master
       $ git fetch upstream
-      $ git reset --hard upstream/master
+      $ git checkout upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
@@ -357,7 +361,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream master:master
+      $ git push upstream HEAD:master
 
    .. note::
 
@@ -608,7 +612,8 @@ applies both for regular release *and* release candidates are the same
       $ git fetch upstream  # you probably did this already in the previous step
       $ git checkout upstream/tmp-release-v<version>
       $ cd ..
-      $ git add astropy_helpers
+      $ cp astropy_helpers/ah_bootstrap.py .
+      $ git add astropy_helpers ah_bootstrap.py
       $ git commit -m "updated helpers to v<version>"
 
 #. Wait for the continuous integration services (e.g., Travis) to run on the PR
@@ -630,8 +635,15 @@ applies both for regular release *and* release candidates are the same
       $ git checkout <maintenance branch name>
       $ git merge --no-ff tmp-release-v<version>
       $ git tag -s "v<version>" -m "Tagging v<version>"
-      $ python setup.py build sdist register upload
-      $ git push upstream --tags <maintenance branch name>
+      $ git clean -dfx
+      $ umask 0022
+      $ chmod -R a+Xr .
+      $ python setup.py build sdist
+      $ gpg --detach-sign -a dist/astropy-helpers-<version>.tar.gz
+      $ twine upload dist/astropy-helpers-<version>.tar.gz*
+      $ git push upstream v<version>.x
+      $ git push upstream v<version>
+
 
 #. Update the changelog and version number in *master* of the
    `astropy-helpers repository`_ to reflect the release you just did (detailed
@@ -779,3 +791,4 @@ that for you.  You can delete this tag by doing::
 .. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: http://conda.pydata.org/docs/
 .. _astropy-helpers repository: https://github.com/astropy/astropy-helpers
+.. _twine: https://packaging.python.org/key_projects/#twine
