@@ -6,6 +6,7 @@ import bz2
 import gzip
 import mmap
 import operator
+import io
 import os
 import sys
 import tempfile
@@ -20,7 +21,8 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...extern.six import b, string_types
+from ...extern.six.moves import http_client
+from ...extern.six import b, string_types, moves
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning
@@ -119,10 +121,16 @@ class _File(object):
         if mode not in IO_FITS_MODES:
             raise ValueError("Mode '{}' not recognized".format(mode))
 
+        # Handle raw URLs
         if (isinstance(fileobj, string_types) and
-            mode not in ('ostream', 'append') and
-            _is_url(fileobj)):  # This is an URL.
+            mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
+        # Handle responses from URL requests that have already been opened
+        elif isinstance(fileobj, http_client.HTTPResponse):
+            if mode in ('ostream', 'append', 'update'):
+                raise ValueError(
+                    "Mode {} not supported for HTTPResponse".format(mode))
+            fileobj = io.BytesIO(fileobj.read())
         else:
             self.name = fileobj_name(fileobj)
 

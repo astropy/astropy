@@ -174,6 +174,10 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Properly handle opening of FITS files from ``http.client.HTTPResponse`` (i.e.
+  it now works correctly when passing the results of ``urllib.request.urlopen``
+  to ``fits.open``). [#6378]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
