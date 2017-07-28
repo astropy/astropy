@@ -12,6 +12,7 @@ import sys
 import tempfile
 import warnings
 import zipfile
+import re
 
 from functools import reduce
 
@@ -49,8 +50,8 @@ FILE_MODES = {
     'wb': 'ostream', 'wb+': 'update',
     'ab': 'ostream', 'ab+': 'append'}
 
-# Any of these indicate the file was opened in text mode, which is not allowed
-TEXT_MODES = ['r', 'w', 'a', 'rt', 'wt', 'at']
+# A match indicates the file was opened in text mode, which is not allowed
+TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
 
 
 # readonly actually uses copyonwrite for mmap so that readonly without mmap and
@@ -79,6 +80,17 @@ except ImportError:
 else:
     HAS_PATHLIB = True
 
+def _normalize_fits_mode(mode):
+    if mode is not None and mode not in IO_FITS_MODES:
+        if TEXT_RE.match(mode):
+            raise ValueError(
+                "Text mode '{}' not supported: "
+                "files must be opened in binary mode".format(mode))
+        new_mode = FILE_MODES.get(mode)
+        if new_mode not in IO_FITS_MODES:
+            raise ValueError("Mode '{}' not recognized".format(mode))
+        mode = new_mode
+    return mode
 
 class _File(object):
     """
@@ -112,21 +124,16 @@ class _File(object):
         # Holds mmap instance for files that use mmap
         self._mmap = None
 
-        if mode is None:
-            if isfile(fileobj):
-                mode = fileobj_mode(fileobj)
-            else:
-                mode = 'readonly'  # The default
-
-        if mode not in IO_FITS_MODES:
-            if mode in TEXT_MODES:
+        mode = _normalize_fits_mode(mode)
+        if isfile(fileobj):
+            objmode = _normalize_fits_mode(fileobj_mode(fileobj))
+            if mode is not None and mode != objmode:
                 raise ValueError(
-                    "Text mode '{}' not supported: "
-                    "files must be opened in binary mode".format(mode))
-            new_mode = FILE_MODES.get(mode)
-            if new_mode not in IO_FITS_MODES:
-                raise ValueError("Mode '{}' not recognized".format(mode))
-            mode = new_mode
+                    "Requested FITS mode '{}' not compatible with open file "
+                    "handle mode '{}'".format(mode, objmode))
+            mode = objmode
+        if mode is None:
+            mode = 'readonly'
 
         # Handle raw URLs
         if (isinstance(fileobj, string_types) and
