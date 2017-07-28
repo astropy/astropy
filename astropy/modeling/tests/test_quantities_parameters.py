@@ -11,10 +11,12 @@ import numpy as np
 
 from ..core import Model, Fittable1DModel, InputParameterError
 from ..parameters import Parameter, ParameterDefinitionError
-from ..models import Gaussian1D
+from ..models import (Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial,
+                      Rotation2D)
 from ... import units as u
 from ...units import UnitsError
 from ...tests.helper import pytest, assert_quantity_allclose
+from ... import coordinates as coord
 
 
 class BaseTestModel(Fittable1DModel):
@@ -328,3 +330,12 @@ def test_parameter_quantity_comparison():
                                  "dimensionless quantities when other argument "
                                  "is not a quantity (unless the latter is all "
                                  "zero/infinity/nan)")
+
+
+def test_parameters_compound_models():
+    tan = Pix2Sky_TAN()
+    sky_coords = coord.SkyCoord(ra=5.6, dec=-72, unit=u.deg)
+    lon_pole = 180 * u.deg
+    n2c = RotateNative2Celestial(sky_coords.ra, sky_coords.dec, lon_pole)
+    rot = Rotation2D(23)
+    m = rot | n2c
