@@ -691,7 +691,8 @@ class ProgressBar(six.Iterator):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=None, step=100):
+    def map(cls, function, items, multiprocess=False, file=None, step=100,
+            ipython_widget=False):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -716,6 +717,10 @@ class ProgressBar(six.Iterator):
             If `True`, use the `multiprocessing` module to distribute each
             task to a different processor core.
 
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
+
         file : writeable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
@@ -735,9 +740,12 @@ class ProgressBar(six.Iterator):
         if file is None:
             file = _get_stdout()
 
-        with cls(len(items), file=file) as bar:
-            default_step = max(int(float(len(items)) / bar._bar_length), 1)
-            chunksize = min(default_step, step)
+        with cls(len(items), ipython_widget=ipython_widget, file=file) as bar:
+            if bar._ipython_widget:
+                chunksize = step
+            else:
+                default_step = max(int(float(len(items)) / bar._bar_length), 1)
+                chunksize = min(default_step, step)
             if not multiprocess:
                 for i, item in enumerate(items):
                     results.append(function(item))
