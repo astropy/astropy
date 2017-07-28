@@ -612,18 +612,40 @@ class TestFileFunctions(FitsTestCase):
                     pass
 
         # All of these read modes should fail
-        for mode in ['r', 'rt', 'a', 'at']:
+        for mode in ['r', 'rt', 'r+', 'rt+', 'a', 'at', 'a+', 'at+']:
             with pytest.raises(ValueError):
                 with open(self.data('test0.fits'), mode=mode) as handle:
                     with fits.open(handle) as fitsfile:
                         pass
 
         # These write modes should fail as well
-        for mode in ['w', 'wt']:
+        for mode in ['w', 'wt', 'w+', 'wt+']:
             with pytest.raises(ValueError):
                 with open(self.temp('temp.fits'), mode=mode) as handle:
                     with fits.open(handle) as fitsfile:
                         pass
+
+    def test_fits_file_handle_mode_combo(self):
+        # This should work fine since no mode is given
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle) as fitsfile:
+                pass
+
+        # This should work fine since the modes are compatible
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle, mode='readonly') as fitsfile:
+                pass
+
+        # These modes should also agree
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle, mode='rb') as fitsfile:
+                pass
+
+        # This should not work since the modes conflict
+        with pytest.raises(ValueError):
+            with open(self.data('test0.fits'), 'rb') as handle:
+                with fits.open(handle, mode='ostream') as fitsfile:
+                    pass
 
     @pytest.mark.skipif(six.PY2,
         reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
@@ -1133,7 +1155,7 @@ class TestFileFunctions(FitsTestCase):
             hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
 
-            with open(filename, mode='wb+') as fileobj:
+            with open(filename, mode='wb') as fileobj:
                 hdulist.writeto(fileobj)
 
         assert ("Not enough space on disk: requested 8000, available 0. "
