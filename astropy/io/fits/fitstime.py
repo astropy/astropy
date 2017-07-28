@@ -54,7 +54,8 @@ def _verify_time_info(global_info, time_columns):
     Also verify that a coordinate column of another type is not
     mistaken to be time.
     """
-    # FITS deprecated scales
+    # Translate FITS deprecated scale into astropy scale, or else just convert
+    # to lower case for scale that is OK.
     global_info['scale'] = FITS_DEPRECATED_SCALES.get(global_info['scale'],
                                                       global_info['scale'].lower())
 
@@ -62,7 +63,7 @@ def _verify_time_info(global_info, time_columns):
     if not global_info['scale'] in Time.SCALES:
         raise AssertionError(
             'Global time scale (TIMESYS) must have a FITS recognized '
-            'time scale value (got {0!r}).'.format(global_info['scale']))
+            'time scale value (got {!r}).'.format(global_info['scale']))
 
     for idx, time_col in time_columns.items():
         scale = time_col.get('scale', None)
@@ -119,27 +120,27 @@ def _convert_time_columns(table, global_info, time_columns):
     # The code might fail while attempting to read FITS files not written by astropy.
 
     # Read in Global Informational keywords as Time
-    for key in global_info:
+    for key, value in global_info.items():
         # FITS uses a subset of ISO-8601 for several time-related keywords,
         # such as DATE-xxx
         if key.startswith('date'):
             if key not in table.meta:
                 try:
-                    table.meta[key.upper()] = Time(global_info[key], scale=global_info['scale'],
-                                                   precision=(lambda x: len(x.split('.')[1])
-                                                   if '.' in x else 0)(global_info[key]))
+                    precision = (lambda x: len(x.split('.')[1])
+                                 if '.' in x else 0)(value)
+                    table.meta[key.upper()] = Time(value, scale=global_info['scale'],
+                                                   precision=precision)
                 except ValueError:
-                    table.meta[key.upper()] = global_info[key]
+                    table.meta[key.upper()] = value
 
         # MJD-xxx
         elif key.startswith('mjd-'):
             if key not in table.meta:
                 try:
-                    table.meta[key.upper()] = Time(global_info[key],
-                                                   scale=global_info['scale'],
+                    table.meta[key.upper()] = Time(value, scale=global_info['scale'],
                                                    format='mjd')
                 except ValueError:
-                    table.meta[key.upper()] = global_info[key]
+                    table.meta[key.upper()] = value
 
     # Read in time coordinate columns as Time
     for idx, time_col in time_columns.items():
