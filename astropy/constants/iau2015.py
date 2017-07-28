@@ -92,5 +92,5 @@ M_earth = IAU2015('M_earth', "Earth mass",
                  "IAU 2015 Resolution B 3 + CODATA 2014", system='si')
 
 # Earth equatorial radius
-R_earth = IAU2015('R_earth', "Nominal Earth equatorial radius", 6.3568e6,
+R_earth = IAU2015('R_earth', "Nominal Earth equatorial radius", 6.3781e6,
                    'm', 0.0, "IAU 2015 Resolution B 3", system='si')
