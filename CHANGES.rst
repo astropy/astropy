@@ -270,6 +270,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed a bug in initializing compound models with units. [#6398]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
