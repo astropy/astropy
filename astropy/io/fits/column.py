@@ -803,9 +803,16 @@ class Column(NotifierMixin):
                 'Coordinate/axis type must be a string of atmost 8 '
                 'characters.')
 
+    @ColumnAttribute('TCUNI')
+    def coord_unit(col, coord_unit):
+        if (coord_unit is not None
+                and not isinstance(coord_unit, string_types)):
+            raise AssertionError(
+                'Coordinate/axis unit must be a string.')
+
     @ColumnAttribute('TCRPX')
     def coord_ref_point(col, coord_ref_point):
-        if (not coord_ref_point is None
+        if (coord_ref_point is not None
                 and not isinstance(coord_ref_point, numbers.Real)):
             raise AssertionError(
                 'Pixel coordinate of the reference point must be '
@@ -813,7 +820,7 @@ class Column(NotifierMixin):
 
     @ColumnAttribute('TCRVL')
     def coord_ref_value(col, coord_ref_value):
-        if (not coord_ref_value is None
+        if (coord_ref_value is not None
                 and not isinstance(coord_ref_value, numbers.Real)):
             raise AssertionError(
                 'Coordinate value at reference point must be real '
@@ -821,14 +828,14 @@ class Column(NotifierMixin):
 
     @ColumnAttribute('TCDLT')
     def coord_inc(col, coord_inc):
-        if (not coord_inc is None
+        if (coord_inc is not None
                 and not isinstance(coord_inc, numbers.Real)):
             raise AssertionError(
                 'Coordinate increment must be real floating type.')
 
     @ColumnAttribute('TRPOS')
     def time_ref_pos(col, time_ref_pos):
-        if (not time_ref_pos is None
+        if (time_ref_pos is not None
                 and not isinstance(time_ref_pos, string_types)):
             raise AssertionError(
                 'Time reference position must be a string.')
@@ -841,7 +848,6 @@ class Column(NotifierMixin):
     disp = ColumnAttribute('TDISP')
     start = ColumnAttribute('TBCOL')
     dim = ColumnAttribute('TDIM')
-    coord_unit = ColumnAttribute('TCUNI')
 
     @lazyproperty
     def ascii(self):
