@@ -1788,6 +1788,7 @@ class Model(object):
         total_size = 0
 
         for name in self.param_names:
+            unit = None
             param_descr = getattr(self, name)
 
             if params.get(name) is None:
@@ -1844,7 +1845,9 @@ class Model(object):
         # out of Parameter and into Model (renaming them
         # _get/set_parameter_value)
         for name, value in params.items():
+            # value here may be a Quantity object.
             param_descr = getattr(self, name)
+            unit = param_descr.unit
             value = np.array(value)
             orig_unit = param_metrics[name]['orig_unit']
             if param_descr._setter is not None:
