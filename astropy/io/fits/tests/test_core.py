@@ -24,10 +24,12 @@ from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
 
+from ....extern import six
 from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....utils.data import get_pkg_data_filename
+from ....tests.helper import remote_data
+from ....utils.data import conf, get_pkg_data_filename
 from ....utils import data
 
 
@@ -592,6 +594,38 @@ class TestFileFunctions(FitsTestCase):
 
             assert os.path.exists(self.temp('foobar.fits'))
             os.remove(self.temp('foobar.fits'))
+
+    @pytest.mark.skipif(six.PY2,
+        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
+    def test_open_from_url(self):
+        import urllib.request
+        file_url = "file:///" + self.data('test0.fits')
+        with urllib.request.urlopen(file_url) as urlobj:
+            with fits.open(urlobj) as fits_handle:
+                pass
+
+        # It will not be possible to write to a file that is from a URL object
+        for mode in ('ostream', 'append', 'update'):
+            with pytest.raises(ValueError):
+                with urllib.request.urlopen(file_url) as urlobj:
+                    with fits.open(urlobj, mode=mode) as fits_handle:
+                        pass
+
+    @remote_data(source='astropy')
+    @pytest.mark.skipif(six.PY2,
+        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
+    def test_open_from_remote_url(self):
+        import urllib.request
+        remote_url = '{}/{}'.format(conf.dataurl, 'allsky/allsky_rosat.fits')
+        with urllib.request.urlopen(remote_url) as urlobj:
+            with fits.open(urlobj) as fits_handle:
+                pass
+
+        for mode in ('ostream', 'append', 'update'):
+            with pytest.raises(ValueError):
+                with urllib.request.urlopen(remote_url) as urlobj:
+                    with fits.open(urlobj, mode=mode) as fits_handle:
+                        pass
 
     def test_open_gzipped(self):
         with ignore_warnings():
