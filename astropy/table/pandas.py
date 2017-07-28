@@ -11,7 +11,6 @@ try:
         from IPython import display
 
         html = display.Image(url=url)._repr_html_()
-        message = 'Pandas/Table interaction'
 
         class HTMLWithBackup(display.HTML):
             def __init__(self, data, backup_text):
@@ -24,7 +23,7 @@ try:
                     return self.backup_text
 
 
-        dhtml = HTMLWithBackup(message_uncoded + html, ascii_uncoded)
+        dhtml = HTMLWithBackup(html, ascii_uncoded)
         display.display(dhtml)
     except ImportError:
         print(ascii_uncoded)
