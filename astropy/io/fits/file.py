@@ -49,6 +49,9 @@ FILE_MODES = {
     'wb': 'ostream', 'wb+': 'update',
     'ab': 'ostream', 'ab+': 'append'}
 
+# Any of these indicate the file was opened in text mode, which is not allowed
+TEXT_MODES = ['r', 'w', 'a', 'rt', 'wt', 'at']
+
 
 # readonly actually uses copyonwrite for mmap so that readonly without mmap and
 # with mmap still have to same behavior with regard to updating the array.  To
@@ -110,16 +113,16 @@ class _File(object):
         self._mmap = None
 
         if mode is None:
-            if _is_random_access_file_backed(fileobj):
+            if isfile(fileobj):
                 mode = fileobj_mode(fileobj)
             else:
                 mode = 'readonly'  # The default
 
         if mode not in IO_FITS_MODES:
-            if mode in ['r', 'w', 'a']:
+            if mode in TEXT_MODES:
                 raise ValueError(
-                    ("Text mode '{}' not supported: " +
-                    "files must be opened in binary mode").format(mode))
+                    "Text mode '{}' not supported: "
+                    "files must be opened in binary mode".format(mode))
             new_mode = FILE_MODES.get(mode)
             if new_mode not in IO_FITS_MODES:
                 raise ValueError("Mode '{}' not recognized".format(mode))
@@ -156,7 +159,7 @@ class _File(object):
         self.writeonly = False
 
         # Initialize the internal self._file object
-        if _is_random_access_file_backed(fileobj):
+        if isfile(fileobj):
             self._open_fileobj(fileobj, mode, overwrite)
         elif isinstance(fileobj, string_types):
             self._open_filename(fileobj, mode, overwrite)
@@ -412,9 +415,8 @@ class _File(object):
             else:
                 raise IOError("File {!r} already exists.".format(self.name))
 
-    def _test_for_compression(self, obj_or_name, magic, mode, ext=''):
+    def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""
-        is_compressed = False
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
             kwargs = dict(mode=IO_FITS_MODES[mode])
@@ -437,7 +439,7 @@ class _File(object):
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
             self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
             self.compression = 'bzip2'
-        return self.compression # Will be 'None' if no compression detected
+        return self.compression is not None
 
     def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object or a GzipFile object."""
@@ -474,7 +476,7 @@ class _File(object):
         except (IOError,OSError):
             return
 
-        self._test_for_compression(fileobj, magic, mode)
+        self._try_read_compressed(fileobj, magic, mode)
 
     def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
@@ -490,7 +492,6 @@ class _File(object):
 
         if isinstance(fileobj, zipfile.ZipFile):
             self._open_zipfile(fileobj, mode)
-            self._file.seek(0)
             # We can bypass any additional checks at this point since now
             # self._file points to the temp file extracted from the zip
             return
@@ -529,16 +530,14 @@ class _File(object):
 
         ext = os.path.splitext(self.name)[1]
 
-        if not self._test_for_compression(self.name, magic, mode, ext=ext):
+        if not self._try_read_compressed(self.name, magic, mode, ext=ext):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
             self.close_on_error = True
 
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
         # when opening a file for write, bz2.BZ2File always truncates anyway.
-        if isinstance(self._file, bz2.BZ2File) and mode == 'ostream':
-            pass
-        else:
+        if not (isinstance(self._file, bz2.BZ2File) and mode == 'ostream'):
             self._file.seek(0)
 
     @classproperty(lazy=True)
@@ -605,16 +604,7 @@ class _File(object):
 
         if close:
             zfile.close()
+        # We just wrote the contents of the first file in the archive to a new
+        # temp file, which now serves as our underlying file object. So it's
+        # necessary to reset the position back to the beginning
         self._file.seek(0)
-
-
-def _is_random_access_file_backed(fileobj):
-    """Returns `True` if fileobj is a `file` or `io.FileIO` object or a
-    `gzip.GzipFile` object.
-
-    Although reading from a zip file is supported, this does not include
-    support for random access, and we do not yet support reading directly
-    from an already opened `zipfile.ZipFile` object.
-    """
-
-    return isfile(fileobj) or isinstance(fileobj, gzip.GzipFile)

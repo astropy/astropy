@@ -595,8 +595,6 @@ class TestFileFunctions(FitsTestCase):
             assert os.path.exists(self.temp('foobar.fits'))
             os.remove(self.temp('foobar.fits'))
 
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_file_handle(self):
         # Make sure we can open a FITS file from an open file handle
         with open(self.data('test0.fits'), 'rb') as handle:
@@ -613,11 +611,22 @@ class TestFileFunctions(FitsTestCase):
                 with fits.open(handle) as fitsfile:
                     pass
 
-        with pytest.raises(ValueError):
-            with open(self.temp('temp.fits'), 'w') as handle:
-                with fits.open(handle) as fitsfile:
-                    pass
+        # All of these read modes should fail
+        for mode in ['r', 'rt', 'a', 'at']:
+            with pytest.raises(ValueError):
+                with open(self.data('test0.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
 
+        # These write modes should fail as well
+        for mode in ['w', 'wt']:
+            with pytest.raises(ValueError):
+                with open(self.temp('temp.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
+
+    @pytest.mark.skipif(six.PY2,
+        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_url(self):
         import urllib.request
         file_url = "file:///" + self.data('test0.fits')
