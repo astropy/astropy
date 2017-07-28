@@ -237,8 +237,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- Fixing IAU2015 Earth radius to be the equatorial one rather than the
-  polar. [#6400]
+- Fixed Earth radius to be the IAU2015 value for the equatorial radius.
+  The polar value had erroneously been used in 2.0. [#6400]
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
