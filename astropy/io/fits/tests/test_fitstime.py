@@ -125,11 +125,25 @@ class TestFitsTime(FitsTestCase):
         t.meta['DATE'] = '1999-01-01T00:00:00'
         t.meta['MJD-OBS'] = 56670
 
-        t.write(self.temp('time.fits'), format='fits', astropy_native=True)
+        # Test for default read/write behaviour (raw data)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits')
+
+        # Test DATE
+        assert not isinstance(tm.meta['DATE'], Time)
+        assert tm.meta['DATE'] == t.meta['DATE']
+
+        # Test MJD-xxx
+        assert not isinstance(tm.meta['MJD-OBS'], Time)
+        assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
+
+        # Test for native astropy objects read/write behaviour
+        t.write(self.temp('time.fits'), format='fits', overwrite=True,
+                astropy_native=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
-        # Test DATE/DATE-xxx
+        # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
         assert tm.meta['DATE'].value == t.meta['DATE']
         assert tm.meta['DATE'].format == 'isot'
@@ -147,18 +161,15 @@ class TestFitsTime(FitsTestCase):
 
         t.write(self.temp('time.fits'), format='fits', overwrite=True,
                 astropy_native=True)
-        tm = Table.read(self.temp('time.fits'), format='fits', astropy_native=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
 
+        # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
         assert tm.meta['DATE'].value == t.meta['DATE']
-        assert tm.meta['DATE'].scale == FITS_DEPRECATED_SCALES[t.meta['TIMESYS']]
+        assert tm.meta['DATE'].scale == 'utc'
 
-        # Test for default read/write behaviour (raw data)
-        t.write(self.temp('time.fits'), format='fits', overwrite=True)
-        tm = Table.read(self.temp('time.fits'), format='fits')
-
-        assert not isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'] == t.meta['DATE']
-
-        assert not isinstance(tm.meta['MJD-OBS'], Time)
-        assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
+        # Test MJD-xxx
+        assert isinstance(tm.meta['MJD-OBS'], Time)
+        assert tm.meta['MJD-OBS'].value == t.meta['MJD-OBS']
+        assert tm.meta['MJD-OBS'].scale == FITS_DEPRECATED_SCALES[t.meta['TIMESYS']]
