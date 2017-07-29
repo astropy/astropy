@@ -222,9 +222,16 @@ class AstropyTest(Command, object):
             # already done by another core.  Compilation is an
             # insignificant fraction of total testing time, though, so
             # it's probably not worth worrying about.
-            retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
-                                      cwd=self.testing_path, close_fds=False)
-
+            testproc = subprocess.Popen(
+                [sys.executable, '-B', '-c', cmd],
+                cwd=self.testing_path, close_fds=False)
+            retcode = testproc.wait()
+        except KeyboardInterrupt:
+            import signal
+            # If a keyboard interrupt is handled, pass it to the test
+            # subprocess to prompt pytest to initiate its teardown
+            testproc.send_signal(signal.SIGINT)
+            retcode = testproc.wait()
         finally:
             # Remove temporary directory
             shutil.rmtree(self.tmp_dir)
