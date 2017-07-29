@@ -298,6 +298,10 @@ astropy.table
 
 astropy.tests
 ^^^^^^^^^^^^^
+- Fixed the test command that is run from ``setuptools`` to allow it to
+  gracefully handle keyboard interrupts and pass them on to the ``pytest``
+  subprocess. This prompts ``pytest`` to teardown and display useful traceback
+  and test information [#6369]
 
 astropy.time
 ^^^^^^^^^^^^
