@@ -51,6 +51,9 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Updating CCDData.read() to be more flexible with inputs, don't try to
+  delete keywords that are missing from the header. [#6388]
+
 astropy.samp
 ^^^^^^^^^^^^
 
