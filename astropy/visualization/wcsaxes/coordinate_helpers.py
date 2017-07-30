@@ -427,15 +427,11 @@ class CoordinateHelper(object):
     def formatter(self):
         return self._formatter_locator.formatter
 
-    def _draw(self, renderer, bboxes, ticklabels_bbox):
+    def _draw_grid(self, renderer):
 
-        renderer.open_group('coordinate_axis')
+        renderer.open_group('grid lines')
 
         self._update_ticks()
-
-        self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox)
 
         if self.grid_lines_kwargs['visible']:
 
@@ -458,7 +454,17 @@ class CoordinateHelper(object):
                     line.set(**self.grid_lines_kwargs)
                     line.draw(renderer)
 
-        renderer.close_group('coordinate_axis')
+        renderer.close_group('grid lines')
+
+    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
+
+        renderer.open_group('ticks')
+
+        self.ticks.draw(renderer)
+        self.ticklabels.draw(renderer, bboxes=bboxes,
+                             ticklabels_bbox=ticklabels_bbox)
+
+        renderer.close_group('ticks')
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
 

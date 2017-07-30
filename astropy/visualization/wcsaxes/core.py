@@ -337,8 +337,13 @@ class WCSAxes(Axes):
 
             coords.frame.update()
             for coord in coords:
-                coord._draw(renderer, bboxes=self._bboxes,
-                            ticklabels_bbox=self._ticklabels_bbox)
+                coord._draw_grid(renderer)
+
+        for coords in self._all_coords:
+
+            for coord in coords:
+                coord._draw_ticks(renderer, bboxes=self._bboxes,
+                                  ticklabels_bbox=self._ticklabels_bbox)
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
