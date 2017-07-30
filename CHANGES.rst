@@ -1,11 +1,8 @@
-2.0.1 (unreleased)
+2.0.1 (2017-07-30)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
@@ -13,23 +10,11 @@ astropy.constants
 - Fixed Earth radius to be the IAU2015 value for the equatorial radius.
   The polar value had erroneously been used in 2.0. [#6400]
 
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
 - Added old frame attribute classes back to top-level namespace of
   ``astropy.coordinates``. [#6357]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -37,15 +22,6 @@ astropy.io.fits
 - Scaling an image always uses user-supplied values when given. Added
   defaults for scaling when bscale/bzero are not present (float images).
   Fixed a small bug in when to reset ``_orig_bscale``. [#5955]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -58,30 +34,12 @@ astropy.nddata
 - Updating CCDData.read() to be more flexible with inputs, don't try to
   delete keywords that are missing from the header. [#6388]
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
 astropy.tests
 ^^^^^^^^^^^^^
 - Fixed the test command that is run from ``setuptools`` to allow it to
   gracefully handle keyboard interrupts and pass them on to the ``pytest``
   subprocess. This prompts ``pytest`` to teardown and display useful traceback
   and test information [#6369]
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -91,13 +49,11 @@ astropy.visualization
   tick labels may be on the interior of the axes frame, such as the right
   ascension axis of an all-sky Aitoff or Mollweide projection. [#6361]
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
 - Fix the missing wcskey part in _read_sip_kw, this will cause error when reading sip wcs while there is no default CRPIX1 CRPIX2 keywords and only CRPIX1n CRPIX2n in header. [#6372]
+
 
 2.0 (2017-07-07)
 ================
