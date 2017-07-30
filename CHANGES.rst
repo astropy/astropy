@@ -318,6 +318,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Ticks and tick labels are now drawn in front of, rather than behind,
+  gridlines in WCS axes. This improves legibility in situations where
+  tick labels may be on the interior of the axes frame, such as the right
+  ascension axis of an all-sky Aitoff or Mollweide projection. [#6361]
+
 astropy.vo
 ^^^^^^^^^^
 
