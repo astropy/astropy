@@ -416,7 +416,7 @@ def _generate_wcs_and_update_header(hdr):
     wcs_header = wcs.to_header(relax=True)
     for k in wcs_header:
         if k not in _KEEP_THESE_KEYWORDS_IN_HEADER:
-            del new_hdr[k]
+            new_hdr.remove(k, ignore_missing=True)
     return (new_hdr, wcs)
 
 
