@@ -641,6 +641,16 @@ class TestImageFunctions(FitsTestCase):
         f = fits.open(self.temp('test_new.fits'), uint=True)
         assert f[1].data.dtype == 'uint16'
 
+    def test_scale_with_explicit_bzero_bscale(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/6399
+        """
+        hdu1 = fits.PrimaryHDU()
+        hdu2 = fits.ImageHDU(np.random.rand(100,100))
+        # The line below raised an exception in astropy 2.0, so if it does not
+        # raise an error here, that is progress.
+        hdu2.scale(type='uint8', bscale=1, bzero=0)
+
     def test_uint_header_consistency(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/2305
