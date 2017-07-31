@@ -375,8 +375,8 @@ process won't be necessary.
 
 .. _fits_time_column:
 
-FITS Time Column
-----------------
+FITS Table with Time Columns
+============================
 
 The FITS standard defines the formats and keywords used to write timing information
 to FITS files and in many cases Astropy can just write a `~astropy.table.Table`
@@ -557,8 +557,9 @@ The following keywords define the global time informational keywords:
   These define the same as above, but in ``MJD`` (Modified Julian Date).
 
 
-The implementation currently writes the above keywords which map to the
-Time metdata. While reading FITS files with time columns, the verification
-that a coordinate column is indeed time or not is done, as time is
-intrinsically a coordinate and hence shares keywords with the
-``World Coordinate System`` specification for spatial coordinates.
+The implementation writes a subset of the above FITS keywords, which map
+to the Time metdata. Time is intrinsically a coordinate and hence shares
+keywords with the ``World Coordinate System`` specification for spatial
+coordinates. Therefore, while reading FITS tables with time columns,
+the verification that a coordinate column is indeed time, is done using
+the FITS WCS standard rules and suggestions.
