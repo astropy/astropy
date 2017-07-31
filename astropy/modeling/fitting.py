@@ -732,7 +732,7 @@ class LevMarLSQFitter(object):
 
             if type(weights) in (np.ndarray, tuple, list):
                 weights = np.asarray(weights)
-                if weights.shape == x.shape == y.shape
+                if weights.shape == x.shape == y.shape \
                    and (z is None or weights.shape == z.shape):
                     weights = weights[..., np.newaxis]
 
