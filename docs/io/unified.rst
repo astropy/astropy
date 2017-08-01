@@ -236,7 +236,7 @@ Astropy native objects (mixin columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to store not only standard `~astropy.table.Column` objects to a
-FITS table HDU, but also the following astropy native objects
+FITS table HDU, but also the following Astropy native objects
 (:ref:`mixin_columns`) within a `~astropy.table.Table` or `~astropy.table.QTable`:
 
 - `astropy.time.Time`
@@ -278,20 +278,20 @@ incorporate the unit attribute of Quantity.
 Time
 ~~~~
 
-By default, a `~astropy.time.Time` mixin column within `~astropy.table.Table`
-or `~astropy.table.QTable` will be written to FITS as a standard column using
+By default, a `~astropy.time.Time` mixin column within a `~astropy.table.Table`
+or `~astropy.table.QTable` will be written to FITS as a standard Column using
 the ``format`` of the object (similar to the output when printing to the
-console).  For instance if the ``format`` is ``iso`` then the FITS column with
+console).  For instance, if the ``format`` is ``iso`` then the FITS column will
 be a character string column.  None of the special header keywords associated
-with the Time FITS standard will be set.  When reading this back into Astropy
-the column will be an ordinary column instead of a `~astropy.time.Time` object.
+with the Time FITS standard will be set.  When reading this back into Astropy,
+the column will be an ordinary Column instead of a `~astropy.time.Time` object.
 See the `Details`_ section below for an example.
 
 However, if the ``astropy_native`` keyword is ``True``, then the column
 will be written using the FITS Time standard by setting the necessary FITS
 header keywords.  Likewise with ``astropy_native=True`` when reading the
-table, any columns that conform to the FITS Time standard will be
-returned in the table as native `~astropy.time.Time` objects.  This allows
+FITS table, any columns that conform to the FITS Time standard will be
+returned in the Table as native `~astropy.time.Time` objects.  This allows
 round-tripping the object with no loss of precision.  For example::
 
     >>> from astropy.time import Time
@@ -338,7 +338,7 @@ vector of two doubles ``(TFORM n = ‘2D’) (jd1, jd2)`` where ``JD = jd1 + jd2
 This reproduces the time values to double-double precision and is the
 "lossless" version, exploiting the higher precision provided in binary tables.
 Note that ``jd1`` is always a half-integer or integer, while ``abs(jd2) < 1``.
-Round-tripping of astropy written FITS binary tables containing time coordinate
+Round-tripping of Astropy written FITS binary tables containing time coordinate
 columns has been partially achieved by mapping selected metadata, ``scale`` and
 singular ``location`` of `~astropy.time.Time`, to corresponding keywords.  Note
 that the arbitrary metadata allowed in `~astropy.table.Table` objects within
