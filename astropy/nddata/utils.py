@@ -496,125 +496,123 @@ class Cutout2D(object):
         input WCS object contains distortion lookup tables described in
         the `FITS WCS distortion paper
         <http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf>`__.
+
+    Parameters
+    ----------
+    data : `~numpy.ndarray`
+        The 2D data array from which to extract the cutout array.
+
+    position : tuple or `~astropy.coordinates.SkyCoord`
+        The position of the cutout array's center with respect to
+        the ``data`` array.  The position can be specified either as
+        a ``(x, y)`` tuple of pixel coordinates or a
+        `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
+        required input.
+
+    size : int, array-like, `~astropy.units.Quantity`
+        The size of the cutout array along each axis.  If ``size``
+        is a scalar number or a scalar `~astropy.units.Quantity`,
+        then a square cutout of ``size`` will be created.  If
+        ``size`` has two elements, they should be in ``(ny, nx)``
+        order.  Scalar numbers in ``size`` are assumed to be in
+        units of pixels.  ``size`` can also be a
+        `~astropy.units.Quantity` object or contain
+        `~astropy.units.Quantity` objects.  Such
+        `~astropy.units.Quantity` objects must be in pixel or
+        angular units.  For all cases, ``size`` will be converted to
+        an integer number of pixels, rounding the the nearest
+        integer.  See the ``mode`` keyword for additional details on
+        the final cutout size.
+
+        .. note::
+            If ``size`` is in angular units, the cutout size is
+            converted to pixels using the pixel scales along each
+            axis of the image at the ``CRPIX`` location.  Projection
+            and other non-linear distortions are not taken into
+            account.
+
+    wcs : `~astropy.wcs.WCS`, optional
+        A WCS object associated with the input ``data`` array.  If
+        ``wcs`` is not `None`, then the returned cutout object will
+        contain a copy of the updated WCS for the cutout data array.
+
+    mode : {'trim', 'partial', 'strict'}, optional
+        The mode used for creating the cutout data array.  For the
+        ``'partial'`` and ``'trim'`` modes, a partial overlap of the
+        cutout array and the input ``data`` array is sufficient.
+        For the ``'strict'`` mode, the cutout array has to be fully
+        contained within the ``data`` array, otherwise an
+        `~astropy.nddata.utils.PartialOverlapError` is raised.   In
+        all modes, non-overlapping arrays will raise a
+        `~astropy.nddata.utils.NoOverlapError`.  In ``'partial'``
+        mode, positions in the cutout array that do not overlap with
+        the ``data`` array will be filled with ``fill_value``.  In
+        ``'trim'`` mode only the overlapping elements are returned,
+        thus the resulting cutout array may be smaller than the
+        requested ``shape``.
+
+    fill_value : number, optional
+        If ``mode='partial'``, the value to fill pixels in the
+        cutout array that do not overlap with the input ``data``.
+        ``fill_value`` must have the same ``dtype`` as the input
+        ``data`` array.
+
+    copy : bool, optional
+        If `False` (default), then the cutout data will be a view
+        into the original ``data`` array.  If `True`, then the
+        cutout data will hold a copy of the original ``data`` array.
+
+    Returns
+    -------
+    result : `~astropy.nddata.utils.Cutout2D`
+        A cutout object containing the 2D cutout data array and the
+        updated WCS, if ``wcs`` is input.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.nddata.utils import Cutout2D
+    >>> from astropy import units as u
+    >>> data = np.arange(20.).reshape(5, 4)
+    >>> cutout1 = Cutout2D(data, (2, 2), (3, 3))
+    >>> print(cutout1.data)
+    [[  5.   6.   7.]
+        [  9.  10.  11.]
+        [ 13.  14.  15.]]
+
+    >>> print(cutout1.center_original)
+    (2.0, 2.0)
+    >>> print(cutout1.center_cutout)
+    (1.0, 1.0)
+    >>> print(cutout1.origin_original)
+    (1, 1)
+
+    >>> cutout2 = Cutout2D(data, (2, 2), 3)
+    >>> print(cutout2.data)
+    [[  5.   6.   7.]
+        [  9.  10.  11.]
+        [ 13.  14.  15.]]
+
+    >>> size = u.Quantity([3, 3], u.pixel)
+    >>> cutout3 = Cutout2D(data, (0, 0), size)
+    >>> print(cutout3.data)
+    [[ 0.  1.]
+        [ 4.  5.]]
+
+    >>> cutout4 = Cutout2D(data, (0, 0), (3 * u.pixel, 3))
+    >>> print(cutout4.data)
+    [[ 0.  1.]
+        [ 4.  5.]]
+
+    >>> cutout5 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
+    >>> print(cutout5.data)
+    [[ nan  nan  nan]
+        [ nan   0.   1.]
+        [ nan   4.   5.]]
     """
 
     def __init__(self, data, position, size, wcs=None, mode='trim',
                  fill_value=np.nan, copy=False):
-        """
-        Parameters
-        ----------
-        data : `~numpy.ndarray`
-            The 2D data array from which to extract the cutout array.
-
-        position : tuple or `~astropy.coordinates.SkyCoord`
-            The position of the cutout array's center with respect to
-            the ``data`` array.  The position can be specified either as
-            a ``(x, y)`` tuple of pixel coordinates or a
-            `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
-            required input.
-
-        size : int, array-like, `~astropy.units.Quantity`
-            The size of the cutout array along each axis.  If ``size``
-            is a scalar number or a scalar `~astropy.units.Quantity`,
-            then a square cutout of ``size`` will be created.  If
-            ``size`` has two elements, they should be in ``(ny, nx)``
-            order.  Scalar numbers in ``size`` are assumed to be in
-            units of pixels.  ``size`` can also be a
-            `~astropy.units.Quantity` object or contain
-            `~astropy.units.Quantity` objects.  Such
-            `~astropy.units.Quantity` objects must be in pixel or
-            angular units.  For all cases, ``size`` will be converted to
-            an integer number of pixels, rounding the the nearest
-            integer.  See the ``mode`` keyword for additional details on
-            the final cutout size.
-
-            .. note::
-                If ``size`` is in angular units, the cutout size is
-                converted to pixels using the pixel scales along each
-                axis of the image at the ``CRPIX`` location.  Projection
-                and other non-linear distortions are not taken into
-                account.
-
-        wcs : `~astropy.wcs.WCS`, optional
-            A WCS object associated with the input ``data`` array.  If
-            ``wcs`` is not `None`, then the returned cutout object will
-            contain a copy of the updated WCS for the cutout data array.
-
-        mode : {'trim', 'partial', 'strict'}, optional
-            The mode used for creating the cutout data array.  For the
-            ``'partial'`` and ``'trim'`` modes, a partial overlap of the
-            cutout array and the input ``data`` array is sufficient.
-            For the ``'strict'`` mode, the cutout array has to be fully
-            contained within the ``data`` array, otherwise an
-            `~astropy.nddata.utils.PartialOverlapError` is raised.   In
-            all modes, non-overlapping arrays will raise a
-            `~astropy.nddata.utils.NoOverlapError`.  In ``'partial'``
-            mode, positions in the cutout array that do not overlap with
-            the ``data`` array will be filled with ``fill_value``.  In
-            ``'trim'`` mode only the overlapping elements are returned,
-            thus the resulting cutout array may be smaller than the
-            requested ``shape``.
-
-        fill_value : number, optional
-            If ``mode='partial'``, the value to fill pixels in the
-            cutout array that do not overlap with the input ``data``.
-            ``fill_value`` must have the same ``dtype`` as the input
-            ``data`` array.
-
-        copy : bool, optional
-            If `False` (default), then the cutout data will be a view
-            into the original ``data`` array.  If `True`, then the
-            cutout data will hold a copy of the original ``data`` array.
-
-        Returns
-        -------
-        result : `~astropy.nddata.utils.Cutout2D`
-            A cutout object containing the 2D cutout data array and the
-            updated WCS, if ``wcs`` is input.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from astropy.nddata.utils import Cutout2D
-        >>> from astropy import units as u
-        >>> data = np.arange(20.).reshape(5, 4)
-        >>> cutout1 = Cutout2D(data, (2, 2), (3, 3))
-        >>> print(cutout1.data)
-        [[  5.   6.   7.]
-         [  9.  10.  11.]
-         [ 13.  14.  15.]]
-
-        >>> print(cutout1.center_original)
-        (2.0, 2.0)
-        >>> print(cutout1.center_cutout)
-        (1.0, 1.0)
-        >>> print(cutout1.origin_original)
-        (1, 1)
-
-        >>> cutout2 = Cutout2D(data, (2, 2), 3)
-        >>> print(cutout2.data)
-        [[  5.   6.   7.]
-         [  9.  10.  11.]
-         [ 13.  14.  15.]]
-
-        >>> size = u.Quantity([3, 3], u.pixel)
-        >>> cutout3 = Cutout2D(data, (0, 0), size)
-        >>> print(cutout3.data)
-        [[ 0.  1.]
-         [ 4.  5.]]
-
-        >>> cutout4 = Cutout2D(data, (0, 0), (3 * u.pixel, 3))
-        >>> print(cutout4.data)
-        [[ 0.  1.]
-         [ 4.  5.]]
-
-        >>> cutout5 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
-        >>> print(cutout5.data)
-        [[ nan  nan  nan]
-         [ nan   0.   1.]
-         [ nan   4.   5.]]
-        """
-
         if isinstance(position, SkyCoord):
             if wcs is None:
                 raise ValueError('wcs must be input if position is a '
