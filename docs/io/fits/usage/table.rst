@@ -387,18 +387,18 @@ with a time column:
 
 .. parsed-literal::
 
-    COMMENT ---------- Globally valid key words ----------------
-    TIMESYS =’TT      ’          / Time system
-    MJDREF = 50814.000000000000  / MJD zero point for (native) TT (= 1998-01-01)
-    MJD-OBS = 53516.257939301￼￼￼ / MJD for observation in (native) TT
+    COMMENT      ---------- Globally valid key words ----------------
+    TIMESYS = ’TT      ’          / Time system
+    MJDREF  = 50814.000000000000  / MJD zero point for (native) TT (= 1998-01-01)
+    MJD-OBS = 53516.257939301￼￼￼  / MJD for observation in (native) TT
 
-    COMMENT ---------- Time Column -----------------------
-    TTYPE1 = ’Time    ’          / S/C TT corresponding to mid-exposure
-    TFORM1 = ’2D      ’          / format of field
-    TUNIT1 = ’s       ’
-    TCTYP1 = ’TT      ’
-    TCNAM1 = ’Terrestrial Time’  / This is TT
-    TCUNI1 = ’s       ’
+    COMMENT      ---------- Time Column -----------------------
+    TTYPE1  = ’Time    ’          / S/C TT corresponding to mid-exposure
+    TFORM1  = ’2D      ’          / format of field
+    TUNIT1  = ’s       ’
+    TCTYP1  = ’TT      ’
+    TCNAM1  = ’Terrestrial Time’  / This is TT
+    TCUNI1  = ’s       ’
 
 However, the FITS standard has some limitations and there are cases where not all
 information in an Astropy Table can be mapped perfectly into the FITS standard
