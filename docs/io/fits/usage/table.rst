@@ -378,9 +378,14 @@ process won't be necessary.
 FITS Table with Time Columns
 ============================
 
-The FITS standard defines the formats and keywords used to write timing information
-to FITS files and in many cases Astropy can just write a `~astropy.table.Table`
-with `~astropy.time.Time` columns in this format.
+The `FITS Time standard paper
+<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ defines the formats
+and keywords used to represent timing information in FITS files.  The astropy
+FITS package provides support for reading and writing native
+`~astropy.time.Time` columns and objects using this format.  This is done
+within the :ref:`table_io_fits` unified I/O interface and examples of usage can
+be found in the :ref:`fits_astropy_native` section.  The support is not
+complete and only a subset of the full standard is implemented.
 
 The following is an example of a Header extract of a binary table (event list)
 with a time column:
@@ -400,15 +405,14 @@ with a time column:
     TCNAM1  = ’Terrestrial Time’  / This is TT
     TCUNI1  = ’s       ’
 
-However, the FITS standard has some limitations and there are cases where not all
-information in an Astropy Table can be mapped perfectly into the FITS standard
-compliant file. Also, the FITS standard in some cases allows choices where e.g.
-times can be written with an absolute value or relative to a reference time.
-To help the user understand how the Astropy code deals with these situations,
-the following text describes the approach that astropy takes in some details.
+However, the FITS standard and the astropy Time object are not perfectly mapped
+and some compromises must be made.  To help the user understand how the Astropy
+code deals with these situations, the following text describes the approach
+that astropy takes in some detail.
 
 To create FITS columns which adhere to the FITS Time standard, we have taken
-into account the following important points stated in the `FITS Time paper <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_.
+into account the following important points stated in the `FITS Time paper
+<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_.
 
 The strategy used to store `~astropy.time.Time` columns in FITS tables is to
 create a `~astropy.io.fits.Header` with the appropriate time coordinate
@@ -556,10 +560,9 @@ The following keywords define the global time informational keywords:
 
   These define the same as above, but in ``MJD`` (Modified Julian Date).
 
-
 The implementation writes a subset of the above FITS keywords, which map
-to the Time metdata. Time is intrinsically a coordinate and hence shares
+to the Time metadata. Time is intrinsically a coordinate and hence shares
 keywords with the ``World Coordinate System`` specification for spatial
 coordinates. Therefore, while reading FITS tables with time columns,
-the verification that a coordinate column is indeed time, is done using
+the verification that a coordinate column is indeed time is done using
 the FITS WCS standard rules and suggestions.
