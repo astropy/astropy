@@ -278,10 +278,12 @@ columns in FITS while still maintaining ``round-tripping``.
 All the other ``mixin columns`` being quite difficult to store
 in FITS tables, due to reasons including extensive metadata and
 no precise mapping to the FITS standard, are treated separately
-by using the argument ``astropy_native`` in the FITS read/write API.
-Thus, an Astropy Table or QTable can read/write these mixin columns
-from/to FITS tables. Currently, this is limited to `~astropy.time.Time`
-columns, since the FITS standard has been extended to include time.
+by using the optional argument ``astropy_native`` in the FITS read/write
+API. Thus, an Astropy Table or QTable can read/write these mixin
+columns from/to FITS tables by the argument ``astropy_native=True``.
+Currently, this is limited to `~astropy.time.Time` columns,
+since the FITS standard has been specifically extended for
+encoding time in an unambiguous, complete and self-consistent manner.
 
 * `~astropy.time.Time`
 
@@ -335,12 +337,14 @@ columns, since the FITS standard has been extended to include time.
   the final conversion from (jd1, jd2) requires a software implementation which is
   fully compliant with the FITS Time standard.
 
-  By default, this functionality is off and users can store the time
+  Taking this into consideration, the functionality to read/write Time
+  from/to FITS is off by ``default``. Users can store the time
   representation values in the format specified by the ``format`` attribute
   of the `~astropy.time.Time` column, instead of the (jd1, jd2) format, with
   no extra metadata in the header. This is the double precision "lossy" version,
-  but meets common-use needs. For the above example, the FITS column will store
-  ``[100.0 200.0]`` instead of ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
+  but meets common-use needs. For the above example, the FITS column corresponding
+  to ``t['a']`` will then store ``[100.0 200.0]`` instead of
+  ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
   This will be useful when dealing with other softwares which do not implement
   the full FITS time standard or when users want to serialize their Time object
   in the format of their choosing.
@@ -364,23 +368,25 @@ columns, since the FITS standard has been extended to include time.
 
      The Astropy `~astropy.time.Time` object does not precisely map to the FITS Time standard.
 
-     ``Format``
-     The FITS format considers only three formats, ISO-8601, JD and MJD.
-     Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
-     for representing the values.
+     * FORMAT
 
-     ``Location``
-     In Astropy Time, location can be an array which is broadcastable to the
-     Time values. In the FITS standard, location is a scalar expressed via
-     keywords.
+       The FITS format considers only three formats, ISO-8601, JD and MJD.
+       Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
+       for representing the values.
+
+     * LOCATION
+
+       In Astropy Time, location can be an array which is broadcastable to the
+       Time values. In the FITS standard, location is a scalar expressed via
+       keywords.
 
      Hence, ``format`` and ``vector location`` are not stored, due to which
      complete round-tripping of ``Time`` is not supported.
 
      Reading FITS files with time coordinate columns which are not written by
-     Astropy is not supported and hence, will fail if you try to do so.
+     Astropy, is not supported and hence, will fail if you try to do so.
 
-  The ability to read in the various time global informational keywords,
+  The ability to read in the various global time informational keywords,
   like the ``DATE``, ``DATE-*`` ISO-8601 datetime strings and the ``MJD-*``
   mjd values as ``Time`` objects in the Table ``meta`` has also been provided.
   For more details regarding the FITS time paper and the implementation,

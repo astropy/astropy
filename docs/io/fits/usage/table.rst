@@ -410,8 +410,8 @@ the following text describes the approach that astropy takes in some details.
 To create FITS columns which adhere to the FITS Time standard, we have taken
 into account the following important points stated in the `FITS Time paper <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_.
 
-The strategy used to store `~astropy.time.Time` columns in FITS tables is to use
-the `~astropy.io.fits.Header` to create a Header with the appropriate time coordinate
+The strategy used to store `~astropy.time.Time` columns in FITS tables is to
+create a `~astropy.io.fits.Header` with the appropriate time coordinate
 global reference keywords and the column specific override keywords. The
 module ``astropy.io.fits.fitstime`` deals with the reading and writing of
 Time columns.
