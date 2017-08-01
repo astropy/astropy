@@ -390,7 +390,7 @@ with a time column:
     COMMENT      ---------- Globally valid key words ----------------
     TIMESYS = ’TT      ’          / Time system
     MJDREF  = 50814.000000000000  / MJD zero point for (native) TT (= 1998-01-01)
-    MJD-OBS = 53516.257939301￼￼￼  / MJD for observation in (native) TT
+    MJD-OBS = 53516.257939301￼￼     / MJD for observation in (native) TT
 
     COMMENT      ---------- Time Column -----------------------
     TTYPE1  = ’Time    ’          / S/C TT corresponding to mid-exposure
