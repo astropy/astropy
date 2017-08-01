@@ -638,8 +638,8 @@ class Table(object):
                         cols[name].append(row[name])
                     except KeyError:
                         raise ValueError('Row {0} has no value for column {1}'.format(i, name))
-        if all(name is None for name in names):
-            names = sorted(names_from_data)
+            if all(name is None for name in names):
+                names = sorted(names_from_data)
         self._init_from_dict(cols, names, dtype, n_cols, copy)
         return
 
