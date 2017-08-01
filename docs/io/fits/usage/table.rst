@@ -380,7 +380,7 @@ FITS Table with Time Columns
 
 The `FITS Time standard paper
 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ defines the formats
-and keywords used to represent timing information in FITS files.  The astropy
+and keywords used to represent timing information in FITS files.  The Astropy
 FITS package provides support for reading and writing native
 `~astropy.time.Time` columns and objects using this format.  This is done
 within the :ref:`table_io_fits` unified I/O interface and examples of usage can
@@ -405,10 +405,10 @@ with a time column:
     TCNAM1  = ’Terrestrial Time’  / This is TT
     TCUNI1  = ’s       ’
 
-However, the FITS standard and the astropy Time object are not perfectly mapped
+However, the FITS standard and the Astropy Time object are not perfectly mapped
 and some compromises must be made.  To help the user understand how the Astropy
 code deals with these situations, the following text describes the approach
-that astropy takes in some detail.
+that Astropy takes in some detail.
 
 To create FITS columns which adhere to the FITS Time standard, we have taken
 into account the following important points stated in the `FITS Time paper
