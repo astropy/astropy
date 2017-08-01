@@ -230,167 +230,177 @@ At this time, the ``meta`` attribute of the :class:`~astropy.table.Table` class
 is simply an ordered dictionary and does not fully represent the structure of a
 FITS header (for example, keyword comments are dropped).
 
-Mixin Columns
-^^^^^^^^^^^^^^
+.. _fits_astropy_native:
 
-It is now possible to store not only standard `~astropy.table.Column` objects
-to a FITS table HDU, but also the following :ref:`mixin_columns`:
+Astropy native objects (mixin columns)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to store not only standard `~astropy.table.Column` objects to a
+FITS table HDU, but also the following astropy native objects
+(:ref:`mixin_columns`) within a `~astropy.table.Table` or `~astropy.table.QTable`:
 
 - `astropy.time.Time`
 - `astropy.units.Quantity`
 
-Consequently, the ability to store FITS columns which are representations of
-a ``mixin column`` as mixin columns in a `~astropy.table.Table`
-has been provided.
+Other mixin columns such as `~astropy.coordinates.SkyCoord` or
+`~astropy.coordinates.EarthLocation` are not currently supported due to reasons
+including extensive metadata and no precise mapping to the FITS standard.
 
 In general a mixin column may contain multiple data components as well as
-object attributes beyond the standard Column attributes like
-``format`` or ``description``. Abiding by the rules set by the FITS standard,
-requires mapping of these data components and object attributes to the
-appropriate FITS table columns and keywords.
+object attributes beyond the standard Column attributes like ``format`` or
+``description``. Abiding by the rules set by the FITS standard requires mapping
+of these data components and object attributes to the appropriate FITS table
+columns and keywords.  Thus a well defined protocol has been developed to allow
+the storage of these mixin columns in FITS while allowing the object to
+"round-trip" through the file with no loss of data or attributes.
 
-Thus, a well defined protocol has been developed to allow the storage of mixin
-columns in FITS while still maintaining ``round-tripping``.
+Quantity
+~~~~~~~~
 
-* `~astropy.units.Quantity`
+A `~astropy.units.Quantity` mixin column in a `~astropy.table.QTable` is
+represented in a FITS table using the ``TUNITn`` FITS column keyword to
+incorporate the unit attribute of Quantity.
 
-  Since the only difference between `~astropy.table.Table` and
-  `~astropy.table.QTable` is that the former converts columns with an
-  associated ``unit`` attribute to ``Quantity``
-  objects, a Quantity object in a QTable is treated the same way as a
-  standard Column with a unit attribute in a Table. It uses the ``TUNITn``
-  FITS column keyword to incorporate the unit attribute of Quantity.  
+    >>> from astropy.table import QTable
+    >>> import astropy.units as u
+    >>> t = QTable([[1, 2] * u.angstrom)])
+    >>> t.write('my_table.fits', overwrite=True)
+    >>> qt = QTable.read('my_table.fits')
+    >>> qt
+    <QTable length=2>
+      col0
+    Angstrom
+    float64
+    --------
+         1.0
+         2.0
 
-      >>> from astropy.table import QTable
-      >>> from astropy.units import Quantity
-      >>> t = QTable([Quantity([1, 2], unit='Angstrom')])
-      >>> t.write('my_table.fits', overwrite=True)
-      >>> qt = QTable.read('my_table.fits')
-      >>> qt
-      <QTable length=2>
-        col0
-      Angstrom
-      float64
-      --------
-           1.0
-           2.0
+Time
+~~~~
 
-All the other ``mixin columns`` being quite difficult to store
-in FITS tables, due to reasons including extensive metadata and
-no precise mapping to the FITS standard, are treated separately
-by using the optional argument ``astropy_native`` in the FITS read/write
-API. Thus, an Astropy Table or QTable can read/write these mixin
-columns from/to FITS tables by the argument ``astropy_native=True``.
-Currently, this is limited to `~astropy.time.Time` columns,
-since the FITS standard has been specifically extended for
-encoding time in an unambiguous, complete and self-consistent manner.
+By default, a `~astropy.time.Time` mixin column within `~astropy.table.Table`
+or `~astropy.table.QTable` will be written to FITS as a standard column using
+the ``format`` of the object (similar to the output when printing to the
+console).  For instance if the ``format`` is ``iso`` then the FITS column with
+be a character string column.  None of the special header keywords associated
+with the Time FITS standard will be set.  When reading this back into Astropy
+the column will be an ordinary column instead of a `~astropy.time.Time` object.
+See the `Details`_ section below for an example.
 
-* `~astropy.time.Time`
+However, if the ``astropy_native`` keyword is ``True``, then the column
+will be written using the FITS Time standard by setting the necessary FITS
+header keywords.  Likewise with ``astropy_native=True`` when reading the
+table, any columns that conform to the FITS Time standard will be
+returned in the table as native `~astropy.time.Time` objects.  This allows
+round-tripping the object with no loss of precision.  For example::
 
-  Time as a dimension in astronomical data presents challenges in its
-  representation in FITS files. The standard has therefore been extended to
-  describe rigorously the time coordinate in the ``World Coordinate System``
-  framework. Refer to `FITS WCS paper IV <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_
-  for details.
+    >>> from astropy.time import Time
+    >>> from astropy.table import Table
+    >>> from astropy.coordinates import EarthLocation
+    >>> t = Table()
+    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
+    ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+    >>> t.write('my_table.fits', overwrite=True, astropy_native=True)
+    >>> tm = Table.read('my_table.fits', astropy_native=True)
+    >>> tm['a']
+    <Time object: scale='tt' format='jd' value=[ 2400100.5  2400200.5]>
+    >>> tm['a'].location
+    <EarthLocation (-2446354.,  4237210.,  4077985.) m>
+    >>> tm['a'] == t['a']
+    array([ True,  True], dtype=bool)
 
-  Allowing ``Time`` columns to be written as time coordinate
-  columns in FITS tables thus involves, storing time values in a way that
-  ensures retention of precision and mapping the associated metadata to the
-  relevant FITS keywords.
+The same will work with ``QTable``.
 
-  In accordance with the standard which states that, in binary tables one
-  may use pairs of doubles, the Astropy Time column is written in such a
-  table as a vector of two doubles ``(TFORM n = ‘2D’)`` (jd1, jd2).
-  This reproduces the time values to double-double precision and is the
-  "lossless" version, exploiting the higher precision provided in binary
-  tables. Round-tripping of astropy written FITS binary tables
-  containing time coordinate columns has been partially achieved
-  by mapping metadata, ``scale`` and singular ``location`` of
-  `~astropy.time.Time`, to corresponding keywords.
+In addition to binary table columns, various global time informational FITS
+keywords are treated specially with ``astropy_native=True``.  In particular
+the keywords ``DATE``, ``DATE-*`` (ISO-8601 datetime strings) and the ``MJD-*``
+(MJD date values) will be returned as ``Time`` objects in the Table ``meta``.
+For more details regarding the FITS time paper and the implementation,
+refer to :ref:`fits_time_column`.
 
-  This new functionality has been provided in both, the `~astropy.table.Table`
-  and `~astropy.table.QTable` API, using the optional argument ``astropy_native``.
-  Users can explicitly set it to ``True`` to allow the writing and reading of Time
-  to and from FITS without much loss of precision and metadata.
+Details
+~~~~~~~
 
-      >>> from astropy.time import Time
-      >>> from astropy.table import Table
-      >>> from astropy.coordinates import EarthLocation
-      >>> t = Table()
-      >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
-      ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
-      >>> t.write('my_table.fits', overwrite=True, astropy_native=True)
-      >>> tm = Table.read('my_table.fits', astropy_native=True)
-      >>> tm['a']
-      <Time object: scale='tt' format='jd' value=[ 2400100.5  2400200.5]>
-      >>> tm['a'].location
-      <EarthLocation (-2446354.,  4237210.,  4077985.) m>
-      >>> tm['a'] == t['a']
-      array([ True,  True], dtype=bool)
+Time as a dimension in astronomical data presents challenges in its
+representation in FITS files. The standard has therefore been extended to
+describe rigorously the time coordinate in the ``World Coordinate System``
+framework. Refer to `FITS WCS paper IV
+<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ for details.
 
-  The same will work with ``QTable``.
+Allowing ``Time`` columns to be written as time coordinate
+columns in FITS tables thus involves storing time values in a way that
+ensures retention of precision and mapping the associated metadata to the
+relevant FITS keywords.
 
-  The FITS standard requires an additional translation layer back into
-  the desired format. In the example stated above, the Time column ``t['a']``
-  undergoes the translation ``Astropy Time --> FITS --> Astropy Time`` which
-  corresponds to the format conversion ``mjd --> (jd1, jd2) --> jd``. Thus,
-  the final conversion from (jd1, jd2) requires a software implementation which is
-  fully compliant with the FITS Time standard.
+In accordance with the standard which states that in binary tables one may use
+pairs of doubles, the Astropy Time column is written in such a table as a
+vector of two doubles ``(TFORM n = ‘2D’) (jd1, jd2)`` where ``JD = jd1 + jd2``.
+This reproduces the time values to double-double precision and is the
+"lossless" version, exploiting the higher precision provided in binary tables.
+Note that ``jd1`` is always a half-integer or integer, while ``abs(jd2) < 1``.
+Round-tripping of astropy written FITS binary tables containing time coordinate
+columns has been partially achieved by mapping selected metadata, ``scale`` and
+singular ``location`` of `~astropy.time.Time`, to corresponding keywords.  Note
+that the arbitrary metadata allowed in `~astropy.table.Table` objects within
+the ``meta`` dict is not written and will be lost.
 
-  Taking this into consideration, the functionality to read/write Time
-  from/to FITS is off by ``default``. Users can store the time
-  representation values in the format specified by the ``format`` attribute
-  of the `~astropy.time.Time` column, instead of the (jd1, jd2) format, with
-  no extra metadata in the header. This is the double precision "lossy" version,
-  but meets common-use needs. For the above example, the FITS column corresponding
-  to ``t['a']`` will then store ``[100.0 200.0]`` instead of
-  ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
-  This will be useful when dealing with other softwares which do not implement
-  the full FITS time standard or when users want to serialize their Time object
-  in the format of their choosing.
+The FITS standard requires an additional translation layer back into
+the desired format. In the example stated above, the Time column ``t['a']``
+undergoes the translation ``Astropy Time --> FITS --> Astropy Time`` which
+corresponds to the format conversion ``mjd --> (jd1, jd2) --> jd``. Thus,
+the final conversion from ``(jd1, jd2)`` requires a software implementation which is
+fully compliant with the FITS Time standard.
 
-      >>> from astropy.time import Time
-      >>> from astropy.table import Table
-      >>> from astropy.coordinates import EarthLocation
-      >>> t = Table()
-      >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
-      ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
-      >>> t.write('my_table.fits', overwrite=True)
-      >>> tm = Table.read('my_table.fits')
-      >>> tm['a']
-      <Column name='a' dtype='float64' length=2>
-      100.0
-      200.0
-      >>> tm['a'] == t['a'].value
-      array([ True,  True], dtype=bool)
+Taking this into consideration, the functionality to read/write Time
+from/to FITS is off by default. Users can store the time
+representation values in the format specified by the ``format`` attribute
+of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
+no extra metadata in the header. This is the "lossy" version,
+but meets common-use needs. For the above example, the FITS column corresponding
+to ``t['a']`` will then store ``[100.0 200.0]`` instead of
+``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
+This will be useful when dealing with other software packages which do not implement
+the full FITS time standard or when users want to serialize their Time object
+in the format of their choosing.
 
-  .. note::
+    >>> from astropy.time import Time
+    >>> from astropy.table import Table
+    >>> from astropy.coordinates import EarthLocation
+    >>> t = Table()
+    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
+    ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+    >>> t.write('my_table.fits', overwrite=True)
+    >>> tm = Table.read('my_table.fits')
+    >>> tm['a']
+    <Column name='a' dtype='float64' length=2>
+    100.0
+    200.0
+    >>> tm['a'] == t['a'].value
+    array([ True,  True], dtype=bool)
 
-     The Astropy `~astropy.time.Time` object does not precisely map to the FITS Time standard.
+.. note::
 
-     * FORMAT
+   The Astropy `~astropy.time.Time` object does not precisely map to the FITS
+   Time standard.
 
-       The FITS format considers only three formats, ISO-8601, JD and MJD.
-       Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
-       for representing the values.
+   * FORMAT
 
-     * LOCATION
+     The FITS format considers only three formats, ISO-8601, JD and MJD.
+     Astropy Time allows for many other formats like ``unix`` or ``cxcsec``
+     for representing the values.
 
-       In Astropy Time, location can be an array which is broadcastable to the
-       Time values. In the FITS standard, location is a scalar expressed via
-       keywords.
+   * LOCATION
 
-     Hence, ``format`` and ``vector location`` are not stored, due to which
-     complete round-tripping of ``Time`` is not supported.
+     In Astropy Time, location can be an array which is broadcastable to the
+     Time values. In the FITS standard, location is a scalar expressed via
+     keywords.
 
-     Reading FITS files with time coordinate columns which are not written by
-     Astropy, is not supported and hence, will fail if you try to do so.
+   Hence the ``format`` attribute and a vector ``location`` attribute are not
+   stored.  After reading from FITS the user must set the ``format`` as desired.
 
-  The ability to read in the various global time informational keywords,
-  like the ``DATE``, ``DATE-*`` ISO-8601 datetime strings and the ``MJD-*``
-  mjd values as ``Time`` objects in the Table ``meta`` has also been provided.
-  For more details regarding the FITS time paper and the implementation,
-  refer to :ref:`fits_time_column`.
+   Reading FITS files with time coordinate columns which are not written by
+   Astropy *may* fail.  Astropy supports only a small subset of the rather
+   complicated standard.
 
 .. _table_io_hdf5:
 
