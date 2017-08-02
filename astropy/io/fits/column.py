@@ -1108,7 +1108,7 @@ class Column(NotifierMixin):
                 else:
                     invalid[k] = (v, msg)
 
-        if time_ref_pos is not None and time_ref_pos!='':
+        if time_ref_pos is not None and time_ref_pos != '':
             msg=None
             if not isinstance(time_ref_pos, string_types):
                 msg = (
