@@ -16,7 +16,7 @@ uname -m
 echo "Output of sys.maxsize in Python:"
 python -c 'import sys; print(sys.maxsize)'
 
-easy_install pytest
+easy_install "pytest<3.2"
 
 python setup.py test
 
