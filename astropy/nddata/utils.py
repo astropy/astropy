@@ -562,6 +562,55 @@ class Cutout2D(object):
         into the original ``data`` array.  If `True`, then the
         cutout data will hold a copy of the original ``data`` array.
 
+    Attributes
+    ----------
+    data : 2D `~numpy.ndarray`
+        The 2D cutout array.
+
+    shape : 2 tuple
+        The ``(ny, nx)`` shape of the cutout array.
+
+    shape_input : 2 tuple
+        The ``(ny, nx)`` shape of the input (original) array.
+
+    input_position_cutout : 2 tuple
+        The (unrounded) ``(x, y)`` position with respect to the cutout
+        array.
+
+    input_position_original : 2 tuple
+        The original (unrounded) ``(x, y)`` input position (with respect
+        to the original array).
+
+    slices_original : 2 tuple of slice objects
+        A tuple of slice objects for the minimal bounding box of the
+        cutout with respect to the original array.  For
+        ``mode='partial'``, the slices are for the valid (non-filled)
+        cutout values.
+
+    slices_cutout : 2 tuple of slice objects
+        A tuple of slice objects for the minimal bounding box of the
+        cutout with respect to the cutout array.  For
+        ``mode='partial'``, the slices are for the valid (non-filled)
+        cutout values.
+
+    xmin_original, ymin_original, xmax_original, ymax_original : float
+        The minimum and maximum ``x`` and ``y`` indices of the minimal
+        rectangular region of the cutout array with respect to the
+        original array.  For ``mode='partial'``, the bounding box
+        indices are for the valid (non-filled) cutout values.  These
+        values are the same as those in `bbox_original`.
+
+    xmin_cutout, ymin_cutout, xmax_cutout, ymax_cutout : float
+        The minimum and maximum ``x`` and ``y`` indices of the minimal
+        rectangular region of the cutout array with respect to the
+        cutout array.  For ``mode='partial'``, the bounding box indices
+        are for the valid (non-filled) cutout values.  These values are
+        the same as those in `bbox_cutout`.
+
+    wcs : `~astropy.wcs.WCS` or `None`
+        A WCS object associated with the cutout array if a ``wcs``
+        was input.
+
     Returns
     -------
     result : `~astropy.nddata.utils.Cutout2D`
