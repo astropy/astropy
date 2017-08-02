@@ -210,6 +210,9 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Added error handling for attempting to run tests in parallel without having
+  the ``pytest-xdist`` package installed. [#6416]
+
 astropy.time
 ^^^^^^^^^^^^
 
