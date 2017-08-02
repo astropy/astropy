@@ -103,7 +103,8 @@ class Latex(base.Base):
             The value in exponential notation in a format suitable for LaTeX.
         """
         if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val)
+            m, ex = utils.split_mantissa_exponent(val,
+                np.get_printoptions()['precision'])
 
             parts = []
             if m:
