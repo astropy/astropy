@@ -462,6 +462,12 @@ class TestRunner(TestRunnerBase):
             number of CPUs.  If parallel is negative, it will use the all
             the cores on the machine.  Requires the ``pytest-xdist`` plugin.
         """
+        try:
+            from xdist import plugin
+        except ImportError:
+            raise SystemError(
+                "running tests in parallel requires the pytest-xdist package")
+
         if parallel != 0:
             return ['-n', six.text_type(parallel)]
 
