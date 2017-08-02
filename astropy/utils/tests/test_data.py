@@ -324,8 +324,8 @@ def test_data_noastropy_fallback(monkeypatch):
 @pytest.mark.parametrize(('filename'), [
     'unicode.txt',
     'unicode.txt.gz',
-    pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')('unicode.txt.bz2'),
-    pytest.mark.xfail(not HAS_XZ, reason='no lzma support')('unicode.txt.xz')])
+    pytest.param('unicode.txt.bz2', marks=pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')),
+    pytest.param('unicode.txt.xz', marks=pytest.mark.xfail(not HAS_XZ, reason='no lzma support'))])
 def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
