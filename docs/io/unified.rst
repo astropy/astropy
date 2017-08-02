@@ -450,7 +450,7 @@ of tables and columns, use ``serialize_meta=True``::
 
 The way serialized meta are saved in the HDF5 dataset have changed in Astropy 3.0.
 Files in the old format are still read correctly. If for some reason the user wants to *write*
-in the old format, they will specify the (deprecated) `compatibility_mode` keyword
+in the old format, they will specify the (deprecated) ``compatibility_mode`` keyword
 
     >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True, compatibility_mode=True)
 
