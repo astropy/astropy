@@ -112,7 +112,7 @@ class TestFitting(object):
     # could probably factor out
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(linear1d.keys(), (False, True))))
+                             list(product(sorted(linear1d, key=str), (False, True))))
     def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -142,7 +142,7 @@ class TestFitting(object):
                             atol=0.2)
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(linear1d.keys(), (False, True))))
+                             list(product(sorted(linear1d, key=str), (False, True))))
     def test_non_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
@@ -170,7 +170,7 @@ class TestFitting(object):
                             atol=0.2)
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(linear2d.keys(), (False, True))))
+                             list(product(sorted(linear2d, key=str), (False, True))))
     def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -198,7 +198,7 @@ class TestFitting(object):
                             atol=0.2)
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(linear2d.keys(), (False, True))))
+                             list(product(sorted(linear2d, key=str), (False, True))))
     def test_non_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
