@@ -611,12 +611,6 @@ class Cutout2D(object):
         A WCS object associated with the cutout array if a ``wcs``
         was input.
 
-    Returns
-    -------
-    result : `~astropy.nddata.utils.Cutout2D`
-        A cutout object containing the 2D cutout data array and the
-        updated WCS, if ``wcs`` is input.
-
     Examples
     --------
     >>> import numpy as np
