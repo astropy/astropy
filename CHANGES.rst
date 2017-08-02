@@ -291,6 +291,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Fixed running the test suite using --parallel. [#6415]
+
 astropy.time
 ^^^^^^^^^^^^
 
