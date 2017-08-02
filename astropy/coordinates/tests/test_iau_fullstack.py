@@ -21,31 +21,31 @@ from .utils import randomly_sample_sphere
 
 
 # These fixtures are used in test_iau_fullstack
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def fullstack_icrs():
     ra, dec, _ = randomly_sample_sphere(1000)
     return ICRS(ra=ra, dec=dec)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def fullstack_fiducial_altaz(fullstack_icrs):
     altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
                        obstime=Time('J2000'))
     return fullstack_icrs.transform_to(altazframe)
 
 
-@pytest.fixture(scope="module", params=['J2000.1', 'J2010'])
+@pytest.fixture(scope="function", params=['J2000.1', 'J2010'])
 def fullstack_times(request):
     return Time(request.param)
 
 
-@pytest.fixture(scope="module", params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)])
+@pytest.fixture(scope="function", params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)])
 def fullstack_locations(request):
     return EarthLocation(lat=request.param[0]*u.deg, lon=request.param[0]*u.deg,
                          height=request.param[0]*u.m)
 
 
-@pytest.fixture(scope="module", params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
+@pytest.fixture(scope="function", params=[(0*u.bar, 0*u.deg_C, 0, 1*u.micron),
                                         (1*u.bar, 0*u.deg_C, 0, 1*u.micron),
                                         (1*u.bar, 10*u.deg_C, 0, 1*u.micron),
                                         (1*u.bar, 0*u.deg_C, .5, 1*u.micron),
