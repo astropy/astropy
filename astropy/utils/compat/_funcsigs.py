@@ -735,7 +735,7 @@ class Signature(object):
                 # Signature object (but let's have this check here
                 # to ensure correct behaviour just in case)
                 raise TypeError('{arg!r} parameter is positional only, '
-                                'but was passed as a keyword'. \
+                                'but was passed as a keyword'.
                                 format(arg=param.name))
 
             if param.kind == _VAR_KEYWORD:
@@ -753,7 +753,7 @@ class Signature(object):
                 # arguments.
                 if (not partial and param.kind != _VAR_POSITIONAL and
                                                     param.default is _empty):
-                    raise TypeError('{arg!r} parameter lacking default value'. \
+                    raise TypeError('{arg!r} parameter lacking default value'.
                                     format(arg=param_name))
 
             else:
