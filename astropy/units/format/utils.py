@@ -46,7 +46,7 @@ def get_grouped_by_powers(bases, powers):
     return positive, negative
 
 
-def split_mantissa_exponent(v):
+def split_mantissa_exponent(v, precision=8):
     """
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.  If the exponent is too small, it may be
@@ -63,7 +63,7 @@ def split_mantissa_exponent(v):
     -------
     mantissa, exponent : tuple of strings
     """
-    x = "{0:.8g}".format(v).split('e')
+    x = ("{0:." + str(precision) + "g}").format(v).split('e')
     if x[0] != '1.' + '0' * (len(x[0]) - 2):
         m = x[0]
     else:
