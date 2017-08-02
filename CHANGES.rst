@@ -34,16 +34,9 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
   - When writing to HDF5 files, the serialized metadata are now saved in a new
     dataset instead of the HDF5 dataset attributes. This allows for metadata of
-    any dimensions.
-
-
-  - When writing to HDF5 files, the serialized metadata are now saved in a new
-    dataset instead of the HDF5 dataset attributes. This allows for metadata of
-    any dimensions.
+    any dimensions. (#6304)
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -420,11 +413,6 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
-  - When writing to HDF5 files, the serialized metadata are now saved in a new
-    dataset instead of the HDF5 dataset attributes. This allows for metadata of
-    any dimensions.
-
-- ``astropy.io.registry``
 
 - Major change in convolution behavior and keyword arguments. Additional
   details are in the API section. [#5782]
