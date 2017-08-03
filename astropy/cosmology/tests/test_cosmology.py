@@ -1549,9 +1549,9 @@ def test_z_at_value_roundtrip():
     # Test distance functions between two redshifts
     z2 = 2.0
     func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
-                 lambda z1: \
+                 lambda z1:
                  core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
-                 lambda z1: \
+                 lambda z1:
                  core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
     for func in func_z1z2:
         fval = func(z)

@@ -362,15 +362,15 @@ class LinearLSQFitter(object):
         if has_fixed:
 
             # The list of fixed params is the complement of those being fitted:
-            fixparam_indices = [idx for idx in\
-                                range(len(model_copy.param_names))\
+            fixparam_indices = [idx for idx in
+                                range(len(model_copy.param_names))
                                 if idx not in fitparam_indices]
 
             # Construct matrix of user-fixed parameters that can be dotted with
             # the corresponding fit_deriv() terms, to evaluate corrections to
             # the dependent variable in order to fit only the remaining terms:
             fixparams = np.asarray([getattr(model_copy,
-                                            model_copy.param_names[idx]).value\
+                                            model_copy.param_names[idx]).value
                                     for idx in fixparam_indices])
 
         if len(farg) == 2:
@@ -509,8 +509,8 @@ class FittingWithOutlierRemoval(object):
     def __str__(self):
         return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
                 ("\nOutlier func. args.: {3}"))\
-                .format(self.fitter__class__.__name__,\
-                        self.outlier_func.__name__, self.niter,\
+                .format(self.fitter__class__.__name__,
+                        self.outlier_func.__name__, self.niter,
                         self.outlier_kwargs)
 
     def __repr__(self):
