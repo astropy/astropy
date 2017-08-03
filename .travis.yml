@@ -44,7 +44,7 @@ env:
         # E722 - do not use bare except
         # E901 - SyntaxError or IndentationError
         # E902 - IOError
-        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E722,E901,E902"
+        - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902"
 
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
