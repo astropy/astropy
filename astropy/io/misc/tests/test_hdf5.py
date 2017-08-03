@@ -482,7 +482,7 @@ def test_metadata_very_large(tmpdir):
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_metadata_very_large_fails_compatibility_mode(tmpdir):
-    """Test that very large datasets work, now!"""
+    """Test that very large metadata do not work in compatibility mode."""
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3])
