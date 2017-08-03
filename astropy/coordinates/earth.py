@@ -476,7 +476,11 @@ class EarthLocation(u.Quantity):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()
-                except six.moves.urllib.error.URLError:
+                except (six.moves.urllib.error.URLError, IOError):
+                    # In Python 2.7 the IOError raised by @remote_data stays as
+                    # is, while in Python 3.6 the IOError gets converted to a
+                    # URLError, so we catch IOError above too, but this can be
+                    # removed once we don't support Python 2.7 anymore.
                     if force_download:
                         raise
                     msg = ('Could not access the online site list. Falling '
