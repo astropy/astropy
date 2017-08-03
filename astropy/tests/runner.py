@@ -463,6 +463,12 @@ class TestRunner(TestRunnerBase):
             the cores on the machine.  Requires the ``pytest-xdist`` plugin.
         """
         if parallel != 0:
+            try:
+                from xdist import plugin # noqa
+            except ImportError:
+                raise SystemError(
+                    "running tests in parallel requires the pytest-xdist package")
+
             return ['-n', six.text_type(parallel)]
 
         return []
