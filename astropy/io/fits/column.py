@@ -134,25 +134,6 @@ ASCIITNULL = 0
 # converting from binary to ASCII tables
 DEFAULT_ASCII_TNULL = '---'
 
-# Column-specific time override keywords
-COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
-                        'TCUNI' : 'unit',
-                        'TRPOS' : 'pos'}
-
-
-def is_time_column_keyword(keyword):
-    """
-    Check if the FITS header keyword is a time column-specific keyword.
-
-    Parameters
-    ----------
-    keyword : str
-        FITS keyword.
-    """
-
-    match = re.match(r'([A-Z]+)([0-9]+)', keyword)
-    return True if (match and match.group(1) in COLUMN_TIME_KEYWORDS) else False
-
 
 class Delayed(object):
     """Delayed file-reading data."""

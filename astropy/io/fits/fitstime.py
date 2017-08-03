@@ -8,8 +8,6 @@ import numpy as np
 
 from . import Header, Card
 
-from .column import COLUMN_TIME_KEYWORDS, is_time_column_keyword
-
 from ...coordinates import EarthLocation
 from ...table import Column
 from ...time import Time
@@ -40,6 +38,29 @@ TIME_KEYWORDS = {'TIMESYS' : 'scale', 'MJDREF' : 'ref_mjd',
                  'DATE-BEG' : 'date-beg', 'DATE-END' : 'date-end',
                  'MJD-OBS' : 'mjd-obs', 'MJD-AVG' : 'mjd-avg',
                  'MJD-BEG' : 'mjd-beg', 'MJD-END' : 'mjd-end'}
+
+
+# Column-specific time override keywords
+COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
+                        'TCUNI' : 'unit',
+                        'TRPOS' : 'pos'}
+
+
+COLUMN_TIME_KEYWORD_REGEXP = '({0})[0-9]+'.format(
+    '|'.join(COLUMN_TIME_KEYWORDS.keys()))
+
+
+def is_time_column_keyword(keyword):
+    """
+    Check if the FITS header keyword is a time column-specific keyword.
+
+    Parameters
+    ----------
+    keyword : str
+        FITS keyword.
+    """
+    return re.match(COLUMN_TIME_KEYWORD_REGEXP, keyword) is not None
+
 
 # Set astropy time global information
 GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
