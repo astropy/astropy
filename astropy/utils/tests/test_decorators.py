@@ -289,7 +289,7 @@ def test_deprecated_argument():
             assert method(clobber=1) == 1
             assert len(w) == 1
             assert '1.3' in str(w[0].message)
-            assert 'utils/tests/test_decorators.py' in str(w[0].filename)
+            assert 'test_decorators.py' in str(w[0].filename)
 
         # Using both. Both keyword
         with pytest.raises(TypeError):
@@ -319,7 +319,7 @@ def test_deprecated_argument_in_kwargs():
         assert test(clobber=1) == 1
         assert len(w) == 1
         assert '1.3' in str(w[0].message)
-        assert 'utils/tests/test_decorators.py' in str(w[0].filename)
+        assert 'test_decorators.py' in str(w[0].filename)
 
     # Using both. Both keyword
     with pytest.raises(TypeError):
