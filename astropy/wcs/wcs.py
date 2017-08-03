@@ -84,7 +84,7 @@ if _wcs is not None:
 
     if not _wcs._sanity_check():
         raise RuntimeError(
-        "astropy.wcs did not pass its sanity check for your build " \
+        "astropy.wcs did not pass its sanity check for your build "
         "on your platform.")
 
     WCSBase = _wcs._Wcs

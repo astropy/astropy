@@ -73,7 +73,7 @@ def test_identify_table():
     assert html.identify_table(soup, {}, 0) is False
     assert html.identify_table(None, {}, 0) is False
 
-    soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
+    soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>'
                          '<td>B</td></tr></table>').table
     assert html.identify_table(soup, {}, 2) is False
     assert html.identify_table(soup, {}, 1) is True  # Default index of 1
