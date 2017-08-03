@@ -479,7 +479,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             'and will be removed in a future version. '
                             'Use argument "{2}" instead.'
                             ''.format(old_name[i], since[i], new_name[i]),
-                            AstropyDeprecationWarning)
+                            AstropyDeprecationWarning, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
