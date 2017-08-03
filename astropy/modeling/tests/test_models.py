@@ -476,12 +476,14 @@ def create_model(model_class, test_parameters, use_constraints=True,
         return model_class(*test_parameters[parameter_key], **constraints)
 
 
-@pytest.mark.parametrize(('model_class', 'test_parameters'), models_1D.items())
+@pytest.mark.parametrize(('model_class', 'test_parameters'),
+                         sorted(models_1D.items(), key=lambda x: str(x[0])))
 class TestFittable1DModels(Fittable1DModelTester):
     pass
 
 
-@pytest.mark.parametrize(('model_class', 'test_parameters'), models_2D.items())
+@pytest.mark.parametrize(('model_class', 'test_parameters'),
+                         sorted(models_2D.items(), key=lambda x: str(x[0])))
 class TestFittable2DModels(Fittable2DModelTester):
     pass
 

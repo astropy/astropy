@@ -16,8 +16,10 @@ uname -m
 echo "Output of sys.maxsize in Python:"
 python -c 'import sys; print(sys.maxsize)'
 
-easy_install "pytest<3.2"
+# The doctestplus plugin in Astropy doesn't work correctly with pytest>=3.2, so
+# we install an older version here
+easy_install "pytest<3.2" pytest-xdist
 
-python setup.py test
+python setup.py test --parallel=4
 
 EOF
