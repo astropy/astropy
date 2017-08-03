@@ -14,7 +14,6 @@ from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .convenience import table_to_hdu
-from .column import is_time_column_keyword
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -38,6 +37,9 @@ COLUMN_KEYWORDS = ['TFORM[0-9]+',
                    'TUNIT[0-9]+',
                    'TDISP[0-9]+',
                    'TDIM[0-9]+',
+                   'TCTYP[0-9]+',
+                   'TCUNI[0-9]+',
+                   'TRPOS[0-9]+',
                    'THEAP']
 
 
@@ -198,8 +200,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
                 t.meta[key] = [t.meta[key], value]
 
         elif (is_column_keyword(key) or
-              key in REMOVE_KEYWORDS or
-              is_time_column_keyword(key)):
+              key in REMOVE_KEYWORDS):
 
             pass
 
