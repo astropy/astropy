@@ -6,6 +6,7 @@ import re
 import sys
 import warnings
 import weakref
+import numbers
 
 from functools import reduce
 from collections import OrderedDict
@@ -85,9 +86,12 @@ ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
 # Use lists, instead of dictionaries so the names can be displayed in a
 # preferred order.
 KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
-                 'TDISP', 'TBCOL', 'TDIM')
+                 'TDISP', 'TBCOL', 'TDIM', 'TCTYP', 'TCUNI', 'TCRPX',
+                 'TCRVL', 'TCDLT', 'TRPOS')
 KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
-                      'disp', 'start', 'dim')
+                      'disp', 'start', 'dim', 'coord_type', 'coord_unit',
+                      'coord_ref_point', 'coord_ref_value', 'coord_inc',
+                      'time_ref_pos')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -464,7 +468,9 @@ class Column(NotifierMixin):
 
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
-                 array=None, ascii=None):
+                 array=None, ascii=None, coord_type=None, coord_unit=None,
+                 coord_ref_point=None, coord_ref_value=None, coord_inc=None,
+                 time_ref_pos=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
@@ -514,6 +520,28 @@ class Column(NotifierMixin):
         ascii : bool, optional
             set `True` if this describes a column for an ASCII table; this
             may be required to disambiguate the column format
+
+        coord_type : str, optional
+            coordinate/axis type corresponding to ``TCTYP`` keyword
+
+        coord_unit : str, optional
+            coordinate/axis unit corresponding to ``TCUNI`` keyword
+
+        coord_ref_point : int-like, optional
+            pixel coordinate of the reference point corresponding to ``TCRPX``
+            keyword
+
+        coord_ref_value : int-like, optional
+            coordinate value at reference point corresponding to ``TCRVL``
+            keyword
+
+        coord_inc : int-like, optional
+            coordinate increment at reference point corresponding to ``TCDLT``
+            keyword
+
+        time_ref_pos : str, optional
+            reference position for a time coordinate column corresponding to
+            ``TRPOS`` keyword
         """
 
         if format is None:
@@ -764,6 +792,54 @@ class Column(NotifierMixin):
                 'characters, though it may be fewer if the string '
                 'contains special characters like quotes.')
 
+    @ColumnAttribute('TCTYP')
+    def coord_type(col, coord_type):
+        if coord_type is None:
+            return
+
+        if (not isinstance(coord_type, string_types)
+                or len(coord_type) > 8):
+            raise AssertionError(
+                'Coordinate/axis type must be a string of atmost 8 '
+                'characters.')
+
+    @ColumnAttribute('TCUNI')
+    def coord_unit(col, coord_unit):
+        if (coord_unit is not None
+                and not isinstance(coord_unit, string_types)):
+            raise AssertionError(
+                'Coordinate/axis unit must be a string.')
+
+    @ColumnAttribute('TCRPX')
+    def coord_ref_point(col, coord_ref_point):
+        if (coord_ref_point is not None
+                and not isinstance(coord_ref_point, numbers.Real)):
+            raise AssertionError(
+                'Pixel coordinate of the reference point must be '
+                'real floating type.')
+
+    @ColumnAttribute('TCRVL')
+    def coord_ref_value(col, coord_ref_value):
+        if (coord_ref_value is not None
+                and not isinstance(coord_ref_value, numbers.Real)):
+            raise AssertionError(
+                'Coordinate value at reference point must be real '
+                'floating type.')
+
+    @ColumnAttribute('TCDLT')
+    def coord_inc(col, coord_inc):
+        if (coord_inc is not None
+                and not isinstance(coord_inc, numbers.Real)):
+            raise AssertionError(
+                'Coordinate increment must be real floating type.')
+
+    @ColumnAttribute('TRPOS')
+    def time_ref_pos(col, time_ref_pos):
+        if (time_ref_pos is not None
+                and not isinstance(time_ref_pos, string_types)):
+            raise AssertionError(
+                'Time reference position must be a string.')
+
     format = ColumnAttribute('TFORM')
     unit = ColumnAttribute('TUNIT')
     null = ColumnAttribute('TNULL')
@@ -775,7 +851,7 @@ class Column(NotifierMixin):
 
     @lazyproperty
     def ascii(self):
-        """Whether this `Column` represents an column in an ASCII table."""
+        """Whether this `Column` represents a column in an ASCII table."""
 
         return isinstance(self.format, _AsciiColumnFormat)
 
@@ -823,7 +899,9 @@ class Column(NotifierMixin):
     @classmethod
     def _verify_keywords(cls, name=None, format=None, unit=None, null=None,
                          bscale=None, bzero=None, disp=None, start=None,
-                         dim=None, ascii=None):
+                         dim=None, ascii=None, coord_type=None, coord_unit=None,
+                         coord_ref_point=None, coord_ref_value=None,
+                         coord_inc=None, time_ref_pos=None):
         """
         Given the keyword arguments used to initialize a Column, specifically
         those that typically read from a FITS header (so excluding array),
@@ -861,6 +939,8 @@ class Column(NotifierMixin):
                         "the column's character width and will be truncated "
                         "(got {!r}).".format(null))
             else:
+                tnull_formats = ('B', 'I', 'J', 'K')
+
                 if not _is_int(null):
                     # Make this an exception instead of a warning, since any
                     # non-int value is meaningless
@@ -870,11 +950,9 @@ class Column(NotifierMixin):
                         'will be ignored for the purpose of formatting '
                         'the data in this column.'.format(null))
 
-                tnull_formats = ('B', 'I', 'J', 'K')
-
-                if not (format.format in tnull_formats or
-                        (format.format in ('P', 'Q') and
-                         format.p_format in tnull_formats)):
+                elif not (format.format in tnull_formats or
+                          (format.format in ('P', 'Q') and
+                           format.p_format in tnull_formats)):
                     # TODO: We should also check that TNULLn's integer value
                     # is in the range allowed by the column's format
                     msg = (
@@ -898,7 +976,7 @@ class Column(NotifierMixin):
                     'The invalid value will be ignored for the purpose of '
                     'formatting the data in this column.'.format(disp))
 
-            if (isinstance(format, _AsciiColumnFormat) and
+            elif (isinstance(format, _AsciiColumnFormat) and
                     disp[0].upper() == 'L'):
                 # disp is at least one character long and has the 'L' format
                 # which is not recognized for ASCII tables
@@ -923,16 +1001,17 @@ class Column(NotifierMixin):
                     'table columns (got {!r}).  The invalid keyword will be '
                     'ignored for the purpose of formatting the data in this '
                     'column.'.format(start))
-            try:
-                start = int(start)
-            except (TypeError, ValueError):
-                pass
+            else:
+                try:
+                    start = int(start)
+                except (TypeError, ValueError):
+                    pass
 
-            if not _is_int(start) and start < 1:
-                msg = (
-                    'Column start option (TBCOLn) must be a positive integer '
-                    '(got {!r}).  The invalid value will be ignored for the '
-                    'purpose of formatting the data in this column.'.format(start))
+                if not _is_int(start) or start < 1:
+                    msg = (
+                        'Column start option (TBCOLn) must be a positive integer '
+                        '(got {!r}).  The invalid value will be ignored for the '
+                        'purpose of formatting the data in this column.'.format(start))
 
             if msg is None:
                 valid['start'] = start
@@ -980,6 +1059,67 @@ class Column(NotifierMixin):
                 valid['dim'] = dims_tuple
             else:
                 invalid['dim'] = (dim, msg)
+
+        if coord_type is not None and coord_type != '':
+            msg = None
+            if not isinstance(coord_type, string_types):
+                msg = (
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_type))
+            elif len(coord_type) > 8:
+                msg = (
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "of atmost 8 characters (got {!r}). The invalid keyword "
+                    "will be ignored for the purpose of formatting this "
+                    "column.".format(coord_type))
+
+            if msg is None:
+                valid['coord_type'] = coord_type
+            else:
+                invalid['coord_type'] = (coord_type, msg)
+
+        if coord_unit is not None and coord_unit != '':
+            msg = None
+            if not isinstance(coord_unit, string_types):
+                msg = (
+                    "Coordinate/axis unit option (TCUNIn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_unit))
+
+            if msg is None:
+                valid['coord_unit'] = coord_unit
+            else:
+                invalid['coord_unit'] = (coord_unit, msg)
+
+        for k, v in [('coord_ref_point', coord_ref_point),
+                     ('coord_ref_value', coord_ref_value),
+                     ('coord_inc', coord_inc)]:
+            if v is not None and v != '':
+                msg = None
+                if not isinstance(v, numbers.Real):
+                    msg = (
+                        "Column {} option ({}n) must be a real floating type (got {!r}). "
+                        "The invalid value will be ignored for the purpose of formatting "
+                        "the data in this column.".format(k, ATTRIBUTE_TO_KEYWORD[k], v))
+
+                if msg is None:
+                    valid[k] = v
+                else:
+                    invalid[k] = (v, msg)
+
+        if time_ref_pos is not None and time_ref_pos != '':
+            msg=None
+            if not isinstance(time_ref_pos, string_types):
+                msg = (
+                    "Time coordinate reference position option (TRPOSn) must be "
+                    "a string (got {!r}). The invalid keyword will be ignored for "
+                    "the purpose of formatting this column.".format(time_ref_pos))
+
+            if msg is None:
+                valid['time_ref_pos'] = time_ref_pos
+            else:
+                invalid['time_ref_pos'] = (time_ref_pos, msg)
 
         return valid, invalid
 
