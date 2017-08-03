@@ -300,8 +300,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
                 "file: {0}".format(e))
 
         else:
-            dset2 = output_group.create_dataset(meta_path(name),
-                                                data=header_encoded)
+            output_group.create_dataset(meta_path(name),
+                                        data=header_encoded)
 
     else:
         # Write the meta-data to the file
