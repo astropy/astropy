@@ -40,7 +40,7 @@ class TestFitsTime(FitsTestCase):
         t['b'] = Time(self.time, format='isot', scale='tt')
 
         # Check that vectorized location raises an exception
-        t['a'].location = EarthLocation([1,2], [2,3], [3,4,])
+        t['a'].location = EarthLocation([1,2], [2,3], [3,4])
 
         with pytest.raises(ValueError) as err:
             table, hdr = time_to_fits(t)
