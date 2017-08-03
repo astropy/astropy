@@ -237,7 +237,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
+- Pytest <3.1 versions are no longer supported. [#6419]
 
 
 2.0.2 (unreleased)
