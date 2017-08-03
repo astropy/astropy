@@ -4,8 +4,7 @@ import pytest
 
 from . import FitsTestCase
 
-from ..column import is_time_column_keyword
-from ..fitstime import GLOBAL_TIME_INFO, time_to_fits
+from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from ....coordinates import EarthLocation
 from ....table import Table, QTable
 from ....time import Time
