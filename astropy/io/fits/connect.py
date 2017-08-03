@@ -13,6 +13,7 @@ from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from .column import KEYWORD_NAMES
 from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
@@ -25,29 +26,14 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
-                   'PCOUNT', 'GCOUNT', 'TFIELDS']
+                   'PCOUNT', 'GCOUNT', 'TFIELDS', 'THEAP']
 
-# Column-specific keywords
-COLUMN_KEYWORDS = ['TFORM[0-9]+',
-                   'TBCOL[0-9]+',
-                   'TSCAL[0-9]+',
-                   'TZERO[0-9]+',
-                   'TNULL[0-9]+',
-                   'TTYPE[0-9]+',
-                   'TUNIT[0-9]+',
-                   'TDISP[0-9]+',
-                   'TDIM[0-9]+',
-                   'TCTYP[0-9]+',
-                   'TCUNI[0-9]+',
-                   'TRPOS[0-9]+',
-                   'THEAP']
+# Column-specific keywords regex
+COLUMN_KEYWORD_REGEXP = '(' + '|'.join(KEYWORD_NAMES) + ')[0-9]+'
 
 
 def is_column_keyword(keyword):
-    for c in COLUMN_KEYWORDS:
-        if re.match(c, keyword) is not None:
-            return True
-    return False
+    return re.match(COLUMN_KEYWORD_REGEXP, keyword) is not None
 
 
 def is_fits(origin, filepath, fileobj, *args, **kwargs):
