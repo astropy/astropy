@@ -229,7 +229,13 @@ class TestTableFunctions(FitsTestCase):
                 'bzero': ['', '', 0.4, ''],
                 'disp': ['I11', 'A3', 'G15.7', 'L6'],
                 'start': ['', '', '', ''],
-                'dim': ['', '', '', '']}
+                'dim': ['', '', '', ''],
+                'coord_inc': ['', '', '', ''],
+                'coord_type': ['', '', '', ''],
+                'coord_unit': ['', '', '', ''],
+                'coord_ref_point': ['', '', '', ''],
+                'coord_ref_value': ['', '', '', ''],
+                'time_ref_pos': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 
@@ -2970,6 +2976,47 @@ class TestColumnFunctions(FitsTestCase):
         assert np.all(c4.array[0] == c3.array[0])
         assert np.all(c4.array[1] == c3.array[1])
 
+    def test_column_verify_keywords(self):
+        """
+        Test that the keyword arguments used to initialize a Column, specifically
+        those that typically read from a FITS header (so excluding array),
+        are verified to have a valid value.
+        """
+
+        with pytest.raises(AssertionError) as err:
+            c = fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
+        assert 'Column name must be a string able to fit' in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
+                            coord_inc='1', time_ref_pos=1)
+        err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
+                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
+        for msg in err_msgs:
+            assert msg in str(err.value)
+
+    def test_column_verify_start(self):
+        """
+        Regression test for https://github.com/astropy/astropy/pull/6359
+
+        Test the validation of the column start position option (ASCII table only),
+        corresponding to ``TBCOL`` keyword.
+        Test whether the VerifyError message generated is the one with highest priority,
+        i.e. the order of error messages to be displayed is maintained.
+        """
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='B', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) is not allowed for binary table columns" in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got 'a')." in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
 
 def test_regression_5383():
 

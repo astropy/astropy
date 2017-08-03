@@ -265,6 +265,13 @@ header keywords and descriptions:
     disp            TDISP                 display format
     dim             TDIM                  multi-dimensional array spec
     start           TBCOL                 starting position for ASCII table
+    coord_type      TCTYP                 coordinate/axis type
+    coord_unit      TCUNI                 coordinate/axis unit
+    coord_ref_point TCRPX                 pixel coordinate of the reference point
+    coord_ref_value TCRVL                 coordinate value at reference point
+    coord_inc       TCDLT                 coordinate increment at reference point
+    time_ref_pos    TRPOS                 reference position for a time coordinate column
+    ascii                                 specifies a column for an ASCII table
     array                                 the data of the column
 
 
