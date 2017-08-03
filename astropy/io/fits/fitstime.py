@@ -131,10 +131,9 @@ def _verify_column_info(global_info, time_col):
         return False
 
     if (unit is not None and unit in FITS_TIME_UNIT) or 'pos' in time_col:
+        time_col['scale'] = global_info['scale']
         return True
 
-    # Other cases are yet to be checked and will be done when reading starts
-    # This includes checking TTYPEn and TUNITn
     return False
 
 
