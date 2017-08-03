@@ -28,22 +28,22 @@ TCTYP_RE_ALGO = re.compile(r'(?P<algo>[A-Z]+)\s*')
 FITS_TIME_UNIT = ['s', 'd', 'a', 'cy', 'min', 'h', 'yr', 'ta', 'Ba']
 
 # Global time reference coordinate keywords
-TIME_KEYWORDS = {'TIMESYS' : 'scale', 'MJDREF' : 'ref_mjd',
-                 'JDREF' : 'ref_jd', 'DATEREF' : 'ref_date',
-                 'TREFPOS' : 'pos', 'TREFDIR' : 'dir',
-                 'TIMEUNIT' : 'unit', 'TIMEOFFS' : 'offs',
-                 'OBSGEO-X' : 'loc_x', 'OBSGEO-Y' : 'loc_y',
-                 'OBSGEO-Z' : 'loc_z', 'DATE' : 'date',
-                 'DATE-OBS' : 'date-obs', 'DATE-AVG' : 'date-avg',
-                 'DATE-BEG' : 'date-beg', 'DATE-END' : 'date-end',
-                 'MJD-OBS' : 'mjd-obs', 'MJD-AVG' : 'mjd-avg',
-                 'MJD-BEG' : 'mjd-beg', 'MJD-END' : 'mjd-end'}
+TIME_KEYWORDS = {'TIMESYS': 'scale', 'MJDREF': 'ref_mjd',
+                 'JDREF': 'ref_jd', 'DATEREF': 'ref_date',
+                 'TREFPOS': 'pos', 'TREFDIR': 'dir',
+                 'TIMEUNIT': 'unit', 'TIMEOFFS': 'offs',
+                 'OBSGEO-X': 'loc_x', 'OBSGEO-Y': 'loc_y',
+                 'OBSGEO-Z': 'loc_z', 'DATE': 'date',
+                 'DATE-OBS': 'date-obs', 'DATE-AVG': 'date-avg',
+                 'DATE-BEG': 'date-beg', 'DATE-END': 'date-end',
+                 'MJD-OBS': 'mjd-obs', 'MJD-AVG': 'mjd-avg',
+                 'MJD-BEG': 'mjd-beg', 'MJD-END': 'mjd-end'}
 
 
 # Column-specific time override keywords
-COLUMN_TIME_KEYWORDS = {'TCTYP' : 'scale',
-                        'TCUNI' : 'unit',
-                        'TRPOS' : 'pos'}
+COLUMN_TIME_KEYWORDS = {'TCTYP': 'scale',
+                        'TCUNI': 'unit',
+                        'TRPOS': 'pos'}
 
 
 COLUMN_TIME_KEYWORD_REGEXP = '({0})[0-9]+'.format(
@@ -63,9 +63,9 @@ def is_time_column_keyword(keyword):
 
 
 # Set astropy time global information
-GLOBAL_TIME_INFO = {'TIMESYS' : ('UTC','Default time scale'),
-                    'JDREF' : (0.0,'Time columns are jd = jd1 + jd2'),
-                    'TREFPOS' : ('TOPOCENTER','Time reference position')}
+GLOBAL_TIME_INFO = {'TIMESYS': ('UTC', 'Default time scale'),
+                    'JDREF': (0.0, 'Time columns are jd = jd1 + jd2'),
+                    'TREFPOS': ('TOPOCENTER', 'Time reference position')}
 
 
 def _verify_global_info(global_info):
@@ -136,8 +136,8 @@ def _verify_column_info(global_info, time_col):
             warnings.warn(
                 'Table column {} has a FITS recognized time scale value {}. '
                 'However, since it is not a valid astropy time scale, '
-                'it will not be converted to astropy Time.'.format(idx, scale),
-                AstropyUserWarning)
+                'it will not be converted to astropy Time.'
+                .format(time_col, scale), AstropyUserWarning)
             return False
 
         # Non-linear coordinate types have "4-3" form and are not time coordinates
@@ -221,7 +221,8 @@ def _convert_time_columns(table, global_info, time_columns):
     for idx, time_col in time_columns.items():
         time_colname = table.colnames[idx - 1]
         if table[time_colname].shape[-1] == 2 and table[time_colname].ndim > 1:
-            table[time_colname] = Time(table[time_colname][...,0], table[time_colname][...,1],
+            table[time_colname] = Time(table[time_colname][..., 0],
+                                       table[time_colname][..., 1],
                                        format='jd', scale=time_col['scale'])
         else:
             warnings.warn(
@@ -263,9 +264,9 @@ def fits_to_time(hdr, table):
     """
 
     # Set defaults for global time scale, reference, etc.
-    global_info = {'scale' : 'UTC',
-                   'mjdref' : None,
-                   'unit' : 's'}
+    global_info = {'scale': 'UTC',
+                   'mjdref': None,
+                   'unit': 's'}
 
     # Set default dictionary for time columns
     time_columns = defaultdict(OrderedDict)
@@ -275,12 +276,12 @@ def fits_to_time(hdr, table):
     hcopy = hdr.copy(strip=True)
 
     for key, value, comment in hdr.cards:
-        if (key in TIME_KEYWORDS):
+        if key in TIME_KEYWORDS:
 
             global_info[TIME_KEYWORDS[key]] = value
             hcopy.remove(key)
 
-        elif (is_time_column_keyword(key)):
+        elif is_time_column_keyword(key):
 
             base, idx = re.match(r'([A-Z]+)([0-9]+)', key).groups()
             time_columns[int(idx)][COLUMN_TIME_KEYWORDS[base]] = value
