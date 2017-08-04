@@ -6,6 +6,7 @@ import os
 import re
 import warnings
 from collections import OrderedDict
+from contextlib import contextmanager
 
 from .. import registry as io_registry
 from ... import units as u
@@ -15,6 +16,7 @@ from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
+from . import py3compat
 from .convenience import table_to_hdu
 
 
@@ -76,7 +78,7 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None):
+def read_table_fits(input, hdu=None, decode_bytes=True):
     """
     Read a Table object from an FITS file
 
@@ -133,7 +135,7 @@ def read_table_fits(input, hdu=None):
         hdulist = fits_open(input)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu)
+            return read_table_fits(hdulist, hdu=hdu, decode_bytes=decode_bytes)
         finally:
             hdulist.close()
 
@@ -145,7 +147,15 @@ def read_table_fits(input, hdu=None):
             break
 
     # Convert to an astropy.table.Table object
-    t = Table(table.data, masked=masked)
+    @contextmanager
+    def set_py3compat(decode_bytes):
+        orig_decode_bytes = py3compat.DECODE_BYTES
+        py3compat.DECODE_BYTES = decode_bytes
+        yield
+        py3compat.DECODE_BYTES = orig_decode_bytes
+
+    with set_py3compat(decode_bytes):
+        t = Table(table.data, masked=masked)
 
     # Copy over null values if needed
     if masked:

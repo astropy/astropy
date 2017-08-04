@@ -5,6 +5,8 @@ from ...extern import six
 from ...utils.compat.numpycompat import NUMPY_LT_1_10
 from ...utils.exceptions import AstropyUserWarning
 
+DECODE_BYTES = True
+
 if not six.PY2:
     # Stuff to do if Python 3
 
@@ -28,6 +30,13 @@ if not six.PY2:
     util.encode_ascii = encode_ascii
 
     def decode_ascii(s):
+        # Hook from connect.read_table_fits to allow reading table without
+        # decoding 'S'-type strings and converting to unicode 'U'-type.
+        # This just replicates the pass-through Python-2 version in util.py.
+        print(DECODE_BYTES)
+        if not DECODE_BYTES:
+            return s
+
         if isinstance(s, bytes):
             try:
                 return s.decode('ascii')
