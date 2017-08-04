@@ -93,10 +93,7 @@ class TestFitsTime(FitsTestCase):
 
         ideal_col_hdr = {'OBSGEO-X' : t['a'].location.x.value,
                          'OBSGEO-Y' : t['a'].location.y.value,
-                         'OBSGEO-Z' : t['a'].location.z.value,
-                         'TCTYP1' : t['a'].scale.upper(),
-                         'TRPOS1' : 'TOPOCENTER',
-                         'TCTYP2' : t['b'].scale.upper()}
+                         'OBSGEO-Z' : t['a'].location.z.value}
 
         table, hdr = time_to_fits(t)
 
@@ -110,6 +107,11 @@ class TestFitsTime(FitsTestCase):
         for key, value in ideal_col_hdr.items():
             assert hdr[key] == value
             hdr.remove(key)
+
+        coord_info = table.meta['__coordinate_columns__']
+        for colname in coord_info:
+            assert coord_info[colname]['coord_type'] == t[colname].scale.upper()
+            assert coord_info[colname]['time_ref_pos'] == 'TOPOCENTER'
 
         assert len(hdr) == 0
 
@@ -165,7 +167,7 @@ class TestFitsTime(FitsTestCase):
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'].value == t.meta['DATE']
+        assert tm.meta['DATE'].value == t.meta['DATE'] + '(UTC)'
         assert tm.meta['DATE'].scale == 'utc'
 
         # Test MJD-xxx
