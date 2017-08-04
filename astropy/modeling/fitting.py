@@ -730,10 +730,16 @@ class LevMarLSQFitter(object):
 
         if any(model.fixed.values()) or any(model.tied.values()):
 
+            if type(weights) in (np.ndarray, tuple, list):
+                weights = np.asarray(weights)
+                if weights.shape == x.shape == y.shape \
+                   and (z is None or weights.shape == z.shape):
+                    weights = weights[..., np.newaxis]
+
             if z is None:
-                full_deriv = np.ravel(weights) * np.array(model.fit_deriv(x, *model.parameters))
+                full_deriv = weights * np.array(model.fit_deriv(x, *model.parameters))
             else:
-                full_deriv = (np.ravel(weights) * np.array(model.fit_deriv(x, y, *model.parameters)).T).T
+                full_deriv = (weights * np.array(model.fit_deriv(x, y, *model.parameters))).T.T
 
             pars = [getattr(model, name) for name in model.param_names]
             fixed = [par.fixed for par in pars]
