@@ -111,7 +111,8 @@ class TestFitsTime(FitsTestCase):
         coord_info = table.meta['__coordinate_columns__']
         for colname in coord_info:
             assert coord_info[colname]['coord_type'] == t[colname].scale.upper()
-            assert coord_info[colname]['time_ref_pos'] == 'TOPOCENTER'
+
+        assert coord_info['a']['time_ref_pos'] == 'TOPOCENTER'
 
         assert len(hdr) == 0
 
@@ -146,8 +147,8 @@ class TestFitsTime(FitsTestCase):
 
         # Test DATE
         assert isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'].value == t.meta['DATE']
-        assert tm.meta['DATE'].format == 'isot'
+        assert tm.meta['DATE'].value == t.meta['DATE'] + '(UTC)'
+        assert tm.meta['DATE'].format == 'fits'
         # Default time scale according to the FITS standard is UTC
         assert tm.meta['DATE'].scale == 'utc'
 
