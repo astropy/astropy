@@ -78,7 +78,7 @@ def _verify_global_info(global_info):
     # Translate FITS deprecated scale into astropy scale, or else just convert
     # to lower case for further checks.
     global_info['TIMESYS'] = FITS_DEPRECATED_SCALES.get(global_info['TIMESYS'],
-                                                      global_info['TIMESYS'].lower())
+                                                        global_info['TIMESYS'].lower())
 
     # Verify global time scale
     if not global_info['TIMESYS'] in Time.SCALES:
@@ -87,8 +87,8 @@ def _verify_global_info(global_info):
             warnings.warn(
                 'Global time scale (TIMESYS) has a FITS recognized time scale '
                 'value "GPS". In Astropy, "GPS" is a time from epoch format '
-                'which runs synchronously with TAI; GPS is approximately '
-                'TAI − 19 s. Hence, this format will be used.', AstropyUserWarning)
+                'which runs synchronously with TAI; GPS is approximately 19 s '
+                'ahead of TAI. Hence, this format will be used.', AstropyUserWarning)
             global_info['FORMAT'] = 'gps'
             global_info['TIMESYS'] = 'tai'
 
@@ -156,8 +156,8 @@ def _verify_column_info(column_info, global_info):
             warnings.warn(
                 'Table column {} has a FITS recognized time scale value "GPS". '
                 'In Astropy, "GPS" is a time from epoch format which runs '
-                'synchronously with TAI, as the scale GPS ≈ TAI − 19 s. '
-                'Hence, this format will be used.'.format(column_info),
+                'synchronously with TAI; GPS runs ahead of TAI approximately '
+                'by 19 s. Hence, this format will be used.'.format(column_info),
                 AstropyUserWarning)
             column_info['FORMAT'] = 'gps'
             column_info['TCTYP'] = 'tai'
@@ -230,7 +230,7 @@ def _convert_global_time(table, global_info):
                 table.meta[key] = value
 
 
-def _convert_time_columns(col, column_info):
+def _convert_time_column(col, column_info):
     """
     Convert time columns to astropy Time columns.
 
@@ -253,7 +253,7 @@ def _convert_time_columns(col, column_info):
             'Time column {} is not in the astropy required (jd1, jd2) format. '
             'Hence, it will not be read as astropy Time'.format(col.info.name),
             AstropyUserWarning)
-        return
+    return col
 
 
 def fits_to_time(hdr, table):
@@ -343,6 +343,8 @@ def time_to_fits(table):
     hdr = Header([Card(keyword=key, value=val[0], comment=val[1])
                   for key, val in GLOBAL_TIME_INFO.items()])
 
+    newtable.meta['__coordinate_columns__'] = defaultdict(OrderedDict)
+
     time_cols = table.columns.isinstance(Time)
 
     # Geocentric Position
@@ -361,7 +363,7 @@ def time_to_fits(table):
         n = table.colnames.index(col.info.name) + 1
 
         # Time column override keywords
-        hdr.append(Card(keyword='TCTYP{}'.format(n), value=col.scale.upper()))
+        newtable.meta['__coordinate_columns__'][col.info.name]['coord_type'] = col.scale.upper()
 
         # Time column reference positions
         if col.location is None:
@@ -372,7 +374,7 @@ def time_to_fits(table):
                     'FITS specification.'.format(col.info.name),
                     AstropyUserWarning)
         else:
-            hdr.append(Card(keyword='TRPOS{}'.format(n), value='TOPOCENTER'))
+            newtable.meta['__coordinate_columns__'][col.info.name]['time_ref_pos'] = 'TOPOCENTER'
             # Compatibility of Time Scales and Reference Positions
             if col.scale in BARYCENTRIC_SCALES:
                 warnings.warn(
