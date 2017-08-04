@@ -10,6 +10,7 @@ dependencies:
   - python>=3
   - numpy
   - cython
+  - sphinx
   - matplotlib
   - scipy
   - pillow
