@@ -69,6 +69,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- For the ``deprecated_renamed_argument`` decorator, refer to the deprecation‘s
+  caller instead of ``astropy.utils.decorators``, to makes it easier to find
+  where the deprecation warnings comes from. [#6422]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
