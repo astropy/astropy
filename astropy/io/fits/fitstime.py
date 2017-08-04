@@ -87,8 +87,8 @@ def _verify_global_info(global_info):
             warnings.warn(
                 'Global time scale (TIMESYS) has a FITS recognized time scale '
                 'value "GPS". In Astropy, "GPS" is a time from epoch format '
-                'which runs synchronously with TAI, as the scale GPS ≈ TAI − 19 s. '
-                'Hence, this format will be used.', AstropyUserWarning)
+                'which runs synchronously with TAI; GPS is approximately '
+                'TAI − 19 s. Hence, this format will be used.', AstropyUserWarning)
             global_info['FORMAT'] = 'gps'
             global_info['TIMESYS'] = 'tai'
 
