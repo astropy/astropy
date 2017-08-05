@@ -83,7 +83,7 @@ class TestFitsTime(FitsTestCase):
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_header(self, table_types):
         """
-        Test the header returned by ``time_to_fits`` explicitly.
+        Test the header and metadata returned by ``time_to_fits``.
         """
         t = table_types()
         t['a'] = Time(self.time, format='isot', scale='utc',
@@ -97,20 +97,21 @@ class TestFitsTime(FitsTestCase):
 
         table, hdr = time_to_fits(t)
 
-        # Check global time keywords
+        # Check the global time keywords in hdr
         for key, value in GLOBAL_TIME_INFO.items():
             assert hdr[key] == value[0]
             assert hdr.comments[key] == value[1]
             hdr.remove(key)
 
-        # Check column-specific(related) keywords
         for key, value in ideal_col_hdr.items():
             assert hdr[key] == value
             hdr.remove(key)
 
+        # Check the column-specific time metadata
         coord_info = table.meta['__coordinate_columns__']
         for colname in coord_info:
             assert coord_info[colname]['coord_type'] == t[colname].scale.upper()
+            assert coord_info[colname]['coord_unit'] == 'd'
 
         assert coord_info['a']['time_ref_pos'] == 'TOPOCENTER'
 
@@ -175,3 +176,33 @@ class TestFitsTime(FitsTestCase):
         assert isinstance(tm.meta['MJD-OBS'], Time)
         assert tm.meta['MJD-OBS'].value == t.meta['MJD-OBS']
         assert tm.meta['MJD-OBS'].scale == FITS_DEPRECATED_SCALES[t.meta['TIMESYS']]
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_time_loc_unit(self, table_types):
+        """
+        Test that ``location`` specified by using any valid unit
+        (length/angle) in ``Time`` columns gets stored in FITS
+        as ITRS Cartesian coordinates (X, Y, Z), each in m.
+        Test that it round-trips through FITS.
+        """
+        t = table_types()
+        t['a'] = Time(self.time, format='isot', scale='utc',
+                      location=EarthLocation(1,2,3, unit='km'))
+
+        table, hdr = time_to_fits(t)
+
+        # Check the header
+        hdr['OBSGEO-X'] == t['a'].location.x.to_value(unit='m')
+        hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
+        hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
+
+        t.write(self.temp('time.fits'), format='fits', overwrite=True,
+                astropy_native=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits',
+                              astropy_native=True)
+
+        # Check the round-trip of location
+        tm['a'].location == t['a'].location
+        tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
+        tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
+        tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')

@@ -92,8 +92,6 @@ def read_table_fits(input, hdu=None, astropy_native=False):
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
     """
-    # Avoid circular imports
-    from .fitstime import fits_to_time
 
     if isinstance(input, HDUList):
 
@@ -164,7 +162,11 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     # TODO: deal properly with unsigned integers
 
-    hdr = fits_to_time(table.header, t) if astropy_native else table.header
+    hdr = table.header
+    if astropy_native:
+        # Avoid circular imports and minimize overhead
+        from .fitstime import fits_to_time
+        hdr = fits_to_time(hdr, t)
 
     for key, value, comment in hdr.cards:
 
