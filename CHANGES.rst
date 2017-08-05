@@ -35,7 +35,7 @@ astropy.io.misc
 ^^^^^^^^^^^^^^^
 
   - When writing to HDF5 files, the serialized metadata are now saved in a new
-    dataset instead of the HDF5 dataset attributes. This allows for metadata of
+    dataset, instead of the HDF5 dataset attributes. This allows for metadata of
     any dimensions. [#6304]
 
 astropy.io.registry
