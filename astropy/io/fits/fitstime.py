@@ -77,29 +77,29 @@ def _verify_global_info(global_info):
 
     # Translate FITS deprecated scale into astropy scale, or else just convert
     # to lower case for further checks.
-    global_info['TIMESYS'] = FITS_DEPRECATED_SCALES.get(global_info['TIMESYS'],
-                                                        global_info['TIMESYS'].lower())
+    global_info['scale'] = FITS_DEPRECATED_SCALES.get(global_info['TIMESYS'],
+                                                      global_info['TIMESYS'].lower())
 
     # Verify global time scale
-    if not global_info['TIMESYS'] in Time.SCALES:
+    if global_info['scale'] not in Time.SCALES:
 
-        if global_info['TIMESYS'] == 'gps':
+        if global_info['scale'] == 'gps':
             warnings.warn(
                 'Global time scale (TIMESYS) has a FITS recognized time scale '
                 'value "GPS". In Astropy, "GPS" is a time from epoch format '
                 'which runs synchronously with TAI; GPS is approximately 19 s '
                 'ahead of TAI. Hence, this format will be used.', AstropyUserWarning)
-            global_info['FORMAT'] = 'gps'
-            global_info['TIMESYS'] = 'tai'
+            global_info['format'] = 'gps'
+            global_info['scale'] = 'tai'
 
-        if global_info['TIMESYS'] == 'local':
+        if global_info['scale'] == 'local':
             warnings.warn(
                 'Global time scale (TIMESYS) has a FITS recognized time scale '
                 'value "LOCAL". However, the standard states that "LOCAL" should be '
                 'tied to one of the existing scales because it is intrinsically '
                 'unreliable and/or ill-defined. Astropy will thus use the default '
                 'global time scale "UTC" instead of "LOCAL".', AstropyUserWarning)
-            global_info['TIMESYS'] = 'utc'
+            global_info['scale'] = 'utc'
 
         else:
             raise AssertionError(
@@ -130,26 +130,26 @@ def _verify_column_info(column_info, global_info):
     if pos is not None:
 
         if pos == 'TOPOCENTER':
-            column_info['TRPOS'] = EarthLocation(global_info['OBSGEO-X'],
-                                                 global_info['OBSGEO-Y'],
-                                                 global_info['OBSGEO-Z'],
-                                                 unit='m')
+            column_info['pos'] = EarthLocation(global_info['OBSGEO-X'],
+                                               global_info['OBSGEO-Y'],
+                                               global_info['OBSGEO-Z'],
+                                               unit='m')
         else:
-            column_info['TRPOS'] = None
+            column_info['pos'] = None
 
     if scale is not None:
 
         if scale.lower() in Time.SCALES:
-            column_info['TCTYP'] = scale.lower()
+            column_info['scale'] = scale.lower()
             return True
 
         if scale in FITS_DEPRECATED_SCALES.keys():
-            column_info['TCTYP'] = FITS_DEPRECATED_SCALES[scale]
+            column_info['scale'] = FITS_DEPRECATED_SCALES[scale]
             return True
 
         if scale == 'TIME':
-            column_info['TCTYP'] = global_info['TIMESYS']
-            column_info['FORMAT'] = global_info.get('FORMAT', None)
+            column_info['scale'] = global_info['scale']
+            column_info['format'] = global_info.get('format', None)
             return True
 
         if scale == 'GPS':
@@ -159,8 +159,8 @@ def _verify_column_info(column_info, global_info):
                 'synchronously with TAI; GPS runs ahead of TAI approximately '
                 'by 19 s. Hence, this format will be used.'.format(column_info),
                 AstropyUserWarning)
-            column_info['FORMAT'] = 'gps'
-            column_info['TCTYP'] = 'tai'
+            column_info['format'] = 'gps'
+            column_info['scale'] = 'tai'
             return True
 
         if scale == 'LOCAL':
@@ -171,8 +171,8 @@ def _verify_column_info(column_info, global_info):
                 'and/or ill-defined. Astropy will thus use the global time scale '
                 '(TIMESYS) as the default.'. format(column_info),
                 AstropyUserWarning)
-            column_info['TCTYP'] = global_info['TIMESYS']
-            column_info['FORMAT'] = global_info.get('FORMAT', None)
+            column_info['scale'] = global_info['scale']
+            column_info['format'] = global_info.get('format', None)
 
         # Non-linear coordinate types have "4-3" form and are not time coordinates
         if TCTYP_RE_TYPE.match(scale[:5]) and TCTYP_RE_ALGO.match(scale[5:]):
@@ -182,11 +182,11 @@ def _verify_column_info(column_info, global_info):
         # or a linear coordinate type
         return False
 
-    if global_info['TIMESYS'] is None:
+    if global_info['scale'] is None:
         return False
 
     if (unit is not None and unit in FITS_TIME_UNIT) or pos is not None:
-        column_info['TCTYP'] = global_info['TIMESYS']
+        column_info['scale'] = global_info['scale']
         return True
 
     return False
@@ -210,7 +210,7 @@ def _convert_global_time(table, global_info):
         # FITS uses a subset of ISO-8601 for DATE-xxx
         if key.startswith('DATE'):
             if key not in table.meta:
-                scale = 'utc' if key == 'DATE' else global_info['TIMESYS']
+                scale = 'utc' if key == 'DATE' else global_info['scale']
                 try:
                     precision = len(value.split('.')[-1]) if '.' in value else 0
                     value = Time(value, format='fits', scale=scale,
@@ -224,7 +224,7 @@ def _convert_global_time(table, global_info):
             if key not in table.meta:
                 try:
                     value = Time(value, format='mjd',
-                                 scale=global_info['TIMESYS'])
+                                 scale=global_info['scale'])
                 except ValueError:
                     pass
                 table.meta[key] = value
@@ -247,7 +247,7 @@ def _convert_time_column(col, column_info):
     # Read in time coordinate column as Time
     if col.shape[-1] == 2 and col.ndim > 1:
         col = Time(col[..., 0], col[..., 1], format='jd',
-                   scale=column_info['TCTYP'], location=column_info['TRPOS'])
+                   scale=column_info['scale'], location=column_info['pos'])
     else:
         warnings.warn(
             'Time column {} is not in the astropy required (jd1, jd2) format. '
@@ -333,7 +333,7 @@ def time_to_fits(table):
     table : `~astropy.table.Table`
         The table with replaced Time columns
     hdr : `~astropy.io.fits.header.Header`
-        Header containing Cards associated with the FITS time coordinate
+        Header containing global time reference frame FITS keywords
     """
 
     # Shallow copy of the input table
@@ -344,6 +344,7 @@ def time_to_fits(table):
                   for key, val in GLOBAL_TIME_INFO.items()])
 
     newtable.meta['__coordinate_columns__'] = defaultdict(OrderedDict)
+    coord_meta = newtable.meta['__coordinate_columns__']
 
     time_cols = table.columns.isinstance(Time)
 
@@ -363,18 +364,19 @@ def time_to_fits(table):
         n = table.colnames.index(col.info.name) + 1
 
         # Time column override keywords
-        newtable.meta['__coordinate_columns__'][col.info.name]['coord_type'] = col.scale.upper()
+        coord_meta[col.info.name]['coord_type'] = col.scale.upper()
+        coord_meta[col.info.name]['coord_unit'] = 'd'
 
         # Time column reference positions
         if col.location is None:
             if pos_geo is not None:
                 warnings.warn(
-                    'Time Column "{}" has no specified location, but global Time Position '
-                    'is present, which will be the default for this column in '
-                    'FITS specification.'.format(col.info.name),
+                    'Time Column "{}" has no specified location, but global Time '
+                    'Position is present, which will be the default for this column '
+                    'in FITS specification.'.format(col.info.name),
                     AstropyUserWarning)
         else:
-            newtable.meta['__coordinate_columns__'][col.info.name]['time_ref_pos'] = 'TOPOCENTER'
+            coord_meta[col.info.name]['time_ref_pos'] = 'TOPOCENTER'
             # Compatibility of Time Scales and Reference Positions
             if col.scale in BARYCENTRIC_SCALES:
                 warnings.warn(
@@ -382,18 +384,19 @@ def time_to_fits(table):
                     'with scale "{}".'.format(col.info.name, col.scale.upper()),
                     AstropyUserWarning)
             if col.location.size > 1:
-                raise ValueError('Vectorized Location of Time Column "{}" cannot be written, '
-                                 'as it is not supported.'.format(col.info.name))
+                raise ValueError('Vectorized Location of Time Column "{}" cannot be '
+                                 'written, as it is not supported.'.format(col.info.name))
             if pos_geo is None:
                 hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(),
                             value=getattr(col.location, dim).to_value(unit='m'))
                             for dim in ('x', 'y', 'z')])
                 pos_geo = col.location
             elif pos_geo != col.location:
-                raise ValueError('Multiple Time Columns with different geocentric observatory '
-                                 'locations ({}, {}, {}) , ({}, {}, {}) are encountered. '
-                                 'These are not supported by the FITS standard.'.format(pos_geo.x,
-                                 pos_geo.y, pos_geo.z, col.location.x, col.location.y,
+                raise ValueError('Multiple Time Columns with different geocentric '
+                                 'observatory locations ({}, {}, {}) , ({}, {}, {}) '
+                                 'are encountered. These are not supported by the '
+                                 'FITS standard.'.format(pos_geo.x, pos_geo.y,
+                                 pos_geo.z, col.location.x, col.location.y,
                                  col.location.z))
 
     return newtable, hdr

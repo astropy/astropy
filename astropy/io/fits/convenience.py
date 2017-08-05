@@ -516,8 +516,6 @@ def table_to_hdu(table, astropy_native=False):
     else:
         table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
 
-    coord_meta = table.meta.pop('__coordinate_columns__', None)
-
     # Set units for output HDU
     for col in table_hdu.columns:
         unit = table[col.name].unit
@@ -538,6 +536,9 @@ def table_to_hdu(table, astropy_native=False):
 
             # Try creating a Unit to issue a warning if the unit is not FITS compliant
             Unit(col.unit, format='fits', parse_strict='warn')
+
+    # Column-specific override keywords for coordinate columns
+    coord_meta = table.meta.pop('__coordinate_columns__', None)
 
     if coord_meta is not None:
         for col in table_hdu.columns:
