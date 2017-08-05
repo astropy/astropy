@@ -145,6 +145,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
             break
 
     # Convert to an astropy.table.Table object
+    # Note: in future, it may make more sense to do this column-by-column,
+    # rather than via the structured array.
     t = Table(table.data, masked=masked)
 
     # Copy over null values if needed
@@ -164,7 +166,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     hdr = table.header
     if astropy_native:
-        # Avoid circular imports and minimize overhead
+        # Avoid circular imports, and also only import if necessary.
         from .fitstime import fits_to_time
         hdr = fits_to_time(hdr, t)
 
@@ -187,8 +189,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
             else:
                 t.meta[key] = [t.meta[key], value]
 
-        elif (is_column_keyword(key) or
-              key in REMOVE_KEYWORDS):
+        elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
 
             pass
 

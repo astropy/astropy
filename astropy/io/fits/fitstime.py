@@ -8,6 +8,7 @@ import numpy as np
 
 from . import Header, Card
 
+from ... import units as u
 from ...coordinates import EarthLocation
 from ...table import Column
 from ...time import Time
@@ -125,17 +126,17 @@ def _verify_column_info(column_info, global_info):
 
     scale = column_info.get('TCTYP', None)
     unit = column_info.get('TCUNI', None)
-    pos = column_info.get('TRPOS', None)
+    location = column_info.get('TRPOS', None)
 
-    if pos is not None:
+    if location is not None:
 
-        if pos == 'TOPOCENTER':
-            column_info['pos'] = EarthLocation(global_info['OBSGEO-X'],
-                                               global_info['OBSGEO-Y'],
-                                               global_info['OBSGEO-Z'],
-                                               unit='m')
+        if location == 'TOPOCENTER':
+            column_info['location'] = EarthLocation(global_info['OBSGEO-X'],
+                                                    global_info['OBSGEO-Y'],
+                                                    global_info['OBSGEO-Z'],
+                                                    unit='m')
         else:
-            column_info['pos'] = None
+            column_info['location'] = None
 
     if scale is not None:
 
@@ -185,7 +186,7 @@ def _verify_column_info(column_info, global_info):
     if global_info['scale'] is None:
         return False
 
-    if (unit is not None and unit in FITS_TIME_UNIT) or pos is not None:
+    if (unit is not None and unit in FITS_TIME_UNIT) or location is not None:
         column_info['scale'] = global_info['scale']
         return True
 
@@ -247,7 +248,8 @@ def _convert_time_column(col, column_info):
     # Read in time coordinate column as Time
     if col.shape[-1] == 2 and col.ndim > 1:
         col = Time(col[..., 0], col[..., 1], format='jd',
-                   scale=column_info['scale'], location=column_info['pos'])
+                   scale=column_info['scale'],
+                   location=column_info['location'])
     else:
         warnings.warn(
             'Time column {} is not in the astropy required (jd1, jd2) format. '
@@ -348,8 +350,8 @@ def time_to_fits(table):
 
     time_cols = table.columns.isinstance(Time)
 
-    # Geocentric Position
-    pos_geo = None
+    # Geocentric location
+    location = None
 
     for col in time_cols:
         # The following is necessary to deal with multi-dimensional ``Time`` objects
@@ -369,7 +371,7 @@ def time_to_fits(table):
 
         # Time column reference positions
         if col.location is None:
-            if pos_geo is not None:
+            if location is not None:
                 warnings.warn(
                     'Time Column "{}" has no specified location, but global Time '
                     'Position is present, which will be the default for this column '
@@ -386,17 +388,15 @@ def time_to_fits(table):
             if col.location.size > 1:
                 raise ValueError('Vectorized Location of Time Column "{}" cannot be '
                                  'written, as it is not supported.'.format(col.info.name))
-            if pos_geo is None:
-                hdr.extend([Card(keyword='OBSGEO-'+ dim.upper(),
-                            value=getattr(col.location, dim).to_value(unit='m'))
+            if location is None:
+                location = col.location
+                hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
+                                 value=getattr(location, dim).to_value(u.m))
                             for dim in ('x', 'y', 'z')])
-                pos_geo = col.location
-            elif pos_geo != col.location:
+            elif location != col.location:
                 raise ValueError('Multiple Time Columns with different geocentric '
-                                 'observatory locations ({}, {}, {}) , ({}, {}, {}) '
-                                 'are encountered. These are not supported by the '
-                                 'FITS standard.'.format(pos_geo.x, pos_geo.y,
-                                 pos_geo.z, col.location.x, col.location.y,
-                                 col.location.z))
+                                 'observatory locations ({}, {}) encountered.'
+                                 'This is not supported by the FITS standard.'
+                                 .format(location, col.location))
 
     return newtable, hdr
