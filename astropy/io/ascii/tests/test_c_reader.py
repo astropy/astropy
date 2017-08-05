@@ -2,7 +2,6 @@
 
 import os
 import functools
-import copy
 
 from io import BytesIO
 from textwrap import dedent
