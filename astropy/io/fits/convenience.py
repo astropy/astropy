@@ -497,6 +497,8 @@ def table_to_hdu(table, astropy_native=False):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
+        # TODO: it might be better to construct the FITS table directly from
+        # the Table columns, rather than go via a structured array.
         table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
@@ -538,15 +540,13 @@ def table_to_hdu(table, astropy_native=False):
             Unit(col.unit, format='fits', parse_strict='warn')
 
     # Column-specific override keywords for coordinate columns
-    coord_meta = table.meta.pop('__coordinate_columns__', None)
-
-    if coord_meta is not None:
-        for col in table_hdu.columns:
-            coord_col = coord_meta[col.name]
-            if coord_col:
-                col.coord_type = coord_col.get('coord_type', None)
-                col.coord_unit = coord_col.get('coord_unit', None)
-                col.time_ref_pos = coord_col.get('time_ref_pos', None)
+    coord_meta = table.meta.pop('__coordinate_columns__', {})
+    for col_name, col_info in coord_meta.items():
+        col = table_hdu.columns[col_name]
+        # Set the column coordinate attributes from data saved earlier.
+        # Note: have to set all three, even we have no data.
+        for attr in 'coord_type', 'coord_unit', 'time_ref_pos':
+            setattr(col, attr, col_info.get(attr, None))
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
