@@ -544,7 +544,7 @@ def table_to_hdu(table, astropy_native=False):
     for col_name, col_info in coord_meta.items():
         col = table_hdu.columns[col_name]
         # Set the column coordinate attributes from data saved earlier.
-        # Note: have to set all three, even we have no data.
+        # Note: have to set all three, even if we have no data.
         for attr in 'coord_type', 'coord_unit', 'time_ref_pos':
             setattr(col, attr, col_info.get(attr, None))
 
