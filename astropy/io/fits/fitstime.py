@@ -174,6 +174,7 @@ def _verify_column_info(column_info, global_info):
                 AstropyUserWarning)
             column_info['scale'] = global_info['scale']
             column_info['format'] = global_info.get('format', None)
+            return True
 
         # Non-linear coordinate types have "4-3" form and are not time coordinates
         if TCTYP_RE_TYPE.match(scale[:5]) and TCTYP_RE_ALGO.match(scale[5:]):
