@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
 
 import pytest
+import numpy as np
 
 from . import FitsTestCase
 
 from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from ....coordinates import EarthLocation
+from ....io import fits
 from ....table import Table, QTable
-from ....time import Time
+from ....time import Time, TimeDelta
 from ....time.core import BARYCENTRIC_SCALES
 from ....time.formats import FITS_DEPRECATED_SCALES
 from ....tests.helper import catch_warnings
@@ -16,7 +19,7 @@ from ....tests.helper import catch_warnings
 class TestFitsTime(FitsTestCase):
 
     def setup_class(self):
-        self.time = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
+        self.time = np.array(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'])
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
@@ -207,3 +210,62 @@ class TestFitsTime(FitsTestCase):
         tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
         tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
         tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits(self, table_types):
+        """
+        Test that FITS table with time columns (not written by astropy)
+        can be read by io.fits as a table with Time columns.
+        This tests the following:
+        1. The special-case where a column has the name 'TIME' and a
+           time unit
+        2. Time from Epoch (Reference time) is appropriately converted.
+        3. Coordinate columns (associated coordinate keywords in the header)
+           other than time, that is, spatial coordinates, are not mistaken
+           to be time.
+        """
+        filename = self.data('chandra_time.fits')
+        tm = table_types.read(filename, astropy_native=True)
+
+        # Test case 1
+        assert isinstance(tm['time'], Time)
+        assert tm['time'].scale == 'tt'
+        assert tm['time'].format == 'mjd'
+
+        non_native = table_types.read(filename)
+
+        # Test case 2
+        ref_time = Time(non_native.meta['MJDREF'], format='mjd',
+                      scale=non_native.meta['TIMESYS'].lower())
+        delta_time = TimeDelta(non_native['time'])
+        ref_time + delta_time == tm['time']
+
+        # Test case 3
+        for colname in ['chipx', 'chipy', 'detx', 'dety', 'x', 'y']:
+            assert not isinstance(tm[colname], Time)
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_datetime(self, table_types):
+        """
+        Test that ISO-8601 Datetime String Columns are read correctly.
+        """        
+        # Datetime column
+        c = fits.Column(name='datetime', format='A29', unit='d', coord_type='TT',
+                        coord_unit='d', time_ref_pos='TOPOCENTER', array=self.time)
+
+        # Observatory position in ITRS Cartesian coordinates (geocentric)
+        cards = [('OBSGEO-X', -2446354), ('OBSGEO-Y', 4237210), ('OBSGEO-Z', 4077985)]
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].scale == 'tt'
+        assert tm['datetime'].format == 'fits'
+        assert (tm['datetime'] == self.time).all()
+        assert tm['datetime'].location.x.value == -2446354
+        assert tm['datetime'].location.y.value == 4237210
+        assert tm['datetime'].location.z.value == 4077985
