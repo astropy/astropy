@@ -55,6 +55,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added support for reading and writing ``astropy.time.Time`` Table columns
+  to and from FITS tables, to the extent supported by the FITS standard. [#6176]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
