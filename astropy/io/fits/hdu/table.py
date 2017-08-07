@@ -235,6 +235,17 @@ class _TableLikeHDU(_ValidHDU):
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     """
     FITS table extension base HDU class.
+
+    Parameters
+    ----------
+    data : array
+        Data to be used.
+    header : `Header` instance
+        Header to be used.
+    name : str
+        Name to be populated in ``EXTNAME`` keyword.
+    uint : bool, optional
+        Set to `True` if the table contains unsigned integer columns.
     """
 
     _manages_own_heap = False

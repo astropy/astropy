@@ -433,15 +433,24 @@ def writeto(filename, data, header=None, output_verify='exception',
                 checksum=checksum)
 
 
-def table_to_hdu(table):
+def table_to_hdu(table, astropy_native=False):
     """
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
+
+    If the ``astropy_native`` argument is ``True``, then astropy core objects in
+    the input Table, also called "mixin columns", will be converted to their
+    respective representations in FITS binary tables. Currently this is limited to
+    `~astropy.time.Time` columns in the input Table, in which case they will be
+    converted to FITS columns which adhere to the FITS Time standard.
 
     Parameters
     ----------
     table : astropy.table.Table
         The table to convert.
+    astropy_native : bool
+        Write native astropy objects as per their respective FITS standard
+        specifications. Default is False.
 
     Returns
     -------
@@ -451,18 +460,34 @@ def table_to_hdu(table):
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
 
+    # Header to store Time related metadata
+    hdr = None
+
     # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn
+        from ...table.column import BaseColumn, Column
+        from ...time import Time
+        from .fitstime import time_to_fits
 
-        # Only those columns which are instances of BaseColumn or Quantity can be written
-        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity))
+        # Only those columns which are instances of BaseColumn, Quantity or Time can
+        # be written
+        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
+
+        time_cols = table.columns.isinstance(Time)
+        if time_cols:
+            if astropy_native is True:
+                table, hdr = time_to_fits(table)
+            else:
+                # Shallow copy of the input table
+                table = table.copy(copy_data=False)
+                for col in time_cols:
+                    table.replace_column(col.info.name, Column(col.value))
 
     # Create a new HDU object
     if table.masked:
@@ -472,7 +497,9 @@ def table_to_hdu(table):
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        # TODO: it might be better to construct the FITS table directly from
+        # the Table columns, rather than go via a structured array.
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -489,7 +516,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
 
     # Set units for output HDU
     for col in table_hdu.columns:
@@ -511,6 +538,15 @@ def table_to_hdu(table):
 
             # Try creating a Unit to issue a warning if the unit is not FITS compliant
             Unit(col.unit, format='fits', parse_strict='warn')
+
+    # Column-specific override keywords for coordinate columns
+    coord_meta = table.meta.pop('__coordinate_columns__', {})
+    for col_name, col_info in coord_meta.items():
+        col = table_hdu.columns[col_name]
+        # Set the column coordinate attributes from data saved earlier.
+        # Note: have to set all three, even if we have no data.
+        for attr in 'coord_type', 'coord_unit', 'time_ref_pos':
+            setattr(col, attr, col_info.get(attr, None))
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
