@@ -207,6 +207,18 @@ def pytest_configure(config):
                 extraglobs=dict(getfixture=fixture_request.getfuncargvalue),
                 raise_on_error=True, verbose=False, encoding='utf-8')
 
+        def reportinfo(self):
+            """
+            Overwrite pytest's ``DoctestItem`` because
+            ``DocTestTextfilePlus`` does not have a ``dtest`` attribute
+            which is used by pytest>=3.2.0 to return the location of the
+            tests.
+
+            For details see `pytest-dev/pytest#2651
+            <https://github.com/pytest-dev/pytest/pull/2651>`_.
+            """
+            return self.fspath, None, "[doctest] %s" % self.name
+
     class DocTestParserPlus(doctest.DocTestParser):
         """
         An extension to the builtin DocTestParser that handles the

@@ -321,12 +321,15 @@ def test_data_noastropy_fallback(monkeypatch):
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.parametrize(('filename'), [
-    'unicode.txt',
-    'unicode.txt.gz',
-    pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')('unicode.txt.bz2'),
-    pytest.mark.xfail(not HAS_XZ, reason='no lzma support')('unicode.txt.xz')])
+@pytest.mark.parametrize(('filename'), ['unicode.txt', 'unicode.txt.gz',
+                                        'unicode.txt.bz2', 'unicode.txt.xz'])
 def test_read_unicode(filename):
+    if filename == 'unicode.txt.bz2' and not HAS_BZ2:
+        pytest.xfail(reason='no bz2 support')
+
+    if filename == 'unicode.txt.xz' and not HAS_XZ:
+        pytest.xfail(reason='no lzma support')
+
     from ..data import get_pkg_data_contents
 
     contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')

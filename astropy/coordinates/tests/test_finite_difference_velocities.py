@@ -174,23 +174,21 @@ _xfail = pytest.mark.xfail
 
 @pytest.mark.parametrize('distance', [1000*u.au,
                                       10*u.pc,
-                                      pytest.mark.xfail(10*u.kpc),
-                                      pytest.mark.xfail(100*u.kpc)])
-                                      # below is xfail syntax for pytest >=3.1
-                                      # TODO: change to this when the above
-                                      # way of xfailing is turned off in pytest
-                                      # >=4.0
-                                      # pytest.param(10*u.kpc, marks=_xfail),
-                                      # pytest.param(100*u.kpc, marks=_xfail)])
-                                      # TODO:  make these not fail when the
-                                      # finite-difference numerical stability
-                                      # is improved
+                                      10*u.kpc,
+                                      100*u.kpc])
 def test_numerical_limits(distance):
     """
     Tests the numerical stability of the default settings for the finite
     difference transformation calculation.  This is *known* to fail for at
     >~1kpc, but this may be improved in future versions.
     """
+
+    if distance.unit == u.kpc:
+        # pytest.mark.parametrize syntax changed in pytest 3.1 to handle
+        # directly marking xfails, thus the workaround below to support
+        # pytest <3.1 for the 2.0.x LTS
+        pytest.xfail()
+
     time = Time('J2017') + np.linspace(-.5, .5, 100)*u.year
 
     icoo = ICRS(ra=0*u.deg, dec=10*u.deg, distance=distance,

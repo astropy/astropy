@@ -60,6 +60,8 @@ astropy.tests
 - Added error handling for attempting to run tests in parallel without having
   the ``pytest-xdist`` package installed. [#6416]
 
+- Fixed issue running doctests with pytest>=3.2. [#6423, #6430]
+
 astropy.time
 ^^^^^^^^^^^^
 
