@@ -963,8 +963,7 @@ def test_read_big_table(tmpdir):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
-@pytest.mark.parametrize("parallel", [False,
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True)])
+@pytest.mark.parametrize("parallel", [False, True])
 def test_data_out_of_range(parallel, reader):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -972,6 +971,8 @@ def test_data_out_of_range(parallel, reader):
     the Python parser.
     Test fast converter only to nominal accuracy.
     """
+    if os.name == 'nt':
+        pytest.xfail(reason="Multiprocessing is currently unsupported on Windows")
     # Python reader and strtod() are expected to return precise results
     rtol = 1.e-30
     if reader > 1:
@@ -1016,14 +1017,15 @@ def test_data_out_of_range(parallel, reader):
 
 
 # catch Windows environment since we cannot use _read() with custom fast_reader
-@pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
-    False])
+@pytest.mark.parametrize("parallel", [True, False])
 def test_int_out_of_range(parallel):
     """
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
+    if os.name == 'nt':
+        pytest.xfail(reason="Multiprocessing is currently unsupported on Windows")
+
     imin = np.iinfo(np.int).min+1
     imax = np.iinfo(np.int).max-1
     huge = '{:d}'.format(imax+2)
@@ -1055,14 +1057,15 @@ def test_int_out_of_range(parallel):
     assert_table_equal(table, expected)
 
 
-@pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
-    False])
+@pytest.mark.parametrize("parallel", [True, False])
 def test_fortran_reader(parallel):
     """
     Make sure that ascii.read() can read Fortran-style exponential notation
     using the fast_reader.
     """
+    if os.name == 'nt':
+        pytest.xfail(reason="Multiprocessing is currently unsupported on Windows")
+
     text = 'A B C\n100.01{:s}+99 2.0 3\n 4.2{:s}-1 5.0{:s}-1 0.6{:s}4'
     expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]],
                      names=('A', 'B', 'C'))
@@ -1098,15 +1101,15 @@ def test_fortran_reader(parallel):
     assert_table_equal(table, expected)
 
 
-@pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
-    False])
+@pytest.mark.parametrize("parallel", [True, False])
 def test_fortran_invalid_exp(parallel):
     """
     Test Fortran-style exponential notation in the fast_reader with invalid
     exponent-like patterns (no triple-digits) to make sure they are returned
     as strings instead, as with the standard C parser.
     """
+    if os.name == 'nt':
+        pytest.xfail(reason="Multiprocessing is currently unsupported on Windows")
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
 
