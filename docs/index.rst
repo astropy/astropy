@@ -127,6 +127,7 @@ as a whole, see :doc:`development/vision`.
    :maxdepth: 1
 
    development/workflow/development_workflow
+   development/when_to_rebase
    development/codeguide
    development/docguide
    development/testguide
