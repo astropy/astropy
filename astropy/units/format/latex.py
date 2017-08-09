@@ -88,7 +88,12 @@ class Latex(base.Base):
         return r'$\mathrm{{{0}}}$'.format(s)
 
     @classmethod
-    def format_exponential_notation(cls, val):
+    def format_exponential_notation_with_np_precision(cls, val):
+        return cls.format_exponential_notation(val,
+            format_spec='.{0}g'.format(np.get_printoptions()['precision']))
+
+    @classmethod
+    def format_exponential_notation(cls, val, format_spec=".8g"):
         """
         Formats a value in exponential notation for LaTeX.
 
@@ -97,14 +102,16 @@ class Latex(base.Base):
         val : number
             The value to be formatted
 
+        format_spec : str, optional
+            Format used to split up mantissa and exponent
+
         Returns
         -------
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
         """
         if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val,
-                np.get_printoptions()['precision'])
+            m, ex = utils.split_mantissa_exponent(val, format_spec)
 
             parts = []
             if m:
