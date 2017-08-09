@@ -1271,7 +1271,7 @@ class Quantity(np.ndarray):
         # with array2string
         pops = np.get_printoptions()
         try:
-            formatter = {'float_kind': Latex.format_exponential_notation}
+            formatter = {'float_kind': Latex.format_exponential_notation_with_np_precision}
             if conf.latex_array_threshold > -1:
                 np.set_printoptions(threshold=conf.latex_array_threshold,
                                     formatter=formatter)
@@ -1279,7 +1279,7 @@ class Quantity(np.ndarray):
             # the view is needed for the scalar case - value might be float
             latex_value = np.array2string(
                 self.view(np.ndarray),
-                style=(Latex.format_exponential_notation
+                style=(Latex.format_exponential_notation_with_np_precision
                        if self.dtype.kind == 'f' else repr),
                 max_line_width=np.inf, separator=',~')
             latex_value = latex_value.replace('...', r'\dots')
