@@ -61,7 +61,9 @@ entry_points['console_scripts'] = [
 entry_points['pytest11'] = [
     'remotedata = astropy.tests.pytest_remotedata',
     'openfiles = astropy.tests.pytest_openfiles',
-    #'doctestplus = astropy.tests.pytest_doctestplus',
+    # Don't collide with the 'doctestplus' plugin name that will be registered
+    # by the plugin's pytest_configure hook
+    '_doctestplus = astropy.tests.pytest_doctestplus',
     'repeat = astropy.tests.pytest_repeat'
 ]
 
