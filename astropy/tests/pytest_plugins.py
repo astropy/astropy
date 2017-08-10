@@ -34,14 +34,9 @@ try:
 except ImportError:  # Python 2.7
     importlib_machinery = None
 
-pytest_plugins = ('astropy.tests.pytest_doctestplus',
-                  'astropy.tests.pytest_openfiles',
-                  'astropy.tests.pytest_repeat',
-                  'astropy.tests.pytest_remotedata')
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
-
 
 def pytest_addoption(parser):
 
