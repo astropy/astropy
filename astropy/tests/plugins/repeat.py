@@ -5,7 +5,6 @@ into conftest.py in the root directory.
 """
 
 
-
 def pytest_addoption(parser):
 
     parser.addoption('--repeat', action='store',
