@@ -1,5 +1,3 @@
-
-
 import doctest
 import fnmatch
 import imp
@@ -9,7 +7,7 @@ import sys
 
 import pytest
 
-from .output_checker import AstropyOutputChecker, FIX
+from ..output_checker import AstropyOutputChecker, FIX
 
 try:
     import importlib.machinery as importlib_machinery
