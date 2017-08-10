@@ -88,11 +88,6 @@ class Latex(base.Base):
         return r'$\mathrm{{{0}}}$'.format(s)
 
     @classmethod
-    def format_exponential_notation_with_np_precision(cls, val):
-        return cls.format_exponential_notation(val,
-            format_spec='.{0}g'.format(np.get_printoptions()['precision']))
-
-    @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
         """
         Formats a value in exponential notation for LaTeX.
