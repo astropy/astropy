@@ -3,7 +3,6 @@
 These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
-
 import ast
 import datetime
 import locale
@@ -14,11 +13,11 @@ from collections import OrderedDict
 
 import pytest
 
-from ..config.paths import set_temp_config, set_temp_cache
-from .helper import treat_deprecations_as_exceptions, ignore_warnings
-from .helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
-from ..utils.argparse import writeable_directory
-from ..utils.introspection import resolve_name
+from ...config.paths import set_temp_config, set_temp_cache
+from ..helper import treat_deprecations_as_exceptions, ignore_warnings
+from ..helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
+from ...utils.argparse import writeable_directory
+from ...utils.introspection import resolve_name
 
 import importlib.machinery as importlib_machinery
 
@@ -92,8 +91,7 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Pandas', 'pandas')])
 
 # This always returns with Astropy's version
-from .. import __version__
-
+from ... import __version__
 TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
 
 
@@ -175,82 +173,6 @@ def pytest_report_header(config):
         s += "Using Astropy options: {0}.\n".format(", ".join(opts))
 
     return s
-
-
-def pytest_pycollect_makemodule(path, parent):
-    # This is where we set up testing both with and without
-
-    return pytest.Module(path, parent)
-
-
-class Pair(pytest.File):
-    """
-    This class treats a given test .py file as a pair of .py files
-    where one has __future__ unicode_literals and the other does not.
-    """
-
-    def collect(self):
-        # First, just do the regular import of the module to make
-        # sure it's sane and valid.  This block is copied directly
-        # from py.test
-        try:
-            mod = self.fspath.pyimport(ensuresyspath=True)
-        except SyntaxError:
-            import py
-            excinfo = py.code.ExceptionInfo()
-            raise self.CollectError(excinfo.getrepr(style="short"))
-        except self.fspath.ImportMismatchError:
-            e = sys.exc_info()[1]
-            raise self.CollectError(
-                "import file mismatch:\n"
-                "imported module {!r} has this __file__ attribute:\n"
-                "  {}\n"
-                "which is not the same as the test file we want to collect:\n"
-                "  {}\n"
-                "HINT: remove __pycache__ / .pyc files and/or use a "
-                "unique basename for your test file modules".format(e.args))
-
-        return [pytest.Module(self.fspath, self)]
-
-
-class ModifiedModule(pytest.Module):
-    def __init__(self, mod_name, content, path, parent):
-        self.mod_name = mod_name
-        self.content = content
-        super(ModifiedModule, self).__init__(path, parent)
-
-    def _importtestmodule(self):
-        content = self.content
-
-        new_mod = types.ModuleType(self.mod_name)
-        new_mod.__file__ = str(self.fspath)
-
-        if hasattr(self, '_transform_ast'):
-            # ast.parse doesn't let us hand-select the __future__
-            # statements, but built-in compile, with the PyCF_ONLY_AST
-            # flag does.
-            tree = compile(
-                content, str(self.fspath), 'exec',
-                self.flags | ast.PyCF_ONLY_AST, True)
-            tree = self._transform_ast(tree)
-            # Now that we've transformed the tree, recompile it
-            code = compile(
-                tree, str(self.fspath), 'exec')
-        else:
-            # If we don't need to transform the AST, we can skip
-            # parsing/compiling in two steps
-            code = compile(
-                content, str(self.fspath), 'exec',
-                self.flags, True)
-
-        pwd = os.getcwd()
-        try:
-            os.chdir(os.path.dirname(str(self.fspath)))
-            exec(code, new_mod.__dict__)
-        finally:
-            os.chdir(pwd)
-        self.config.pluginmanager.consider_module(new_mod)
-        return new_mod
 
 
 def pytest_terminal_summary(terminalreporter):
