@@ -3,19 +3,16 @@
 These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
-import ast
 import datetime
 import locale
 import os
 import sys
-import types
 from collections import OrderedDict
 
 import pytest
 
 from ...config.paths import set_temp_config, set_temp_cache
 from ..helper import treat_deprecations_as_exceptions, ignore_warnings
-from ..helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from ...utils.argparse import writeable_directory
 from ...utils.introspection import resolve_name
 
