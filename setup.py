@@ -62,9 +62,10 @@ entry_points['pytest11'] = [
     'remotedata = astropy.tests.pytest_remotedata',
     'openfiles = astropy.tests.pytest_openfiles',
     # Don't collide with the 'doctestplus' plugin name that will be registered
-    # by the plugin's pytest_configure hook
+    # by this plugin's pytest_configure hook
     '_doctestplus = astropy.tests.pytest_doctestplus',
-    'repeat = astropy.tests.pytest_repeat'
+    'repeat = astropy.tests.pytest_repeat',
+    'unicodeconfig = astropy.tests.pytest_plugins'
 ]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
