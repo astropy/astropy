@@ -3,7 +3,7 @@
 # no matter how it is invoked within the astropy tree.
 
 from .tests.helper import enable_deprecations_as_exceptions
-from .tests.pytest_plugins import PYTEST_HEADER_MODULES
+from .tests.plugins.config import PYTEST_HEADER_MODULES
 
 try:
     import matplotlib
