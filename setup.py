@@ -57,6 +57,13 @@ entry_points['console_scripts'] = [
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
 ]
+# Pytest plugins
+entry_points['pytest11'] = [
+    'remotedata = astropy.tests.pytest_remotedata',
+    'openfiles = astropy.tests.pytest_openfiles',
+    #'doctestplus = astropy.tests.pytest_doctestplus',
+    'repeat = astropy.tests.pytest_repeat'
+]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 
