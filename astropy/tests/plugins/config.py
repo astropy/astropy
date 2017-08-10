@@ -10,22 +10,17 @@ import __future__
 
 from ...extern import six
 
-import ast
 import datetime
-import io
 import locale
 import math
 import os
-import re
 import sys
-import types
 from collections import OrderedDict
 
 import pytest
 
 from ...config.paths import set_temp_config, set_temp_cache
 from ..helper import treat_deprecations_as_exceptions, ignore_warnings
-from ..helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from ...utils.argparse import writeable_directory
 from ...utils.introspection import resolve_name
 
