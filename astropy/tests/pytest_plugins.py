@@ -22,14 +22,9 @@ from ..utils.introspection import resolve_name
 
 import importlib.machinery as importlib_machinery
 
-pytest_plugins = ('astropy.tests.pytest_doctestplus',
-                  'astropy.tests.pytest_openfiles',
-                  'astropy.tests.pytest_repeat',
-                  'astropy.tests.pytest_remotedata')
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
-
 
 def pytest_addoption(parser):
 
