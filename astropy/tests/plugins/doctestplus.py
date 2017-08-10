@@ -1,7 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
+from ...extern import six
 
 import doctest
 import fnmatch
@@ -12,7 +12,7 @@ import sys
 
 import pytest
 
-from .output_checker import AstropyOutputChecker, FIX
+from ..output_checker import AstropyOutputChecker, FIX
 
 try:
     import importlib.machinery as importlib_machinery
