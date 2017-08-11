@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-These plugins modify the behavior of py.test and are meant to be imported
-into conftest.py in the root directory.
+This plugin provides command-line options for controlling whether and how tests
+make use of online data.
 """
 
 import pytest
