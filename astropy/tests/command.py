@@ -177,6 +177,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         # Build a testing install of the package
         self._build_temp_install()
+        # Install a development version of the package so that we have access
+        # to the plugins
+        self.run_command('develop')
 
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
