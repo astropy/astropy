@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This plugin provide support for unicode literals in Python 2.7.  
+This plugin provide support for unicode literals in Python 2.7.
 """
 #TODO: this plugin is necessary only for as long as we support Python 2
 from __future__ import (absolute_import, division, print_function,
