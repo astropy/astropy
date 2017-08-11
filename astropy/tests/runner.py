@@ -296,12 +296,8 @@ class TestRunner(TestRunnerBase):
                 common = os.path.commonprefix((abs_docs_path, abs_test_path))
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
+                    # Turn on the doctest_rst plugin
+                    all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
             if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
