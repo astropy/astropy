@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-These plugins modify the behavior of py.test and are meant to be imported
-into conftest.py in the root directory.
+This plugin provides support for testing whether file-like objects are properly
+closed.
 """
 
 import imp

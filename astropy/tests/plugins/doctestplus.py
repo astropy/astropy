@@ -1,3 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This plugin provides advanced doctest support and enables the testing of .rst
+files.
+"""
 import doctest
 import fnmatch
 import imp
