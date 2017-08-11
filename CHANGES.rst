@@ -312,6 +312,8 @@ astropy.tests
 
 - Fixed issue running doctests with pytest>=3.2. [#6423]
 
+- Fixed issue with running test suite directly from ``pytest``. [#6437]
+
 astropy.time
 ^^^^^^^^^^^^
 
