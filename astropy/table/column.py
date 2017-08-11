@@ -232,13 +232,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self._name = fix_column_name(name)
         self._parent_table = None
         self.unit = unit
+        self._format = format
         self.description = description
         self.meta = meta
         self.indices = deepcopy(getattr(data, 'indices', [])) if \
                        copy_indices else []
         for index in self.indices:
             index.replace_col(data, self)
-        self.format = format
 
         return self
 
@@ -316,7 +316,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         5-tuple that has Column-specific state values.
         """
         # Get the Column attributes
-        names = ('_name', 'unit', 'format', 'description', 'meta', 'indices')
+        names = ('_name', '_unit', '_format', 'description', 'meta', 'indices')
         attrs = {name: val for name, val in zip(names, state[-1])}
 
         state = state[:-1]
@@ -331,7 +331,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         for name, val in attrs.items():
             setattr(self, name, val)
         self._parent_table = None
-        self._format = format
 
     def __reduce__(self):
         """
@@ -420,9 +419,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @format.setter
     def format(self, format_string):
-        if format_string is None:
-            self._format = None
-            return
 
         try:
             prev_format = self._format  # save current format string
@@ -741,7 +737,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Copy key column attributes from ``obj`` to self
         """
-        for attr in ('_name', '_unit', '_format', 'description'):
+        for attr in ('name', 'unit', '_format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
