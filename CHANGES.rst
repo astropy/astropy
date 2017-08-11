@@ -318,6 +318,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Quantity._repr_latex_ now respects precision option from numpy
+  printoptions. [#6412]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
