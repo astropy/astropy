@@ -1,3 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This plugin provides advanced doctest support and enables the testing of .rst
+files.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
