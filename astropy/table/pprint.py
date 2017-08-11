@@ -5,7 +5,6 @@ from ..extern import six
 from ..extern.six import text_type
 from ..extern.six.moves import zip, range
 
-import itertools
 import os
 import sys
 import re
@@ -134,8 +133,8 @@ def get_auto_format_func(
                     break
             else:
                 # None of the possible string functions passed muster.
-                raise TypeError('Unable to parse format string {0} for its '
-                                'column'.format(format_))
+                raise TypeError('unable to parse format string {0} for its '
+                                'column.'.format(format_))
 
             # String-based format functions will fail on masked elements;
             # wrap them in a function that traps them.
@@ -252,6 +251,7 @@ class TableFormatter(object):
                                                show_dtype=show_dtype,
                                                show_length=show_length,
                                                outs=outs)
+
         col_strs = list(col_strs_iter)
         if len(col_strs) > 0:
             col_width = max(len(x) for x in col_strs)
@@ -351,7 +351,6 @@ class TableFormatter(object):
             Include column length at end.  Default is to show this only
             if the column is not shown completely.
         """
-
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -551,7 +550,6 @@ class TableFormatter(object):
             lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
                                             show_unit=show_unit, show_dtype=show_dtype,
                                             align=align_)
-
             if outs['show_length']:
                 lines = lines[:-1]
             cols.append(lines)
