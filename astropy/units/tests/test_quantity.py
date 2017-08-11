@@ -837,6 +837,16 @@ class TestQuantityDisplay(object):
         pops = np.get_printoptions()
         oldlat = conf.latex_array_threshold
         try:
+            # check precision behavior
+            q = u.Quantity(987654321.123456789, 'm/s')
+            qa = np.array([7.89123, 123456789.987654321, 0]) * u.cm
+            np.set_printoptions(precision=8)
+            assert q._repr_latex_() == r'$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
+            assert qa._repr_latex_() == r'$[7.89123,~1.2345679 \times 10^{8},~0] \; \mathrm{cm}$'
+            np.set_printoptions(precision=2)
+            assert q._repr_latex_() == r'$9.9 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
+            assert qa._repr_latex_() == r'$[7.9,~1.2 \times 10^{8},~0] \; \mathrm{cm}$'
+
             # check thresholding behavior
             conf.latex_array_threshold = 100  # should be default
             lsmed = qmed._repr_latex_()
