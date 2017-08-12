@@ -3,11 +3,14 @@
 
 
 import io
+import time
 
+import numpy as np
 import pytest
 
 
 from .. import console
+from ..misc import NumpyRNGContext
 from ... import units as u
 
 
@@ -155,6 +158,20 @@ def test_progress_bar_as_generator():
     for x in console.ProgressBar(50):
         sum += x
     assert sum == 1225
+
+
+def mapfunc(i):
+    """An identity function that jitters its execution time by a
+    pseudo-random amount."""
+    with NumpyRNGContext(i):
+        time.sleep(np.random.uniform(0, 0.01))
+    return i
+
+
+def test_progress_bar_map():
+    items = list(range(100))
+    result = console.ProgressBar.map(mapfunc, items, step=10, multiprocess=True)
+    assert items == result
 
 
 @pytest.mark.parametrize(("seconds", "string"),
