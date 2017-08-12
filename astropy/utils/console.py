@@ -485,6 +485,19 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
+class _mapfunc(object):
+    """
+    A function wrapper to support ProgressBar.map().
+    """
+
+    def __init__(self, func):
+        self._func = func
+
+    def __call__(self, i_arg):
+        i, arg = i_arg
+        return i, self._func(arg)
+
+
 class ProgressBar:
     """
     A class to display a progress bar in the terminal.
@@ -682,7 +695,68 @@ class ProgressBar:
             ipython_widget=False):
         """
         Does a `map` operation while displaying a progress bar with
-        percentage complete.
+        percentage complete. The map operation may run on arbitrary order
+        on the items, but the results are returned in sequential order.
+
+        ::
+
+            def work(i):
+                print(i)
+
+            ProgressBar.map(work, range(50))
+
+        Parameters
+        ----------
+        function : function
+            Function to call for each step
+
+        items : sequence
+            Sequence where each element is a tuple of arguments to pass to
+            *function*.
+
+        multiprocess : bool, optional
+            If `True`, use the `multiprocessing` module to distribute each
+            task to a different processor core.
+
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
+
+        file : writeable file-like object, optional
+            The file to write the progress bar to.  Defaults to
+            `sys.stdout`.  If ``file`` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
+
+        step : int, optional
+            Update the progress bar at least every *step* steps (default: 100).
+            If ``multiprocess`` is `True`, this will affect the size
+            of the chunks of ``items`` that are submitted as separate tasks
+            to the process pool.  A large step size may make the job
+            complete faster if ``items`` is very long.
+        """
+
+        if multiprocess:
+            function = _mapfunc(function)
+            items = list(enumerate(items))
+
+        results = cls.map_unordered(function, items, multiprocess=multiprocess,
+                                    file=file, step=step,
+                                    ipython_widget=ipython_widget)
+
+        if multiprocess:
+            _, results = zip(*sorted(results))
+            results = list(results)
+
+        return results
+
+    @classmethod
+    def map_unordered(cls, function, items, multiprocess=False, file=None,
+                      step=100, ipython_widget=False):
+        """
+        Does a `map` operation while displaying a progress bar with
+        percentage complete. The map operation may run on arbitrary order
+        on the items, and the results may be returned in arbitrary order.
 
         ::
 
