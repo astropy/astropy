@@ -133,8 +133,8 @@ def get_auto_format_func(
                     break
             else:
                 # None of the possible string functions passed muster.
-                raise TypeError('unable to parse format string {0} for its '
-                                'column.'.format(format_))
+                raise ValueError('unable to parse format string {0} for its '
+                                 'column.'.format(format_))
 
             # String-based format functions will fail on masked elements;
             # wrap them in a function that traps them.
@@ -460,8 +460,8 @@ class TableFormatter(object):
             else:
                 try:
                     yield format_col_str(idx)
-                except TypeError:
-                    raise TypeError(
+                except ValueError:
+                    raise ValueError(
                         'Unable to parse format string "{0}" for entry "{1}" '
                         'in column "{2}"'.format(col_format, col[idx],
                                                  col.name))
