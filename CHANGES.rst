@@ -302,6 +302,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixing exception for formatting type mismatch. [#6385]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
