@@ -65,7 +65,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
-    srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
+    srepr = cirs_coo.represent_as(SphericalRepresentation)
     cirs_ra = srepr.lon.to_value(u.radian)
     cirs_dec = srepr.lat.to_value(u.radian)
 
@@ -91,7 +91,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
         # include the offset back to the SSB
         intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
                                               lon=u.Quantity(i_ra, u.radian, copy=False),
-                                              distance=cirs_coo.distance,
+                                              distance=srepr.distance,
                                               copy=False)
 
         astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
@@ -169,7 +169,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                  GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
-    srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
     gcrs_ra = srepr.lon.to_value(u.radian)
     gcrs_dec = srepr.lat.to_value(u.radian)
 
@@ -201,7 +201,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
         # include the offset back to the SSB
         intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
                                               lon=u.Quantity(i_ra, u.radian, copy=False),
-                                              distance=gcrs_coo.distance,
+                                              distance=srepr.distance,
                                               copy=False)
 
         astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
@@ -231,7 +231,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         frameattrs['obstime'] = hcrs_frame.obstime
         gcrs_coo = gcrs_coo.transform_to(GCRS(**frameattrs))
 
-    srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
     gcrs_ra = srepr.lon.to_value(u.radian)
     gcrs_dec = srepr.lat.to_value(u.radian)
 
@@ -263,7 +263,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         # Note that the distance in intermedrep is *not* a real distance as it
         # does not include the offset back to the Heliocentre
         intermedrep = SphericalRepresentation(lat=i_dec, lon=i_ra,
-                                              distance=gcrs_coo.distance,
+                                              distance=srepr.distance,
                                               copy=False)
 
         # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,

@@ -258,6 +258,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Ensure transformations via ICRS also work for coordinates that use cartesian
+  representations. [#6440]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
