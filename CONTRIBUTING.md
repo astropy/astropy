@@ -24,7 +24,7 @@ include the following:
 - **Code**: the code you are adding, which should follow as much as possible
   our [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html).
 
-- **Tests**: these are usually tests that ensures that code that previously
+- **Tests**: these are usually tests to ensure that code that previously
   failed now works (regression tests) or tests that cover as much as possible
   of the new functionality to make sure it doesn't break in future, and also
   returns consistent results on all platforms (since we run these tests on many
@@ -99,7 +99,7 @@ in the package.
 **Code Quality**
   * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
     followed?
-  * Is the code compatible with Python 2.6, 2.7, as well as >=3.3?
+  * Is the code compatible with Python 2.7 and >=3.4?
   * Are there dependencies other than the Astropy core, the Python Standard
     Library, and NumPy 1.9.0 or later?
     * Is the package importable even if the C-extensions are not built?
