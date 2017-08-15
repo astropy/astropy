@@ -93,7 +93,7 @@ class TestFitsTime(FitsTestCase):
 
         ideal_col_hdr = {'OBSGEO-X' : t['a'].location.x.value,
                          'OBSGEO-Y' : t['a'].location.y.value,
-                         'OBSGEO-Z' : t['a'].location.z.value}
+                         'OBSGEO-Z' : t['a'].location.z.value,
                          'HIERARCH ASTROPY TIME FORMAT1' : t['a'].format.upper(),
                          'HIERARCH ASTROPY TIME FORMAT2' : t['b'].format.upper()}
 
