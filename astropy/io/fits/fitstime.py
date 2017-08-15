@@ -39,7 +39,7 @@ TIME_KEYWORDS = ('TIMESYS', 'MJDREF', 'JDREF', 'DATEREF',
 
 
 # Column-specific time override keywords
-COLUMN_TIME_KEYWORDS = ('TCTYP', 'TCUNI', 'TRPOS')
+COLUMN_TIME_KEYWORDS = ('TCTYP', 'TCUNI', 'TRPOS', 'TCAPF')
 
 
 # Column-specific keywords regex
@@ -251,6 +251,7 @@ def _convert_time_column(col, column_info):
         col = Time(col[..., 0], col[..., 1], format='jd',
                    scale=column_info['scale'],
                    location=column_info['location'])
+        col.format = column_info['TCAPF'].lower()
     else:
         warnings.warn(
             'Time column {} is not in the astropy required (jd1, jd2) format. '
@@ -369,6 +370,9 @@ def time_to_fits(table):
         # Time column override keywords
         coord_meta[col.info.name]['coord_type'] = col.scale.upper()
         coord_meta[col.info.name]['coord_unit'] = 'd'
+
+        # Astropy specific keyword for storing Time format
+        hdr.append(Card(keyword='TCAPF{}'.format(n), value=col.format.upper()))
 
         # Time column reference positions
         if col.location is None:

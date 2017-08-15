@@ -169,7 +169,7 @@ def test_io_time_write_fits(tmpdir, table_types):
             assert tm[name].scale == t[name].scale
 
             # Assert that the format is jd
-            assert tm[name].format == 'jd'
+            assert tm[name].format == t[name].format
 
             # Assert that the location round-trips
             assert tm[name].location == t[name].location
