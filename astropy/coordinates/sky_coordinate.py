@@ -1703,7 +1703,14 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # get the frame attributes from the first one, because from above we
             # know it matches all the others
             for fattrnm in frame_transform_graph.frame_attributes:
-                valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
+                fattrnm_data_name = '_' + fattrnm
+                # the hasattr is crucial here, because if we don't do that, all
+                # *non-set* frame attributes on the input SkyCoord will
+                # be passed into the new one as None kwargs.  This makes the
+                # initializer set it base on the default, rather than being
+                # not set at all (which is the desired behavior)
+                if hasattr(scs[0], fattrnm_data_name):
+                    valid_kwargs[fattrnm] = getattr(scs[0], fattrnm_data_name)
 
             # Now combine the values, to be used below
             values = []
