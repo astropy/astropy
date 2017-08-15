@@ -9,6 +9,8 @@ place to live
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import io
+
 import pytest
 import numpy as np
 
@@ -21,6 +23,7 @@ from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
 from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
+from ...table import Table
 
 from ...tests.helper import assert_quantity_allclose, catch_warnings, quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
@@ -512,3 +515,21 @@ def test_gcrs_itrs_cartesian_repr():
     gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
                                         unit='km'), representation='cartesian')
     gcrs.transform_to(ITRS)
+
+
+def test_regression_6446():
+    # this succeeds even before 6446:
+    sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
+    t1 = Table([sc1])
+    sio1 = io.StringIO()
+    t1.write(sio1, format='ascii.ecsv', overwrite=True)
+
+    # but this fails due to the 6446 bug
+    c1 = SkyCoord(1, 3, unit='deg')
+    c2 = SkyCoord(2, 4, unit='deg')
+    sc2 = SkyCoord([c1, c2])
+    t2 = Table([sc2])
+    sio2 = io.StringIO()
+    t2.write(sio2, format='ascii.ecsv', overwrite=True)
+
+    assert sio1.getvalue() == sio2.getvalue()
