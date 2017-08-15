@@ -78,6 +78,7 @@ astropy.table
   attribute is incorrect for the column type. [#6385]
 
 - Allow to pass ``htmldict`` option to the jsviewer writer. [#6551]
+- Added new table operation ``astropy.table.setdiff``. [#6443]
 
 astropy.tests
 ^^^^^^^^^^^^^

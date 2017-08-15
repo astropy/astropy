@@ -42,7 +42,7 @@ from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 from .groups import TableGroups, ColumnGroups
 from .table import (Table, QTable, TableColumns, Row, TableFormatter,
                     NdarrayMixin, TableReplaceWarning)
-from .operations import join, hstack, vstack, unique, TableMergeError
+from .operations import join, setdiff, hstack, vstack, unique, TableMergeError
 from .bst import BST, FastBST, FastRBT
 from .sorted_array import SortedArray
 from .serialize import SerializedColumn

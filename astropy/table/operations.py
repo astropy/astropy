@@ -130,28 +130,29 @@ def setdiff(table1, table2, keys=None):
     """
     Take a set difference of table rows.
 
-    The row set difference will contain all rows in table1 that are not
-    present in table2.
+    The row set difference will contain all rows in ``table1`` that are not
+    present in ``table2``. If the keys parameter is not defined, all columns in
+    ``table1`` will be included in the output table.
 
     Parameters
     ----------
     table1 : Table object
-        table1 is on the left side of the set difference.
+        ``table1`` is on the left side of the set difference.
     table2 : Table object
-        table2 is on the right side of the set difference.
+        ``table2`` is on the right side of the set difference.
     keys : str or list of str
         Name(s) of column(s) used to match rows of left and right tables.
-        Default is to use all columns which are common to both tables.
+        Default is to use all columns in ``table1``.
 
     Returns
     -------
-    diff_table : `~astropy.table.Table` object
+    diff_table : `~astropy.table.Table` object-
         New table containing the set difference between tables. If the set
         difference is none, an empty table will be returned.
 
     Examples
     --------
-    To get a set difference between two tables do::
+    To get a set difference between two tables::
 
       >>> from astropy.table import setdiff, Table
       >>> t1 = Table({'a': [1, 4, 9], 'b': ['c', 'd', 'f']}, names=('a', 'b'))
@@ -178,19 +179,21 @@ def setdiff(table1, table2, keys=None):
       --- ---
         5   b
     """
-    # Make a light internal copy to avoid touching table2
-    table2 = table2.copy(copy_data=False)
-    table2['__index__'] = np.zeros(len(table2), dtype=np.uint8)  # dummy column
     if keys is None:
         keys = table1.colnames
 
-        # Check that all keys in table2 are in table1, if not, raise error
-        for key in table1.keys():
-            if key not in table2.keys():
-                raise ValueError("The {} column is in table1 but not in "
-                                 "table2, cannot take a set difference."
-                                 .format(key))
+    #Check that all keys are in table1 and table2
+    for tbl, tbl_str in ((table1,'table1'), (table2,'table2')):
+        diff_keys = np.setdiff1d(keys, tbl.colnames)
+        if len(diff_keys) != 0:
+            raise ValueError("The {} columns are missing from {}, cannot take "
+                             "a set difference.".format(diff_keys, tbl_str))
 
+    # Make a light internal copy to avoid touching table2
+    table2 = table2.copy(copy_data=False)
+    table2.meta = {}
+    table2.keep_columns(keys)
+    table2['__index__'] = np.zeros(len(table2), dtype=np.uint8)  # dummy column
 
     t12 = _join(table1, table2, join_type='left', keys=keys,
                 metadata_conflicts='silent')
@@ -201,7 +204,7 @@ def setdiff(table1, table2, keys=None):
     else:
         t12_diff = t12[[]]
 
-    t12_diff.keep_columns(keys)
+    t12_diff.remove_column('__index__')
 
     return t12_diff
 

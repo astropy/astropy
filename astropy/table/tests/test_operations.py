@@ -451,6 +451,90 @@ class TestJoin():
                                         [False, False]])
 
 
+class TestSetdiff():
+
+    def _setup(self, t_cls=Table):
+        lines1 = [' a   b ',
+                 '  0 foo ',
+                 '  1 foo ',
+                 '  1 bar ',
+                 '  2 bar ']
+        lines2 = [' a   b ',
+                  '  0 foo ',
+                  '  3 foo ',
+                  '  4 bar ',
+                  '  2 bar ']
+        lines3 = [' a   b   d ',
+                  '  0 foo  R1',
+                  '  8 foo  R2',
+                  '  1 bar  R3',
+                  '  4 bar  R4']
+        self.t1 = t_cls.read(lines1, format='ascii')
+        self.t2 = t_cls.read(lines2, format='ascii')
+        self.t3 = t_cls.read(lines3, format='ascii')
+
+
+
+    def test_default_same_columns(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.setdiff(self.t1, self.t2)
+        self.t1 = operation_table_type(self.t1, masked=True)
+        self.t2 = operation_table_type(self.t2, masked=True)
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '  1 bar',
+                                 '  1 foo']
+
+    def test_default_same_tables(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.setdiff(self.t1, self.t1)
+
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---']
+
+    def test_extra_col_left_table(self, operation_table_type):
+        self._setup(operation_table_type)
+
+        with pytest.raises(ValueError):
+            out = table.setdiff(self.t3, self.t1)
+
+    def test_extra_col_right_table(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.setdiff(self.t1, self.t3)
+        self.t1 = operation_table_type(self.t1, masked=True)
+        self.t3 = operation_table_type(self.t3, masked=True)
+
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert out.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '  1 foo',
+                                 '  2 bar']
+
+    def test_keys(self, operation_table_type):
+        self._setup(operation_table_type)
+        out = table.setdiff(self.t3, self.t1, keys=['a', 'b'])
+        self.t1 = operation_table_type(self.t1, masked=True)
+        self.t3 = operation_table_type(self.t3, masked=True)
+
+        assert type(out['a']) is type(self.t1['a'])
+        assert type(out['b']) is type(self.t1['b'])
+        assert out.pformat() == [' a   b   d ',
+                                 '--- --- ---',
+                                 '  4 bar  R4',
+                                 '  8 foo  R2']
+
+    def test_missing_key(self, operation_table_type):
+        self._setup(operation_table_type)
+
+        with pytest.raises(ValueError):
+            out = table.setdiff(self.t3, self.t1, keys=['a', 'd'])
+
+
 class TestVStack():
 
     def _setup(self, t_cls=Table):
