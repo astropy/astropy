@@ -355,6 +355,10 @@ def time_to_fits(table):
     location = None
 
     for col in time_cols:
+        if col.info.serialize_method['fits'] == 'formatted_value':
+            newtable.replace_column(col.info.name, Column(col.value))
+            continue
+
         # The following is necessary to deal with multi-dimensional ``Time`` objects
         # (i.e. where Time.shape is non-trivial).
         jd12 = np.array([col.jd1, col.jd2])

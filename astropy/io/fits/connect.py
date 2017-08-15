@@ -202,15 +202,9 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     return t
 
 
-def write_table_fits(input, output, overwrite=False, astropy_native=False):
+def write_table_fits(input, output, overwrite=False):
     """
     Write a Table object to a FITS file
-
-    If the ``astropy_native`` argument is ``True``, then astropy core objects in
-    the input Table, also called "mixin columns", will be converted to their
-    respective representations in FITS tables. Currently this is limited to
-    `~astropy.time.Time` columns in the input Table, in which case they will be
-    converted to FITS columns which adhere to the FITS Time standard.
 
     Parameters
     ----------
@@ -220,12 +214,9 @@ def write_table_fits(input, output, overwrite=False, astropy_native=False):
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
-    astropy_native : bool, optional
-        Write native astropy objects as per their respective FITS standard
-        specifications. Default is False.
     """
 
-    table_hdu = table_to_hdu(input, astropy_native=astropy_native)
+    table_hdu = table_to_hdu(input)
 
     # Check if output file already exists
     if isinstance(output, string_types) and os.path.exists(output):
