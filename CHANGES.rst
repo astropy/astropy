@@ -195,6 +195,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
+  coordinate objects from being written out to ECSV files. [#6448]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
