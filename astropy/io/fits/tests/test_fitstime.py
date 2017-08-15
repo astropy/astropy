@@ -129,6 +129,7 @@ class TestFitsTime(FitsTestCase):
         t.meta['MJD-OBS'] = 56670
 
         # Test for default read/write behaviour (raw data)
+        t['a'].info.serialize_method['fits'] = 'formatted_value'
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits')
 
@@ -141,8 +142,8 @@ class TestFitsTime(FitsTestCase):
         assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
 
         # Test for native astropy objects read/write behaviour
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
+        t['a'].info.serialize_method['fits'] = 'jd1_jd2'
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
@@ -162,8 +163,7 @@ class TestFitsTime(FitsTestCase):
         # Explicitly specified Time Scale
         t.meta['TIMESYS'] = 'ET'
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
@@ -196,8 +196,7 @@ class TestFitsTime(FitsTestCase):
         hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
         hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
