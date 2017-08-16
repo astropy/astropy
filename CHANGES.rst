@@ -61,6 +61,9 @@ astropy.table
 
 - Added support for reading and writing ``astropy.time.Time`` Table columns
   to and from FITS tables, to the extent supported by the FITS standard. [#6176]
+  
+- Improved exception handling and error messages when column ``format`` 
+  attribute is incorrect for the column type. [#6385]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -144,6 +147,10 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- When setting the column ``format`` attribute the value is now immediately 
+  validated. Previously one could set to any value and it was only checked
+  when actually formatting the column. [#6385]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -301,8 +308,6 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
-
-- Fixing exception for formatting type mismatch. [#6385]
 
 astropy.tests
 ^^^^^^^^^^^^^
