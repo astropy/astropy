@@ -355,6 +355,9 @@ def time_to_fits(table):
     location = None
 
     for col in time_cols:
+        # By default, Time objects are written in full precision, i.e. we store both
+        # jd1 and jd2 (serialize_method['fits'] = 'jd1_jd2'). Formatted values for
+        # Time can be stored if the user explicitly chooses to do so.
         if col.info.serialize_method['fits'] == 'formatted_value':
             newtable.replace_column(col.info.name, Column(col.value))
             continue

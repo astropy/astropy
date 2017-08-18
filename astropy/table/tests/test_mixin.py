@@ -184,7 +184,7 @@ def test_io_time_write_fits(tmpdir, table_types):
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
 
-    # Test for default read/write behaviour (raw data)
+    # Test for conversion of time data to its value, as defined by its format
     for scale in time.TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
