@@ -133,8 +133,8 @@ def get_auto_format_func(
                     break
             else:
                 # None of the possible string functions passed muster.
-                raise ValueError('Unable to parse format string {0}'
-                                 .format(format_))
+                raise ValueError('unable to parse format string {0} for its '
+                                 'column.'.format(format_))
 
             # String-based format functions will fail on masked elements;
             # wrap them in a function that traps them.
@@ -251,6 +251,7 @@ class TableFormatter(object):
                                                show_dtype=show_dtype,
                                                show_length=show_length,
                                                outs=outs)
+
         col_strs = list(col_strs_iter)
         if len(col_strs) > 0:
             col_width = max(len(x) for x in col_strs)
@@ -419,7 +420,8 @@ class TableFormatter(object):
         # - get_auto_format_func() returns a wrapped version of auto_format_func
         #    with the column id and possible_string_format_functions as
         #    enclosed variables.
-        col_format = col.info.format or getattr(col.info, 'default_format', None)
+        col_format = col.info.format or getattr(col.info, 'default_format',
+                                                None)
         pssf = (getattr(col.info, 'possible_string_format_functions', None) or
                 _possible_string_format_functions)
         auto_format_func = get_auto_format_func(id(col), pssf)
@@ -431,29 +433,38 @@ class TableFormatter(object):
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
-            ii = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))])
+            indices = np.concatenate([np.arange(0, i0 + 1),
+                                      np.arange(i1 + 1, len(col))])
         else:
             i0 = -1
-            ii = np.arange(len(col))
+            indices = np.arange(len(col))
+
+        def format_col_str(idx):
+            if multidims:
+                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+                # with shape (n,1,...,1) from being printed as if there was
+                # more than one element in a row
+                if trivial_multidims:
+                    return format_func(col_format, col[(idx,) + multidim0])
+                else:
+                    left = format_func(col_format, col[(idx,) + multidim0])
+                    right = format_func(col_format, col[(idx,) + multidim1])
+                    return '{0} .. {1}'.format(left, right)
+            else:
+                return format_func(col_format, col[idx])
 
         # Add formatted values if within bounds allowed by max_lines
-        for i in ii:
-            if i == i0:
+        for idx in indices:
+            if idx == i0:
                 yield '...'
             else:
-                if multidims:
-                    # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                    # with shape (n,1,...,1) from being printed as if there was
-                    # more than one element in a row
-                    if trivial_multidims:
-                        col_str = format_func(col_format, col[(i,) + multidim0])
-                    else:
-                        col_str = (format_func(col_format, col[(i,) + multidim0]) +
-                                  ' .. ' +
-                                  format_func(col_format, col[(i,) + multidim1]))
-                else:
-                    col_str = format_func(col_format, col[i])
-                yield col_str
+                try:
+                    yield format_col_str(idx)
+                except ValueError:
+                    raise ValueError(
+                        'Unable to parse format string "{0}" for entry "{1}" '
+                        'in column "{2}"'.format(col_format, col[idx],
+                                                 col.name))
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
