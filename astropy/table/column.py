@@ -230,11 +230,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
+        self._parent_table = None
         self.unit = unit
-        self.format = format
+        self._format = format
         self.description = description
         self.meta = meta
-        self._parent_table = None
         self.indices = deepcopy(getattr(data, 'indices', [])) if \
                        copy_indices else []
         for index in self.indices:
@@ -248,7 +248,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @property
     def parent_table(self):
-        if self._parent_table is None:
+        # Note: It seems there are some cases where _parent_table is not set,
+        # such after restoring from a pickled Column.  Perhaps that should be
+        # fixed, but this is also okay for now.
+        if getattr(self, '_parent_table', None) is None:
             return None
         else:
             return self._parent_table()
@@ -313,7 +316,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         5-tuple that has Column-specific state values.
         """
         # Get the Column attributes
-        names = ('_name', 'unit', 'format', 'description', 'meta', 'indices')
+        names = ('_name', '_unit', '_format', 'description', 'meta', 'indices')
         attrs = {name: val for name, val in zip(names, state[-1])}
 
         state = state[:-1]
@@ -405,6 +408,32 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             table.columns._rename_column(self.name, val)
 
         self._name = val
+
+    @property
+    def format(self):
+        """
+        Format string for displaying values in this column.
+        """
+
+        return self._format
+
+    @format.setter
+    def format(self, format_string):
+
+        prev_format = getattr(self, '_format', None)
+
+        self._format = format_string  # set new format string
+
+        try:
+            # test whether it formats without error exemplarily
+            self.pformat(max_lines=1)
+        except TypeError as err:
+            # revert to restore previous format if there was one
+            self._format = prev_format
+            raise ValueError(
+                "Invalid format for column '{0}': could not display "
+                "values in this column using this format ({1})".format(
+                    self.name, err.args[0]))
 
     @property
     def descr(self):
@@ -701,7 +730,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Copy key column attributes from ``obj`` to self
         """
-        for attr in ('name', 'unit', 'format', 'description'):
+        for attr in ('name', 'unit', '_format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
