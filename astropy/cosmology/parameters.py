@@ -45,8 +45,8 @@ from __future__ import (absolute_import, division, print_function,
 
 # Note: if you add a new cosmology, please also update the table
 # in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst
-# in addition to the list above.  You also need to add them to
-# __all__ in core.py
+# in addition to the list above.  You also need to add them to the 'available'
+# list at the bottom of this file.
 
 # Planck 2015 paper XII Table 4 final column (best fit)
 Planck15 = dict(
