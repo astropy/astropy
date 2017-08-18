@@ -1700,17 +1700,14 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Now use the first to determine if they are all UnitSpherical
             allunitsphrepr = isinstance(scs[0].data, UnitSphericalRepresentation)
 
-            # get the frame attributes from the first one, because from above we
-            # know it matches all the others
-            for fattrnm in frame_transform_graph.frame_attributes:
-                fattrnm_data_name = '_' + fattrnm
-                # the hasattr is crucial here, because if we don't do that, all
-                # *non-set* frame attributes on the input SkyCoord will
-                # be passed into the new one as None kwargs.  This makes the
-                # initializer set it base on the default, rather than being
-                # not set at all (which is the desired behavior)
-                if hasattr(scs[0], fattrnm_data_name):
-                    valid_kwargs[fattrnm] = getattr(scs[0], fattrnm_data_name)
+            # get the frame attributes from the first coord in the list, because
+            # from the above we know it matches all the others.  First copy over
+            # the attributes that are in the frame itself, then copy over any
+            # extras in the SkyCoord
+            for fattrnm in scs[0].frame.frame_attributes:
+                valid_kwargs[fattrnm] = getattr(scs[0].frame, fattrnm)
+            for fattrnm in scs[0]._extra_attr_names:
+                valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below
             values = []
