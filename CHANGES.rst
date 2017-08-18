@@ -31,6 +31,9 @@ astropy.io.fits
 - Expanded the FITS ``Column`` interface to accept attributes pertaining to the FITS
   World Coordinate System, which includes spatial(celestial) and time coordinates. [#6359]
 
+- Added ``ver`` attribute to set the ``EXTVER`` header keyword to ``ImageHDU``
+  and ``TableHDU``. [#6454]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

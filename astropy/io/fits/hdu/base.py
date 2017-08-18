@@ -882,10 +882,12 @@ class _ValidHDU(_BaseHDU, _Verify):
     Base class for all HDUs which are not corrupted.
     """
 
-    def __init__(self, data=None, header=None, name=None, **kwargs):
+    def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super(_ValidHDU, self).__init__(data=data, header=header)
         if name is not None:
             self.name = name
+        if ver is not None:
+            self.ver = ver
 
     @classmethod
     def match_header(cls, header):
