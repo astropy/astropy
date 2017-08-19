@@ -42,17 +42,11 @@ doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-# delete these things from the namespace so we can automatically find
-# all of the parameter dictionaries below.
-del absolute_import
-del division
-del print_function
-del unicode_literals
 
 # Note: if you add a new cosmology, please also update the table
 # in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst
-# in addition to the list above.  You also need to add them to
-# __all__ in core.py
+# in addition to the list above.  You also need to add them to the 'available'
+# list at the bottom of this file.
 
 # Planck 2015 paper XII Table 4 final column (best fit)
 Planck15 = dict(
@@ -150,4 +144,5 @@ WMAP5 = dict(
                "Table 1 (WMAP + BAO + SN ML).")
 )
 
-available = tuple(k for k in locals() if not k.startswith('_'))
+# If new parameters are added, this list must be updated
+available = ['Planck15', 'Planck13', 'WMAP9', 'WMAP7', 'WMAP5']

@@ -29,8 +29,8 @@ from . import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
-           "WMAP9", "Planck13", "Planck15", "default_cosmology"]
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
+           "default_cosmology"] + parameters.available
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
