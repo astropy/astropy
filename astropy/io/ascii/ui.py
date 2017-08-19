@@ -263,12 +263,18 @@ def read(table, guess=None, **kwargs):
     """
     del _read_trace[:]
 
-    # Check if the user requests chunk'ed reading with the fast reader
-    fast_reader_param = kwargs.get('fast_reader', True)
-    if fast_reader_param is not False:
-        fast_reader_dict = fast_reader_param if isinstance(fast_reader_param, dict) else {}
-        if fast_reader_dict.get('chunk_size'):
-            return _read_in_chunks(table, fast_reader_dict, **kwargs)
+    # Convert fast_reader into a dict if not already and make sure 'enable'
+    # key is available.
+    fast_reader = kwargs.get('fast_reader', True)
+    if isinstance(fast_reader, dict):
+        fast_reader = copy.copy(fast_reader)  # this gets munged later
+        fast_reader.setdefault('enable', 'force')
+    else:
+        fast_reader = {'enable': fast_reader}
+    kwargs['fast_reader'] = fast_reader
+
+    if fast_reader['enable'] and fast_reader.get('chunk_size'):
+        return _read_in_chunks(table, **kwargs)
 
     if 'fill_values' not in kwargs:
         kwargs['fill_values'] = [('', '0')]
@@ -276,7 +282,7 @@ def read(table, guess=None, **kwargs):
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
-        fast_reader_param = False
+        fast_reader['enable'] = False
 
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
@@ -336,7 +342,7 @@ def read(table, guess=None, **kwargs):
         # then there was just one set of kwargs in the guess list so fall
         # through below to the non-guess way so that any problems result in a
         # more useful traceback.
-        dat = _guess(table, new_kwargs, format, fast_reader_param)
+        dat = _guess(table, new_kwargs, format, fast_reader)
         if dat is None:
             guess = False
 
@@ -348,19 +354,19 @@ def read(table, guess=None, **kwargs):
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
-        if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
+        if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) \
                                                         in core.FAST_CLASSES:
             fast_kwargs = copy.copy(new_kwargs)
             fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
-            fast_reader = get_reader(**fast_kwargs)
+            fast_reader_rdr = get_reader(**fast_kwargs)
             try:
-                dat = fast_reader.read(table)
+                dat = fast_reader_rdr.read(table)
                 _read_trace.append({'kwargs': fast_kwargs,
                                     'Reader': fast_reader.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
-                if fast_reader == 'force' or isinstance(fast_reader, dict):
+                if fast_reader['enable'] == 'force':
                     raise e
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
@@ -394,8 +400,8 @@ def _guess(table, read_kwargs, format, fast_reader):
         Keyword arguments from user to be supplied to reader
     format : str
         Table format
-    fast_reader : bool or dict
-        Whether to use the C engine, can also be a dict with options which
+    fast_reader : dict
+        Whether to use the C engine as a dict with options which
         defaults to `False`; parameters for options dict:
 
         use_fast_converter: bool
@@ -421,7 +427,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
     # If a fast version of the reader is available, try that before the slow version
-    if fast_reader and format is not None and 'fast_{0}'.format(format) in \
+    if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
         fast_kwargs = read_kwargs.copy()
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
@@ -436,11 +442,12 @@ def _guess(table, read_kwargs, format, fast_reader):
 
     for guess_kwargs in full_list_guess:
         # If user specified slow reader then skip all fast readers
-        if fast_reader is False and guess_kwargs['Reader'] in core.FAST_CLASSES.values():
+        if (fast_reader['enable'] is False and
+                guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
             continue
 
         # If user required a fast reader then skip all non-fast readers
-        if ((fast_reader == 'force' or isinstance(fast_reader, dict)) and
+        if (fast_reader['enable'] == 'force' and
                 guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
             continue
 
@@ -618,15 +625,15 @@ def _get_guess_kwargs_list(read_kwargs):
     return guess_kwargs_list
 
 
-def _read_in_chunks(table, fast_reader_dict, **kwargs):
+def _read_in_chunks(table, **kwargs):
     """
     For fast_reader read the ``table`` in chunks and vstack to create
     a single table, OR return a generator of chunk tables.
     """
-    chunk_size = fast_reader_dict.pop('chunk_size')
-    chunk_generator = fast_reader_dict.pop('chunk_generator', False)
-    fast_reader_dict['parallel'] = False  # No parallel with chunks
-    kwargs['fast_reader'] = fast_reader_dict
+    fast_reader = kwargs['fast_reader']
+    chunk_size = fast_reader.pop('chunk_size')
+    chunk_generator = fast_reader.pop('chunk_generator', False)
+    fast_reader['parallel'] = False  # No parallel with chunks
 
     if chunk_generator:
         return _read_in_chunks_generator(table, chunk_size, **kwargs)

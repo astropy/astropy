@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import copy
 from collections import OrderedDict
 
 from . import core
@@ -88,7 +89,11 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError("The C reader does not use a Splitter class")
 
         self.strict_names = self.kwargs.pop('strict_names', False)
-        self.return_header_chars = self.kwargs['fast_reader'].pop('return_header_chars', False)
+
+        fast_reader = copy.copy(self.kwargs.get('fast_reader', {}))
+        self.return_header_chars = fast_reader.pop('return_header_chars', False)
+        fast_reader.pop('enable', None)
+        self.kwargs['fast_reader'] = fast_reader
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
                                       self.strip_whitespace_fields,

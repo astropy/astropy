@@ -6,6 +6,7 @@ import math
 import multiprocessing
 import mmap
 import warnings
+import copy
 
 import numpy as np
 cimport numpy as np
@@ -202,13 +203,9 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  fast_reader=True):
+                  fast_reader=None):
 
-        # Handle fast_reader parameter (True or dict specifying options)
-        if fast_reader is True or fast_reader == 'force':
-            fast_reader = {}
-        elif fast_reader is False: # shouldn't happen
-            raise core.ParameterError("fast_reader cannot be False for fast readers")
+        # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
         # parallel and use_fast_reader are False by default, but only the latter
         # supports Fortran double precision notation
