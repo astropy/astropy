@@ -263,11 +263,13 @@ def read(table, guess=None, **kwargs):
     """
     del _read_trace[:]
 
+    kwargs = copy.copy(kwargs)
+
     # Convert fast_reader into a dict if not already and make sure 'enable'
     # key is available.
     fast_reader = kwargs.get('fast_reader', True)
     if isinstance(fast_reader, dict):
-        fast_reader = copy.copy(fast_reader)  # this gets munged later
+        fast_reader = copy.deepcopy(fast_reader)  # this gets munged later
         fast_reader.setdefault('enable', 'force')
     else:
         fast_reader = {'enable': fast_reader}
@@ -356,7 +358,7 @@ def read(table, guess=None, **kwargs):
         # will fail and the else-clause below will be used.
         if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) \
                                                         in core.FAST_CLASSES:
-            fast_kwargs = copy.copy(new_kwargs)
+            fast_kwargs = copy.deepcopy(new_kwargs)
             fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
@@ -657,9 +659,13 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     """
     kwargs['fast_reader']['return_header_chars'] = True
 
-    # TO DO: handle other valid inputs for table.  Currently only filename
-    # or filehandle works.
     header = ''
+
+    # Convert table-as-string to a File object.  Finding a newline implies
+    # that the string is not a filename.
+    if (isinstance(table, six.string_types) and
+            ('\n' in table or '\r' in table)):
+        table = six.moves.cStringIO(table)
 
     with get_readable_fileobj(table, encoding=kwargs.get('encoding')) as fh:
         fh_index = 0
