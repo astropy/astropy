@@ -367,7 +367,7 @@ no extra metadata in the header. This is the "lossy" version, but can help
 portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
 ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
-``info.serialze_method`` attribute, as in the following example::
+``info.serialize_method`` attribute, as in the following example::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
