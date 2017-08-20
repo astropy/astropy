@@ -309,8 +309,7 @@ precision. For example::
 Note that even with ``astropy_native=True``, numerical columns with units will
 be stored as `~astropy.table.Column` instances, that is, they will not be
 converted to `~astropy.units.Quantity` objects. For that, one should use
-`~astropy.table.QTable`; for that class, ``astropy_native`` works in the
-same way.
+`~astropy.table.QTable` (but otherwise, the classes behave identically).
 
 In addition to binary table columns, various global time informational FITS
 keywords are treated specially with ``astropy_native=True``.  In particular
