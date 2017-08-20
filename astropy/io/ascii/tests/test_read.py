@@ -1306,7 +1306,7 @@ def test_read_chunks_input_types():
     fpath = 't/test5.dat'
     t1 = ascii.read(fpath, header_start=1, data_start=3)
 
-    for fp in (fpath, open(fpath, 'rb'), open(fpath, 'rb').read()):
+    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
         t_gen = ascii.read(fp, header_start=1, data_start=3,
                            fast_reader={'chunk_size': 400, 'chunk_generator': True})
         ts = list(t_gen)
