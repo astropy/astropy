@@ -177,6 +177,8 @@ class TestFitsTime(FitsTestCase):
         assert not isinstance(tm.meta['MJD-OBS'], Time)
         assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
 
+        assert (tm['a'] == t['a'].value).all()
+
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_loc_unit(self, table_types):
         """
