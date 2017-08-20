@@ -279,20 +279,18 @@ Time
 ~~~~
 
 By default, a `~astropy.time.Time` mixin column within a `~astropy.table.Table`
-or `~astropy.table.QTable` will be written to FITS as a standard Column using
-the ``format`` of the object (similar to the output when printing to the
-console).  For instance, if the ``format`` is ``iso`` then the FITS column will
-be a character string column.  None of the special header keywords associated
-with the Time FITS standard will be set.  When reading this back into Astropy,
-the column will be an ordinary Column instead of a `~astropy.time.Time` object.
-See the `Details`_ section below for an example.
+or `~astropy.table.QTable` will be written to FITS in full precision. This will be
+done using the FITS Time standard by setting the necessary FITS header keywords.
 
-However, if the ``astropy_native`` keyword is ``True``, then the column
-will be written using the FITS Time standard by setting the necessary FITS
-header keywords.  Likewise with ``astropy_native=True`` when reading the
-FITS table, any columns that conform to the FITS Time standard will be
-returned in the Table as native `~astropy.time.Time` objects.  This allows
-round-tripping the object with no loss of precision.  For example::
+The default read behaviour of a FITS table into an Astropy Table is to read the FITS
+table columns as standard Table Columns. The ``astropy_native``keyword has thus been
+provided to introduce the new feature of reading FITS table columns as native Astropy
+objects. The user can explicitly choose to read FITS table columns that conform
+to the FITS Time standard as native `~astropy.time.Time` objects by using
+``astropy_native=True`` when reading the FITS table. This allows round-tripping
+the object with no loss of precision.
+
+For example::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
@@ -300,7 +298,7 @@ round-tripping the object with no loss of precision.  For example::
     >>> t = Table()
     >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
     ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
-    >>> t.write('my_table.fits', overwrite=True, astropy_native=True)
+    >>> t.write('my_table.fits', overwrite=True)
     >>> tm = Table.read('my_table.fits', astropy_native=True)
     >>> tm['a']
     <Time object: scale='tt' format='jd' value=[ 2400100.5  2400200.5]>
@@ -317,6 +315,15 @@ the keywords ``DATE``, ``DATE-*`` (ISO-8601 datetime strings) and the ``MJD-*``
 (MJD date values) will be returned as ``Time`` objects in the Table ``meta``.
 For more details regarding the FITS time paper and the implementation,
 refer to :ref:`fits_time_column`.
+
+As opposed to the default write behaviour of a `~astropy.time.Time` mixin column
+within a Table or QTable to FITS, the user can choose to write it as a standard
+Column using the ``format`` of the object (similar to the output when printing to
+the console).  For instance, if the ``format`` is ``iso`` then the FITS column
+will be a character string column.  None of the special header keywords associated
+with the FITS Time standard will be set.  When reading this back into Astropy,
+the column will be an ordinary Column instead of a `~astropy.time.Time` object.
+See the `Details`_ section below for an example.
 
 Details
 ~~~~~~~
@@ -352,16 +359,16 @@ the final conversion from ``(jd1, jd2)`` requires a software implementation whic
 fully compliant with the FITS Time standard.
 
 Taking this into consideration, the functionality to read/write Time
-from/to FITS is off by default. Users can store the time
+from/to FITS can be explicitly chosen to be off. Users can store the time
 representation values in the format specified by the ``format`` attribute
 of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
-no extra metadata in the header. This is the "lossy" version,
-but meets common-use needs. For the above example, the FITS column corresponding
+no extra metadata in the header. This is the "lossy" version, but meets
+common-use needs. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
-``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
-This will be useful when dealing with other software packages which do not implement
-the full FITS time standard or when users want to serialize their Time object
-in the format of their choosing.
+``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``, and this is done by setting
+``t['a'].info.serialize_method['fits'] = 'formatted_value'``.
+
+For example::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
@@ -369,6 +376,7 @@ in the format of their choosing.
     >>> t = Table()
     >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
     ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+    >>> t['a'].info.serialize_method['fits'] = 'formatted_value'
     >>> t.write('my_table.fits', overwrite=True)
     >>> tm = Table.read('my_table.fits')
     >>> tm['a']
@@ -377,6 +385,13 @@ in the format of their choosing.
     200.0
     >>> tm['a'] == t['a'].value
     array([ True,  True], dtype=bool)
+
+This write behaviour of Time will be useful when dealing with other software packages
+which do not implement the full FITS time standard or when users want to serialize
+their Time object in the format of their choosing.
+
+By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
+``'jd1_jd2'``, that is, Time column will be written in full precision.
 
 .. note::
 
