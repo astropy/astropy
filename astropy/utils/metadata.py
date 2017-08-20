@@ -4,6 +4,7 @@ This module contains helper functions and classes for handling metadata.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
 from ..extern import six
 from ..utils import wraps
 
@@ -15,6 +16,7 @@ from copy import deepcopy
 
 import numpy as np
 from ..utils.exceptions import AstropyWarning
+from ..utils.misc import dtype_bits_or_chars
 
 
 __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
@@ -65,7 +67,8 @@ def common_dtype(arrs):
     # values or the final arr_common = .. step is unpredictable.
     for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') * arr.itemsize]
+            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') *
+                       dtype_bits_or_chars(arr.dtype)]
 
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str

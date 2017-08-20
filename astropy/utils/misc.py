@@ -21,6 +21,7 @@ import traceback
 import unicodedata
 import locale
 import threading
+import re
 
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
@@ -33,7 +34,8 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
-           'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError']
+           'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
+           'dtype_bits_or_chars']
 
 
 def isiterable(obj):
@@ -1104,3 +1106,25 @@ def check_broadcast(*shapes):
         full_shape.append(max_dim)
 
     return tuple(full_shape[::-1])
+
+
+def dtype_bits_or_chars(dtype):
+    """
+    Parse the number out of a dtype.str value like '<U5' or '<f8'.
+
+    See #5819 for discussion on the need for this function for getting
+    the number of characters corresponding to a string dtype.
+
+    Parameters
+    ----------
+    dtype : numpy dtype object
+        Input dtype
+
+    Returns
+    -------
+    bits_or_chars : int or None
+        Bits (for numeric types) or characters (for string types)
+    """
+    match = re.search(r'(\d+)$', dtype.str)
+    out = int(match.group(1)) if match else None
+    return out

@@ -3,8 +3,10 @@ import abc
 from collections import OrderedDict
 
 import pytest
+import numpy as np
 
 from ..metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
+from ..metadata import common_dtype
 from ...utils import metadata
 from ...io import fits
 
@@ -83,9 +85,6 @@ def test_metadata_merging_conflict_exception():
     data2.meta['somekey'] = {'x': 1, 'y': 999}
     with pytest.raises(MergeConflictError):
         merge(data1.meta, data2.meta, metadata_conflicts='error')
-
-
-import numpy as np
 
 
 def test_metadata_merging():
@@ -189,3 +188,13 @@ def test_metadata_merging_new_strategy():
     assert not MergeConcatStrings.enabled
 
     metadata.MERGE_STRATEGIES = original_merge_strategies
+
+
+def test_common_dtype_string():
+    u3 = np.array([u'123'])
+    u4 = np.array([u'1234'])
+    b3 = np.array([b'123'])
+    b5 = np.array([b'12345'])
+    assert common_dtype([u3, u4]).endswith('U4')
+    assert common_dtype([b5, u4]).endswith('U5')
+    assert common_dtype([b3, b5]).endswith('S5')
