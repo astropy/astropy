@@ -13,6 +13,7 @@ import numpy as np
 from .. import data, misc
 from ...tests.helper import remote_data
 from ...extern import six
+from ..compat import NUMPY_LT_1_10
 
 
 def test_isiterable():
@@ -118,7 +119,7 @@ def test_check_broadcast():
 
 def test_dtype_bits_or_chars():
     assert misc.dtype_bits_or_chars(np.dtype(np.float64)) == 8
-    assert misc.dtype_bits_or_chars(np.dtype(object)) is None
+    assert misc.dtype_bits_or_chars(np.dtype(object)) == (8 if NUMPY_LT_1_10 else None)
     assert misc.dtype_bits_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bits_or_chars(np.array(b'12345').dtype) == 5
     assert misc.dtype_bits_or_chars(np.array(u'12345').dtype) == 5
