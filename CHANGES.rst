@@ -271,6 +271,9 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Added support for reading very large tables in chunks to reduce memory
+  usage. [#6458]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
