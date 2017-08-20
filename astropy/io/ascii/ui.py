@@ -15,6 +15,7 @@ import sys
 import copy
 import time
 import warnings
+import contextlib
 
 from . import core
 from . import basic
@@ -661,13 +662,25 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
 
     header = ''
 
+    @contextlib.contextmanager
+    def passthrough_fileobj(fileobj, encoding=None):
+        """Stub for get_readable_fileobj, which does not seem to work in Py3
+        for input File-like object, see #6460"""
+        yield fileobj
+
     # Convert table-as-string to a File object.  Finding a newline implies
     # that the string is not a filename.
     if (isinstance(table, six.string_types) and
             ('\n' in table or '\r' in table)):
         table = six.moves.cStringIO(table)
+        fileobj_context = passthrough_fileobj
+    elif hasattr(table, 'read') and hasattr(table, 'seek'):
+        fileobj_context = passthrough_fileobj
+    else:
+        # string filename or pathlib
+        fileobj_context = get_readable_fileobj
 
-    with get_readable_fileobj(table, encoding=kwargs.get('encoding')) as fh:
+    with fileobj_context(table, encoding=kwargs.get('encoding')) as fh:
         fh_index = 0
 
         while True:
