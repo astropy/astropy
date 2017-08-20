@@ -46,6 +46,11 @@ def common_dtype(arrs):
     ----------
     arrs : list of ndarray objects
         Arrays for which to find the common dtype
+
+    Returns
+    -------
+    dtype_str : str
+        String representation of dytpe (dtype ``str`` attribute)
     """
     def dtype(arr):
         return getattr(arr, 'dtype', np.dtype('O'))
