@@ -698,7 +698,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
                 if chunk[idx] == '\n':
                     break
             else:
-                raise ValueError('no newline found in chunk')
+                raise ValueError('no newline found in chunk (chunk_size too small?)')
 
             # Stick on the header to the chunk part up to (and including) the
             # last newline.

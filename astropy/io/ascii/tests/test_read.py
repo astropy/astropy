@@ -1319,6 +1319,12 @@ def test_read_chunks_input_types():
         t2 = table.vstack(ts)
         assert np.all(t1 == t2)
 
+    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
+        # Now read the full table in chunks
+        t3 = ascii.read(fp, header_start=1, data_start=3,
+                        fast_reader={'chunk_size': 300})
+        assert np.all(t1 == t3)
+
 
 def test_read_chunks_formats():
     """
@@ -1345,3 +1351,25 @@ def test_read_chunks_formats():
         assert len(ts) > 4
         t2 = table.vstack(ts)
         assert np.all(t1 == t2)
+
+        # Now read the full table in chunks
+        t3 = ascii.read(out.getvalue(), format=format, fast_reader={'chunk_size': 300})
+        assert np.all(t1 == t3)
+
+
+def test_read_chunks_chunk_size_too_small():
+    fpath = 't/test5.dat'
+    with pytest.raises(ValueError) as err:
+        ascii.read(fpath, header_start=1, data_start=3,
+                   fast_reader={'chunk_size': 10})
+    assert 'no newline found in chunk (chunk_size too small?)' in str(err)
+
+
+@pytest.mark.xfail
+def test_read_chunks_table_changes():
+    """Column changes type between chunks"""
+    col = ['a b'] + ['1.12334 xyz'] * 50 + ['abcdefg 555'] * 50
+    table = '\n'.join(col)
+    t1 = ascii.read(table, guess=False)
+    t2 = ascii.read(table, fast_reader={'chunk_size': 100})
+    assert np.all(t1 == t2)
