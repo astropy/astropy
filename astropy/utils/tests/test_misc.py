@@ -114,3 +114,11 @@ def test_check_broadcast():
 
     with pytest.raises(ValueError):
         misc.check_broadcast((10, 1), (3,), (4, 1, 2, 3))
+
+
+def test_dtype_bits_or_chars():
+    assert misc.dtype_bits_or_chars(np.dtype(np.float64)) == 8
+    assert misc.dtype_bits_or_chars(np.dtype(object)) is None
+    assert misc.dtype_bits_or_chars(np.dtype(np.int32)) == 4
+    assert misc.dtype_bits_or_chars(np.array(b'12345').dtype) == 5
+    assert misc.dtype_bits_or_chars(np.array(u'12345').dtype) == 5
