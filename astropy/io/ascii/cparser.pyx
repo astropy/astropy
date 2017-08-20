@@ -142,7 +142,7 @@ cdef class FileString:
         return len(self.mmap)
 
     def __getitem__(self, i):
-        return self.mmap[i] if six.PY2 else chr(self.mmap[i])
+        return self.mmap[i]
 
     def splitlines(self):
         """

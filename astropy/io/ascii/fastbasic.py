@@ -90,9 +90,12 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         self.strict_names = self.kwargs.pop('strict_names', False)
 
-        fast_reader = copy.copy(self.kwargs.get('fast_reader', {}))
-        self.return_header_chars = fast_reader.pop('return_header_chars', False)
+        fast_reader = self.kwargs.get('fast_reader', True)
+        if not isinstance(fast_reader, dict):
+            fast_reader = {}
+            # else fast_reader = copy.deepcopy(fast_reader)  # this gets munged later
         fast_reader.pop('enable', None)
+        self.return_header_chars = fast_reader.pop('return_header_chars', False)
         self.kwargs['fast_reader'] = fast_reader
 
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
@@ -115,14 +118,17 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
-        return self.make_table(data, comments)
+        out = self.make_table(data, comments)
+
+        if self.return_header_chars:
+            out.meta['__ascii_fast_reader_header_chars__'] = self.engine.header_chars
+
+        return out
 
     def make_table(self, data, comments):
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
-        if self.return_header_chars:
-            meta['__ascii_fast_reader_header_chars__'] = self.engine.header_chars
         return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):
