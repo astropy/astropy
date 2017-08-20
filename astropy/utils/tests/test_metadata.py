@@ -198,3 +198,15 @@ def test_common_dtype_string():
     assert common_dtype([u3, u4]).endswith('U4')
     assert common_dtype([b5, u4]).endswith('U5')
     assert common_dtype([b3, b5]).endswith('S5')
+
+
+def test_common_dtype_basic():
+    i8 = np.array(1, dtype=np.int64)
+    f8 = np.array(1, dtype=np.float64)
+    u3 = np.array(u'123')
+
+    with pytest.raises(MergeConflictError):
+        common_dtype([i8, u3])
+
+    assert common_dtype([i8, i8]).endswith('i8')
+    assert common_dtype([i8, f8]).endswith('f8')
