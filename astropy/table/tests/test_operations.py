@@ -1108,6 +1108,19 @@ def test_vstack_bytes(operation_table_type):
     assert t2['a'].itemsize == 1
 
 
+def test_vstack_unicode():
+    """
+    Test for problem related to issue #5617 when vstack'ing *unicode*
+    columns.  In this case the character size gets multiplied by 4.
+    """
+    t = table.Table([[u'a']], names=['a'])
+    assert t['a'].itemsize == 4  # 4-byte / char for U dtype
+
+    t2 = table.vstack([t, t])
+    assert len(t2) == 2
+    assert t2['a'].itemsize == 4
+
+
 def test_get_out_class():
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])
