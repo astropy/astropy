@@ -52,6 +52,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix a bug when combining unicode columns via join or vstack.  The character
+  width of the output column was a factor of 4 larger than needed. [#6459]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
