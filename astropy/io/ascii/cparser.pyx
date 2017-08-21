@@ -6,7 +6,6 @@ import math
 import multiprocessing
 import mmap
 import warnings
-import copy
 
 import numpy as np
 cimport numpy as np
@@ -203,7 +202,7 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  fast_reader=None):
+                  fast_reader=True):
 
         # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
@@ -859,35 +858,22 @@ def _read_chunk(CParser self, start, end, try_int,
                                       try_int, try_float, try_string, -1)
         except Exception as e:
             delete_tokenizer(chunk_tokenizer)
-            out = (None, e, i)
-            if queue is None:
-                return out
-            else:
-                queue.put(out)
-                return
+            queue.put((None, e, i))
+            return
 
     try:
-        out = ((line_comments, data), err, i)
-        if queue is None:
-            return out
-        else:
-            queue.put(out)
+        queue.put(((line_comments, data), err, i))
     except Queue.Full as e:
         # hopefully this shouldn't happen
         delete_tokenizer(chunk_tokenizer)
-        out = (None, e, i)
-        if queue is None:
-            return out
-        else:
-            queue.pop()
-            queue.put(out)
+        queue.pop()
+        queue.put((None, e, i))
 
-    if reconvert_queue is not None and queue is not None:
-        reconvert_cols = reconvert_queue.get()
-        for col in reconvert_cols:
-            queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
-        delete_tokenizer(chunk_tokenizer)
-        reconvert_queue.put(reconvert_cols) # return to the queue for other processes
+    reconvert_cols = reconvert_queue.get()
+    for col in reconvert_cols:
+        queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
+    delete_tokenizer(chunk_tokenizer)
+    reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
 cdef class FastWriter:
     """
