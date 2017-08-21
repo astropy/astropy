@@ -26,7 +26,7 @@ from ..units import Unit, Quantity
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
-from ..utils.misc import dtype_bits_or_chars
+from ..utils.misc import dtype_bytes_or_chars
 from ..extern.six.moves import range
 from . import groups
 from . import pprint
@@ -887,7 +887,7 @@ class Column(BaseColumn):
 
         # Parse the array-protocol typestring (e.g. '|U15') of self.dtype which
         # has the character repeat count on the right side.
-        self_str_len = dtype_bits_or_chars(self.dtype)
+        self_str_len = dtype_bytes_or_chars(self.dtype)
 
         if value_str_len > self_str_len:
             warnings.warn('truncated right side string(s) longer than {} '

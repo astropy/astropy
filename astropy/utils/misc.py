@@ -35,7 +35,7 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
            'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
-           'dtype_bits_or_chars']
+           'dtype_bytes_or_chars']
 
 
 def isiterable(obj):
@@ -1108,7 +1108,7 @@ def check_broadcast(*shapes):
     return tuple(full_shape[::-1])
 
 
-def dtype_bits_or_chars(dtype):
+def dtype_bytes_or_chars(dtype):
     """
     Parse the number out of a dtype.str value like '<U5' or '<f8'.
 
@@ -1122,7 +1122,7 @@ def dtype_bits_or_chars(dtype):
 
     Returns
     -------
-    bits_or_chars : int or None
+    bytes_or_chars : int or None
         Bits (for numeric types) or characters (for string types)
     """
     match = re.search(r'(\d+)$', dtype.str)
