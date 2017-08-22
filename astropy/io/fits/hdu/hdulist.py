@@ -73,6 +73,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ensures that all HDUs have already been loaded after the file has
         been opened.
 
+        .. versionadded:: 1.3
+
     kwargs : dict, optional
         additional optional keyword arguments, possible values are:
 
