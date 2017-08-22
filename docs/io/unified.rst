@@ -306,10 +306,7 @@ precision. For example::
     >>> tm['a'] == t['a']
     array([ True,  True], dtype=bool)
 
-Note that even with ``astropy_native=True``, numerical columns with units will
-be stored as `~astropy.table.Column` instances, that is, they will not be
-converted to `~astropy.units.Quantity` objects. For that, one should use
-`~astropy.table.QTable` (but otherwise, the classes behave identically).
+The same will work with ``QTable``.
 
 In addition to binary table columns, various global time informational FITS
 keywords are treated specially with ``astropy_native=True``.  In particular
@@ -372,8 +369,7 @@ to ``t['a']`` will then store ``[100.0 200.0]`` instead of
     >>> from astropy.table import Table
     >>> from astropy.coordinates import EarthLocation
     >>> t = Table()
-    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
-    ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
     >>> t['a'].info.serialize_method['fits'] = 'formatted_value'
     >>> t.write('my_table.fits', overwrite=True)
     >>> tm = Table.read('my_table.fits')
