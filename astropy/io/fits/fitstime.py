@@ -85,12 +85,16 @@ def _verify_global_info(global_info):
     # Verify global time scale
     if global_info['scale'] not in Time.SCALES:
 
+        # 'GPS' and 'LOCAL' are FITS recognized time scale values
+        # but are not supported by astropy.
+
         if global_info['scale'] == 'gps':
             warnings.warn(
                 'Global time scale (TIMESYS) has a FITS recognized time scale '
                 'value "GPS". In Astropy, "GPS" is a time from epoch format '
                 'which runs synchronously with TAI; GPS is approximately 19 s '
                 'ahead of TAI. Hence, this format will be used.', AstropyUserWarning)
+            # Assume that the values are in GPS format
             global_info['scale'] = 'tai'
             global_info['format'] = 'gps'
 
@@ -101,6 +105,7 @@ def _verify_global_info(global_info):
                 'tied to one of the existing scales because it is intrinsically '
                 'unreliable and/or ill-defined. Astropy will thus use the default '
                 'global time scale "UTC" instead of "LOCAL".', AstropyUserWarning)
+            # Default scale 'UTC'
             global_info['scale'] = 'utc'
             global_info['format'] = None
 
@@ -111,27 +116,37 @@ def _verify_global_info(global_info):
                 'the use of local time scales should be restricted to alternate '
                 'coordinates.'.format(global_info['TIMESYS']))
     else:
+        # Scale is already set
         global_info['format'] = None
 
-    # Get global location
+    # Check if geocentric global location is specified
     obs_geo = [global_info[attr] for attr in ('OBSGEO-X', 'OBSGEO-Y', 'OBSGEO-Z')
                if attr in global_info]
 
+    # Location full specification is (X, Y, Z)
     if len(obs_geo) == 3:
         global_info['location'] = EarthLocation.from_geocentric(*obs_geo, unit=u.m)
     else:
+        # Check if geodetic global location is specified (since geocentric failed)
+
+        # First warn the user if geocentric location is partially specified
         if obs_geo:
             warnings.warn(
                 'The geocentric observatory location {} is not completely '
                 'specified (X, Y, Z) and will be ignored.'.format(obs_geo),
                 AstropyUserWarning)
 
+        # Check geodetic location
         obs_geo = [global_info[attr] for attr in ('OBSGEO-L', 'OBSGEO-B', 'OBSGEO-H')
                    if attr in global_info]
 
         if len(obs_geo) == 3:
             global_info['location'] = EarthLocation.from_geodetic(*obs_geo)
         else:
+            # Since both geocentric and geodetic locations are not specified,
+            # location will be None.
+
+            # Warn the user if geodetic location is partially specified
             if obs_geo:
                 warnings.warn(
                     'The geodetic observatory location {} is not completely '
@@ -140,11 +155,13 @@ def _verify_global_info(global_info):
             global_info['location'] = None
 
     # Get global time reference
+    # Keywords are listed in order of precedence, as stated by the standard
     for key, format_ in (('MJDREF', 'mjd'), ('JDREF', 'jd'), ('DATEREF', 'fits')):
         if key in global_info:
             global_info['ref_time'] = {'val': global_info[key], 'format': format_}
             break
     else:
+        # If none of the three keywords is present, MJDREF = 0.0 must be assumed
         global_info['ref_time'] = {'val': 0, 'format': 'mjd'}
 
 
@@ -180,6 +197,8 @@ def _verify_column_info(column_info, global_info):
             column_info['scale'] = FITS_DEPRECATED_SCALES[scale]
             column_info['format'] = None
 
+        # TCTYPn (scale) = 'TIME' indicates that the column scale is
+        # controlled by the global scale.
         elif scale == 'TIME':
             column_info['scale'] = global_info['scale']
             column_info['format'] = global_info['format']
@@ -210,15 +229,21 @@ def _verify_column_info(column_info, global_info):
             # or a linear coordinate type
             return False
 
+    # If TCUNIn is a time unit or TRPOSn is specified, the column is a time
+    # coordinate. This has to be tested since TCTYP (scale) is not specified. 
     elif (unit is not None and unit in FITS_TIME_UNIT) or location is not None:
         column_info['scale'] = global_info['scale']
         column_info['format'] = global_info['format']
 
+    # None of the conditions for time coordinate columns is satisfied
     else:
         return False
 
+    # Check if column-specific reference position TRPOSn is specified
     if location is not None:
 
+        # Observatory position (location) needs to be specified only
+        # for 'TOPOCENTER'.
         if location == 'TOPOCENTER':
             column_info['location'] = global_info['location']
             if column_info['location'] is None:
@@ -230,6 +255,8 @@ def _verify_column_info(column_info, global_info):
         else:
             column_info['location'] = None
 
+    # Since TRPOSn is not specified, global reference position is
+    # considered.
     elif global_info['TREFPOS'] == 'TOPOCENTER':
 
         column_info['location'] = global_info['location']
@@ -242,6 +269,7 @@ def _verify_column_info(column_info, global_info):
     else:
         column_info['location'] = None
 
+    # Get reference time
     column_info['ref_time'] = global_info['ref_time']
 
     return True
@@ -255,6 +283,9 @@ def _get_info_if_time_column(col, global_info):
     This is only applicable to the special-case where a column has the
     name 'TIME' and a time unit.
     """
+
+    # Column with TTYPEn = 'TIME' and lacking any TC*n or time
+    # specific keywords will be controlled by the global keywords.
     if col.name.upper() == 'TIME' and col.unit in FITS_TIME_UNIT:
         column_info = {'scale': global_info['scale'],
                        'format': global_info['format'],
@@ -330,16 +361,20 @@ def _convert_time_column(col, column_info):
 
     try:
         # ISO-8601 is the only string representation of time in FITS
-        if col.info.dtype.kind == 'S':
+        if col.info.dtype.kind in ['S', 'U']:
             return Time(col, format='fits', scale=column_info['scale'],
-                        precision=max(col.info.dtype.itemsize - 20, 0),
+                        precision=max(int(col.info.dtype.str[2:]) - 20, 0),
                         location=column_info['location'])
 
         if column_info['format'] == 'gps':
             return Time(col, format='gps', location=column_info['location'])
 
+        # If reference value is 0 for JD or MJD, the column values can be
+        # directly converted to Time, as they are absolute (relative
+        # to a globally accepted zero point).
         if (column_info['ref_time']['val'] == 0 and
             column_info['ref_time']['format'] in ['jd', 'mjd']):
+            # (jd1, jd2) where jd = jd1 + jd2
             if col.shape[-1] == 2 and col.ndim > 1:
                 return Time(col[..., 0], col[..., 1], scale=column_info['scale'],
                             format=column_info['ref_time']['format'],
@@ -349,10 +384,12 @@ def _convert_time_column(col, column_info):
                             format=column_info['ref_time']['format'],
                             location=column_info['location'])
 
+        # Reference time
         ref_time = Time(column_info['ref_time']['val'], scale=column_info['scale'],
                         format=column_info['ref_time']['format'],
                         location=column_info['location'])
 
+        # Elapsed time since reference time
         if col.shape[-1] == 2 and col.ndim > 1:
             delta_time = TimeDelta(col[..., 0], col[..., 1])
         else:
@@ -396,6 +433,7 @@ def fits_to_time(hdr, table):
     # may get modified.  the data is still a "view" (for now)
     hcopy = hdr.copy(strip=True)
 
+    # Scan the header for global and column-specific time keywords
     for key, value, comment in hdr.cards:
         if key in TIME_KEYWORDS:
 
@@ -408,15 +446,21 @@ def fits_to_time(hdr, table):
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
 
+    # Verify and get the global time reference frame information
     _verify_global_info(global_info)
     _convert_global_time(table, global_info)
+
+    # Columns with column-specific time (coordinate) keywords
     if time_columns:
         for idx, column_info in time_columns.items():
+            # Check if the column is time coordinate (not spatial)
             if _verify_column_info(column_info, global_info):
                 colname = table.colnames[idx - 1]
+                # Convert to Time
                 table[colname] = _convert_time_column(table[colname],
                                                       column_info)
 
+    # Check for special-cases of time coordinate columns
     other_columns = [idx for idx in range(1, len(table.columns) + 1) if
                      idx not in time_columns]
     for idx in other_columns:
@@ -456,6 +500,7 @@ def time_to_fits(table):
     hdr = Header([Card(keyword=key, value=val[0], comment=val[1])
                   for key, val in GLOBAL_TIME_INFO.items()])
 
+    # Store coordinate column-specific metadata 
     newtable.meta['__coordinate_columns__'] = defaultdict(OrderedDict)
     coord_meta = newtable.meta['__coordinate_columns__']
 
@@ -483,11 +528,11 @@ def time_to_fits(table):
         # Get column position(index)
         n = table.colnames.index(col.info.name) + 1
 
-        # Time column override keywords
+        # Time column-specific override keywords
         coord_meta[col.info.name]['coord_type'] = col.scale.upper()
         coord_meta[col.info.name]['coord_unit'] = 'd'
 
-        # Time column reference positions
+        # Time column reference position
         if col.location is None:
             if location is not None:
                 warnings.warn(
@@ -507,6 +552,7 @@ def time_to_fits(table):
                 raise ValueError('Vectorized Location of Time Column "{}" cannot be '
                                  'written, as it is not supported.'.format(col.info.name))
             if location is None:
+                # Set global geocentric location
                 location = col.location
                 hdr.extend([Card(keyword='OBSGEO-{}'.format(dim.upper()),
                                  value=getattr(location, dim).to_value(u.m))
