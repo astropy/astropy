@@ -1091,8 +1091,11 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             rescaled unless scale_back is explicitly set to `False`.
             (default: None)
 
-        ver : int > 0, optional
-            The name of the HDU, will be the value of the keyword ``EXTVER``.
+        ver : int > 0 or None, optional
+            The ver of the HDU, will be the value of the keyword ``EXTVER``.
+            If not given or None, it defaults to the value of the ``EXTVER``
+            card of the ``header`` or 1.
+            (default: None)
         """
 
         # This __init__ currently does nothing differently from the base class,
