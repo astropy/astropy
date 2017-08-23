@@ -84,7 +84,7 @@ class solar_system_ephemeris(ScienceState):
     - 'builtin': polynomial approximations to the orbital elements.
     - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
-    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bst) format.
+    - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
     - `None`: Ensure an Exception is raised without an explicit ephemeris.
 
     The default is 'builtin', which uses the ``epv00`` and ``plan94``
