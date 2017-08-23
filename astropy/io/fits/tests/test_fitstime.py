@@ -250,8 +250,8 @@ class TestFitsTime(FitsTestCase):
         Test that ISO-8601 Datetime String Columns are read correctly.
         """        
         # Datetime column
-        c = fits.Column(name='datetime', format='A29', unit='d', coord_type='TT',
-                        coord_unit='d', time_ref_pos='TOPOCENTER', array=self.time)
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        time_ref_pos='TOPOCENTER', array=self.time)
 
         # Observatory position in ITRS Cartesian coordinates (geocentric)
         cards = [('OBSGEO-X', -2446354), ('OBSGEO-Y', 4237210), ('OBSGEO-Z', 4077985)]
@@ -269,3 +269,27 @@ class TestFitsTime(FitsTestCase):
         assert tm['datetime'].location.x.value == -2446354
         assert tm['datetime'].location.y.value == 4237210
         assert tm['datetime'].location.z.value == 4077985
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_location(self, table_types):
+        """
+        Test that geocentric/geodetic observatory position is read
+        properly, as and when it is specified.
+        """
+        # Datetime column
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        time_ref_pos='TOPOCENTER', array=self.time)
+
+        # Observatory position in geodetic coordinates
+        cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].location.lon.value == 0
+        assert tm['datetime'].location.lat.value == 0
+        assert tm['datetime'].location.height.value == 0

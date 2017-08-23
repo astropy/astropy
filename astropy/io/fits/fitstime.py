@@ -33,7 +33,8 @@ FITS_TIME_UNIT = ['s', 'd', 'a', 'cy', 'min', 'h', 'yr', 'ta', 'Ba']
 # Global time reference coordinate keywords
 TIME_KEYWORDS = ('TIMESYS', 'MJDREF', 'JDREF', 'DATEREF',
                  'TREFPOS', 'TREFDIR', 'TIMEUNIT', 'TIMEOFFS',
-                 'OBSGEO-X', 'OBSGEO-Y', 'OBSGEO-Z', 'DATE',
+                 'OBSGEO-X', 'OBSGEO-Y', 'OBSGEO-Z',
+                 'OBSGEO-L', 'OBSGEO-B', 'OBSGEO-H', 'DATE',
                  'DATE-OBS', 'DATE-AVG', 'DATE-BEG', 'DATE-END',
                  'MJD-OBS', 'MJD-AVG', 'MJD-BEG', 'MJD-END')
 
@@ -331,7 +332,7 @@ def _convert_time_column(col, column_info):
         # ISO-8601 is the only string representation of time in FITS
         if col.info.dtype.kind == 'S':
             return Time(col, format='fits', scale=column_info['scale'],
-                        precision=(col.info.dtype.itemsize - 20),
+                        precision=max(col.info.dtype.itemsize - 20, 0),
                         location=column_info['location'])
 
         if column_info['format'] == 'gps':
