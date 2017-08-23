@@ -90,14 +90,6 @@ class Distribution(Quantity):
         return self.distribution.shape[0]
 
     @property
-    def distr_shape(self):
-        """
-        The shape of the underlying quantity (i.e., the *non-samples* part of
-        this distribution). A tuple (possibly length-0 for scalars).
-        """
-        return self.distribution.shape[1:]
-
-    @property
     def pdf_mean(self):
         """
         The mean of this distribution.
@@ -157,7 +149,7 @@ class Distribution(Quantity):
 
         Returns
         -------
-        percs : Quantity of shape ``distr_shape``
+        percs : Quantity
             The ``fracs`` percentiles of this distribution.
         """
         perc = np.percentile(self.distribution, perc, axis=0)

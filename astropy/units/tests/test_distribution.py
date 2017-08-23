@@ -17,11 +17,14 @@ else:
     HAS_SCIPY = True
 
 
-
 def test_numpy_init():
     # Test that we can initialize directly from a Numpy array if we provide a unit
-    parr = np.random.poisson([1, 5, 30, 400], (1000, 4))
-    u.Distribution(parr, u.kpc)
+    rates = [1, 5, 30, 400]
+    parr = np.random.poisson(rates, (1000, 4))
+    u.Distribution(parr, unit=u.kpc)
+
+    # also try manually-specifying the center
+    u.Distribution(parr, rates, u.kpc)
 
 
 def test_quantity_init():
@@ -46,11 +49,13 @@ class TestDistributionStatistics():
 
     def test_shape(self):
         # u.Distribution shape
-        assert self.distr.shape == (10000, 4)
+        assert self.distr.shape == (4, )
+        assert self.distr.distribution.shape == (10000, 4)
 
     def test_size(self):
         # Total number of values
-        assert self.distr.size == 40000
+        assert self.distr.size == 4
+        assert self.distr.distribution.size == 40000
 
     def test_n_samples(self):
         # Number of samples
@@ -58,7 +63,7 @@ class TestDistributionStatistics():
 
     def test_n_distr(self):
         # Shape of the PDF (note, this is actually the number of values regardless of samples, needs a better name?)
-        assert self.distr.distr_shape == (4,)
+        assert self.distr.shape == (4,)
 
     def test_pdf_mean(self):
         # Mean of each PDF
@@ -143,7 +148,7 @@ class TestDistributionStatistics():
                         * [1000, .01, 80, 10]
                         + [2000, 0, 0, 500])
         # another_data is in pc, but main distr is in kpc
-        another_distr = u.Distribution(another_data, u.pc)
+        another_distr = u.Distribution(another_data, unit=u.pc)
         combined_distr = self.distr + another_distr
 
         expected = np.median(self.data + another_data/1000, axis=0) * self.distr.unit
@@ -158,22 +163,25 @@ def test_helper_normal_samples():
 
     with NumpyRNGContext(12345):
         n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
-        assert n_dist.shape == (100, 4)
+        assert n_dist.distribution.shape == (100, 4)
+        assert n_dist.shape == (4, )
         assert n_dist.unit == u.kpc
         assert np.all(n_dist.pdf_std > 100*u.pc)
 
         n_dist2 = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
-        assert n_dist2.shape == (20000, 4)
+        assert n_dist2.distribution.shape == (20000, 4)
+        assert n_dist2.shape == (4, )
         assert n_dist2.unit == u.kpc
         assert np.all(n_dist2.pdf_std < 100*u.pc)
 
 
 def test_helper_poisson_samples():
-    centerqadu = [1, 5, 30, 400] *u.adu
+    centerqadu = [1, 5, 30, 400] * u.adu
 
     with NumpyRNGContext(12345):
         p_dist = u.PoissonDistribution(centerqadu, n_samples=100)
-        assert p_dist.shape == (100, 4)
+        assert p_dist.shape == (4,)
+        assert p_dist.distribution.shape == (100, 4)
         assert p_dist.unit == u.adu
         assert np.all(np.min(p_dist) >= 0)
         assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
@@ -181,15 +189,17 @@ def test_helper_poisson_samples():
 
 def test_helper_uniform_samples():
     udist = u.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
-    assert udist.shape == (1000, 2)
-    assert np.all(np.min(udist, axis=0) > [1, 2]*u.kpc)
-    assert np.all(np.max(udist, axis=0) < [3, 4]*u.kpc)
+    assert udist.shape == (2, )
+    assert udist.distribution.shape == (1000, 2)
+    assert np.all(np.min(udist.distribution, axis=0) > [1, 2]*u.kpc)
+    assert np.all(np.max(udist.distribution, axis=0) < [3, 4]*u.kpc)
 
     # try the alternative creator
     udist = u.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
-    assert udist.shape == (1000, 3)
-    assert np.all(np.min(udist, axis=0) > [-1.5, 1, 0.5]*u.pc)
-    assert np.all(np.max(udist, axis=0) < [3.5, 5, 3.5]*u.pc)
+    assert udist.shape == (3, )
+    assert udist.distribution.shape == (1000, 3)
+    assert np.all(np.min(udist.distribution, axis=0) > [-1.5, 1, 0.5]*u.pc)
+    assert np.all(np.max(udist.distribution, axis=0) < [3.5, 5, 3.5]*u.pc)
 
 
 def test_helper_normal_exact():
