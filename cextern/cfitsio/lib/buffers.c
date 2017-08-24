@@ -67,8 +67,14 @@ int ffpbyt(fitsfile *fptr,   /* I - FITS file pointer                    */
     if (fptr->HDUposition != (fptr->Fptr)->curhdu)
         ffmahd(fptr, (fptr->HDUposition) + 1, NULL, status);
 
-    cptr = (char *)buffer;
+    if (nbytes > LONG_MAX) {
+        ffpmsg("Number of bytes to write is greater than LONG_MAX (ffpbyt).");
+        *status = WRITE_ERROR;
+	return(*status);
+    }
+    
     ntodo =  (long) nbytes;
+    cptr = (char *)buffer;
 
     if ((fptr->Fptr)->curbuf < 0)  /* no current data buffer for this file */
     {                              /* so reload the last one that was used */

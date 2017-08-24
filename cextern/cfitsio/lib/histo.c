@@ -601,6 +601,149 @@ int ffhist2(fitsfile **fptr,  /* IO - pointer to table with X and Y cols;    */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
+
+/* ffhist3: same as ffhist2, but does not close the original file */
+/*  and/or replace the original file pointer */
+fitsfile *ffhist3(fitsfile *fptr, /* I - ptr to table with X and Y cols*/
+           char *outfile,    /* I - name for the output histogram file      */
+           int imagetype,    /* I - datatype for image: TINT, TSHORT, etc   */
+           int naxis,        /* I - number of axes in the histogram image   */
+           char colname[4][FLEN_VALUE],   /* I - column names               */
+           double *minin,     /* I - minimum histogram value, for each axis */
+           double *maxin,     /* I - maximum histogram value, for each axis */
+           double *binsizein, /* I - bin size along each axis               */
+           char minname[4][FLEN_VALUE], /* I - optional keywords for min    */
+           char maxname[4][FLEN_VALUE], /* I - optional keywords for max    */
+           char binname[4][FLEN_VALUE], /* I - optional keywords for binsize */
+           double weightin,        /* I - binning weighting factor          */
+           char wtcol[FLEN_VALUE], /* I - optional keyword or col for weight*/
+           int recip,              /* I - use reciprocal of the weight?     */
+           char *selectrow,        /* I - optional array (length = no. of   */
+                             /* rows in the table).  If the element is true */
+                             /* then the corresponding row of the table will*/
+                             /* be included in the histogram, otherwise the */
+                             /* row will be skipped.  Ingnored if *selectrow*/
+                             /* is equal to NULL.                           */
+           int *status)
+{
+    fitsfile *histptr;
+    int   bitpix, colnum[4], wtcolnum;
+    long haxes[4];
+    float amin[4], amax[4], binsize[4],  weight;
+
+    if (*status > 0)
+        return(NULL);
+
+    if (naxis > 4)
+    {
+        ffpmsg("histogram has more than 4 dimensions");
+	*status = BAD_DIMEN;
+        return(NULL);
+    }
+
+    /* reset position to the correct HDU if necessary */
+    if ((fptr)->HDUposition != ((fptr)->Fptr)->curhdu)
+        ffmahd(fptr, ((fptr)->HDUposition) + 1, NULL, status);
+
+    if (imagetype == TBYTE)
+        bitpix = BYTE_IMG;
+    else if (imagetype == TSHORT)
+        bitpix = SHORT_IMG;
+    else if (imagetype == TINT)
+        bitpix = LONG_IMG;
+    else if (imagetype == TFLOAT)
+        bitpix = FLOAT_IMG;
+    else if (imagetype == TDOUBLE)
+        bitpix = DOUBLE_IMG;
+    else{
+        *status = BAD_DATATYPE;
+        return(NULL);
+    }
+    
+    /*    Calculate the binning parameters:    */
+    /*   columm numbers, axes length, min values,  max values, and binsizes.  */
+
+    if (fits_calc_binning(
+      fptr, naxis, colname, minin, maxin, binsizein, minname, maxname, binname,
+      colnum, haxes, amin, amax, binsize, status) > 0)
+    {
+       ffpmsg("failed to determine binning parameters");
+        return(NULL);
+    }
+ 
+    /* get the histogramming weighting factor, if any */
+    if (*wtcol)
+    {
+        /* first, look for a keyword with the weight value */
+        if (fits_read_key(fptr, TFLOAT, wtcol, &weight, NULL, status) )
+        {
+            /* not a keyword, so look for column with this name */
+            *status = 0;
+
+            /* get the column number in the table */
+            if (ffgcno(fptr, CASEINSEN, wtcol, &wtcolnum, status) > 0)
+            {
+               ffpmsg(
+               "keyword or column for histogram weights doesn't exist: ");
+               ffpmsg(wtcol);
+               return(NULL);
+            }
+
+            weight = FLOATNULLVALUE;
+        }
+    }
+    else
+        weight = (float) weightin;
+
+    if (weight <= 0. && weight != FLOATNULLVALUE)
+    {
+        ffpmsg("Illegal histogramming weighting factor <= 0.");
+	*status = URL_PARSE_ERROR;
+        return(NULL);
+    }
+
+    if (recip && weight != FLOATNULLVALUE)
+       /* take reciprocal of weight */
+       weight = (float) (1.0 / weight);
+
+    /* size of histogram is now known, so create temp output file */
+    if (fits_create_file(&histptr, outfile, status) > 0)
+    {
+        ffpmsg("failed to create temp output file for histogram");
+        return(NULL);
+    }
+
+    /* create output FITS image HDU */
+    if (ffcrim(histptr, bitpix, naxis, haxes, status) > 0)
+    {
+        ffpmsg("failed to create output histogram FITS image");
+        return(NULL);
+    }
+
+    /* copy header keywords, converting pixel list WCS keywords to image WCS */
+    if (fits_copy_pixlist2image(fptr, histptr, 9, naxis, colnum, status) > 0)
+    {
+        ffpmsg("failed to copy pixel list keywords to new histogram header");
+        return(NULL);
+    }
+
+    /* if the table columns have no WCS keywords, then write default keywords */
+    fits_write_keys_histo(fptr, histptr, naxis, colnum, status);
+    
+    /* update the WCS keywords for the ref. pixel location, and pixel size */
+    fits_rebin_wcs(histptr, naxis, amin, binsize,  status);      
+    
+    /* now compute the output image by binning the column values */
+    if (fits_make_hist(fptr, histptr, bitpix, naxis, haxes, colnum, amin, amax,
+        binsize, weight, wtcolnum, recip, selectrow, status) > 0)
+    {
+        ffpmsg("failed to calculate new histogram values");
+        return(NULL);
+    }
+              
+    return(histptr);
+}
+/*--------------------------------------------------------------------------*/
 int ffhist(fitsfile **fptr,  /* IO - pointer to table with X and Y cols;    */
                              /*     on output, points to histogram image    */
            char *outfile,    /* I - name for the output histogram file      */

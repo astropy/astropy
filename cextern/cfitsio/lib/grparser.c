@@ -205,48 +205,6 @@ int	ngp_delete_extver_tab(void)
    return(NGP_OK);
  }
 
-	/* compare strings, case does not matter */
-
-int	ngp_strcasecmp(char *p1, char *p2)
- { char c1, c2;
-
-   for (;;)
-    {
-      c1 = *p1;
-      if ((c1 >= 'a') && (c1 <= 'z')) c1 += ('A' - 'a');
-
-      c2 = *p2;
-      if ((c2 >= 'a') && (c2 <= 'z')) c2 += ('A' - 'a');
-
-      if (c1 < c2) return(-1);
-      if (c1 > c2) return(1);
-      if (0 == c1) return(0);
-      p1++;
-      p2++;
-    }
- }
-
-int	ngp_strcasencmp(char *p1, char *p2, int n)
- { char c1, c2;
-   int ii;
-
-   for (ii=0;ii<n;ii++)
-    {
-      c1 = *p1;
-      if ((c1 >= 'a') && (c1 <= 'z')) c1 += ('A' - 'a');
-
-      c2 = *p2;
-      if ((c2 >= 'a') && (c2 <= 'z')) c2 += ('A' - 'a');
-
-      if (c1 < c2) return(-1);
-      if (c1 > c2) return(1);
-      if (0 == c1) return(0);
-      p1++;
-      p2++;
-    }
-    return(0);
- }
-
 	/* read one line from file */
 
 int	ngp_line_from_file(FILE *fp, char **p)
@@ -431,7 +389,7 @@ int	ngp_extract_tokens(NGP_RAW_LINE *cl)
         from Richard Mathar, 2002-05-03, add 10 lines:
         if upper/lowercase HIERARCH followed also by an equal sign...
       */
-      if( strncasecmp("HIERARCH",p,strlen("HIERARCH")) == 0 )
+      if( fits_strncasecmp("HIERARCH",p,strlen("HIERARCH")) == 0 )
       {
            char * const eqsi=strchr(p,'=') ;
            if( eqsi )
@@ -453,9 +411,9 @@ int	ngp_extract_tokens(NGP_RAW_LINE *cl)
 
    if (*p) *(p++) = 0;				/* found end of keyname so terminate string with zero */
 
-   if ((!ngp_strcasecmp("HISTORY", cl->name))
-    || (!ngp_strcasecmp("COMMENT", cl->name))
-    || (!ngp_strcasecmp("CONTINUE", cl->name)))
+   if ((!fits_strcasecmp("HISTORY", cl->name))
+    || (!fits_strcasecmp("COMMENT", cl->name))
+    || (!fits_strcasecmp("CONTINUE", cl->name)))
      { cl->comment = p;
        for (s = cl->comment;; s++)		/* filter out any EOS characters in comment */
         { if ('\n' == *s) *s = 0;
@@ -465,7 +423,7 @@ int	ngp_extract_tokens(NGP_RAW_LINE *cl)
        return(NGP_OK);
      }
 
-   if (!ngp_strcasecmp("\\INCLUDE", cl->name))
+   if (!fits_strcasecmp("\\INCLUDE", cl->name))
      {
        for (;; p++)  if ((' ' != *p) && ('\t' != *p)) break; /* skip whitespace */
 
@@ -558,6 +516,7 @@ int	ngp_extract_tokens(NGP_RAW_LINE *cl)
 
 int	ngp_include_file(char *fname)		/* try to open include file */
  { char *p, *p2, *cp, *envar, envfiles[NGP_MAX_ENVFILES];
+   char *saveptr;
 
    if (NULL == fname) return(NGP_NUL_PTR);
 
@@ -572,7 +531,7 @@ int	ngp_include_file(char *fname)		/* try to open include file */
          { strncpy(envfiles, envar, NGP_MAX_ENVFILES - 1);
            envfiles[NGP_MAX_ENVFILES - 1] = 0;	/* copy search path to local variable, env. is fragile */
 
-           for (p2 = strtok(envfiles, ":"); NULL != p2; p2 = strtok(NULL, ":"))
+           for (p2 = ffstrtok(envfiles, ":",&saveptr); NULL != p2; p2 = ffstrtok(NULL, ":",&saveptr))
             {
 	      cp = (char *)ngp_alloc(strlen(fname) + strlen(p2) + 2);
 	      if (NULL == cp) return(NGP_NO_MEMORY);
@@ -696,9 +655,9 @@ int	ngp_read_line(int ignore_blank_lines)
               ngp_linkey.value.s = ngp_curline.value;
             }
           if (NGP_TTYPE_UNKNOWN == ngp_linkey.type) /* bool type test */
-            { if ((!ngp_strcasecmp("T", ngp_curline.value)) || (!ngp_strcasecmp("F", ngp_curline.value)))
+            { if ((!fits_strcasecmp("T", ngp_curline.value)) || (!fits_strcasecmp("F", ngp_curline.value)))
                 { ngp_linkey.type = NGP_TTYPE_BOOL;
-                  ngp_linkey.value.b = (ngp_strcasecmp("T", ngp_curline.value) ? 0 : 1);
+                  ngp_linkey.value.b = (fits_strcasecmp("T", ngp_curline.value) ? 0 : 1);
                 }
             }
           if (NGP_TTYPE_UNKNOWN == ngp_linkey.type) /* complex type test */
@@ -802,7 +761,7 @@ int	ngp_keyword_is_write(NGP_TOKEN *ngp_tok)
    for (i = l + 1; i < 8; i++)
     { if (spc) { if (' ' != ngp_tok->name[i]) return(NGP_OK); }
       else
-       { if ((ngp_tok->name[i] >= '0') || (ngp_tok->name[i] <= '9')) continue;
+       { if ((ngp_tok->name[i] >= '0') && (ngp_tok->name[i] <= '9')) continue;
          if (' ' == ngp_tok->name[i]) { spc = 1; continue; }
          if (0 == ngp_tok->name[i]) break;
          return(NGP_OK);
@@ -1060,9 +1019,9 @@ int	ngp_read_xtension(fitsfile *ff, int parent_hn, int simple_mode)
        for (i=0; i<ngph.tokcnt; i++)
         { if (!strcmp("XTENSION", ngph.tok[i].name))
             { if (NGP_TTYPE_STRING == ngph.tok[i].type)
-                { if (!ngp_strcasencmp("BINTABLE", ngph.tok[i].value.s,8)) ngph_node_type = NGP_NODE_BTABLE;
-                  if (!ngp_strcasencmp("TABLE", ngph.tok[i].value.s,5)) ngph_node_type = NGP_NODE_ATABLE;
-                  if (!ngp_strcasencmp("IMAGE", ngph.tok[i].value.s,5)) ngph_node_type = NGP_NODE_IMAGE;
+                { if (!fits_strncasecmp("BINTABLE", ngph.tok[i].value.s,8)) ngph_node_type = NGP_NODE_BTABLE;
+                  if (!fits_strncasecmp("TABLE", ngph.tok[i].value.s,5)) ngph_node_type = NGP_NODE_ATABLE;
+                  if (!fits_strncasecmp("IMAGE", ngph.tok[i].value.s,5)) ngph_node_type = NGP_NODE_IMAGE;
                 }
             }
           else if (!strcmp("SIMPLE", ngph.tok[i].name))

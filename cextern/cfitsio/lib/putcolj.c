@@ -396,7 +396,11 @@ int ffpclj( fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TLONG && LONGSIZE == 32)
     {
         writeraw = 1;
-        maxelem = nelem;  /* we can write the entire array at one time */
+        if (nelem < (LONGLONG)INT32_MAX) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/8;
+        }
     }
     else
         writeraw = 0;
@@ -565,7 +569,7 @@ int ffpcnj( fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode, overflow = 0;
  
@@ -1378,7 +1382,11 @@ int ffpcljj(fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TLONGLONG)
     {
         writeraw = 1;
-        maxelem = nelem;  /* we can write the entire array at one time */
+        if (nelem < (LONGLONG)INT32_MAX/8) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/8;
+        }
     }
     else
         writeraw = 0;
@@ -1547,7 +1555,7 @@ int ffpcnjj(fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode, overflow = 0;
 

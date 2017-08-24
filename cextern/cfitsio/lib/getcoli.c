@@ -732,7 +732,13 @@ int ffgcli( fitsfile *fptr,   /* I - FITS file pointer                       */
     convert = 1;
     if (tcode == TSHORT) /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = nelem;          /* data directly into output buffer.    */
+                                  /* data directly into output buffer.    */
+
+        if (nelem < (LONGLONG)INT32_MAX/2) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/2;
+        }
 
         if (nulcheck == 0 && scale == 1. && zero == 0.)
             convert = 0;  /* no need to scale data or find nulls */
@@ -1041,7 +1047,7 @@ int fffi2i2(short *input,         /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            memcpy(output, input, ntodo * sizeof(short) );
+            memmove(output, input, ntodo * sizeof(short) );
         }
         else             /* must scale the data */
         {

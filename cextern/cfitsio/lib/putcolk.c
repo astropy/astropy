@@ -410,7 +410,11 @@ int ffpclk( fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TLONG)
     {
         writeraw = 1;
-        maxelem = nelem;  /* we can write the entire array at one time */
+        if (nelem < (LONGLONG)INT32_MAX) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/4;
+        }
     }
     else
         writeraw = 0;
@@ -581,7 +585,7 @@ int ffpcnk( fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode, overflow = 0;
 

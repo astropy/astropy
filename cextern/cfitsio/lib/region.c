@@ -129,7 +129,7 @@ int fits_read_ascii_region( const char *filename,
 
          currLoc++;
          while( isspace(*currLoc) ) currLoc++;
-         if( !strncasecmp( currLoc, "format:", 7 ) ) {
+         if( !fits_strncasecmp( currLoc, "format:", 7 ) ) {
             if( aRgn->nShapes ) {
                ffpmsg("Format code encountered after reading 1 or more shapes.");
                *status = PARSE_SYNTAX_ERR;
@@ -137,13 +137,13 @@ int fits_read_ascii_region( const char *filename,
             }
             currLoc += 7;
             while( isspace(*currLoc) ) currLoc++;
-            if( !strncasecmp( currLoc, "pixel", 5 ) ) {
+            if( !fits_strncasecmp( currLoc, "pixel", 5 ) ) {
                cFmt = pixel_fmt;
-            } else if( !strncasecmp( currLoc, "degree", 6 ) ) {
+            } else if( !fits_strncasecmp( currLoc, "degree", 6 ) ) {
                cFmt = degree_fmt;
-            } else if( !strncasecmp( currLoc, "hhmmss", 6 ) ) {
+            } else if( !fits_strncasecmp( currLoc, "hhmmss", 6 ) ) {
                cFmt = hhmmss_fmt;
-            } else if( !strncasecmp( currLoc, "hms", 3 ) ) {
+            } else if( !fits_strncasecmp( currLoc, "hms", 3 ) ) {
                cFmt = hhmmss_fmt;
             } else {
                ffpmsg("Unknown format code encountered in region file.");
@@ -152,7 +152,7 @@ int fits_read_ascii_region( const char *filename,
             }
          }
 
-      } else if( !strncasecmp( currLoc, "glob", 4 ) ) {
+      } else if( !fits_strncasecmp( currLoc, "glob", 4 ) ) {
 		  /* skip lines that begin with the word 'global' */
 
       } else {
@@ -221,22 +221,22 @@ int fits_read_ascii_region( const char *filename,
 
             /*  Check for format code at beginning of the line */
 
-            if( !strncasecmp( namePtr, "image;", 6 ) ) {
+            if( !fits_strncasecmp( namePtr, "image;", 6 ) ) {
 				namePtr += 6;
 				cFmt = pixel_fmt;
-            } else if( !strncasecmp( namePtr, "physical;", 9 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "physical;", 9 ) ) {
                                 namePtr += 9;
                                 cFmt = pixel_fmt;
-            } else if( !strncasecmp( namePtr, "linear;", 7 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "linear;", 7 ) ) {
                                 namePtr += 7;
                                 cFmt = pixel_fmt;
-            } else if( !strncasecmp( namePtr, "fk4;", 4 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "fk4;", 4 ) ) {
 				namePtr += 4;
 				cFmt = degree_fmt;
-            } else if( !strncasecmp( namePtr, "fk5;", 4 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "fk5;", 4 ) ) {
 				namePtr += 4;
 				cFmt = degree_fmt;
-            } else if( !strncasecmp( namePtr, "icrs;", 5 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "icrs;", 5 ) ) {
 				namePtr += 5;
 				cFmt = degree_fmt;
 
@@ -247,29 +247,29 @@ int fits_read_ascii_region( const char *filename,
                the 'continue' statement to jump to the end of the loop and
                then continue reading the next line of the region file. */
 
-            } else if( !strncasecmp( namePtr, "fk5", 3 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "fk5", 3 ) ) {
 				cFmt = degree_fmt;
                                 continue;  /* supports POW region file format */
-            } else if( !strncasecmp( namePtr, "fk4", 3 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "fk4", 3 ) ) {
 				cFmt = degree_fmt;
                                 continue;  /* supports POW region file format */
-            } else if( !strncasecmp( namePtr, "icrs", 4 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "icrs", 4 ) ) {
 				cFmt = degree_fmt;
                                 continue;  /* supports POW region file format */
-            } else if( !strncasecmp( namePtr, "image", 5 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "image", 5 ) ) {
 				cFmt = pixel_fmt;
                                 continue;  /* supports POW region file format */
-            } else if( !strncasecmp( namePtr, "physical", 8 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "physical", 8 ) ) {
 				cFmt = pixel_fmt;
                                 continue;  /* supports POW region file format */
 
 
-            } else if( !strncasecmp( namePtr, "galactic;", 9 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "galactic;", 9 ) ) {
                ffpmsg( "Galactic region coordinates not supported" );
                ffpmsg( namePtr );
                *status = PARSE_SYNTAX_ERR;
                goto error;
-            } else if( !strncasecmp( namePtr, "ecliptic;", 9 ) ) {
+            } else if( !fits_strncasecmp( namePtr, "ecliptic;", 9 ) ) {
                ffpmsg( "ecliptic region coordinates not supported" );
                ffpmsg( namePtr );
                *status = PARSE_SYNTAX_ERR;
@@ -329,17 +329,17 @@ int fits_read_ascii_region( const char *filename,
 
             /*  Now identify the region  */
 
-            if(        !strcasecmp( namePtr, "circle"  ) ) {
+            if(        !fits_strcasecmp( namePtr, "circle"  ) ) {
                newShape->shape = circle_rgn;
                if( nParams != 3 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "annulus" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "annulus" ) ) {
                newShape->shape = annulus_rgn;
                if( nParams != 4 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "ellipse" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "ellipse" ) ) {
                if( nParams < 4 || nParams > 8 ) {
                   *status = PARSE_SYNTAX_ERR;
 	       } else if ( nParams < 6 ) {
@@ -351,15 +351,15 @@ int fits_read_ascii_region( const char *filename,
 		 newShape->param.gen.p[7] = 0.0;
 	       }
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "elliptannulus" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "elliptannulus" ) ) {
                newShape->shape = elliptannulus_rgn;
                if( !( nParams==8 || nParams==6 ) )
                   *status = PARSE_SYNTAX_ERR;
                newShape->param.gen.p[6] = 0.0;
                newShape->param.gen.p[7] = 0.0;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "box"    ) 
-                    || !strcasecmp( namePtr, "rotbox" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "box"    ) 
+                    || !fits_strcasecmp( namePtr, "rotbox" ) ) {
 	       if( nParams < 4 || nParams > 8 ) {
 		 *status = PARSE_SYNTAX_ERR;
 	       } else if ( nParams < 6 ) {
@@ -371,55 +371,55 @@ int fits_read_ascii_region( const char *filename,
 		  newShape->param.gen.p[7] = 0.0;
 	       }
 	       nCoords = 2;
-            } else if( !strcasecmp( namePtr, "rectangle"    )
-                    || !strcasecmp( namePtr, "rotrectangle" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "rectangle"    )
+                    || !fits_strcasecmp( namePtr, "rotrectangle" ) ) {
                newShape->shape = rectangle_rgn;
                if( nParams < 4 || nParams > 5 )
                   *status = PARSE_SYNTAX_ERR;
                newShape->param.gen.p[4] = 0.0;
                nCoords = 4;
-            } else if( !strcasecmp( namePtr, "diamond"    )
-                    || !strcasecmp( namePtr, "rotdiamond" )
-                    || !strcasecmp( namePtr, "rhombus"    )
-                    || !strcasecmp( namePtr, "rotrhombus" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "diamond"    )
+                    || !fits_strcasecmp( namePtr, "rotdiamond" )
+                    || !fits_strcasecmp( namePtr, "rhombus"    )
+                    || !fits_strcasecmp( namePtr, "rotrhombus" ) ) {
                newShape->shape = diamond_rgn;
                if( nParams < 4 || nParams > 5 )
                   *status = PARSE_SYNTAX_ERR;
                newShape->param.gen.p[4] = 0.0;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "sector"  )
-                    || !strcasecmp( namePtr, "pie"     ) ) {
+            } else if( !fits_strcasecmp( namePtr, "sector"  )
+                    || !fits_strcasecmp( namePtr, "pie"     ) ) {
                newShape->shape = sector_rgn;
                if( nParams != 4 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "point"   ) ) {
+            } else if( !fits_strcasecmp( namePtr, "point"   ) ) {
                newShape->shape = point_rgn;
                if( nParams != 2 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "line"    ) ) {
+            } else if( !fits_strcasecmp( namePtr, "line"    ) ) {
                newShape->shape = line_rgn;
                if( nParams != 4 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 4;
-            } else if( !strcasecmp( namePtr, "polygon" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "polygon" ) ) {
                newShape->shape = poly_rgn;
                if( nParams < 6 || (nParams&1) )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = nParams;
-            } else if( !strcasecmp( namePtr, "panda" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "panda" ) ) {
                newShape->shape = panda_rgn;
                if( nParams != 8 )
                   *status = PARSE_SYNTAX_ERR;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "epanda" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "epanda" ) ) {
                newShape->shape = epanda_rgn;
                if( nParams < 10 || nParams > 11 )
                   *status = PARSE_SYNTAX_ERR;
                newShape->param.gen.p[10] = 0.0;
                nCoords = 2;
-            } else if( !strcasecmp( namePtr, "bpanda" ) ) {
+            } else if( !fits_strcasecmp( namePtr, "bpanda" ) ) {
                newShape->shape = bpanda_rgn;
                if( nParams < 10 || nParams > 11 )
                   *status = PARSE_SYNTAX_ERR;
@@ -606,6 +606,8 @@ int fits_read_ascii_region( const char *filename,
 		coords[2] += (wcs->rot);
 		coords[3] += (wcs->rot);
 		coords[10] += (wcs->rot);
+              default:
+                break;
 	      }
 	    }
 
@@ -1232,6 +1234,8 @@ void fits_setup_shape ( RgnShape *newShape)
     newShape->param.gen.sinT = sin( myPI * (coords[10] / 180.0) );
     newShape->param.gen.cosT = cos( myPI * (coords[10] / 180.0) );
     break;
+  default:
+    break;
   }
 
   /*  Set the xmin, xmax, ymin, ymax elements of the RgnShape structure */
@@ -1307,6 +1311,8 @@ void fits_setup_shape ( RgnShape *newShape)
 	     coords[7]*coords[8])/2.0;
     break;
 
+  default:
+    break;
   }
 
   if ( R > 0.0 ) {
@@ -1379,6 +1385,8 @@ void fits_setup_shape ( RgnShape *newShape)
     newShape->ymax = -1.0;
     break;
 
+  default:
+    break;
   }
 
   return;
@@ -1400,7 +1408,7 @@ int fits_read_fits_region ( fitsfile *fptr,
   int i, j, icol[6], idum, anynul, npos;
   int dotransform, got_component = 1, tstatus;
   long icsize[6];
-  double X, Y, Theta, Xsave, Ysave, Xpos, Ypos;
+  double X, Y, Theta, Xsave = 0, Ysave = 0, Xpos, Ypos;
   double *coords;
   char *cvalue, *cvalue2;
   char comment[FLEN_COMMENT];
@@ -1417,7 +1425,7 @@ int fits_read_fits_region ( fitsfile *fptr,
 		       diamond_rgn};
   SAORegion *aRgn;
   RgnShape *newShape;
-  WCSdata *regwcs;
+  WCSdata *regwcs = 0;
 
   if ( *status ) return( *status );
 
@@ -1653,6 +1661,8 @@ int fits_read_fits_region ( fitsfile *fptr,
     case elliptannulus_rgn:
       npos = 4;
       break;
+    default:
+      break;
     }
 
     if ( npos > 0 ) {
@@ -1700,6 +1710,8 @@ int fits_read_fits_region ( fitsfile *fptr,
     case sector_rgn:
       npos = 2;
       break;
+    default:
+     break;
     }
 
     if ( npos > 0 ) {

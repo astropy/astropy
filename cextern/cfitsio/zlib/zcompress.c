@@ -2,10 +2,11 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "zlib.h"  
 
-unsigned int GZBUFSIZE = 115200;  /* 40 FITS blocks */
-int BUFFINCR = 28800;  /* 10 FITS blocks */
+#define GZBUFSIZE 115200    /* 40 FITS blocks */
+#define BUFFINCR   28800    /* 10 FITS blocks */
 
 /* prototype for the following functions */
 int uncompress2mem(char *filename, 
@@ -66,6 +67,16 @@ int uncompress2mem(char *filename,  /* name of input file                 */
     int err, len;
     char *filebuff;
     z_stream d_stream;   /* decompression stream */
+    /* Input args buffptr and buffsize may refer to a block of memory
+        larger than the 2^32 4 byte limit.  If so, must be broken
+        up into "pages" when assigned to d_stream.  
+        (d_stream.avail_out is a uInt type, which might be smaller
+        than buffsize's size_t type.)
+    */
+    const uLong nPages = (uLong)(*buffsize)/(uLong)UINT_MAX;
+    uLong iPage=0;
+    uInt outbuffsize = (nPages > 0) ? UINT_MAX : (uInt)(*buffsize);
+    
 
     if (*status > 0) 
         return(*status); 
@@ -78,7 +89,7 @@ int uncompress2mem(char *filename,  /* name of input file                 */
     d_stream.zfree = (free_func)0;
     d_stream.opaque = (voidpf)0;
     d_stream.next_out = (unsigned char*) *buffptr;
-    d_stream.avail_out = *buffsize;
+    d_stream.avail_out = outbuffsize;
 
     /* Initialize the decompression.  The argument (15+16) tells the
        decompressor that we are to use the gzip algorithm */
@@ -112,7 +123,18 @@ int uncompress2mem(char *filename,  /* name of input file                 */
                 if (!d_stream.avail_in) break; /* need more input */
 		
                 /* need more space in output buffer */
-                if (mem_realloc) {   
+                /* First check if more memory is available above the
+                    4Gb limit in the originally input buffptr array */
+                if (iPage < nPages)
+                {
+                   ++iPage;
+                   d_stream.next_out = (unsigned char*)(*buffptr + iPage*(uLong)UINT_MAX);
+                   if (iPage < nPages)
+                      d_stream.avail_out = UINT_MAX;
+                   else
+                      d_stream.avail_out = (uInt)((uLong)(*buffsize) % (uLong)UINT_MAX);
+                }
+                else if (mem_realloc) {   
                     *buffptr = mem_realloc(*buffptr,*buffsize + BUFFINCR);
                     if (*buffptr == NULL){
                         inflateEnd(&d_stream);
@@ -136,10 +158,15 @@ int uncompress2mem(char *filename,  /* name of input file                 */
         }
 	
 	if (feof(diskfile))  break;
-
+/*     
+        These settings for next_out and avail_out appear to be redundant,
+        as the inflate() function should already be re-setting these.
+        For case where *buffsize < 4Gb this did not matter, but for
+        > 4Gb it would produce the wrong value in the avail_out assignment.
+        (C. Gordon Jul 2016)
         d_stream.next_out = (unsigned char*) (*buffptr + d_stream.total_out);
         d_stream.avail_out = *buffsize - d_stream.total_out;
-    }
+*/    }
 
     /* Set the output file size to be the total output data */
     *filesize = d_stream.total_out;

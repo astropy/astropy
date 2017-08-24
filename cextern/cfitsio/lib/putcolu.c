@@ -99,7 +99,7 @@ int ffpclu( fitsfile *fptr,  /* I - FITS file pointer                       */
     short i2null;
     INT32BIT i4null;
     long twidth, incre;
-    long ii;
+    LONGLONG ii;
     LONGLONG largeelem, nelem, tnull, i8null;
     LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, ntodo;
     double scale, zero;
@@ -350,7 +350,7 @@ int ffpcluc( fitsfile *fptr,  /* I - FITS file pointer                       */
     short i2null;
     INT32BIT i4null;
     long twidth, incre;
-    long ii;
+    LONGLONG ii;
     LONGLONG tnull, i8null;
     LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, ntodo;
     double scale, zero;

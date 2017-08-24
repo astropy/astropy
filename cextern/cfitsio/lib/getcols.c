@@ -75,6 +75,7 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
 */
 {
     int tcode, hdutype, tstatus, scaled, intcol, dwidth, nulwidth, ll, dlen;
+    int equivtype;
     long ii, jj;
     tcolumn *colptr;
     char message[FLEN_ERRMSG], *carray, keyname[FLEN_KEYWORD];
@@ -104,6 +105,10 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
         return(*status = BAD_COL_NUM);
     }
 
+    /* get equivalent dataype of column (only needed for TLONGLONG columns) */
+    ffeqtyll(fptr, colnum, &equivtype, NULL, NULL, status);
+    if (equivtype < 0) equivtype = abs(equivtype);
+    
     colptr  = (fptr->Fptr)->tableptr;   /* point to first column */
     colptr += (colnum - 1);     /* offset to correct column structure */
     tcode = abs(colptr->tdatatype);
@@ -274,7 +279,7 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
 
       free(darray);  /* free the memory */
     }
-    else if (tcode == TLONGLONG)
+    else if (tcode == TLONGLONG && equivtype == TLONGLONG)
     {
       /* allocate memory for the array of LONGLONG values */
       llarray = (LONGLONG *) calloc((size_t) nelem, sizeof(LONGLONG) );
@@ -390,6 +395,11 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
                   /* scaled long integer column == double */
                   strcpy(cform, "%#23.15G");
             }
+            else if (scaled && tcode == TLONGLONG)
+            {
+                  /* scaled long long integer column == double */
+                  strcpy(cform, "%#23.15G");
+            }
             else
             {
                ffghdt(fptr, &hdutype, status);
@@ -455,11 +465,12 @@ int ffgcls( fitsfile *fptr,   /* I - FITS file pointer                       */
            }
            else
            {	   
-              if (intcol)
+              if (intcol) {
                 sprintf(tmpstr, cform, (int) darray[ii]);
-              else
+              } else {
                 sprintf(tmpstr, cform, darray[ii]);
-
+              }
+	      
               /* fill field with '*' if number is too wide */
               dlen = strlen(tmpstr);
 	      if (dlen > dwidth) {
@@ -567,6 +578,12 @@ int ffgcdw( fitsfile *fptr,   /* I - FITS file pointer                       */
             /* scaled long integer col == double; default format is 23.15G */
             *width = 23;
         }
+        else if (scaled && tcode == TLONGLONG)
+        {
+            /* scaled long long integer col == double; default format is 23.15G */
+            *width = 23;
+        }
+
         else
         {
            ffghdt(fptr, &hdutype, status);  /* get type of table */

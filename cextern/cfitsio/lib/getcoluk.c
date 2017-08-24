@@ -734,7 +734,13 @@ int ffgcluk( fitsfile *fptr,  /* I - FITS file pointer                       */
     /*----------------------------------------------------------------------*/
     if (tcode == TLONG)  /* Special Case: */
     {                             /* data are 4-bytes long, so read       */
-        maxelem = nelem;          /* data directly into output buffer.    */
+                                  /* data directly into output buffer.    */
+
+        if (nelem < (LONGLONG)INT32_MAX/4) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/4;
+        }
     }
 
     /*---------------------------------------------------------------------*/

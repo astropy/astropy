@@ -396,7 +396,11 @@ int ffpcli( fitsfile *fptr,  /* I - FITS file pointer                       */
        MACHINE == NATIVE && tcode == TSHORT)
     {
         writeraw = 1;
-        maxelem = nelem;  /* we can write the entire array at one time */
+        if (nelem < (LONGLONG)INT32_MAX) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/2;
+        }
     }
     else
         writeraw = 0;
@@ -566,7 +570,7 @@ int ffpcni( fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode, overflow = 0;
 
@@ -949,11 +953,9 @@ int ffi2fstr(short *input,     /* I - array of values to be converted  */
 {
     long ii;
     double dvalue;
-    char *cptr, *tptr;
+    char *cptr;
     
     cptr = output;
-    tptr = output;
-
 
     if (scale == 1. && zero == 0.)
     {       

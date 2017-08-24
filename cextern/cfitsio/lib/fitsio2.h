@@ -26,10 +26,12 @@ extern int Fitsio_Pthread_Status;
 #define FFUNLOCK1(lockname) (Fitsio_Pthread_Status = pthread_mutex_unlock(&lockname))
 #define FFLOCK   FFLOCK1(Fitsio_Lock)
 #define FFUNLOCK FFUNLOCK1(Fitsio_Lock)
+#define ffstrtok(str, tok, save) strtok_r(str, tok, save)
 
 #else
 #define FFLOCK
 #define FFUNLOCK
+#define ffstrtok(str, tok, save) strtok(str, tok)
 #endif
 
 /*
@@ -48,8 +50,10 @@ extern int Fitsio_Pthread_Status;
 
 #define DBUFFSIZE 28800 /* size of data buffer in bytes */
 
-#define NMAXFILES  300   /* maximum number of FITS files that can be opened */
+#define NMAXFILES  1000   /* maximum number of FITS files that can be opened */
         /* CFITSIO will allocate (NMAXFILES * 80) bytes of memory */
+	/* plus each file that is opened will use NIOBUF * 2880 bytes of memeory */
+	/* where NIOBUF is defined in fitio.h and has a default value of 40 */
 
 #define MINDIRECT 8640   /* minimum size for direct reads and writes */
                          /* MINDIRECT must have a value >= 8640 */
@@ -94,7 +98,7 @@ extern int Fitsio_Pthread_Status;
 #define BYTESWAPPED FALSE
 #define LONGSIZE 32
 
-#elif defined(__ia64__)  || defined(__x86_64__)
+#elif defined(__ia64__)  || defined(__x86_64__) || defined(__AARCH64EL__)
                   /*  Intel itanium 64-bit PC, or AMD opteron 64-bit PC */
 #define BYTESWAPPED TRUE
 #define LONGSIZE 64   
@@ -105,11 +109,16 @@ extern int Fitsio_Pthread_Status;
 #define MACHINE NATIVE
 #define LONGSIZE 64
 
-#elif defined(__powerpc64__) || defined(__64BIT__) /* IBM 64-bit AIX powerpc*/
+#elif defined(__powerpc64__) || defined(__64BIT__) || defined(__AARCH64EB__)  /* IBM 64-bit AIX powerpc*/
                               /* could also test for __ppc64__ or __PPC64 */
-#define BYTESWAPPED FALSE
-#define MACHINE NATIVE
-#define LONGSIZE 64   
+
+#  if defined(__LITTLE_ENDIAN__)
+#   define BYTESWAPPED TRUE
+#  else
+#   define BYTESWAPPED FALSE
+#   define MACHINE NATIVE
+#  endif
+#  define LONGSIZE 64
 
 #elif defined(_MIPS_SZLONG)
 
@@ -342,7 +351,7 @@ int ffc2r(const char *cval, float *fval, int *status);
 int ffc2d(const char *cval, double *dval, int *status);
 int ffc2l(const char *cval, int *lval, int *status);
 void ffxmsg(int action, char *err_message);
-int ffgcnt(fitsfile *fptr, char *value, int *status);
+int ffgcnt(fitsfile *fptr, char *value, char *comm, int *status);
 int ffgtkn(fitsfile *fptr, int numkey, char *keyname, long *value, int *status);
 int ffgtknjj(fitsfile *fptr, int numkey, char *keyname, LONGLONG *value, int *status);
 int fftkyn(fitsfile *fptr, int numkey, char *keyname, char *value, int *status);
@@ -384,7 +393,6 @@ int ffwritehisto(long totaln, long offset, long firstn, long nvalues,
              int narrays, iteratorCol *imagepars, void *userPointer);
 int ffcalchist(long totalrows, long offset, long firstrow, long nrows,
              int ncols, iteratorCol *colpars, void *userPointer);
-int ffrhdu(fitsfile *fptr, int *hdutype, int *status);
 int ffpinit(fitsfile *fptr, int *status);
 int ffainit(fitsfile *fptr, int *status);
 int ffbinit(fitsfile *fptr, int *status);
@@ -1049,7 +1057,7 @@ int fits_register_driver( char *prefix,
 	int (*fitstruncate)(int driverhandle, LONGLONG filesize),
 	int (*fitsclose)(int driverhandle),
 	int (*fremove)(char *filename),
-        int (*size)(int driverhandle, LONGLONG *size),
+        int (*size)(int driverhandle, LONGLONG *sizex),
 	int (*flush)(int driverhandle),
 	int (*seek)(int driverhandle, LONGLONG offset),
 	int (*fitsread) (int driverhandle, void *buffer, long nbytes),
@@ -1199,11 +1207,10 @@ int compress2file_from_mem(
 #include "drvrsmem.h"
 #endif
 
-#if defined(vms) || defined(__vms) || defined(WIN32) || defined(__WIN32__) || (defined(macintosh) && !defined(TARGET_API_MAC_CARBON))
 /* A hack for nonunix machines, which lack strcasecmp and strncasecmp */
-int strcasecmp (const char *s1, const char *s2       );
-int strncasecmp(const char *s1, const char *s2, size_t n);
-#endif
+/* these functions are in fitscore.c */
+int fits_strcasecmp (const char *s1, const char *s2       );
+int fits_strncasecmp(const char *s1, const char *s2, size_t n);
 
 /* end of the entire "ifndef _FITSIO2_H" block */
 #endif

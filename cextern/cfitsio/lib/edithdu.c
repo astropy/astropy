@@ -26,7 +26,7 @@ int ffcopy(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     if (infptr == outfptr)
         return(*status = SAME_FILE);
 
-    if (ffcphd(infptr, outfptr, status) )  /* copy the header keywords */
+    if (ffcphd(infptr, outfptr, status) > 0)  /* copy the header keywords */
        return(*status);
 
     if (morekeys > 0) {
@@ -606,7 +606,7 @@ int ffitab(fitsfile *fptr,  /* I - FITS file pointer                        */
             nunit++;
     }
 
-    if (extnm && *extnm)
+    if (*extnm)
          nunit++;     /* add one for the EXTNAME keyword */
 
     rowlen = (long) naxis1;
@@ -741,7 +741,7 @@ int ffibin(fitsfile *fptr,  /* I - FITS file pointer                        */
             nunit++;
     }
 
-    if (extnm && *extnm)
+    if (*extnm)
          nunit++;     /* add one for the EXTNAME keyword */
 
     nhead = (9 + (2 * tfields) + nunit + 35) / 36;  /* no. of header blocks */

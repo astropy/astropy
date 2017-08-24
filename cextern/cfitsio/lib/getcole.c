@@ -145,8 +145,8 @@ int ffg3de(fitsfile *fptr,  /* I - FITS file pointer                       */
   nulval = 0 in which case no null checking will be performed.
 */
 {
-    long tablerow, ii, jj;
-    LONGLONG narray, nfits;
+    long tablerow;
+    LONGLONG narray, nfits, ii, jj;
     char cdummy;
     int nullcheck = 1;
     long inc[] = {1,1,1};
@@ -681,7 +681,7 @@ int ffgcfc(fitsfile *fptr,   /* I - FITS file pointer                       */
   TSCAL and ZERO should not be used with complex values. 
 */
 {
-    long ii, jj;
+    LONGLONG ii, jj;
     float dummy = 0;
     char *carray;
 
@@ -809,7 +809,13 @@ int ffgcle( fitsfile *fptr,   /* I - FITS file pointer                       */
     convert = 1;
     if (tcode == TFLOAT) /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = nelem;          /* data directly into output buffer.    */
+                                  /* data directly into output buffer.    */
+
+        if (nelem < (LONGLONG)INT32_MAX/4) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/4;
+        }
 
         if (nulcheck == 0 && scale == 1. && zero == 0.)
             convert = 0;  /* no need to scale data or find nulls */
@@ -1343,7 +1349,7 @@ int fffr4r4(float *input,         /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            memcpy(output, input, ntodo * sizeof(float) );
+            memmove(output, input, ntodo * sizeof(float) );
         }
         else             /* must scale the data */
         {
