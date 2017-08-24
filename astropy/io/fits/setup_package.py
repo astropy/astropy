@@ -32,15 +32,16 @@ def _get_compression_extension():
             ])
 
             if not get_distutils_build_option('debug'):
-                # All of these switches are to silence warnings from compiling
-                # CFITSIO
+                # these switches are to silence warnings from compiling CFITSIO
+                # For full silencing, some are added that only are used in
+                # later versions of gcc (versions approximate; see #6474)
                 cfg['extra_compile_args'].extend([
-                    '-Wno-unused-variable', '-Wno-parentheses',
-                    '-Wno-uninitialized', '-Wno-format-overflow',
-                    '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
-                    '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
-                    '-Wno-address', '-Wno-unused-result',
-                    '-Wno-misleading-indentation'
+                    '-Wno-strict-prototypes',
+                    '-Wno-unused',
+                    '-Wno-uninitialized',
+                    '-Wno-unused-result',  # gcc >~4.8
+                    '-Wno-misleading-indentation',  # gcc >~7.2
+                    '-Wno-format-overflow',  # gcc >~7.2
                 ])
 
         cfitsio_lib_path = os.path.join('cextern', 'cfitsio', 'lib')
