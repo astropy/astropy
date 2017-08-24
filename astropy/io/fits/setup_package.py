@@ -43,10 +43,14 @@ def _get_compression_extension():
                     '-Wno-misleading-indentation'
                 ])
 
-        cfitsio_path = os.path.join('cextern', 'cfitsio')
-        cfitsio_files = glob(os.path.join(cfitsio_path, '*.c'))
-        cfg['include_dirs'].append(cfitsio_path)
+        cfitsio_lib_path = os.path.join('cextern', 'cfitsio', 'lib')
+        cfitsio_zlib_path = os.path.join('cextern', 'cfitsio', 'zlib')
+        cfitsio_files = glob(os.path.join(cfitsio_lib_path, '*.c'))
+        cfitsio_zlib_files = glob(os.path.join(cfitsio_zlib_path, '*.c'))
+        cfg['include_dirs'].append(cfitsio_lib_path)
+        cfg['include_dirs'].append(cfitsio_zlib_path)
         cfg['sources'].extend(cfitsio_files)
+        cfg['sources'].extend(cfitsio_zlib_files)
     else:
         cfg.update(setup_helpers.pkg_config(['cfitsio'], ['cfitsio']))
 
