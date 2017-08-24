@@ -773,7 +773,13 @@ int ffgclb( fitsfile *fptr,   /* I - FITS file pointer                       */
     convert = 1;
     if (tcode == TBYTE) /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = nelem;          /* data directly into output buffer.    */
+                                  /* data directly into output buffer.    */
+
+        if (nelem < (LONGLONG)INT32_MAX) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX;
+        }
 
         if (nulcheck == 0 && scale == 1. && zero == 0.)
             convert = 0;  /* no need to scale data or find nulls */
@@ -1002,7 +1008,7 @@ int fffi1i1(unsigned char *input, /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {              /* this routine is normally not called in this case */
-           memcpy(output, input, ntodo );
+           memmove(output, input, ntodo );
         }
         else             /* must scale the data */
         {                

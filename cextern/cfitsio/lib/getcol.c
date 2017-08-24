@@ -956,13 +956,11 @@ int ffgcf(  fitsfile *fptr,   /* I - FITS file pointer                       */
   ANYNUL is returned with a value of true if any pixels are undefined.
 */
 {
-    void *nulval;         /* dummy argument */
-    double dnulval = 0.;
+    double nulval = 0.;
+    char cnulval[2];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
-
-    nulval = &dnulval;  /* set to a harmless value; this is never used */
 
     if (datatype == TBIT)
     {
@@ -970,60 +968,60 @@ int ffgcf(  fitsfile *fptr,   /* I - FITS file pointer                       */
     }
     else if (datatype == TBYTE)
     {
-       ffgclb(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(unsigned char *)
+       ffgclb(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (unsigned char )
               nulval, (unsigned char *) array, nullarray, anynul, status);
     }
     else if (datatype == TSBYTE)
     {
-       ffgclsb(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(signed char *)
+       ffgclsb(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (signed char )
               nulval, (signed char *) array, nullarray, anynul, status);
     }
     else if (datatype == TUSHORT)
     {
         ffgclui(fptr, colnum, firstrow, firstelem, nelem, 1, 2,
-               *(unsigned short *) nulval,
+               (unsigned short ) nulval,
                (unsigned short *) array, nullarray, anynul, status);
     }
     else if (datatype == TSHORT)
     {
-        ffgcli(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(short *)
+        ffgcli(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (short )
               nulval, (short *) array, nullarray, anynul, status);
     }
     else if (datatype == TUINT)
     {
         ffgcluk(fptr, colnum, firstrow, firstelem, nelem, 1, 2,
-         *(unsigned int *) nulval, (unsigned int *) array, nullarray, anynul,
+         (unsigned int ) nulval, (unsigned int *) array, nullarray, anynul,
          status);
     }
     else if (datatype == TINT)
     {
-        ffgclk(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(int *)
+        ffgclk(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (int )
             nulval, (int *) array, nullarray, anynul, status);
     }
     else if (datatype == TULONG)
     {
         ffgcluj(fptr, colnum, firstrow, firstelem, nelem, 1, 2,
-               *(unsigned long *) nulval, 
+               (unsigned long ) nulval, 
                (unsigned long *) array, nullarray, anynul, status);
     }
     else if (datatype == TLONG)
     {
-        ffgclj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(long *)
+        ffgclj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (long )
               nulval, (long *) array, nullarray, anynul, status);
     }
     else if (datatype == TLONGLONG)
     {
-        ffgcljj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(LONGLONG *)
+        ffgcljj(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (LONGLONG )
               nulval, (LONGLONG *) array, nullarray, anynul, status);
     }
     else if (datatype == TFLOAT)
     {
-      ffgcle(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(float *)
+      ffgcle(fptr, colnum, firstrow, firstelem, nelem, 1, 2, (float )
                nulval,(float *) array, nullarray, anynul, status);
     }
     else if (datatype == TDOUBLE)
     {
-        ffgcld(fptr, colnum, firstrow, firstelem, nelem, 1, 2, *(double *)
+        ffgcld(fptr, colnum, firstrow, firstelem, nelem, 1, 2, 
               nulval, (double *) array, nullarray, anynul, status);
     }
     else if (datatype == TCOMPLEX)
@@ -1039,13 +1037,13 @@ int ffgcf(  fitsfile *fptr,   /* I - FITS file pointer                       */
 
     else if (datatype == TLOGICAL)
     {
-        ffgcll(fptr, colnum, firstrow, firstelem, nelem, 2, *(char *) nulval,
+        ffgcll(fptr, colnum, firstrow, firstelem, nelem, 2, (char ) nulval,
           (char *) array, nullarray, anynul, status);
     }
     else if (datatype == TSTRING)
     {
-        ffgcls(fptr, colnum, firstrow, firstelem, nelem, 2, (char *)
-             nulval, (char **) array, nullarray, anynul, status);
+        ffgcls(fptr, colnum, firstrow, firstelem, nelem, 2, 
+             cnulval, (char **) array, nullarray, anynul, status);
     }
     else
       *status = BAD_DATATYPE;

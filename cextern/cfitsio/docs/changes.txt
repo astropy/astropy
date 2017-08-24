@@ -1,9 +1,377 @@
                    Log of Changes Made to CFITSIO
 
+Version 3.41 - November 2016
+
+   - The change made in version 3.40 to include strings.h caused problems on
+     Windows (and other) platforms, so this change was backed out. The reason
+     for including it was to define the strcasecmp and strcasencmp functions, so
+     as an alternative, new equivalent functions called fits_strcasecmp and
+     fits_strncasecmp have been added to CFITSIO.as a substitute. All the
+     previous calls to the str[n]casecmp functions have been changed to
+     now call fits_str[n]casecmp. In addition, the previously defined 
+     ngp_strcasecmp function (in grparser.c) has been removed and the calls to
+     it have been changed to fits_strcasecmp.
+     
+   - The speed.c utility program was changed to correctly call 
+     the gettimeofday function with a NULL second arguement. 
+
+Version 3.40 - October 2016
+
+   - fixed a bug when writing long string keywords with the CONTINUE convention
+     which caused the CONTINUE'd strings to only be 16 characters long, instead
+     of using up all the available space in the 80-character header record.
+
+   - fixed a missing 'defined' keyword in fitsio.h.
+
+   - replaced all calls to strtok (which is not threadsafe) with a new ffstrtok
+     function which internally calls the threadsafe strtok_r function.  One 
+     byproduct of this change is that <strings.h> must also be included
+     in several of the C source code files.
+
+   - modified the ffphbn function in putkey.c to support TFORM specifiers that
+     use lowercase 'p' (instead of uppercase) when referring to a variable-length
+     array column.
+
+   - modified the lexical parser in eval.y and eval_y.c to support bit array 
+     columns (with TFORMn = 'X') with greater than 256 elements. Fix to bitcmp 
+     function:  The internal 'stream' array is now
+     allocated dynamically rather than statically fixed at size 256.
+     This was failing when users attempted a row filtering of a bitcol
+     that was wider than 256X. In bitlgte, bitand, and bitor functions, replaced 
+     static stream[256] array allocation with dynamic allocation.  
+
+   - modified the ffiter function in putcol.c to fix a problem which could
+     cause the iterator function to incorrectly deal with null values.  This
+     only affected TLONG type columns in cases where sizeof(long) = 8, as well
+     as for TLONGLONG type columns.
+
+   - Fix made to uncompress2mem function in zcomprss.c for case where output
+     uncompressed file expands to over the 2^32 (4Gb) limit.  It now
+     checks for this case at the start, and implements a 4Gb paging
+     system through the output buffer.  The problem was specifically
+     caused by the d_stream.avail_out member being of 4-byte type uInt,
+     and thus unable to handle any memory position values above 4Gb. 
+
+   - fixed a bug in fpackutil.c when using the -i2f (integer to float) option
+     in fpack to compress an integer image that is scaled with non-default values
+     for BSCALE and BZERO. This required an additional call to ffrhdu to reset
+     the internal structures that describe the input FITS file.
+
+   - modified fits_uncompress_table in imcompress.c to silently ignore the
+     ZTILELEN keyword value if it larger than the number of rows in the table
+     
+   - Tweak strcasecmp/strncasecmp ifdefs to exclude 64-bit MINGW
+     environment, as it does not lack those functions. (eval_l.c,
+     fitsio2.h)
+
+   - CMakeLists.txt: Set M_LIB to "" for MINGW build environment (in
+     addition to MSVC).
+
+   - Makefile.in: Add *.dSYM (non-XCode gcc leftovers on Macs) to
+     clean list.  Install libs by name rather than using a wildcard.
+
+   - configure: Fix rpath token usage for XCode vs. non-XCode gcc on Macs.
+
+
+Version 3.39 - April 2016
+
+   - added 2 new routines suggested by Eric Mandel:
+      ffhisto3 is similar to ffhisto2, except that it does not close the
+         original file.
+      fits_open_extlist is similar to fits_open_data except that it opens
+         the FITS file and then moves to the first extension in the user-input
+	 list of 'interesting' extensions.
+
+   - in ffpsvc and ffprec, it is necessary to treat CONTINUE, COMMENT, HISTORY,
+     and blank name keywords as a special case which must be treated differently
+     from other keywords because they have no value field and, by definition,
+     have keyword names that are strictly limited in length.
+     
+   - added the Fortran wrapper routines for the 2 new string keyword reading
+     routines (FTGSKY and FTGKSL), and documented all the routines in the
+     FITSIO and CFITSIO users guides.
+
+   - in ffinttyp, added explicit initialization of the input 'negative' 
+     argument to 0.
+
+   - added new routine to return the length of the keyword value string:
+         fits_get_key_strlen / ffgksl.  
+     This is primarily intended for use with string keywords
+     that use the CONTINUE convention to continue the
+     value over multiple header records, but this routine can be used
+     to get the length of the value string for any type keyword.
+
+   - added new routine to read string-valued keywords:
+          fits_read_string_key / ffgsky
+     This routine supports normal string keywords as well as long string
+     keywords that use the CONTINUE convention. In many cases this routine
+     may be more convenient to use then the older fits_read_key_longstr
+     routine.
+
+   - changed the prototype of fits_register_driver in fitsio2.h so that the
+     pointer definition argument does not have the same name as the pointer
+     itself (to work around a bug in the pgcc compiler).
+     
+   - added the missing FTDTDM fortran wrapper definition to f77_wrap3.c.
+   
+   - modified Makefile.in and configure.in to add LDFLAGS_BIN for task linker
+     flages, which will be the same as LDFLAGS except on newer Mac OS X where
+     an rpath flag is added.
+
+   - modified Makefile.in to add a new "make utils" command which will build
+     fpack, funpack, cookbook, fitscopy, imcopy, smem, speed, and testprog.
+     These programs will be installed into $prfix/bin.
+
+   - fixed a bug when attempting to modify the values in a variable-length
+     bit ("X") column in a binary table.
+
+   - reinstated the ability to write HIERARCH keywords that contain characters
+     that would not be allowed in a normal 8-character keyword name, which had
+     been disabled in the previous release.
+
+Version 3.38 - February 2016
+
+   - CRITICAL BUG FIX:
+     The Intel 15 and 16 compilers (and potentially other compilers) may silently
+     produce incorrect assembly code when compiling CFITSIO with the -O2 (or
+     higher) optimization flag. In particular, this problem could cause  CFITSIO
+     to incorrectly read the values of arrays of 32-bit integers in a  FITS file
+     (i.e., images with BITPIX = 32 or table columns with TFORM = 'J')  when the
+     array is being read into a 'long' integer array in cases where the long
+     array elements are 8 bytes long. 
+
+     One way to test if a particular system is affected by this problem is to
+     compile CFITSIO V3.37 (or earlier) with optimization enabled, and then
+     compare the output of the testprog.c program with the testprog.out file
+     that is distributed with CFITSIO. If there are any  differences in the
+     files, then this system might be affected by this bug. Further tests 
+     should be performed to determine the exact cause.
+
+     The root cause of this problem was traced to the fact that CFITSIO was
+     aliasing an array of 32-bit integers and an array of 64-bit integers to the
+     same memory location in order to obtain better data I/O efficiency when
+     reading FITS files.  When CFITSIO modified the values in these arrays, it
+     was essential that the processing be done in strict sequential order from
+     one end of the array to the other end, as was implicit in the C code
+     algorithm. In this case, however, the compiler adopted certain  loop
+     optimization techniques that produced assembly code that violated  this
+     assumption.  Technically, the CFITSIO code violates the "strict aliasing"
+     assumption in ANSI C99, therefore the affected CFITSIO routines have been
+     modified so that the aliasing of different data types to the same memory
+     location no longer occurs.
+
+   - fixed problem in configure and configure.in which caused the programs that
+     are distributed with CFITSIO (most notably, fack and funpack) to be build
+     without using any compiler optimization options, which could make them
+     run more slowly than expected.
+
+   - in imcompress.c, fixed bug where the rowspertile variable (declared as 'long')
+     was mistakenly declared as a TLONGLONG variable in a call to fits_write_key.
+     This could have caused the ZTILELEN keyword to be written incorrectly in
+     the header of tile-compressed FITS tables on systems where sizeof(long) = 4.
+
+   - in imcompress.c, implemented a new set of routines that safely convert
+     shorter integer arrays into a longer integer arrays (e.g. short to int)
+     where both arrays are aliased to the same memory location.  These
+     special routines were needed to guard against certain compiler optimization
+     techniques that could produce incorrect code.
+ 
+   - modified the 4 FnNoise5_(type) routines in quantize.c to correctly 
+     count the number of non-null pixels in the input array.  Previously the
+     count could be inaccurate if the image mainly consisted of null pixels.
+     This could have caused certain floating point image tiles to be 
+     quantized during the image compression process, when in fact the tile
+     did not satisfy all the criteria to be safely quantized.
+     
+   - in imcomp_copy_comp2img, added THEAP to the list of binary table 
+     keywords that may be present in the header of a compressed image 
+     and should not be copied to the uncompressed image header.
+ 
+   - modified fits_copy_col to check that when copying a vector column, the
+     vector length in the output column is the same as in the input column.
+     Also modified the code to support the case where a column is being copied
+     to an earlier position in the same table (which shifts the input column
+     over 1 space).
+
+   - added configure option (--with-bzip2) to support reading bzip2 compressed 
+     FITS files.  This also required modifications to drvrmem.c and drvrfile.c
+     This depends on having the bzlib library installed on the 
+     local machine.  This patch was submitted by Dustin Lang.
+     
+   - replaced calls to 'memcpy' by 'memmove' in getcolb.c, getcold.c,
+     getcole.c, and getcoli.c to support cases where the 2 memory areas 
+     overlap. (submitted by Aurelien Jarno)
+
+   - modified the FITS keyword reading and writing routines to potentially
+     support keywords with names longer than 8-characters.  This was implemented
+     in anticipation of a new experimental FITS convention which allows longer 
+     keyword names.
+
+   - in fits_quantize_double in quantize.c, test if iseed == N_RANDOM,
+     to avoid the (unlikely) possibility of overflowing the random number
+     array bounds. (The corresponding fits_quantize_float routine already
+     performed this test).
+
+   - in the FnNoise5_short routine in quantize.c, change the first 'if' 
+     statement from "if (nx < 5)" to "if )nx < 9)", in order to support the
+     (very rare) case where the tile is from 5 to 8 pixels wide.  Also make 
+     the same change in the 3 other similar FnNoise5_* routines.
+
+   - in the qtree_bitins64 routine in fits_hdecompress.c, must declare the
+     plane_val variable as 'LONGLONG' instead of int.  This bug could have 
+     caused integer overflow errors when uncompressing integer*4 images that
+     had been compressed with the Hcompress algorithm, but only in cases
+     where the image contains large regions of pixels whose values are close
+     to the maximum integer*4 value of 2**31. 
+
+   - in fits_hcompress.c, call the calloc function instead of malloc when
+     allocating the signbits array, to eliminate the need to individually
+     set each byte to zero.
+
+   - in the ffinit routine, and in a couple other routines that call ffinit,
+     initialize the *fptr input parameter to NULL, even if the input
+     status parameter value is greater than zero.  This helps prevent
+     errors later on if that fptr value is passed to ffclos.
+
+   - modified ftcopy, in edithdu.c, to only abort if status > 0 rather
+     than if status != 0. This had caused a problem in funpack in rare
+     circumstances.
+
+   - in imcompress.c changed all the calls to ffgdes to ffgdesll, to support
+     compressed files greater than 2.1 GB in size.
+
+   - fixed bug in ffeqtyll when it is called with 4th and 5th arguments 
+     set to NULL.
+
+   - in fitsio.h, added the standard C++ guard around the declaration of the
+     function fits_read_wcstab.  (reported by Tammo Jan Dijkema, Astron.)
+
+   - in fitsio.h, changed the prototype variable name "zero" to "zeroval" to
+     avoid conflict in code that uses a literal definition of 'zero' to mean 0.
+
+   - tweaked Makefile.in and configure.in to use LDFLAGS instead of CFLAGS 
+     for linking, use Macros for library name, and let fpack and funpack 
+     link with shared library.
+
+   - modified an 'ifdef' statement in cfileio.c to test for '__GLIBC__'
+     instead of 'linux' when initializing support for multi-threading.
+
+   - modified ffeqtyll to return an effective column data type of TDOUBLE
+     in the case of a 'K' (64-bit integer) column that has non-integer
+     TSCALn or TZEROn keywords.
+     
+   - modified ffgcls (which returns the value in a column as a formatted string)
+     so that when reading a 'K' (TLONGLONG) column it returns a long long integer
+     value if the column is not scaled, but returns a double floating point
+     value if the column has non-integer TSCALn or TZEROn values.
+
+   - modified fitsio.h to correctly define "OFF_T long long" when using
+     the Borland compiler
+
+   - converted the 'end of line' characters in simplerng.c file to the unix
+     style, instead of PC DOS.
+
+   - updated CMakeLists.txt CMake build file which is primarily used to
+     build CFITSIO on Windows machines.
+
+   - modified fits_get_keyclass to recognize ZQUANTIZ and ZDITHER0 as
+     TYP_CMPRS_KEY type keywords, i.e., keywords used in tile compressed
+     image files.
+
+   - added test to see if HAVE_UNISTD_H is defined, as a condition for 
+     including unistd.h in drvrfile.c drvrnet.c, drvrsmem.c, and group.c.
+
+   - modified the CMakelist.txt file to fix several issues (primarily for
+     building CFITSIO on Windows machines)..
+
+   - fixed bug when reading tile-compressed images that were compressed with
+     the IRAF PLIO algorithm.  This bug did not affect fpack or funpack, but
+     other software that reads the compressed image could be affected.  The 
+     bug would cause the data values to be offset by 32768 from the actual 
+     pixel values.
+
+Version 3.37 - 3 June 2014
+
+   - replaced the random Gaussian and Poissonian distribution functions with
+     new code written by Craig Markwardt derived from public domain C++ functions 
+     written by John D Cook.
+
+   - patched fitsio2.h to support CFITSIO on AArch64 (64-bit ARM)
+     architecture (both big and little endian).  Supplied by
+     Marcin Juszkiewicz and Sergio Pascual Ramirez, with further update
+     by Michel Normand.
+     
+   - fixed bug in fpackutil.c that caused fpack to exit prematurely if
+     the FZALGOR directive keyword was present in the HDU header.
+
+Version 3.36 - 6 December 2013
+
+   - added 9 Dec: small change to the fileseek function in drvrfile.c to
+     support large files > 2 GB when building CFITSIO with MinGW on Windows
+
+   - reorganized the CFITSIO code directory structure; added a 'docs'
+     subdirectory for all the documentation, and a 'zlib' directory
+     for the zlib/gzip file compression code.
+
+   - made major changes to the compression code for FITS binary table
+     to support all types of columns, including variable-length arrays.
+     This code is mainly used via the fpack and funpack programs.
+
+   - increased the number of FITS files that can be opened as one
+     time to 1000, as defined by NMAXFILES in fitsio2.h.
+
+   - made small configuration changes to configure.in, configure,
+     fitsio.h, and drvrfile.c to support large files (64-bit file 
+     offsets} when using the mingw-w64 compiler (provided by 
+     Benjamin Gilbert).
+
+   - made small change to fits_delete_file to more completely ignore
+     any non-zero input status value.
+
+   - fixed a logic error in a 'if' test when parsing a keyword name
+     in the ngp_keyword_is_write function in grparser.c (provided
+     by David Binderman).
+
+   - when specifying the image compression parameters as part of the
+     compressed image file name (using the "[compress]" qualifier
+     after the name of the file), the quantization level value, if
+     specified, was not being recognized by the CFITSIO compression
+     routines. The image would always be compressed with the default
+     quantization level of 4.0, regardless of what was specified.  This
+     affected the imcopy program, and potentially other user-generated
+     application programs that used this method to specify the
+     compression parameters.  This bug did not affect fpack or
+     funpack.   This was fixed in the imcomp_get_compressed_image_par
+     routine in the imcompress.c file. (reported by Sean Peters)
+
+   - defined a new CFITS_API macro in fitsio.h which is used to export the
+     public symbols when building CFITSIO on Windows systems with CMake. This
+     works in conjunction with the new Windows CMake build procedure that
+     is described in the README.win32 file. This complete revamping of the
+     way CFITSIO is built under Windows now supports building 64-bit
+     versions of the library.  Thanks to Daniel Kaneider (Luminance HDR
+     Team) for providing these new  CMake build procedures.
+
+   - modified the way that the low-level file_create routine works when
+     running in the Hera environment to ensure that the FITS file that is 
+     created is within the allow user data disk area.
+
+   - modified fits_get_compression_type so that it does not return an error
+     if the HDU is a normal FITS IMAGE extension, and is not a tile-compressed
+     image.
+
+   - modified the low-level ffgcl* and ffpcl* routines to ensure that they
+     never try ro read or write more than 2**31 bytes from disk at one time,
+     as might happen with very large images, to avoid integer overflow errors.
+     Fix kindly provided by Fred Gutsche at NanoFocus AG (www.nanofocus.de).
+     
    - modified Makefile.in so that doing 'make distclean' does not delete
      new config.sub and config.guess files that were recently added.
 
-Version 3.35 - 26 June 2013  (1st beta release on 24 May)
+   - adopted a patch from Debian in zcompress.c to "define" the values of
+     GZBUFSIZE and BUFFINCR, instead of exporting the symbols as 'int's.
+
+Version 3.35 - 26 June 2013  (1st beta release was on 24 May)
 		   
    - fixed problem with the default tile size when compressing images with
      fpack using the Hcompress algorithm.
@@ -150,7 +518,7 @@ Version 3.33 - 14 Feb 2013
      need for special thread locking and unlocking statements. (Thanks to
      Lars Kr. Lundin for this suggestion). 
 
-   - modifed how the uncompressed size of a gzipped file is computed in the
+   - modified how the uncompressed size of a gzipped file is computed in the
      mem_compress_open routine in drvrmem.c.  Since gzip only uses 4 bytes
      in the compressed file header to store the original file size, one may
      need to apply a modulo 2^32 byte correction in some cases.  The logic
@@ -335,7 +703,7 @@ Version 3.29 - 2 December 2011
 
    - fixed the extended filename parser so that when creating a histogram by
      binning 2 table columns, if a keyword or column name is given as the
-     weighting factor,  then the output histrogram image will have a floating
+     weighting factor,  then the output histogram image will have a floating
      point datatype, not the default integer datatype as is the case when no
      weight is specified (e.g. with a filename like 
      "myfile.fits[bin x,y; weight_column]"
@@ -541,7 +909,7 @@ Version 3.25 - 9 June 2010
      nuisance compiler warnings.
 
    - some compilers define CLOCKS_PER_SEC as a double instead of an integer,
-     so added an explicted integer type conversion to 2 statements in
+     so added an explicit integer type conversion to 2 statements in
      imcompress.c that used this macro.
      
    - removed debugging printf statements in drvrnet.c (15 July)
@@ -927,7 +1295,7 @@ Version 3.08 - 15 April 2008
 
    - small change to cfortran.h to add "extern" to the common block 
      definition.  This was done for compatibility with the version
-     of cfortran.h that is distributed by the debian project.
+     of cfortran.h that is distributed by the Debian project.
    
    - relaxed the requirement that a string valued keyword must have a
      closing quote character.  If the quote is missing, CFITSIO will silently
@@ -2087,7 +2455,7 @@ Version 2.410 - 22 April 2002 (used in the FTOOLS 5.2 release)
     to support the new Itanium 64-bit Intel PC.
 
   - a couple minor modifications to fitsio.h needed to support the off_t
-    datatype on debian linux systems.
+    datatype on Debian linux systems.
 
   - increased internal buffer sizes in ffshft and ffsrow to improve
     the I/O performance.
@@ -2716,7 +3084,7 @@ Version 2.037 - 6 July 2000
    - when reading a section of an image with the extended filename
      syntax (e.g. image.fits[1:100:2, 1:100:2), any CDi_j WCS keywords
      will be updated if necessary to transfer the world coordinate
-     system from the imput image to the output image section.
+     system from the input image to the output image section.
 
    - on UNIX platforms, added support for filenames that begin
      with "~/" or "~user/".  The "~" symbol will get expanded
@@ -2760,7 +3128,7 @@ Version 2.037 - 6 July 2000
    - modified the lexical parser in eval_l.y and eval_l.c to
      support #NULL and #SNULL constants which act to set the
      value to Null.  Support was also added for the C-conditional
-     expression: 'boolean ? trueVal : falseVal'.
+     expression: 'Boolean ? trueVal : falseVal'.
 
    - small modification to eval_f.c to write an error message to
      the error stack if numerical overflow occurs when evaluating

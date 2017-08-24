@@ -33,7 +33,7 @@ int pl_p2li (int *pxsrc, int xs, short *lldst, int npix)
     int ret_val, i__1, i__2, i__3;
 
     /* Local variables */
-    int zero, v, x1, hi, ip, dv, xe, np, op, iz, nv, pv, nz;
+    int zero, v, x1, hi, ip, dv, xe, np, op, iz, nv = 0, pv, nz;
 
     /* Parameter adjustments */
     --lldst;

@@ -418,6 +418,7 @@ int ffmcrd(fitsfile *fptr,      /* I - FITS file pointer  */
            int *status)         /* IO - error status      */
 {
     char tcard[FLEN_CARD], valstring[FLEN_CARD], comm[FLEN_CARD], value[FLEN_CARD];
+    char nextcomm[FLEN_COMMENT];
     int keypos, len;
 
     if (*status > 0)           /* inherit input status value if > 0 */
@@ -449,7 +450,7 @@ int ffmcrd(fitsfile *fptr,      /* I - FITS file pointer  */
 
       while (len && value[len - 1] == '&')  /* ampersand used as continuation char */
       {
-        ffgcnt(fptr, value, status);
+        ffgcnt(fptr, value, nextcomm, status);
         if (*value)
         {
             ffdrec(fptr, keypos, status);  /* delete the keyword */
@@ -510,9 +511,8 @@ int ffpunt(fitsfile *fptr,     /* I - FITS file pointer   */
            const char *unit,   /* I - keyword unit string */
            int *status)        /* IO - error status       */
 /*
-    Write (put) the units string into the comment field of the existing
-    keyword. This routine uses a local FITS convention (not defined in the
-    official FITS standard) in which the units are enclosed in 
+    Write (put) the units string into the comment field of the existing keyword.
+    This routine uses a  FITS convention  in which the units are enclosed in 
     square brackets following the '/' comment field delimiter, e.g.:
 
     KEYWORD =                   12 / [kpc] comment string goes here
@@ -612,7 +612,7 @@ int ffmkys(fitsfile *fptr,          /* I - FITS file pointer  */
 
     char oldval[FLEN_VALUE], valstring[FLEN_VALUE];
     char oldcomm[FLEN_COMMENT];
-    char card[FLEN_CARD];
+    char card[FLEN_CARD], nextcomm[FLEN_COMMENT];
     int len, keypos;
 
     if (*status > 0)           /* inherit input status value if > 0 */
@@ -648,7 +648,7 @@ int ffmkys(fitsfile *fptr,          /* I - FITS file pointer  */
 
       while (len && valstring[len - 1] == '&')  /* ampersand is continuation char */
       {
-        ffgcnt(fptr, valstring, status);
+        ffgcnt(fptr, valstring, nextcomm, status);
         if (*valstring)
         {
             ffdrec(fptr, keypos, status);  /* delete the continuation */
@@ -748,13 +748,7 @@ int ffmkls( fitsfile *fptr,           /* I - FITS file pointer        */
     }
     else
     {
-        /* This a HIERARCH keyword */
-        if (FSTRNCMP(cptr, "HIERARCH ", 9) && 
-            FSTRNCMP(cptr, "hierarch ", 9))
-            nchar = 66 - nquote - namelen;
-        else
-            nchar = 75 - nquote - namelen;  /* don't count 'HIERARCH' twice */
-
+	nchar = 80 - nquote - namelen - 5;
     }
 
     contin = 0;
@@ -1145,6 +1139,7 @@ int ffikys(fitsfile *fptr,          /* I - FITS file pointer  */
         return(*status);
 
     ffs2c(value, valstring, status);   /* put quotes around the string */
+
     ffmkky(keyname, valstring, comm, card, status);  /* construct the keyword*/
     ffikey(fptr, card, status);
 
@@ -1207,13 +1202,7 @@ int ffikls( fitsfile *fptr,           /* I - FITS file pointer        */
     }
     else
     {
-        /* This a HIERARCH keyword */
-        if (FSTRNCMP(cptr, "HIERARCH ", 9) && 
-            FSTRNCMP(cptr, "hierarch ", 9))
-            nchar = 66 - nquote - namelen;
-        else
-            nchar = 75 - nquote - namelen;  /* don't count 'HIERARCH' twice */
-
+	nchar = 80 - nquote - namelen - 5;
     }
 
     contin = 0;
@@ -1505,7 +1494,7 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
   insert a keyword at the position of (fptr->Fptr)->nextkey
 */
 {
-    int ii, len, nshift;
+    int ii, len, nshift, keylength;
     long nblocks;
     LONGLONG bytepos;
     char *inbuff, *outbuff, *tmpbuff, buff1[FLEN_CARD], buff2[FLEN_CARD];
@@ -1539,7 +1528,10 @@ int ffikey(fitsfile *fptr,    /* I - FITS file pointer  */
     for (ii=len; ii < 80; ii++)   /* fill buffer with spaces if necessary */
         buff2[ii] = ' ';
 
-    for (ii=0; ii < 8; ii++)       /* make sure keyword name is uppercase */
+    keylength = strcspn(buff2, "=");
+    if (keylength == 80) keylength = 8;
+    
+    for (ii=0; ii < keylength; ii++)       /* make sure keyword name is uppercase */
         buff2[ii] = toupper(buff2[ii]);
 
     fftkey(buff2, status);        /* test keyword name contains legal chars */
@@ -1584,7 +1576,7 @@ int ffdkey(fitsfile *fptr,    /* I - FITS file pointer  */
 {
     int keypos, len;
     char valstring[FLEN_VALUE], comm[FLEN_COMMENT], value[FLEN_VALUE];
-    char message[FLEN_ERRMSG];
+    char message[FLEN_ERRMSG], nextcomm[FLEN_COMMENT];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -1618,7 +1610,7 @@ int ffdkey(fitsfile *fptr,    /* I - FITS file pointer  */
 
       while (len && value[len - 1] == '&')  /* ampersand used as continuation char */
       {
-        ffgcnt(fptr, value, status);
+        ffgcnt(fptr, value, nextcomm, status);
         if (*value)
         {
             ffdrec(fptr, keypos, status);  /* delete the keyword */
@@ -1641,7 +1633,7 @@ int ffdstr(fitsfile *fptr,    /* I - FITS file pointer  */
 {
     int keypos, len;
     char valstring[FLEN_VALUE], comm[FLEN_COMMENT], value[FLEN_VALUE];
-    char card[FLEN_CARD], message[FLEN_ERRMSG];
+    char card[FLEN_CARD], message[FLEN_ERRMSG], nextcomm[FLEN_COMMENT];
 
     if (*status > 0)           /* inherit input status value if > 0 */
         return(*status);
@@ -1659,7 +1651,7 @@ int ffdstr(fitsfile *fptr,    /* I - FITS file pointer  */
 
     ffdrec(fptr, keypos, status);  /* delete the keyword */
 
-        /* check for string value which may be continued over multiple keywords */
+    /* check for string value which may be continued over multiple keywords */
     ffpsvc(card, valstring, comm, status);
 
     if (*status > 0)           /* inherit input status value if > 0 */
@@ -1678,7 +1670,7 @@ int ffdstr(fitsfile *fptr,    /* I - FITS file pointer  */
 
       while (len && value[len - 1] == '&')  /* ampersand used as continuation char */
       {
-        ffgcnt(fptr, value, status);
+        ffgcnt(fptr, value, nextcomm, status);
         if (*value)
         {
             ffdrec(fptr, keypos, status);  /* delete the keyword */

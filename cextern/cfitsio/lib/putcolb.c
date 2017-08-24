@@ -396,8 +396,12 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
     if (scale == 1. && zero == 0. && tcode == TBYTE)
     {
         writeraw = 1;
-        maxelem = nelem;  /* we can write the entire array at one time */
-    }
+        if (nelem < (LONGLONG)INT32_MAX) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX;
+        }
+     }
     else
         writeraw = 0;
 
@@ -576,7 +580,7 @@ int ffpcnb( fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode, overflow = 0;
 

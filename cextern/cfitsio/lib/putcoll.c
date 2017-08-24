@@ -105,7 +105,7 @@ int ffpcnl( fitsfile *fptr,  /* I - FITS file pointer                       */
 */
 {
     tcolumn *colptr;
-    long  ngood = 0, nbad = 0, ii;
+    LONGLONG  ngood = 0, nbad = 0, ii;
     LONGLONG repeat, first, fstelm, fstrow;
     int tcode;
 
@@ -225,6 +225,7 @@ int ffpclx( fitsfile *fptr,  /* I - FITS file pointer                       */
     unsigned char cbuff;
     static unsigned char onbit[8] = {128,  64,  32,  16,   8,   4,   2,   1};
     static unsigned char offbit[8] = {127, 191, 223, 239, 247, 251, 253, 254};
+    LONGLONG heapoffset, lrepeat;
     tcolumn *colptr;
 
     if (*status > 0)           /* inherit input status value if > 0 */
@@ -304,9 +305,12 @@ int ffpclx( fitsfile *fptr,  /* I - FITS file pointer                       */
         /* write the number of elements and the starting offset.    */
         /* Note: ffgcprll previous wrote the descripter, but with the */
         /* wrong repeat value  (gave bytes instead of bits).        */
+        /* Make sure to not change the current heap offset value!  */
 
-        if (tcode == -TBIT)
-            ffpdes(fptr, colnum, frow, (long) repeat, offset, status);
+        if (tcode == -TBIT) {
+            ffgdesll(fptr, colnum, frow, &lrepeat, &heapoffset, status);
+            ffpdes(  fptr, colnum, frow, (long) repeat, heapoffset, status);
+	}
 
         /* Calc the i/o pointer location to start of sequence of pixels.   */
         /* ffgcprll has already calculated a value for bstart that         */
@@ -343,7 +347,6 @@ int ffpclx( fitsfile *fptr,  /* I - FITS file pointer                       */
       }
 
       ffpbyt(fptr, 1, &cbuff, status); /* write the modified byte */
-
       if (ndone == nbit)  /* finished all the bits */
         return(*status);
 

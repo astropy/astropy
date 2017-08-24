@@ -407,7 +407,7 @@ int ffgics(fitsfile *fptr,    /* I - FITS file pointer           */
 }
 /*--------------------------------------------------------------------------*/
 int ffgicsa(fitsfile *fptr,    /* I - FITS file pointer           */
-           char version,      /* I - character code of desired version *(/
+           char version,      /* I - character code of desired version */
 	                      /*     A - Z or blank */
            double *xrval,     /* O - X reference value           */
            double *yrval,     /* O - Y reference value           */

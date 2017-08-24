@@ -716,7 +716,13 @@ int ffgclui( fitsfile *fptr,   /* I - FITS file pointer                       */
     /*----------------------------------------------------------------------*/
     if (tcode == TSHORT) /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = nelem;          /* data directly into output buffer.    */
+                                  /* data directly into output buffer.    */
+
+        if (nelem < (LONGLONG)INT32_MAX/2) {
+            maxelem = nelem;
+        } else {
+            maxelem = INT32_MAX/2;
+        }
     }
 
     /*---------------------------------------------------------------------*/

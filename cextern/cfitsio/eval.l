@@ -319,20 +319,20 @@ nl		\n
 		  return( DOUBLE );
 		}
 {constant}	{
-                  if(        !strcasecmp(yytext,"#PI") ) {
+                  if(        !fits_strcasecmp(yytext,"#PI") ) {
 		     yylval.dbl = (double)(4) * atan((double)(1));
 		     return( DOUBLE );
-		  } else if( !strcasecmp(yytext,"#E") ) {
+		  } else if( !fits_strcasecmp(yytext,"#E") ) {
 		     yylval.dbl = exp((double)(1));
 		     return( DOUBLE );
-		  } else if( !strcasecmp(yytext,"#DEG") ) {
+		  } else if( !fits_strcasecmp(yytext,"#DEG") ) {
 		     yylval.dbl = ((double)4)*atan((double)1)/((double)180);
 		     return( DOUBLE );
-		  } else if( !strcasecmp(yytext,"#ROW") ) {
+		  } else if( !fits_strcasecmp(yytext,"#ROW") ) {
 		     return( ROWREF );
-		  } else if( !strcasecmp(yytext,"#NULL") ) {
+		  } else if( !fits_strcasecmp(yytext,"#NULL") ) {
 		     return( NULLREF );
-		  } else if( !strcasecmp(yytext,"#SNULL") ) {
+		  } else if( !fits_strcasecmp(yytext,"#SNULL") ) {
 		     return( SNULLREF );
 		  } else {
                      int len; 
@@ -496,50 +496,9 @@ static int find_variable(char *varName)
  
    if( gParse.nCols )
       for( i=0; i<gParse.nCols; i++ ) {
-         if( ! strncasecmp(gParse.varData[i].name,varName,MAXVARNAME) ) {
+         if( ! fits_strncasecmp(gParse.varData[i].name,varName,MAXVARNAME) ) {
             return( i );
          }
       }
    return( -1 );
 }
-
-#if defined(vms) || defined(__vms) || defined(WIN32) || defined(__WIN32__) || defined(macintosh)
-
-/* ================================================================== */
-/* A hack for nonunix machines, which lack strcasecmp and strncasecmp */
-/* ================================================================== */
-
-int strcasecmp(const char *s1, const char *s2)
-{
-   char c1, c2;
-
-   for (;;) {
-      c1 = toupper( *s1 );
-      c2 = toupper( *s2 );
-
-      if (c1 < c2) return(-1);
-      if (c1 > c2) return(1);
-      if (c1 == 0) return(0);
-      s1++;
-      s2++;
-   }
-}
-
-int strncasecmp(const char *s1, const char *s2, size_t n)
-{
-   char c1, c2;
-
-   for (; n-- ;) {
-      c1 = toupper( *s1 );
-      c2 = toupper( *s2 );
-
-      if (c1 < c2) return(-1);
-      if (c1 > c2) return(1);
-      if (c1 == 0) return(0);
-      s1++;
-      s2++;
-   }
-   return(0);
-}
-
-#endif

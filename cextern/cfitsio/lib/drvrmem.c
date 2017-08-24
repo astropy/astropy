@@ -9,6 +9,10 @@
 #include <stddef.h>  /* apparently needed to define size_t */
 #include "fitsio2.h"
 
+#if HAVE_BZIP2
+#include "bzlib.h"
+#endif
+
 /* prototype for .Z file uncompression function in zuncompress.c */
 int zuncompress2mem(char *filename, 
              FILE *diskfile, 
@@ -17,6 +21,13 @@ int zuncompress2mem(char *filename,
              void *(*mem_realloc)(void *p, size_t newsize),
              size_t *filesize,
              int *status);
+
+#if HAVE_BZIP2
+/* prototype for .bz2 uncompression function (in this file) */
+void bzip2uncompress2mem(char *filename, FILE *diskfile, int hdl,
+                         size_t* filesize, int* status);
+#endif
+
 
 #define RECBUFLEN 1000
 
@@ -558,6 +569,7 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
     int status, estimated = 1;
     unsigned char buffer[4];
     size_t finalsize, filesize;
+    LONGLONG llsize = 0;
     unsigned int modulosize;
     char *ptr;
 
@@ -623,7 +635,11 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
         finalsize = modulosize;
 
         if (sizeof(size_t) > 4 && filesize > 10000) {
-            while (finalsize <  filesize) finalsize += 4294967296;
+	    llsize = (LONGLONG) finalsize;  
+	    /* use LONGLONG variable to suppress compiler warning */
+            while (llsize <  (LONGLONG) filesize) llsize += 4294967296;
+
+            finalsize = (size_t) llsize;
         }
 
         estimated = 0;  /* file size is known, not estimated */
@@ -650,6 +666,10 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
         finalsize = 0;  /* for most methods we can't determine final size */
     else if (memcmp(buffer, "\037\240", 2) == 0)  /* LZH */
         finalsize = 0;  /* for most methods we can't determine final size */
+#if HAVE_BZIP2
+    else if (memcmp(buffer, "BZ", 2) == 0)        /* BZip2 */
+        finalsize = 0;  /* for most methods we can't determine final size */
+#endif
     else
     {
         /* not a compressed file; this should never happen */
@@ -1055,6 +1075,10 @@ int mem_uncompress2mem(char *filename, FILE *diskfile, int hdl)
 		 memTable[hdl].memsizeptr,   /* pointer to size of memory */
 		 realloc,                     /* reallocation function */
 		 &finalsize, &status);        /* returned file size nd status*/
+#if HAVE_BZIP2
+    } else if (strstr(filename, ".bz2")) {
+        bzip2uncompress2mem(filename, diskfile, hdl, &finalsize, &status);
+#endif
     } else {
          uncompress2mem(filename, diskfile,
 		 memTable[hdl].memaddrptr,   /* pointer to memory address */
@@ -1212,3 +1236,66 @@ int mem_write(int hdl, void *buffer, long nbytes)
                         memTable[hdl].currentpos);
     return(0);
 }
+
+
+#if HAVE_BZIP2
+void bzip2uncompress2mem(char *filename, FILE *diskfile, int hdl,
+                        size_t* filesize, int* status) {
+    BZFILE* b;
+    int  bzerror;
+    char buf[8192];
+    size_t total_read = 0;
+    char* errormsg = NULL;
+
+    *filesize = 0;
+    *status = 0;
+    b = BZ2_bzReadOpen(&bzerror, diskfile, 0, 0, NULL, 0);
+    if (bzerror != BZ_OK) {
+        BZ2_bzReadClose(&bzerror, b);
+        if (bzerror == BZ_MEM_ERROR)
+            ffpmsg("failed to open a bzip2 file: out of memory\n");
+        else if (bzerror == BZ_CONFIG_ERROR)
+            ffpmsg("failed to open a bzip2 file: miscompiled bzip2 library\n");
+        else if (bzerror == BZ_IO_ERROR)
+            ffpmsg("failed to open a bzip2 file: I/O error");
+        else
+            ffpmsg("failed to open a bzip2 file");
+        *status = READ_ERROR;
+        return;
+    }
+    bzerror = BZ_OK;
+    while (bzerror == BZ_OK) {
+        int nread;
+        nread = BZ2_bzRead(&bzerror, b, buf, sizeof(buf));
+        if (bzerror == BZ_OK || bzerror == BZ_STREAM_END) {
+            *status = mem_write(hdl, buf, nread);
+            if (*status) {
+                BZ2_bzReadClose(&bzerror, b);
+                if (*status == MEMORY_ALLOCATION)
+                    ffpmsg("Failed to reallocate memory while uncompressing bzip2 file");
+                return;
+            }
+            total_read += nread;
+        } else {
+            if (bzerror == BZ_IO_ERROR)
+                errormsg = "failed to read bzip2 file: I/O error";
+            else if (bzerror == BZ_UNEXPECTED_EOF)
+                errormsg = "failed to read bzip2 file: unexpected end-of-file";
+            else if (bzerror == BZ_DATA_ERROR)
+                errormsg = "failed to read bzip2 file: data integrity error";
+            else if (bzerror == BZ_MEM_ERROR)
+                errormsg = "failed to read bzip2 file: insufficient memory";
+        }
+    }
+    BZ2_bzReadClose(&bzerror, b);
+    if (bzerror != BZ_OK) {
+        if (errormsg)
+            ffpmsg(errormsg);
+        else
+            ffpmsg("failure closing bzip2 file after reading\n");
+        *status = READ_ERROR;
+        return;
+    }
+    *filesize = total_read;
+}
+#endif

@@ -218,7 +218,8 @@ int ffpcns( fitsfile *fptr,  /* I - FITS file pointer                       */
   null value in the output FITS file. 
 */
 {
-    long repeat, width, ngood = 0, nbad = 0, ii;
+    long repeat, width;
+    LONGLONG ngood = 0, nbad = 0, ii;
     LONGLONG first, fstelm, fstrow;
 
     if (*status > 0)

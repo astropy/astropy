@@ -560,7 +560,7 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
             return( *status = PARSE_BAD_TYPE );
          }
          parName++;  /* Advance past '#' */
-	 if ( (strcasecmp(parName,"HISTORY") == 0 || strcasecmp(parName,"COMMENT") == 0) &&
+	 if ( (fits_strcasecmp(parName,"HISTORY") == 0 || fits_strcasecmp(parName,"COMMENT") == 0) &&
 	      Info.datatype != TSTRING ) {
             ffcprs();
             ffpmsg( "HISTORY and COMMENT values must be strings (ffcalc)" );
@@ -768,9 +768,9 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
          break;
       case TBIT:
       case TSTRING:
-	 if (strcasecmp(parName,"HISTORY") == 0) {
+	 if (fits_strcasecmp(parName,"HISTORY") == 0) {
 	   ffphis( outfptr, result->value.data.str, status);
-	 } else if (strcasecmp(parName,"COMMENT") == 0) {
+	 } else if (fits_strcasecmp(parName,"COMMENT") == 0) {
 	   ffpcom( outfptr, result->value.data.str, status);
 	 } else {
 	   ffukys( outfptr, parName, result->value.data.str, parInfo, status );
@@ -2035,7 +2035,7 @@ int uncompress_hkdata( fitsfile *fptr,
                   sPtr, &anynul, status ) ) return( *status );
       parNo = gParse.nCols;
       while( parNo-- )
-         if( !strcasecmp( parName, gParse.varData[parNo].name ) ) break;
+         if( !fits_strcasecmp( parName, gParse.varData[parNo].name ) ) break;
 
       if( parNo>=0 ) {
          found[parNo] = 1; /* Flag this parameter as found */
@@ -2267,7 +2267,7 @@ if (gParse.hdutype == IMAGE_HDU) {
 
    colnum = -1;
    for (i = 0; i < gParse.pixFilter->count; ++i) {
-      if (!strcasecmp(colName, gParse.pixFilter->tag[i]))
+      if (!fits_strcasecmp(colName, gParse.pixFilter->tag[i]))
          colnum = i;
    }
    if (colnum < 0) {

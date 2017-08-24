@@ -157,8 +157,6 @@ extern	NGP_EXTVER_TAB	*ngp_extver_tab;
 int	ngp_get_extver(char *extname, int *version);
 int	ngp_set_extver(char *extname, int version);
 int	ngp_delete_extver_tab(void);
-int	ngp_strcasecmp(char *p1, char *p2);
-int	ngp_strcasencmp(char *p1, char *p2, int n);
 int	ngp_line_from_file(FILE *fp, char **p);
 int	ngp_free_line(void);
 int	ngp_free_prevline(void);

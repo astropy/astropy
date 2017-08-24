@@ -1050,7 +1050,7 @@ int  *scale;				 scale factor for digitization
 */
 {
 LONGLONG sumall;
-int nel, stat;
+int stat;
 unsigned char nbitplanes[3];
 char tmagic[2];
 
@@ -1073,8 +1073,6 @@ char tmagic[2];
 	*ny =readint(infile);				/* y size of image			*/
 	*scale=readint(infile);				/* scale factor for digitization	*/
 	
-	nel = (*nx) * (*ny);
-
 	/* sum of all pixels	*/
 	sumall=readlonglong(infile);
 	/* # bits in quadrants	*/
@@ -1097,7 +1095,7 @@ int  *nx,*ny;				 size of output array
 int  *scale;				 scale factor for digitization		
 */
 {
-int nel, stat;
+int stat;
 LONGLONG sumall;
 unsigned char nbitplanes[3];
 char tmagic[2];
@@ -1121,8 +1119,6 @@ char tmagic[2];
 	*ny =readint(infile);				/* y size of image			*/
 	*scale=readint(infile);				/* scale factor for digitization	*/
 	
-	nel = (*nx) * (*ny);
-
 	/* sum of all pixels	*/
 	sumall=readlonglong(infile);
 	/* # bits in quadrants	*/
@@ -1997,9 +1993,9 @@ qtree_bitins64(unsigned char a[], int nx, int ny, LONGLONG b[], int n, int bit)
 {
 int i, j, k;
 int s00;
-int plane_val;
+LONGLONG plane_val;
 
-	plane_val = 1 << bit;
+	plane_val = ((LONGLONG) 1) << bit;
 
 	/*
 	 * expand each 2x2 block

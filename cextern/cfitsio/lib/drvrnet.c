@@ -162,7 +162,7 @@ Baltimore MD 21218 USA              ¦ http://faxafloi.stsci.edu:4547/
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(unix) || defined(__unix__)  || defined(__unix)
+#if defined(unix) || defined(__unix__)  || defined(__unix) || defined(HAVE_UNISTD_H)
 #include <unistd.h>  
 #endif
 
@@ -759,6 +759,7 @@ static int http_open_network(char *url, FILE **httpfile, char *contentencoding,
   char fn[MAXLEN];
   char turl[MAXLEN];
   char *scratchstr;
+  char *saveptr;
   int port;
   float version;
 
@@ -886,7 +887,7 @@ static int http_open_network(char *url, FILE **httpfile, char *contentencoding,
 	  /* Ok, we found the beginning of the anchor */
 	  scratchstr += 9; /* skip the <A HREF=" bits */
 	  scratchstr += 7; /* skip http://, we die if it's really ftp:// */
-	  strcpy(turl,strtok(scratchstr,"\""));
+	  strcpy(turl,ffstrtok(scratchstr,"\"",&saveptr));
 	  sprintf(errorstr,"to %s\n",turl);
 	  ffpmsg(errorstr);
 	  fclose (*httpfile);
@@ -1447,6 +1448,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
   char *newfn;
   char *passive;
   char *tstr;
+  char *saveptr;
   char ip[SHORTLEN];
   char turl[MAXLEN];
   int port;
@@ -1602,7 +1604,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
       
     /* Messy parsing of response from PASV *command */
     
-    if (!(tstr = strtok(passive,",)"))) {
+    if (!(tstr = ffstrtok(passive,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
@@ -1610,7 +1612,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
     strcpy(ip,tstr);
     strcat(ip,".");
     
-    if (!(tstr = strtok(NULL,",)"))) {
+    if (!(tstr = ffstrtok(NULL,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
@@ -1618,7 +1620,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
     strcat(ip,tstr);
     strcat(ip,".");
     
-    if (!(tstr = strtok(NULL,",)"))) {
+    if (!(tstr = ffstrtok(NULL,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
@@ -1626,7 +1628,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
     strcat(ip,tstr);
     strcat(ip,".");
     
-    if (!(tstr = strtok(NULL,",)"))) {
+    if (!(tstr = ffstrtok(NULL,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
@@ -1634,7 +1636,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
     strcat(ip,tstr);
     
     /* Done the ip number, now do the port # */
-    if (!(tstr = strtok(NULL,",)"))) {
+    if (!(tstr = ffstrtok(NULL,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
@@ -1642,7 +1644,7 @@ int ftp_open_network(char *filename, FILE **ftpfile, FILE **command, int *sock)
     sscanf(tstr,"%d",&port);
     port *= 256;
     
-    if (!(tstr = strtok(NULL,",)"))) {
+    if (!(tstr = ffstrtok(NULL,",)",&saveptr))) {
       ffpmsg ("PASV error (ftp_open)");
       fclose(*command);
       return (FILE_NOT_OPENED);
