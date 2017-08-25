@@ -205,7 +205,7 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == 'GPS':
             warnings.warn(
-                'Table column {} has a FITS recognized time scale value "GPS". '
+                'Table column "{}" has a FITS recognized time scale value "GPS". '
                 'In Astropy, "GPS" is a time from epoch format which runs '
                 'synchronously with TAI; GPS runs ahead of TAI approximately '
                 'by 19 s. Hence, this format will be used.'.format(column_info),
@@ -215,7 +215,7 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == 'LOCAL':
             warnings.warn(
-                'Table column {} has a FITS recognized time scale value "LOCAL". '
+                'Table column "{}" has a FITS recognized time scale value "LOCAL". '
                 'However, the standard states that "LOCAL" should be tied to one '
                 'of the existing scales because it is intrinsically unreliable '
                 'and/or ill-defined. Astropy will thus use the global time scale '
@@ -230,7 +230,7 @@ def _verify_column_info(column_info, global_info):
             return False
 
     # If TCUNIn is a time unit or TRPOSn is specified, the column is a time
-    # coordinate. This has to be tested since TCTYP (scale) is not specified. 
+    # coordinate. This has to be tested since TCTYP (scale) is not specified.
     elif (unit is not None and unit in FITS_TIME_UNIT) or location is not None:
         column_info['scale'] = global_info['scale']
         column_info['format'] = global_info['format']
@@ -358,12 +358,14 @@ def _convert_time_column(col, column_info):
     """
 
     # The code might fail while attempting to read FITS files not written by astropy.
-
     try:
         # ISO-8601 is the only string representation of time in FITS
         if col.info.dtype.kind in ['S', 'U']:
+            # [+/-C]CCYY-MM-DD[Thh:mm:ss[.s...]] where the number of characters
+            # from index 20 to the end of string represents the precision
+            precision = max(int(col.info.dtype.str[2:]) - 20, 0)
             return Time(col, format='fits', scale=column_info['scale'],
-                        precision=max(int(col.info.dtype.str[2:]) - 20, 0),
+                        precision=precision,
                         location=column_info['location'])
 
         if column_info['format'] == 'gps':
@@ -500,7 +502,7 @@ def time_to_fits(table):
     hdr = Header([Card(keyword=key, value=val[0], comment=val[1])
                   for key, val in GLOBAL_TIME_INFO.items()])
 
-    # Store coordinate column-specific metadata 
+    # Store coordinate column-specific metadata
     newtable.meta['__coordinate_columns__'] = defaultdict(OrderedDict)
     coord_meta = newtable.meta['__coordinate_columns__']
 

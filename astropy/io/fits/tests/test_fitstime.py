@@ -248,27 +248,21 @@ class TestFitsTime(FitsTestCase):
     def test_io_time_read_fits_datetime(self, table_types):
         """
         Test that ISO-8601 Datetime String Columns are read correctly.
-        """        
+        """
         # Datetime column
-        c = fits.Column(name='datetime', format='A29', coord_type='TT',
-                        time_ref_pos='TOPOCENTER', array=self.time)
-
-        # Observatory position in ITRS Cartesian coordinates (geocentric)
-        cards = [('OBSGEO-X', -2446354), ('OBSGEO-Y', 4237210), ('OBSGEO-Z', 4077985)]
+        c = fits.Column(name='datetime', format='A29', coord_type='TCG',
+                        time_ref_pos='GEOCENTER', array=self.time)
 
         # Explicitly create a FITS Binary Table
-        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         tm = table_types.read(self.temp('time.fits'), astropy_native=True)
 
         assert isinstance(tm['datetime'], Time)
-        assert tm['datetime'].scale == 'tt'
+        assert tm['datetime'].scale == 'tcg'
         assert tm['datetime'].format == 'fits'
         assert (tm['datetime'] == self.time).all()
-        assert tm['datetime'].location.x.value == -2446354
-        assert tm['datetime'].location.y.value == 4237210
-        assert tm['datetime'].location.z.value == 4077985
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits_location(self, table_types):
@@ -279,6 +273,21 @@ class TestFitsTime(FitsTestCase):
         # Datetime column
         c = fits.Column(name='datetime', format='A29', coord_type='TT',
                         time_ref_pos='TOPOCENTER', array=self.time)
+
+        # Observatory position in ITRS Cartesian coordinates (geocentric)
+        cards = [('OBSGEO-X', -2446354), ('OBSGEO-Y', 4237210),
+                 ('OBSGEO-Z', 4077985)]
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].location.x.value == -2446354
+        assert tm['datetime'].location.y.value == 4237210
+        assert tm['datetime'].location.z.value == 4077985
 
         # Observatory position in geodetic coordinates
         cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
@@ -293,3 +302,80 @@ class TestFitsTime(FitsTestCase):
         assert tm['datetime'].location.lon.value == 0
         assert tm['datetime'].location.lat.value == 0
         assert tm['datetime'].location.height.value == 0
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_scale(self, table_types):
+        """
+        Test handling of 'GPS' and 'LOCAL' time scales which are
+        recognized by the FITS standard but are not native to astropy.
+        """
+        # GPS scale column
+        gps_time = np.array([630720013, 630720014])
+        c = fits.Column(name='gps_time', format='D', unit='s', coord_type='GPS',
+                        coord_unit='s', time_ref_pos='TOPOCENTER', array=gps_time)
+
+        cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
+
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert 'FITS recognized time scale value "GPS"' in str(w[0].message)
+
+        assert isinstance(tm['gps_time'], Time)
+        assert tm['gps_time'].format == 'gps'
+        assert tm['gps_time'].scale == 'tai'
+        assert (tm['gps_time'].value == gps_time).all()
+
+        # LOCAL scale column
+        local_time = np.array([1, 2])
+        c = fits.Column(name='local_time', format='D', unit='s',
+                        coord_type='LOCAL', coord_unit='s',
+                        time_ref_pos='RELOCATABLE', array=local_time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert 'FITS recognized time scale value "LOCAL"' in str(w[0].message)
+
+        assert isinstance(tm['local_time'], Time)
+        assert tm['local_time'].format == 'mjd'
+        # Default scale is UTC
+        assert tm['local_time'].scale == 'utc'
+        assert (tm['local_time'].value == local_time/86400.0).all()
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_location_warnings(self, table_types):
+        """
+        Test warnings for time column reference position.
+        """
+        # Time reference position "TOPOCENTER" without corresponding
+        # observatory position.
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        time_ref_pos='TOPOCENTER', array=self.time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert ('observatory position is not properly specified' in
+                    str(w[0].message))
+
+        # Default value for time reference position is "TOPOCENTER"
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        array=self.time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+        with catch_warnings() as w:
+            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert ('"TRPOSn" is not specified. The default value for '
+                    'it is "TOPOCENTER"' in str(w[0].message))
