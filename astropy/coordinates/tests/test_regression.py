@@ -504,3 +504,11 @@ def test_regression_6300():
                 break
         else:
             assert False, "Deprecation warning not raised"
+
+
+def test_gcrs_itrs_cartesian_repr():
+    # issue 6436: transformation failed if coordinate representation was
+    # Cartesian
+    gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
+                                        unit='km'), representation='cartesian')
+    gcrs.transform_to(ITRS)
