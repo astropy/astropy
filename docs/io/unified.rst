@@ -250,7 +250,7 @@ In general a mixin column may contain multiple data components as well as
 object attributes beyond the standard Column attributes like ``format`` or
 ``description``. Abiding by the rules set by the FITS standard requires mapping
 of these data components and object attributes to the appropriate FITS table
-columns and keywords.  Thus a well defined protocol has been developed to allow
+columns and keywords.  Thus, a well defined protocol has been developed to allow
 the storage of these mixin columns in FITS while allowing the object to
 "round-trip" through the file with no loss of data or attributes.
 
@@ -277,6 +277,15 @@ incorporate the unit attribute of Quantity.
 
 Time
 ~~~~
+
+Astropy provides the following features for reading and writing ``Time``:
+
+- Writing and reading `~astropy.time.Time` Table columns to and from FITS tables
+- Reading time coordinate columns in FITS tables (not written by Astropy) as
+  `~astropy.time.Time` Table columns
+
+Writing and reading Astropy Time columns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, a `~astropy.time.Time` mixin column within a `~astropy.table.Table`
 or `~astropy.table.QTable` will be written to FITS in full precision. This will be
@@ -322,6 +331,78 @@ FITS time standard will be set.  When reading this back into Astropy, the
 column will be an ordinary Column instead of a `~astropy.time.Time` object.
 See the `Details`_ section below for an example.
 
+Reading time columns in non-Astropy written FITS tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reading FITS files which are compliant with the current FITS time standard,
+that is, the files written after the standard was set in stone, is supported
+by Astropy by following the rules and conventions set by the standard. Thus,
+time coordinate columns in arbitrary FITS files (compliant with the standard)
+will be read as native `~astropy.time.Time` objects.
+
+However, a major chunk of the astronomical datasets, most of which are dated
+prior to the FITS time standard, follow different conventions to store time
+coordinate columns.
+
+A common convention found in existing FITS files is that a FITS binary
+table column with ``TTYPEn = ‘TIME’`` represents a time coordinate column.
+The FITS time standard states that such a column will be controlled by
+the global time reference frame keywords, and this will still be compliant
+with the present standard.
+
+Using this convention, Astropy can read time coordinate columns from all
+such FITS tables as native `~astropy.time.Time` objects. Common examples of
+FITS files following this convention are Chandra, XMM, and HST files.
+
+The following is an example of a Header extract of a Chandra event list:
+
+.. parsed-literal::
+
+    COMMENT      ---------- Globally valid key words ----------------
+    DATE    = '2016-01-27T12:34:24' / Date and time of file creation
+    TIMESYS = 'TT      '           / Time system
+    MJDREF  =  5.0814000000000E+04 / [d] MJD zero point for times
+    TIMEUNIT= 's       '           / Time unit
+    TIMEREF = 'LOCAL   '           / Time reference (barycenter/local)
+
+    COMMENT      ---------- Time Column -----------------------
+    TTYPE1  = 'time    '           / S/C TT corresponding to mid-exposure
+    TFORM1  = '1D      '           / format of field
+    TUNIT1  = 's       '
+
+When reading such a FITS table with ``astropy_native=True``, Astropy checks
+whether the name of a column is "TIME"/ "time" (``TTYPEn = ‘TIME’``) and
+whether its unit is a FITS recognized time unit (``TUNITn`` is a time unit).
+
+For example, reading a Chandra event list which has the above mentioned header
+and the time coordinate column ``time`` as ``[1, 2]`` will give::
+
+    >>> from astropy.time import Time, TimeDelta
+    >>> from astropy.table import Table
+    >>> tm = Table.read('chandra_events.fits', astropy_native=True)
+    WARNING: Time column "time" reference position will be ignored due to unspecified observatory position. [astropy.io.fits.fitstime]
+    >>> tm['time']
+    <Time object: scale='tt' format='mjd' value=[ 50814.00001157  50814.00002315]>
+    >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
+    >>> ref_time = Time(5.0814000000000E+04, format='mjd', scale='tt')
+    >>> # TTYPE1  = 'time', TUNIT1 = 's'
+    >>> delta_time = TimeDelta([1, 2], format='sec')
+    >>> ref_time + delta_time == tm['time']
+    array([ True,  True], dtype=bool)
+
+By default, FITS table columns will be read as standard `~astropy.table.Column`
+objects without taking the FITS time standard into consideration.
+
+.. note::
+
+   Reading FITS files with time coordinate columns which are not written by
+   Astropy *may* fail.  Astropy supports a large subset of these files, but
+   there are still some FITS files which neither follow the above stated
+   convention nor are compliant with the standard.
+
+   Also, reading a column having ``TTYPEn = ‘TIME’`` as `~astropy.time.Time`
+   will fail if ``TUNITn`` for the column is not a FITS recognized time unit.
+
 Details
 ~~~~~~~
 
@@ -338,7 +419,7 @@ relevant FITS keywords.
 
 In accordance with the standard which states that in binary tables one may use
 pairs of doubles, the Astropy Time column is written in such a table as a
-vector of two doubles ``(TFORM n = ‘2D’) (jd1, jd2)`` where ``JD = jd1 + jd2``.
+vector of two doubles ``(TFORMn = ‘2D’) (jd1, jd2)`` where ``JD = jd1 + jd2``.
 This reproduces the time values to double-double precision and is the
 "lossless" version, exploiting the higher precision provided in binary tables.
 Note that ``jd1`` is always a half-integer or integer, while ``abs(jd2) < 1``.
@@ -402,10 +483,6 @@ By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
 
    Hence the ``format`` attribute and a vector ``location`` attribute are not
    stored.  After reading from FITS the user must set the ``format`` as desired.
-
-   Reading FITS files with time coordinate columns which are not written by
-   Astropy *may* fail.  Astropy supports only a small subset of the rather
-   complicated standard.
 
 .. _table_io_hdf5:
 
