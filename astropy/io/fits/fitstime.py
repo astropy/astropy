@@ -286,7 +286,7 @@ def _get_info_if_time_column(col, global_info):
 
     # Column with TTYPEn = 'TIME' and lacking any TC*n or time
     # specific keywords will be controlled by the global keywords.
-    if col.name.upper() == 'TIME' and col.unit in FITS_TIME_UNIT:
+    if col.info.name.upper() == 'TIME' and col.info.unit in FITS_TIME_UNIT:
         column_info = {'scale': global_info['scale'],
                        'format': global_info['format'],
                        'ref_time': global_info['ref_time'],
@@ -297,7 +297,7 @@ def _get_info_if_time_column(col, global_info):
             if column_info['location'] is None:
                 warnings.warn(
                     'Time column "{}" reference position will be ignored '
-                    'due to unspecified observatory position.'.format(col.name),
+                    'due to unspecified observatory position.'.format(col.info.name),
                     AstropyUserWarning)
 
         return column_info
@@ -398,7 +398,11 @@ def _convert_time_column(col, column_info):
             delta_time = TimeDelta(col)
 
         return ref_time + delta_time
-    except Exception:
+    except Exception as err:
+        warnings.warn(
+            'The exception "{}" was encountered while converting the time '
+            'column "{}" to Astropy Time.'.format(err, col.info.name),
+            AstropyUserWarning)
         return col
 
 
