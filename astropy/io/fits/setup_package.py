@@ -19,13 +19,16 @@ def _get_compression_extension():
 
     if not setup_helpers.use_system_library('cfitsio'):
         if setup_helpers.get_compiler_option() == 'msvc':
-            # These come from the CFITSIO vcc makefile
-            cfg['extra_compile_args'].extend([
-                    '/D', '"WIN32"',
-                    '/D', '"_WINDOWS"',
-                    '/D', '"_MBCS"',
-                    '/D', '"_USRDLL"',
-                    '/D', '"_CRT_SECURE_NO_DEPRECATE"'])
+            # These come from the CFITSIO vcc makefile, except the last
+            # which ensures on windows we do not include unistd.h (in regular
+            # compilation of cfitsio, an empty file would be generated)
+            cfg['extra_compile_args'].extend(
+                ['/D', '"WIN32"',
+                 '/D', '"_WINDOWS"',
+                 '/D', '"_MBCS"',
+                 '/D', '"_USRDLL"',
+                 '/D', '"_CRT_SECURE_NO_DEPRECATE"',
+                 '/D', '"FF_NO_UNISTD_H"'])
         else:
             cfg['extra_compile_args'].extend([
                 '-Wno-declaration-after-statement'
