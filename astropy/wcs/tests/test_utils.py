@@ -176,7 +176,7 @@ def test_celestial():
     mywcs = WCS(naxis=4)
     mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT', 'STOKES']
     cel = mywcs.celestial
-    assert list(cel.wcs.ctype) == ['RA---TAN', 'DEC--TAN']
+    assert tuple(cel.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
     assert cel.axis_type_names == ['RA', 'DEC']
 
 
@@ -224,11 +224,13 @@ def test_wcs_to_celestial_frame():
     # Flipped order
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['DEC--TAN', 'RA---TAN']
+    frame = utils.wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     # More than two dimensions
     mywcs = WCS(naxis=3)
     mywcs.wcs.ctype = ['DEC--TAN', 'VELOCITY', 'RA---TAN']
+    frame = utils.wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
 
@@ -246,15 +248,92 @@ def test_wcs_to_celestial_frame_extend():
         if wcs.wcs.ctype[0].endswith('OFFSET') and wcs.wcs.ctype[1].endswith('OFFSET'):
             return OffsetFrame()
 
-    from ..utils import custom_frame_mappings
+    from ..utils import custom_wcs_to_frame_mappings
 
-    with custom_frame_mappings(identify_offset):
+    with custom_wcs_to_frame_mappings(identify_offset):
         frame = utils.wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, OffsetFrame)
 
     # Check that things are back to normal after the context manager
     with pytest.raises(ValueError):
         utils.wcs_to_celestial_frame(mywcs)
+
+
+def test_celestial_frame_to_wcs():
+
+    from ...coordinates import ICRS, FK5, FK4, FK4NoETerms, Galactic, BaseCoordinateFrame
+
+    class FakeFrame(BaseCoordinateFrame):
+        pass
+
+    frame = FakeFrame()
+    with pytest.raises(ValueError) as exc:
+        assert utils.celestial_frame_to_wcs(frame) is None
+    assert exc.value.args[0] == ("Could not determine WCS corresponding to "
+                                 "the specified coordinate frame.")
+
+    frame = ICRS()
+    mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
+    assert mywcs.wcs.radesys == 'ICRS'
+    assert np.isnan(mywcs.wcs.equinox)
+
+    frame = FK5(equinox='J1987')
+    mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
+    assert mywcs.wcs.radesys == 'FK5'
+    assert mywcs.wcs.equinox == 1987.
+
+    frame = FK4(equinox='B1982')
+    mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
+    assert mywcs.wcs.radesys == 'FK4'
+    assert mywcs.wcs.equinox == 1982.
+
+    frame = FK4NoETerms(equinox='B1982')
+    mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
+    assert mywcs.wcs.radesys == 'FK4-NO-E'
+    assert mywcs.wcs.equinox == 1982.
+
+    frame = Galactic()
+    mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('GLON-TAN', 'GLAT-TAN')
+    assert mywcs.wcs.radesys == ''
+    assert np.isnan(mywcs.wcs.equinox)
+
+    frame = Galactic()
+    mywcs = utils.celestial_frame_to_wcs(frame, projection='CAR')
+    assert tuple(mywcs.wcs.ctype) == ('GLON-CAR', 'GLAT-CAR')
+    assert mywcs.wcs.radesys == ''
+    assert np.isnan(mywcs.wcs.equinox)
+
+
+def test_celestial_frame_to_wcs_extend():
+
+    class OffsetFrame(object):
+        pass
+
+    frame = OffsetFrame()
+
+    with pytest.raises(ValueError):
+        utils.celestial_frame_to_wcs(frame)
+
+    def identify_offset(frame, projection=None):
+        if isinstance(frame, OffsetFrame):
+            wcs = WCS(naxis=2)
+            wcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+            return wcs
+
+    from ..utils import custom_frame_to_wcs_mappings
+
+    with custom_frame_to_wcs_mappings(identify_offset):
+        mywcs = utils.celestial_frame_to_wcs(frame)
+    assert tuple(mywcs.wcs.ctype) == ('XOFFSET', 'YOFFSET')
+
+    # Check that things are back to normal after the context manager
+    with pytest.raises(ValueError):
+        utils.celestial_frame_to_wcs(frame)
 
 
 def test_pixscale_nodrop():
