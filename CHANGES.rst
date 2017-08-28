@@ -62,6 +62,11 @@ astropy.table
 - Added support for reading and writing ``astropy.time.Time`` Table columns
   to and from FITS tables, to the extent supported by the FITS standard. [#6176]
 
+- The FITS table reader now has an ``include_columns`` argument that allows
+  reading of a subset of columns from a FITS table into an astropy Table,
+  improving performance when small numbers of columns need to be extracted from
+  a FITS table with many more columns. [#6503]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
