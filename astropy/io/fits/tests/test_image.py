@@ -54,6 +54,36 @@ class TestImageFunctions(FitsTestCase):
         assert hdu.name == 'FOO'
         assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_constructor_ver_arg(self):
+        def assert_ver_is(hdu, reference_ver):
+            assert hdu.ver == reference_ver
+            assert hdu.header['EXTVER'] == reference_ver
+
+        hdu = fits.ImageHDU()
+        assert hdu.ver == 1  # defaults to 1
+        assert 'EXTVER' not in hdu.header
+
+        hdu.ver = 1
+        assert_ver_is(hdu, 1)
+
+        # Passing name to constructor
+        hdu = fits.ImageHDU(ver=2)
+        assert_ver_is(hdu, 2)
+
+        # And overriding a header with a different extver
+        hdr = fits.Header()
+        hdr['EXTVER'] = 3
+        hdu = fits.ImageHDU(header=hdr, ver=4)
+        assert_ver_is(hdu, 4)
+
+        # The header card is not overridden if ver is None or not passed in
+        hdr = fits.Header()
+        hdr['EXTVER'] = 5
+        hdu = fits.ImageHDU(header=hdr, ver=None)
+        assert_ver_is(hdu, 5)
+        hdu = fits.ImageHDU(header=hdr)
+        assert_ver_is(hdu, 5)
+
     def test_constructor_copies_header(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/153

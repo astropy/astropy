@@ -135,6 +135,8 @@ class _ImageBaseHDU(_ValidHDU):
         # well)
         if 'name' in kwargs and kwargs['name']:
             self.name = kwargs['name']
+        if 'ver' in kwargs and kwargs['ver']:
+            self.ver = kwargs['ver']
 
         # Set to True if the data or header is replaced, indicating that
         # update_header should be called
@@ -1051,7 +1053,8 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     _extension = 'IMAGE'
 
     def __init__(self, data=None, header=None, name=None,
-                 do_not_scale_image_data=False, uint=True, scale_back=None):
+                 do_not_scale_image_data=False, uint=True, scale_back=None,
+                 ver=None):
         """
         Construct an image HDU.
 
@@ -1087,6 +1090,12 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             operations on the data.  Pseudo-unsigned integers are automatically
             rescaled unless scale_back is explicitly set to `False`.
             (default: None)
+
+        ver : int > 0 or None, optional
+            The ver of the HDU, will be the value of the keyword ``EXTVER``.
+            If not given or None, it defaults to the value of the ``EXTVER``
+            card of the ``header`` or 1.
+            (default: None)
         """
 
         # This __init__ currently does nothing differently from the base class,
@@ -1095,7 +1104,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         super(ImageHDU, self).__init__(
             data=data, header=header, name=name,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
-            scale_back=scale_back)
+            scale_back=scale_back, ver=ver)
 
     @classmethod
     def match_header(cls, header):

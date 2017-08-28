@@ -246,6 +246,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         Name to be populated in ``EXTNAME`` keyword.
     uint : bool, optional
         Set to `True` if the table contains unsigned integer columns.
+    ver : int > 0 or None, optional
+        The ver of the HDU, will be the value of the keyword ``EXTVER``.
+        If not given or None, it defaults to the value of the ``EXTVER``
+        card of the ``header`` or 1.
+        (default: None)
     """
 
     _manages_own_heap = False
@@ -258,9 +263,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     which perform their own heap maintenance.
     """
 
-    def __init__(self, data=None, header=None, name=None, uint=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None):
         super(_TableBaseHDU, self).__init__(data=data, header=header,
-                                            name=name)
+                                            name=name, ver=ver)
 
         if header is not None and not isinstance(header, Header):
             raise ValueError('header must be a Header object.')
@@ -373,6 +378,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # created, or that it overrides the existing EXTNAME if different
         if name:
             self.name = name
+        if ver is not None:
+            self.ver = ver
 
     @classmethod
     def match_header(cls, header):
@@ -694,6 +701,11 @@ class TableHDU(_TableBaseHDU):
         Header to be used.
     name : str
         Name to be populated in ``EXTNAME`` keyword.
+    ver : int > 0 or None, optional
+        The ver of the HDU, will be the value of the keyword ``EXTVER``.
+        If not given or None, it defaults to the value of the ``EXTVER``
+        card of the ``header`` or 1.
+        (default: None)
 
     """
 
@@ -706,8 +718,8 @@ class TableHDU(_TableBaseHDU):
     __format_RE = re.compile(
         r'(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?')
 
-    def __init__(self, data=None, header=None, name=None):
-        super(TableHDU, self).__init__(data, header, name=name)
+    def __init__(self, data=None, header=None, name=None, ver=None):
+        super(TableHDU, self).__init__(data, header, name=name, ver=ver)
 
     @classmethod
     def match_header(cls, header):
@@ -801,13 +813,18 @@ class BinTableHDU(_TableBaseHDU):
         Name to be populated in ``EXTNAME`` keyword.
     uint : bool, optional
         Set to `True` if the table contains unsigned integer columns.
+    ver : int > 0 or None, optional
+        The ver of the HDU, will be the value of the keyword ``EXTVER``.
+        If not given or None, it defaults to the value of the ``EXTVER``
+        card of the ``header`` or 1.
+        (default: None)
 
     """
 
     _extension = 'BINTABLE'
     _ext_comment = 'binary table extension'
 
-    def __init__(self, data=None, header=None, name=None, uint=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None):
         from ....table import Table
         if isinstance(data, Table):
             from ..convenience import table_to_hdu
@@ -817,7 +834,8 @@ class BinTableHDU(_TableBaseHDU):
             data = hdu.data
             header = hdu.header
 
-        super(BinTableHDU, self).__init__(data, header, name=name, uint=uint)
+        super(BinTableHDU, self).__init__(
+            data, header, name=name, uint=uint, ver=ver)
 
     @classmethod
     def match_header(cls, header):
