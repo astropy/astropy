@@ -282,6 +282,8 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
     assert mywcs.wcs.radesys == 'ICRS'
     assert np.isnan(mywcs.wcs.equinox)
+    assert mywcs.wcs.lonpole == 180
+    assert mywcs.wcs.latpole == 0
 
     frame = FK5(equinox='J1987')
     mywcs = celestial_frame_to_wcs(frame)
