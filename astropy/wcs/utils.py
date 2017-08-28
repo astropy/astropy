@@ -232,14 +232,42 @@ def celestial_frame_to_wcs(frame, projection='TAN'):
     wcs : :class:`~astropy.wcs.WCS` instance
         The corresponding WCS object
 
+    Examples
+    --------
+
+    ::
+
+        >>> from astropy.wcs.utils import celestial_frame_to_wcs
+        >>> from astropy.coordinates import FK5
+        >>> frame = FK5(equinox='J2010')
+        >>> wcs = celestial_frame_to_wcs(frame)
+        >>> wcs.to_header()
+        WCSAXES =                    2 / Number of coordinate axes
+        CRPIX1  =                  0.0 / Pixel coordinate of reference point
+        CRPIX2  =                  0.0 / Pixel coordinate of reference point
+        CDELT1  =                  1.0 / [deg] Coordinate increment at reference point
+        CDELT2  =                  1.0 / [deg] Coordinate increment at reference point
+        CUNIT1  = 'deg'                / Units of coordinate increment and value
+        CUNIT2  = 'deg'                / Units of coordinate increment and value
+        CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+        CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+        CRVAL1  =                  0.0 / [deg] Coordinate value at reference point
+        CRVAL2  =                  0.0 / [deg] Coordinate value at reference point
+        LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+        LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
+        RADESYS = 'FK5'                / Equatorial coordinate system
+        EQUINOX =               2010.0 / [yr] Equinox of equatorial coordinates
+
+
     Notes
     -----
 
     To extend this function to frames not defined in astropy.coordinates, you
-    can write your own function which should take a frame instance and a
-    projection (given as a string) and should return either a WCS instance, or
-    `None` if the WCS could not be determined. You can register this function
-    temporarily with::
+    can write your own function which should take a
+    :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass
+    instance and a projection (given as a string) and should return either a WCS
+    instance, or `None` if the WCS could not be determined. You can register
+    this function temporarily with::
 
         >>> from astropy.wcs.utils import celestial_frame_to_wcs, custom_frame_to_wcs_mappings
         >>> with custom_frame_to_wcs_mappings(my_function):
