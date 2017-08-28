@@ -1527,6 +1527,28 @@ class TestTableFunctions(FitsTestCase):
             assert hdu.name == 'FOO'
             assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_constructor_ver_arg(self):
+        for hducls in [fits.BinTableHDU, fits.TableHDU]:
+            # First test some default assumptions
+            hdu = hducls()
+            assert hdu.ver == 1
+            assert 'EXTVER' not in hdu.header
+            hdu.ver = 2
+            assert hdu.ver == 2
+            assert hdu.header['EXTVER'] == 2
+
+            # Passing name to constructor
+            hdu = hducls(ver=3)
+            assert hdu.ver == 3
+            assert hdu.header['EXTVER'] == 3
+
+            # And overriding a header with a different extver
+            hdr = fits.Header()
+            hdr['EXTVER'] = 4
+            hdu = hducls(header=hdr, ver=5)
+            assert hdu.ver == 5
+            assert hdu.header['EXTVER'] == 5
+
     def test_unicode_colname(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5204
