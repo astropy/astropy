@@ -5,7 +5,6 @@ import numpy as np
 
 from .. import units as u
 from ..extern.six.moves import range
-from ..time import Time
 
 from .wcs import WCS, WCSSUB_CELESTIAL
 
@@ -49,6 +48,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
     from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
+
+    # Import astropy.time here otherwise setup.py fails before extensions are compiled
+    from ..time import Time
 
     # Keep only the celestial part of the axes
     wcs = wcs.sub([WCSSUB_CELESTIAL])
