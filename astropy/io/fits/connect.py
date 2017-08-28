@@ -65,7 +65,8 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False):
+def read_table_fits(input, hdu=None, astropy_native=False,
+                    include_columns=None):
     """
     Read a Table object from an FITS file
 
@@ -91,6 +92,11 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     astropy_native : bool, optional
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
+    include_columns : list of str or None, optional
+        A list of column names to include in the output table. If None, include
+        *all* columns.  Note that this is best used for performance on a table
+        with many columns when only a small fraction are desired.
+
     """
 
     if isinstance(input, HDUList):
@@ -140,6 +146,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # Check if table is masked
     masked = False
     for col in table.columns:
+        if include_columns is not None and col.name not in include_columns:
+            continue
         if col.null is not None:
             masked = True
             break
@@ -147,7 +155,18 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # Convert to an astropy.table.Table object
     # Note: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(table.data, masked=masked)
+    if include_columns is None:
+        t = Table(table.data, masked=masked)
+    else:
+        coldct = {}
+        tdata = table.data
+        for colnm in include_columns:
+            if colnm in tdata.dtype.names:
+                coldct[colnm] = tdata[colnm]
+            else:
+                raise ValueError('Column name {} is not in fits '
+                                 'table'.format(colnm))
+        t = Table(coldct, masked=masked)
 
     # Copy over null values if needed
     if masked:
