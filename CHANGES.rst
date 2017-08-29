@@ -96,6 +96,10 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+- Added a new function ``celestial_frame_to_wcs`` to convert from
+  coordinate frames to WCS (the opposite of what ``wcs_to_celestial_frame``
+  currently does. [#6481]
+
 API Changes
 -----------
 
