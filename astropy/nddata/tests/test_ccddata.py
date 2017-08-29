@@ -149,17 +149,18 @@ def test_initialize_from_fits_with_ADU_in_header(tmpdir):
 
 def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     fake_img = np.random.random(size=(100, 100))
-    new_hdul = fits.HDUList()
     hdu1 = fits.PrimaryHDU()
     hdu2 = fits.ImageHDU(fake_img)
     hdus = fits.HDUList([hdu1, hdu2])
     filename = tmpdir.join('afile.fits').strpath
     hdus.writeto(filename)
-    ccd = CCDData.read(filename, unit='adu')
+    with catch_warnings(FITSFixedWarning) as w:
+        ccd = CCDData.read(filename, unit='adu')
+    assert len(w) == 0
     # ccd should pick up the unit adu from the fits header...did it?
     np.testing.assert_array_equal(ccd.data, fake_img)
     # check that the header is the combined header
-    assert hdu1.header + hdu2.header == ccd.header
+    assert hdu2.header + hdu1.header == ccd.header
 
 
 def test_initialize_from_fits_with_extension(tmpdir):

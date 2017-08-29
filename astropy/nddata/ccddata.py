@@ -504,7 +504,11 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
             for i in range(len(hdus)):
                 if hdus.fileinfo(i)['datSpan'] > 0:
                     hdu = i
-                    hdr = hdr + hdus[hdu].header
+                    comb_hdr = hdus[hdu].header.copy()
+                    # Add header values from the primary header that aren't
+                    # present in the extension header.
+                    comb_hdr.extend(hdr, unique=True)
+                    hdr = comb_hdr
                     log.info("first HDU with data is extension "
                              "{0}.".format(hdu))
                     break
