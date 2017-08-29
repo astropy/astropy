@@ -222,6 +222,8 @@ int compress_type_from_string(char* zcmptype) {
         return RICE_1;
     } else if (0 == strcmp(zcmptype, "GZIP_1")) {
         return GZIP_1;
+    } else if (0 == strcmp(zcmptype, "GZIP_2")) {
+        return GZIP_2;
     } else if (0 == strcmp(zcmptype, "PLIO_1")) {
         return PLIO_1;
     } else if (0 == strcmp(zcmptype, "HCOMPRESS_1")) {
