@@ -83,7 +83,7 @@ matrix:
 
         - os: linux
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
-               SETUP_CMD='test --open-files'
+               SETUP_CMD='test --open-files'  PYTEST_VERSION=3.2.1
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
                SETUP_CMD='test --open-files'
