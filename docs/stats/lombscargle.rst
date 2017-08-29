@@ -12,6 +12,8 @@ implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
 The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatspy`_ package ([6]_, [7]_).
+For a detailed practical discussion of the lomb-scargle periodogram, with code
+examples based on astropy, see *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at https://github.com/jakevdp/PracticalLombScargle/.
 
 .. _gatspy: http://astroml.org/gatspy
 .. _astroml: http://astroml.org/
@@ -503,6 +505,8 @@ array([ 0.16880942,  0.1818131 ,  0.2103278 ])
 Keep in mind that the false alarm probability is not related to whether the
 highest peak is the *correct* peak, but rather is the probability that the
 peak may have arisen by chance in the absence of a signal.
+For a detailed discussion of caveats to keep in mind when employing false
+alarm estimates, see [11]_.
 
 Periodogram Algorithms
 ======================
@@ -709,6 +713,7 @@ Still, the periodogram has many spurious peaks, which are due to several factors
 The interaction of these effects means that in practice there is
 no absolute guarantee that the highest peak corresponds to the best frequency,
 and results must be interpreted carefully.
+For a detailed discussion of these effects, see [11]_.
 
 
 Literature References
@@ -736,3 +741,6 @@ Literature References
 .. [10] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
+.. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
+	arXiv:1703.09824 (2017)
+	http://adsabs.harvard.edu/abs/2017arXiv170309824V
