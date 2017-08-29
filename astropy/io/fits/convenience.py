@@ -433,24 +433,15 @@ def writeto(filename, data, header=None, output_verify='exception',
                 checksum=checksum)
 
 
-def table_to_hdu(table, astropy_native=False):
+def table_to_hdu(table):
     """
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
-
-    If the ``astropy_native`` argument is ``True``, then astropy core objects in
-    the input Table, also called "mixin columns", will be converted to their
-    respective representations in FITS binary tables. Currently this is limited to
-    `~astropy.time.Time` columns in the input Table, in which case they will be
-    converted to FITS columns which adhere to the FITS Time standard.
 
     Parameters
     ----------
     table : astropy.table.Table
         The table to convert.
-    astropy_native : bool
-        Write native astropy objects as per their respective FITS standard
-        specifications. Default is False.
 
     Returns
     -------
@@ -481,13 +472,7 @@ def table_to_hdu(table, astropy_native=False):
 
         time_cols = table.columns.isinstance(Time)
         if time_cols:
-            if astropy_native is True:
-                table, hdr = time_to_fits(table)
-            else:
-                # Shallow copy of the input table
-                table = table.copy(copy_data=False)
-                for col in time_cols:
-                    table.replace_column(col.info.name, Column(col.value))
+            table, hdr = time_to_fits(table)
 
     # Create a new HDU object
     if table.masked:
