@@ -59,6 +59,9 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Added false alarm probability computation to ``astropy.stats.LombScargle``
+  [#6488]
+
 astropy.table
 ^^^^^^^^^^^^^
 
