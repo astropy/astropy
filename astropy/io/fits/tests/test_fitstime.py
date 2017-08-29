@@ -128,21 +128,9 @@ class TestFitsTime(FitsTestCase):
         t.meta['DATE'] = '1999-01-01T00:00:00'
         t.meta['MJD-OBS'] = 56670
 
-        # Test for default read/write behaviour (raw data)
+        # Test for default write behaviour (full precision) and read it
+        # back using native astropy objects; thus, ensure its round-trip
         t.write(self.temp('time.fits'), format='fits', overwrite=True)
-        tm = table_types.read(self.temp('time.fits'), format='fits')
-
-        # Test DATE
-        assert not isinstance(tm.meta['DATE'], Time)
-        assert tm.meta['DATE'] == t.meta['DATE']
-
-        # Test MJD-xxx
-        assert not isinstance(tm.meta['MJD-OBS'], Time)
-        assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
-
-        # Test for native astropy objects read/write behaviour
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
@@ -162,8 +150,7 @@ class TestFitsTime(FitsTestCase):
         # Explicitly specified Time Scale
         t.meta['TIMESYS'] = 'ET'
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 
@@ -176,6 +163,21 @@ class TestFitsTime(FitsTestCase):
         assert isinstance(tm.meta['MJD-OBS'], Time)
         assert tm.meta['MJD-OBS'].value == t.meta['MJD-OBS']
         assert tm.meta['MJD-OBS'].scale == FITS_DEPRECATED_SCALES[t.meta['TIMESYS']]
+
+        # Test for conversion of time data to its value, as defined by its format
+        t['a'].info.serialize_method['fits'] = 'formatted_value'
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        tm = table_types.read(self.temp('time.fits'), format='fits')
+
+        # Test DATE
+        assert not isinstance(tm.meta['DATE'], Time)
+        assert tm.meta['DATE'] == t.meta['DATE']
+
+        # Test MJD-xxx
+        assert not isinstance(tm.meta['MJD-OBS'], Time)
+        assert tm.meta['MJD-OBS'] == t.meta['MJD-OBS']
+
+        assert (tm['a'] == t['a'].value).all()
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_loc_unit(self, table_types):
@@ -196,8 +198,7 @@ class TestFitsTime(FitsTestCase):
         hdr['OBSGEO-Y'] == t['a'].location.y.to_value(unit='m')
         hdr['OBSGEO-Z'] == t['a'].location.z.to_value(unit='m')
 
-        t.write(self.temp('time.fits'), format='fits', overwrite=True,
-                astropy_native=True)
+        t.write(self.temp('time.fits'), format='fits', overwrite=True)
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 

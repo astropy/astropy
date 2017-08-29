@@ -155,7 +155,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     filename = str(tmpdir.join('table-tmp'))
 
     # Show that FITS format succeeds
-    t.write(filename, format='fits', overwrite=True, astropy_native=True)
+    t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits', astropy_native=True)
 
     for scale in time.TIME_SCALES:
@@ -184,7 +184,12 @@ def test_io_time_write_fits(tmpdir, table_types):
         # Assert that the non-time columns' data round-trips
         assert (tm[name] == t[name]).all()
 
-    # Test for default read/write behaviour (raw data)
+    # Test for conversion of time data to its value, as defined by its format
+    for scale in time.TIME_SCALES:
+        for ab in ('a', 'b'):
+            name = ab + scale
+            t[name].info.serialize_method['fits'] = 'formatted_value'
+
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
