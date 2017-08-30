@@ -321,7 +321,7 @@ def test_celestial_frame_to_wcs():
     mywcs.wcs.crval = [100, -30]
     mywcs.wcs.set()
     assert_allclose((mywcs.wcs.lonpole, mywcs.wcs.latpole), (180, 60))
-    
+
 
 def test_celestial_frame_to_wcs_extend():
 
