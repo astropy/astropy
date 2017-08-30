@@ -498,8 +498,7 @@ the ``"baluev"`` method under the standard normalization:
 
 >>> probabilities = [0.1, 0.05, 0.01]
 >>> ls = LombScargle(t, y, dy)
->>> ls.false_alarm_levels([0.1, 0.05, 0.01],
-...                       method='baluev')
+>>> ls.false_alarm_level(probabilities, method='baluev')
 array([ 0.16880942,  0.1818131 ,  0.2103278 ])
 
 Keep in mind that the false alarm probability is not related to whether the
