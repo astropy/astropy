@@ -131,11 +131,7 @@ def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
     else:
         return None
 
-    wcs.wcs.ctype[0] = xcoord + '-' + projection
-    wcs.wcs.ctype[1] = ycoord + '-' + projection
-
-    # Make sure that e.g. LONPOLE and other parameters are set
-    wcs.wcs.set()
+    wcs.wcs.ctype = [xcoord + '-' + projection, ycoord + '-' + projection]
 
     return wcs
 
