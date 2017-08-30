@@ -1,7 +1,7 @@
 -r pip-requirements
 -r pip-requirements-doc
 Cython>=0.21
-jinja2
+jinja2>=2.7
 pyyaml
 scipy
 pandas
@@ -9,6 +9,8 @@ h5py
 beautifulsoup4
 bleach
 jplephem
+scikit-image
+matplotlib
 
 # below here are used only for tests
 skyfield

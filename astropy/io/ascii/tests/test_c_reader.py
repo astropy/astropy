@@ -964,7 +964,7 @@ def test_read_big_table(tmpdir):
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [False,
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True)])
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
 def test_data_out_of_range(parallel, reader):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -1017,7 +1017,7 @@ def test_data_out_of_range(parallel, reader):
 
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_int_out_of_range(parallel):
     """
@@ -1056,7 +1056,7 @@ def test_int_out_of_range(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_reader(parallel):
     """
@@ -1099,7 +1099,7 @@ def test_fortran_reader(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_invalid_exp(parallel):
     """
