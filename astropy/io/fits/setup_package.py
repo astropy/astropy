@@ -36,10 +36,11 @@ def _get_compression_extension():
                 # CFITSIO
                 cfg['extra_compile_args'].extend([
                     '-Wno-unused-variable', '-Wno-parentheses',
-                    '-Wno-uninitialized', '-Wno-format',
+                    '-Wno-uninitialized', '-Wno-format-overflow',
                     '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
                     '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
-                    '-Wno-address'
+                    '-Wno-address', '-Wno-unused-result',
+                    '-Wno-misleading-indentation'
                 ])
 
         cfitsio_path = os.path.join('cextern', 'cfitsio')
