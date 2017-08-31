@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # This script should be run every time cfitsio is updated.
-# This moves allthe code needed for the actual library to lib
-# removes large documentation files.
+# This moves all the code needed for the actual library to lib
+# and deletes everything else (except License.txt and doc/changes.txt)
 
 # So, the standard update would be to execute, from this directory,
 # rm -rf cfitsio
@@ -24,8 +24,14 @@ for fil in $lib_files $inc_files; do
         mv cfitsio/$fil cfitsio/lib/
     fi
 done
-rm -rf cfitsio/docs/*.tex
-rm -rf cfitsio/docs/*.ps
-rm -rf cfitsio/docs/*.pdf
-rm -rf cfitsio/docs/*.doc
-rm -rf cfitsio/docs/*.toc
+rm -f cfitsio/docs/*.tex
+rm -f cfitsio/docs/*.ps
+rm -f cfitsio/docs/*.pdf
+rm -f cfitsio/docs/*.doc
+rm -f cfitsio/docs/*.toc
+rm -f cfitsio/[^L]*.*
+cat <<EOF >cfitsio/README.txt
+Note: astropy only requires the CFITSIO library, and hence in this bundled version,
+we removed all other files except the required license (License.txt) and changelog
+(docs/changes.txt, which has the version number).
+EOF
