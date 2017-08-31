@@ -279,6 +279,7 @@ def test_celestial_frame_to_wcs():
 
     frame = ICRS()
     mywcs = celestial_frame_to_wcs(frame)
+    mywcs.wcs.set()
     assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
     assert mywcs.wcs.radesys == 'ICRS'
     assert np.isnan(mywcs.wcs.equinox)
@@ -314,6 +315,12 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ('GLON-CAR', 'GLAT-CAR')
     assert mywcs.wcs.radesys == ''
     assert np.isnan(mywcs.wcs.equinox)
+
+    frame = Galactic()
+    mywcs = celestial_frame_to_wcs(frame, projection='CAR')
+    mywcs.wcs.crval = [100, -30]
+    mywcs.wcs.set()
+    assert_allclose((mywcs.wcs.lonpole, mywcs.wcs.latpole), (180, 60))
 
 
 def test_celestial_frame_to_wcs_extend():
