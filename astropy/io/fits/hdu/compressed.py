@@ -734,9 +734,9 @@ class CompImageHDU(BinTableHDU):
             input image header then the default name 'COMPRESSED_IMAGE' is used
 
         compression_type : str, optional
-            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'HCOMPRESS_1';
-            if this value is `None`, use value already in the header; if no
-            value already in the header, use 'RICE_1'
+            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'GZIP_2',
+            'HCOMPRESS_1'; if this value is `None`, use value already in the
+            header; if no value already in the header, use 'RICE_1'
 
         tile_size : sequence of int, optional
             compression tile sizes as a list; if this value is `None`, use
@@ -805,7 +805,7 @@ class CompImageHDU(BinTableHDU):
 
         # Set the compression type in the table header.
         if compression_type:
-            if compression_type not in ['RICE_1', 'GZIP_1', 'PLIO_1',
+            if compression_type not in ['RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1',
                                         'HCOMPRESS_1']:
                 warnings.warn('Unknown compression type provided.  Default '
                               '({}) compression used.'.format(
