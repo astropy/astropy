@@ -295,6 +295,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Support the ``GZIP_2`` FITS image compression algorithm as claimed
+  in docs. [#6486]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
