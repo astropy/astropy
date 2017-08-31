@@ -1120,6 +1120,7 @@ class TestCompressedImage(FitsTestCase):
         ('data', 'compression_type', 'quantize_level', 'byte_order'),
         sum([[(np.zeros((2, 10, 10), dtype=np.float32), 'RICE_1', 16, bo),
               (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_1', -0.01, bo),
+              (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_2', -0.01, bo),
               (np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16, bo)]
              for bo in ('<', '>')], []))
     def test_comp_image(self, data, compression_type, quantize_level,
