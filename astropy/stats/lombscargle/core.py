@@ -515,11 +515,11 @@ class LombScargle(object):
         .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
         """
         if self.nterms != 1:
-           raise NotImplementedError("false alarm probability is not "
-                                     "implemented for multiterm periodograms.")
+            raise NotImplementedError("false alarm probability is not "
+                                      "implemented for multiterm periodograms.")
         if not (self.fit_mean or self.center_data):
-           raise NotImplementedError("false alarm probability is implemented "
-                                     "only for periodograms of centered data.")
+            raise NotImplementedError("false alarm probability is implemented "
+                                      "only for periodograms of centered data.")
         return statistics.false_alarm_level(false_alarm_probability,
                                             fmax=maximum_frequency,
                                             t=self.t, y=self.y, dy=self.dy,
