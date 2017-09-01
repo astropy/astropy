@@ -1,6 +1,8 @@
 """
 Utilities for computing periodogram statistics.
 """
+from __future__ import print_function, division
+
 from functools import wraps
 
 import numpy as np
