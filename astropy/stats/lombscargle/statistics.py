@@ -6,8 +6,6 @@ from __future__ import print_function, division
 from functools import wraps
 
 import numpy as np
-from scipy.special import gammaln
-from scipy import optimize
 
 
 def _weighted_sum(val, dy):
@@ -29,11 +27,13 @@ def _weighted_var(val, dy):
 
 
 def _gamma(N):
+    from scipy.special import gammaln
     # Note: this is closely approximated by (1 - 0.75 / N) for large N
     return np.sqrt(2 / N) * np.exp(gammaln(N / 2) - gammaln((N - 1) / 2))
 
 
 def _log_gamma(N):
+    from scipy.special import gammaln
     return 0.5 * np.log(2 / N) + gammaln(N / 2) - gammaln((N - 1) / 2)
 
 
@@ -300,6 +300,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization='standard'):
 @vectorize_first_argument
 def inv_fap_davies(p, fmax, t, y, dy, normalization='standard'):
     """Inverse of the davies upper-bound"""
+    from scipy import optimize
     args = (fmax, t, y, dy, normalization)
     z0 = inv_fap_naive(p, *args)
     func = lambda z, *args: fap_davies(z, *args) - p
@@ -324,6 +325,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization='standard'):
 @vectorize_first_argument
 def inv_fap_baluev(p, fmax, t, y, dy, normalization='standard'):
     """Inverse of the Baluev alias-free approximation"""
+    from scipy import optimize
     args = (fmax, t, y, dy, normalization)
     z0 = inv_fap_naive(p, *args)
     func = lambda z, *args: fap_baluev(z, *args) - p

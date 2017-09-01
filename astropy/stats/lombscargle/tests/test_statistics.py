@@ -1,6 +1,13 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
 from ....tests.helper import pytest
 from .. import LombScargle
 from .. import statistics
@@ -9,6 +16,10 @@ from ..utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']
+
+def _require_scipy(method):
+    if not HAS_SCIPY and method in ['baluev', 'davies']:
+        pytest.skip("SciPy required")
 
 
 @pytest.fixture
@@ -100,6 +111,9 @@ def test_inverse_bootstrap(null_data, normalization, use_errs, fmax=5):
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('N', [10, 100, 1000])
 def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
+    if not HAS_SCIPY and method in ['baluev', 'davies']:
+        pytest.skip("SciPy required")
+
     t, y, dy = data(N, rseed=543)
     if not use_errs:
         dy = None
@@ -120,6 +134,9 @@ def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
 @pytest.mark.parametrize('method', METHODS)
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 def test_false_alarm_smoketest(method, normalization, data):
+    if not HAS_SCIPY and method in ['baluev', 'davies']:
+        pytest.skip("SciPy required")
+
     kwds = METHOD_KWDS.get(method, None)
     t, y, dy = data
     fmax = 5
@@ -145,6 +162,8 @@ def test_false_alarm_equivalence(method, normalization, use_errs, data):
     # depends on the absolute errors rather than relative errors. Because the
     # scaling contributes to the distribution, it cannot be converted directly
     # from any of the three normalized versions.
+    if not HAS_SCIPY and method in ['baluev', 'davies']:
+        pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
     t, y, dy = data
