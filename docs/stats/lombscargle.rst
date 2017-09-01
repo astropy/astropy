@@ -498,8 +498,8 @@ the ``"baluev"`` method under the standard normalization:
 
 >>> probabilities = [0.1, 0.05, 0.01]
 >>> ls = LombScargle(t, y, dy)
->>> ls.false_alarm_level(probabilities, method='baluev', maximum_frequency=5)
-array([ 0.18151037,  0.19426289,  0.22225488])
+>>> ls.false_alarm_level(probabilities, method='baluev')
+array([ 0.16933333,  0.18232647,  0.21081934])
 
 Keep in mind that the false alarm probability is not related to whether the
 highest peak is the *correct* peak, but rather is the probability that the
