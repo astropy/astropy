@@ -438,9 +438,10 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     __sub__ = _model_oper('-')
     __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ = _model_oper('**')
-    __or__ = _model_oper('|')
-    __and__ = _model_oper('&')
+    __pow__ =     _model_oper('**')
+    __or__ =      _model_oper('|')
+    __and__ =     _model_oper('&')
+    __mod__ =     _model_oper('%')
 
     if six.PY2:
         # The classic __div__ operator need only be implemented for Python 2
@@ -810,9 +811,10 @@ class Model(object):
     __sub__ = _model_oper('-')
     __mul__ = _model_oper('*')
     __truediv__ = _model_oper('/')
-    __pow__ = _model_oper('**')
-    __or__ = _model_oper('|')
-    __and__ = _model_oper('&')
+    __pow__ =     _model_oper('**')
+    __or__ =      _model_oper('|')
+    __and__ =     _model_oper('&')
+    __mod__ =     _model_oper('%')
 
     if six.PY2:
         __div__ = _model_oper('/')

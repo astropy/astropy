@@ -77,6 +77,7 @@ Things that will never be supported:
 
 import operator
 from .core import ModelDefinitionError
+from .utils import combine_labels
 
 
 def _alt_model_oper(oper, **kwargs):
@@ -84,6 +85,7 @@ def _alt_model_oper(oper, **kwargs):
     This is an alternate version of compound models intended to use
     much less memory than the default.
     """
+    print("got request to do binary operation:", oper)
     return lambda left, right: _AltCompoundModel(oper, left, right, **kwargs)
 
 
@@ -107,9 +109,13 @@ class _AltCompoundModel(object):
             else:
                 self.n_inputs = left.n_inputs
                 self.n_outputs = left.n_outputs
+                self.inputs = left.inputs
+                self.outputs = left.outputs
         elif op == '&':
             self.n_inputs = left.n_inputs + right.n_inputs
             self.n_outputs = left.n_outputs + right.n_outputs
+            self.inputs = combine_labels(left.inputs, right.inputs)
+            self.outputs = combine_labels(left.outputs, right.outputs)
             if inverse is None and self.both_inverses_exist():
                 self._has_inverse = True
                 self._inverse = _AltCompoundModel('&',
@@ -124,10 +130,47 @@ class _AltCompoundModel(object):
                     'left operand number of outputs must match right operand number of inputs')
             self.n_inputs = left.n_inputs
             self.n_outputs = right.n_outputs
+            self.inputs = left.inputs
+            self.outputs = right.outputs
             if inverse is None and self.both_inverses_exist():
                 self._has_inverse = True
                 self._inverse = _AltCompoundModel('|',
                     self.right.inverse, self.left.inverse, inverse=self)
+        elif op == '%':
+            if type(right) != type({}):
+                raise ValueError('expecting dictionary for right side of "%" operator')
+            else:
+                # dict keys must match either possible indices for model on left side,
+                # or names for inputs.
+                self.n_inputs = left.n_inputs - len(right)
+                self.outputs = left.outputs
+                newinputs = list(left.inputs)                
+                keys = right.keys()
+                input_ind = []
+                for key in keys:
+                    if type(key) == type(0):
+                        if key >= left.n_inputs or key < 0:
+                            raise ValueError(
+                                'substitution key integer value not among possible input choices')
+                        else:
+                            input_ind.append(key)
+                    elif type(key) == type(''):
+                        if key not in left.inputs:
+                            raise ValueError(
+                                'Substitution key string not among possible input choices')
+                        # check to see it doesn't match positional specification
+                        ind = left.inputs.index(key)
+                        if ind in input_ind:
+                            raise ValueError("Duplicate specification of same input (index/name)")
+                        else:
+                            input_ind.append(ind)
+                # Remove substituted inputs
+                input_ind.sort()
+                input_ind.reverse()
+                for ind in input_ind:
+                    del newinputs[ind]
+                self.inputs = tuple(newinputs)
+
         else:
             raise ModelDefinitionError('Illegal operator: ', self.op)
         if inverse is not None:
@@ -154,36 +197,79 @@ class _AltCompoundModel(object):
 
     def __call__(self, *args, **kw):
         op = self.op
-        if op != '&':
-            leftval = self.left(*args, **kw)
-            if op != '|':
-                rightval = self.right(*args, **kw)
-
-        else:
-            leftval = self.left(*(args[:self.left.n_inputs]), **kw)
-            rightval = self.right(*(args[self.left.n_inputs:]), **kw)
-
-        if op == '+':
-            return binary_operation(operator.add, leftval, rightval)
-        elif op == '-':
-            return binary_operation(operator.sub, leftval, rightval)
-        elif op == '*':
-            return binary_operation(operator.mul, leftval, rightval)
-        elif op == '/':
-            return binary_operation(operator.truediv, leftval, rightval)
-        elif op == '**':
-            return binary_operation(operator.pow, leftval, rightval)
-        elif op == '&':
-            if not isinstance(leftval, tuple):
-                leftval = (leftval,)
-            if not isinstance(rightval, tuple):
-                rightval = (rightval,)
-            return leftval + rightval
-        elif op == '|':
-            if isinstance(leftval, tuple):
-                return self.right(*leftval, **kw)
+        if op != '%':
+            if op != '&':
+                leftval = self.left(*args, **kw)
+                if op != '|':
+                    rightval = self.right(*args, **kw)
             else:
-                return self.right(leftval, **kw)
+                leftval = self.left(*(args[:self.left.n_inputs]), **kw)
+                rightval = self.right(*(args[self.left.n_inputs:]), **kw)
+            if op == '+':
+                return binary_operation(operator.add, leftval, rightval)
+            elif op == '-':
+                return binary_operation(operator.sub, leftval, rightval)
+            elif op == '*':
+                return binary_operation(operator.mul, leftval, rightval)
+            elif op == '/':
+                return binary_operation(operator.truediv, leftval, rightval)
+            elif op == '**':
+                return binary_operation(operator.pow, leftval, rightval)
+            elif op == '&':
+                if not isinstance(leftval, tuple):
+                    leftval = (leftval,)
+                if not isinstance(rightval, tuple):
+                    rightval = (rightval,)
+                return leftval + rightval
+            elif op == '|':
+                if isinstance(leftval, tuple):
+                    return self.right(*leftval, **kw)
+                else:
+                    return self.right(leftval, **kw)
+        elif op == '%':
+            subs = self.right
+            newargs = list(args)
+            subinds = []
+            subvals = []
+            for key in subs.keys():
+                if type(key) == type(0):
+                    subinds.append(key)
+                elif type(key) == type(''):
+                    ind = self.left.inputs.index(key)
+                    subinds.append(ind)
+                subvals.append(subs[key])
+            # Turn inputs specified in kw into positional indices.
+            # Names for compound inputs do not propagate to sub models.
+            kwind = []
+            kwval = []
+            for kwkey in list(kw.keys()):
+                if kwkey in self.inputs:
+                    ind = self.inputs.index(kwkey)
+                    if ind < len(args):
+                        raise ValueError("Keyword argument duplicates positional value supplied")
+                    kwind.append(ind)
+                    kwval.append(kw[kwkey])
+                    del kw[kwkey]
+            # Build new argument list
+            # Append keyword specified args first
+            if kwind:
+                kwargs = list(zip(kwind, kwval))
+                kwargs.sort()
+                kwindsorted, kwvalsorted = list(zip(*kwargs))
+                print(kwindsorted, kwvalsorted)
+                newargs = newargs + list(kwvalsorted)
+            if subinds:
+                subargs = list(zip(subinds, subvals))
+                subargs.sort()
+                subindsorted, subvalsorted = list(zip(*subargs))
+                print(subindsorted, subvalsorted)
+            # The substitutions must be inserted in order
+            for ind, val in subargs:
+                newargs.insert(ind, val)
+            print(args)
+            print(newargs)
+            print(kw)
+            return self.left(*newargs, **kw)
         else:
             raise ModelDefinitionError('unrecognized operator')
 
@@ -260,6 +346,7 @@ class _AltCompoundModel(object):
     __pow__ =     _alt_model_oper('**')
     __or__ =      _alt_model_oper('|')
     __and__ =     _alt_model_oper('&')
+    __mod__ =     _alt_model_oper('%')
 
 
 def binary_operation(binoperator, left, right):
