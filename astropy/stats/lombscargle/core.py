@@ -168,7 +168,8 @@ class LombScargle(object):
             return 1
 
     def autofrequency(self, samples_per_peak=5, nyquist_factor=5,
-                      minimum_frequency=None, maximum_frequency=None):
+                      minimum_frequency=None, maximum_frequency=None,
+                      return_freq_limits=False):
         """Determine a suitable frequency grid for data.
 
         Note that this assumes the peak width is driven by the observational
@@ -196,6 +197,9 @@ class LombScargle(object):
         maximum_frequency : float (optional)
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
+        return_freq_limits : bool (optional)
+            if True, return only the frequency limits rather than the full
+            frequency grid.
 
         Returns
         -------
@@ -216,7 +220,10 @@ class LombScargle(object):
 
         Nf = 1 + int(np.round((maximum_frequency - minimum_frequency) / df))
 
-        return minimum_frequency + df * np.arange(Nf)
+        if return_freq_limits:
+            return minimum_frequency, minimum_frequency + df * (Nf - 1)
+        else:
+            return minimum_frequency + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
                   normalization=None, samples_per_peak=5,
@@ -453,8 +460,14 @@ class LombScargle(object):
         if not (self.fit_mean or self.center_data):
             raise NotImplementedError("false alarm probability is implemented "
                                       "only for periodograms of centered data.")
+
+        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
+                                        nyquist_factor=nyquist_factor,
+                                        minimum_frequency=minimum_frequency,
+                                        maximum_frequency=maximum_frequency,
+                                        return_freq_limits=True)
         return statistics.false_alarm_probability(power,
-                                                  fmax=maximum_frequency,
+                                                  fmax=fmax,
                                                   t=self.t, y=self.y, dy=self.dy,
                                                   normalization=self.normalization,
                                                   method=method,
@@ -520,8 +533,14 @@ class LombScargle(object):
         if not (self.fit_mean or self.center_data):
             raise NotImplementedError("false alarm probability is implemented "
                                       "only for periodograms of centered data.")
+
+        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
+                                        nyquist_factor=nyquist_factor,
+                                        minimum_frequency=minimum_frequency,
+                                        maximum_frequency=maximum_frequency,
+                                        return_freq_limits=True)
         return statistics.false_alarm_level(false_alarm_probability,
-                                            fmax=maximum_frequency,
+                                            fmax=fmax,
                                             t=self.t, y=self.y, dy=self.dy,
                                             normalization=self.normalization,
                                             method=method,
