@@ -401,9 +401,14 @@ def _generate_wcs_and_update_header(hdr):
     new_header, wcs
     """
 
-    # Try constructing a WCS object. This may generate a warning, but never
-    # an error.
-    wcs = WCS(hdr)
+    # Try constructing a WCS object.
+    try:
+        wcs = WCS(hdr)
+    except Exception as exc:
+        # Normally WCS only raises Warnings and doesn't fail but in rare
+        # cases (malformed header) it could fail...
+        log.info('{}: {}'.format(type(exc).__name__, str(exc)))
+        return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
     # value, return None for wcs if ctype is empty.
     if not wcs.wcs.ctype[0]:
