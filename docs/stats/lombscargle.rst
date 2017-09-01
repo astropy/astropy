@@ -124,14 +124,14 @@ For this reason, the heuristic can be tuned through keywords passed to the
 :func:`~astropy.stats.LombScargle.autopower` method. For example:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
->>> len(frequency), frequency.min(), frequency.max()
+>>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
 (500, 0.0010189890448009111, 1.0179700557561102)
 
 Here the highest frequency is two times the average Nyquist frequency.
 If we increase the ``nyquist_factor``, we can probe higher frequencies:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=10)
->>> len(frequency), frequency.min(), frequency.max()
+>>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
 (2500, 0.0010189890448009111, 5.0939262349597545)
 
 Alternatively, we can use the :func:`~astropy.stats.LombScargle.power`
@@ -496,10 +496,12 @@ Astropy. Here we compute the
 10%, 5%, and 1% false alarm probability levels for the above dataset using
 the ``"baluev"`` method under the standard normalization:
 
->>> probabilities = [0.1, 0.05, 0.01]
->>> ls = LombScargle(t, y, dy)
->>> ls.false_alarm_level(probabilities, method='baluev')
-array([ 0.16933333,  0.18232647,  0.21081934])
+.. doctest-requires:: scipy
+
+  >>> probabilities = [0.1, 0.05, 0.01]
+  >>> ls = LombScargle(t, y, dy)
+  >>> ls.false_alarm_level(probabilities, method='baluev')   # doctest: +FLOAT_CMP
+  array([ 0.16933333,  0.18232647,  0.21081934])
 
 Keep in mind that the false alarm probability is not related to whether the
 highest peak is the *correct* peak, but rather is the probability that the
