@@ -5,7 +5,7 @@ import numpy as np
 
 from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
-from . import statistics
+from . import _statistics
 from ... import units
 from ...utils.compat.numpy import broadcast_arrays
 from ...extern.six.moves import map
@@ -28,7 +28,7 @@ def strip_units(*arrs):
 
 
 class LombScargle(object):
-    """Compute the Lomb-Scargle Periodogram
+    """Compute the Lomb-Scargle Periodogram.
 
     This implementations here are based on code presented in [1]_ and [2]_;
     if you use this functionality in an academic application, citation of
@@ -229,7 +229,7 @@ class LombScargle(object):
                   normalization=None, samples_per_peak=5,
                   nyquist_factor=5, minimum_frequency=None,
                   maximum_frequency=None):
-        """Compute Lomb-Scargle power at automatically-determined frequencies
+        """Compute Lomb-Scargle power at automatically-determined frequencies.
 
         Parameters
         ----------
@@ -284,7 +284,7 @@ class LombScargle(object):
 
     def power(self, frequency, normalization=None, method='auto',
               assume_regular_frequency=False, method_kwds=None):
-        """Compute the Lomb-Scargle power at the given frequencies
+        """Compute the Lomb-Scargle power at the given frequencies.
 
         Parameters
         ----------
@@ -345,7 +345,7 @@ class LombScargle(object):
         return power * self._power_unit(normalization)
 
     def model(self, t, frequency):
-        """Compute the Lomb-Scargle model at the given frequency
+        """Compute the Lomb-Scargle model at the given frequency.
 
         Parameters
         ----------
@@ -370,7 +370,7 @@ class LombScargle(object):
         return y_fit * get_unit(self.y)
 
     def distribution(self, power, cumulative=False):
-        """Expected periodogram distribution under the null hypothesis
+        """Expected periodogram distribution under the null hypothesis.
 
         This computes the expected probability distribution or cumulative
         probability distribution of periodogram power, under the null
@@ -398,14 +398,14 @@ class LombScargle(object):
         """
         dH = 1 if self.fit_mean or self.center_data else 0
         dK = dH + 2 * self.nterms
-        dist = statistics.cdf_single if cumulative else statistics.pdf_single
+        dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
         return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
 
     def false_alarm_probability(self, power, method='baluev',
                                 samples_per_peak=5, nyquist_factor=5,
                                 minimum_frequency=None, maximum_frequency=None,
                                 method_kwds=None):
-        """False alarm probability of periodogram maxima under the null hypothesis
+        """False alarm probability of periodogram maxima under the null hypothesis.
 
         This gives an estimate of the false alarm probability given the height
         of the largest peak in the periodogram, based on the null hypothesis
@@ -466,18 +466,18 @@ class LombScargle(object):
                                         minimum_frequency=minimum_frequency,
                                         maximum_frequency=maximum_frequency,
                                         return_freq_limits=True)
-        return statistics.false_alarm_probability(power,
-                                                  fmax=fmax,
-                                                  t=self.t, y=self.y, dy=self.dy,
-                                                  normalization=self.normalization,
-                                                  method=method,
-                                                  method_kwds=method_kwds)
+        return _statistics.false_alarm_probability(power,
+                                                   fmax=fmax,
+                                                   t=self.t, y=self.y, dy=self.dy,
+                                                   normalization=self.normalization,
+                                                   method=method,
+                                                   method_kwds=method_kwds)
 
     def false_alarm_level(self, false_alarm_probability, method='baluev',
                           samples_per_peak=5, nyquist_factor=5,
                           minimum_frequency=None, maximum_frequency=None,
                           method_kwds=None):
-        """Level of maximum at a given false alarm probability
+        """Level of maximum at a given false alarm probability.
 
         This gives an estimate of the periodogram level corresponding to a
         specified false alarm probability for the largest peak, assuming a
@@ -539,9 +539,9 @@ class LombScargle(object):
                                         minimum_frequency=minimum_frequency,
                                         maximum_frequency=maximum_frequency,
                                         return_freq_limits=True)
-        return statistics.false_alarm_level(false_alarm_probability,
-                                            fmax=fmax,
-                                            t=self.t, y=self.y, dy=self.dy,
-                                            normalization=self.normalization,
-                                            method=method,
-                                            method_kwds=method_kwds)
+        return _statistics.false_alarm_level(false_alarm_probability,
+                                             fmax=fmax,
+                                             t=self.t, y=self.y, dy=self.dy,
+                                             normalization=self.normalization,
+                                             method=method,
+                                             method_kwds=method_kwds)

@@ -1,5 +1,9 @@
 """
 Utilities for computing periodogram statistics.
+
+This is an internal module; users should access this functionality via the
+``false_alarm_probability`` and ``false_alarm_level`` methods of the
+``astropy.stats.LombScargle`` API.
 """
 from __future__ import print_function, division
 
