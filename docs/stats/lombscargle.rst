@@ -420,24 +420,85 @@ see e.g. Baluev 2008 [8]_.
 
 Peak Significance and False Alarm Probabilities
 ===============================================
+
+.. Note::
+   Interpretation of Lomb-Scargle peak significance via false alarm
+   probabilities is a subtle subject, and the quantities computed below are
+   easy to misinterpret or misuse if one is not careful. For a detailed
+   discussion of periodogram peak significance, see see [11]_.
+
 When using the Lomb-Scargle Periodogram to decide whether a signal contains a
 periodic component, an important consideration is the significance of the
 periodogram peak. This significance is usually expressed in terms of a
-false alarm probability, which measures the probability of measuring a
+false alarm probability, which encodes the probability of measuring a
 peak of a given height (or higher) in the case that the signal has no
 periodic component.
 
-There is no closed-form analytic expression for the false alarm levels of the
-highest detected peak in a periodogram, but they can be approximated by various
-means, including bootstrap resampling and extreme value statistics (see
-Baluev 2008  [8]_ for some discussion).
+For example, let's simulate some data that consists of only Gaussian noise,
+with no periodic component, and compute its Lomb-Scargle periodogram:
 
-Astropy includes tools to compute approximate false alarm levels using a
-variety of methods in the
-:func:`~astropy.stats.LombScargle.false_alarm_probability` and
-:func:`~astropy.stats.LombScargle.false_alarm_level` methods.
-Here is a visualization that compares the output of these methods for
-data consisting of Gaussian noise:
+>>> noise = dy * rand.randn(100)
+>>> ls = LombScargle(t, noise, dy)
+>>> freq, power = ls.autopower()
+>>> power.max()
+0.13610412427124274
+
+The peak of the periodogram has a value of 0.136, but how significant is
+this peak? We can address this question using the 
+:func:`~astropy.stats.LombScargle.false_alarm_probability` method:
+
+.. doctest-requires:: scipy
+
+  >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
+  0.46250302015146821
+
+What this tells us is that, under the assumption that there is no periodic
+signal in the data, we will observe a peak this high or higher approximately
+46% of the time. But be careful: this *cannot* be turned around to say that
+there is a 46% chance that our data lacks a periodic component; in general
+:math:`P({\rm data} \mid {\rm model}) \ne P({\rm model} \mid {\rm data})`.
+Nevertheless the false alarm probability can be a useful practical diagnostic.
+
+We might also wish to compute the required peak height to attain any given
+false alarm probability, which can be done with the
+:func:`~astropy.stats.LombScargle.false_alarm_level` method:
+
+.. doctest-requires:: scipy
+
+  >>> probabilities = [0.1, 0.05, 0.01]
+  >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
+  array([ 0.16933333,  0.18232647,  0.21081934])
+
+This tells us that to attain a 10% false alarm probability requires the highest
+periodogram peak to be approximately 0.17.
+
+False Alarm Approximations
+--------------------------
+
+Although the false alarm probability at any particular frequency is analytically
+computable, there is no closed-form analytic expression for the more relevant
+quantity of the false alarm level of the *highest* peak in a particular
+periodogram.
+This must be either determined through bootstrap simulations, or approximated
+by various means (see Baluev 2008  [8]_ for some discussion).
+
+By default, astropy uses the approximation proposed by Baluev [8]_, which uses
+extreme value statistics to quickly compute an upper-limit on the true
+false alarm probability. A much more accurate (but much less efficient)
+method is to compute false alarm rates using bootstrap samples; for
+example:
+
+.. doctest-requires:: scipy
+
+  >>> ls.false_alarm_level(probabilities, method='bootstrap')  # doctest: +SKIP
+  0.378
+
+We see that the bootstrap estimate of the false alarm probability is somewhat
+smaller than the upper-limit computed using the Baluev approximation.
+
+The following figure compares the bootstrap and Baluev estimates, along with
+a couple other estimates of the false alarm probability for 100 observations
+with a heavily-aliased observing pattern:
 
 .. plot::
 
@@ -476,7 +537,7 @@ data consisting of Gaussian noise:
     ax.set(yscale='log',
            title='False Alarm Estimates (N=100)',
            xlim=(0, 0.15), ylim=(0.01, 1.5),
-           xlabel='Periodogram Power',
+           xlabel='Value of Highest Periodogram Peak',
            ylabel='False Alarm Probability');
 
 
@@ -491,23 +552,22 @@ expensive: to estimate the level corresponding to a false alarm probability
 :math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
 individual periodograms to be computed for the dataset.
 
-Computing the false alarm levels via these methods is straightforward with
-Astropy. Here we compute the
-10%, 5%, and 1% false alarm probability levels for the above dataset using
-the ``"baluev"`` method under the standard normalization:
+In all of this, it is important to keep in mind a few caveats:
 
-.. doctest-requires:: scipy
+- False alarm probabilities are computed relative to a particular set of
+  observing times, and a particular choice of frequency grid.
+- False alarm probabilities are conditioned upon the null hypothesis of
+  data with no periodic component, and in particular say nothing
+  quantitative about whether the data are actually consistent with a
+  periodic model.
+- False alarm probabilities are not related to the question of whether the
+  highest peak in a periodogram is the *correct* peak, and in particular
+  are not especially useful in the case of observations with a strong
+  aliasing pattern.
 
-  >>> probabilities = [0.1, 0.05, 0.01]
-  >>> ls = LombScargle(t, y, dy)
-  >>> ls.false_alarm_level(probabilities, method='baluev')   # doctest: +FLOAT_CMP
-  array([ 0.16933333,  0.18232647,  0.21081934])
+For a detailed discussion of these caveats and others when computing and
+interpreting false alarm probabilities, please refer to [11]_.
 
-Keep in mind that the false alarm probability is not related to whether the
-highest peak is the *correct* peak, but rather is the probability that the
-peak may have arisen by chance in the absence of a signal.
-For a detailed discussion of caveats to keep in mind when employing false
-alarm estimates, see [11]_.
 
 Periodogram Algorithms
 ======================
