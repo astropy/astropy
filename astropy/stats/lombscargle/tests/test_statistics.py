@@ -10,8 +10,8 @@ else:
 
 from ....tests.helper import pytest
 from .. import LombScargle
-from .. import statistics
-from ..statistics import (cdf_single, pdf_single, METHODS)
+from .._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
+                           METHODS)
 from ..utils import convert_normalization, compute_chi2_ref
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
@@ -78,8 +78,8 @@ def test_distribution(null_data, normalization, with_errors, fmax=40):
 def test_inverse_single(N, normalization):
     fap = np.linspace(0, 1, 100)
 
-    z = statistics.inv_fap_single(fap, N, normalization)
-    fap_out = statistics.fap_single(z, N, normalization)
+    z = inv_fap_single(fap, N, normalization)
+    fap_out = fap_single(z, N, normalization)
     assert_allclose(fap, fap_out)
 
 
