@@ -407,7 +407,8 @@ def _generate_wcs_and_update_header(hdr):
     except Exception as exc:
         # Normally WCS only raises Warnings and doesn't fail but in rare
         # cases (malformed header) it could fail...
-        log.info('{}: {}'.format(type(exc).__name__, str(exc)))
+        log.info('An exception happened while extracting WCS informations from '
+                 'the Header.\n{}: {}'.format(type(exc).__name__, str(exc)))
         return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
     # value, return None for wcs if ctype is empty.
