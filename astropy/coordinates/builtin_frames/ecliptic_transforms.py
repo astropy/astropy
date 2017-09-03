@@ -21,9 +21,9 @@ from ..errors import UnitsError
 
 def _ecliptic_rotation_matrix(equinox):
     jd1, jd2 = get_jd12(equinox, 'tt')
-    rnpb = erfa.pnm06a(jd1, jd2)
+    rbp = erfa.pmat06(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
-    return matrix_product(rotation_matrix(obl, 'x'), rnpb)
+    return matrix_product(rotation_matrix(obl, 'x'), rbp)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
