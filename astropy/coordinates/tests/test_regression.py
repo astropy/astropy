@@ -55,7 +55,7 @@ def test_regression_5085():
     expected_result = GCRS(ra=ras, dec=decs,
                            distance=distances, obstime="J2000").cartesian.xyz
     actual_result = coo.transform_to(GCRS(obstime="J2000")).cartesian.xyz
-    assert_quantity_allclose(expected_result, actual_result)
+    assert_quantity_allclose(expected_result, actual_result, rtol=1e-6)
 
 
 def test_regression_3920():
