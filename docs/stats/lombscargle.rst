@@ -431,33 +431,45 @@ When using the Lomb-Scargle Periodogram to decide whether a signal contains a
 periodic component, an important consideration is the significance of the
 periodogram peak. This significance is usually expressed in terms of a
 false alarm probability, which encodes the probability of measuring a
-peak of a given height (or higher) in the case that the signal has no
-periodic component.
+peak of a given height (or higher) conditioned on the assumption that
+the data consists of Gaussian noise with no periodic component.
 
-For example, let's simulate some data that consists of only Gaussian noise,
-with no periodic component, and compute its Lomb-Scargle periodogram:
+For example, let's simulate 60 observations of a sine wave with noise:
 
->>> noise = dy * rand.randn(100)
->>> ls = LombScargle(t, noise, dy)
+>>> t = 100 * rand.rand(60)
+>>> dy = 1.0
+>>> y = np.sin(2 * np.pi * t) + dy * rand.randn(60)
+>>> ls = LombScargle(t, y, dy)
 >>> freq, power = ls.autopower()
->>> power.max()
-0.13610412427124274
+>>> print(power.max())
+0.338140019582
 
-The peak of the periodogram has a value of 0.136, but how significant is
+The peak of the periodogram has a value of 0.33, but how significant is
 this peak? We can address this question using the 
 :func:`~astropy.stats.LombScargle.false_alarm_probability` method:
 
 .. doctest-requires:: scipy
 
   >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
-  0.46250302015146821
+  0.0043217866919174324
 
 What this tells us is that, under the assumption that there is no periodic
 signal in the data, we will observe a peak this high or higher approximately
-46% of the time. But be careful: this *cannot* be turned around to say that
-there is a 46% chance that our data lacks a periodic component; in general
-:math:`P({\rm data} \mid {\rm model}) \ne P({\rm model} \mid {\rm data})`.
-Nevertheless the false alarm probability can be a useful practical diagnostic.
+0.4% of the time, which gives a strong indication that a periodic signal is
+present in the data.
+
+.. Note::
+  One must be careful in interpreting this probability: it is a measurement
+  conditioned on the assumption of the null hypothesis of no signal; in symbols,
+  one might write :math:`P({\rm data} \mid {\rm noise-only})`.
+
+  It is tempting to interpret this quantity incorrectly; in particular, you
+  might wish to say a statement like "there is an 0.4% chance that this data
+  is noise only", but this is *not* a correct statement; in symbols, this
+  statement describes the quantity :math:`P({\rm noise-only} \mid {\rm data})`,
+  and in general :math:`P(A\mid B) \ne P(B\mid A)`.
+
+  See [11]_ for a more detailed discussion of such caveats.
 
 We might also wish to compute the required peak height to attain any given
 false alarm probability, which can be done with the
@@ -467,10 +479,11 @@ false alarm probability, which can be done with the
 
   >>> probabilities = [0.1, 0.05, 0.01]
   >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
-  array([ 0.16933333,  0.18232647,  0.21081934])
+  array([ 0.25446627,  0.27436154,  0.31716182])
 
 This tells us that to attain a 10% false alarm probability requires the highest
-periodogram peak to be approximately 0.17.
+periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires
+0.32.
 
 False Alarm Approximations
 --------------------------
@@ -480,25 +493,55 @@ computable, there is no closed-form analytic expression for the more relevant
 quantity of the false alarm level of the *highest* peak in a particular
 periodogram.
 This must be either determined through bootstrap simulations, or approximated
-by various means (see Baluev 2008  [8]_ for some discussion).
+by various means.
 
-By default, astropy uses the approximation proposed by Baluev [8]_, which uses
-extreme value statistics to quickly compute an upper-limit on the true
-false alarm probability. A much more accurate (but much less efficient)
-method is to compute false alarm rates using bootstrap samples; for
-example:
+AstroPy provides four options for approximating the false alarm probability,
+which can be chosen using the ``method`` keyword:
 
-.. doctest-requires:: scipy
+- ``method="baluev"`` (the default)
+  implements the approximation proposed by Baluev 2008 [8]_,
+  which employs extreme value statistics to compute an upper-bound of the false
+  alarm probability for the alias-free case. Experiments show that the bound is
+  also useful even for highly-aliased observing patterns.
 
-  >>> ls.false_alarm_level(probabilities, method='bootstrap')  # doctest: +SKIP
-  0.378
+  .. doctest-requires:: scipy
 
-We see that the bootstrap estimate of the false alarm probability is somewhat
-smaller than the upper-limit computed using the Baluev approximation.
+    >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
+    0.0043217866919174324
 
-The following figure compares the bootstrap and Baluev estimates, along with
-a couple other estimates of the false alarm probability for 100 observations
-with a heavily-aliased observing pattern:
+- ``method="bootstrap"`` implements a bootstrap simulation: effectively it
+  computes many Lomb-Scargle periodograms on simulated data at the same
+  observation times. The bootstrap approach can very accurately determine
+  the false alarm probability, but is very computationally expensive:
+  to estimate the level corresponding to a false alarm probability
+  :math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
+  individual periodograms to be computed for the dataset.
+
+  .. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='bootstrap')  # doctest: +SKIP
+    0.0030000000000000027
+
+- ``method="davies"`` is related to the Baluev method, but loses accuracy
+  at large false alarm probabilities
+
+  .. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
+    0.0043311525763707216
+
+- ``method="naive"`` is a simplistic method based on the assumption that
+  well-separated areas in the periodogram are independent. In general, it
+  provides a very poor estimate of the false alarm probability and should
+  not be used in practice, but is included for completeness
+
+  .. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
+    0.0011693992470136049
+
+The following figure compares these false alarm estimates at a range of
+peak heights for 100 observations with a heavily-aliased observing pattern:
 
 .. plot::
 
@@ -540,17 +583,8 @@ with a heavily-aliased observing pattern:
            xlabel='Value of Highest Periodogram Peak',
            ylabel='False Alarm Probability');
 
-
-The ``"naive"`` method is not particularly accurate, because it relies on
-dubious reasoning about independent frequencies within the periodogram.
-The ``"baluev"`` method and the associated ``"davies"`` bound are based on
-extreme value statistics, and provide an upper-limit for the alias-free case
-(i.e. when the survey window does not have any significant structure),
-and tend to provide a useful upper-limit in more realistic cases [8]_.
-The ``"bootstrap"`` method is the most accurate, but can be quite computationally
-expensive: to estimate the level corresponding to a false alarm probability
-:math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
-individual periodograms to be computed for the dataset.
+In general, one should use the bootstrap approach when computationally feasible,
+and the Baluev approach otherwise.
 
 In all of this, it is important to keep in mind a few caveats:
 
