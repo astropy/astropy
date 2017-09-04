@@ -74,10 +74,10 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     # get barycentric sun coordinate
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', to_frame.equinox)
+    bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
 
     # offset to heliocentric
-    heliocart = from_coo.cartesian + bary_sun_pos
+    heliocart = from_coo.cartesian - bary_sun_pos
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
@@ -103,7 +103,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     from ..solar_system import get_body_barycentric
 
     # get barycentric sun coordinate
-    bary_sun_pos = get_body_barycentric('sun', from_coo.equinox)
+    bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
 
-    newrepr = intermed_repr - bary_sun_pos
+    newrepr = intermed_repr + bary_sun_pos
     return to_frame.realize_frame(newrepr)
