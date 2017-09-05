@@ -294,7 +294,6 @@ def test_identity_input():
 
     set_compound_model('regular')
 
-
 def test_invalid_operands():
     """
     Test that certain operators do not work with models whose inputs/outputs do
@@ -323,7 +322,23 @@ def test_compound_with_polynomials(poly):
     x, y = np.mgrid[:20, :37]
     result_compound = model(x, y)
     result = shift(poly(x, y))
-    set_compound_model('regular')
     assert_allclose(result, result_compound)
+    set_compound_model('regular')
 
 
+def test_variable_substitution():
+    set_compound_model('lite')
+    g1 = Gaussian2D(1, 0, 0, 1, 2)
+    g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
+    sg1_1 = g1 % {1: 0}
+    assert_almost_equal(sg1_1(0), g1(0, 0))
+    sg1_2 = g1 % {'x': 1}
+    assert_almost_equal(sg1_2(1.5), g1(1, 1.5))
+    gg1 = g1 & g2
+    sgg1_1 = gg1 % {1: 0.1, 3: 0.2}
+    assert_almost_equal(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
+    sgg1_2 = gg1 % {'x0': -.1, 2: .1}
+    assert_almost_equal(sgg1_2(1,1), gg1(-0.1, 1, 0.1, 1))
+    with pytest.raises(ValueError):
+        egg1 = gg1 % {'x0': 0, 0: 0}
+    set_compound_model('regular')

@@ -85,7 +85,6 @@ def _alt_model_oper(oper, **kwargs):
     This is an alternate version of compound models intended to use
     much less memory than the default.
     """
-    print("got request to do binary operation:", oper)
     return lambda left, right: _AltCompoundModel(oper, left, right, **kwargs)
 
 
@@ -256,19 +255,14 @@ class _AltCompoundModel(object):
                 kwargs = list(zip(kwind, kwval))
                 kwargs.sort()
                 kwindsorted, kwvalsorted = list(zip(*kwargs))
-                print(kwindsorted, kwvalsorted)
                 newargs = newargs + list(kwvalsorted)
             if subinds:
                 subargs = list(zip(subinds, subvals))
                 subargs.sort()
                 subindsorted, subvalsorted = list(zip(*subargs))
-                print(subindsorted, subvalsorted)
             # The substitutions must be inserted in order
             for ind, val in subargs:
                 newargs.insert(ind, val)
-            print(args)
-            print(newargs)
-            print(kw)
             return self.left(*newargs, **kw)
         else:
             raise ModelDefinitionError('unrecognized operator')
