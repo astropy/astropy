@@ -2892,6 +2892,14 @@ class _CompoundModel(Model):
                 units_for_data[param] = units_for_data_sub[param_sub]
         return units_for_data
 
+    def deepcopy(self):
+        """
+        Return a deep copy of a compound model.
+        """
+        new_model = self.copy()
+        new_model._submodels = [model.copy() for model in self._submodels]
+        return new_model
+
 
 def custom_model(*args, **kwargs):
     """
