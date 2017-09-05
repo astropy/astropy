@@ -208,8 +208,11 @@ class SkyCoord(ShapedLikeNDArray):
 
         frame = kwargs['frame']
         frame_attr_names = frame.get_frame_attr_names()
-        # Set internal versions of object state attributes
-        self._extra_attr_names = set()
+
+        # these are frame attributes set on this SkyCoord but *not* a part of
+        # the frame object this SkyCoord contains
+        self._extra_frameattr_names = set()
+
         for attr in kwargs:
             if (attr not in frame_attr_names and
                 attr in frame_transform_graph.frame_attributes):
@@ -286,7 +289,7 @@ class SkyCoord(ShapedLikeNDArray):
             # this to get all the right attributes
             self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
             out = SkyCoord(self, representation=self.representation, copy=False)
-            for attr in self._extra_attr_names:
+            for attr in self._extra_frameattr_names:
                 value = getattr(self, attr)
                 if getattr(value, 'size', 1) > 1:
                     value = apply_method(value)
@@ -537,7 +540,7 @@ class SkyCoord(ShapedLikeNDArray):
             # Validate it
             frame_transform_graph.frame_attributes[attr].__get__(self)
             # And add to set of extra attributes
-            self._extra_attr_names |= {attr}
+            self._extra_frameattr_names |= {attr}
 
         else:
             # Otherwise, do the standard Python attribute setting
@@ -563,7 +566,7 @@ class SkyCoord(ShapedLikeNDArray):
             # the corresponding private variable.  See __getattr__ above.
             super(SkyCoord, self).__delattr__('_' + attr)
             # Also remove it from the set of extra attributes
-            self._extra_attr_names -= {attr}
+            self._extra_frameattr_names -= {attr}
 
         else:
             # Otherwise, do the standard Python attribute setting
@@ -1522,7 +1525,7 @@ def _get_frame(args, kwargs):
 
     if isinstance(frame, SkyCoord):
         # Copy any extra attributes if they are not explicitly given.
-        for attr in frame._extra_attr_names:
+        for attr in frame._extra_frameattr_names:
             kwargs.setdefault(attr, getattr(frame, attr))
         frame = frame.frame
 
@@ -1700,9 +1703,13 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Now use the first to determine if they are all UnitSpherical
             allunitsphrepr = isinstance(scs[0].data, UnitSphericalRepresentation)
 
-            # get the frame attributes from the first one, because from above we
-            # know it matches all the others
-            for fattrnm in frame_transform_graph.frame_attributes:
+            # get the frame attributes from the first coord in the list, because
+            # from the above we know it matches all the others.  First copy over
+            # the attributes that are in the frame itself, then copy over any
+            # extras in the SkyCoord
+            for fattrnm in scs[0].frame.frame_attributes:
+                valid_kwargs[fattrnm] = getattr(scs[0].frame, fattrnm)
+            for fattrnm in scs[0]._extra_frameattr_names:
                 valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below
