@@ -39,7 +39,7 @@ but if you've set the environment variable ``XDG_CONFIG_HOME`` and the
     This is a slight variation from the behavior of most Linux
     applications with respect to ``$XDG_CONFIG_HOME``, where the
     default, if ``$XDG_CONFIG_HOME`` is not defined, would be to put
-    configuration in ``~/.config/astropy``.
+    configuration in ``~/.astropy/config``.
 
 Once you've found the configuration file, open it with your favorite editor.
 It should have all of the sections you might want, with descriptions and the
