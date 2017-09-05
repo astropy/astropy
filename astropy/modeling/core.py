@@ -1551,6 +1551,14 @@ class Model(object):
 
         return copy.deepcopy(self)
 
+    def deepcopy(self):
+        """
+        Return a deep copy of this model.
+
+        """
+
+        return copy.deepcopy(self)
+
     @sharedmethod
     def rename(self, name):
         """
