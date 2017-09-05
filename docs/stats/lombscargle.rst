@@ -504,7 +504,7 @@ which can be chosen using the ``method`` keyword:
   alarm probability for the alias-free case. Experiments show that the bound is
   also useful even for highly-aliased observing patterns.
 
-  .. doctest-requires:: scipy
+.. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
     0.0043217866919174324
@@ -517,7 +517,7 @@ which can be chosen using the ``method`` keyword:
   :math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
   individual periodograms to be computed for the dataset.
 
-  .. doctest-requires:: scipy
+.. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='bootstrap')  # doctest: +SKIP
     0.0030000000000000027
@@ -525,7 +525,7 @@ which can be chosen using the ``method`` keyword:
 - ``method="davies"`` is related to the Baluev method, but loses accuracy
   at large false alarm probabilities
 
-  .. doctest-requires:: scipy
+.. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
     0.0043311525763707216
@@ -535,7 +535,7 @@ which can be chosen using the ``method`` keyword:
   provides a very poor estimate of the false alarm probability and should
   not be used in practice, but is included for completeness
 
-  .. doctest-requires:: scipy
+.. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
     0.0011693992470136049
