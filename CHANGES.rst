@@ -1,3 +1,269 @@
+3.0 (unreleased)
+=================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Expanded the FITS ``Column`` interface to accept attributes pertaining to the FITS
+  World Coordinate System, which includes spatial(celestial) and time coordinates. [#6359]
+
+- Added ``ver`` attribute to set the ``EXTVER`` header keyword to ``ImageHDU``
+  and ``TableHDU``. [#6454]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+  - When writing to HDF5 files, the serialized metadata are now saved in a new
+    dataset, instead of the HDF5 dataset attributes. This allows for metadata of
+    any dimensions. [#6304]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Added support for reading and writing ``astropy.time.Time`` Table columns
+  to and from FITS tables, to the extent supported by the FITS standard. [#6176]
+
+- Improved exception handling and error messages when column ``format``
+  attribute is incorrect for the column type. [#6385]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Split pytest plugins into separate modules. [#6384]
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- The ``astropy.utils.console.ProgressBar.map`` class method now supports the
+  ``ipython_widget`` option. You can now pass it both ``multiprocess=True`` and
+  ``ipython_widget=True`` to get both multiprocess speedup and a progress bar
+  widget in an IPython Notebook. [#6368]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Added a new function ``celestial_frame_to_wcs`` to convert from
+  coordinate frames to WCS (the opposite of what ``wcs_to_celestial_frame``
+  currently does. [#6481]
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+  - When writing to HDF5 files, the serialized metadata are now saved in a new
+    dataset instead of the HDF5 dataset attributes. This allows for metadata of
+    any dimensions. [#6304]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+- When setting the column ``format`` attribute the value is now immediately
+  validated. Previously one could set to any value and it was only checked
+  when actually formatting the column. [#6385]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Properly handle opening of FITS files from ``http.client.HTTPResponse`` (i.e.
+  it now works correctly when passing the results of ``urllib.request.urlopen``
+  to ``fits.open``). [#6378]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Pytest <3.1 versions are no longer supported. [#6419]
+
+- The bundled CFITSIO was updated to version 3.41 [#6477]
+
+
 2.0.2 (unreleased)
 ==================
 
@@ -18,6 +284,9 @@ astropy.coordinates
 
 - Ensure transformations via ICRS also work for coordinates that use cartesian
   representations. [#6440]
+
+- Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
+  coordinate objects from being written out to ECSV files. [#6448]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
