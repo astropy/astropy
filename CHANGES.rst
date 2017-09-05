@@ -64,8 +64,8 @@ astropy.table
 
 - Added support for reading and writing ``astropy.time.Time`` Table columns
   to and from FITS tables, to the extent supported by the FITS standard. [#6176]
-  
-- Improved exception handling and error messages when column ``format`` 
+
+- Improved exception handling and error messages when column ``format``
   attribute is incorrect for the column type. [#6385]
 
 astropy.tests
@@ -155,7 +155,7 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- When setting the column ``format`` attribute the value is now immediately 
+- When setting the column ``format`` attribute the value is now immediately
   validated. Previously one could set to any value and it was only checked
   when actually formatting the column. [#6385]
 
@@ -194,9 +194,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
-  coordinate objects from being written out to ECSV files. [#6448]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -287,6 +284,9 @@ astropy.coordinates
 
 - Ensure transformations via ICRS also work for coordinates that use cartesian
   representations. [#6440]
+
+- Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
+  coordinate objects from being written out to ECSV files. [#6448]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
