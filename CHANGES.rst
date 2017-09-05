@@ -68,6 +68,11 @@ astropy.table
 - Improved exception handling and error messages when column ``format`` 
   attribute is incorrect for the column type. [#6385]
 
+- The FITS table reader now has an ``include_columns`` argument that allows
+  reading of a subset of columns from a FITS table into an astropy Table,
+  improving performance when small numbers of columns need to be extracted from
+  a FITS table with many more columns. [#6503]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

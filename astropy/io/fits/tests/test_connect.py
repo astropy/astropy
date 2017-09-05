@@ -155,6 +155,14 @@ class TestSingleTable(object):
         t = Table.read(hdu)
         assert equal_data(t, self.data)
 
+    def test_read_include_columns(self):
+        include_columns = ['a', 'c']
+        hdu = BinTableHDU(self.data)
+
+        t = Table.read(hdu, include_columns=include_columns)
+        assert len(t.columns) == 2
+        assert np.all(np.in1d(t.colnames, include_columns))
+
 
 class TestMultipleHDU(object):
 
