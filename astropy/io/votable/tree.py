@@ -3239,7 +3239,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     tests for building the rest of the structure depend on it.
     """
 
-    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.2"):
+    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.3"):
         if config is None:
             config = {}
         self._config = config
@@ -3256,9 +3256,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version not in ("1.0", "1.1", "1.2"):
+        if version not in ("1.0", "1.1", "1.2", "1.3"):
             raise ValueError("'version' should be one of '1.0', '1.1', "
-                             "or '1.2'")
+                             "'1.2', or '1.3'")
 
         self._version = version
 
