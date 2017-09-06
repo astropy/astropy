@@ -810,10 +810,6 @@ class sharedmethod(classmethod):
         this implements the Example.identify classmethod
     """
 
-    def __getobjwrapper(func):
-        return func
-
-    @__getobjwrapper
     def __get__(self, obj, objtype=None):
         if obj is None:
             mcls = type(objtype)
@@ -833,8 +829,6 @@ class sharedmethod(classmethod):
             return self._make_method(func, objtype)
         else:
             return self._make_method(self.__func__, obj)
-
-    del __getobjwrapper
 
     if not six.PY2:
         # The 'instancemethod' type of Python 2 and the method type of
