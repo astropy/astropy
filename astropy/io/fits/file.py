@@ -458,19 +458,6 @@ class _File(object):
             self._overwrite_existing(overwrite, fileobj, closed)
 
         if not closed:
-            # Although we have a specific mapping in IO_FITS_MODES from our
-            # custom file modes to raw file object modes, many of the latter
-            # can be used appropriately for the former.  So determine whether
-            # the modes match up appropriately
-            if ((mode in ('readonly', 'denywrite', 'copyonwrite') and
-                    not ('r' in fmode or '+' in fmode)) or
-                    (mode == 'append' and fmode not in ('ab+', 'rb+')) or
-                    (mode == 'ostream' and
-                     not ('w' in fmode or 'a' in fmode or '+' in fmode)) or
-                    (mode == 'update' and fmode not in ('rb+', 'wb+'))):
-                raise ValueError(
-                    "Mode argument '{}' does not match mode of the input "
-                    "file ({}).".format(mode, fmode))
             self._file = fileobj
         elif isfile(fileobj):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
