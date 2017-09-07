@@ -449,7 +449,7 @@ class _File(object):
         return self.compression is not None
 
     def _open_fileobj(self, fileobj, mode, overwrite):
-        """Open a FITS file from a file object or a GzipFile object."""
+        """Open a FITS file from a file object (including compressed files)."""
 
         closed = fileobj_closed(fileobj)
         fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
