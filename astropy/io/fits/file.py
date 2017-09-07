@@ -465,7 +465,16 @@ class _File(object):
         # Attempt to determine if the file represented by the open file object
         # is compressed
         try:
+            # We need to account for the possibility that the underlying file
+            # handle may have been opened with either 'ab' or 'ab+', which
+            # means that the current file position is at the end of the file.
+            if mode in ['ostream', 'append']:
+                self._file.seek(0)
             magic = self._file.read(4)
+            # No matter whether the underlying file was opened with 'ab' or
+            # 'ab+', we need to return to the beginning of the file in order
+            # to properly process the FITS header (and handle the possibility
+            # of a compressed file).
             self._file.seek(0)
         except (IOError,OSError):
             return
