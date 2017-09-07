@@ -312,6 +312,8 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug that wrote out VO table as version 1.2 instead of 1.3. [#6521]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
