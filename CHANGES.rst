@@ -345,6 +345,9 @@ astropy.tests
 
 - Fixed issue running doctests with pytest>=3.2. [#6423]
 
+- Fixed issue caused by antivirus software in response to malformed compressed
+  files used for testing. [#6522]
+
 astropy.time
 ^^^^^^^^^^^^
 
