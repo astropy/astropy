@@ -143,6 +143,7 @@ class _AltCompoundModel(object):
                 # or names for inputs.
                 self.n_inputs = left.n_inputs - len(right)
                 self.outputs = left.outputs
+                self.n_outputs = left.n_outputs
                 newinputs = list(left.inputs)                
                 keys = right.keys()
                 input_ind = []
