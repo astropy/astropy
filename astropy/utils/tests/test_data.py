@@ -162,15 +162,18 @@ def bad_compressed(request, tmpdir):
     bz_content = b'BZhinvalid'
     gz_content = b'\x1f\x8b\x08invalid'
 
-    filename = os.path.join(tmpdir, request.param)
-    with open(filename, 'wb') as handle:
-        if filename.endswith('.bz2'):
-            contents = bz_content
-        elif filename.endswith('.gz'):
-            contents = gz_content
-        else:
-            contents = 'invalid'
-        handle.write(contents)
+    datafile = tmpdir.join(request.param)
+    filename = datafile.strpath
+
+    if filename.endswith('.bz2'):
+        contents = bz_content
+    elif filename.endswith('.gz'):
+        contents = gz_content
+    else:
+        contents = 'invalid'
+
+    datafile.write(contents, mode='wb')
+
     return filename
 
 
