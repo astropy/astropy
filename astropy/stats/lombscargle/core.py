@@ -51,9 +51,8 @@ class LombScargle(object):
         of the input data. This is especially important if fit_mean = False
     nterms : int (optional, default=1)
         number of terms to use in the Fourier fit
-    normalization : string (optional, default='standard')
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
         Normalization to use for the periodogram.
-        Options are 'standard', 'model', 'log', or 'psd'.
 
     Examples
     --------
@@ -253,8 +252,8 @@ class LombScargle(object):
 
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
-        normalization : string (optional)
-            if specified, override the normalization specified at instantiation
+        normalization : {'standard', 'model', 'log', 'psd'}, optional
+            If specified, override the normalization specified at instantiation.
         samples_per_peak : float (optional, default=5)
             The approximate number of desired samples across the typical peak
         nyquist_factor : float (optional, default=5)
@@ -314,15 +313,15 @@ class LombScargle(object):
             if True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
-        normalization : string
-            if specified, override the normalization specified at instantiation
+        normalization : {'standard', 'model', 'log', 'psd'}, optional
+            If specified, override the normalization specified at instantiation.
         fit_mean : bool (optional, default=True)
-            if True, include a constant offset as part of the model at each
+            If True, include a constant offset as part of the model at each
             frequency. This can lead to more accurate results, especially in
             the case of incomplete phase coverage.
         center_data : bool (optional, default=True)
-            if True, pre-center the data by subtracting the weighted mean of
-            the input data. This is especially important if fit_mean = False
+            If True, pre-center the data by subtracting the weighted mean of
+            the input data. This is especially important if fit_mean = False.
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
 
@@ -381,9 +380,9 @@ class LombScargle(object):
         Parameters
         ----------
         power : array_like
-            the periodogram power at which to compute the distribution
+            The periodogram power at which to compute the distribution.
         cumulative : bool (optional)
-            if True, then return the cumulative distribution
+            If True, then return the cumulative distribution.
 
         See Also
         --------
@@ -414,18 +413,17 @@ class LombScargle(object):
         Parameters
         ----------
         power : array-like
-            the periodogram value
+            The periodogram value.
+        method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+            The approximation method to use.
         maximum_frequency : float
-            the maximum frequency of the periodogram
-        method : string
-            The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'naive', 'bootstrap']
+            The maximum frequency of the periodogram.
         method_kwds : dict (optional)
-            Additional method-specific keywords
+            Additional method-specific keywords.
 
         Returns
         -------
-        fap : np.ndarray
+        false_alarm_probability : np.ndarray
             The false alarm probability
 
         Notes
@@ -486,20 +484,19 @@ class LombScargle(object):
         Parameters
         ----------
         false_alarm_probability : array-like
-            the false alarm probability (0 < fap < 1)
+            The false alarm probability (0 < fap < 1).
         maximum_frequency : float
-            the maximum frequency of the periodogram
-        method : string
-            The approximation method to use; default='baluev'. Must be one of
-            ['baluev', 'davies', 'naive', 'bootstrap']
-        method_kwds : dict (optional)
-            Additional method-specific keywords
+            The maximum frequency of the periodogram.
+        method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+            The approximation method to use; default='baluev'.
+        method_kwds : dict, optional
+            Additional method-specific keywords.
 
         Returns
         -------
         power : np.ndarray
             The periodogram peak height corresponding to the specified
-            false alarm probability
+            false alarm probability.
 
         Notes
         -----
