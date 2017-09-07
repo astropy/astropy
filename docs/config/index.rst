@@ -31,15 +31,13 @@ can find the exact location by doing::
     >>> get_config_dir()
 
 And you should see the location of your configuration directory. The standard
-scheme generally puts your configuration directory in ``$HOME/.astropy/config``,
-but if you've set the environment variable ``XDG_CONFIG_HOME`` and the
-``$XDG_CONFIG_HOME/astropy`` directory exists, it will instead be there.
-
-.. note::
-    This is a slight variation from the behavior of most Linux
-    applications with respect to ``$XDG_CONFIG_HOME``, where the
-    default, if ``$XDG_CONFIG_HOME`` is not defined, would be to put
-    configuration in ``~/.astropy/config``.
+scheme generally puts your configuration directory in
+``$HOME/.astropy/config``. It can be customized with the environment variable
+``XDG_CONFIG_HOME`` and the ``$XDG_CONFIG_HOME/astropy`` directory must exist.
+Note that ``XDG_CONFIG_HOME`` comes from a Linux-centric specification (see
+`here <https://wiki.archlinux.org/index.php/XDG_Base_Directory_support>`_ for
+more details), but Astropy will use this on any OS as a more general mean to
+know where user-specific configurations should be written.
 
 Once you've found the configuration file, open it with your favorite editor.
 It should have all of the sections you might want, with descriptions and the
