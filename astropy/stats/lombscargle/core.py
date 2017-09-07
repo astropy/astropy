@@ -5,6 +5,7 @@ import numpy as np
 
 from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
+from . import _statistics
 from ... import units
 from ...utils.compat.numpy import broadcast_arrays
 from ...extern.six.moves import map
@@ -27,7 +28,7 @@ def strip_units(*arrs):
 
 
 class LombScargle(object):
-    """Compute the Lomb-Scargle Periodogram
+    """Compute the Lomb-Scargle Periodogram.
 
     This implementations here are based on code presented in [1]_ and [2]_;
     if you use this functionality in an academic application, citation of
@@ -50,6 +51,8 @@ class LombScargle(object):
         of the input data. This is especially important if fit_mean = False
     nterms : int (optional, default=1)
         number of terms to use in the Fourier fit
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        Normalization to use for the periodogram.
 
     Examples
     --------
@@ -98,12 +101,13 @@ class LombScargle(object):
     """
     available_methods = available_methods()
 
-    def __init__(self, t, y, dy=None,
-                 fit_mean=True, center_data=True, nterms=1):
+    def __init__(self, t, y, dy=None, fit_mean=True, center_data=True,
+                 nterms=1, normalization='standard'):
         self.t, self.y, self.dy = self._validate_inputs(t, y, dy)
         self.fit_mean = fit_mean
         self.center_data = center_data
         self.nterms = nterms
+        self.normalization = normalization
 
     def _validate_inputs(self, t, y, dy):
         # Validate shapes of inputs
@@ -163,7 +167,8 @@ class LombScargle(object):
             return 1
 
     def autofrequency(self, samples_per_peak=5, nyquist_factor=5,
-                      minimum_frequency=None, maximum_frequency=None):
+                      minimum_frequency=None, maximum_frequency=None,
+                      return_freq_limits=False):
         """Determine a suitable frequency grid for data.
 
         Note that this assumes the peak width is driven by the observational
@@ -191,6 +196,9 @@ class LombScargle(object):
         maximum_frequency : float (optional)
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
+        return_freq_limits : bool (optional)
+            if True, return only the frequency limits rather than the full
+            frequency grid.
 
         Returns
         -------
@@ -211,13 +219,16 @@ class LombScargle(object):
 
         Nf = 1 + int(np.round((maximum_frequency - minimum_frequency) / df))
 
-        return minimum_frequency + df * np.arange(Nf)
+        if return_freq_limits:
+            return minimum_frequency, minimum_frequency + df * (Nf - 1)
+        else:
+            return minimum_frequency + df * np.arange(Nf)
 
     def autopower(self, method='auto', method_kwds=None,
-                  normalization='standard', samples_per_peak=5,
+                  normalization=None, samples_per_peak=5,
                   nyquist_factor=5, minimum_frequency=None,
                   maximum_frequency=None):
-        """Compute Lomb-Scargle power at automatically-determined frequencies
+        """Compute Lomb-Scargle power at automatically-determined frequencies.
 
         Parameters
         ----------
@@ -241,9 +252,8 @@ class LombScargle(object):
 
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
-        normalization : string (optional, default='standard')
-            Normalization to use for the periodogram.
-            Options are 'standard', 'model', or 'psd'.
+        normalization : {'standard', 'model', 'log', 'psd'}, optional
+            If specified, override the normalization specified at instantiation.
         samples_per_peak : float (optional, default=5)
             The approximate number of desired samples across the typical peak
         nyquist_factor : float (optional, default=5)
@@ -271,9 +281,9 @@ class LombScargle(object):
                            assume_regular_frequency=True)
         return frequency, power
 
-    def power(self, frequency, normalization='standard', method='auto',
+    def power(self, frequency, normalization=None, method='auto',
               assume_regular_frequency=False, method_kwds=None):
-        """Compute the Lomb-Scargle power at the given frequencies
+        """Compute the Lomb-Scargle power at the given frequencies.
 
         Parameters
         ----------
@@ -303,16 +313,15 @@ class LombScargle(object):
             if True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
-        normalization : string (optional, default='standard')
-            Normalization to use for the periodogram.
-            Options are 'standard', 'model', 'log', or 'psd'.
+        normalization : {'standard', 'model', 'log', 'psd'}, optional
+            If specified, override the normalization specified at instantiation.
         fit_mean : bool (optional, default=True)
-            if True, include a constant offset as part of the model at each
+            If True, include a constant offset as part of the model at each
             frequency. This can lead to more accurate results, especially in
             the case of incomplete phase coverage.
         center_data : bool (optional, default=True)
-            if True, pre-center the data by subtracting the weighted mean of
-            the input data. This is especially important if fit_mean = False
+            If True, pre-center the data by subtracting the weighted mean of
+            the input data. This is especially important if fit_mean = False.
         method_kwds : dict (optional)
             additional keywords to pass to the lomb-scargle method
 
@@ -321,6 +330,8 @@ class LombScargle(object):
         power : ndarray
             The Lomb-Scargle power at the specified frequency
         """
+        if normalization is None:
+            normalization = self.normalization
         frequency = self._validate_frequency(frequency)
         power = lombscargle(*strip_units(self.t, self.y, self.dy),
                             frequency=strip_units(frequency),
@@ -333,7 +344,7 @@ class LombScargle(object):
         return power * self._power_unit(normalization)
 
     def model(self, t, frequency):
-        """Compute the Lomb-Scargle model at the given frequency
+        """Compute the Lomb-Scargle model at the given frequency.
 
         Parameters
         ----------
@@ -356,3 +367,178 @@ class LombScargle(object):
                              fit_mean=self.fit_mean,
                              nterms=self.nterms)
         return y_fit * get_unit(self.y)
+
+    def distribution(self, power, cumulative=False):
+        """Expected periodogram distribution under the null hypothesis.
+
+        This computes the expected probability distribution or cumulative
+        probability distribution of periodogram power, under the null
+        hypothesis of a non-varying signal with Gaussian noise. Note that
+        this is not the same as the expected distribution of peak values;
+        for that see the ``false_alarm_probability()`` method.
+
+        Parameters
+        ----------
+        power : array_like
+            The periodogram power at which to compute the distribution.
+        cumulative : bool (optional)
+            If True, then return the cumulative distribution.
+
+        See Also
+        --------
+        false_alarm_probability
+        false_alarm_level
+
+        Returns
+        -------
+        dist : np.ndarray
+            The probability density or cumulative probability associated with
+            the provided powers.
+        """
+        dH = 1 if self.fit_mean or self.center_data else 0
+        dK = dH + 2 * self.nterms
+        dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
+        return dist(power, len(self.t), self.normalization, dH=dH, dK=dK)
+
+    def false_alarm_probability(self, power, method='baluev',
+                                samples_per_peak=5, nyquist_factor=5,
+                                minimum_frequency=None, maximum_frequency=None,
+                                method_kwds=None):
+        """False alarm probability of periodogram maxima under the null hypothesis.
+
+        This gives an estimate of the false alarm probability given the height
+        of the largest peak in the periodogram, based on the null hypothesis
+        of non-varying data with Gaussian noise.
+
+        Parameters
+        ----------
+        power : array-like
+            The periodogram value.
+        method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+            The approximation method to use.
+        maximum_frequency : float
+            The maximum frequency of the periodogram.
+        method_kwds : dict (optional)
+            Additional method-specific keywords.
+
+        Returns
+        -------
+        false_alarm_probability : np.ndarray
+            The false alarm probability
+
+        Notes
+        -----
+        The true probability distribution for the largest peak cannot be
+        determined analytically, so each method here provides an approximation
+        to the value. The available methods are:
+
+        - "baluev" (default): the upper-limit to the alias-free probability,
+          using the approach of Baluev (2008) [1]_.
+        - "davies" : the Davies upper bound from Baluev (2008) [1]_.
+        - "naive" : the approximate probability based on an estimated
+          effective number of independent frequencies.
+        - "bootstrap" : the approximate probability based on bootstrap
+          resamplings of the input data.
+
+        Note also that for normalization='psd', the distribution can only be
+        computed for periodograms constructed with errors specified.
+
+        See Also
+        --------
+        distribution
+        false_alarm_level
+
+        References
+        ----------
+        .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+        """
+        if self.nterms != 1:
+            raise NotImplementedError("false alarm probability is not "
+                                      "implemented for multiterm periodograms.")
+        if not (self.fit_mean or self.center_data):
+            raise NotImplementedError("false alarm probability is implemented "
+                                      "only for periodograms of centered data.")
+
+        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
+                                        nyquist_factor=nyquist_factor,
+                                        minimum_frequency=minimum_frequency,
+                                        maximum_frequency=maximum_frequency,
+                                        return_freq_limits=True)
+        return _statistics.false_alarm_probability(power,
+                                                   fmax=fmax,
+                                                   t=self.t, y=self.y, dy=self.dy,
+                                                   normalization=self.normalization,
+                                                   method=method,
+                                                   method_kwds=method_kwds)
+
+    def false_alarm_level(self, false_alarm_probability, method='baluev',
+                          samples_per_peak=5, nyquist_factor=5,
+                          minimum_frequency=None, maximum_frequency=None,
+                          method_kwds=None):
+        """Level of maximum at a given false alarm probability.
+
+        This gives an estimate of the periodogram level corresponding to a
+        specified false alarm probability for the largest peak, assuming a
+        null hypothesis of non-varying data with Gaussian noise.
+
+        Parameters
+        ----------
+        false_alarm_probability : array-like
+            The false alarm probability (0 < fap < 1).
+        maximum_frequency : float
+            The maximum frequency of the periodogram.
+        method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+            The approximation method to use; default='baluev'.
+        method_kwds : dict, optional
+            Additional method-specific keywords.
+
+        Returns
+        -------
+        power : np.ndarray
+            The periodogram peak height corresponding to the specified
+            false alarm probability.
+
+        Notes
+        -----
+        The true probability distribution for the largest peak cannot be
+        determined analytically, so each method here provides an approximation
+        to the value. The available methods are:
+
+        - "baluev" (default): the upper-limit to the alias-free probability,
+          using the approach of Baluev (2008) [1]_.
+        - "davies" : the Davies upper bound from Baluev (2008) [1]_.
+        - "naive" : the approximate probability based on an estimated
+          effective number of independent frequencies.
+        - "bootstrap" : the approximate probability based on bootstrap
+          resamplings of the input data.
+
+        Note also that for normalization='psd', the distribution can only be
+        computed for periodograms constructed with errors specified.
+
+        See Also
+        --------
+        distribution
+        false_alarm_probability
+
+        References
+        ----------
+        .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
+        """
+        if self.nterms != 1:
+            raise NotImplementedError("false alarm probability is not "
+                                      "implemented for multiterm periodograms.")
+        if not (self.fit_mean or self.center_data):
+            raise NotImplementedError("false alarm probability is implemented "
+                                      "only for periodograms of centered data.")
+
+        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
+                                        nyquist_factor=nyquist_factor,
+                                        minimum_frequency=minimum_frequency,
+                                        maximum_frequency=maximum_frequency,
+                                        return_freq_limits=True)
+        return _statistics.false_alarm_level(false_alarm_probability,
+                                             fmax=fmax,
+                                             t=self.t, y=self.y, dy=self.dy,
+                                             normalization=self.normalization,
+                                             method=method,
+                                             method_kwds=method_kwds)

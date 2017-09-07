@@ -12,6 +12,8 @@ implementations of the Lomb-Scargle periodogram, including a fast *O[NlogN]*
 implementation following the algorithm presented by Press & Rybicki [3]_.
 
 The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatspy`_ package ([6]_, [7]_).
+For a detailed practical discussion of the lomb-scargle periodogram, with code
+examples based on astropy, see *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at https://github.com/jakevdp/PracticalLombScargle/.
 
 .. _gatspy: http://astroml.org/gatspy
 .. _astroml: http://astroml.org/
@@ -122,14 +124,14 @@ For this reason, the heuristic can be tuned through keywords passed to the
 :func:`~astropy.stats.LombScargle.autopower` method. For example:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
->>> len(frequency), frequency.min(), frequency.max()
+>>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
 (500, 0.0010189890448009111, 1.0179700557561102)
 
 Here the highest frequency is two times the average Nyquist frequency.
 If we increase the ``nyquist_factor``, we can probe higher frequencies:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=10)
->>> len(frequency), frequency.min(), frequency.max()
+>>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
 (2500, 0.0010189890448009111, 5.0939262349597545)
 
 Alternatively, we can use the :func:`~astropy.stats.LombScargle.power`
@@ -360,14 +362,14 @@ Finally, it is sometimes useful to compute an unnormalized periodogram
 
 .. math::
 
-   P_{psd}(f) = \frac{N}{2}\left(\chi^2_{ref} - \chi^2(f)\right)
+   P_{psd}(f) = \frac{1}{2}\left(\chi^2_{ref} - \chi^2(f)\right)
 
-where *N* is the number of data points, which in the no-uncertainty case
-will have units ``y.unit ** 2``. This normalization is constructed to be
+which in the no-uncertainty case will have units ``y.unit ** 2``.
+This normalization is constructed to be
 comparable to the standard Fourier power spectral density (PSD):
 
->>> ls = LombScargle(t_days, y_mags)
->>> frequency, power = ls.autopower(normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, normalization='psd')
+>>> frequency, power = ls.autopower()
 >>> power.unit
 Unit("mag2")
 
@@ -377,8 +379,8 @@ even the unnormalized PSD periodogram will be dimensionless; this is due to
 the scaling of data by uncertainty within the Lomb-Scargle computation:
 
 >>> # with uncertainties, PSD power is unitless
->>> ls = LombScargle(t_days, y_mags, dy_mags)
->>> frequency, power = ls.autopower(normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, dy_mags, normalization='psd')
+>>> frequency, power = ls.autopower()
 >>> power.unit
 Unit(dimensionless)
 
@@ -400,7 +402,8 @@ Next we compute the two versions of the PSD from uniformly-sampled data:
 >>> t_days = np.arange(100) * u.day
 >>> y_mags = rand.randn(100) * u.mag
 >>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
->>> PSD_LS = LombScargle(t_days, y_mags).power(frequency, normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, normalization='psd')
+>>> PSD_LS = ls.power(frequency)
 
 Examining the results, we see that the two outputs match:
 
@@ -413,6 +416,191 @@ to be an extension of the Fourier PSD.
 
 For more information on the statistical properties of these normalizations,
 see e.g. Baluev 2008 [8]_.
+
+
+Peak Significance and False Alarm Probabilities
+===============================================
+
+.. Note::
+   Interpretation of Lomb-Scargle peak significance via false alarm
+   probabilities is a subtle subject, and the quantities computed below are
+   easy to misinterpret or misuse if one is not careful. For a detailed
+   discussion of periodogram peak significance, see see [11]_.
+
+When using the Lomb-Scargle Periodogram to decide whether a signal contains a
+periodic component, an important consideration is the significance of the
+periodogram peak. This significance is usually expressed in terms of a
+false alarm probability, which encodes the probability of measuring a
+peak of a given height (or higher) conditioned on the assumption that
+the data consists of Gaussian noise with no periodic component.
+
+For example, let's simulate 60 observations of a sine wave with noise:
+
+>>> t = 100 * rand.rand(60)
+>>> dy = 1.0
+>>> y = np.sin(2 * np.pi * t) + dy * rand.randn(60)
+>>> ls = LombScargle(t, y, dy)
+>>> freq, power = ls.autopower()
+>>> print(power.max())
+0.338140019582
+
+The peak of the periodogram has a value of 0.33, but how significant is
+this peak? We can address this question using the 
+:func:`~astropy.stats.LombScargle.false_alarm_probability` method:
+
+.. doctest-requires:: scipy
+
+  >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
+  0.0043217866919174324
+
+What this tells us is that, under the assumption that there is no periodic
+signal in the data, we will observe a peak this high or higher approximately
+0.4% of the time, which gives a strong indication that a periodic signal is
+present in the data.
+
+.. Note::
+  One must be careful in interpreting this probability: it is a measurement
+  conditioned on the assumption of the null hypothesis of no signal; in symbols,
+  one might write :math:`P({\rm data} \mid {\rm noise-only})`.
+
+  It is tempting to interpret this quantity incorrectly; in particular, you
+  might wish to say a statement like "there is an 0.4% chance that this data
+  is noise only", but this is *not* a correct statement; in symbols, this
+  statement describes the quantity :math:`P({\rm noise-only} \mid {\rm data})`,
+  and in general :math:`P(A\mid B) \ne P(B\mid A)`.
+
+  See [11]_ for a more detailed discussion of such caveats.
+
+We might also wish to compute the required peak height to attain any given
+false alarm probability, which can be done with the
+:func:`~astropy.stats.LombScargle.false_alarm_level` method:
+
+.. doctest-requires:: scipy
+
+  >>> probabilities = [0.1, 0.05, 0.01]
+  >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
+  array([ 0.25446627,  0.27436154,  0.31716182])
+
+This tells us that to attain a 10% false alarm probability requires the highest
+periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires
+0.32.
+
+False Alarm Approximations
+--------------------------
+
+Although the false alarm probability at any particular frequency is analytically
+computable, there is no closed-form analytic expression for the more relevant
+quantity of the false alarm level of the *highest* peak in a particular
+periodogram.
+This must be either determined through bootstrap simulations, or approximated
+by various means.
+
+AstroPy provides four options for approximating the false alarm probability,
+which can be chosen using the ``method`` keyword:
+
+- ``method="baluev"`` (the default)
+  implements the approximation proposed by Baluev 2008 [8]_,
+  which employs extreme value statistics to compute an upper-bound of the false
+  alarm probability for the alias-free case. Experiments show that the bound is
+  also useful even for highly-aliased observing patterns.
+
+.. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
+    0.0043217866919174324
+
+- ``method="bootstrap"`` implements a bootstrap simulation: effectively it
+  computes many Lomb-Scargle periodograms on simulated data at the same
+  observation times. The bootstrap approach can very accurately determine
+  the false alarm probability, but is very computationally expensive:
+  to estimate the level corresponding to a false alarm probability
+  :math:`P_{false}`, it requires on order :math:`n_{boot} \approx 10/P_{false}`
+  individual periodograms to be computed for the dataset.
+
+.. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='bootstrap')  # doctest: +SKIP
+    0.0030000000000000027
+
+- ``method="davies"`` is related to the Baluev method, but loses accuracy
+  at large false alarm probabilities
+
+.. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
+    0.0043311525763707216
+
+- ``method="naive"`` is a simplistic method based on the assumption that
+  well-separated areas in the periodogram are independent. In general, it
+  provides a very poor estimate of the false alarm probability and should
+  not be used in practice, but is included for completeness
+
+.. doctest-requires:: scipy
+
+    >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
+    0.0011693992470136049
+
+The following figure compares these false alarm estimates at a range of
+peak heights for 100 observations with a heavily-aliased observing pattern:
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.style.use('ggplot')
+
+    from astropy.stats import LombScargle
+
+    rng = np.random.RandomState(42)
+
+    N = 100
+    t = 5 * rng.rand(N)
+    t -= 0.5 * (t % 1)  # create alias-inducing structure in the window function
+    dy = 0.5 * (1 + rng.rand(N))
+    y = dy * rng.randn(N)
+
+    ls = LombScargle(t, y, dy, normalization='standard')
+    z = np.linspace(1E-3, 0.15, 1000)
+
+    def false_alarm(method):
+        return ls.false_alarm_probability(z, method=method, maximum_frequency=5)
+
+    fa_boot = ls.false_alarm_probability(z, method='bootstrap',
+                                         maximum_frequency=5,
+                                         method_kwds=dict(random_seed=42))
+
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+
+    ax.plot(z, false_alarm('naive'), label='naive estimate')
+    ax.plot(z, false_alarm('baluev'), label='Baluev estimate')
+    ax.plot(z, false_alarm('davies'), ':k', label='Davies bound')
+    ax.plot(z, fa_boot, '-k', label='bootstrap estimate')
+
+    ax.legend(loc='lower left')
+    ax.set(yscale='log',
+           title='False Alarm Estimates (N=100)',
+           xlim=(0, 0.15), ylim=(0.01, 1.5),
+           xlabel='Value of Highest Periodogram Peak',
+           ylabel='False Alarm Probability');
+
+In general, one should use the bootstrap approach when computationally feasible,
+and the Baluev approach otherwise.
+
+In all of this, it is important to keep in mind a few caveats:
+
+- False alarm probabilities are computed relative to a particular set of
+  observing times, and a particular choice of frequency grid.
+- False alarm probabilities are conditioned upon the null hypothesis of
+  data with no periodic component, and in particular say nothing
+  quantitative about whether the data are actually consistent with a
+  periodic model.
+- False alarm probabilities are not related to the question of whether the
+  highest peak in a periodogram is the *correct* peak, and in particular
+  are not especially useful in the case of observations with a strong
+  aliasing pattern.
+
+For a detailed discussion of these caveats and others when computing and
+interpreting false alarm probabilities, please refer to [11]_.
 
 
 Periodogram Algorithms
@@ -551,15 +739,16 @@ with lightcurve shape that is more complicated than a simple sine wave:
 
     # generate data and compute the periodogram
     t, mag, dmag = simulated_data(50)
-    freq, PLS = LombScargle(t, mag, dmag).autopower(minimum_frequency=1 / 1.2,
-                                                    maximum_frequency=1 / 0.2)
+    ls = LombScargle(t, mag, dmag, normalization='standard')
+    freq, PLS = ls.autopower(minimum_frequency=1 / 1.2,
+                             maximum_frequency=1 / 0.2)
     best_freq = freq[np.argmax(PLS)]
     phase = (t * best_freq) % 1
 
     # compute the best-fit model
     phase_fit = np.linspace(0, 1)
-    mag_fit = LombScargle(t, mag, dmag).model(t=phase_fit / best_freq,
-                                              frequency=best_freq)
+    mag_fit = ls.model(t=phase_fit / best_freq,
+                       frequency=best_freq)
 
     # set up the figure & axes for plotting
     fig, ax = plt.subplots(1, 2, figsize=(12, 5))
@@ -581,6 +770,11 @@ with lightcurve shape that is more complicated than a simple sine wave:
               xlim=(0.2, 1.2),
               ylim=(0, 1));
 
+    # plot the false-alarm levels
+    z_false = ls.false_alarm_level(0.01, maximum_frequency=1 / 0.2,
+                                   method='baluev')
+    ax[1].axhline(z_false, linestyle='dotted', color='black')
+
     # plot the phased data & model in the inset
     inset.errorbar(phase, mag, dmag, fmt='.k', capsize=0)
     inset.plot(phase_fit, mag_fit)
@@ -589,8 +783,10 @@ with lightcurve shape that is more complicated than a simple sine wave:
     inset.set_ylabel('mag')
 
 
-This example demonstrates that for irregularly-sampled data,
-the Lomb-Scargle periodogram can be sensitive to frequencies higher
+The dotted line shows the periodogram level corresponding to a maximum peak
+false alarm probability of 1%.
+This example demonstrates that for irregularly-sampled
+data, the Lomb-Scargle periodogram can be sensitive to frequencies higher
 than the average Nyquist frequency: the above data are sampled at
 an average rate of roughly one observation per night, and the periodogram
 relatively cleanly reveals the true period of 0.41 days.
@@ -612,6 +808,7 @@ Still, the periodogram has many spurious peaks, which are due to several factors
 The interaction of these effects means that in practice there is
 no absolute guarantee that the highest peak corresponds to the best frequency,
 and results must be interpreted carefully.
+For a detailed discussion of these effects, see [11]_.
 
 
 Literature References
@@ -639,3 +836,6 @@ Literature References
 .. [10] Zechmeister, M. and Kurster, M. *The generalised Lomb-Scargle
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
+.. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
+	arXiv:1703.09824 (2017)
+	http://adsabs.harvard.edu/abs/2017arXiv170309824V
