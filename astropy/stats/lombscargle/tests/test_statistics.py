@@ -17,10 +17,6 @@ from ..utils import convert_normalization, compute_chi2_ref
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']
 
-def _require_scipy(method):
-    if not HAS_SCIPY and method in ['baluev', 'davies']:
-        pytest.skip("SciPy required")
-
 
 @pytest.fixture
 def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):

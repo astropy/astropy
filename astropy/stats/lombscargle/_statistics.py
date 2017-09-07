@@ -59,19 +59,18 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
     Parameters
     ----------
     z : array-like
-        the periodogram value
+        The periodogram value.
     N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
+        The number of data points from which the periodogram was computed.
+    normalization : {'standard', 'model', 'log', 'psd'}
+        The periodogram normalization.
+    dH, dK : integers, optional
+        The number of parameters in the null hypothesis and the model.
 
     Returns
     -------
     pdf : np.ndarray
-        The expected probability density function
+        The expected probability density function.
 
     Notes
     -----
@@ -111,19 +110,18 @@ def fap_single(z, N, normalization, dH=1, dK=3):
     Parameters
     ----------
     z : array-like
-        the periodogram value
+        The periodogram value.
     N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
+        The number of data points from which the periodogram was computed.
+    normalization : {'standard', 'model', 'log', 'psd'}
+        The periodogram normalization.
+    dH, dK : integers, optional
+        The number of parameters in the null hypothesis and the model.
 
     Returns
     -------
-    fap : np.ndarray
-        The single-frequency false alarm probability
+    false_alarm_probability : np.ndarray
+        The single-frequency false alarm probability.
 
     Notes
     -----
@@ -163,18 +161,19 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
     Parameters
     ----------
     fap : array-like
-        the false alarm probability
+        The false alarm probability.
     N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
+        The number of data points from which the periodogram was computed.
+    normalization : {'standard', 'model', 'log', 'psd'}
+        The periodogram normalization.
+    dH, dK : integers, optional
+        The number of parameters in the null hypothesis and the model.
 
     Returns
     -------
     z : np.ndarray
+        The periodogram power corresponding to the single-peak false alarm
+        probability.
 
     Notes
     -----
@@ -213,19 +212,18 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
     Parameters
     ----------
     z : array-like
-        the periodogram value
+        The periodogram value.
     N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
+        The number of data points from which the periodogram was computed.
+    normalization : {'standard', 'model', 'log', 'psd'}
+        The periodogram normalization.
+    dH, dK : integers, optional
+        The number of parameters in the null hypothesis and the model.
 
     Returns
     -------
     cdf : np.ndarray
-        The expected cumulative distribution function
+        The expected cumulative distribution function.
 
     Notes
     -----
@@ -392,24 +390,22 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
     Parameters
     ----------
     Z : array-like
-        the periodogram value
+        The periodogram value.
     fmax : float
-        the maximum frequency of the periodogram
-    t, y, dy : arrays
-        the data times, values, and errors
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    method : string
-        The approximation method to use. Must be one of
-        ['baluev', 'davies', 'naive', 'bootstrap']
-    method_kwds : dict (optional)
-        Additional method-specific keywords
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+    method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+        The approximation method to use.
+    method_kwds : dict, optional
+        Additional method-specific keywords.
 
     Returns
     -------
-    fap : np.ndarray
-        The false alarm probability
+    false_alarm_probability : np.ndarray
+        The false alarm probability.
 
     Notes
     -----
@@ -454,24 +450,22 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
     Parameters
     ----------
     p : array-like
-        the false alarm probability (0 < fap < 1)
+        The false alarm probability (0 < p < 1).
     fmax : float
-        the maximum frequency of the periodogram
+        The maximum frequency of the periodogram.
     t, y, dy : arrays
-        the data times, values, and errors
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    method : string
-        The approximation method to use. Must be one of
-        ['baluev', 'davies', 'naive', 'bootstrap']
-    method_kwds : dict (optional)
-        Additional method-specific keywords
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+    method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
+        The approximation method to use.
+    method_kwds : dict, optional
+        Additional method-specific keywords.
 
     Returns
     -------
     z : np.ndarray
-        The periodogram level
+        The periodogram level.
 
     Notes
     -----
