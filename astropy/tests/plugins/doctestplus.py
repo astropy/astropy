@@ -1,7 +1,12 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This plugin provides advanced doctest support and enables the testing of .rst
+files.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
+from ...extern import six
 
 import doctest
 import fnmatch
@@ -12,7 +17,7 @@ import sys
 
 import pytest
 
-from .output_checker import AstropyOutputChecker, FIX
+from ..output_checker import AstropyOutputChecker, FIX
 
 try:
     import importlib.machinery as importlib_machinery
@@ -75,7 +80,11 @@ def pytest_configure(config):
         # behavior (which doesn't do whitespace normalization or
         # handling __doctest_skip__) doesn't happen.
         def collect(self):
-            if self.fspath.basename == "conftest.py":
+            # When running directly from pytest we need to make sure that we
+            # don't accidentally import setup.py!
+            if self.fspath.basename == "setup.py":
+                return
+            elif self.fspath.basename == "conftest.py":
                 try:
                     module = self.config._conftest.importconftest(self.fspath)
                 except AttributeError:  # pytest >= 2.8.0
@@ -199,8 +208,7 @@ def pytest_configure(config):
                     config.getini('doctest_rst') or config.option.doctest_rst),
         'doctestplus')
 
-    # Remove the doctest_plugin, or we'll end up testing the .rst
-    # files twice.
+    # Remove the doctest_plugin, or we'll end up testing the .rst files twice.
     config.pluginmanager.unregister(doctest_plugin)
 
 

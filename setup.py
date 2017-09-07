@@ -57,6 +57,19 @@ entry_points['console_scripts'] = [
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
 ]
+# Pytest plugins
+entry_points['pytest11'] = [
+    'remotedata = astropy.tests.plugins.remotedata',
+    'openfiles = astropy.tests.plugins.openfiles',
+    # Don't collide with the 'doctestplus' plugin name that will be registered
+    # by this plugin's pytest_configure hook
+    '_doctestplus = astropy.tests.plugins.doctestplus',
+    'repeat = astropy.tests.plugins.repeat',
+    'config = astropy.tests.plugins.config',
+    'display = astropy.tests.plugins.display',
+    # TODO: this plugin should no longer be required when PY2 support goes away
+    'unicode = astropy.tests.plugins.unicode'
+]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 
