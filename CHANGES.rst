@@ -267,20 +267,11 @@ Other Changes and Additions
 - The bundled CFITSIO was updated to version 3.41 [#6477]
 
 
-2.0.2 (unreleased)
+2.0.2 (2017-09-08)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -291,43 +282,16 @@ astropy.coordinates
 - Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
   coordinate objects from being written out to ECSV files. [#6448]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Support the ``GZIP_2`` FITS image compression algorithm as claimed
   in docs. [#6486]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
 - Fixed a bug that wrote out VO table as version 1.2 instead of 1.3. [#6521]
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -343,15 +307,13 @@ astropy.tests
 - Added error handling for attempting to run tests in parallel without having
   the ``pytest-xdist`` package installed. [#6416]
 
-- Fixed issue running doctests with pytest>=3.2. [#6423]
+- Fixed issue running doctests with pytest>=3.2. [#6423, #6430]
 
 - Fixed issue caused by antivirus software in response to malformed compressed
   files used for testing. [#6522]
+
 - Updated top-level config file to properly ignore top-level directories.
   [#6449]
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -365,15 +327,6 @@ astropy.utils
 - For the ``deprecated_renamed_argument`` decorator, refer to the deprecation‘s
   caller instead of ``astropy.utils.decorators``, to makes it easier to find
   where the deprecation warnings comes from. [#6422]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 2.0.1 (2017-07-30)
