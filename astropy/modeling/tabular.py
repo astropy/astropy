@@ -12,7 +12,8 @@ Examples
 ...                  [ 0.,  2.,  0.],
 ...                  [ 0.,  0.,  0.]])
 >>> points = ([1, 2, 3], [1, 2, 3])
->>> t2 = Tabular2D(points, lookup_table=table, bounds_error=False, fill_value=None, method='nearest')
+>>> t2 = Tabular2D(points, lookup_table=table, bounds_error=False,
+...                fill_value=None, method='nearest')
 
 """
 
@@ -103,8 +104,9 @@ class _Tabular(Model):
         if lookup_table is not None:
             lookup_table = np.asarray(lookup_table)
             if self.lookup_table.ndim != lookup_table.ndim:
-                raise ValueError("lookup_table should be an array with "
-                                 "{0} dimensions".format(self.lookup_table.ndim))
+                raise ValueError(
+                    "lookup_table should be an array with "
+                    "{0} dimensions".format(self.lookup_table.ndim))
             self.lookup_table = lookup_table
         if points is None:
             self.points = tuple(np.arange(x, dtype=np.float)
@@ -115,17 +117,18 @@ class _Tabular(Model):
             else:
                 self.points = points
             if len(self.points) != self.lookup_table.ndim:
-                raise ValueError("Expected grid points in "
-                                 "{0} directions, got {1}".format(self.lookup_table.ndim,
-                                                                  len(self.points)))
+                raise ValueError(
+                    "Expected grid points in "
+                    "{0} directions, got {1}".format(self.lookup_table.ndim,
+                                                     len(self.points)))
 
         self.bounds_error = bounds_error
         self.method = method
         self.fill_value = fill_value
 
     def __repr__(self):
-        fmt = "<{0}(points={1}, lookup_table={2})>".format(self.__class__.__name__,
-                                                           self.points, self.lookup_table)
+        fmt = "<{0}(points={1}, lookup_table={2})>".format(
+            self.__class__.__name__, self.points, self.lookup_table)
         return fmt
 
     def __str__(self):
@@ -157,10 +160,11 @@ class _Tabular(Model):
         Examples
         --------
         >>> from astropy.modeling.models import Tabular1D, Tabular2D
-        >>> t1 = Tabular1D(points=[1,2,3], lookup_table=[10, 20, 30])
+        >>> t1 = Tabular1D(points=[1, 2, 3], lookup_table=[10, 20, 30])
         >>> t1.bounding_box
         (1, 3)
-        >>> t2 = Tabular2D(points=[[1,2,3],[2,3,4]], lookup_table=[[10,20,30],[20,30,40]])
+        >>> t2 = Tabular2D(points=[[1, 2, 3], [2, 3, 4]],
+        ...                lookup_table=[[10, 20, 30], [20, 30, 40]])
         >>> t2.bounding_box
         ((2, 4), (1, 3))
 
@@ -220,7 +224,8 @@ def tabular_model(dim, name=None):
     >>> points = ([1, 2, 3], [1, 2, 3])
 
     Setting fill_value to None, allows extrapolation.
-    >>> m = tab(points, lookup_table=table, name='my_table', bounds_error=False, fill_value=None, method='nearest')
+    >>> m = tab(points, lookup_table=table, name='my_table',
+    ...         bounds_error=False, fill_value=None, method='nearest')
 
     >>> xinterp = [0, 1, 1.5, 2.72, 3.14]
     >>> m(xinterp, xinterp)
@@ -239,7 +244,6 @@ def tabular_model(dim, name=None):
 
 
 Tabular1D = tabular_model(1, name='Tabular1D')
-
 
 Tabular2D = tabular_model(2, name='Tabular2D')
 
@@ -273,7 +277,6 @@ _tab_docs = """
     Uses `scipy.interpolate.interpn`.
 """
 
-
 Tabular1D.__doc__ = """
     Tabular model in 1D.
     Returns an interpolated lookup table value.
@@ -285,7 +288,6 @@ Tabular1D.__doc__ = """
     lookup_table : array-like, of ndim=1.
         The data in one dimensions.
 """ + _tab_docs
-
 
 Tabular2D.__doc__ = """
     Tabular model in 2D.
