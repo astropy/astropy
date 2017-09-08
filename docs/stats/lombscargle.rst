@@ -340,7 +340,7 @@ around the periodic model:
 
 This form of the normalization can be specified with ``normalization='model'``.
 As above, the resulting power is a dimensionless
-quantity that lies in the range *0 ≤ P ≤ 1*.
+quantity that lies in the range *0 ≤ P ≤ ∞*.
 
 Logarithmic Normalization
 -------------------------
