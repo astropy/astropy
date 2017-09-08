@@ -344,6 +344,8 @@ astropy.tests
 
 - Fixed issue caused by antivirus software in response to malformed compressed
   files used for testing. [#6522]
+- Updated top-level config file to properly ignore top-level directories.
+  [#6449]
 
 astropy.time
 ^^^^^^^^^^^^
