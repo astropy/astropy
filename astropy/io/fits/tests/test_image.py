@@ -1778,6 +1778,37 @@ class TestCompressedImage(FitsTestCase):
         with pytest.raises(TypeError):
             comp_hdu.compressed_data
 
+    @pytest.mark.parametrize(
+        ('keyword', 'dtype', 'expected'),
+        [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
+         ('BSCALE', np.int32, np.float64), ('BZERO', np.uint8, np.float32),
+         ('BZERO', np.int16, np.float32), ('BZERO', np.int32, np.float64)])
+    def test_compressed_scaled_float(self, keyword, dtype, expected):
+        """
+        If BSCALE,BZERO is set to floating point values, the image
+        should be floating-point.
+
+        https://github.com/astropy/astropy/pull/6492
+
+        Parameters
+        ----------
+        keyword : `str`
+            Keyword to set to a floating-point value to trigger
+            floating-point pixels.
+        dtype : `numpy.dtype`
+            Type of original array.
+        expected : `numpy.dtype`
+            Expected type of uncompressed array.
+        """
+        value = 1.23345  # A floating-point value
+        hdu = fits.CompImageHDU(np.arange(0, 10, dtype=dtype))
+        hdu.header[keyword] = value
+        hdu.writeto(self.temp('test.fits'))
+        del hdu
+        with fits.open(self.temp('test.fits')) as hdu:
+            assert hdu[1].header[keyword] == value
+            assert hdu[1].data.dtype == expected
+
 
 def test_comphdu_bscale(tmpdir):
     """
