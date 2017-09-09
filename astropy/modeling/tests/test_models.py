@@ -566,6 +566,11 @@ def test_tabular_interp_1d():
     assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
     assert model.bounding_box == (0 * u.nm, 4 * u.nm)
 
+    model = LookupTable([1, 2, 3], [10, 20, 30] * u.nJy, bounds_error=False,
+                        fill_value=1e-33*(u.W / (u.m * u.m * u.Hz)))
+    assert_quantity_allclose(model(np.arange(5)),
+                             [100, 10, 20, 30, 100] * u.nJy)
+
 
 @pytest.mark.skipif("not HAS_SCIPY_14")
 def test_tabular_interp_2d():

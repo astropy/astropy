@@ -95,9 +95,8 @@ class _Tabular(Model):
 
     _id = 0
 
-    def __init__(self, points=None, lookup_table=None,
-                 method='linear', bounds_error=True, fill_value=np.nan,
-                 **kwargs):
+    def __init__(self, points=None, lookup_table=None, method='linear',
+                 bounds_error=True, fill_value=np.nan, **kwargs):
 
         n_models = kwargs.get('n_models', 1)
         if n_models > 1:
@@ -217,9 +216,16 @@ class _Tabular(Model):
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
             raise ImportError("This model requires scipy >= v0.14")
-        return interpn(self.points, self.lookup_table, inputs,
-                       method=self.method, bounds_error=self.bounds_error,
-                       fill_value=self.fill_value)
+        result = interpn(self.points, self.lookup_table, inputs,
+                         method=self.method, bounds_error=self.bounds_error,
+                         fill_value=self.fill_value)
+
+        # return_units not respected when points has no units
+        if (isinstance(self.lookup_table, u.Quantity) and
+                not isinstance(self.points[0], u.Quantity)):
+            result = result * self.lookup_table.unit
+
+        return result
 
 
 def tabular_model(dim, name=None):
