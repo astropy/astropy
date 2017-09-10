@@ -117,6 +117,12 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Enable Matplotlib's subtraction shorthand syntax for composing and
+  inverting trasformations for the ``WCSWorld2PixelTransform`` and
+  ``WCSPixel2WorldTransform`` classes by setting ``has_inverse`` to ``True``.
+  In order to implement a unit test, also implement the equality comparison
+  operator for both classes. [#6531]
+
 astropy.wcs
 ^^^^^^^^^^^
 

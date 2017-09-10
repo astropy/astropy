@@ -63,6 +63,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
     WCS transformation from world to pixel coordinates
     """
 
+    has_inverse = True
+
     def __init__(self, wcs, slice=None):
         super().__init__()
         self.wcs = wcs
@@ -78,6 +80,10 @@ class WCSWorld2PixelTransform(CurvedTransform):
                 self.y_index = slice.index('y')
         else:
             self.slice = None
+
+    def __eq__(self, other):
+        return (isinstance(other, type(self)) and self.wcs == other.wcs
+                and self.slice == other.slice)
 
     @property
     def input_dims(self):
@@ -118,6 +124,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
     WCS transformation from pixel to world coordinates
     """
 
+    has_inverse = True
+
     def __init__(self, wcs, slice=None):
         super().__init__()
         self.wcs = wcs
@@ -125,6 +133,10 @@ class WCSPixel2WorldTransform(CurvedTransform):
         if self.slice is not None:
             self.x_index = slice.index('x')
             self.y_index = slice.index('y')
+
+    def __eq__(self, other):
+        return (isinstance(other, type(self)) and self.wcs == other.wcs
+                and self.slice == other.slice)
 
     @property
     def output_dims(self):
@@ -188,6 +200,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
 
 class CoordinateTransform(CurvedTransform):
+
+    has_inverse = True
 
     def __init__(self, input_system, output_system):
         super().__init__()
