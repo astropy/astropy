@@ -492,6 +492,7 @@ def test_metadata_very_large_fails_compatibility_mode(tmpdir):
                  overwrite=True, compatibility_mode=True)
     assert len(w) == 2
 
+    # Error message slightly changed in h5py 2.7.1, thus the 2part assert
     assert str(w[1].message).startswith(
         "Attributes could not be written to the output HDF5 "
         "file: Unable to create attribute ")
