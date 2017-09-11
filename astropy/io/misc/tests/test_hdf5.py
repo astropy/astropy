@@ -413,7 +413,8 @@ def test_metadata_too_large(tmpdir):
     assert len(w) == 1
     assert str(w[0].message).startswith(
         "Attributes could not be written to the output HDF5 "
-        "file: Unable to create attribute (Object header message is too large)")
+        "file: Unable to create attribute ")
+    assert "bject header message is too large" in str(w[0].message)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
