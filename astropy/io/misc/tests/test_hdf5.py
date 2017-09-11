@@ -492,9 +492,11 @@ def test_metadata_very_large_fails_compatibility_mode(tmpdir):
                  overwrite=True, compatibility_mode=True)
     assert len(w) == 2
 
+    # Error message slightly changed in h5py 2.7.1, thus the 2part assert
     assert str(w[1].message).startswith(
         "Attributes could not be written to the output HDF5 "
-        "file: Unable to create attribute (Object header message is too large)")
+        "file: Unable to create attribute ")
+    assert "bject header message is too large" in str(w[1].message)
 
 
 @pytest.mark.skipif('not HAS_H5PY')
