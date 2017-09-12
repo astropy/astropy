@@ -95,9 +95,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -182,9 +179,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -258,9 +252,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -273,6 +264,9 @@ Other Changes and Additions
 
 - ``analytic_functions`` sub-package is removed.
   Use ``astropy.modeling.blackbody``. [#6541]
+- ``astropy.vo`` sub-package is removed. Use ``astropy.samp`` for SAMP and
+  ``astroquery`` for VO cone search. [#6540]
+
 
 2.0.3 (unreleased)
 ==================
