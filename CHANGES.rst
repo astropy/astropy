@@ -312,6 +312,8 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Suppress errors during WCS creation in CCDData.read(). [#6500]
+
 astropy.samp
 ^^^^^^^^^^^^
 
