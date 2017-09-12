@@ -3,6 +3,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import textwrap
+
 import numpy as np
 import pytest
 
@@ -11,7 +13,8 @@ from ...io import fits
 from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
 from ... import units as u
 from ... import log
-from ...wcs import WCS
+from ...wcs import WCS, FITSFixedWarning
+from ...tests.helper import catch_warnings
 from ...utils import NumpyRNGContext
 from ...utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                            get_pkg_data_contents)
@@ -678,6 +681,45 @@ def test_wcs_keyword_removal_for_wcs_test_files():
                 assert header[k] == v
             else:
                 np.testing.assert_almost_equal(header[k], v)
+
+
+def test_read_wcs_not_creatable(tmpdir):
+    # The following Header can't be converted to a WCS object. See also #6499.
+    hdr_txt_example_WCS = textwrap.dedent('''
+    SIMPLE  =                    T / Fits standard
+    BITPIX  =                   16 / Bits per pixel
+    NAXIS   =                    2 / Number of axes
+    NAXIS1  =                 1104 / Axis length
+    NAXIS2  =                 4241 / Axis length
+    CRVAL1  =         164.98110962 / Physical value of the reference pixel X
+    CRVAL2  =          44.34089279 / Physical value of the reference pixel Y
+    CRPIX1  =                -34.0 / Reference pixel in X (pixel)
+    CRPIX2  =               2041.0 / Reference pixel in Y (pixel)
+    CDELT1  =           0.10380000 / X Scale projected on detector (#/pix)
+    CDELT2  =           0.10380000 / Y Scale projected on detector (#/pix)
+    CTYPE1  = 'RA---TAN'           / Pixel coordinate system
+    CTYPE2  = 'WAVELENGTH'         / Pixel coordinate system
+    CUNIT1  = 'degree  '           / Units used in both CRVAL1 and CDELT1
+    CUNIT2  = 'nm      '           / Units used in both CRVAL2 and CDELT2
+    CD1_1   =           0.20760000 / Pixel Coordinate translation matrix
+    CD1_2   =           0.00000000 / Pixel Coordinate translation matrix
+    CD2_1   =           0.00000000 / Pixel Coordinate translation matrix
+    CD2_2   =           0.10380000 / Pixel Coordinate translation matrix
+    C2YPE1  = 'RA---TAN'           / Pixel coordinate system
+    C2YPE2  = 'DEC--TAN'           / Pixel coordinate system
+    C2NIT1  = 'degree  '           / Units used in both C2VAL1 and C2ELT1
+    C2NIT2  = 'degree  '           / Units used in both C2VAL2 and C2ELT2
+    RADECSYS= 'FK5     '           / The equatorial coordinate system
+    ''')
+    with catch_warnings(FITSFixedWarning):
+        hdr = fits.Header.fromstring(hdr_txt_example_WCS, sep='\n')
+    hdul = fits.HDUList([fits.PrimaryHDU(np.ones((4241, 1104)), header=hdr)])
+    filename = tmpdir.join('afile.fits').strpath
+    hdul.writeto(filename)
+    # The hdr cannot be converted to a WCS object because of an
+    # InconsistentAxisTypesError but it should still open the file
+    ccd = CCDData.read(filename, unit='adu')
+    assert ccd.wcs is None
 
 
 def test_header(ccd_data):
