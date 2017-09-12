@@ -47,7 +47,6 @@ env:
         - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902"
 
     matrix:
-        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
@@ -58,11 +57,12 @@ matrix:
 
     include:
 
-        # Try MacOS X.
+        # Try MacOS X. Use a slightly old numpy version to help test against
+        # all supported numpy versions.
         - os: osx
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem'
+               PIP_DEPENDENCIES='jplephem' NUMPY_VERSION=1.12
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
@@ -77,23 +77,19 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.10 is tested below in the image tests.
+        # Numpy 1.11 is tested below in the image tests, 1.12 in the OSX test.
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
                SETUP_CMD='test --open-files'
-        - os: linux
-          env: NUMPY_VERSION=1.12
-               SETUP_CMD='test --open-files -a "--durations=50"'
 
-        # Now try with all optional dependencies the latest 3.x and on 2.7.
-        # (with latest numpy). We also test the two latest matplotlib versions
-        # for the image tests.
+        # Now try with all optional dependencies.
+        # We also test the two latest matplotlib versions for the image tests.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem mock pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
-               NUMPY_VERSION=1.10
+               NUMPY_VERSION=1.11
                MATPLOTLIB_VERSION=1.5
 
         - os: linux
