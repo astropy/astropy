@@ -601,6 +601,8 @@ def test_tabular_interp_2d():
 
     with pytest.raises(ValueError):
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
+    with pytest.raises(ValueError):
+        model = LookupTable(lookup_table=[1, 2, 3])
     with pytest.raises(NotImplementedError):
         model = LookupTable(n_models=2)
     with pytest.raises(ValueError):
@@ -633,6 +635,9 @@ def test_tabular_nd():
     t = tab(lookup_table=a)
     result = t(x, y, z)
     utils.assert_allclose(a, result)
+
+    with pytest.raises(ValueError):
+        models.tabular_model(0)
 
 
 def test_with_bounding_box():
