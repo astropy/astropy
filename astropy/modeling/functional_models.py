@@ -8,19 +8,18 @@ from __future__ import (absolute_import, unicode_literals, division,
 from collections import OrderedDict
 
 import numpy as np
-from .core import (Fittable1DModel, Fittable2DModel, Model,
+
+from .core import (Fittable1DModel, Fittable2DModel,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError
-from ..utils.decorators import deprecated
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'BaseGaussian1D', 'Gaussian1D',
-           'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+           'Gaussian2D', 'Linear1D', 'Lorentz1D',
            'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor',
            'Scale', 'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
@@ -29,60 +28,7 @@ TWOPI = 2 * np.pi
 FLOAT_EPSILON = np.float(np.finfo(np.float32).tiny)
 
 
-class BaseGaussian1D(Fittable1DModel):
-    """Base class for 1D Gaussian models. Do not use this directly.
-
-    See Also
-    --------
-    Gaussian1D, GaussianAbsorption1D
-    """
-
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
-
-    # Ensure stddev makes sense if its bounds are not explicitly set.
-    # stddev must be non-zero and positive.
-    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
-
-    def bounding_box(self, factor=5.5):
-        """
-        Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of `stddev` used to define the limits.
-            The default is 5.5, corresponding to a relative error < 1e-7.
-
-        Examples
-        --------
-        >>> from astropy.modeling.models import Gaussian1D
-        >>> model = Gaussian1D(mean=0, stddev=2)
-        >>> model.bounding_box
-        (-11.0, 11.0)
-
-        This range can be set directly (see: `Model.bounding_box
-        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
-        like:
-
-        >>> model.bounding_box = model.bounding_box(factor=2)
-        >>> model.bounding_box
-        (-4.0, 4.0)
-        """
-
-        x0 = self.mean
-        dx = factor * self.stddev
-
-        return (x0 - dx, x0 + dx)
-
-    @property
-    def fwhm(self):
-        """Gaussian full width at half maximum."""
-        return self.stddev * gaussian_sigma_to_fwhm
-
-
-class Gaussian1D(BaseGaussian1D):
+class Gaussian1D(Fittable1DModel):
     """
     One dimensional Gaussian model.
 
@@ -164,6 +110,50 @@ class Gaussian1D(BaseGaussian1D):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
+    amplitude = Parameter(default=1)
+    mean = Parameter(default=0)
+
+    # Ensure stddev makes sense if its bounds are not explicitly set.
+    # stddev must be non-zero and positive.
+    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
+
+    def bounding_box(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5, corresponding to a relative error < 1e-7.
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: `Model.bounding_box
+        <astropy.modeling.Model.bounding_box>`) or by using a different factor,
+        like:
+
+        >>> model.bounding_box = model.bounding_box(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
+
+    @property
+    def fwhm(self):
+        """Gaussian full width at half maximum."""
+        return self.stddev * gaussian_sigma_to_fwhm
+
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -193,77 +183,6 @@ class Gaussian1D(BaseGaussian1D):
         return OrderedDict([('mean', inputs_unit['x']),
                             ('stddev', inputs_unit['x']),
                             ('amplitude', outputs_unit['y'])])
-
-
-# TODO: Don't need BaseGaussian1D anymore when this is removed.
-@deprecated('2.0', alternative='Gaussian1D and subtract it off Const1D')
-class GaussianAbsorption1D(BaseGaussian1D):
-    """
-    One dimensional Gaussian absorption line model.
-
-    Parameters
-    ----------
-    amplitude : float
-        Amplitude of the gaussian absorption.
-    mean : float
-        Mean of the gaussian.
-    stddev : float
-        Standard deviation of the gaussian.
-
-    Notes
-    -----
-
-    Model formula:
-
-        .. math:: f(x) = 1 - A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
-
-    Examples
-    --------
-    .. plot::
-        :include-source:
-
-        import numpy as np
-        import matplotlib.pyplot as plt
-        import warnings
-        from astropy.modeling.models import GaussianAbsorption1D
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        plt.figure()
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', AstropyDeprecationWarning)
-            s1 = GaussianAbsorption1D()
-        r = np.arange(-5, 5, .01)
-        for factor in range(1, 4):
-            s1.amplitude = factor
-            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
-
-        plt.axis([-5, 5, -3, 2])
-        plt.show()
-
-    See Also
-    --------
-    Gaussian1D
-    """
-
-    # Need this so deprecated decorator works.
-    def __init__(self, *args, **kwargs):
-        super(GaussianAbsorption1D, self).__init__(*args, **kwargs)
-
-    @staticmethod
-    def evaluate(x, amplitude, mean, stddev):
-        """
-        GaussianAbsorption1D model function.
-        """
-        return 1.0 - Gaussian1D.evaluate(x, amplitude, mean, stddev)
-
-    @staticmethod
-    def fit_deriv(x, amplitude, mean, stddev):
-        """
-        GaussianAbsorption1D model function derivatives.
-        """
-        import operator
-        return list(map(
-            operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev)))
 
 
 class Gaussian2D(Fittable2DModel):
