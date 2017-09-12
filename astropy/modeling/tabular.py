@@ -109,6 +109,10 @@ class _Tabular(Model):
         if not isinstance(lookup_table, u.Quantity):
             lookup_table = np.asarray(lookup_table)
 
+        if self.lookup_table.ndim != lookup_table.ndim:
+            raise ValueError("lookup_table should be an array with "
+                             "{0} dimensions.".format(self.lookup_table.ndim))
+
         if points is None:
             points = tuple(np.arange(x, dtype=np.float)
                            for x in lookup_table.shape)
@@ -267,6 +271,9 @@ def tabular_model(dim, name=None):
     array([ 3., 3., 3., 0., 0.])
 
     """
+    if dim < 1:
+        raise ValueError('Lookup table must have at least one dimension.')
+
     table = np.zeros([2] * dim)
     inputs = tuple('x{0}'.format(idx) for idx in range(table.ndim))
     members = {'lookup_table': table, 'inputs': inputs}
