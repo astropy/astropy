@@ -54,6 +54,9 @@ Astropy also depends on other packages for optional features:
 - `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
   Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
 
+- `bintrees <https://pypi.python.org/pypi/bintrees>`_ for *possible speedups*
+  with ``Table`` indexing.
+
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
 
