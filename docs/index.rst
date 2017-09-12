@@ -70,7 +70,6 @@ Data structures and transformations
    coordinates/index
    wcs/index
    modeling/index
-   analytic_functions/index
 
 Files, I/O, and Communication
 -----------------------------

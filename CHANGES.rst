@@ -266,6 +266,8 @@ Other Changes and Additions
 
 - The bundled CFITSIO was updated to version 3.41 [#6477]
 
+- ``analytic_functions`` sub-package is removed.
+  Use ``astropy.modeling.blackbody``. [#6541]
 
 2.0.3 (unreleased)
 ==================
