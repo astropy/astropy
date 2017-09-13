@@ -23,5 +23,5 @@ dependencies:
   - ipython
   - mpmath
   - pip:
-    - sphinx-gallery>=0.1.11
+    - sphinx-gallery>=0.1.12
     - jplephem
