@@ -431,6 +431,39 @@ class TestChecksumFunctions(FitsTestCase):
             assert (data2['TIME'][1:] == data['TIME'][1:]).all()
             assert data2['TIME'][0] == 42
 
+    def test_overwrite_invalid(self):
+        """
+        Tests that invalid checksum or datasum are overwriten when the file is
+        saved.
+        """
+
+        reffile = self.temp('ref.fits')
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul.writeto(reffile, checksum=True)
+
+        testfile = self.temp('test.fits')
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul[0].header['DATASUM'] = 'foobar'
+            hdul[0].header['CHECKSUM'] = 'foobar'
+            hdul[1].header['DATASUM'] = 'foobar'
+            hdul[1].header['CHECKSUM'] = 'foobar'
+            hdul.writeto(testfile)
+
+        with fits.open(testfile) as hdul:
+            hdul.writeto(self.temp('test2.fits'), checksum=True)
+
+        with fits.open(self.temp('test2.fits')) as hdul:
+            with fits.open(reffile) as ref:
+                assert 'CHECKSUM' in hdul[0].header
+                # These checksums were verified against CFITSIO
+                assert hdul[0].header['CHECKSUM'] == ref[0].header['CHECKSUM']
+                assert 'DATASUM' in hdul[0].header
+                assert hdul[0].header['DATASUM'] == '0'
+                assert 'CHECKSUM' in hdul[1].header
+                assert hdul[1].header['CHECKSUM'] == ref[1].header['CHECKSUM']
+                assert 'DATASUM' in hdul[1].header
+                assert hdul[1].header['DATASUM'] == ref[1].header['DATASUM']
+
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, '_datasum') and hdu._datasum):
             pytest.fail(msg='Missing DATASUM keyword')
