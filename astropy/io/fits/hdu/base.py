@@ -526,7 +526,9 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 del self._header[datasum_keyword]
         elif (modified or self._new or
                 (checksum and ('CHECKSUM' not in self._header or
-                               'DATASUM' not in self._header))):
+                               'DATASUM' not in self._header or
+                               not self._checksum_valid or
+                               not self._datasum_valid))):
             if checksum == 'datasum':
                 self.add_datasum(datasum_keyword=datasum_keyword)
             elif checksum == 'nonstandard':
@@ -871,6 +873,14 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super(_ValidHDU, self).__init__(data=data, header=header)
+
+        # NOTE:  private data members _checksum and _datasum are used by the
+        # utility script "fitscheck" to detect missing checksums.
+        self._checksum = None
+        self._checksum_valid = None
+        self._datasum = None
+        self._datasum_valid = None
+
         if name is not None:
             self.name = name
         if ver is not None:
@@ -1323,34 +1333,21 @@ class _ValidHDU(_BaseHDU, _Verify):
         Simply displays warnings if either the checksum or datasum don't match.
         """
 
-        # NOTE:  private data members _checksum and _datasum are
-        # used by the utility script "fitscheck" to detect missing
-        # checksums.
-
         if 'CHECKSUM' in self._header:
             self._checksum = self._header['CHECKSUM']
-            self._checksum_comment = self._header.comments['CHECKSUM']
-            if not self.verify_checksum(blocking):
+            self._checksum_valid = self.verify_checksum(blocking)
+            if not self._checksum_valid:
                 warnings.warn(
                     'Checksum verification failed for HDU {0}.\n'.format(
                         (self.name, self.ver)), AstropyUserWarning)
-        else:
-            self._checksum = None
-            self._checksum_comment = None
 
         if 'DATASUM' in self._header:
             self._datasum = self._header['DATASUM']
-            self._datasum_comment = self._header.comments['DATASUM']
-
-            if not self.verify_datasum(blocking):
+            self._datasum_valid = self.verify_datasum(blocking)
+            if not self._datasum_valid:
                 warnings.warn(
                     'Datasum verification failed for HDU {0}.\n'.format(
                         (self.name, self.ver)), AstropyUserWarning)
-        else:
-            self._checksum = None
-            self._checksum_comment = None
-            self._datasum = None
-            self._datasum_comment = None
 
     def _get_timestamp(self):
         """
