@@ -45,6 +45,10 @@ astropy.nddata
 
 - Suppress errors during WCS creation in CCDData.read(). [#6500]
 
+- Fixed a problem with ``CCDData.read`` when the extension wasn't given and the
+  primary HDU contained no ``data`` but another HDU did. In that case the header
+  were not correctly combined. [#6489]
+
 astropy.samp
 ^^^^^^^^^^^^
 
