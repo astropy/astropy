@@ -367,14 +367,6 @@ class TestChecksumFunctions(FitsTestCase):
             if not (hasattr(hdul[0], '_checksum') and not hdul[0]._checksum):
                 pytest.fail(msg='Non-empty CHECKSUM keyword')
 
-            if not (hasattr(hdul[0], '_datasum_comment') and
-                    hdul[0]._datasum_comment):
-                pytest.fail(msg='Missing DATASUM Card comment')
-
-            if not (hasattr(hdul[0], '_checksum_comment') and
-                    not hdul[0]._checksum_comment):
-                pytest.fail(msg='Non-empty CHECKSUM Card comment')
-
     def test_open_update_mode_preserve_checksum(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148 where
@@ -445,9 +437,3 @@ class TestChecksumFunctions(FitsTestCase):
 
         if not (hasattr(hdu, '_checksum') and hdu._checksum):
             pytest.fail(msg='Missing CHECKSUM keyword')
-
-        if not (hasattr(hdu, '_datasum_comment') and hdu._datasum_comment):
-            pytest.fail(msg='Missing DATASUM Card comment')
-
-        if not (hasattr(hdu, '_checksum_comment') and hdu._checksum_comment):
-            pytest.fail(msg='Missing CHECKSUM Card comment')
