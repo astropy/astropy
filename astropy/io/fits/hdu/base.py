@@ -529,15 +529,6 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                                'DATASUM' not in self._header))):
             if checksum == 'datasum':
                 self.add_datasum(datasum_keyword=datasum_keyword)
-            elif checksum == 'nonstandard_datasum':
-                self.add_datasum(blocking='nonstandard',
-                                 datasum_keyword=datasum_keyword)
-            elif checksum == 'test':
-                self.add_datasum(self._datasum_comment,
-                                 datasum_keyword=datasum_keyword)
-                self.add_checksum(self._checksum_comment, True,
-                                  checksum_keyword=checksum_keyword,
-                                  datasum_keyword=datasum_keyword)
             elif checksum == 'nonstandard':
                 self.add_checksum(blocking='nonstandard',
                                   checksum_keyword=checksum_keyword,
