@@ -55,21 +55,6 @@ class TestChecksumFunctions(FitsTestCase):
                 assert hdul[0].header['CHECKSUM'] == 'ZHMkeGKjZGKjbGKj'
                 assert hdul[0].header['DATASUM'] == '4950'
 
-    def test_nonstandard_checksum(self):
-        hdu = fits.PrimaryHDU(np.arange(10.0 ** 6, dtype=np.float64))
-        hdu.writeto(self.temp('tmp.fits'), overwrite=True,
-                    checksum='nonstandard')
-        del hdu
-        with fits.open(self.temp('tmp.fits'), checksum='nonstandard') as hdul:
-            assert 'CHECKSUM' in hdul[0].header
-            assert 'DATASUM' in hdul[0].header
-
-            if not sys.platform.startswith('win32'):
-                # The checksum ends up being different on Windows, possibly due
-                # to slight floating point differences
-                assert hdul[0].header['CHECKSUM'] == 'jD4Am942jC48j948'
-                assert hdul[0].header['DATASUM'] == '4164005614'
-
     def test_scaled_data(self):
         with fits.open(self.data('scale.fits')) as hdul:
             orig_data = hdul[0].data.copy()

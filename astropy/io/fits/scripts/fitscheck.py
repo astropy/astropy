@@ -13,12 +13,11 @@ regardless of whether or not they currently exist or pass.  Use
 
 Example uses of fitscheck:
 
-1. Verify and update checksums, tolerating non-standard checksums, updating to
-   standard checksum::
+1. Add checksums::
 
-    $ fitscheck --checksum either --write *.fits
+    $ fitscheck --write *.fits
 
-2. Write new checksums,  even if existing checksums are bad or missing::
+2. Write new checksums, even if existing checksums are bad or missing::
 
     $ fitscheck --write --force *.fits
 
@@ -26,19 +25,15 @@ Example uses of fitscheck:
 
     $ fitscheck --compliance *.fits
 
-4. Verify original nonstandard checksums only::
-
-    $ fitscheck --checksum nonstandard *.fits
-
-5. Only check and fix compliance problems,  ignoring checksums::
+4. Only check and fix compliance problems,  ignoring checksums::
 
     $ fitscheck --checksum none --compliance --write *.fits
 
-6. Verify standard interoperable checksums::
+5. Verify standard interoperable checksums::
 
     $ fitscheck *.fits
 
-7. Delete checksum keywords::
+6. Delete checksum keywords::
 
     $ fitscheck --checksum none --write *.fits
 """
@@ -54,6 +49,7 @@ from ... import fits
 
 
 log = logging.getLogger('fitscheck')
+
 
 def handle_options(args):
     if not len(args):
@@ -71,9 +67,9 @@ def handle_options(args):
 
     parser.add_option(
         '-k', '--checksum', dest='checksum_kind',
-        type='choice', choices=['standard', 'nonstandard', 'either', 'none'],
+        type='choice', choices=['standard', 'none'],
         help='Choose FITS checksum mode or none.  Defaults standard.',
-        default='standard', metavar='[standard | nonstandard | either | none]')
+        default='standard', metavar='[standard | none]')
 
     parser.add_option(
         '-w', '--write', dest='write_file',
