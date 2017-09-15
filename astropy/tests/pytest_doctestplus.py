@@ -280,10 +280,25 @@ class DoctestPlus(object):
         elif self._run_rst_doctests and path.ext == '.rst':
             # Ignore generated .rst files
             parts = str(path).split(os.path.sep)
-            if (path.basename.startswith('_') or
-                    any(x.startswith('_') for x in parts) or
-                    any(x == 'api' for x in parts)):
+
+            # Don't test files that start with a _
+            if path.basename.startswith('_'):
                 return None
+
+            # Don't test files in directories that start with a '_' if those
+            # directories are inside docs. Note that we *should* allow for
+            # example /tmp/_q/docs/file.rst but not /tmp/docs/_build/file.rst
+            # If we don't find 'docs' in the path, we should just skip this
+            # check to be safe. We also want to skip any api sub-directory
+            # of docs.
+            if 'docs' in parts:
+                # We index from the end on the off chance that the temporary
+                # directory includes 'docs' in the path, e.g.
+                # /tmp/docs/371j/docs/index.rst You laugh, but who knows! :)
+                # Also, it turns out lists don't have an rindex method. Huh??!!
+                docs_index = len(parts) - 1 - parts[::-1].index('docs')
+                if any(x.startswith('_') or x == 'api' for x in parts[docs_index:]):
+                    return None
 
             # TODO: Get better names on these items when they are
             # displayed in py.test output
