@@ -757,7 +757,7 @@ class TableHDU(_TableBaseHDU):
         self._init_tbdata(data)
         return data.view(self._data_type)
 
-    def _calculate_datasum(self, blocking):
+    def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
@@ -772,14 +772,14 @@ class TableHDU(_TableBaseHDU):
 
             d = np.append(bytes_array, padding)
 
-            cs = self._compute_checksum(d, blocking=blocking)
+            cs = self._compute_checksum(d)
             return cs
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(TableHDU, self)._calculate_datasum(blocking)
+            return super(TableHDU, self)._calculate_datasum()
 
     def _verify(self, option='warn'):
         """
@@ -842,14 +842,14 @@ class BinTableHDU(_TableBaseHDU):
         return (card.keyword == 'XTENSION' and
                 xtension in (cls._extension, 'A3DTABLE'))
 
-    def _calculate_datasum_with_heap(self, blocking):
+    def _calculate_datasum_with_heap(self):
         """
         Calculate the value for the ``DATASUM`` card given the input data
         """
 
         with _binary_table_byte_swap(self.data) as data:
             dout = data.view(type=np.ndarray, dtype=np.ubyte)
-            csum = self._compute_checksum(dout, blocking=blocking)
+            csum = self._compute_checksum(dout)
 
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
@@ -869,12 +869,11 @@ class BinTableHDU(_TableBaseHDU):
                         if not len(coldata):
                             continue
 
-                        csum = self._compute_checksum(coldata, csum,
-                                                      blocking=blocking)
+                        csum = self._compute_checksum(coldata, csum)
 
             return csum
 
-    def _calculate_datasum(self, blocking):
+    def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
@@ -883,13 +882,13 @@ class BinTableHDU(_TableBaseHDU):
             # This method calculates the datasum while incorporating any
             # heap data, which is obviously not handled from the base
             # _calculate_datasum
-            return self._calculate_datasum_with_heap(blocking)
+            return self._calculate_datasum_with_heap()
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(BinTableHDU, self)._calculate_datasum(blocking)
+            return super(BinTableHDU, self)._calculate_datasum()
 
     def _writedata_internal(self, fileobj):
         size = 0

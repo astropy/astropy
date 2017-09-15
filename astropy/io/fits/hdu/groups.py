@@ -517,7 +517,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                        errs)
         return errs
 
-    def _calculate_datasum(self, blocking):
+    def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
@@ -550,7 +550,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
             byte_data = d.view(type=np.ndarray, dtype=np.ubyte)
 
-            cs = self._compute_checksum(byte_data, blocking=blocking)
+            cs = self._compute_checksum(byte_data)
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
@@ -564,7 +564,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(GroupsHDU, self)._calculate_datasum(blocking=blocking)
+            return super(GroupsHDU, self)._calculate_datasum()
 
     def _summary(self):
         summary = super(GroupsHDU, self)._summary()
