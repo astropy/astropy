@@ -4,17 +4,29 @@ import pytest
 import numpy as np
 
 from .test_table import SetupData
-from ..bst import BST, FastRBT
+from ..bst import BST, FastRBT, FastBST
 from ..sorted_array import SortedArray
 from ..table import QTable, Row
 from ... import units as u
 from ...time import Time
 from ..column import BaseColumn
 
+try:
+    import bintrees
+except ImportError:
+    _HAS_BINTREES = False
+else:
+    _HAS_BINTREES = True
 
-@pytest.fixture(params=[BST, FastRBT, SortedArray])
-def engine(request):
-    return request.param
+
+if _HAS_BINTREES:
+    @pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
+    def engine(request):
+        return request.param
+else:
+    @pytest.fixture(params=[BST, SortedArray])
+    def engine(request):
+        return request.param
 
 
 _col = [1, 2, 3, 4, 5]
