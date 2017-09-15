@@ -55,12 +55,6 @@ from ... import fits
 
 log = logging.getLogger('fitscheck')
 
-
-warnings.filterwarnings('error', message='Checksum verification failed')
-warnings.filterwarnings('error', message='Datasum verification failed')
-warnings.filterwarnings('ignore', message='Overwriting existing file')
-
-
 def handle_options(args):
     if not len(args):
         args = ['-h']
@@ -130,39 +124,41 @@ def verify_checksums(filename):
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
 
-    errors = 0
-    try:
-        hdulist = fits.open(filename, checksum=OPTIONS.checksum_kind)
-    except UserWarning as w:
-        remainder = '.. ' + ' '.join(str(w).split(' ')[1:]).strip()
-        # if "Checksum" in str(w) or "Datasum" in str(w):
-        log.warning('BAD {!r} {}'.format(filename, remainder))
-        return 1
-    if not OPTIONS.ignore_missing:
-        for i, hdu in enumerate(hdulist):
-            if not hdu._checksum:
-                log.warning('MISSING {!r} .. Checksum not found '
-                            'in HDU #{}'.format(filename, i))
-                return 1
-            if not hdu._datasum:
-                log.warning('MISSING {!r} .. Datasum not found '
-                            'in HDU #{}'.format(filename, i))
-                return 1
-    if not errors:
-        log.info('OK {!r}'.format(filename))
-    return errors
+    with warnings.catch_warnings(record=True) as wlist:
+        with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
+            for i, hdu in enumerate(hdulist):
+                # looping on HDUs is needed to read them and verify the
+                # checksums
+                if not OPTIONS.ignore_missing:
+                    if not hdu._checksum:
+                        log.warning('MISSING {!r} .. Checksum not found '
+                                    'in HDU #{}'.format(filename, i))
+                        return 1
+                    if not hdu._datasum:
+                        log.warning('MISSING {!r} .. Datasum not found '
+                                    'in HDU #{}'.format(filename, i))
+                        return 1
+
+    for w in wlist:
+        if str(w.message).startswith(('Checksum verification failed',
+                                      'Datasum verification failed')):
+            log.warning('BAD %r %s', filename, str(w.message))
+            return 1
+
+    log.info('OK {!r}'.format(filename))
+    return 0
 
 
 def verify_compliance(filename):
     """Check for FITS standard compliance."""
 
-    hdulist = fits.open(filename)
-    try:
-        hdulist.verify('exception')
-    except fits.VerifyError as exc:
-        log.warning('NONCOMPLIANT {!r} .. {}'.format(
-                filename), str(exc).replace('\n', ' '))
-        return 1
+    with fits.open(filename) as hdulist:
+        try:
+            hdulist.verify('exception')
+        except fits.VerifyError as exc:
+            log.warning('NONCOMPLIANT %r .. %s',
+                        filename, str(exc).replace('\n', ' '))
+            return 1
     return 0
 
 
@@ -173,15 +169,13 @@ def update(filename):
     Also updates fixes standards violations if possible and requested.
     """
 
-    hdulist = fits.open(filename, do_not_scale_image_data=True)
-    try:
-        output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
-        hdulist.writeto(filename, checksum=OPTIONS.checksum_kind,
-                        overwrite=True, output_verify=output_verify)
-    except fits.VerifyError:
-        pass  # unfixable errors already noted during verification phase
-    finally:
-        hdulist.close()
+    with fits.open(filename, do_not_scale_image_data=True) as hdulist:
+        try:
+            output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
+            hdulist.writeto(filename, checksum=OPTIONS.checksum_kind,
+                            overwrite=True, output_verify=output_verify)
+        except fits.VerifyError:
+            pass  # unfixable errors already noted during verification phase
 
 
 def process_file(filename):
