@@ -48,6 +48,9 @@ Astropy also depends on other packages for optional features:
 
 - `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
+- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
+  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
+
 - `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
   Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
 
