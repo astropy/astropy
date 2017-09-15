@@ -478,8 +478,6 @@ class TestSetdiff():
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
-        self.t1 = operation_table_type(self.t1, masked=True)
-        self.t2 = operation_table_type(self.t2, masked=True)
         assert type(out['a']) is type(self.t1['a'])
         assert type(out['b']) is type(self.t1['b'])
         assert out.pformat() == [' a   b ',
@@ -505,8 +503,6 @@ class TestSetdiff():
     def test_extra_col_right_table(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t3)
-        self.t1 = operation_table_type(self.t1, masked=True)
-        self.t3 = operation_table_type(self.t3, masked=True)
 
         assert type(out['a']) is type(self.t1['a'])
         assert type(out['b']) is type(self.t1['b'])
@@ -518,8 +514,6 @@ class TestSetdiff():
     def test_keys(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t3, self.t1, keys=['a', 'b'])
-        self.t1 = operation_table_type(self.t1, masked=True)
-        self.t3 = operation_table_type(self.t3, masked=True)
 
         assert type(out['a']) is type(self.t1['a'])
         assert type(out['b']) is type(self.t1['b'])

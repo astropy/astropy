@@ -136,9 +136,9 @@ def setdiff(table1, table2, keys=None):
 
     Parameters
     ----------
-    table1 : Table object
+    table1 : `~astropy.table.Table`
         ``table1`` is on the left side of the set difference.
-    table2 : Table object
+    table2 : `~astropy.table.Table`
         ``table2`` is on the right side of the set difference.
     keys : str or list of str
         Name(s) of column(s) used to match rows of left and right tables.
@@ -146,7 +146,7 @@ def setdiff(table1, table2, keys=None):
 
     Returns
     -------
-    diff_table : `~astropy.table.Table` object-
+    diff_table : `~astropy.table.Table`
         New table containing the set difference between tables. If the set
         difference is none, an empty table will be returned.
 
@@ -189,22 +189,33 @@ def setdiff(table1, table2, keys=None):
             raise ValueError("The {} columns are missing from {}, cannot take "
                              "a set difference.".format(diff_keys, tbl_str))
 
-    # Make a light internal copy to avoid touching table2
-    table2 = table2.copy(copy_data=False)
-    table2.meta = {}
-    table2.keep_columns(keys)
-    table2['__index__'] = np.zeros(len(table2), dtype=np.uint8)  # dummy column
+    # Make a light internal copy of both tables
+    t1 = table1.copy(copy_data=False)
+    t1.meta = {}
+    t1.keep_columns(keys)
+    t1['__index1__'] = np.arange(len(table1))  # Keep track of rows indices
 
-    t12 = _join(table1, table2, join_type='left', keys=keys,
+    # Make a light internal copy to avoid touching table2
+    t2 = table2.copy(copy_data=False)
+    t2.meta = {}
+    t2.keep_columns(keys)
+    # Dummy column to recover rows after join
+    t2['__index2__'] = np.zeros(len(t2), dtype=np.uint8)  # dummy column
+
+    t12 = _join(t1, t2, join_type='left', keys=keys,
                 metadata_conflicts='silent')
 
+    # If t12 is masked then that means some rows were in table1 but not table2.
     if t12.masked:
-        diff = t12['__index__'].mask
-        t12_diff = t12[diff]
+        # Define bool mask of table1 rows not in table2
+        diff = t12['__index2__'].mask
+        # Get the row indices of table1 for those rows
+        idx = t12['__index1__'][diff]
+        # Select corresponding table1 rows straight from table1 to ensure
+        # correct table and column types.
+        t12_diff = table1[idx]
     else:
-        t12_diff = t12[[]]
-
-    t12_diff.remove_column('__index__')
+        t12_diff = table1[[]]
 
     return t12_diff
 
