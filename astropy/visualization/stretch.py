@@ -45,8 +45,7 @@ def _prepare(values, clip=True, out=None):
             return out
 
 
-@six.add_metaclass(InheritDocstrings)
-class BaseStretch(BaseTransform):
+class BaseStretch(BaseTransform, metaclass=InheritDocstrings):
     """
     Base class for the stretch classes, which, when called with an array
     of values in the range [0:1], return an transformed array of values,

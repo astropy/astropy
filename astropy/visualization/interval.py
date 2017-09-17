@@ -19,8 +19,7 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'ZScaleInterval']
 
 
-@six.add_metaclass(InheritDocstrings)
-class BaseInterval(BaseTransform):
+class BaseInterval(BaseTransform, metaclass=InheritDocstrings):
     """
     Base class for the interval classes, which, when called with an
     array of values, return an interval computed following different

@@ -93,8 +93,7 @@ class TimeFormatMeta(type):
         return cls
 
 
-@six.add_metaclass(TimeFormatMeta)
-class TimeFormat(object):
+class TimeFormat(object, metaclass=TimeFormatMeta):
     """
     Base class for time representations.
 
@@ -1106,8 +1105,7 @@ class TimeDeltaFormatMeta(TimeFormatMeta):
     _registry = TIME_DELTA_FORMATS
 
 
-@six.add_metaclass(TimeDeltaFormatMeta)
-class TimeDeltaFormat(TimeFormat):
+class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
     """Base class for time delta representations"""
 
     def _check_scale(self, scale):

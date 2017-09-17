@@ -112,8 +112,7 @@ class MergeStrategyMeta(type):
         return cls
 
 
-@six.add_metaclass(MergeStrategyMeta)
-class MergeStrategy(object):
+class MergeStrategy(object, metaclass=MergeStrategyMeta):
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.

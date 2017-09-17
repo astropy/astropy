@@ -149,8 +149,7 @@ class TMeta(type):
 
 
 @deprecated('100.0')
-@six.add_metaclass(TMeta)
-class TB(object):
+class TB(object, metaclass=TMeta):
     pass
 
 
@@ -513,8 +512,6 @@ def test_sharedmethod_reuse_on_subclasses():
     class AMeta(type):
         def foo(cls):
             return cls.x
-
-    six.add_metaclass(AMeta)
 
     class A(object):
         x = 3

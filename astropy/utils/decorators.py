@@ -795,8 +795,7 @@ class sharedmethod(classmethod):
         ...         print('this implements the {0}.identify '
         ...               'classmethod'.format(self.__name__))
         ...
-        >>> @add_metaclass(ExampleMeta)
-        ... class Example(object):
+        >>> class Example(object, metaclass=ExampleMeta):
         ...     @sharedmethod
         ...     def identify(self):
         ...         print('this implements the instancemethod')

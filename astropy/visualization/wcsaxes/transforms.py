@@ -23,8 +23,7 @@ from ...coordinates import (SkyCoord, frame_transform_graph,
                             BaseCoordinateFrame)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class CurvedTransform(Transform):
+class CurvedTransform(Transform, metaclass=abc.ABCMeta):
     """
     Abstract base class for non-affine curved transforms
     """

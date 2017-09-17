@@ -1076,8 +1076,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         table.remove_columns(remove_names)
 
 
-@six.add_metaclass(MetaBaseReader)
-class BaseReader(object):
+class BaseReader(object, metaclass=MetaBaseReader):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
 
