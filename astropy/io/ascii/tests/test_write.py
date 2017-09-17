@@ -4,7 +4,9 @@
 
 import os
 import copy
+from io import StringIO
 from itertools import chain
+
 
 import pytest
 import numpy as np

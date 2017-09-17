@@ -8,6 +8,7 @@ from io import BytesIO, open
 from collections import OrderedDict
 import locale
 import platform
+from io import StringIO
 
 import pytest
 import numpy as np
@@ -17,7 +18,7 @@ from ....table import Table
 from ....units import Unit
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+                     assert_true)
 from .. import core
 from ..ui import _probably_html, get_read_trace
 

@@ -4,6 +4,7 @@
 # TEST_UNICODE_LITERALS
 
 import warnings
+from io import StringIO
 from collections import OrderedDict
 
 import numpy as np

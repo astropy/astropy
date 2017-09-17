@@ -20,6 +20,7 @@ import re
 import warnings
 
 from collections import OrderedDict
+from io import StringIO
 
 import numpy
 

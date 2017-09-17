@@ -2,12 +2,13 @@
 
 # TEST_UNICODE_LITERALS
 
+from io import StringIO
 
 import numpy as np
 
 from ... import ascii
 
-from .common import assert_equal, setup_function, teardown_function
+from .common import assert_equal
 
 
 def test_types_from_dat():
@@ -15,8 +16,8 @@ def test_types_from_dat():
                   'e': [ascii.convert_numpy(np.str)]}
 
     dat = ascii.read(['a b c d e', '1 1 cat 2.1 4.2'],
-                          Reader=ascii.Basic,
-                          converters=converters)
+                     Reader=ascii.Basic,
+                     converters=converters)
 
     assert dat['a'].dtype.kind == 'f'
     assert dat['b'].dtype.kind == 'i'
@@ -27,7 +28,7 @@ def test_types_from_dat():
 
 def test_rdb_write_types():
     dat = ascii.read(['a b c d', '1 1.0 cat 2.1'],
-                          Reader=ascii.Basic)
+                     Reader=ascii.Basic)
     out = StringIO()
     ascii.write(dat, out, Writer=ascii.Rdb)
     outs = out.getvalue().splitlines()

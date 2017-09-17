@@ -10,6 +10,8 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
+from io import StringIO
+
 from .. import html
 from .. import core
 from ....table import Table

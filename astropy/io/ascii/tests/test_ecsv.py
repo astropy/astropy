@@ -9,6 +9,7 @@ Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 import os
 import copy
 import sys
+from io import StringIO
 
 import pytest
 import numpy as np

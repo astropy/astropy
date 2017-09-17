@@ -2,12 +2,13 @@
 
 # TEST_UNICODE_LITERALS
 
+from io import StringIO
+
 import pytest
 
 from ... import ascii
 from ..core import InconsistentTableError
-from .common import (assert_equal, assert_almost_equal,
-                     setup_function, teardown_function)
+from .common import (assert_equal, assert_almost_equal)
 
 
 def assert_equal_splitlines(arg1, arg2):

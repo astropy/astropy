@@ -15,6 +15,8 @@ except ImportError:
     HAS_YAML = False
 
 import copy
+import pickle
+from io import StringIO
 
 import pytest
 import numpy as np

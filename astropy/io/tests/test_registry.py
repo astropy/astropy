@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 from copy import copy
+from io import StringIO
 
 import pytest
 import numpy as np
