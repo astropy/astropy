@@ -3,9 +3,10 @@
 
 # TEST_UNICODE_LITERALS
 
-import copy
 import gc
 import sys
+import copy
+from io import StringIO
 from collections import OrderedDict
 
 import numpy as np

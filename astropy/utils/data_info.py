@@ -17,15 +17,17 @@ table column attributes such as name, format, dtype, meta, and description.
 from __future__ import absolute_import, division, print_function
 
 import os
+import re
 import sys
 import weakref
-from copy import deepcopy
-import numpy as np
-from functools import partial
 import warnings
-import re
+from io import StringIO
+from copy import deepcopy
+from functools import partial
 from collections import OrderedDict
 from contextlib import contextmanager
+
+import numpy as np
 
 from . import metadata
 
