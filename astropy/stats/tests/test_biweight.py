@@ -11,7 +11,6 @@ from numpy.testing.utils import assert_allclose
 from ..biweight import (biweight_location, biweight_scale,
                         biweight_midvariance, biweight_midcovariance,
                         biweight_midcorrelation)
-from ...extern.six.moves import range
 from ...utils.misc import NumpyRNGContext
 
 

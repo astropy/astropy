@@ -12,8 +12,6 @@ import platform
 import pytest
 import numpy as np
 
-from ....extern import six  # noqa
-from ....extern.six.moves import zip, cStringIO as StringIO
 from ... import ascii
 from ....table import Table
 from ....units import Unit

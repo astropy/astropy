@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
+import urllib
 
 import pytest
 import numpy as np
@@ -12,7 +13,6 @@ from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
-from ....extern.six.moves import urllib
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)

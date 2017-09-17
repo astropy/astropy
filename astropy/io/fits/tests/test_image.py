@@ -13,7 +13,6 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
 from ....utils.compat import NUMPY_LT_1_12

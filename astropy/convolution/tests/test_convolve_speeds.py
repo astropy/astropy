@@ -6,7 +6,6 @@ import timeit
 
 import numpy as np  # pylint: disable=W0611
 
-from ...extern.six.moves import range, zip
 
 # largest image size to use for "linear" and fft convolutions
 max_exponents_linear = {1: 15, 2: 7, 3: 5}

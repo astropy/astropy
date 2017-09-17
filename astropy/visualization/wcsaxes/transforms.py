@@ -17,7 +17,6 @@ from matplotlib.transforms import Transform
 from ... import units as u
 from ...wcs import WCS
 from ...wcs.utils import wcs_to_celestial_frame
-from ...extern import six
 from ...coordinates import (SkyCoord, frame_transform_graph,
                             SphericalRepresentation,
                             UnitSphericalRepresentation,

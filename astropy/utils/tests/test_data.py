@@ -11,14 +11,13 @@ import io
 import os
 import sys
 import tempfile
+import urllib
 
 import pytest
 
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
                     get_pkg_data_filename, get_readable_fileobj)
 
-from ...extern import six
-from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, raises, pytest, catch_warnings
 
 TESTURL = 'http://www.astropy.org'

@@ -18,8 +18,6 @@ import warnings
 import numpy as np
 
 # AstroPy
-from ..extern import six
-from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex

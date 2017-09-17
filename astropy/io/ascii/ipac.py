@@ -15,8 +15,6 @@ from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth

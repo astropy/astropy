@@ -72,8 +72,6 @@ from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from ...units import Unit
 from ...units.format.fits import UnitScaleError
 from ...units import Quantity
-from ...extern import six
-from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
 

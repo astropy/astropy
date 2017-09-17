@@ -12,7 +12,6 @@ import subprocess
 import pytest
 
 from ...tests.helper import catch_warnings
-from ...extern import six
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration

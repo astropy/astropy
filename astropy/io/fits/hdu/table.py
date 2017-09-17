@@ -28,9 +28,6 @@ from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
-from ....extern import six
-from ....extern.six import string_types
-from ....extern.six.moves import range, zip
 from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning

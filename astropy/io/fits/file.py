@@ -22,8 +22,6 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...extern.six.moves import http_client
-from ...extern.six import b, string_types, moves
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning

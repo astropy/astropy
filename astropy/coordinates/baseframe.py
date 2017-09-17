@@ -22,8 +22,6 @@ import numpy as np
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)

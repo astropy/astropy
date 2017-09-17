@@ -3,8 +3,8 @@
 """
 
 import time
+import urllib
 
-from ....extern.six.moves import urllib
 from ....utils.data import download_file
 from ....io import fits
 

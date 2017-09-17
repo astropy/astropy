@@ -12,7 +12,6 @@ import numpy as np
 
 from .. import data, misc
 from ...tests.helper import remote_data
-from ...extern import six
 from ..compat import NUMPY_LT_1_10
 
 

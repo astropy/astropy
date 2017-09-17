@@ -8,7 +8,6 @@ import functools
 
 from .. import registry as io_registry
 from ...table import Table
-from ...extern.six.moves import zip
 
 __all__ = []
 

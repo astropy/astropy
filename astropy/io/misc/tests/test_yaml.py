@@ -13,7 +13,6 @@ from ....coordinates import SkyCoord, EarthLocation, Angle, Longitude, Latitude
 from .... import units as u
 from ....time import Time
 from ....table import QTable, SerializedColumn
-from ....extern.six.moves import StringIO
 
 try:
     from ..yaml import load, load_all, dump

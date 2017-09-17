@@ -13,7 +13,6 @@ import warnings
 
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ...extern import six
 from ...table import meta
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'

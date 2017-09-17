@@ -31,8 +31,6 @@ from .. import units as u
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import range
 
 from .representation import REPRESENTATION_CLASSES
 

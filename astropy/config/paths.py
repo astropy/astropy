@@ -5,7 +5,6 @@ data/cache files used by Astropy should be placed.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
 from ..utils.decorators import wraps
 
 import os
@@ -63,7 +62,6 @@ def _find_home():
             homedir = decodepath(os.path.join(os.environ['USERPROFILE']))
         else:
             try:
-                from ..extern.six.moves import winreg as wreg
                 shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 

@@ -9,7 +9,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 import warnings
 import abc
 import numpy as np
-from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ["Optimization", "SLSQP", "Simplex"]

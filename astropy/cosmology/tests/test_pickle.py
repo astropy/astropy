@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 
 from ...tests.helper import pickle_protocol, check_pickling_recovery
-from ...extern.six.moves import zip
 from ... import cosmology as cosm
 
 originals = [cosm.FLRW]

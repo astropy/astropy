@@ -8,9 +8,8 @@ parallel.
 import os
 import threading
 import tempfile
+from urllib.request import Request, urlopen
 
-from ...extern import six
-from ...extern.six.moves.urllib.request import Request, urlopen
 from ...utils.data import get_readable_fileobj
 
 from .. import SAMPIntegratedClient, SAMPHubServer
@@ -19,7 +18,6 @@ from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
 
 from .. import conf
-
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
 

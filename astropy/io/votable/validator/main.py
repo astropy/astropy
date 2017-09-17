@@ -4,7 +4,6 @@ Validates a large collection of web-accessible VOTable files,
 and generates a report as a directory tree of HTML files.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
 
 # STDLIB
 import os

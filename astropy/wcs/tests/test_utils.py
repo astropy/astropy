@@ -8,7 +8,6 @@ from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
 
 from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
-from ...extern.six.moves import range
 from ...time import Time
 from ... import units as u
 

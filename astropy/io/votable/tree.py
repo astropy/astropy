@@ -2,17 +2,16 @@
 # TODO: Test FITS parsing
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern import six
-from ...extern.six.moves import range, urllib, zip
 
 # STDLIB
-import base64
-import codecs
 import io
 import re
 import sys
-import warnings
 import gzip
+import base64
+import codecs
+import urllib
+import warnings
 
 # THIRD-PARTY
 import numpy as np

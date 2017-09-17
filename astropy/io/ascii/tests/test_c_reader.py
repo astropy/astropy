@@ -22,8 +22,6 @@ from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
     FastRdb, FastNoHeader
 from .common import assert_equal, assert_almost_equal, assert_true
-from ....extern import six
-from ....extern.six.moves import range
 
 TRAVIS = os.environ.get('TRAVIS', False)
 

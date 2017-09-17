@@ -8,7 +8,6 @@ import numpy as np
 from numpy import testing as npt
 
 from ...tests.helper import assert_quantity_allclose as assert_allclose
-from ...extern.six.moves import zip
 
 from ... import units as u
 from ...utils import minversion

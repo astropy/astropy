@@ -7,8 +7,6 @@ caching data files.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import urllib, range
 
 import atexit
 import contextlib
@@ -20,7 +18,7 @@ import shutil
 import socket
 import sys
 import time
-import shelve
+import urllib
 
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn

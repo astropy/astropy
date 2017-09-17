@@ -5,12 +5,11 @@ from warnings import warn
 import collections
 import socket
 import json
+import urllib
 
 import numpy as np
 from .. import units as u
 from ..units.quantity import QuantityInfoBase
-from ..extern import six
-from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_to

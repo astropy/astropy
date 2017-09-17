@@ -5,7 +5,6 @@
 from __future__ import print_function  # For print debugging with python 2 or 3
 
 from collections import OrderedDict, Mapping
-from ...extern import six
 
 import pytest
 import numpy as np

@@ -18,8 +18,6 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     _free_space_check, _extract_number)
 from ..verify import _Verify, _ErrList
 
-from ....extern.six import string_types, add_metaclass
-from ....extern.six.moves import range
 from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter

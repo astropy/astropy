@@ -22,7 +22,6 @@ from warnings import warn
 from ..utils.compat import NUMPY_LT_1_10
 from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
-from ..extern.six.moves import range
 
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',

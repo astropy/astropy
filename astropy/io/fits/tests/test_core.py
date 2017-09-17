@@ -24,8 +24,6 @@ from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
 
-from ....extern import six
-from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....tests.helper import remote_data

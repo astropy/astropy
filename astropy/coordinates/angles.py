@@ -13,7 +13,6 @@ from collections import namedtuple
 
 import numpy as np
 
-from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable

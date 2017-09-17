@@ -48,7 +48,6 @@ import sys
 
 from ... import fits
 from .... import log
-from ....extern.six.moves import range
 
 
 class ExtensionNotFoundException(Exception):

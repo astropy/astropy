@@ -11,7 +11,6 @@ import weakref
 # from ..utils.compat import ignored
 from .. import log
 from ..units import Unit, Quantity
-from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',

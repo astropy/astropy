@@ -11,7 +11,6 @@ import numpy as np
 
 from numpy.testing.utils import assert_allclose, assert_array_equal
 
-from ...extern.six.moves import cPickle as pickle
 
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter

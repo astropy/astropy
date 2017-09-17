@@ -4,7 +4,6 @@
 
 import pytest
 
-from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from ..core import InconsistentTableError
 from .common import (assert_equal, assert_almost_equal,

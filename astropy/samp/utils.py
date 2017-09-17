@@ -6,14 +6,12 @@ Utility functions and classes
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import queue
 import inspect
 import traceback
-
-from ..extern.six.moves import queue, range
-from ..extern.six.moves.urllib.request import urlopen
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six import StringIO
-
+from io import StringIO
+import xmlrpc.client as xmlrpc
+from urllib.request import urlopen
 
 from .constants import SAMP_STATUS_ERROR
 from .errors import SAMPProxyError

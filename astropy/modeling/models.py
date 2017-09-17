@@ -17,7 +17,6 @@ from .powerlaws import *
 from .tabular import *
 from .blackbody import BlackBody1D
 
-from ..extern.six import string_types
 
 """
 Attach a docstring explaining constraints to all models which support them.

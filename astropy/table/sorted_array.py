@@ -2,7 +2,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-from ..extern.six.moves import range, zip
 
 
 def _searchsorted(array, val, side='left'):

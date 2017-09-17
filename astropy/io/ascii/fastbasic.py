@@ -4,10 +4,8 @@ import re
 from collections import OrderedDict
 
 from . import core
-from ...extern import six
 from ...table import Table
 from . import cparser
-from ...extern.six.moves import zip
 from ...utils import set_locale
 
 

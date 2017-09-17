@@ -7,7 +7,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-from ...extern import six
 
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch

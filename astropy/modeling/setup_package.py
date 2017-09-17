@@ -7,7 +7,6 @@ from os.path import join
 from distutils.core import Extension
 from distutils import log
 
-from astropy.extern import six
 from astropy_helpers import setup_helpers, utils
 from astropy_helpers.version_helpers import get_pkg_version_module
 

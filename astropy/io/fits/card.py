@@ -9,7 +9,6 @@ from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
-from ...extern.six import string_types, integer_types, text_type, binary_type
 from ...utils.exceptions import AstropyUserWarning
 
 

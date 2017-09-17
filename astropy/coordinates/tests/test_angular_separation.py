@@ -12,7 +12,6 @@ import pytest
 import numpy as np
 
 from ...tests.helper import assert_quantity_allclose as assert_allclose
-from ...extern.six.moves import zip
 from ... import units as u
 from ..builtin_frames import ICRS, FK5, Galactic
 from .. import Angle, Distance

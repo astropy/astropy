@@ -25,8 +25,6 @@ from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)

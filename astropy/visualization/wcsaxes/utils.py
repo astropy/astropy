@@ -5,7 +5,6 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...coordinates import BaseCoordinateFrame
 
 # Modified from axis_artist, supports astropy.units

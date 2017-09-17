@@ -5,7 +5,6 @@ from __future__ import (absolute_import, division, print_function,
 
 
 from ...utils.misc import InheritDocstrings
-from ...extern import six
 
 
 class _FormatterMeta(InheritDocstrings):

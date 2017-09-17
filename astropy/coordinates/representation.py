@@ -18,7 +18,6 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12

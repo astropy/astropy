@@ -76,7 +76,6 @@ from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
-from ...extern import six
 from ...table import SerializedColumn
 
 

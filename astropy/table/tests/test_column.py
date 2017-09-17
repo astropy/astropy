@@ -11,7 +11,6 @@ import numpy as np
 from ...tests.helper import assert_follows_unicode_guidelines, catch_warnings
 from ... import table
 from ... import units as u
-from ...extern import six
 
 
 class TestColumn():

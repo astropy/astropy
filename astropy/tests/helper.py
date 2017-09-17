@@ -6,16 +6,14 @@ from the installed astropy.  It makes use of the `pytest` testing framework.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import functools
 import os
 import sys
 import types
+import pickle
 import warnings
+import functools
 
 import pytest
-
-from ..extern import six
-from ..extern.six.moves import cPickle as pickle
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -368,7 +366,6 @@ def assert_follows_unicode_guidelines(
         If not provided, no roundtrip testing will be performed.
     """
     from .. import conf
-    from ..extern import six
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)

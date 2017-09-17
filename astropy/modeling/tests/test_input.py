@@ -14,7 +14,6 @@ from .. import models
 from .. import fitting
 from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
-from ...extern.six.moves import range
 
 try:
     from scipy import optimize  # pylint: disable=W0611

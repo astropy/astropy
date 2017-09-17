@@ -8,7 +8,6 @@ from copy import deepcopy
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...tests.helper import (catch_warnings,
                              pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)

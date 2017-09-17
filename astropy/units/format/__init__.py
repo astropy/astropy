@@ -23,7 +23,6 @@ from .ogip import OGIP
 from .unicode_format import Unicode
 from .vounit import VOUnit
 
-from ...extern.six import string_types
 
 __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'LatexInline',
@@ -47,7 +46,7 @@ def get_format(format=None):
     """
     if isinstance(format, type) and issubclass(format, Base):
         return format
-    elif not (isinstance(format, string_types) or format is None):
+    elif not (isinstance(format, str) or format is None):
         raise TypeError(
             "Formatter must a subclass or instance of a subclass of {0!r} "
             "or a string giving the name of the formatter.  Valid formatter "

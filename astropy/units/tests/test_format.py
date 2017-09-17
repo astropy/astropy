@@ -13,7 +13,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 import pytest
 from numpy.testing.utils import assert_allclose
 
-from ...extern import six
 from ...tests.helper import catch_warnings
 from ... import units as u
 from ...constants import si

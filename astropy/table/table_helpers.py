@@ -13,7 +13,6 @@ import string
 import numpy as np
 
 from .table import Table, Column
-from ..extern.six.moves import zip, range
 from ..utils.data_info import ParentDtypeInfo
 
 

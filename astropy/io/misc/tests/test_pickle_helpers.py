@@ -3,7 +3,6 @@
 import pytest
 
 from .. import fnpickle, fnunpickle
-from ....extern.six.moves import range
 
 
 def test_fnpickling_simple(tmpdir):

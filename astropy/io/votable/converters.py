@@ -5,8 +5,6 @@ to/from TABLEDATA_ and BINARY_ formats.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern import six
-from ...extern.six.moves import range, zip
 
 # STDLIB
 import re

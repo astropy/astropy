@@ -14,8 +14,6 @@ import numpy as np
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
-from ...extern.six.moves import zip, range
-from ...extern.six import StringIO
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)

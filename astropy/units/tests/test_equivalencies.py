@@ -5,7 +5,6 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...extern.six.moves import zip
 
 # THIRD-PARTY
 import pytest

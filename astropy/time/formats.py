@@ -13,8 +13,6 @@ import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import day_frac, two_sum
 
 

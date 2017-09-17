@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
 from . import Angle

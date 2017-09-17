@@ -25,8 +25,6 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-from ..extern import six
-from ..extern.six.moves import range
 from .. import conf
 
 from .misc import isiterable

@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import warnings
 import weakref
@@ -27,7 +25,6 @@ from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from ..utils.misc import dtype_bytes_or_chars
-from ..extern.six.moves import range
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name

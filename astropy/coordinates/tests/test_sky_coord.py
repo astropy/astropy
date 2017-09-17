@@ -18,7 +18,6 @@ from ... import units as u
 from ...tests.helper import (pytest, remote_data, catch_warnings,
                              quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
-from ...extern.six.moves import zip
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,

@@ -66,7 +66,6 @@ def _make_transform_graph_docs():
     """
     import inspect
     from textwrap import dedent
-    from ...extern import six
     from ..baseframe import BaseCoordinateFrame, frame_transform_graph
 
     isclass = inspect.isclass

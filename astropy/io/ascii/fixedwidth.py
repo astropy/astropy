@@ -10,7 +10,6 @@ fixedwidth.py:
 
 from __future__ import absolute_import, division, print_function
 
-from ...extern.six.moves import zip, range
 
 from . import core
 from .core import InconsistentTableError, DefaultSplitter

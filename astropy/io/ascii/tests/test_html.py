@@ -19,7 +19,6 @@ import numpy as np
 
 from .common import setup_function, teardown_function
 from ... import ascii
-from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.

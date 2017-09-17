@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 import pytest
 import numpy as np
 
-from ...extern import six
 from ..data_info import dtype_info_name
 
 STRING_TYPE_NAMES = {(False, 'S'): 'str',  # PY2

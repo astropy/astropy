@@ -10,7 +10,6 @@ configuration files for Astropy and affiliated packages.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..extern import six
 
 from contextlib import contextmanager
 import hashlib

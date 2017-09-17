@@ -12,7 +12,6 @@ from __future__ import (absolute_import, division, print_function,
 import pytest
 import numpy as np
 
-from ...extern import six
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
