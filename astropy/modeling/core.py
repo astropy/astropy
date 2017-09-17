@@ -2959,7 +2959,7 @@ def custom_model(*args, **kwargs):
 
     fit_deriv = kwargs.get('fit_deriv', None)
 
-    if len(args) == 1 and six.callable(args[0]):
+    if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
     elif not args:
         return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
@@ -2982,12 +2982,12 @@ def _custom_model_wrapper(func, fit_deriv=None):
     function is returned by `custom_model`.
     """
 
-    if not six.callable(func):
+    if not callable(func):
         raise ModelDefinitionError(
             "func is not callable; it must be a function or other callable "
             "object")
 
-    if fit_deriv is not None and not six.callable(fit_deriv):
+    if fit_deriv is not None and not callable(fit_deriv):
         raise ModelDefinitionError(
             "fit_deriv not callable; it must be a function or other "
             "callable object")
