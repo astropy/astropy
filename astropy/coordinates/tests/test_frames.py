@@ -30,8 +30,7 @@ def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
     from ..attributes import Attribute
 
-    @six.add_metaclass(OrderedDescriptorContainer)
-    class TestAttributes(object):
+    class TestAttributes(object, metaclass=OrderedDescriptorContainer):
         attr_none = Attribute()
         attr_2 = Attribute(default=2)
         attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')

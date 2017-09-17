@@ -121,8 +121,7 @@ class _BaseHDUMeta(type):
 
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
-@add_metaclass(_BaseHDUMeta)
-class _BaseHDU(object):
+class _BaseHDU(object, metaclass=_BaseHDUMeta):
     """Base class for all HDU (header data unit) classes."""
 
     _hdu_registry = set()

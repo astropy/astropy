@@ -486,8 +486,7 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-@six.add_metaclass(InheritDocstrings)
-class UnitBase(object):
+class UnitBase(object, metaclass=InheritDocstrings):
     """
     Abstract base class for units.
 
@@ -1827,7 +1826,6 @@ class _UnitMetaClass(InheritDocstrings):
             raise TypeError("{0} can not be converted to a Unit".format(s))
 
 
-@six.add_metaclass(_UnitMetaClass)
 class Unit(NamedUnit):
     """
     The main unit class.

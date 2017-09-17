@@ -29,8 +29,7 @@ class MissingDataAssociationException(Exception):
     """
 
 
-@six.add_metaclass(ABCMeta)
-class NDUncertainty(object):
+class NDUncertainty(object, metaclass=ABCMeta):
     """This is the metaclass for uncertainty classes used with `NDData`.
 
     Parameters

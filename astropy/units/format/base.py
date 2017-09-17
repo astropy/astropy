@@ -23,8 +23,7 @@ class _FormatterMeta(InheritDocstrings):
         return cls
 
 
-@six.add_metaclass(_FormatterMeta)
-class Base(object):
+class Base(object, metaclass=_FormatterMeta):
     """
     The abstract base class of all unit formats.
     """

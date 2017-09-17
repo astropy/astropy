@@ -75,8 +75,7 @@ class ConstantMeta(InheritDocstrings):
         return super(ConstantMeta, mcls).__new__(mcls, name, bases, d)
 
 
-@six.add_metaclass(ConstantMeta)
-class Constant(Quantity):
+class Constant(Quantity, metaclass=ConstantMeta):
     """A physical or astronomical constant.
 
     These objects are quantities that are meant to represent physical

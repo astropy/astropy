@@ -78,8 +78,7 @@ def test_isinstancemethod():
     class MetaClass(type):
         def a_classmethod(cls): pass
 
-    @six.add_metaclass(MetaClass)
-    class MyClass(object):
+    class MyClass(object, metaclass=MetaClass):
         def an_instancemethod(self): pass
 
         @classmethod

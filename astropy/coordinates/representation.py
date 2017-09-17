@@ -437,8 +437,8 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(BaseRepresentationOrDifferential):
+class BaseRepresentation(BaseRepresentationOrDifferential,
+                         metaclass=MetaBaseRepresentation):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -1959,8 +1959,8 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseDifferential)
-class BaseDifferential(BaseRepresentationOrDifferential):
+class BaseDifferential(BaseRepresentationOrDifferential,
+                       metaclass=MetaBaseDifferential):
     r"""A base class representing differentials of representations.
 
     These represent differences or derivatives along each component.

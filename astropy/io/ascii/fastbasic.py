@@ -9,8 +9,7 @@ from . import cparser
 from ...utils import set_locale
 
 
-@six.add_metaclass(core.MetaBaseReader)
-class FastBasic(object):
+class FastBasic(object, metaclass=MetaBaseReader):
     """
     This class is intended to handle the same format addressed by the
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C

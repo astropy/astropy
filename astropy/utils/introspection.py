@@ -367,12 +367,12 @@ def isinstancemethod(cls, obj):
     >>> class MetaClass(type):
     ...     def a_classmethod(cls): pass
     ...
-    >>> @six.add_metaclass(MetaClass)
-    ... class MyClass(object):
-    ...     __metaclass__ = MetaClass
+    ... class MyClass(object, metaclass=MetaClass):
     ...     def an_instancemethod(self): pass
+    ...
     ...     @classmethod
     ...     def another_classmethod(cls): pass
+    ...
     ...     @staticmethod
     ...     def a_staticmethod(): pass
     ...

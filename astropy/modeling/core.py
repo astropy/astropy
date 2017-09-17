@@ -499,8 +499,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             return parts[0]
 
 
-@six.add_metaclass(_ModelMeta)
-class Model(object):
+class Model(object, metaclass=_ModelMeta):
     """
     Base class for all models.
 
@@ -2767,8 +2766,7 @@ class _CompoundModelMeta(_ModelMeta):
         return (f, n_inputs, n_outputs)
 
 
-@six.add_metaclass(_CompoundModelMeta)
-class _CompoundModel(Model):
+class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     fit_deriv = None
     col_fit_deriv = False
 

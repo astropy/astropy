@@ -593,8 +593,7 @@ class TransformGraph(object):
 
 # <-------------------Define the builtin transform classes-------------------->
 
-@six.add_metaclass(ABCMeta)
-class CoordinateTransform(object):
+class CoordinateTransform(object, metaclass=ABCMeta):
     """
     An object that transforms a coordinate from one system to another.
     Subclasses must implement `__call__` with the provided signature.

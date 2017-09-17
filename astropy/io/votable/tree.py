@@ -412,8 +412,7 @@ class _DescriptionProperty(object):
 
 ######################################################################
 # ELEMENT CLASSES
-@six.add_metaclass(InheritDocstrings)
-class Element(object):
+class Element(object, metaclass=InheritDocstrings):
     """
     A base class for all classes that represent XML elements in the
     VOTABLE file.

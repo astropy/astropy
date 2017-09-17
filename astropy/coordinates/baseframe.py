@@ -210,8 +210,7 @@ class RepresentationMapping(_RepresentationMappingBase):
                                                          defaultunit)
 
 
-@six.add_metaclass(FrameMeta)
-class BaseCoordinateFrame(ShapedLikeNDArray):
+class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     """
     The base class for coordinate frames.
 

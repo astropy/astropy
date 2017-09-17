@@ -90,8 +90,7 @@ class Cosmology(object):
     implemented. """
 
 
-@six.add_metaclass(ABCMeta)
-class FLRW(Cosmology):
+class FLRW(Cosmology, metaclass=ABCMeta):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
