@@ -706,10 +706,7 @@ class Parameter(OrderedDescriptor):
                 if self._validator is not None:
                     return self._validator(self._model, value)
 
-            if six.PY2:
-                return types.MethodType(validator, self, type(self))
-            else:
-                return types.MethodType(validator, self)
+            return types.MethodType(validator, self)
 
     def copy(self, name=None, description=None, default=None, unit=None,
              getter=None, setter=None, fixed=False, tied=False, min=None,

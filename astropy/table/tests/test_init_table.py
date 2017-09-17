@@ -4,20 +4,12 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-from collections import OrderedDict, Mapping
+from collections import OrderedDict, Mapping, UserDict
 
 import pytest
 import numpy as np
 
 from ...table import Column, TableColumns
-
-# Unfortunatly the python2 UserDict.UserDict is not a Mapping so it is not
-# possible to use "from six.moves import UserDict". Instead we have to use
-# IterableUserDict (which is a Mapping) here.
-if six.PY2:
-    from UserDict import IterableUserDict as UserDict
-else:
-    from collections import UserDict
 
 
 class TestTableColumnsInit():

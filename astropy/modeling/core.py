@@ -219,12 +219,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             True
         """
 
-        if six.PY2 and isinstance(name, str):
-            # Unicode names are not allowed in Python 2, so just convert to
-            # ASCII.  As such, for cross-compatibility all model names should
-            # just be ASCII for now.
-            name = name.encode('ascii')
-
         mod = find_current_module(2)
         if mod:
             modname = mod.__name__
@@ -298,9 +292,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             if len(sig.parameters) > 1:
                 bounding_box = \
                         cls._create_bounding_box_subclass(bounding_box, sig)
-
-        if six.PY2 and isinstance(bounding_box, types.MethodType):
-            bounding_box = bounding_box.__func__
 
         # See the Model.bounding_box getter definition for how this attribute
         # is used
@@ -439,11 +430,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-
-    if six.PY2:
-        # The classic __div__ operator need only be implemented for Python 2
-        # without from __future__ import division
-        __div__ = _model_oper('/')
 
     # *** Other utilities ***
 
@@ -810,9 +796,6 @@ class Model(object, metaclass=_ModelMeta):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-
-    if six.PY2:
-        __div__ = _model_oper('/')
 
     # *** Properties ***
     @property

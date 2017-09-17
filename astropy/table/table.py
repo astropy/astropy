@@ -860,8 +860,6 @@ class Table(object):
             max_lines=max_lines, tableclass=tableclass)
 
         out = descr + '\n'.join(data_lines)
-        if six.PY2 and isinstance(out, str):
-            out = out.encode('utf-8')
 
         return out
 
@@ -874,13 +872,11 @@ class Table(object):
 
     def __unicode__(self):
         return '\n'.join(self.pformat())
-    if not six.PY2:
-        __str__ = __unicode__
+
+    __str__ = __unicode__
 
     def __bytes__(self):
         return str(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
 
     @property
     def has_mixin_columns(self):
@@ -2001,8 +1997,6 @@ class Table(object):
         python3_only : bool
             Only do this operation for Python 3
         """
-        if python3_only and six.PY2:
-            return
 
         # If there are no `in_kind` columns then do nothing
         cols = self.columns.values()
@@ -2576,32 +2570,16 @@ class Table(object):
         return self.copy(False)
 
     def __lt__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() < {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__lt__(other)
+        return super(Table, self).__lt__(other)
 
     def __gt__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() > {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__gt__(other)
+        return super(Table, self).__gt__(other)
 
     def __le__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() <= {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__le__(other)
+        return super(Table, self).__le__(other)
 
     def __ge__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() >= {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__ge__(other)
+        return super(Table, self).__ge__(other)
 
     def __eq__(self, other):
 
@@ -2735,8 +2713,7 @@ class Table(object):
                 # If all elements of an object array are string-like or np.nan
                 # then coerce back to a native numpy str/unicode array.
                 string_types = str
-                if not six.PY2:
-                    string_types += (bytes,)
+                string_types += (bytes,)
                 nan = np.nan
                 if all(isinstance(x, string_types) or x is nan for x in data):
                     # Force any missing (null) values to b''.  Numpy will

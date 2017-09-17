@@ -10,12 +10,6 @@ import socketserver
 import xmlrpc.client as xmlrpc
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
-if six.PY2:
-    from SimpleXMLRPCServer import (SimpleXMLRPCRequestHandler,
-                                    SimpleXMLRPCServer)
-else:
-    from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
-
 from .constants import SAMP_ICON
 from .errors import SAMPWarning
 

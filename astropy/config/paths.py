@@ -28,12 +28,7 @@ def _find_home():
         directories.
     """
 
-    # this is used below to make fix up encoding issues that sometimes crop up
-    # in py2.x but not in py3.x
-    if six.PY2:
-        decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
-    else:
-        decodepath = lambda pth: pth
+    decodepath = lambda pth: pth
 
     # First find the home directory - this is inspired by the scheme ipython
     # uses to identify "home"

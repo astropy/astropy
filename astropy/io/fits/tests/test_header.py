@@ -1651,7 +1651,6 @@ class TestHeaderFunctions(FitsTestCase):
             assert str(w[0].message).startswith(
                 "Missing padding to end of the FITS block")
 
-    @pytest.mark.skipif('six.PY2')
     def test_invalid_characters(self):
         """
         Test header with invalid characters
@@ -2009,11 +2008,9 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header()
-        if six.PY2:
-            pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
-        else:
-            pytest.raises(ValueError, h.set, 'TEST',
-                          bytes('Hello', encoding='ascii'))
+
+        pytest.raises(ValueError, h.set, 'TEST',
+                      bytes('Hello', encoding='ascii'))
 
     def test_header_strip_whitespace(self):
         """

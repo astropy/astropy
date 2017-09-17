@@ -66,16 +66,10 @@ def _convert_to_fd_or_read_function(fd):
         if sys.platform.startswith('win'):
             yield new_fd.read
         else:
-            if six.PY2:
-                if isinstance(new_fd, file):
-                    yield new_fd
-                else:
-                    yield new_fd.read
+            if isinstance(new_fd, io.FileIO):
+                yield new_fd
             else:
-                if isinstance(new_fd, io.FileIO):
-                    yield new_fd
-                else:
-                    yield new_fd.read
+                yield new_fd.read
 
 
 def _fast_iterparse(fd, buffersize=2 ** 10):
@@ -99,8 +93,6 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
 
     parser = expat.ParserCreate()
-    if six.PY2:
-        parser.returns_unicode = True
     parser.specified_attributes = True
     parser.StartElementHandler = start
     parser.EndElementHandler = end

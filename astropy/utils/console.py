@@ -373,8 +373,6 @@ def color_print(*args, **kwargs):
             # Some file objects support writing unicode sensibly on some Python
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
-            if six.PY2 and isinstance(msg, bytes):
-                msg = _decode_preferred_encoding(msg)
 
             write = _write_with_fallback(msg, write, file)
 
@@ -382,11 +380,6 @@ def color_print(*args, **kwargs):
     else:
         for i in range(0, len(args), 2):
             msg = args[i]
-            if six.PY2 and isinstance(msg, bytes):
-                # Support decoding bytes to unicode on Python 2; use the
-                # preferred encoding for the locale (which is *sometimes*
-                # sensible)
-                msg = _decode_preferred_encoding(msg)
             write(msg)
         write(end)
 

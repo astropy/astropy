@@ -34,10 +34,7 @@ from ...utils import wraps
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
 
-if six.PY2:
-    cmp = cmp
-else:
-    cmp = lambda a, b: (a > b) - (a < b)
+cmp = lambda a, b: (a > b) - (a < b)
 
 all_integer_types = (int, np.integer)
 
@@ -301,7 +298,7 @@ def isreadable(f):
     sense approximation of io.IOBase.readable.
     """
 
-    if not six.PY2 and hasattr(f, 'readable'):
+    if hasattr(f, 'readable'):
         return f.readable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -325,7 +322,7 @@ def iswritable(f):
     sense approximation of io.IOBase.writable.
     """
 
-    if not six.PY2 and hasattr(f, 'writable'):
+    if hasattr(f, 'writable'):
         return f.writable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -343,64 +340,37 @@ def iswritable(f):
     return True
 
 
-if six.PY2:
-    def isfile(f):
-        """
-        Returns True if the given object represents an OS-level file (that is,
-        ``isinstance(f, file)``).
+def isfile(f):
+    """
+    Returns True if the given object represents an OS-level file (that is,
+    ``isinstance(f, file)``).
 
-        On Python 3 this also returns True if the given object is higher level
-        wrapper on top of a FileIO object, such as a TextIOWrapper.
-        """
+    On Python 3 this also returns True if the given object is higher level
+    wrapper on top of a FileIO object, such as a TextIOWrapper.
+    """
 
-        return isinstance(f, file)
-else:
-    def isfile(f):
-        """
-        Returns True if the given object represents an OS-level file (that is,
-        ``isinstance(f, file)``).
-
-        On Python 3 this also returns True if the given object is higher level
-        wrapper on top of a FileIO object, such as a TextIOWrapper.
-        """
-
-        if isinstance(f, io.FileIO):
-            return True
-        elif hasattr(f, 'buffer'):
-            return isfile(f.buffer)
-        elif hasattr(f, 'raw'):
-            return isfile(f.raw)
-        return False
+    if isinstance(f, io.FileIO):
+        return True
+    elif hasattr(f, 'buffer'):
+        return isfile(f.buffer)
+    elif hasattr(f, 'raw'):
+        return isfile(f.raw)
+    return False
 
 
-if six.PY2:
-    def fileobj_open(filename, mode):
-        """
-        A wrapper around the `open()` builtin.
+def fileobj_open(filename, mode):
+    """
+    A wrapper around the `open()` builtin.
 
-        This exists because in Python 3, `open()` returns an
-        `io.BufferedReader` by default.  This is bad, because
-        `io.BufferedReader` doesn't support random access, which we need in
-        some cases.  In the Python 3 case (implemented in the py3compat module)
-        we must call open with buffering=0 to get a raw random-access file
-        reader.
-        """
+    This exists because in Python 3, `open()` returns an
+    `io.BufferedReader` by default.  This is bad, because
+    `io.BufferedReader` doesn't support random access, which we need in
+    some cases.  In the Python 3 case (implemented in the py3compat module)
+    we must call open with buffering=0 to get a raw random-access file
+    reader.
+    """
 
-        return open(filename, mode)
-else:
-    def fileobj_open(filename, mode):
-        """
-        A wrapper around the `open()` builtin.
-
-        This exists because in Python 3, `open()` returns an
-        `io.BufferedReader` by default.  This is bad, because
-        `io.BufferedReader` doesn't support random access, which we need in
-        some cases.  In the Python 3 case (implemented in the py3compat module)
-        we must call open with buffering=0 to get a raw random-access file
-        reader.
-        """
-
-        return open(filename, mode, buffering=0)
+    return open(filename, mode, buffering=0)
 
 
 def fileobj_name(f):
@@ -532,33 +502,15 @@ def fileobj_is_binary(f):
         return True
 
 
-if six.PY2:
-    maketrans = string.maketrans
+maketrans = str.maketrans
 
-    def translate(s, table, deletechars):
-        """
-        This is a version of string/unicode.translate() that can handle string
-        or unicode strings the same way using a translation table made with
-        `string.maketrans`.
-        """
 
-        if isinstance(s, str):
-            return s.translate(table, deletechars)
-        elif isinstance(s, text_type):
-            table = dict((x, ord(table[x])) for x in range(256)
-                         if ord(table[x]) != x)
-            for c in deletechars:
-                table[ord(c)] = None
-            return s.translate(table)
-else:
-    maketrans = str.maketrans
-
-    def translate(s, table, deletechars):
-        if deletechars:
-            table = table.copy()
-            for c in deletechars:
-                table[ord(c)] = None
-        return s.translate(table)
+def translate(s, table, deletechars):
+    if deletechars:
+        table = table.copy()
+        for c in deletechars:
+            table[ord(c)] = None
+    return s.translate(table)
 
 
 def fill(text, width, *args, **kwargs):

@@ -166,7 +166,7 @@ def _get_col_attributes(col):
     attrs['name'] = col.info.name
 
     type_name = col.info.dtype.type.__name__
-    if not six.PY2 and type_name.startswith(('bytes', 'str')):
+    if type_name.startswith(('bytes', 'str')):
         type_name = 'string'
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV

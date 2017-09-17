@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
-
 __all__ = ['fnpickle', 'fnunpickle']
 
 
@@ -44,10 +43,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
 
     """
 
-    if usecPickle and six.PY2:
-        import cPickle as pickle
-    else:
-        import pickle
+    import pickle
 
     if isinstance(fileorname, str):
         f = open(fileorname, 'rb')
@@ -101,10 +97,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
     """
 
-    if usecPickle and six.PY2:
-        import cPickle as pickle
-    else:
-        import pickle
+    import pickle
 
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL

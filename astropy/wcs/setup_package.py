@@ -26,19 +26,11 @@ def b(s):
     return s.encode('ascii')
 
 
-if six.PY2:
-    def string_escape(s):
-        # string_escape has subtle differences with the escaping done in Python
-        # 3 so correct for those too
-        s = s.encode('string_escape')
-        s = s.replace(r'\x00', r'\0')
-        return s.replace(r"\'", "'")
-else:
-    def string_escape(s):
-        s = s.decode('ascii').encode('ascii', 'backslashreplace')
-        s = s.replace(b'\n', b'\\n')
-        s = s.replace(b'\0', b'\\0')
-        return s.decode('ascii')
+def string_escape(s):
+    s = s.decode('ascii').encode('ascii', 'backslashreplace')
+    s = s.replace(b'\n', b'\\n')
+    s = s.replace(b'\0', b'\\0')
+    return s.decode('ascii')
 
 
 def determine_64_bit_int():
@@ -174,8 +166,6 @@ MSVC, do not support string literals greater than 256 characters.
         c_file.write('char doc_{0}[{1}] = {{\n'.format(key, len(val)))
         for i in range(0, len(val), 12):
             section = val[i:i+12]
-            if six.PY2:
-                section = [ord(x) for x in section]
             c_file.write('    ');
             c_file.write(''.join('0x{0:02x}, '.format(x) for x in section))
             c_file.write('\n')

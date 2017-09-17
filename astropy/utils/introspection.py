@@ -389,23 +389,19 @@ def isinstancemethod(cls, obj):
     return _isinstancemethod(cls, obj)
 
 
-if not six.PY2:
-    def _isinstancemethod(cls, obj):
-        if not isinstance(obj, types.FunctionType):
-            return False
+def _isinstancemethod(cls, obj):
+    if not isinstance(obj, types.FunctionType):
+        return False
 
-        # Unfortunately it seems the easiest way to get to the original
-        # staticmethod object is to look in the class's __dict__, though we
-        # also need to look up the MRO in case the method is not in the given
-        # class's dict
-        name = obj.__name__
-        for basecls in cls.mro():  # This includes cls
-            if name in basecls.__dict__:
-                return not isinstance(basecls.__dict__[name], staticmethod)
+    # Unfortunately it seems the easiest way to get to the original
+    # staticmethod object is to look in the class's __dict__, though we
+    # also need to look up the MRO in case the method is not in the given
+    # class's dict
+    name = obj.__name__
+    for basecls in cls.mro():  # This includes cls
+        if name in basecls.__dict__:
+            return not isinstance(basecls.__dict__[name], staticmethod)
 
-        # This shouldn't happen, though this is the most sensible response if
-        # it does.
-        raise AttributeError(name)
-else:
-    def _isinstancemethod(cls, obj):
-        return isinstance(obj, types.MethodType) and obj.im_class is cls
+    # This shouldn't happen, though this is the most sensible response if
+    # it does.
+    raise AttributeError(name)

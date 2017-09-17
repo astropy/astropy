@@ -8,7 +8,6 @@ import collections
 import numpy as np
 
 
-
 class Row(object):
     """A class to represent one row of a Table object.
 
@@ -163,13 +162,11 @@ class Row(object):
     def __unicode__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
-    if not six.PY2:
-        __str__ = __unicode__
+
+    __str__ = __unicode__
 
     def __bytes__(self):
         return str(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
 
 
 collections.Sequence.register(Row)

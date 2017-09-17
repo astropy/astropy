@@ -1756,10 +1756,7 @@ class TestTableFunctions(FitsTestCase):
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
-            if six.PY2:
-                assert tbhdu.data['S'].dtype.str.endswith('S4')
-            else:
-                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            assert tbhdu.data['S'].dtype.str.endswith('U4')
 
             tbhdu.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1767,10 +1764,7 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu2 = hdul[1]
                 assert tbhdu2.header['TDIM1'] == '(4,2,3)'
                 assert tbhdu2.data['S'].shape == (5, 3, 2)
-                if six.PY2:
-                    assert tbhdu.data['S'].dtype.str.endswith('S4')
-                else:
-                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
                 assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
 
         test_dims_and_roundtrip(tbhdu1)

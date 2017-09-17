@@ -104,11 +104,8 @@ class Result(object):
 
         r = None
         try:
-            if six.PY2:
-                r = urllib.request.urlopen(self.url, timeout=self.timeout)
-            else:
-                r = urllib.request.urlopen(
-                    self.url.decode('ascii'), timeout=self.timeout)
+            r = urllib.request.urlopen(
+                self.url.decode('ascii'), timeout=self.timeout)
         except urllib.error.URLError as e:
             if hasattr(e, 'reason'):
                 reason = e.reason

@@ -1413,18 +1413,6 @@ class TestMetaTable(MetaBaseTest):
     args = ()
 
 
-def test_unicode_column_names(table_types):
-    """
-    Test that unicode column names are accepted.  Only do this for
-    Python 2 since strings are unicode already in Python 3.
-    """
-    if six.PY2:
-        t = table_types.Table([[1]], names=(str('a'),))
-        assert t.colnames == ['a']
-        t[str('b')] = 0.0
-        assert t.colnames == ['a', 'b']
-
-
 def test_unicode_content():
     # If we don't have unicode literals then return
     if isinstance('', bytes):

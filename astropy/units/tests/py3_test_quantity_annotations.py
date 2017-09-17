@@ -10,19 +10,16 @@ from ... import units as u  # pylint: disable=W0611
 
 
 def py3only(func):
-    if six.PY2:
-        return pytest.mark.skipif('six.PY2')(func)
-    else:
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            src = func(*args, **kwargs)
-            code = compile(dedent(src), __file__, 'exec')
-            # This uses an unqualified exec statement illegally in Python 2,
-            # but perfectly allowed in Python 3 so in fact we eval the exec
-            # call :)
-            eval('exec(code)')
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        src = func(*args, **kwargs)
+        code = compile(dedent(src), __file__, 'exec')
+        # This uses an unqualified exec statement illegally in Python 2,
+        # but perfectly allowed in Python 3 so in fact we eval the exec
+        # call :)
+        eval('exec(code)')
 
-        return wrapper
+    return wrapper
 
 
 @py3only

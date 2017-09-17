@@ -1171,10 +1171,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
-    if six.PY2:  # don't fall through to ndarray.__setslice__
-        def __setslice__(self, i, j, value):
-            self.__setitem__(slice(i, j), value)
-
     # __contains__ is OK
 
     def __nonzero__(self):
@@ -1182,8 +1178,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         potential for ambiguity otherwise.
         """
         return True
-    if not six.PY2:
-        __bool__ = __nonzero__
+
+    __bool__ = __nonzero__
 
     def __len__(self):
         if self.isscalar:
@@ -1216,14 +1212,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         except Exception:
             raise TypeError('only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
-
-    if six.PY2:
-        def __long__(self):
-            try:
-                return long(self.to_value(dimensionless_unscaled))
-            except (UnitsError, TypeError):
-                raise TypeError('only dimensionless scalar quantities can be '
-                                'converted to Python scalars')
 
     @property
     def _unitstr(self):

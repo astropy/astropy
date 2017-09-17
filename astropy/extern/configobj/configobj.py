@@ -1473,11 +1473,6 @@ class ConfigObj(Section):
                 # UTF16 - have to decode
                 return self._decode(infile, encoding)
 
-
-        if six.PY2 and isinstance(line, str):
-            # don't actually do any decoding, since we're on python 2 and
-            # returning a bytestring is fine
-            return self._decode(infile, None)
         # No BOM discovered and no encoding specified, default to UTF-8
         if isinstance(infile, bytes):
             return infile.decode('utf-8').splitlines(True)

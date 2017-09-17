@@ -120,10 +120,7 @@ def pytest_report_header(config):
     except AttributeError:
         stdoutencoding = 'ascii'
 
-    if six.PY2:
-        args = [x.decode('utf-8') for x in config.args]
-    else:
-        args = config.args
+    args = config.args
 
     # TESTED_VERSIONS can contain the affiliated package version, too
     if len(TESTED_VERSIONS) > 1:
@@ -196,9 +193,6 @@ def pytest_report_header(config):
     if opts:
         s += "Using Astropy options: {0}.\n".format(", ".join(opts))
 
-    if six.PY2:
-        s = s.encode(stdoutencoding, 'replace')
-
     return s
 
 
@@ -206,11 +200,7 @@ def pytest_pycollect_makemodule(path, parent):
     # This is where we set up testing both with and without
     # from __future__ import unicode_literals
 
-    # On Python 3, just do the regular thing that py.test does
-    if six.PY2:
-        return Pair(path, parent)
-    else:
-        return pytest.Module(path, parent)
+    return pytest.Module(path, parent)
 
 
 class Pair(pytest.File):
