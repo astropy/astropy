@@ -254,7 +254,7 @@ def get_result_subsets(results, root, s=None):
 
     for url in results:
         if s:
-            six.next(s)
+            next(s)
 
         if isinstance(url, Result):
             x = url
@@ -331,7 +331,7 @@ def get_result_subsets(results, root, s=None):
         ('warnings', 'Warnings', has_warnings)]
     for warning_code, warning in warning_set:
         if s:
-            six.next(s)
+            next(s)
 
         warning_class = getattr(exceptions, warning_code, None)
         if warning_class:
@@ -344,7 +344,7 @@ def get_result_subsets(results, root, s=None):
         ('exceptions', 'Exceptions', has_exceptions))
     for exception_code, exc in exception_set:
         if s:
-            six.next(s)
+            next(s)
 
         exception_class = getattr(exceptions, exception_code, None)
         if exception_class:
