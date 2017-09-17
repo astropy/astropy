@@ -310,7 +310,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     if rcParams['text.usetex']:
                         deg = r'$^\circ$'
                     else:
-                        deg = six.u('\xb0')
+                        deg = '\xb0'
                     sep = (deg, "'", '"')
                 else:
                     sep = ('h', 'm', 's')
