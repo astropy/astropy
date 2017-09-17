@@ -15,7 +15,7 @@ import warnings
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty, deprecated
+from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
@@ -2040,13 +2040,6 @@ class CompositeUnit(UnitBase):
                         scale *= unit._to(base) ** power
                     except UnitsError:
                         pass
-                    except ValueError:
-                        # on python2, sqrt(negative number) does not
-                        # automatically lead to a complex number, but this is
-                        # needed for the corner case of mag=-0.4*dex
-                        scale *= cmath.exp(power * cmath.log(unit._to(base)))
-                        unit = base
-                        break
                     else:
                         unit = base
                         break
@@ -2066,13 +2059,7 @@ class CompositeUnit(UnitBase):
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
-                try:
-                    scale *= b._scale ** p
-                except ValueError:
-                    # on python2, sqrt(negative number) does not
-                    # automatically lead to a complex number, but this is
-                    # needed for the corner case of mag=-0.4*dex
-                    scale *= cmath.exp(p * cmath.log(b._scale))
+                scale *= b._scale ** p
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     a, b = resolve_fractions(p_sub, p)
                     scale = add_unit(b_sub, a * b, scale)
