@@ -33,7 +33,7 @@ def get_urls(destdir, s):
             'urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
-                six.next(s)
+                next(s)
                 url = url.strip()
                 if url not in seen:
                     with result.Result(url, root=destdir) as r:

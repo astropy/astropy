@@ -177,7 +177,7 @@ def get_xml_encoding(source):
     encoding : str
     """
     with get_xml_iterator(source) as iterator:
-        start, tag, data, pos = six.next(iterator)
+        start, tag, data, pos = next(iterator)
         if not start or tag != 'xml':
             raise IOError('Invalid XML file')
 

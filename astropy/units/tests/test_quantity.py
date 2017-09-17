@@ -1079,7 +1079,7 @@ def test_quantity_iterability():
     q1 = [15.0, 17.0] * u.m
     assert isiterable(q1)
 
-    q2 = six.next(iter(q1))
+    q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)
