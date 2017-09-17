@@ -4,7 +4,6 @@ from __future__ import (absolute_import, division, print_function,
 
 # LOCAL
 from ....utils.xml.iterparser import _fast_iterparse
-from ....extern import six
 
 # SYSTEM
 import zlib

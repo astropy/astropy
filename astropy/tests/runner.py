@@ -12,7 +12,6 @@ import warnings
 from collections import OrderedDict
 
 from ..config.paths import set_temp_config, set_temp_cache
-from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 

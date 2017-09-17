@@ -20,11 +20,9 @@ from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-from ....extern.six import string_types, PY2
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
-from ....extern.six.moves import range
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,

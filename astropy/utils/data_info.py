@@ -27,8 +27,6 @@ import re
 from collections import OrderedDict
 from contextlib import contextmanager
 
-from ..extern import six
-from ..extern.six.moves import zip, cStringIO as StringIO
 from . import metadata
 
 

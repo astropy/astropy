@@ -7,7 +7,6 @@ from textwrap import dedent
 import pytest
 
 from ... import units as u  # pylint: disable=W0611
-from ...extern import six
 
 
 def py3only(func):

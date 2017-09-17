@@ -11,7 +11,6 @@ import os
 import numpy as np
 
 from ....table import Table, Column
-from ....extern.six.moves import range
 
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):

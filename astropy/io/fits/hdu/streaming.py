@@ -11,7 +11,6 @@ from ..file import _File
 from ..header import _pad_length
 from ..util import fileobj_name
 
-from ....extern.six.moves import range
 
 
 class StreamingHDU(object):

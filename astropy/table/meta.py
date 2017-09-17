@@ -2,7 +2,6 @@ import textwrap
 import copy
 from collections import OrderedDict
 
-from ..extern import six
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 

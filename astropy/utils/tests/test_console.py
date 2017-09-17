@@ -11,9 +11,6 @@ import locale
 
 import pytest
 
-from ...extern import six  # noqa
-from ...extern.six import next
-from ...extern.six.moves import range
 
 from .. import console
 from ... import units as u

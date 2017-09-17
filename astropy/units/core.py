@@ -7,8 +7,6 @@ Core units classes and functions
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import inspect
 import operator

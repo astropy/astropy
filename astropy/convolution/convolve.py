@@ -17,7 +17,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
-from ..extern.six.moves import range, zip
 
 
 # Disabling all doctests in this module until a better way of handling warnings

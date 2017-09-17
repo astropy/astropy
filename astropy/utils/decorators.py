@@ -14,8 +14,6 @@ import warnings
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
-from ..extern import six
-from ..extern.six.moves import zip
 
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
@@ -792,7 +790,6 @@ class sharedmethod(classmethod):
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 
-        >>> from astropy.extern.six import add_metaclass
         >>> class ExampleMeta(type):
         ...     def identify(self):
         ...         print('this implements the {0}.identify '

@@ -12,8 +12,6 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from ...extern import six
-from ...extern.six.moves import zip
 from . import core
 
 latexdicts = {'AA': {'tabletype': 'table',

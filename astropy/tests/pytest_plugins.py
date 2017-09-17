@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import __future__
 
-from ..extern import six
 
 import ast
 import datetime

@@ -11,10 +11,10 @@ import threading
 import time
 import uuid
 import warnings
+import queue
+import xmlrpc.client as xmlrpc
+from urllib.parse import urlunparse
 
-from ..extern.six.moves import queue, range
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six.moves.urllib.parse import urlunparse
 from .. import log
 
 from .constants import SAMP_STATUS_OK

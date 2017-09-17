@@ -18,7 +18,6 @@ from fractions import Fraction
 import numpy as np
 from numpy import finfo
 
-from ..extern import six
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast

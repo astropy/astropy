@@ -22,12 +22,12 @@ import unicodedata
 import locale
 import threading
 import re
+import urllib
 
+from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
-from ..extern import six
-from ..extern.six.moves import urllib, range, zip_longest
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
@@ -501,7 +501,6 @@ class InheritDocstrings(type):
     For example::
 
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> from astropy.extern import six
         >>> @six.add_metaclass(InheritDocstrings)
         ... class A(object):
         ...     def wiggle(self):
@@ -648,7 +647,6 @@ class OrderedDescriptorContainer(type):
     Examples
     --------
 
-    >>> from astropy.extern import six
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"

@@ -20,8 +20,6 @@ import numpy as np
 from .. import units as u
 from ..units import Quantity, UnitsError
 from ..utils import isiterable, OrderedDescriptor
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params

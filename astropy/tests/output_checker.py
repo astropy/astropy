@@ -12,8 +12,6 @@ import re
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import zip
 
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst

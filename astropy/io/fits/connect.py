@@ -9,7 +9,6 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU

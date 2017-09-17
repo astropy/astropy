@@ -7,7 +7,6 @@ import warnings
 import pytest
 import numpy as np
 
-from ....extern import six  # pylint: disable=W0611
 from ....io import fits
 from ....table import Table
 from .. import printdiff

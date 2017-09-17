@@ -9,7 +9,6 @@ from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import raises
-from ...extern.six.moves import zip
 from ...utils.compat import NUMPY_LT_1_13
 
 

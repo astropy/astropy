@@ -18,7 +18,6 @@ from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning
 from ...table import pprint
-from ...extern import six
 from . import core
 
 try:

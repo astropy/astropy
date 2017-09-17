@@ -24,9 +24,6 @@ from itertools import islice
 import numpy as np
 
 from ... import __version__
-from ...extern import six
-from ...extern.six import u, string_types
-from ...extern.six.moves import zip, range, map
 
 from ...utils import indent
 from ...utils.compat.funcsigs import signature

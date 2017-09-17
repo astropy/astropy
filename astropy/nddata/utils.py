@@ -11,7 +11,6 @@ import numpy as np
 from .decorators import support_nddata
 from .. import units as u
 from ..coordinates import SkyCoord
-from ..extern.six.moves import range, zip
 from ..utils import lazyproperty
 from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 

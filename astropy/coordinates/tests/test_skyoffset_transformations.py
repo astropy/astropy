@@ -14,7 +14,6 @@ from ...time import Time
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 
-from ...extern.six.moves import range
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [

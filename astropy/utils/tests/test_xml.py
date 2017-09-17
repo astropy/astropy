@@ -7,7 +7,6 @@ import io
 import pytest
 
 from ..xml import check, unescaper, writer
-from ...extern import six
 
 
 def test_writer():

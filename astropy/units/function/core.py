@@ -8,7 +8,6 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy as np
 
-from ...extern import six
 from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity)
 

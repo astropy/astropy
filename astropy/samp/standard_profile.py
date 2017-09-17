@@ -6,10 +6,9 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 import traceback
 import warnings
-
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six.moves import socketserver
-from ..extern import six
+import socketserver
+import xmlrpc.client as xmlrpc
+from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 if six.PY2:
     from SimpleXMLRPCServer import (SimpleXMLRPCRequestHandler,

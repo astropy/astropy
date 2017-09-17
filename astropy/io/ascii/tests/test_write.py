@@ -9,7 +9,6 @@ from itertools import chain
 import pytest
 import numpy as np
 
-from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....table.table_helpers import simple_table

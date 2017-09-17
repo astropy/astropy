@@ -223,7 +223,6 @@ def _rebuild_extensions():
     import time
 
     from .utils.console import Spinner
-    from .extern.six import next
 
     devnull = open(os.devnull, 'w')
     old_cwd = os.getcwd()
@@ -302,7 +301,7 @@ def online_help(query):
     query : str
         The search query.
     """
-    from .extern.six.moves.urllib.parse import urlencode
+    from urllib.parse import urlencode
     import webbrowser
 
     version = __version__

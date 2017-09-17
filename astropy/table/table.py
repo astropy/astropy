@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip, range
 from .index import TableIndices, TableLoc, TableILoc
 
 import re
@@ -1079,9 +1077,9 @@ class Table(object):
         import os
         import webbrowser
         import tempfile
-        from ..extern.six.moves.urllib.parse import urljoin
-        from ..extern.six.moves.urllib.request import pathname2url
         from .jsviewer import DEFAULT_CSS
+        from urllib.parse import urljoin
+        from urllib.request import pathname2url
 
         if css is None:
             css = DEFAULT_CSS

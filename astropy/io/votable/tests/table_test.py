@@ -14,7 +14,6 @@ import numpy as np
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
-from ....extern.six.moves import zip
 
 try:
     import pathlib

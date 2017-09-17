@@ -12,7 +12,6 @@ import pytest
 import numpy as np
 from numpy import testing as npt
 
-from ...extern import six
 
 from ... import units as u
 from ...time import Time

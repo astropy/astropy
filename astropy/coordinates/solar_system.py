@@ -23,7 +23,6 @@ from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12
-from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
            "get_body_barycentric_posvel", "solar_system_ephemeris"]

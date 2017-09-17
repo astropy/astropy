@@ -20,8 +20,6 @@ import collections
 
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF16_BE, BOM_UTF16_LE
 
-from ...extern import six
-from ...extern.six.moves import range, zip, map
 # from __future__ import __version__
 
 # imported lazily to avoid startup performance hit if it isn't used

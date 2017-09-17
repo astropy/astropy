@@ -10,7 +10,6 @@ from ... import table
 from ...table import Table, QTable
 from ...table.table_helpers import simple_table
 from ... import units as u
-from ...extern.six import PY2
 from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)

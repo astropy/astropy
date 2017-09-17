@@ -9,7 +9,6 @@ from .hdulist import HDUList
 from ..header import Header, _pad_length
 from ..util import fileobj_name
 
-from ....extern.six import string_types
 from ....utils import lazyproperty
 
 

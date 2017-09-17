@@ -12,7 +12,6 @@ import tempfile
 
 from setuptools import Command
 
-from ..extern import six
 
 
 def _fix_user_options(options):

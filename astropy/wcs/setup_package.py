@@ -17,7 +17,6 @@ from distutils.dep_util import newer_group
 
 from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
-from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "5.16"

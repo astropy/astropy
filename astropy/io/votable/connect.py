@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
-from ...extern import six
 
 from . import parse, from_table
 from .tree import VOTableFile, Table as VOTable

@@ -15,7 +15,6 @@ import pytest
 
 # test helper.run_tests function
 from ... import test as run_tests
-from ... extern import six
 
 from .. import helper
 

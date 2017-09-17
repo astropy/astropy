@@ -28,7 +28,6 @@ import numpy as np
 
 from .core import Model
 from .parameters import Parameter
-from ..extern.six.moves import zip
 from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
 from ..utils.decorators import deprecated

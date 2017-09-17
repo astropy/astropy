@@ -11,8 +11,6 @@ from collections import deque, MutableMapping
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import range, zip
 
 from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature

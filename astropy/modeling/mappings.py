@@ -4,7 +4,6 @@ which outputs from a source model are mapped to which inputs of a target model.
 """
 
 from .core import FittableModel
-from ..extern.six.moves import range
 
 
 __all__ = ['Mapping', 'Identity']

@@ -16,7 +16,6 @@ import numpy as np
 
 from matplotlib import rcParams
 
-from ...extern import six
 from ... import units as u
 from ...coordinates import Angle
 

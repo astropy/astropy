@@ -10,7 +10,6 @@ from .. import HDUList, PrimaryHDU, BinTableHDU
 from ... import fits
 
 from .... import units as u
-from ....extern.six.moves import range, zip
 from ....table import Table, QTable
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError

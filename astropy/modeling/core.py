@@ -30,8 +30,6 @@ from itertools import chain, islice
 import numpy as np
 
 from ..utils import indent, isinstancemethod, metadata
-from ..extern import six
-from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..units import Quantity, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray

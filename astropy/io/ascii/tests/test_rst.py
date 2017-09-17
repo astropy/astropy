@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ....extern.six.moves import cStringIO as StringIO
 
 from ... import ascii
 from .common import (assert_equal, assert_almost_equal,

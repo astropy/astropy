@@ -9,7 +9,6 @@ import numpy as np
 
 from ... import table
 from ...table import Row
-from ...extern.six.moves import zip
 from .conftest import MaskedTable
 
 

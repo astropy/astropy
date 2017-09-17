@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-from ...extern.six.moves import cStringIO as StringIO
 from ... import units as u
 from ... import time
 from ... import coordinates

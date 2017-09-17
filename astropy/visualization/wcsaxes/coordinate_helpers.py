@@ -15,7 +15,6 @@ from matplotlib.patches import PathPatch
 from matplotlib import rcParams
 
 from ... import units as u
-from ...extern import six
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks

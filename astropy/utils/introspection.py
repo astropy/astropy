@@ -11,8 +11,6 @@ import inspect
 import re
 import types
 
-from ..extern import six
-from ..extern.six.moves import range, zip
 
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
@@ -366,7 +364,6 @@ def isinstancemethod(cls, obj):
 
     Examples
     --------
-    >>> from astropy.extern import six
     >>> class MetaClass(type):
     ...     def a_classmethod(cls): pass
     ...

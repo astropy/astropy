@@ -14,9 +14,9 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import re
 import socket
+import urllib
 
 # Astropy
-from ..extern.six.moves import urllib
 from .. import units as u
 from .sky_coordinate import SkyCoord
 from ..utils import data

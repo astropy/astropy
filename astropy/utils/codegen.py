@@ -13,7 +13,6 @@ import re
 import textwrap
 
 from .introspection import find_current_module
-from ..extern import six
 
 
 __all__ = ['make_function_with_signature']

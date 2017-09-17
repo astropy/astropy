@@ -6,7 +6,6 @@ Handles the "FITS" unit format.
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ...extern.six.moves import zip
 
 import numpy as np
 

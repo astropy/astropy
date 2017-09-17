@@ -2,7 +2,6 @@
 
 from __future__ import print_function, division, absolute_import
 
-from ...extern import six
 
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform

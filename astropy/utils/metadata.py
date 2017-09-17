@@ -5,7 +5,6 @@ This module contains helper functions and classes for handling metadata.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
 from ..utils import wraps
 
 import warnings

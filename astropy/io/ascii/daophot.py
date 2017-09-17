@@ -17,7 +17,6 @@ from collections import defaultdict, OrderedDict
 
 from . import core
 from . import fixedwidth
-from ...extern.six.moves import zip, map, range
 from .misc import first_true_index, first_false_index, groupmore
 
 

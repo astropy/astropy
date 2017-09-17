@@ -17,8 +17,6 @@ import operator
 import os
 import re
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 from .base import Base
 from . import core, utils

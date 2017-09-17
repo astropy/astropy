@@ -16,7 +16,6 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
 from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
 
-from ...extern.six.moves import range
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]

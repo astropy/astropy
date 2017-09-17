@@ -7,7 +7,6 @@ import collections
 
 import numpy as np
 
-from ..extern import six
 
 
 class Row(object):

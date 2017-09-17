@@ -8,7 +8,6 @@ import textwrap
 import numpy as np
 import pytest
 
-from ...extern import six
 from ...io import fits
 from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
 from ... import units as u

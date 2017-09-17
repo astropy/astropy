@@ -9,7 +9,6 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from ..extern import six
 from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
 

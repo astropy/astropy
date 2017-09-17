@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import warnings
-from ...extern import six
 from ...utils.compat.numpycompat import NUMPY_LT_1_10
 from ...utils.exceptions import AstropyUserWarning
 

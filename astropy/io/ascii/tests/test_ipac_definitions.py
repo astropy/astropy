@@ -11,7 +11,6 @@ from ... import ascii
 from ....table import Table
 from ..core import masked
 
-from ....extern.six.moves import cStringIO as StringIO
 
 
 DATA = '''

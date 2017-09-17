@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import sys
 import copy
+import pickle
 import decimal
 from fractions import Fraction
 
@@ -22,9 +23,6 @@ from ...utils.compat import NUMPY_LT_1_10
 from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
-from ...extern.six.moves import range
-from ...extern.six.moves import cPickle as pickle
-from ...extern import six
 
 try:
     import matplotlib

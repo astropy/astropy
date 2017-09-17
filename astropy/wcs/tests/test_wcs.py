@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ...extern import six
 
 import io
 import os
@@ -23,7 +22,6 @@ from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
-from ...extern.six.moves import range
 
 
 class TestMaps(object):

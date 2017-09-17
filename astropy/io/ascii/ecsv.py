@@ -8,7 +8,6 @@ import re
 from collections import OrderedDict
 import contextlib
 
-from ...extern import six
 
 from . import core, basic
 from ...table import meta, serialize

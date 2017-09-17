@@ -11,7 +11,6 @@ from collections import OrderedDict
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...extern import six
 from ...io import fits
 from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
                              ignore_warnings, catch_warnings)
@@ -20,7 +19,6 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from ...extern.six.moves import zip, range, cStringIO as StringIO
 
 try:
     with ignore_warnings(DeprecationWarning):

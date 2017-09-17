@@ -14,7 +14,6 @@ from ..header import Header
 
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
-from ....extern.six.moves import range
 from ....io import fits
 
 from . import FitsTestCase

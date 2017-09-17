@@ -8,15 +8,14 @@ This module contains tests for the name resolve convenience module.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-
 import time
+import urllib
 
 import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
 from ..sky_coordinate import SkyCoord
-from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, pytest
 from ... import units as u
 

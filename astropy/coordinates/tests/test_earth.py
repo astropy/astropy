@@ -16,7 +16,6 @@ import numpy as np
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
 from ...tests.helper import quantity_allclose, remote_data
-from ...extern.six.moves import zip
 from ... import units as u
 from ..name_resolve import NameResolveError
 

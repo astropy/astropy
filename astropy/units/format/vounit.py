@@ -5,8 +5,6 @@ Handles the "VOUnit" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 import copy
 import keyword

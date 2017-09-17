@@ -20,7 +20,6 @@ from ....time import Time, TimeDelta
 from ....tests.helper import quantity_allclose
 from ....units.quantity import QuantityInfo
 
-from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
 from ... import ascii
 from .... import units as u

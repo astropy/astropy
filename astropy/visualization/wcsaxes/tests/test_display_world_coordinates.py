@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backend_bases import KeyEvent
 
 from ....wcs import WCS
-from ....extern import six
 from ....coordinates import FK5
 from ....time import Time
 

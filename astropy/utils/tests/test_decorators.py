@@ -12,7 +12,6 @@ from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
                           format_doc, deprecated_renamed_argument)
 from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from ...extern import six
 from ...tests.helper import catch_warnings
 
 

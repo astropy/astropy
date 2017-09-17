@@ -17,7 +17,6 @@ from ... import units as u
 from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
-from ...extern.six.moves import range, zip
 from ...tests.helper import assert_quantity_allclose
 
 

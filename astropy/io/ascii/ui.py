@@ -32,7 +32,6 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
-from ...extern import six
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []

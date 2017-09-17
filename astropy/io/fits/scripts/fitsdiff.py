@@ -9,7 +9,6 @@ import warnings
 
 from ... import fits
 from ..util import fill
-from ....extern.six.moves import zip
 from ....utils.exceptions import AstropyDeprecationWarning
 
 

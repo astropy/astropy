@@ -13,8 +13,6 @@ from __future__ import absolute_import, division, print_function
 import warnings
 import numpy
 
-from ...extern import six
-from ...extern.six.moves import zip, range
 
 from . import core
 from ...table import Column
