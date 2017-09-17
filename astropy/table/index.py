@@ -749,7 +749,7 @@ class TableIndices(list):
         item : int, str, tuple, or list
             Position in list or name(s) of indexed column(s)
         '''
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             item = [item]
         if isinstance(item, (list, tuple)):
             item = list(item)

@@ -577,7 +577,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
 
-            if isinstance(repr_diff_cls, six.string_types):
+            if isinstance(repr_diff_cls, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
                 repr_diff_cls = _get_repr_cls(repr_diff_cls)
@@ -595,7 +595,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                     # need the isinstance because otherwise if it's a unit it
                     # will try to compare to the unit string representation
-                    if not (isinstance(mapp.defaultunit, six.string_types) and
+                    if not (isinstance(mapp.defaultunit, str) and
                             mapp.defaultunit == 'recommended'):
                         uns[i] = mapp.defaultunit
                         # else we just leave it as recommended_units says above

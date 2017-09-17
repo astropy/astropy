@@ -135,7 +135,7 @@ class Header(object):
         elif self._haswildcard(key):
             return Header([copy.copy(self._cards[idx])
                            for idx in self._wildcardmatch(key)])
-        elif (isinstance(key, string_types) and
+        elif (isinstance(key, str) and
               key.upper() in Card._commentary_keywords):
             key = key.upper()
             # Special case for commentary cards
@@ -209,7 +209,7 @@ class Header(object):
             for idx in reversed(indices):
                 del self[idx]
             return
-        elif isinstance(key, string_types):
+        elif isinstance(key, str):
             # delete ALL cards with the same keyword name
             key = Card.normalize_keyword(key)
             indices = self._keyword_indices
@@ -423,7 +423,7 @@ class Header(object):
         """
 
         close_file = False
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             # Open in text mode by default to support newline handling; if a
             # binary-mode file object is passed in, the user is on their own
             # with respect to newline handling
@@ -1153,7 +1153,7 @@ class Header(object):
 
         """
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -1417,7 +1417,7 @@ class Header(object):
             self.append(card, end=True)
             return
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -1632,7 +1632,7 @@ class Header(object):
         # This used to just set key = (key, 0) and then go on to act as if the
         # user passed in a tuple, but it's much more common to just be given a
         # string as the key, so optimize more for that case
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             keyword = key
             n = 0
         elif isinstance(key, int):
@@ -1645,7 +1645,7 @@ class Header(object):
         elif isinstance(key, slice):
             return key
         elif isinstance(key, tuple):
-            if (len(key) != 2 or not isinstance(key[0], string_types) or
+            if (len(key) != 2 or not isinstance(key[0], str) or
                     not isinstance(key[1], int)):
                 raise ValueError(
                     'Tuple indices must be 2-tuples consisting of a '
@@ -1790,7 +1790,7 @@ class Header(object):
     def _haswildcard(self, keyword):
         """Return `True` if the input keyword contains a wildcard pattern."""
 
-        return (isinstance(keyword, string_types) and
+        return (isinstance(keyword, str) and
                 (keyword.endswith('...') or '*' in keyword or '?' in keyword))
 
     def _wildcardmatch(self, pattern):
@@ -1821,7 +1821,7 @@ class Header(object):
             else:
                 indices = self._wildcardmatch(key)
 
-            if isinstance(value, string_types) or not isiterable(value):
+            if isinstance(value, str) or not isiterable(value):
                 value = itertools.repeat(value, len(indices))
 
             for idx, val in zip(indices, value):
@@ -1963,7 +1963,7 @@ class _CardAccessor(object):
     def __eq__(self, other):
         # If the `other` item is a scalar we will still treat it as equal if
         # this _CardAccessor only contains one item
-        if not isiterable(other) or isinstance(other, string_types):
+        if not isiterable(other) or isinstance(other, str):
             if len(self) == 1:
                 other = [other]
             else:
@@ -1996,7 +1996,7 @@ class _CardAccessor(object):
                 indices = range(*item.indices(len(self)))
             else:
                 indices = self._header._wildcardmatch(item)
-            if isinstance(value, string_types) or not isiterable(value):
+            if isinstance(value, str) or not isiterable(value):
                 value = itertools.repeat(value, len(indices))
             for idx, val in zip(indices, value):
                 self[idx] = val

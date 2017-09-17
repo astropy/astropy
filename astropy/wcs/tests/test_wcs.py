@@ -409,7 +409,7 @@ def test_validate_with_2_wcses():
     # From Issue #2053
     results = wcs.validate(get_pkg_data_filename("data/2wcses.hdr"))
 
-    assert "WCS key 'A':" in six.text_type(results)
+    assert "WCS key 'A':" in str(results)
 
 
 def test_all_world2pix(fname=None, ext=0,
@@ -698,7 +698,7 @@ def test_printwcs():
 
 
 def test_invalid_spherical():
-    header = six.text_type("""
+    header = str("""
 SIMPLE  =                    T / conforms to FITS standard
 BITPIX  =                    8 / array data type
 WCSAXES =                    2 / no comment

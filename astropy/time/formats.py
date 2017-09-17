@@ -709,7 +709,7 @@ class TimeString(TimeUnique):
             fracsec = float(fracsec)
 
         for _, strptime_fmt_or_regex, _ in subfmts:
-            if isinstance(strptime_fmt_or_regex, six.string_types):
+            if isinstance(strptime_fmt_or_regex, str):
                 try:
                     tm = time.strptime(timestr, strptime_fmt_or_regex)
                 except ValueError:

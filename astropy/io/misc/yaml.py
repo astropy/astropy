@@ -246,7 +246,7 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, tuple) and data == ():
                 return True
-            if isinstance(data, six.string_types + (bool, int, float)):
+            if isinstance(data, str + (bool, int, float)):
                 return True
 
 

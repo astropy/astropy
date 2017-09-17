@@ -177,7 +177,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
-    PATH_TYPES = six.string_types
+    PATH_TYPES = str
     if HAS_PATHLIB:
         PATH_TYPES += (pathlib.Path,)
 
@@ -1041,7 +1041,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-    if six.PY2 and isinstance(remote_url, six.text_type):
+    if six.PY2 and isinstance(remote_url, str):
         # shelve DBs don't accept unicode strings in Python 2
         url_key = remote_url.encode('utf-8')
     else:
@@ -1156,7 +1156,7 @@ def is_url_in_cache(url_key):
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    if six.PY2 and isinstance(url_key, six.text_type):
+    if six.PY2 and isinstance(url_key, str):
         # shelve DBs don't accept unicode strings in Python 2
         url_key = url_key.encode('utf-8')
 
@@ -1277,7 +1277,7 @@ def clear_download_cache(hashorurl=None):
                                        " a path outside the data cache directory")
 
                 # shelve DBs don't accept unicode strings as keys in Python 2
-                if six.PY2 and isinstance(hashorurl, six.text_type):
+                if six.PY2 and isinstance(hashorurl, str):
                     hash_key = hashorurl.encode('utf-8')
                 else:
                     hash_key = hashorurl

@@ -669,7 +669,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self.without_differentials()
 
         else:
-            if isinstance(other_class, six.string_types):
+            if isinstance(other_class, str):
                 raise ValueError("Input to a representation's represent_as "
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")

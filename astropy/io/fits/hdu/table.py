@@ -367,7 +367,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 raise TypeError('Table data has incorrect type.')
 
-        if not (isinstance(self._header[0], string_types) and
+        if not (isinstance(self._header[0], str) and
                 self._header[0].rstrip() == self._extension):
             self._header[0] = (self._extension, self._ext_comment)
 
@@ -722,7 +722,7 @@ class TableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return card.keyword == 'XTENSION' and xtension == cls._extension
 
@@ -838,7 +838,7 @@ class BinTableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return (card.keyword == 'XTENSION' and
                 xtension in (cls._extension, 'A3DTABLE'))
@@ -1064,7 +1064,7 @@ class BinTableHDU(_TableBaseHDU):
         files = [datafile, cdfile, hfile]
 
         for f in files:
-            if isinstance(f, string_types):
+            if isinstance(f, str):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if overwrite:
                         warnings.warn(
@@ -1089,7 +1089,7 @@ class BinTableHDU(_TableBaseHDU):
         if hfile:
             self._header.tofile(hfile, sep='\n', endcard=False, padding=False)
 
-    if isinstance(dump.__doc__, string_types):
+    if isinstance(dump.__doc__, str):
         dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
     def load(cls, datafile, cdfile=None, hfile=None, replace=False,
@@ -1170,7 +1170,7 @@ class BinTableHDU(_TableBaseHDU):
         hdu.columns = coldefs
         return hdu
 
-    if isinstance(load.__doc__, string_types):
+    if isinstance(load.__doc__, str):
         load.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
     load = classmethod(load)
@@ -1189,7 +1189,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -1263,7 +1263,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -1288,7 +1288,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'r')
             close_file = True
 
@@ -1431,7 +1431,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'r')
             close_file = True
 

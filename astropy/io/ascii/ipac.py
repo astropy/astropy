@@ -138,9 +138,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # IPAC allows for continuation keywords, e.g.
                 # \SQL     = 'WHERE '
                 # \SQL     = 'SELECT (25 column names follow in next row.)'
-                if name in keywords and isinstance(val, six.string_types):
+                if name in keywords and isinstance(val, str):
                     prev_val = keywords[name]['value']
-                    if isinstance(prev_val, six.string_types):
+                    if isinstance(prev_val, str):
                         val = prev_val + val
 
                 keywords[name] = {'value': val}

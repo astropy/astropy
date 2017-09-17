@@ -368,7 +368,7 @@ class WCS(WCSBase):
         else:
             keysel_flags = _parse_keysel(keysel)
 
-            if isinstance(header, (six.text_type, six.binary_type)):
+            if isinstance(header, (str, bytes)):
                 try:
                     is_path = (possible_filename(header) and
                                os.path.exists(header))
@@ -404,7 +404,7 @@ class WCS(WCSBase):
 
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it
-            if isinstance(header_string, six.text_type):
+            if isinstance(header_string, str):
                 header_bytes = header_string.encode('ascii')
                 header_string = header_string
             else:
@@ -415,7 +415,7 @@ class WCS(WCSBase):
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
                 tmp_header_bytes = tmp_header.tostring().rstrip()
-                if isinstance(tmp_header_bytes, six.text_type):
+                if isinstance(tmp_header_bytes, str):
                     tmp_header_bytes = tmp_header_bytes.encode('ascii')
                 tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
                                          relax=relax, keysel=keysel_flags,
@@ -447,7 +447,7 @@ class WCS(WCSBase):
             header_string = header.tostring()
             header_string = header_string.replace('END' + ' ' * 77, '')
 
-            if isinstance(header_string, six.text_type):
+            if isinstance(header_string, str):
                 header_bytes = header_string.encode('ascii')
                 header_string = header_string
             else:
@@ -873,7 +873,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         If no `distortion paper`_ keywords are found, ``(None, None)``
         is returned.
         """
-        if isinstance(header, (six.text_type, six.binary_type)):
+        if isinstance(header, (str, bytes)):
             return (None, None)
 
         if dist == 'CPDIS':
@@ -1001,7 +1001,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         If no `SIP`_ header keywords are found, ``None`` is returned.
         """
-        if isinstance(header, (six.text_type, six.binary_type)):
+        if isinstance(header, (str, bytes)):
             # TODO: Parse SIP from a string without pyfits around
             return None
 
@@ -2687,7 +2687,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     def _get_naxis(self, header=None):
         _naxis = []
         if (header is not None and
-                not isinstance(header, (six.text_type, six.binary_type))):
+                not isinstance(header, (str, bytes))):
             for naxis in itertools.count(1):
                 try:
                     _naxis.append(header['NAXIS{}'.format(naxis)])
@@ -3148,7 +3148,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
     wcses : list of `WCS` objects
     """
 
-    if isinstance(header, (six.text_type, six.binary_type)):
+    if isinstance(header, (str, bytes)):
         header_string = header
     elif isinstance(header, fits.Header):
         header_string = header.tostring()
@@ -3158,7 +3158,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
 
     keysel_flags = _parse_keysel(keysel)
 
-    if isinstance(header_string, six.text_type):
+    if isinstance(header_string, str):
         header_bytes = header_string.encode('ascii')
     else:
         header_bytes = header_string

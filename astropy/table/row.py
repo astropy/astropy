@@ -167,7 +167,7 @@ class Row(object):
         __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
+        return str(self).encode('utf-8')
     if six.PY2:
         __str__ = __bytes__
 

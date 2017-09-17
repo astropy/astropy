@@ -106,7 +106,7 @@ def test_sexagesimal_rounding_up():
 
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
-    assert isinstance(a.to_string(), six.text_type)
+    assert isinstance(a.to_string(), str)
 
 
 def test_to_string_radian_with_precision():

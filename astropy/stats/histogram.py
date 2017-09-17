@@ -63,7 +63,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     numpy.histogram
     """
     # if bins is a string, first compute bin edges with the desired heuristic
-    if isinstance(bins, six.string_types):
+    if isinstance(bins, str):
         a = np.asarray(a).ravel()
 
         # TODO: if weights is specified, we need to modify things.

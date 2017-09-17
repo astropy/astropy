@@ -667,7 +667,7 @@ class HDUList(list, _Verify):
             _key = key
             _ver = None
 
-        if not isinstance(_key, string_types):
+        if not isinstance(_key, str):
             raise KeyError(
                 '{} indices must be integers, extension names as strings, '
                 'or (extname, version) tuples; got {}'
@@ -678,7 +678,7 @@ class HDUList(list, _Verify):
         found = None
         for idx, hdu in enumerate(self):
             name = hdu.name
-            if isinstance(name, string_types):
+            if isinstance(name, str):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
@@ -867,7 +867,7 @@ class HDUList(list, _Verify):
         # make note of whether the input file object is already open, in which
         # case we should not close it after writing (that should be the job
         # of the caller)
-        closed = isinstance(fileobj, string_types) or fileobj_closed(fileobj)
+        closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
         # writeto is only for writing a new file from scratch, so the most
         # sensible mode to require is 'ostream'.  This can accept an open

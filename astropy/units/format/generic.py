@@ -432,7 +432,7 @@ class Generic(Base):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, {1}".format(
-                    t.lexpos, six.text_type(e)))
+                    t.lexpos, str(e)))
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
@@ -451,7 +451,7 @@ class Generic(Base):
 
     @classmethod
     def parse(cls, s, debug=False):
-        if not isinstance(s, six.text_type):
+        if not isinstance(s, str):
             s = s.decode('ascii')
 
         result = cls._do_parse(s, debug=debug)
@@ -472,7 +472,7 @@ class Generic(Base):
             try:
                 return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
-                if six.text_type(e):
+                if str(e):
                     raise
                 else:
                     raise ValueError(

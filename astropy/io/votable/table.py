@@ -131,7 +131,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         'datatype_mapping': datatype_mapping
     }
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
@@ -241,7 +241,7 @@ def validate(source, output=None, xmllint=False, filename=None):
     content_buffer.seek(0)
 
     if filename is None:
-        if isinstance(source, six.string_types):
+        if isinstance(source, str):
             filename = source
         elif hasattr(source, 'name'):
             filename = source.name

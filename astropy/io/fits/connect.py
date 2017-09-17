@@ -218,7 +218,7 @@ def write_table_fits(input, output, overwrite=False):
     table_hdu = table_to_hdu(input)
 
     # Check if output file already exists
-    if isinstance(output, string_types) and os.path.exists(output):
+    if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:

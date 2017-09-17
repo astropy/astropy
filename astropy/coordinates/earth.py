@@ -471,7 +471,7 @@ class EarthLocation(u.Quantity):
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
-                    if isinstance(force_download, six.string_types):
+                    if isinstance(force_download, str):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()

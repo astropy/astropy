@@ -310,7 +310,7 @@ class Quantity(np.ndarray):
         # To ensure array remains fast, we short-circuit it.
         value_unit = None
         if not isinstance(value, np.ndarray):
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 # The first part of the regex string matches any integer/float;
                 # the second parts adds possible trailing .+-, which will break
                 # the float function below and ensure things like 1.2.3deg
@@ -1021,7 +1021,7 @@ class Quantity(np.ndarray):
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(self.copy(), other * self.unit)
             except UnitsError:  # let other try to deal with it
@@ -1032,7 +1032,7 @@ class Quantity(np.ndarray):
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
 
@@ -1048,7 +1048,7 @@ class Quantity(np.ndarray):
     def __truediv__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(self.copy(), self.unit / other)
             except UnitsError:  # let other try to deal with it
@@ -1059,7 +1059,7 @@ class Quantity(np.ndarray):
     def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
 
@@ -1068,7 +1068,7 @@ class Quantity(np.ndarray):
     def __rtruediv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             return self._new_view(1. / self.value, other / self.unit)
 
         return super(Quantity, self).__rtruediv__(other)

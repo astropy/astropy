@@ -25,7 +25,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = six.string_types
+PATH_TYPES = str
 try:
     import pathlib
 except ImportError:
@@ -161,7 +161,7 @@ def _update__doc__(data_class, readwrite):
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
 
-    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+    if not isinstance(class_readwrite_func.__doc__, str):
         # No docstring--could just be test code, or possibly code compiled
         # without docstrings
         return

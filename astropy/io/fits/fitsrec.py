@@ -61,7 +61,7 @@ class FITS_record(object):
         self.base = base
 
     def __getitem__(self, key):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -78,7 +78,7 @@ class FITS_record(object):
         return self.array.field(indx)[self.row]
 
     def __setitem__(self, key, value):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -479,7 +479,7 @@ class FITS_rec(np.recarray):
         if self._coldefs is None:
             return super(FITS_rec, self).__getitem__(key)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
             # Have to view as a recarray then back as a FITS_rec, otherwise the
@@ -520,7 +520,7 @@ class FITS_rec(np.recarray):
         if self._coldefs is None:
             return super(FITS_rec, self).__setitem__(key, value)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             self[key][:] = value
             return
 

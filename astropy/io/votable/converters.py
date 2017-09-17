@@ -414,7 +414,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return ''
-        return xml_escape_cdata(six.text_type(value))
+        return xml_escape_cdata(str(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -683,7 +683,7 @@ class FloatingPoint(Numeric):
             format_parts = ['{:']
 
         if width is not None:
-            format_parts.append(six.text_type(width))
+            format_parts.append(str(width))
 
         if precision is not None:
             if precision.startswith("E"):
@@ -801,7 +801,7 @@ class Integer(Numeric):
         if config is None:
             config = {}
         mask = False
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.lower()
             if value == '':
                 if config['version_1_3_or_later']:
@@ -842,8 +842,8 @@ class Integer(Numeric):
             if self.null is None:
                 warn_or_raise(W31, W31)
                 return 'NaN'
-            return six.text_type(self.null)
-        return six.text_type(value)
+            return str(self.null)
+        return str(value)
 
     def binoutput(self, value, mask):
         if mask:
@@ -1332,7 +1332,7 @@ def _all_bytes(column):
 
 def _all_unicode(column):
     for x in column:
-        if not isinstance(x, six.text_type):
+        if not isinstance(x, str):
             return False
     return True
 
@@ -1429,7 +1429,7 @@ def table_column_to_votable_datatype(column):
         if isinstance(column[0], bytes):
             if _all_bytes(column[1:]):
                 return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], six.text_type):
+        elif isinstance(column[0], str):
             if _all_unicode(column[1:]):
                 return {'datatype': 'unicodeChar', 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):

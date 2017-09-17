@@ -249,7 +249,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 copy=False)
 
     else:
-        if isinstance(body, six.string_types):
+        if isinstance(body, str):
             # Look up kernel chain for JPL ephemeris, based on name
             try:
                 kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]

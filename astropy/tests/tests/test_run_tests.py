@@ -38,7 +38,7 @@ def test_pastebin_keyword():
 
 
 def test_unicode_literal_conversion():
-    assert isinstance('ångström', six.text_type)
+    assert isinstance('ångström', str)
 
 
 def test_doctest_float_replacement(tmpdir):

@@ -10,7 +10,6 @@ import operator
 import os
 import platform
 import signal
-import string
 import sys
 import tempfile
 import textwrap
@@ -31,8 +30,6 @@ except ImportError:
     class StringIO(object):
         pass
 
-
-                           binary_type, next)
 from ...utils import wraps
 from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
@@ -42,7 +39,7 @@ if six.PY2:
 else:
     cmp = lambda a, b: (a > b) - (a < b)
 
-all_integer_types = integer_types + (np.integer,)
+all_integer_types = (int, np.integer)
 
 
 class NotifierMixin(object):
@@ -413,7 +410,7 @@ def fileobj_name(f):
     string f itself is returned.
     """
 
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         return f
     elif isinstance(f, gzip.GzipFile):
         # The .name attribute on GzipFiles does not always represent the name
@@ -443,7 +440,7 @@ def fileobj_closed(f):
     they are file-like objects with no sense of a 'closed' state.
     """
 
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         return True
 
     if hasattr(f, 'closed'):
@@ -732,9 +729,9 @@ def _write_string(f, s):
     # binary
     binmode = fileobj_is_binary(f)
 
-    if binmode and isinstance(s, text_type):
+    if binmode and isinstance(s, str):
         s = encode_ascii(s)
-    elif not binmode and not isinstance(f, text_type):
+    elif not binmode and not isinstance(f, str):
         s = decode_ascii(s)
     elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
         # Workaround for StringIO/ndarray incompatibility
@@ -802,7 +799,7 @@ def _words_group(input, strlen):
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(binary_type, 1))
+    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]

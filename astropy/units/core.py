@@ -617,7 +617,7 @@ class UnitBase(object):
         try:
             return self.to_string(format=format_spec)
         except ValueError:
-            return format(six.text_type(self), format_spec)
+            return format(str(self), format_spec)
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
@@ -650,7 +650,7 @@ class UnitBase(object):
         return CompositeUnit(1, [self], [p])
 
     def __div__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -666,7 +666,7 @@ class UnitBase(object):
             return NotImplemented
 
     def __rdiv__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             return Unit(m) / self
 
         try:
@@ -688,7 +688,7 @@ class UnitBase(object):
     __rtruediv__ = __rdiv__
 
     def __mul__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -706,7 +706,7 @@ class UnitBase(object):
             return NotImplemented
 
     def __rmul__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             return Unit(m) * self
 
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
@@ -1478,7 +1478,7 @@ class NamedUnit(UnitBase):
 
         UnitBase.__init__(self)
 
-        if isinstance(st, (bytes, six.text_type)):
+        if isinstance(st, (bytes, str)):
             self._names = [st]
             self._short_names = [st]
             self._long_names = []
@@ -1782,7 +1782,7 @@ class _UnitMetaClass(InheritDocstrings):
         if isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, (bytes, six.text_type)):
+        elif isinstance(s, (bytes, str)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return dimensionless_unscaled
@@ -1807,7 +1807,7 @@ class _UnitMetaClass(InheritDocstrings):
                     else:
                         format_clause = ''
                     msg = ("'{0}' did not parse as {1}unit: {2}"
-                           .format(s, format_clause, six.text_type(e)))
+                           .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
                     elif parse_strict == 'warn':
@@ -2310,7 +2310,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (float, six.integer_types, complex)):
+    if isinstance(value, (float, int, complex)):
         return value
 
     if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:

@@ -45,7 +45,7 @@ def convert_to_writable_filelike(fd, compressed=False):
     -------
     fd : writable file-like object
     """
-    if isinstance(fd, six.string_types):
+    if isinstance(fd, str):
         if fd.endswith('.gz') or compressed:
             with gzip.GzipFile(fd, 'wb') as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
@@ -153,7 +153,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
             return str_or_none(x)
 
     def is_frame_of_reference(x):
-        return isinstance(x, six.string_types)
+        return isinstance(x, str)
 
     if p is None:
         return None, 0
@@ -176,7 +176,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
         return out, length
 
-    elif isinstance(p, six.string_types):
+    elif isinstance(p, str):
         number = r'([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)?'
         if not numeric:
             number = r'(' + number + ')|([A-Z_]+)'

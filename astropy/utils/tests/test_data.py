@@ -363,7 +363,7 @@ def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
     contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
-    assert isinstance(contents, six.text_type)
+    assert isinstance(contents, str)
     contents = contents.splitlines()[1]
     assert contents == "האסטרונומי פייתון"
 

@@ -238,7 +238,7 @@ def check_string(string, attr_name, config=None, pos=None):
     config, pos : optional
         Information about the source of the value
     """
-    if string is not None and not isinstance(string, six.string_types):
+    if string is not None and not isinstance(string, str):
         warn_or_raise(W08, W08, attr_name, config, pos)
         return False
     return True
@@ -278,9 +278,9 @@ def check_ucd(ucd, config=None, pos=None):
         except ValueError as e:
             # This weird construction is for Python 3 compatibility
             if config.get('pedantic'):
-                vo_raise(W06, (ucd, six.text_type(e)), config, pos)
+                vo_raise(W06, (ucd, str(e)), config, pos)
             else:
-                vo_warn(W06, (ucd, six.text_type(e)), config, pos)
+                vo_warn(W06, (ucd, str(e)), config, pos)
                 return False
     return True
 
@@ -863,7 +863,7 @@ class Values(Element, _IDProperty):
 
     @null.setter
     def null(self, null):
-        if null is not None and isinstance(null, six.string_types):
+        if null is not None and isinstance(null, str):
             try:
                 null_val = self._field.converter.parse_scalar(
                     null, self._config, self._pos)[0]
@@ -1609,8 +1609,8 @@ class Param(Field):
     def value(self, value):
         if value is None:
             value = ""
-        if ((not six.PY2 and isinstance(value, six.text_type)) or
-            (six.PY2 and isinstance(value, six.string_types))):
+        if ((not six.PY2 and isinstance(value, str)) or
+            (six.PY2 and isinstance(value, str))):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:
@@ -2078,7 +2078,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         __str__ = __bytes__
 
     def __unicode__(self):
-        return six.text_type(self.to_table())
+        return str(self.to_table())
     if not six.PY2:
         __str__ = __unicode__
 
@@ -2377,7 +2377,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if not columns:
             colnumbers = list(range(len(fields)))
         else:
-            if isinstance(columns, six.string_types):
+            if isinstance(columns, str):
                 columns = [columns]
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
@@ -2835,7 +2835,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert type(chunk) == six.binary_type
+                            assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
                                 e, additional="(in row {:d}, col '{}')".format(

@@ -126,7 +126,7 @@ def format_power(power):
                 power = int(power.numerator)
         else:
             power = int(power)
-    return six.text_type(power)
+    return str(power)
 
 
 def _try_decomposed(unit, format_decomposed):

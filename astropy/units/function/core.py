@@ -269,7 +269,7 @@ class FunctionUnitBase(object):
         return not self.__eq__(other)
 
     def __mul__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit * other
@@ -287,7 +287,7 @@ class FunctionUnitBase(object):
         return self.__mul__(other)
 
     def __div__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit / other
@@ -302,7 +302,7 @@ class FunctionUnitBase(object):
                 return NotImplemented
 
     def __rdiv__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return other / self.function_unit

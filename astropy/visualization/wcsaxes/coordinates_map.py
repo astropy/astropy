@@ -118,7 +118,7 @@ class CoordinatesMap(object):
             self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             return self._coords[self._aliases[item.lower()]]
         else:
             return self._coords[item]

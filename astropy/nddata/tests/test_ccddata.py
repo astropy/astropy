@@ -677,7 +677,7 @@ def test_wcs_keyword_removal_for_wcs_test_files():
         # Check that the new wcs is the same as the old.
         new_wcs_header = new_wcs.to_header(relax=True)
         for k, v in new_wcs_header.items():
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 assert header[k] == v
             else:
                 np.testing.assert_almost_equal(header[k], v)

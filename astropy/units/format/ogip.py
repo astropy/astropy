@@ -367,7 +367,7 @@ class OGIP(generic.Generic):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, '{1}': {2}".format(
-                    t.lexpos, t.value, six.text_type(e)))
+                    t.lexpos, t.value, str(e)))
 
     @classmethod
     def _validate_unit(cls, unit, detailed_exception=True):
@@ -404,7 +404,7 @@ class OGIP(generic.Generic):
                 return core.Unit(
                     cls._parser.parse(s, lexer=cls._lexer, debug=debug))
             except ValueError as e:
-                if six.text_type(e):
+                if str(e):
                     raise
                 else:
                     raise ValueError(

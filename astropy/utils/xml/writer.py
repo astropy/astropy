@@ -346,5 +346,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = six.text_type(getattr(obj, attr))
+                d[attr.replace('_', '-')] = str(getattr(obj, attr))
         return d

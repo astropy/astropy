@@ -133,7 +133,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
 
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
-    elif isinstance(module, six.string_types):
+    elif isinstance(module, str):
         module_name = module
         try:
             module = resolve_name(module_name)
@@ -260,7 +260,7 @@ def find_current_module(depth=1, finddiff=False):
             for fd in finddiff:
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
-                elif isinstance(fd, six.string_types):
+                elif isinstance(fd, str):
                     diffmods.append(__import__(fd))
                 elif fd is True:
                     diffmods.append(currmod)

@@ -37,7 +37,7 @@ def _table_group_by(table, keys):
     """
     from .table import Table
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
-    if isinstance(keys, six.string_types):
+    if isinstance(keys, str):
         keys = (keys,)
 
     if isinstance(keys, (list, tuple)):
@@ -355,7 +355,7 @@ class TableGroups(BaseGroups):
                 try:
                     new_col = col.groups.aggregate(func)
                 except TypeError as err:
-                    warnings.warn(six.text_type(err), AstropyUserWarning)
+                    warnings.warn(str(err), AstropyUserWarning)
                     continue
 
             out_cols.append(new_col)

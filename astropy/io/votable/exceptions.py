@@ -175,7 +175,7 @@ def parse_vowarning(line):
         result['is_exception'] = False
         result['is_other'] = False
         result['is_something'] = False
-        if not isinstance(line, six.text_type):
+        if not isinstance(line, str):
             line = line.decode('utf-8')
         result['message'] = line
 
@@ -1428,14 +1428,14 @@ def _build_doc_string():
         for name, cls in classes:
             out.write(".. _{}:\n\n".format(name))
             msg = "{}: {}".format(cls.__name__, cls.get_short_name())
-            if not isinstance(msg, six.text_type):
+            if not isinstance(msg, str):
                 msg = msg.decode('utf-8')
             out.write(msg)
             out.write('\n')
             out.write('~' * len(msg))
             out.write('\n\n')
             doc = cls.__doc__
-            if not isinstance(doc, six.text_type):
+            if not isinstance(doc, str):
                 doc = doc.decode('utf-8')
             out.write(dedent(doc))
             out.write('\n\n')

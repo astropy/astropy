@@ -42,7 +42,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_list = []
 
     if table_names is None:
-        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]

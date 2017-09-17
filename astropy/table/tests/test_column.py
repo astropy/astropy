@@ -699,7 +699,7 @@ def test_col_unicode_sandwich_unicode():
     c = table.Column([uba, 'def'], dtype='U')
     assert c[0] == uba
     assert isinstance(c[:0], table.Column)
-    assert isinstance(c[0], six.text_type)
+    assert isinstance(c[0], str)
     assert np.all(c[:2] == np.array([uba, 'def']))
 
     assert isinstance(c[:], table.Column)

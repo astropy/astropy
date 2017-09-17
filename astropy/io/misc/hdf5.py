@@ -241,7 +241,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             output_group = output
 
-    elif isinstance(output, six.string_types):
+    elif isinstance(output, str):
 
         if os.path.exists(output) and not append:
             if overwrite and not append:
