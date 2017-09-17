@@ -68,8 +68,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
-if not six.PY2 or platform.system() == 'Windows':
-    __doctest_skip__ = ['WCS.all_world2pix']
+__doctest_skip__ = ['WCS.all_world2pix']
 
 
 if _wcs is not None:

@@ -22,9 +22,6 @@ from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format
 
-if six.PY2:
-    import cmath
-
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',
@@ -519,19 +516,15 @@ class UnitBase(object, metaclass=InheritDocstrings):
     def __bytes__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self).encode('unicode_escape')
-    if six.PY2:
-        __str__ = __bytes__
 
     def __unicode__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self)
-    if not six.PY2:
-        __str__ = __unicode__
+
+    __str__ = __unicode__
 
     def __repr__(self):
         string = unit_format.Generic.to_string(self)
-        if six.PY2:
-            string = string.encode('unicode_escape')
 
         return 'Unit("{0}")'.format(string)
 
@@ -1690,13 +1683,11 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
-    if six.PY2:
-        __str__ = __bytes__
 
     def __unicode__(self):
         return self.name
-    if not six.PY2:
-        __str__ = __unicode__
+
+    __str__ = __unicode__
 
     def to_string(self, format=None):
         return self.name
@@ -1790,7 +1781,7 @@ class _UnitMetaClass(InheritDocstrings):
                 format = unit_format.Generic
 
             f = unit_format.get_format(format)
-            if not six.PY2 and isinstance(s, bytes):
+            if isinstance(s, bytes):
                 s = s.decode('ascii')
 
             try:

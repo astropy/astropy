@@ -17,7 +17,6 @@ from . import FitsTestCase
 
 class TestConvenience(FitsTestCase):
 
-    @pytest.mark.skipif('six.PY2')
     def test_resource_warning(self):
         warnings.simplefilter('always', ResourceWarning)
         with catch_warnings() as w:

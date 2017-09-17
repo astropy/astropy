@@ -344,8 +344,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
-        coo_items = [(str(c), getattr(self, c)) for c in self.components]
+        coo_items = [(c, getattr(self, c)) for c in self.components]
         result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
         for c, coo in coo_items:
             result[c] = coo.value

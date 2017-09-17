@@ -1207,11 +1207,7 @@ class BinTableHDU(_TableBaseHDU):
                 return '{:21.15g}+{:.15g}j'.format(val.real, val.imag)
             elif format in np.typecodes['Float']:
                 # output floating point
-                # workaround as py2 doesn't support alternate form for format()
-                if six.PY2:
-                    return '%#21.15g' % val
-                else:
-                    return '{:#21.15g}'.format(val)
+                return '{:#21.15g}'.format(val)
 
         for row in self.data:
             line = []   # the line for this row of the table

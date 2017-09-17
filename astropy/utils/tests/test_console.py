@@ -112,32 +112,6 @@ def test_color_print_invalid_color():
     console.color_print("foo", "unknown")
 
 
-@pytest.mark.skipif(str('not six.PY2'))
-def test_color_print_no_default_encoding():
-    """Regression test for #1244
-
-    In some environments `locale.getpreferredencoding` can return ``''``;
-    make sure there are some reasonable fallbacks.
-    """
-
-    # Not sure of a reliable way to force getpreferredencoding() to return
-    # an empty string other than to temporarily patch it
-    orig_func = locale.getpreferredencoding
-    locale.getpreferredencoding = lambda: ''
-    try:
-        # Try printing a string that can be utf-8 decoded (the default)
-        stream = io.StringIO()
-        console.color_print(b'\xe2\x98\x83', 'white', file=stream)
-        assert stream.getvalue() == '☃\n'
-
-        # Test the latin-1 fallback
-        stream = io.StringIO()
-        console.color_print(b'\xcd\xef', 'red', file=stream)
-        assert stream.getvalue() == 'Íï\n'
-    finally:
-        locale.getpreferredencoding = orig_func
-
-
 def test_spinner_non_unicode_console():
     """Regression test for #1760
 

@@ -20,7 +20,7 @@ __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
 
 
 def _round_up_to_odd_integer(value):
-    i = int(math.ceil(value))  # TODO: int() call is only needed for six.PY2
+    i = math.ceil(value)
     if i % 2 == 0:
         return i + 1
     else:

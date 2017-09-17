@@ -164,7 +164,7 @@ class EcsvHeader(basic.BasicHeader):
                     setattr(col, attr, header_cols[col.name][attr])
             col.dtype = header_cols[col.name]['datatype']
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
-            if not six.PY2 and col.dtype == 'string':
+            if col.dtype == 'string':
                 col.dtype = 'str'
             if col.dtype.startswith('complex'):
                 raise TypeError('ecsv reader does not support complex number types')

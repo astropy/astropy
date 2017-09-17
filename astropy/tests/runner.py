@@ -96,10 +96,7 @@ class TestRunnerBase(object):
         # method decorated with ``@keyword`` and with the ``self, name, kwargs``
         # signature.
         # Get all 'function' members as the wrapped methods are functions
-        if six.PY2:
-            functions = inspect.getmembers(cls, predicate=inspect.ismethod)
-        else:
-            functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+        functions = inspect.getmembers(cls, predicate=inspect.isfunction)
 
         # Filter out anything that's not got the name 'keyword'
         keywords = filter(lambda func: func[1].__name__ == 'keyword', functions)
@@ -131,10 +128,7 @@ class TestRunnerBase(object):
                 doc_keywords += func.__doc__.strip()
                 doc_keywords += '\n\n'
 
-        if six.PY2:
-            cls.run_tests.__func__.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
-        else:
-            cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
+        cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
 
         return super(TestRunnerBase, cls).__new__(cls)
 
@@ -158,9 +152,6 @@ class TestRunnerBase(object):
                 raise TypeError("{} keyword method must return a list".format(keyword))
 
             args += result
-
-        if six.PY2:
-            args = [x.encode('utf-8') for x in args]
 
         return args
 

@@ -1608,8 +1608,7 @@ class Param(Field):
     def value(self, value):
         if value is None:
             value = ""
-        if ((not six.PY2 and isinstance(value, str)) or
-            (six.PY2 and isinstance(value, str))):
+        if isinstance(value, str):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:
@@ -2073,13 +2072,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def __bytes__(self):
         return bytes(self.to_table())
-    if six.PY2:
-        __str__ = __bytes__
 
     def __unicode__(self):
         return str(self.to_table())
-    if not six.PY2:
-        __str__ = __unicode__
+
+    __str__ = __unicode__
 
     @property
     def ref(self):
@@ -2232,17 +2229,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             dtype = []
             for x in fields:
-                if six.PY2:
-                    if x._unique_name == x.ID:
-                        id = x.ID.encode('utf-8')
-                    else:
-                        id = (x._unique_name.encode('utf-8'),
-                              x.ID.encode('utf-8'))
+                if x._unique_name == x.ID:
+                    id = x.ID
                 else:
-                    if x._unique_name == x.ID:
-                        id = x.ID
-                    else:
-                        id = (x._unique_name, x.ID)
+                    id = (x._unique_name, x.ID)
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
@@ -2880,9 +2870,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 while new_name in unique_names:
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
-                if six.PY2:
-                    new_name = new_name.encode(
-                        sys.getdefaultencoding(), 'replace')
                 unique_names.append(new_name)
             array = self.array.copy()
             array.dtype.names = unique_names

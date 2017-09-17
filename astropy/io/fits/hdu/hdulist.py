@@ -377,16 +377,6 @@ class HDUList(list, _Verify):
             self._truncate = False
             self._resize = True
 
-    if PY2:  # don't fall through to list.__getslice__, __delslice__
-        def __getslice__(self, start, end):
-            return self.__getitem__(slice(start, end))
-
-        def __delslice__(self, start, stop):
-            """
-            Delete a slice of HDUs from the `HDUList`, indexed by number only.
-            """
-            self.__delitem__(slice(start, stop))
-
     # Support the 'with' statement
     def __enter__(self):
         return self

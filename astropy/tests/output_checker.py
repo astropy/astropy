@@ -152,8 +152,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         return False
 
     def check_output(self, want, got, flags):
-        if (flags & IGNORE_OUTPUT or (six.PY2 and flags & IGNORE_OUTPUT_2) or
-                (not six.PY2 and flags & IGNORE_OUTPUT_3)):
+        if (flags & IGNORE_OUTPUT or IGNORE_OUTPUT_3):
             return True
 
         if flags & FIX:

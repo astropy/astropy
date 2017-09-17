@@ -88,9 +88,8 @@ class _BaseDiff(object):
 
         return not self.identical
 
-    if not six.PY2:
-        __bool__ = __nonzero__
-        del __nonzero__
+    __bool__ = __nonzero__
+    del __nonzero__
 
     @classmethod
     def fromdiff(cls, other, a, b):

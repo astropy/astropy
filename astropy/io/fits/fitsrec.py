@@ -548,14 +548,6 @@ class FITS_rec(np.recarray):
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
 
-    if PY2:
-        # avoid falling back through to ndarray.__getslice__
-        def __getslice__(self, start, end):
-            return self.__getitem__(slice(start, end))
-
-        def __setslice__(self, start, end, value):
-            self.__setitem__(slice(start, end), value)
-
     def copy(self, order='C'):
         """
         The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to

@@ -534,11 +534,6 @@ class TestQuantityOperations(object):
             int(q1)
         assert exc.value.args[0] == converter_err_msg
 
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q1)
-            assert exc.value.args[0] == converter_err_msg
-
         # We used to test `q1 * ['a', 'b', 'c'] here, but that that worked
         # at all was a really odd confluence of bugs.  Since it doesn't work
         # in numpy >=1.10 any more, just go directly for `__index__` (which
@@ -553,9 +548,6 @@ class TestQuantityOperations(object):
         assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
         assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
 
-        if six.PY2:
-            assert long(q2) == long(q2.to_value(u.dimensionless_unscaled))
-
         with pytest.raises(TypeError) as exc:
             q2.__index__()
         assert exc.value.args[0] == index_err_msg
@@ -565,8 +557,6 @@ class TestQuantityOperations(object):
 
         assert float(q3) == 1.23
         assert int(q3) == 1
-        if six.PY2:
-            assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
             q3.__index__()
@@ -577,8 +567,6 @@ class TestQuantityOperations(object):
 
         assert float(q4) == 2.
         assert int(q4) == 2
-        if six.PY2:
-            assert long(q4) == 2
 
         assert q4.__index__() == 2
 
@@ -591,11 +579,6 @@ class TestQuantityOperations(object):
         with pytest.raises(TypeError) as exc:
             int(q5)
         assert exc.value.args[0] == converter_err_msg
-
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q5)
-            assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
             q5.__index__()
@@ -984,9 +967,6 @@ def test_arrays():
         float(qsec)
     with pytest.raises(TypeError):
         int(qsec)
-    if six.PY2:
-        with pytest.raises(TypeError):
-            long(qsec)
 
 
 def test_array_indexing_slicing():

@@ -54,10 +54,6 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
     pos_args = []
     key_args = []
 
-    if six.PY2 and varargs and kwargs:
-        raise SyntaxError('keyword arguments not allowed after '
-                          '*{0}'.format(varargs))
-
     if isinstance(kwargs, dict):
         iter_kwargs = kwargs.items()
     else:

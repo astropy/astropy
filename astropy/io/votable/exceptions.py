@@ -422,10 +422,8 @@ class W08(VOTableSpecWarning):
     make more sense.
     """
 
-    if not six.PY2:
-        message_template = "'{}' must be a str or bytes object"
-    else:
-        message_template = "'{}' must be a str or unicode object"
+    message_template = "'{}' must be a str or bytes object"
+
     default_args = ('x',)
 
 

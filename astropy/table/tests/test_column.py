@@ -230,7 +230,7 @@ class TestColumn():
         Tests for #3095, which forces integer item access to always return a plain
         ndarray or MaskedArray, even in the case of a multi-dim column.
         """
-        integer_types = (int, long, np.int) if six.PY2 else (int, np.int)
+        integer_types = (int, np.int)
 
         for int_type in integer_types:
             c = Column([[1, 2], [3, 4]])
@@ -630,7 +630,6 @@ def test_string_truncation_warning_masked():
                 in str(w[0].message))
 
 
-@pytest.mark.skipif('six.PY2')
 @pytest.mark.parametrize('Column', (table.Column, table.MaskedColumn))
 def test_col_unicode_sandwich_create_from_str(Column):
     """
@@ -655,11 +654,11 @@ def test_col_unicode_sandwich_bytes(Column):
     """
     # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
     # Stress the system by injecting non-ASCII characters.
-    uba = 'ba' if six.PY2 else u'bä'
+    uba = u'bä'
     uba8 = uba.encode('utf-8')
     c = Column([uba8, b'def'])
     assert c.dtype.char == 'S'
-    assert c[0] == uba8 if six.PY2 else uba  # Can compare utf-8 directly only in PY3
+    assert c[0] == uba
     assert isinstance(c[0], str)
     assert isinstance(c[:0], table.Column)
     assert np.all(c[:2] == np.array([uba, 'def']))
@@ -668,8 +667,7 @@ def test_col_unicode_sandwich_bytes(Column):
     assert c[:].dtype.char == 'S'
 
     # Array / list comparisons
-    if not six.PY2:
-        assert np.all(c == [uba, 'def'])
+    assert np.all(c == [uba, 'def'])
 
     ok = c == [uba8, b'def']
     assert type(ok) is type(c.data)
@@ -677,11 +675,10 @@ def test_col_unicode_sandwich_bytes(Column):
     assert np.all(ok)
 
     assert np.all(c == np.array([uba, u'def']))
-    if not six.PY2:
-        assert np.all(c == np.array([uba8, b'def']))
+    assert np.all(c == np.array([uba8, b'def']))
 
     # Scalar compare
-    cmps = (uba8,) if six.PY2 else (uba, uba8)
+    cmps = (uba, uba8)
     for cmp in cmps:
         ok = c == cmp
         assert type(ok) is type(c.data)
@@ -693,7 +690,7 @@ def test_col_unicode_sandwich_unicode():
     Sanity check that Unicode Column behaves normally.
     """
     # On Py2 the unicode must be ASCII-compatible, else the final test fails.
-    uba = 'ba' if six.PY2 else u'bä'
+    uba = u'bä'
     uba8 = uba.encode('utf-8')
 
     c = table.Column([uba, 'def'], dtype='U')
@@ -710,11 +707,7 @@ def test_col_unicode_sandwich_unicode():
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
-    # In PY2 unicode is equal to bytestrings but not in PY3
-    if six.PY2:
-        assert np.all(c == [uba8, b'def'])
-    else:
-        assert np.all(c != [uba8, b'def'])
+    assert np.all(c != [uba8, b'def'])
 
 
 def test_masked_col_unicode_sandwich():
@@ -752,7 +745,7 @@ def test_unicode_sandwich_set(Column):
     """
     Test setting
     """
-    uba = 'ba' if six.PY2 else u'bä'
+    uba = u'bä'
 
     c = Column([b'abc', b'def'])
 

@@ -81,11 +81,6 @@ class TestWebProfile(BaseTestStandardProfile):
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
 
-        if six.PY2:
-            assert resp.info().getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-            assert resp.info().getheader('Access-Control-Allow-Headers') == 'Content-Type'
-            assert resp.info().getheader('Access-Control-Allow-Credentials') == 'true'
-        else:
-            assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-            assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
-            assert resp.getheader('Access-Control-Allow-Credentials') == 'true'
+        assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
+        assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
+        assert resp.getheader('Access-Control-Allow-Credentials') == 'true'

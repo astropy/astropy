@@ -128,16 +128,12 @@ cdef class FileString:
             raise IOError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, access=mmap.ACCESS_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
-        if six.PY2:
-            PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
-        else:
-            PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
-            self.mmap_ptr = self.buf.buf
+        PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
+        self.mmap_ptr = self.buf.buf
 
     def __dealloc__(self):
         if self.mmap:
-            if not six.PY2: # free buffer memory to prevent a resource leak
-                PyBuffer_Release(&self.buf)
+            PyBuffer_Release(&self.buf)
             self.mmap.close()
             self.fhandle.close()
 

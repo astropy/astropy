@@ -1534,12 +1534,6 @@ class ColDefs(NotifierMixin):
                 else:
                     dt = np.dtype((dt.base, dim))
 
-            # On Python 2, force the `name` to `str`
-            # because Numpy structured arrays can't handle unicode `name`
-            # See https://github.com/astropy/astropy/issues/5204
-            if PY2:  # pragma: py2
-                name = str(name)
-
             fields.append((name, dt))
 
         return nh.realign_dtype(np.dtype(fields), offsets)

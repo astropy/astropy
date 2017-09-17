@@ -640,8 +640,6 @@ class TestFileFunctions(FitsTestCase):
                 with fits.open(handle, mode='ostream') as fitsfile:
                     pass
 
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_url(self):
         import urllib.request
         file_url = "file:///" + self.data('test0.fits')
@@ -657,8 +655,6 @@ class TestFileFunctions(FitsTestCase):
                         pass
 
     @remote_data(source='astropy')
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_remote_url(self):
         import urllib.request
         remote_url = '{}/{}'.format(conf.dataurl, 'allsky/allsky_rosat.fits')

@@ -1257,7 +1257,6 @@ def text_aastex_no_trailing_backslash():
     assert np.all(dat['c'] == ['c', 'e'])
 
 
-@pytest.mark.skipif('six.PY2')
 @pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
 def test_read_with_encoding(tmpdir, encoding):
     data = {
@@ -1289,9 +1288,3 @@ def test_unsupported_read_with_encoding(tmpdir):
     with pytest.raises(ascii.ParameterError):
         ascii.read('t/simple3.txt', guess=False, fast_reader='force',
                    encoding='latin1', format='fast_csv')
-
-    # Python 2 is not supported, make sure it raises an exception
-    if six.PY2:
-        with pytest.raises(ValueError):
-            ascii.read('t/simple3.txt', guess=False, fast_reader=False,
-                       encoding='latin1', format='csv')

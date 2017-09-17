@@ -92,7 +92,7 @@ def dtype_info_name(dtype):
     dtype = np.dtype(dtype)
     if dtype.kind in ('S', 'U'):
         length = re.search(r'(\d+)', dtype.str).group(1)
-        type_name = STRING_TYPE_NAMES[(not six.PY2, dtype.kind)]
+        type_name = STRING_TYPE_NAMES[(True, dtype.kind)]
         out = type_name + length
     else:
         out = dtype.name
@@ -161,10 +161,6 @@ def _get_obj_attrs_map(obj, attrs):
         val = getattr(obj, attr, None)
 
         if val is not None:
-            if six.PY2:
-                attr = str(attr)
-                if isinstance(val, str):
-                    val = str(val)
             out[attr] = val
     return out
 

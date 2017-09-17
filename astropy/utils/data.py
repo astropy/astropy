@@ -199,10 +199,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
-        if six.PY2:
-            fileobj = open(name_or_obj, 'rb')
-        else:
-            fileobj = io.FileIO(name_or_obj, 'r')
+        fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
         close_fds.append(fileobj)
@@ -301,10 +298,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
-    if six.PY2:
-        needs_textio_wrapper = encoding != 'binary' and encoding is not None
-    else:
-        needs_textio_wrapper = encoding != 'binary'
+    needs_textio_wrapper = encoding != 'binary'
 
     if needs_textio_wrapper:
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
@@ -321,20 +315,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 tmp.write(data)
                 tmp.close()
                 delete_fds.append(tmp)
-                if six.PY2:
-                    fileobj = open(tmp.name, 'rb')
-                else:
-                    fileobj = io.FileIO(tmp.name, 'r')
-                close_fds.append(fileobj)
 
-        # On Python 2.x, we need to first wrap the regular `file`
-        # instance in a `io.FileIO` object before it can be
-        # wrapped in a `TextIOWrapper`.  We don't just create an
-        # `io.FileIO` object in the first place, because we can't
-        # get a raw file descriptor out of it on Python 2.x, which
-        # is required for the XML iterparser.
-        if six.PY2 and isinstance(fileobj, file):
-            fileobj = io.FileIO(fileobj.fileno())
+                fileobj = io.FileIO(tmp.name, 'r')
+                close_fds.append(fileobj)
 
         fileobj = io.BufferedReader(fileobj)
         fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
@@ -1041,11 +1024,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-    if six.PY2 and isinstance(remote_url, str):
-        # shelve DBs don't accept unicode strings in Python 2
-        url_key = remote_url.encode('utf-8')
-    else:
-        url_key = remote_url
+    url_key = remote_url
 
     try:
         if cache:
@@ -1155,10 +1134,6 @@ def is_url_in_cache(url_key):
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
-
-    if six.PY2 and isinstance(url_key, str):
-        # shelve DBs don't accept unicode strings in Python 2
-        url_key = url_key.encode('utf-8')
 
     with shelve.open(urlmapfn) as url2hash:
         if url_key in url2hash:
@@ -1276,11 +1251,7 @@ def clear_download_cache(hashorurl=None):
                     raise RuntimeError("attempted to use clear_download_cache on"
                                        " a path outside the data cache directory")
 
-                # shelve DBs don't accept unicode strings as keys in Python 2
-                if six.PY2 and isinstance(hashorurl, str):
-                    hash_key = hashorurl.encode('utf-8')
-                else:
-                    hash_key = hashorurl
+                hash_key = hashorurl
 
                 if os.path.exists(filepath):
                     for k, v in url2hash.items():

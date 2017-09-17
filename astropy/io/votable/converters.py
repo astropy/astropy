@@ -41,15 +41,8 @@ _empty_bytes = b''
 _zero_byte = b'\0'
 
 
-if not six.PY2:
-    struct_unpack = _struct_unpack
-    struct_pack = _struct_pack
-else:
-    def struct_unpack(format, s):
-        return _struct_unpack(format.encode('ascii'), s)
-
-    def struct_pack(format, *args):
-        return _struct_pack(format.encode('ascii'), *args)
+struct_unpack = _struct_unpack
+struct_pack = _struct_pack
 
 
 if sys.byteorder == 'little':
@@ -100,8 +93,6 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if six.PY2:
-            byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
             bit = (bit != 0)
@@ -1142,8 +1133,6 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if six.PY2:
-                char = ord(char)
             value, mask = binparse(char)
             result.append(value)
             result_mask.append(mask)
