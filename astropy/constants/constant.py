@@ -39,7 +39,7 @@ class ConstantMeta(InheritDocstrings):
                 name_lower = self.name.lower()
                 instances = self._registry[name_lower]
                 if not self._checked_units:
-                    for inst in six.itervalues(instances):
+                    for inst in instances.values():
                         try:
                             self.unit.to(inst.unit)
                         except UnitsError:
@@ -66,7 +66,7 @@ class ConstantMeta(InheritDocstrings):
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
                        '__len__', '__nonzero__', '__quantity_subclass__'])
-        for attr, value in six.iteritems(vars(Quantity)):
+        for attr, value in vars(Quantity).items():
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
                     attr not in exclude):
@@ -100,7 +100,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
                 warnings.warn('Constant {0!r} already has a definition in the '
                               '{1!r} system from {2!r} reference'.format(
                               name, system, reference), AstropyUserWarning)
-        for c in six.itervalues(instances):
+        for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
                 setattr(c, system, inst)
             if c.system is not None and not hasattr(inst.__class__, c.system):

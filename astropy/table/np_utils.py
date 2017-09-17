@@ -67,7 +67,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
 
     # Check for duplicate output column names
     col_name_count = Counter(col_name_list)
-    repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
                               'Change uniq_col_name or table_names args to fix this.'
@@ -89,7 +89,7 @@ def get_descrs(arrays, col_name_map):
 
     out_descrs = []
 
-    for out_name, in_names in six.iteritems(col_name_map):
+    for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
         in_cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 

@@ -508,7 +508,7 @@ class CoordinateHelper(object):
         transData = self.parent_axes.transData
         invertedTransLimits = transData.inverted()
 
-        for axis, spine in six.iteritems(frame):
+        for axis, spine in frame.items():
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.

@@ -148,7 +148,7 @@ def support_nddata(_func=None, accepts=NDData,
         # Find out args and kwargs
         func_args, func_kwargs = [], []
         sig = signature(func).parameters
-        for param_name, param in six.iteritems(sig):
+        for param_name, param in sig.items():
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
             try:

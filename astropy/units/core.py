@@ -125,7 +125,7 @@ class _UnitRegistry(object):
             # All of these must be copied otherwise we could alter the old
             # registry.
             self._by_physical_type = {k: v.copy() for k, v in
-                                      six.iteritems(init._by_physical_type)}
+                                      init._by_physical_type.items()}
 
         else:
             self._reset_units()
@@ -1213,9 +1213,9 @@ class UnitBase(object, metaclass=InheritDocstrings):
             if len(units) == 0:
                 units = get_current_unit_registry().non_prefix_units
         elif isinstance(units, dict):
-            units = set(filter_units(six.itervalues(units)))
+            units = set(filter_units(units.values()))
         elif inspect.ismodule(units):
-            units = filter_units(six.itervalues(vars(units)))
+            units = filter_units(vars(units).values())
         else:
             units = filter_units(_flatten_units_collection(units))
 
@@ -2088,7 +2088,7 @@ class CompositeUnit(UnitBase):
             else:
                 scale = add_unit(b, p, scale)
 
-        new_parts = [x for x in six.iteritems(new_parts) if x[1] != 0]
+        new_parts = [x for x in new_parts.items() if x[1] != 0]
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
@@ -2201,7 +2201,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                     format['latex'] = r'\mu ' + u.get_format_name('latex')
                     format['unicode'] = 'μ' + u.get_format_name('unicode')
 
-                for key, val in six.iteritems(u._format):
+                for key, val in u._format.items():
                     format.setdefault(key, prefix + val)
 
         for prefix in full:

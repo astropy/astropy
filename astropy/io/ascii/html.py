@@ -346,7 +346,7 @@ class HTML(core.BaseReader):
         """
         Return data in ``table`` converted to HTML as a list of strings.
         """
-        cols = list(six.itervalues(table.columns))
+        cols = list(table.columns.values())
 
         self.data.header.cols = cols
 

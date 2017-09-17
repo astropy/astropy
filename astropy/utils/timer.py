@@ -256,7 +256,7 @@ class RunTimePredictor(object):
         self._power = power
         self._cache_est = OrderedDict()
 
-        x_arr = np.array(list(six.iterkeys(self._cache_good)))
+        x_arr = np.array(list(self._cache_good.keys()))
         if x_arr.size < min_datapoints:
             raise ValueError('requires {0} points but has {1}'.format(
                 min_datapoints, x_arr.size))
@@ -274,7 +274,7 @@ class RunTimePredictor(object):
                 '{0} is not a fitter.'.format(fitter))
 
         self._fit_func = fitter(
-            model, x_arr**power, list(six.itervalues(self._cache_good)))
+            model, x_arr**power, list(self._cache_good.values()))
 
         return self._fit_func.parameters
 
@@ -353,8 +353,8 @@ class RunTimePredictor(object):
 
         # Fitted data
         if self._fit_func is not None:
-            x_est = list(six.iterkeys(self._cache_est))
-            y_est = (np.array(list(six.itervalues(self._cache_est))) *
+            x_est = list(self._cache_est.keys())
+            y_est = (np.array(list(self._cache_est.values())) *
                      u.second).to_value(cur_u)
             ax.scatter(x_est, y_est, marker='o', c='r', label='Predicted')
 

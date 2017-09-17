@@ -139,7 +139,7 @@ class VOUnit(generic.Generic):
 
         name = unit.get_format_name('vounit')
 
-        if unit in six.itervalues(cls._custom_units):
+        if unit in cls._custom_units.values():
             return name
 
         if name not in cls._units:

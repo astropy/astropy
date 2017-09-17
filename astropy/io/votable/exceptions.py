@@ -1412,7 +1412,7 @@ class E21(VOWarning, ValueError):
 
 def _get_warning_and_exception_classes(prefix):
     classes = []
-    for key, val in six.iteritems(globals()):
+    for key, val in globals().items():
         if re.match(prefix + "[0-9]{2}", key):
             classes.append((key, val))
     classes.sort()

@@ -1283,7 +1283,7 @@ class BaseReader(object, metaclass=MetaBaseReader):
         """
 
         # Check column names before altering
-        self.header.cols = list(six.itervalues(table.columns))
+        self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
 
         # In-place update of columns in input ``table`` to reflect column
@@ -1297,7 +1297,7 @@ class BaseReader(object, metaclass=MetaBaseReader):
         table = self.update_table_data(table)
 
         # Now use altered columns
-        new_cols = list(six.itervalues(table.columns))
+        new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols

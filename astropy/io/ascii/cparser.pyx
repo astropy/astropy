@@ -911,7 +911,7 @@ cdef class FastWriter:
         # to the fill_values dict. This prevents the writer from having
         # to call unicode() on every value, which is a major
         # performance hit.
-        for key, val in six.iteritems(fill_values):
+        for key, val in fill_values.items():
             try:
                 self.fill_values[int(key)] = val
                 self.fill_values[float(key)] = val
@@ -940,7 +940,7 @@ cdef class FastWriter:
         self.format_funcs = []
         self.line_comments = table.meta.get('comments', [])
 
-        for col in six.itervalues(table.columns):
+        for col in table.columns.values():
             if col.name in self.use_names: # iterate over included columns
                 # If col.format is None then don't use any formatter to improve
                 # speed.  However, if the column is a byte string and this

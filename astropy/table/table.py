@@ -124,7 +124,7 @@ class TableColumns(OrderedDict):
         super(TableColumns, self).__setitem__(item, value)
 
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in six.iterkeys(self))
+        names = ("'{0}'".format(x) for x in self.keys())
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
@@ -136,7 +136,7 @@ class TableColumns(OrderedDict):
 
         mapper = {name: new_name}
         new_names = [mapper.get(name, name) for name in self]
-        cols = list(six.itervalues(self))
+        cols = list(self.values())
         self.clear()
         self.update(list(zip(new_names, cols)))
 
@@ -469,7 +469,7 @@ class Table(object):
             New table with masked values filled
         """
         if self.masked:
-            data = [col.filled(fill_value) for col in six.itervalues(self.columns)]
+            data = [col.filled(fill_value) for col in self.columns.values()]
         else:
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))

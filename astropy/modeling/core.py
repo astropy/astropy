@@ -408,7 +408,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional arguments
-            if all(p.default is not None for p in six.itervalues(cls._parameters_)):
+            if all(p.default is not None for p in cls._parameters_.values()):
                 args = ('self',)
                 kwargs = []
                 for param_name in cls.param_names:
@@ -1612,7 +1612,7 @@ class Model(object, metaclass=_ModelMeta):
         self._parameters = existing._parameters
 
         self._param_metrics = defaultdict(dict)
-        for param_a, param_b in six.iteritems(aliases):
+        for param_a, param_b in aliases.items():
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
@@ -1754,7 +1754,7 @@ class Model(object, metaclass=_ModelMeta):
             else:
                 min_ndim = model_set_axis + 1
 
-            for name, value in six.iteritems(params):
+            for name, value in params.items():
                 param_ndim = np.ndim(value)
                 if param_ndim < min_ndim:
                     raise InputParameterError(

@@ -2079,7 +2079,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         """
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
-                     for component, e in six.iteritems(base_e)), copy=False)
+                     for component, e in base_e.items()), copy=False)
 
     def represent_as(self, other_class, base):
         """Convert coordinates to another representation.

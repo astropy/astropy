@@ -731,7 +731,7 @@ class Parameter(OrderedDescriptor):
         kwargs = locals().copy()
         del kwargs['self']
 
-        for key, value in six.iteritems(kwargs):
+        for key, value in kwargs.items():
             if value is None:
                 # Annoying special cases for min/max where are just aliases for
                 # the components of bounds

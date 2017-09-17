@@ -202,7 +202,7 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
     _warnings_to_ignore_entire_module.update(warnings_to_ignore_entire_module)
 
     global _warnings_to_ignore_by_pyver
-    for key, val in six.iteritems(warnings_to_ignore_by_pyver):
+    for key, val in warnings_to_ignore_by_pyver.items():
         if key in _warnings_to_ignore_by_pyver:
             _warnings_to_ignore_by_pyver[key].update(val)
         else:
@@ -222,7 +222,7 @@ def treat_deprecations_as_exceptions():
     # First, totally reset the warning state. The modules may change during
     # this iteration thus we copy the original state to a list to iterate
     # on. See https://github.com/astropy/astropy/pull/5513.
-    for module in list(six.itervalues(sys.modules)):
+    for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
         if (isinstance(module, types.ModuleType) and

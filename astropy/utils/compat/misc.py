@@ -75,7 +75,7 @@ def override__dir__(f):
             members = set()
             for cls in self.__class__.mro():
                 members.update(dir(cls))
-            members.update(six.iterkeys(self.__dict__))
+            members.update(self.__dict__.keys())
             members.update(f(self))
             return sorted(members)
     else:

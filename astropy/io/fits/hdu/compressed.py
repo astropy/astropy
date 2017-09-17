@@ -1246,7 +1246,7 @@ class CompImageHDU(BinTableHDU):
                 quantize_method = self._header.get('ZQUANTIZ', NO_DITHER)
 
                 if isinstance(quantize_method, str):
-                    for k, v in iteritems(QUANTIZE_METHOD_NAMES):
+                    for k, v in QUANTIZE_METHOD_NAMES.items():
                         if v.upper() == quantize_method:
                             quantize_method = k
                             break
