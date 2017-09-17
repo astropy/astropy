@@ -280,7 +280,7 @@ cdef class CParser:
     cpdef setup_tokenizer(self, source):
         cdef FileString fstring
 
-        if isinstance(source, six.string_types): # filename or data
+        if isinstance(source, str): # filename or data
             if '\n' not in source and '\r' not in source: # filename
                 fstring = FileString(source)
                 self.tokenizer.source = <char *>fstring.mmap_ptr
@@ -1056,7 +1056,7 @@ cdef class FastWriter:
             output.close()
 
 def get_fill_values(fill_values, read=True):
-    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types):
+    if len(fill_values) > 0 and isinstance(fill_values[0], str):
         # e.g. fill_values=('999', '0')
         fill_values = [fill_values]
     else:

@@ -49,7 +49,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     else:
         import pickle
 
-    if isinstance(fileorname, six.string_types):
+    if isinstance(fileorname, str):
         f = open(fileorname, 'rb')
         close = True
     else:
@@ -109,7 +109,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL
 
-    if isinstance(fileorname, six.string_types):
+    if isinstance(fileorname, str):
         f = open(fileorname, 'ab' if append else 'wb')
         close = True
     else:

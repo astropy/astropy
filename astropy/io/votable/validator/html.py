@@ -95,7 +95,7 @@ def write_warning(w, line, xml_lines):
             w.write('<a href="{}/{}">{}</a>: '.format(
                 online_docs_root, warning['doc_url'], warning['warning']))
         msg = warning['message']
-        if not isinstance(warning['message'], six.text_type):
+        if not isinstance(warning['message'], str):
             msg = msg.decode('utf-8')
         w.write(xml_escape(msg))
         w.write('\n')
@@ -142,7 +142,7 @@ def write_result(result):
                 w.element('hr')
                 w.element('p', 'xmllint results:')
                 content = result['xmllint_content']
-                if not isinstance(content, six.text_type):
+                if not isinstance(content, str):
                     content = content.decode('ascii')
                 content = content.replace(result.get_dirpath() + '/', '')
                 with w.tag('pre'):
@@ -153,7 +153,7 @@ def write_result(result):
                     w.element('hr')
                     w.element('p', 'votlint results:')
                     content = result['votlint_content']
-                    if not isinstance(content, six.text_type):
+                    if not isinstance(content, str):
                         content = content.decode('ascii')
                     with w.tag('pre'):
                         w._flush()
@@ -172,7 +172,7 @@ def write_result_row(w, result):
                           href='{}/index.html'.format(result.get_htmlpath()))
 
         if 'network_error' in result and result['network_error'] is not None:
-            w.element('td', six.text_type(result['network_error']),
+            w.element('td', str(result['network_error']),
                       attrib={'class': 'red'})
             w.element('td', '-')
             w.element('td', '-')
@@ -186,7 +186,7 @@ def write_result_row(w, result):
                 msg = 'Fatal'
             elif result['nwarnings']:
                 cls = 'yellow'
-                msg = six.text_type(result['nwarnings'])
+                msg = str(result['nwarnings'])
             else:
                 cls = 'green'
                 msg = '-'
@@ -234,10 +234,10 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                 w.element('a', '<< ', href='{}_{:02d}.html'.format(basename, j-1))
             for i in range(npages):
                 if i == j:
-                    w.data(six.text_type(i+1))
+                    w.data(str(i+1))
                 else:
                     w.element(
-                        'a', six.text_type(i+1),
+                        'a', str(i+1),
                         href='{}_{:02d}.html'.format(basename, i))
                 w.data(' ')
             if j < npages - 1:

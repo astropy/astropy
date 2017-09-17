@@ -468,7 +468,7 @@ class TestRunner(TestRunnerBase):
                 raise SystemError(
                     "running tests in parallel requires the pytest-xdist package")
 
-            return ['-n', six.text_type(parallel)]
+            return ['-n', str(parallel)]
 
         return []
 

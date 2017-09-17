@@ -270,7 +270,7 @@ class CDS(Base):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, {1}".format(
-                    t.lexpos, six.text_type(e)))
+                    t.lexpos, str(e)))
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
@@ -291,7 +291,7 @@ class CDS(Base):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
 
-        if not isinstance(s, six.text_type):
+        if not isinstance(s, str):
             s = s.decode('ascii')
 
         # This is a short circuit for the case where the string
@@ -302,8 +302,8 @@ class CDS(Base):
             try:
                 return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
-                if six.text_type(e):
-                    raise ValueError(six.text_type(e))
+                if str(e):
+                    raise ValueError(str(e))
                 else:
                     raise ValueError("Syntax error")
 

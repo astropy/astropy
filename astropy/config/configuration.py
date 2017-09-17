@@ -241,9 +241,9 @@ class ConfigItem(object):
         # now determine cfgtype if it is not given
         if cfgtype is None:
             if (isiterable(defaultvalue) and not
-                    isinstance(defaultvalue, six.string_types)):
+                    isinstance(defaultvalue, str)):
                 # it is an options list
-                dvstr = [six.text_type(v) for v in defaultvalue]
+                dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
             elif isinstance(defaultvalue, bool):
@@ -252,9 +252,9 @@ class ConfigItem(object):
                 cfgtype = 'integer'
             elif isinstance(defaultvalue, float):
                 cfgtype = 'float'
-            elif isinstance(defaultvalue, six.string_types):
+            elif isinstance(defaultvalue, str):
                 cfgtype = 'string'
-                defaultvalue = six.text_type(defaultvalue)
+                defaultvalue = str(defaultvalue)
 
         self.cfgtype = cfgtype
 
@@ -263,7 +263,7 @@ class ConfigItem(object):
 
         if aliases is None:
             self.aliases = []
-        elif isinstance(aliases, six.string_types):
+        elif isinstance(aliases, str):
             self.aliases = [aliases]
         else:
             self.aliases = aliases

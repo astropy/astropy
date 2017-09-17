@@ -190,7 +190,7 @@ def pytest_report_header(config):
     for op in special_opts:
         op_value = getattr(config.option, op, None)
         if op_value:
-            if isinstance(op_value, six.string_types):
+            if isinstance(op_value, str):
                 op = ': '.join((op, op_value))
             opts.append(op)
     if opts:
@@ -241,7 +241,7 @@ class Pair(pytest.File):
                 "unique basename for your test file modules".format(e.args))
 
         # Now get the file's content.
-        with io.open(six.text_type(self.fspath), 'rb') as fd:
+        with io.open(str(self.fspath), 'rb') as fd:
             content = fd.read()
 
         # If the file contains the special marker, only test it both ways.
@@ -271,29 +271,29 @@ class ModifiedModule(pytest.Module):
         content = re.sub(_RE_FUTURE_IMPORTS, b'\n', self.content)
 
         new_mod = types.ModuleType(self.mod_name)
-        new_mod.__file__ = six.text_type(self.fspath)
+        new_mod.__file__ = str(self.fspath)
 
         if hasattr(self, '_transform_ast'):
             # ast.parse doesn't let us hand-select the __future__
             # statements, but built-in compile, with the PyCF_ONLY_AST
             # flag does.
             tree = compile(
-                content, six.text_type(self.fspath), 'exec',
+                content, str(self.fspath), 'exec',
                 self.flags | ast.PyCF_ONLY_AST, True)
             tree = self._transform_ast(tree)
             # Now that we've transformed the tree, recompile it
             code = compile(
-                tree, six.text_type(self.fspath), 'exec')
+                tree, str(self.fspath), 'exec')
         else:
             # If we don't need to transform the AST, we can skip
             # parsing/compiling in two steps
             code = compile(
-                content, six.text_type(self.fspath), 'exec',
+                content, str(self.fspath), 'exec',
                 self.flags, True)
 
         pwd = os.getcwd()
         try:
-            os.chdir(os.path.dirname(six.text_type(self.fspath)))
+            os.chdir(os.path.dirname(str(self.fspath)))
             six.exec_(code, new_mod.__dict__)
         finally:
             os.chdir(pwd)

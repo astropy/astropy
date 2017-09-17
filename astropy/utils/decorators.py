@@ -870,7 +870,7 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-if (isinstance(wraps.__doc__, six.string_types) and
+if (isinstance(wraps.__doc__, str) and
         wraps.__doc__ is not None and functools.wraps.__doc__ is not None):
     wraps.__doc__ += functools.wraps.__doc__
 
@@ -1142,7 +1142,7 @@ def format_doc(docstring, *args, **kwargs):
             # Delete documentation in this case so we don't end up with
             # awkwardly self-inserted docs.
             obj.__doc__ = None
-        elif isinstance(docstring, six.string_types):
+        elif isinstance(docstring, str):
             # String: use the string that was given
             doc = docstring
         else:

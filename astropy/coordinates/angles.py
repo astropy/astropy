@@ -93,7 +93,7 @@ class Angle(u.SpecificTypeQuantity):
             if isinstance(angle, tuple):
                 angle = cls._tuple_to_float(angle, unit)
 
-            elif isinstance(angle, six.string_types):
+            elif isinstance(angle, str):
                 angle, angle_unit = util.parse_angle(angle, unit)
                 if angle_unit is None:
                     angle_unit = unit

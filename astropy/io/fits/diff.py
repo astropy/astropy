@@ -167,7 +167,7 @@ class _BaseDiff(object):
         return_string = False
         filepath = None
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             if os.path.exists(fileobj) and not overwrite:
                 raise IOError("File {0} exists, aborting (pass in "
                               "overwrite=True to overwrite)".format(fileobj))
@@ -277,7 +277,7 @@ class FITSDiff(_BaseDiff):
             whitespace (default: True).
         """
 
-        if isinstance(a, string_types):
+        if isinstance(a, str):
             try:
                 a = fitsopen(a)
             except Exception as exc:
@@ -287,7 +287,7 @@ class FITSDiff(_BaseDiff):
         else:
             close_a = False
 
-        if isinstance(b, string_types):
+        if isinstance(b, str):
             try:
                 b = fitsopen(b)
             except Exception as exc:
@@ -635,9 +635,9 @@ class HeaderDiff(_BaseDiff):
         # (excluding keywords in ignore_keywords or in ignore_comments)
         self.diff_keyword_comments = defaultdict(list)
 
-        if isinstance(a, string_types):
+        if isinstance(a, str):
             a = Header.fromstring(a)
-        if isinstance(b, string_types):
+        if isinstance(b, str):
             b = Header.fromstring(b)
 
         if not (isinstance(a, Header) and isinstance(b, Header)):
@@ -663,7 +663,7 @@ class HeaderDiff(_BaseDiff):
             comments = {}
             for card in cards:
                 value = card.value
-                if self.ignore_blanks and isinstance(value, string_types):
+                if self.ignore_blanks and isinstance(value, str):
                     value = value.rstrip()
                 values.setdefault(card.keyword, []).append(value)
                 comments.setdefault(card.keyword, []).append(card.comment)
@@ -1296,9 +1296,9 @@ def report_diff_values(fileobj, a, b, ind=0):
     typea = type(a)
     typeb = type(b)
 
-    if (isinstance(a, string_types) and not isinstance(b, string_types)):
+    if (isinstance(a, str) and not isinstance(b, str)):
         a = repr(a).lstrip('u')
-    elif (isinstance(b, string_types) and not isinstance(a, string_types)):
+    elif (isinstance(b, str) and not isinstance(a, str)):
         b = repr(b).lstrip('u')
 
     if isinstance(a, (int, float, complex, np.number)):

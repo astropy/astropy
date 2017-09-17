@@ -173,7 +173,7 @@ class CompImageHeader(Header):
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         # This logic unfortunately needs to be duplicated from the base class
         # in order to determine the keyword
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -214,7 +214,7 @@ class CompImageHeader(Header):
                 self.append(card, end=True)
                 return
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -679,7 +679,7 @@ class CompImageHDU(BinTableHDU):
             return False
 
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
 
         if xtension not in ('BINTABLE', 'A3DTABLE'):
@@ -1245,7 +1245,7 @@ class CompImageHDU(BinTableHDU):
                 # is set to
                 quantize_method = self._header.get('ZQUANTIZ', NO_DITHER)
 
-                if isinstance(quantize_method, string_types):
+                if isinstance(quantize_method, str):
                     for k, v in iteritems(QUANTIZE_METHOD_NAMES):
                         if v.upper() == quantize_method:
                             quantize_method = k

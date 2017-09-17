@@ -135,7 +135,7 @@ def data_info_factory(names, funcs):
         outs = []
         for name, func in zip(names, funcs):
             try:
-                if isinstance(func, six.string_types):
+                if isinstance(func, str):
                     out = getattr(dat, func)()
                 else:
                     out = func(dat)
@@ -163,7 +163,7 @@ def _get_obj_attrs_map(obj, attrs):
         if val is not None:
             if six.PY2:
                 attr = str(attr)
-                if isinstance(val, six.text_type):
+                if isinstance(val, str):
                     val = str(val)
             out[attr] = val
     return out
@@ -385,7 +385,7 @@ class DataInfo(object):
 
         options = option if isinstance(option, (list, tuple)) else [option]
         for option in options:
-            if isinstance(option, six.string_types):
+            if isinstance(option, str):
                 if hasattr(self, 'info_summary_' + option):
                     option = getattr(self, 'info_summary_' + option)
                 else:

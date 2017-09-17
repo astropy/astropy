@@ -113,7 +113,7 @@ class FitsHDU(NonstandardExtHDU):
         if card.keyword != 'XTENSION':
             return False
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return xtension == cls._extension
 

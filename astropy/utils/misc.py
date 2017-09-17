@@ -205,7 +205,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     from zlib import decompress
 
-    if (not isinstance(obj, six.string_types) and
+    if (not isinstance(obj, str) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
@@ -440,7 +440,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         s = strip_accents(s)
     s_lower = s.lower()
 

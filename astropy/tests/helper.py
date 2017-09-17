@@ -369,14 +369,14 @@ def assert_follows_unicode_guidelines(
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
+        assert isinstance(unicode_x, str)
         unicode_x.encode('ascii')
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:
@@ -389,13 +389,13 @@ def assert_follows_unicode_guidelines(
 
     with conf.set_temp('unicode_output', True):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(unicode_x, str)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:

@@ -154,7 +154,7 @@ def pytest_configure(config):
             skip_all = False
 
             for entry in result:
-                if isinstance(entry, six.string_types) and entry:
+                if isinstance(entry, str) and entry:
                     required = []
                     skip_next = False
                     lines = entry.strip().splitlines()

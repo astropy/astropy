@@ -45,7 +45,7 @@ def add_dictval_to_list(adict, key, alist):
         List where value should be added
     '''
     if key in adict:
-        if isinstance(adict[key], six.string_types):
+        if isinstance(adict[key], str):
             alist.append(adict[key])
         else:
             alist.extend(adict[key])

@@ -28,7 +28,7 @@ def test_imports():
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm, six.string_types):
+    if isinstance(pkgornm, str):
         package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
     elif (isinstance(pkgornm, types.ModuleType) and
             '__init__' in pkgornm.__file__):

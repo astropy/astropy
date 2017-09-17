@@ -219,7 +219,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             True
         """
 
-        if six.PY2 and isinstance(name, six.text_type):
+        if six.PY2 and isinstance(name, str):
             # Unicode names are not allowed in Python 2, so just convert to
             # ASCII.  As such, for cross-compatibility all model names should
             # just be ASCII for now.
@@ -2673,7 +2673,7 @@ class _CompoundModelMeta(_ModelMeta):
 
             return index
 
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             return get_index_from_name(index)
         elif isinstance(index, slice):
             if index.step not in (1, None):
@@ -2689,9 +2689,9 @@ class _CompoundModelMeta(_ModelMeta):
                 start = check_for_negative_index(start)
             if isinstance(stop, (int, np.integer)):
                 stop = check_for_negative_index(stop)
-            if isinstance(start, six.string_types):
+            if isinstance(start, str):
                 start = get_index_from_name(start)
-            if isinstance(stop, six.string_types):
+            if isinstance(stop, str):
                 stop = get_index_from_name(stop) + 1
             length = stop - start
 

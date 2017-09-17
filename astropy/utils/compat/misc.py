@@ -33,9 +33,9 @@ def possible_filename(filename):
     Windows on Python >= 3.3.
     """
 
-    if isinstance(filename, six.text_type):
+    if isinstance(filename, str):
         return True
-    elif isinstance(filename, six.binary_type):
+    elif isinstance(filename, bytes):
         return not (sys.platform == 'win32' and
                     sys.version_info[:2] >= (3, 3))
 

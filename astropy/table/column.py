@@ -873,7 +873,7 @@ class Column(BaseColumn):
             self, show_name=False, show_unit=False, show_length=False, html=html)
 
         out = descr + '\n'.join(data_lines)
-        if six.PY2 and isinstance(out, six.text_type):
+        if six.PY2 and isinstance(out, str):
             out = out.encode('utf-8')
 
         return out
@@ -895,7 +895,7 @@ class Column(BaseColumn):
         __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
+        return str(self).encode('utf-8')
     if six.PY2:
         __str__ = __bytes__
 

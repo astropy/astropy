@@ -321,7 +321,7 @@ class Time(ShapedLikeNDArray):
                                  'they cannot be broadcast together.')
 
         if scale is not None:
-            if not (isinstance(scale, six.string_types) and
+            if not (isinstance(scale, str) and
                     scale.lower() in self.SCALES):
                 raise ScaleValueError("Scale {0!r} is not in the allowed scales "
                                       "{1}".format(scale,
@@ -352,7 +352,7 @@ class Time(ShapedLikeNDArray):
             # but try to guess it at the end.
             formats.append(('astropy_time', TimeAstropyTime))
 
-        elif not (isinstance(format, six.string_types) and
+        elif not (isinstance(format, str) and
                   format.lower() in self.FORMATS):
             if format is None:
                 raise ValueError("No time format was given, and the input is "
@@ -526,7 +526,7 @@ class Time(ShapedLikeNDArray):
 
     @in_subfmt.setter
     def in_subfmt(self, val):
-        if not isinstance(val, six.string_types):
+        if not isinstance(val, str):
             raise ValueError('in_subfmt attribute must be a string')
         self._time.in_subfmt = val
         del self.cache
@@ -540,7 +540,7 @@ class Time(ShapedLikeNDArray):
 
     @out_subfmt.setter
     def out_subfmt(self, val):
-        if not isinstance(val, six.string_types):
+        if not isinstance(val, str):
             raise ValueError('out_subfmt attribute must be a string')
         self._time.out_subfmt = val
         del self.cache
@@ -755,7 +755,7 @@ class Time(ShapedLikeNDArray):
         gst = self._erfa_sidereal_time(available_models[model.upper()])
         return Longitude(gst + longitude, u.hourangle)
 
-    if isinstance(sidereal_time.__doc__, six.string_types):
+    if isinstance(sidereal_time.__doc__, str):
         sidereal_time.__doc__ = sidereal_time.__doc__.format(
             'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
             'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))

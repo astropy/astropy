@@ -360,7 +360,7 @@ def unique(input_table, keys=None, silent=False, keep='first'):
     if keep not in ('first', 'last', 'none'):
         raise ValueError("'keep' should be one of 'first', 'last', 'none'")
 
-    if isinstance(keys, six.string_types):
+    if isinstance(keys, str):
         keys = [keys]
     if keys is None:
         keys = input_table.colnames
@@ -414,7 +414,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_list = []
 
     if table_names is None:
-        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]
@@ -550,7 +550,7 @@ def _join(left, right, keys=None, join_type='inner',
         keys = tuple(name for name in left.colnames if name in right.colnames)
         if len(keys) == 0:
             raise TableMergeError('No keys in common between left and right tables')
-    elif isinstance(keys, six.string_types):
+    elif isinstance(keys, str):
         keys = (keys,)
 
     # Check the key columns

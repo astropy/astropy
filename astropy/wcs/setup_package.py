@@ -127,7 +127,7 @@ def generate_c_docstrings():
     docstrings = docstrings.__dict__
     keys = [
         key for key, val in docstrings.items()
-        if not key.startswith('__') and isinstance(val, six.string_types)]
+        if not key.startswith('__') and isinstance(val, str)]
     keys.sort()
     docs = {}
     for key in keys:

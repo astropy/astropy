@@ -198,7 +198,7 @@ class CoordinateTransform(CurvedTransform):
 
         if isinstance(self._input_system_name, WCS):
             self.input_system = wcs_to_celestial_frame(self._input_system_name)
-        elif isinstance(self._input_system_name, six.string_types):
+        elif isinstance(self._input_system_name, str):
             self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
             if self.input_system is None:
                 raise ValueError("Frame {0} not found".format(self._input_system_name))
@@ -209,7 +209,7 @@ class CoordinateTransform(CurvedTransform):
 
         if isinstance(self._output_system_name, WCS):
             self.output_system = wcs_to_celestial_frame(self._output_system_name)
-        elif isinstance(self._output_system_name, six.string_types):
+        elif isinstance(self._output_system_name, str):
             self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
             if self.output_system is None:
                 raise ValueError("Frame {0} not found".format(self._output_system_name))

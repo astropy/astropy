@@ -2894,7 +2894,7 @@ class default_cosmology(ScienceState):
     def validate(cls, value):
         if value is None:
             value = 'Planck15'
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return cls.get_cosmology_from_string(value)
         elif isinstance(value, Cosmology):
             return value
