@@ -475,7 +475,7 @@ def table_to_hdu(table):
     # Create a new HDU object
     if table.masked:
         # float column's default mask value needs to be Nan
-        for column in six.itervalues(table.columns):
+        for column in table.columns.values():
             fill_value = column.get_fill_value()
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)

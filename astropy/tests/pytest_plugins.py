@@ -172,7 +172,7 @@ def pytest_report_header(config):
     s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
         sys.float_info)
 
-    for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
+    for module_display, module_name in PYTEST_HEADER_MODULES.items():
         try:
             with ignore_warnings(DeprecationWarning):
                 module = resolve_name(module_name)

@@ -50,7 +50,7 @@ def _iter_unit_summary(namespace):
     # prefixes
     units = []
     has_prefixes = set()
-    for key, val in six.iteritems(namespace):
+    for key, val in namespace.items():
         # Skip non-unit items
         if not isinstance(val, core.UnitBase):
             continue

@@ -143,7 +143,7 @@ def _repr_odict(dumper, data):
     >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
-    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', six.iteritems(data))
+    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.items())
 
 
 def _repr_column_dict(dumper, data):
@@ -199,7 +199,7 @@ def get_yaml_from_table(table):
         List of text lines with YAML header content
     """
 
-    header = {'cols': list(six.itervalues(table.columns))}
+    header = {'cols': list(table.columns.values())}
     if table.meta:
         header['meta'] = table.meta
 

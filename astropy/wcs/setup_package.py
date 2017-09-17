@@ -304,7 +304,7 @@ def get_extensions():
     cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
-    cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
+    cfg = dict((str(key), val) for key, val in cfg.items())
 
     return [Extension(str('astropy.wcs._wcs'), **cfg)]
 

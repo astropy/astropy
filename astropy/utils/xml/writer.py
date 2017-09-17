@@ -138,7 +138,7 @@ class XMLWriter:
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
-            attrib = list(six.iteritems(attrib))
+            attrib = list(attrib.items())
             attrib.sort()
             for k, v in attrib:
                 if v is not None:

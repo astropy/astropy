@@ -77,7 +77,7 @@ class Row(object):
 
     def __iter__(self):
         index = self._index
-        for col in six.itervalues(self._table.columns):
+        for col in self._table.columns.values():
             yield col[index]
 
     @property

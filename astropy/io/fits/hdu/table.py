@@ -679,7 +679,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """Populate the new table definition keywords from the header."""
 
         for idx, column in enumerate(self.columns):
-            for keyword, attr in six.iteritems(KEYWORD_TO_ATTRIBUTE):
+            for keyword, attr in KEYWORD_TO_ATTRIBUTE.items():
                 val = getattr(column, attr)
                 if val is not None:
                     keyword = keyword + str(idx + 1)

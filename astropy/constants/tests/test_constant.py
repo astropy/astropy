@@ -110,7 +110,7 @@ def test_unit():
 
     from ... import constants as const
 
-    for key, val in six.iteritems(vars(const)):
+    for key, val in vars(const).items():
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have

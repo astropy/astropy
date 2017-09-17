@@ -347,7 +347,7 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        for col in six.itervalues(parent_table.columns):
+        for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
             if col.info.name in self.key_colnames:
                 new_col = col.take(i0s)

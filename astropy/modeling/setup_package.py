@@ -154,6 +154,6 @@ def get_extensions():
     cfg['sources'].extend(join(MODELING_SRC, x) for x in astropy_files)
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
-    cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
+    cfg = dict((str(key), val) for key, val in cfg.items())
 
     return [Extension(str('astropy.modeling._projections'), **cfg)]

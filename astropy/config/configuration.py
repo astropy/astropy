@@ -71,7 +71,7 @@ class _ConfigNamespaceMeta(type):
         if cls.__bases__[0] is object:
             return
 
-        for key, val in six.iteritems(dict):
+        for key, val in dict.items():
             if isinstance(val, ConfigItem):
                 val.name = key
 
@@ -133,7 +133,7 @@ class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
                 return self.__class__.__dict__[attr].reload()
             raise AttributeError("No configuration parameter '{0}'".format(attr))
 
-        for item in six.itervalues(self.__class__.__dict__):
+        for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
                 item.reload()
 
@@ -154,7 +154,7 @@ class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
                 return
             raise AttributeError("No configuration parameter '{0}'".format(attr))
 
-        for item in six.itervalues(self.__class__.__dict__):
+        for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
                 item.set(item.defaultvalue)
 
@@ -601,7 +601,7 @@ def is_unedited_config_file(content, template_content=None):
     buffer = io.BytesIO(content)
     buffer.seek(0)
     raw_cfg = configobj.ConfigObj(buffer, interpolation=True)
-    for v in six.itervalues(raw_cfg):
+    for v in raw_cfg.values():
         if len(v):
             break
     else:

@@ -523,7 +523,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                          deepcopy(self.wcs, memo),
                          (deepcopy(self.det2im1, memo),
                           deepcopy(self.det2im2, memo)))
-        for key, val in six.iteritems(self.__dict__):
+        for key, val in self.__dict__.items():
             new_copy.__dict__[key] = deepcopy(val, memo)
         return new_copy
 
@@ -641,7 +641,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.wcs is not None:
             self._fix_scamp()
             fixes = self.wcs.fix(translate_units, naxis)
-            for key, val in six.iteritems(fixes):
+            for key, val in fixes.items():
                 if val != "No change":
                     warnings.warn(
                         ("'{0}' made the change '{1}'.").

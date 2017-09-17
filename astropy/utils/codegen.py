@@ -59,7 +59,7 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
                           '*{0}'.format(varargs))
 
     if isinstance(kwargs, dict):
-        iter_kwargs = six.iteritems(kwargs)
+        iter_kwargs = kwargs.items()
     else:
         iter_kwargs = iter(kwargs)
 

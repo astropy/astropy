@@ -377,7 +377,7 @@ class TransformGraph(object):
         nms : list
             The aliases for coordinate systems.
         """
-        return list(six.iterkeys(self._cached_names))
+        return list(self._cached_names.keys())
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None, color_edges=True):
@@ -430,7 +430,7 @@ class TransformGraph(object):
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._cached_names)])
+        invclsaliases = dict([(v, k) for k, v in self._cached_names.items()])
         for n in nodes:
             if n in invclsaliases:
                 nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))

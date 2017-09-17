@@ -102,7 +102,7 @@ class Header(object):
                 cards = cards.copy()
             cards = cards.cards
         elif isinstance(cards, dict):
-            cards = six.iteritems(cards)
+            cards = cards.items()
 
         for card in cards:
             self.append(card, end=True)
@@ -929,7 +929,7 @@ class Header(object):
     def items(self):
         """Like :meth:`dict.items`."""
 
-        return list(iteritems(self))
+        return list(self.items())
 
     def iteritems(self):
         """Like :meth:`dict.iteritems`."""
@@ -948,7 +948,7 @@ class Header(object):
     def itervalues(self):
         """Like :meth:`dict.itervalues`."""
 
-        for _, v in iteritems(self):
+        for _, v in self.items():
             yield v
 
     def keys(self):
@@ -988,7 +988,7 @@ class Header(object):
         """Similar to :meth:`dict.popitem`."""
 
         try:
-            k, v = next(iteritems(self))
+            k, v = next(self.items())
         except StopIteration:
             raise KeyError('Header is empty')
         del self[k]
@@ -1093,7 +1093,7 @@ class Header(object):
         if other is None:
             pass
         elif hasattr(other, 'items'):
-            for k, v in iteritems(other):
+            for k, v in other.items():
                 update_from_dict(k, v)
         elif hasattr(other, 'keys'):
             for k in other.keys():
@@ -1116,7 +1116,7 @@ class Header(object):
     def values(self):
         """Returns a list of the values of all cards in the header."""
 
-        return [v for _, v in iteritems(self)]
+        return [v for _, v in self.items()]
 
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         """
