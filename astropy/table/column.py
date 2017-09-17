@@ -347,7 +347,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if obj is None:
             return
 
-        if six.callable(super(BaseColumn, self).__array_finalize__):
+        if callable(super(BaseColumn, self).__array_finalize__):
             super(BaseColumn, self).__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))

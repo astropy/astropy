@@ -94,8 +94,8 @@ def _normalize_equivalencies(equivalencies):
                 "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
         if not (funit is Unit(funit) and
                 (tunit is None or tunit is Unit(tunit)) and
-                six.callable(a) and
-                six.callable(b)):
+                callable(a) and
+                callable(b)):
             raise ValueError(
                 "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
         normalized.append((funit, tunit, a, b))

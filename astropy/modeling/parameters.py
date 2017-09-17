@@ -563,7 +563,7 @@ class Parameter(OrderedDescriptor):
         """Tie a parameter"""
 
         if self._model is not None:
-            if not six.callable(value) and value not in (False, None):
+            if not callable(value) and value not in (False, None):
                 raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
         else:

@@ -58,7 +58,7 @@ def convert_to_writable_filelike(fd, compressed=False):
                 yield real_fd
                 return
     elif hasattr(fd, 'write'):
-        assert six.callable(fd.write)
+        assert callable(fd.write)
 
         if compressed:
             fd = gzip.GzipFile(fileobj=fd)

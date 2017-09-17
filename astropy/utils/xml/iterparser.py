@@ -58,7 +58,7 @@ def _convert_to_fd_or_read_function(fd):
     fd : context-dependent
         See above.
     """
-    if six.callable(fd):
+    if callable(fd):
         yield fd
         return
 
@@ -75,7 +75,7 @@ def _convert_to_fd_or_read_function(fd):
 def _fast_iterparse(fd, buffersize=2 ** 10):
     from xml.parsers import expat
 
-    if not six.callable(fd):
+    if not callable(fd):
         read = fd.read
     else:
         read = fd

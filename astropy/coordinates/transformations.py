@@ -126,7 +126,7 @@ class TransformGraph(object):
             raise TypeError('fromsys must be a class')
         if not inspect.isclass(tosys):
             raise TypeError('tosys must be a class')
-        if not six.callable(transform):
+        if not callable(transform):
             raise TypeError('transform must be callable')
 
         self._graph[fromsys][tosys] = transform
@@ -727,7 +727,7 @@ class FunctionTransform(CoordinateTransform):
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
-        if not six.callable(func):
+        if not callable(func):
             raise TypeError('func must be callable')
 
         with suppress(TypeError):
@@ -1114,7 +1114,7 @@ class AffineTransform(BaseAffineTransform):
     def __init__(self, transform_func, fromsys, tosys, priority=1,
                  register_graph=None):
 
-        if not six.callable(transform_func):
+        if not callable(transform_func):
             raise TypeError('transform_func is not callable')
         self.transform_func = transform_func
 
@@ -1163,7 +1163,7 @@ class StaticMatrixTransform(BaseAffineTransform):
     """
 
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
-        if six.callable(matrix):
+        if callable(matrix):
             matrix = matrix()
         self.matrix = np.array(matrix)
 
@@ -1213,7 +1213,7 @@ class DynamicMatrixTransform(BaseAffineTransform):
 
     def __init__(self, matrix_func, fromsys, tosys, priority=1,
                  register_graph=None):
-        if not six.callable(matrix_func):
+        if not callable(matrix_func):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 

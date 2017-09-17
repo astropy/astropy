@@ -87,7 +87,7 @@ def get_auto_format_func(
         if format_key in _format_funcs:
             return _format_funcs[format_key](format_, val)
 
-        if six.callable(format_):
+        if callable(format_):
             format_func = lambda format_, val: format_(val)
             try:
                 out = format_func(format_, val)

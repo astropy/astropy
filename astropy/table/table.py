@@ -2806,7 +2806,7 @@ class NdarrayMixin(np.ndarray):
         if obj is None:
             return
 
-        if six.callable(super(NdarrayMixin, self).__array_finalize__):
+        if callable(super(NdarrayMixin, self).__array_finalize__):
             super(NdarrayMixin, self).__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
