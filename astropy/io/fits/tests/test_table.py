@@ -4,6 +4,7 @@ from __future__ import division, with_statement, print_function
 import contextlib
 import copy
 import gc
+import pickle
 import re
 
 import pytest

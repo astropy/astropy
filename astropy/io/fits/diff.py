@@ -48,6 +48,11 @@ _COL_ATTRS = [('unit', 'units'), ('null', 'null values'), ('bscale', 'bscales'),
 indent = functools.partial(indent, width=2)
 
 
+# FIXME: temporary workaround to replace six.u
+def u(x):
+    return x
+
+
 class _BaseDiff(object):
     """
     Base class for all FITS diff objects.
@@ -190,7 +195,7 @@ class _BaseDiff(object):
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(indent(text, self._indent) + u('\n'))
+        self._fileobj.write(indent(text, self._indent) + '\n')
 
     def _diff(self):
         raise NotImplementedError
@@ -356,7 +361,7 @@ class FITSDiff(_BaseDiff):
             filenameb = '<{} object at {:#x}>'.format(self.b.__class__.__name__,
                                                       id(self.b))
 
-        self._fileobj.write(u('\n'))
+        self._fileobj.write('\n')
         self._writeln(u(' fitsdiff: {}').format(__version__))
         self._writeln(u(' a: {}\n b: {}').format(filenamea, filenameb))
         if self.ignore_keywords:
@@ -378,26 +383,26 @@ class FITSDiff(_BaseDiff):
                         ' Absolute tolerance: {}').format(self.rtol, self.atol))
 
         if self.diff_hdu_count:
-            self._fileobj.write(u('\n'))
-            self._writeln(u('Files contain different numbers of HDUs:'))
+            self._fileobj.write('\n')
+            self._writeln('Files contain different numbers of HDUs:')
             self._writeln(u(' a: {}').format(self.diff_hdu_count[0]))
             self._writeln(u(' b: {}').format(self.diff_hdu_count[1]))
 
             if not self.diff_hdus:
-                self._writeln(u('No differences found between common HDUs.'))
+                self._writeln('No differences found between common HDUs.')
                 return
         elif not self.diff_hdus:
-            self._fileobj.write(u('\n'))
-            self._writeln(u('No differences found.'))
+            self._fileobj.write('\n')
+            self._writeln('No differences found.')
             return
 
         for idx, hdu_diff in self.diff_hdus:
             # print out the extension heading
             if idx == 0:
-                self._fileobj.write(u('\n'))
-                self._writeln(u('Primary HDU:'))
+                self._fileobj.write('\n')
+                self._writeln('Primary HDU:')
             else:
-                self._fileobj.write(u('\n'))
+                self._fileobj.write('\n')
                 self._writeln(u('Extension HDU {}:').format(idx))
             hdu_diff.report(self._fileobj, indent=self._indent + 1)
 
@@ -501,7 +506,7 @@ class HDUDiff(_BaseDiff):
 
     def _report(self):
         if self.identical:
-            self._writeln(u(" No differences found."))
+            self._writeln(" No differences found.")
         if self.diff_extension_types:
             self._writeln(u(" Extension types differ:\n  a: {}\n  "
                             "b: {}").format(*self.diff_extension_types))
@@ -517,13 +522,13 @@ class HDUDiff(_BaseDiff):
                             "b: {}").format(*self.diff_extlevels))
 
         if not self.diff_headers.identical:
-            self._fileobj.write(u('\n'))
-            self._writeln(u(" Headers contain differences:"))
+            self._fileobj.write('\n')
+            self._writeln(" Headers contain differences:")
             self.diff_headers.report(self._fileobj, indent=self._indent + 1)
 
         if self.diff_data is not None and not self.diff_data.identical:
-            self._fileobj.write(u('\n'))
-            self._writeln(u(" Data contains differences:"))
+            self._fileobj.write('\n')
+            self._writeln(" Data contains differences:")
             self.diff_data.report(self._fileobj, indent=self._indent + 1)
 
 
@@ -754,7 +759,7 @@ class HeaderDiff(_BaseDiff):
 
     def _report(self):
         if self.diff_keyword_count:
-            self._writeln(u(' Headers have different number of cards:'))
+            self._writeln(' Headers have different number of cards:')
             self._writeln(u('  a: {}').format(self.diff_keyword_count[0]))
             self._writeln(u('  b: {}').format(self.diff_keyword_count[1]))
         if self.diff_keywords:
@@ -763,14 +768,14 @@ class HeaderDiff(_BaseDiff):
                     val = self.a[keyword][0]
                 else:
                     val = self.a[keyword]
-                self._writeln(u(' Extra keyword {!r:8} in a: {!r}').format(
+                self._writeln(' Extra keyword {!r:8} in a: {!r}'.format(
                                 keyword, val))
             for keyword in self.diff_keywords[1]:
                 if keyword in Card._commentary_keywords:
                     val = self.b[keyword][0]
                 else:
                     val = self.b[keyword]
-                self._writeln(u(' Extra keyword {!r:8} in b: {!r}').format(
+                self._writeln(' Extra keyword {!r:8} in b: {!r}'.format(
                                 keyword, val))
 
         if self.diff_duplicate_keywords:
@@ -898,13 +903,13 @@ class ImageDataDiff(_BaseDiff):
                                reversed(self.diff_dimensions[0]))
             dimsb = ' x '.join(str(d) for d in
                                reversed(self.diff_dimensions[1]))
-            self._writeln(u(' Data dimensions differ:'))
-            self._writeln(u('  a: {}').format(dimsa))
-            self._writeln(u('  b: {}').format(dimsb))
+            self._writeln(' Data dimensions differ:')
+            self._writeln('  a: {}'.format(dimsa))
+            self._writeln('  b: {}'.format(dimsb))
             # For now we don't do any further comparison if the dimensions
             # differ; though in the future it might be nice to be able to
             # compare at least where the images intersect
-            self._writeln(u(' No further data comparison performed.'))
+            self._writeln(' No further data comparison performed.')
             return
 
         if not self.diff_pixels:
@@ -917,7 +922,7 @@ class ImageDataDiff(_BaseDiff):
                                ind=self._indent + 1)
 
         if self.diff_total > self.numdiffs:
-            self._writeln(u(' ...'))
+            self._writeln(' ...')
         self._writeln(u(' {} different pixels found ({:.2%} '
                         'different).').format(self.diff_total,
                                               self.diff_ratio))
@@ -966,13 +971,13 @@ class RawDataDiff(ImageDataDiff):
 
     def _report(self):
         if self.diff_dimensions:
-            self._writeln(u(' Data sizes differ:'))
+            self._writeln(' Data sizes differ:')
             self._writeln(u('  a: {} bytes').format(self.diff_dimensions[0]))
             self._writeln(u('  b: {} bytes').format(self.diff_dimensions[1]))
             # For now we don't do any further comparison if the dimensions
             # differ; though in the future it might be nice to be able to
             # compare at least where the images intersect
-            self._writeln(u(' No further data comparison performed.'))
+            self._writeln(' No further data comparison performed.')
             return
 
         if not self.diff_bytes:
@@ -983,7 +988,7 @@ class RawDataDiff(ImageDataDiff):
             report_diff_values(self._fileobj, values[0], values[1],
                                ind=self._indent + 1)
 
-        self._writeln(u(' ...'))
+        self._writeln(' ...')
         self._writeln(u(' {} different bytes found ({:.2%} '
                         'different).').format(self.diff_total, self.diff_ratio))
 
@@ -1221,7 +1226,7 @@ class TableDataDiff(_BaseDiff):
 
     def _report(self):
         if self.diff_column_count:
-            self._writeln(u(' Tables have different number of columns:'))
+            self._writeln(' Tables have different number of columns:')
             self._writeln(u('  a: {}').format(self.diff_column_count[0]))
             self._writeln(u('  b: {}').format(self.diff_column_count[1]))
 
@@ -1247,10 +1252,10 @@ class TableDataDiff(_BaseDiff):
                                ind=self._indent + 1)
 
         if self.diff_rows:
-            self._writeln(u(' Table rows differ:'))
+            self._writeln(' Table rows differ:')
             self._writeln(u('  a: {}').format(self.diff_rows[0]))
             self._writeln(u('  b: {}').format(self.diff_rows[1]))
-            self._writeln(u(' No further data comparison performed.'))
+            self._writeln(' No further data comparison performed.')
             return
 
         if not self.diff_values:
@@ -1258,8 +1263,7 @@ class TableDataDiff(_BaseDiff):
 
         # Finally, let's go through and report column data differences:
         for indx, values in self.diff_values:
-            self._writeln(u(' Column {} data differs in row {}:')
-                          .format(*indx))
+            self._writeln(' Column {} data differs in row {}:'.format(*indx))
             report_diff_values(self._fileobj, values[0], values[1],
                                ind=self._indent + 1)
 
@@ -1268,7 +1272,7 @@ class TableDataDiff(_BaseDiff):
                                 (self.diff_total - self.numdiffs)))
 
         if self.diff_total > self.numdiffs:
-            self._writeln(u(' ...'))
+            self._writeln(' ...')
 
         self._writeln(u(' {} different table data element(s) found '
                         '({:.2%} different).').format(self.diff_total,
