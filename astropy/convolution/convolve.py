@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 from functools import partial
+from scipy.fftpack import next_fast_len
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
@@ -633,7 +634,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         else:
             # concatenate the shape lists (max of a list of length 4) (smaller)
             biggestdim = np.max(shapestack, axis=0)
-            newshape = [_next_regular(x) for x in biggestdim]
+            newshape = [next_fast_len(x) for x in biggestdim]
     else:
         if psf_pad:
             # just add the biggest dimensions
