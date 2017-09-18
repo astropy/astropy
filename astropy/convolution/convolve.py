@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 from functools import partial
+from scipy.fftpack import next_fast_len
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
