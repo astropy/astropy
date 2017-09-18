@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division
-
 import collections
 import copy
 import itertools
@@ -929,35 +927,22 @@ class Header(object):
     def items(self):
         """Like :meth:`dict.items`."""
 
-        return list(self.items())
-
-    def iteritems(self):
-        """Like :meth:`dict.iteritems`."""
-
         for card in self._cards:
             yield (card.keyword, card.value)
 
-    def iterkeys(self):
+    def keys(self):
         """
-        Like :meth:`dict.iterkeys`--iterating directly over the `Header`
+        Like :meth:`dict.keys`--iterating directly over the `Header`
         instance has the same behavior.
         """
 
         return self.__iter__()
 
-    def itervalues(self):
-        """Like :meth:`dict.itervalues`."""
+    def values(self):
+        """Like :meth:`dict.values`."""
 
         for _, v in self.items():
             yield v
-
-    def keys(self):
-        """
-        Return a list of keywords in the header in the order they
-        appear--like :meth:`dict.keys` but ordered.
-        """
-
-        return [keyword for keyword in self]
 
     def pop(self, *args):
         """
@@ -1112,11 +1097,6 @@ class Header(object):
                         'a keyword, value, and comment string.'.format(idx))
         if kwargs:
             self.update(kwargs)
-
-    def values(self):
-        """Returns a list of the values of all cards in the header."""
-
-        return [v for _, v in self.items()]
 
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         """
@@ -1920,13 +1900,6 @@ class Header(object):
                                  after=after)
         else:
             self[key] = value
-
-    keys = iterkeys
-    values = itervalues
-    items = iteritems
-    del iterkeys
-    del itervalues
-    del iteritems
 
 
 collections.MutableSequence.register(Header)
