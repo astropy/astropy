@@ -85,16 +85,13 @@ class _BaseDiff(object):
 
         self._diff()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         A ``_BaseDiff`` object acts as `True` in a boolean context if the two
         objects compared are identical.  Otherwise it acts as `False`.
         """
 
         return not self.identical
-
-    __bool__ = __nonzero__
-    del __nonzero__
 
     @classmethod
     def fromdiff(cls, other, a, b):

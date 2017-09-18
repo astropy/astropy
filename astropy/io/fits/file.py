@@ -68,9 +68,9 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 # that would generate too many warnings for too many users.  If nothing else,
 # wait until the new logging system is in place.
 
-GZIP_MAGIC = '\x1f\x8b\x08'.encode("latin-1")
-PKZIP_MAGIC = '\x50\x4b\x03\x04'.encode("latin-1")
-BZIP2_MAGIC = '\x42\x5a'.encode("latin-1")
+GZIP_MAGIC = b'\x1f\x8b\x08'
+PKZIP_MAGIC = b'\x50\x4b\x03\x04'
+BZIP2_MAGIC = b'\x42\x5a'
 
 try:
     import pathlib

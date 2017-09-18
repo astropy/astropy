@@ -273,22 +273,53 @@ def pairwise(iterable):
 
 
 def encode_ascii(s):
-    """
-    In Python 2 this is a no-op.  Strings are left alone.  In Python 3 this
-    will be replaced with a function that actually encodes unicode strings to
-    ASCII bytes.
-    """
-
+    if isinstance(s, str):
+        return s.encode('ascii')
+    elif (isinstance(s, np.ndarray) and
+          issubclass(s.dtype.type, np.str_)):
+        ns = np.char.encode(s, 'ascii').view(type(s))
+        if ns.dtype.itemsize != s.dtype.itemsize / 4:
+            ns = ns.astype((np.bytes_, s.dtype.itemsize / 4))
+        return ns
+    elif (isinstance(s, np.ndarray) and
+          not issubclass(s.dtype.type, np.bytes_)):
+        raise TypeError('string operation on non-string array')
     return s
 
 
 def decode_ascii(s):
-    """
-    In Python 2 this is a no-op.  Strings are left alone.  In Python 3 this
-    will be replaced with a function that actually decodes ascii bytes to
-    unicode.
-    """
-
+    if isinstance(s, bytes):
+        try:
+            return s.decode('ascii')
+        except UnicodeDecodeError:
+            warnings.warn('non-ASCII characters are present in the FITS '
+                          'file header and have been replaced by "?" '
+                          'characters', AstropyUserWarning)
+            s = s.decode('ascii', errors='replace')
+            return s.replace(u'\ufffd', '?')
+    elif (isinstance(s, np.ndarray) and
+          issubclass(s.dtype.type, np.bytes_)):
+        # np.char.encode/decode annoyingly don't preserve the type of the
+        # array, hence the view() call
+        # It also doesn't necessarily preserve widths of the strings,
+        # hence the astype()
+        if s.size == 0:
+            # Numpy apparently also has a bug that if a string array is
+            # empty calling np.char.decode on it returns an empty float64
+            # array wth
+            dt = s.dtype.str.replace('S', 'U')
+            ns = np.array([], dtype=dt).view(type(s))
+        else:
+            ns = np.char.decode(s, 'ascii').view(type(s))
+        if ns.dtype.itemsize / 4 != s.dtype.itemsize:
+            ns = ns.astype((np.str_, s.dtype.itemsize))
+        return ns
+    elif (isinstance(s, np.ndarray) and
+          not issubclass(s.dtype.type, np.str_)):
+        # Don't silently pass through on non-string arrays; we don't want
+        # to hide errors where things that are not stringy are attempting
+        # to be decoded
+        raise TypeError('string operation on non-string array')
     return s
 
 
