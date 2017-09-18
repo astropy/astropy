@@ -181,7 +181,7 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
 
     sortable_columns = [i for i, col in enumerate(table.columns.values())
                         if col.dtype.kind in 'iufc']
-    htmldict_ = {
+    html_options = {
         'table_id': table_id,
         'table_class': table_class,
         'css': css,
@@ -190,11 +190,11 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
         'js': jsv.html_js(table_id=table_id, sort_columns=sortable_columns)
     }
     if htmldict:
-        htmldict_.update(htmldict)
+        html_options.update(htmldict)
 
     if max_lines < len(table):
         table = table[:max_lines]
-    table.write(filename, format='html', htmldict=htmldict_)
+    table.write(filename, format='html', htmldict=html_options)
 
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
