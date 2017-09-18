@@ -428,10 +428,10 @@ class TestChecksumFunctions(FitsTestCase):
 
         testfile = self.temp('test.fits')
         with fits.open(self.data('tb.fits')) as hdul:
-            hdul[0].header['DATASUM'] = 'foobar'
-            hdul[0].header['CHECKSUM'] = 'foobar'
-            hdul[1].header['DATASUM'] = 'foobar'
-            hdul[1].header['CHECKSUM'] = 'foobar'
+            hdul[0].header['DATASUM'] = '1       '
+            hdul[0].header['CHECKSUM'] = '8UgqATfo7TfoATfo'
+            hdul[1].header['DATASUM'] = '2349680925'
+            hdul[1].header['CHECKSUM'] = '11daD8bX98baA8bU'
             hdul.writeto(testfile)
 
         with fits.open(testfile) as hdul:
