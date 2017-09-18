@@ -50,6 +50,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Add unit support for tabular models. [#6529]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
