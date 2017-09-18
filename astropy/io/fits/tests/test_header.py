@@ -20,11 +20,6 @@ from ..header import _pad_length
 from ..util import encode_ascii
 
 
-# FIXME: temporary workaround to replace six.u
-def u(x):
-    return x
-
-
 def test_shallow_copy():
     """Make sure that operations on a shallow copy do not alter the original.
     #4990."""
@@ -566,8 +561,7 @@ class TestHeaderFunctions(FitsTestCase):
         normally invalid keyword characters are not considered invalid.
         """
 
-        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value',
-                        'a comment')
+        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value', 'a comment')
         # This should not raise any exceptions
         c.verify('exception')
         assert c.keyword == 'WeirdCard.~!@#_^$%&'
@@ -1963,31 +1957,20 @@ class TestHeaderFunctions(FitsTestCase):
             h[keyword] = val
 
         h = fits.Header()
-        h[u('FOO')] = 'BAR'
+        h['FOO'] = 'BAR'
         assert 'FOO' in h
         assert h['FOO'] == 'BAR'
-        assert h[u('FOO')] == 'BAR'
         assert repr(h) == _pad("FOO     = 'BAR     '")
         pytest.raises(ValueError, assign, erikku, 'BAR')
 
-        h['FOO'] = u('BAZ')
-        assert h[u('FOO')] == 'BAZ'
-        assert h[u('FOO')] == u('BAZ')
+        h['FOO'] = 'BAZ'
+        assert h['FOO'] == 'BAZ'
         assert repr(h) == _pad("FOO     = 'BAZ     '")
         pytest.raises(ValueError, assign, 'FOO', erikku)
 
-        h['FOO'] = ('BAR', u('BAZ'))
+        h['FOO'] = ('BAR', 'BAZ')
         assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
         assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
-        assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
-
-        h['FOO'] = (u('BAR'), u('BAZ'))
-        assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
-        assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
 
         pytest.raises(ValueError, assign, 'FOO', ('BAR', erikku))
