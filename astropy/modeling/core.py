@@ -2998,7 +2998,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     inputs, params = get_inputs_and_params(func)
 
     if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != len(params)):
+            len(fit_deriv.__defaults__) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 
