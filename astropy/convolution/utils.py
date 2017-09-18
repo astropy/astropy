@@ -451,10 +451,10 @@ def plot_convolve_fft_profiling_results(results):
               (True,True): '-',
               (False,True): ":",
               (False,False): "-."}
-    figure = {(True,False): pl.figure(1),
-              (True,True): pl.figure(2),
-              (False,True): pl.figure(3),
-              (False,False): pl.figure(4),
+    figure = {(True,False): pl.figure(1, figsize=(12,8)),
+              (True,True): pl.figure(2, figsize=(12,8)),
+              (False,True): pl.figure(3, figsize=(12,8)),
+              (False,False): pl.figure(4, figsize=(12,8)),
              }
     axes = {}
     for ind,fig in figure.items():
@@ -532,7 +532,7 @@ def plot_convolve_fft_profiling_results(results):
             ymax = np.max([L.get_data()[1].max() for L in ax.get_lines()])
             ax.set_ylim(1e-4, ymax*1.1)
 
-            ax.set_yscale('log')
+        ax1.set_yscale('log')
 
         ax1.legend(loc='center left', bbox_to_anchor=(1.05, 0.50))
         #ax2.legend(loc='best', bbox_to_anchor)
