@@ -3,7 +3,6 @@
 This file contains routines to verify the correctness of UCD strings.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # STDLIB
 import re

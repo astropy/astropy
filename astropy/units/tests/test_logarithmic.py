@@ -4,8 +4,6 @@
     Test the Logarithmic Units and Quantities
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pickle
 import itertools

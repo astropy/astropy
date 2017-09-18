@@ -5,8 +5,6 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 try:

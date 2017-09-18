@@ -6,8 +6,6 @@ This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from . import si
 from ..constants import si as _si

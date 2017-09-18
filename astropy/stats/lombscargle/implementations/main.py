@@ -4,7 +4,6 @@ Main Lomb-Scargle Implementation
 The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
-from __future__ import print_function, division
 
 __all__ = ['lombscargle', 'available_methods']
 

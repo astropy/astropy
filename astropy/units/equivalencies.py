@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """A set of standard astronomical equivalencies."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # THIRD-PARTY
 import numpy as np

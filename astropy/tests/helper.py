@@ -3,8 +3,6 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 import sys

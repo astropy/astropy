@@ -2,7 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-from __future__ import print_function
 
 
 import functools

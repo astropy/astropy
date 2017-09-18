@@ -4,8 +4,6 @@ High-level operations for numpy structured arrays.
 Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from itertools import chain
 import collections

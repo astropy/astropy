@@ -8,8 +8,6 @@ motions are also used for determining earth orientation for
 celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from warnings import warn
 

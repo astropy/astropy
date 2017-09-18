@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple

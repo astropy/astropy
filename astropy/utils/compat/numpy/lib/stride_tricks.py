@@ -12,7 +12,6 @@ The version provided here ensures broadcast_arrays passes on subclasses
 if one sets ``subok=True``; see https://github.com/numpy/numpy/pull/4622
 
 """
-from __future__ import division, absolute_import, print_function
 
 import numpy as np
 

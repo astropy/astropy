@@ -4,8 +4,6 @@
 This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 

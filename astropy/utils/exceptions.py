@@ -4,8 +4,6 @@ This module contains errors/exceptions and warnings of general use for
 astropy. Exceptions that are specific to a given subpackage should *not*
 be here, but rather in the particular subpackage.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 class AstropyWarning(Warning):

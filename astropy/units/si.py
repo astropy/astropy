@@ -5,8 +5,6 @@ This package defines the SI units.  They are also available in the
 `astropy.units` namespace.
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from ..constants import si as _si
 from .core import UnitBase, Unit, def_unit

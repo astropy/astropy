@@ -21,8 +21,6 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 implementation.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import inspect

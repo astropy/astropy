@@ -7,8 +7,6 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import operator

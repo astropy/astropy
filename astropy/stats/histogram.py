@@ -6,8 +6,6 @@ Methods for selecting the bin width of histograms
 Ported from the astroML project: http://astroML.org/
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import numpy as np

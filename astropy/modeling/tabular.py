@@ -16,8 +16,6 @@ Examples
 ...                fill_value=None, method='nearest')
 
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 

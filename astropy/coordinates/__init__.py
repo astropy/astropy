@@ -5,8 +5,6 @@ This subpackage contains classes and functions for celestial coordinates
 of astronomical objects. It also contains a framework for conversions
 between coordinate systems.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .errors import *
 from .angles import *

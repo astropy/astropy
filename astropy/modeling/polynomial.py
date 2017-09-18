@@ -4,8 +4,6 @@
 This module contains models representing polynomials and polynomial series.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from collections import OrderedDict
 

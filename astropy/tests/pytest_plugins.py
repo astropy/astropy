@@ -3,8 +3,6 @@
 These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import __future__
 
@@ -28,10 +26,7 @@ from .helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from ..utils.argparse import writeable_directory
 from ..utils.introspection import resolve_name
 
-try:
-    import importlib.machinery as importlib_machinery
-except ImportError:  # Python 2.7
-    importlib_machinery = None
+import importlib.machinery as importlib_machinery
 
 pytest_plugins = ('astropy.tests.pytest_doctestplus',
                   'astropy.tests.pytest_openfiles',
@@ -198,7 +193,6 @@ def pytest_report_header(config):
 
 def pytest_pycollect_makemodule(path, parent):
     # This is where we set up testing both with and without
-    # from __future__ import unicode_literals
 
     return pytest.Module(path, parent)
 

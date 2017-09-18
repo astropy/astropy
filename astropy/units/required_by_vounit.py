@@ -10,8 +10,6 @@ but that are rarely used in practice and liable to lead to confusion (such as
 ``astropy.units.required_by_vounit.msolMass`` instead of the more typical idiom
 possible for the non-prefixed unit, ``astropy.units.solMass``.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 _ns = globals()
 

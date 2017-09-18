@@ -5,7 +5,6 @@ Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
 another set of [0:1] values with a transformation
 """
 
-from __future__ import division, print_function
 
 import numpy as np
 

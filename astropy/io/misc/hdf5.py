@@ -5,8 +5,6 @@ not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`table_io` for more details.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 import warnings

@@ -5,8 +5,6 @@
 """
 This module contains tests for the name resolve convenience module.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import time
 import urllib

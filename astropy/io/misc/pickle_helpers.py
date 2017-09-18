@@ -4,8 +4,6 @@ This module contains simple input/output related functionality that is not
 part of a larger framework or standard.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 __all__ = ['fnpickle', 'fnunpickle']

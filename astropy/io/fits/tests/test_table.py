@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement, print_function
 
 import contextlib
 import copy

@@ -2,8 +2,6 @@
 """ This module contains functions to determine where configuration and
 data/cache files used by Astropy should be placed.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from ..utils.decorators import wraps
 

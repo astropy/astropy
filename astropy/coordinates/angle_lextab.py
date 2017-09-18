@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 _tabversion   = '3.8'
 _lextokens    = set(('UINT', 'SIMPLE_UNIT', 'DEGREE', 'MINUTE', 'HOUR', 'COLON', 'UFLOAT', 'SIGN', 'SECOND'))

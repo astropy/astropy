@@ -5,8 +5,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import abc

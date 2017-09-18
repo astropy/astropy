@@ -4,8 +4,6 @@
 This module implements a class based on NDData with all Mixins.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .nddata import NDData
 

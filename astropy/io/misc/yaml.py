@@ -67,7 +67,6 @@ Example
   <EarthLocation ( 1000.,  2000.,  3000.) km>
 """
 
-from __future__ import absolute_import, division
 
 import base64
 import numpy as np

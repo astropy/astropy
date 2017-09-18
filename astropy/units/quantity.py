@@ -6,8 +6,6 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Standard library
 import re
