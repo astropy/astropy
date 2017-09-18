@@ -1141,6 +1141,11 @@ class Model(object):
 
         return self._user_bounding_box is not None
 
+    @property
+    def separable(self):
+        """Are the axes independent/separable?"""
+        return True
+
     # *** Public methods ***
 
     def without_units_for_data(self, **kwargs):
@@ -2115,6 +2120,11 @@ class Fittable2DModel(FittableModel):
     inputs = ('x', 'y')
     outputs = ('z',)
 
+    @property
+    def separable(self):
+        """Not all 2D models have separable axes."""
+        return False
+
 
 def _make_arithmetic_operator(oper):
     # We don't bother with tuple unpacking here for efficiency's sake, but for
@@ -2878,6 +2888,10 @@ class _CompoundModel(Model):
                     "inverse.  {0!r} does not have an inverse.".format(model))
 
         return self._tree.evaluate(operators, getter=getter)
+
+    @property
+    def separable(self):
+        raise AttributeError('separable not allowed for compound models')
 
     @sharedmethod
     def _get_submodels(self):
