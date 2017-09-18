@@ -377,10 +377,11 @@ eye).
 A note on backward compatibility (pre v2.0)
 -------------------------------------------
 
-While you probably do not want unless you are explicitly comparing to
-data convolved with direct convolution in old versions of astropy (see below),
-to get the behavior of the old (astropy version <2.0) direct convolution
-function you can interpolate and then convolve, e.g.:
+The behavior of astropy's direct convolution
+(:func:`~astropy.convolution.convolve`) changed in version 2.0.  Generally, the
+old version is undesirable.  However, to recover the behavior of the old
+(astropy version <2.0) direct convolution function, you can interpolate and
+then convolve, e.g.:
 
 .. code-block:: python
 
