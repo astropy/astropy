@@ -2712,8 +2712,7 @@ class Table(object):
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
                 # then coerce back to a native numpy str/unicode array.
-                string_types = str
-                string_types += (bytes,)
+                string_types = (str, bytes)
                 nan = np.nan
                 if all(isinstance(x, string_types) or x is nan for x in data):
                     # Force any missing (null) values to b''.  Numpy will

@@ -25,7 +25,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = str
+PATH_TYPES = (str, )
 try:
     import pathlib
 except ImportError:
