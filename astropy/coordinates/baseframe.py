@@ -1139,6 +1139,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data = self.data if self.has_data else None
 
+        # This is to provide a slightly nicer error message if the user tries to
+        # use frame_obj.representation instead of frame_obj.data to get the
+        # underlying representation object [e.g., #2890]
+        if inspect.isclass(data):
+            raise TypeError('Class passed as data instead of a representation '
+                            'instance. If you called frame.representation, this'
+                            ' returns the representation class. frame.data '
+                            'returns the instantiated object - you may want to '
+                            ' use this instead.')
+
         # TODO: expose this trickery in docstring?
         representation_cls = kwargs.pop('representation_cls',
                                         self.representation)
