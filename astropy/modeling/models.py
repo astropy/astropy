@@ -66,5 +66,5 @@ MODELS_WITH_CONSTRAINTS = [
 
 
 for item in MODELS_WITH_CONSTRAINTS:
-    if isinstance(item.__doc__, string_types):
+    if isinstance(item.__doc__, str):
         item.__doc__ += CONSTRAINTS_DOC

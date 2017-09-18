@@ -18,6 +18,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import abc
 import copy
+import copyreg
 import inspect
 import functools
 import operator
