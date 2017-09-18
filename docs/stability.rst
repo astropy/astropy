@@ -120,12 +120,12 @@ The current planned and existing sub-packages are:
                 astropy.convolution
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td>
                 New top-level package in v0.3 (was previously part of
                 <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>).
-                No major changes since, but possible future additions or improvements.
+                A major consistency improvement between fft/non-fft convolution, which is not fully backward-compatible, was added in 2.0.
             </td>
         </tr>
         <tr>
