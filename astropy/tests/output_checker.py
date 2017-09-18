@@ -4,12 +4,8 @@ normalizations of Python expression output.  See the docstring on
 `AstropyOutputChecker` for more details.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import doctest
 import re
-
 import numpy as np
 
 
@@ -36,8 +32,6 @@ class AstropyOutputChecker(doctest.OutputChecker):
       (simply by comparing their real and imaginary parts separately).
     """
 
-    _original_output_checker = doctest.OutputChecker
-
     _str_literal_re = re.compile(
         r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
     _byteorder_re = re.compile(
@@ -48,8 +42,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         r"([0-9]+)L", re.UNICODE)
 
     def __init__(self):
-        # NOTE OutputChecker is an old-style class with no __init__ method,
-        # so we can't call the base class version of __init__ here
+        super().__init__()
 
         exp = r'(?:e[+-]?\d+)'
 
@@ -152,7 +145,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         return False
 
     def check_output(self, want, got, flags):
-        if (flags & IGNORE_OUTPUT or IGNORE_OUTPUT_3):
+        if (flags & IGNORE_OUTPUT or flags & IGNORE_OUTPUT_3):
             return True
 
         if flags & FIX:
@@ -161,16 +154,10 @@ class AstropyOutputChecker(doctest.OutputChecker):
         if flags & FLOAT_CMP:
             return self.normalize_floats(want, got, flags)
 
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.check_output(
-            self, want, got, flags)
+        return super().check_output(want, got, flags)
 
     def output_difference(self, want, got, flags):
         if flags & FIX:
             want, got = self.do_fixes(want, got)
 
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.output_difference(
-            self, want, got, flags)
+        return super().output_difference(want, got, flags)
