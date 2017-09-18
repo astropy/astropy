@@ -1,5 +1,6 @@
 
 import numpy as np
+import pickle
 
 from ...table import Table, Column, MaskedColumn, QTable
 from ...table.table_helpers import simple_table

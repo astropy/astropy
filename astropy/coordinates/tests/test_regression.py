@@ -9,6 +9,7 @@ place to live
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import io
 import pytest
 import numpy as np
 
@@ -527,7 +528,7 @@ def test_regression_6446():
     # this succeeds even before 6446:
     sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
     t1 = Table([sc1])
-    sio1 = six.StringIO()
+    sio1 = io.StringIO()
     t1.write(sio1, format='ascii.ecsv')
 
     # but this fails due to the 6446 bug
@@ -535,7 +536,7 @@ def test_regression_6446():
     c2 = SkyCoord(2, 4, unit='deg')
     sc2 = SkyCoord([c1, c2])
     t2 = Table([sc2])
-    sio2 = six.StringIO()
+    sio2 = io.StringIO()
     t2.write(sio2, format='ascii.ecsv')
 
     assert sio1.getvalue() == sio2.getvalue()
