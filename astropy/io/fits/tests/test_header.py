@@ -378,7 +378,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         h2 = fits.Header()
         with catch_warnings() as w:
-            h2['TEST'] = u('abcdefg') * 30
+            h2['TEST'] = 'abcdefg' * 30
             assert len(w) == 0
 
         assert str(h1) == str(h2)
@@ -956,16 +956,16 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_items(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        assert list(header.items()) == list(iteritems(header))
+        assert list(header.items()) == [('A', 'B'), ('C', 'D')]
 
     def test_header_iterkeys(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(iterkeys(header), header):
+        for a, b in zip(header.keys(), header):
             assert a == b
 
     def test_header_itervalues(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(itervalues(header), ['B', 'D']):
+        for a, b in zip(header.values(), ['B', 'D']):
             assert a == b
 
     def test_header_keys(self):
@@ -1955,7 +1955,7 @@ class TestHeaderFunctions(FitsTestCase):
         Also tests unicode for keywords and comments.
         """
 
-        erikku = u('\u30a8\u30ea\u30c3\u30af')
+        erikku = '\u30a8\u30ea\u30c3\u30af'
 
         def assign(keyword, val):
             h[keyword] = val
