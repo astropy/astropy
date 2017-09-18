@@ -194,14 +194,14 @@ def process_file(filename):
         return 1
 
 
-def main():
+def main(args=None):
     """
     Processes command line parameters into options and files,  then checks
     or update FITS DATASUM and CHECKSUM keywords for the specified files.
     """
 
     errors = 0
-    fits_files = handle_options(sys.argv[1:])
+    fits_files = handle_options(args or sys.argv[1:])
     setup_logging()
     for filename in fits_files:
         errors += process_file(filename)
