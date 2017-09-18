@@ -302,9 +302,10 @@ class Card(_Verify):
         if oldvalue is None:
             oldvalue = ''
 
-        if not isinstance(value, str + int +
-                          (float, complex, bool, Undefined, np.floating,
-                           np.integer, np.complexfloating, np.bool_)):
+        if not isinstance(value,
+                          (str, int, float, complex, bool, Undefined,
+                           np.floating, np.integer, np.complexfloating,
+                           np.bool_)):
             raise ValueError('Illegal value: {!r}.'.format(value))
 
         if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
