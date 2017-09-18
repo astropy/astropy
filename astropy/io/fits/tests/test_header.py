@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
-from __future__ import division, with_statement
-
 import copy
 import warnings
 import collections
@@ -21,6 +18,11 @@ from . import FitsTestCase
 from ..card import _pad
 from ..header import _pad_length
 from ..util import encode_ascii
+
+
+# FIXME: temporary workaround to replace six.u
+def u(x):
+    return x
 
 
 def test_shallow_copy():
