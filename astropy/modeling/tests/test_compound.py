@@ -6,6 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 from copy import deepcopy
 
+import pickle
 import pytest
 import numpy as np
 
