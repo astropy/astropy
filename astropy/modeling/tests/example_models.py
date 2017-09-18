@@ -61,7 +61,7 @@ from ..functional_models import (
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
-    LogParabola1D)
+    Schechter1D, LogParabola1D)
 import numpy as np
 
 # 1D Models
@@ -175,6 +175,16 @@ models_1D = {
         'y_values': [9.67216100e+01, 7.16531311e-01, 3.56739933e-04,
                      3.33823780e-19],
         'x_lim': [0.01, 100],
+        'log_fit': True
+    },
+
+    Schechter1D: {
+        'parameters': [.01, 1e10, -1],
+        'constraints': {},
+        'x_values': [1e+8, 1e+9, 1e+10, 1e+11],
+        'y_values': [9.90049834e-01, 9.04837418e-02, 3.67879441e-03,
+		     4.53999298e-08],
+        'x_lim': [0.01, 10],
         'log_fit': True
     },
 
