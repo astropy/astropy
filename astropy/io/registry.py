@@ -2,6 +2,7 @@
 
 
 import contextlib
+import pathlib
 import re
 import sys
 
@@ -23,14 +24,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = (str, )
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-    PATH_TYPES += (pathlib.Path,)
+PATH_TYPES = (str, pathlib.Path)
 
 
 class IORegistryError(Exception):
@@ -502,9 +496,8 @@ def read(cls, *args, **kwargs):
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
                     from ..utils.data import get_readable_fileobj
-                    # path might be a pathlib.Path object if HAS_PATHLIB,
-                    # so coerce to a regular string.
-                    if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                    # path might be a pathlib.Path object
+                    if isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
@@ -560,9 +553,8 @@ def write(data, *args, **kwargs):
         fileobj = None
         if len(args):
             if isinstance(args[0], PATH_TYPES):
-                # path might be a pathlib.Path object if HAS_PATHLIB,
-                # so coerce to a regular string.
-                if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                # path might be a pathlib.Path object
+                if isinstance(args[0], pathlib.Path):
                     args = (str(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None

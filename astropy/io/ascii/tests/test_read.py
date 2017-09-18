@@ -10,6 +10,7 @@ import locale
 import platform
 from io import StringIO
 
+import pathlib
 import pytest
 import numpy as np
 
@@ -31,13 +32,6 @@ except ImportError:
     HAS_BZ2 = False
 else:
     HAS_BZ2 = True
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
@@ -1143,7 +1137,6 @@ def test_table_with_no_newline():
         assert len(t) == 0
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_object():
     fpath = pathlib.Path('t/simple.txt')
     data = ascii.read(fpath)

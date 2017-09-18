@@ -8,19 +8,12 @@ Test the conversion to/from astropy.table
 import io
 import os
 
-import pytest
+import pathlib
 import numpy as np
 
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 def test_table(tmpdir):
@@ -127,7 +120,6 @@ def test_table_read_with_unnamed_tables():
     assert len(t) == 1
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_votable_path_object():
     """
     Testing when votable is passed as pathlib.Path object #4412.
