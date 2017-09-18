@@ -7,6 +7,7 @@
 import hashlib
 import io
 import os
+import pathlib
 import sys
 import tempfile
 import urllib
@@ -36,13 +37,6 @@ except ImportError:
     HAS_XZ = False
 else:
     HAS_XZ = True
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 @remote_data
@@ -453,7 +447,6 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     assert len(tempdir_listing) == 0
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_objects_get_readable_fileobj():
     fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
     with get_readable_fileobj(fpath) as f:

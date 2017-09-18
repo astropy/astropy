@@ -12,6 +12,7 @@ import fnmatch
 import hashlib
 import os
 import io
+import pathlib
 import shutil
 import socket
 import sys
@@ -25,13 +26,6 @@ from warnings import warn
 from .. import config as _config
 from ..utils.exceptions import AstropyWarning
 from ..utils.introspection import find_current_module, resolve_name
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
@@ -176,9 +170,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
-    PATH_TYPES = (str, )
-    if HAS_PATHLIB:
-        PATH_TYPES += (pathlib.Path,)
+    PATH_TYPES = (str, pathlib.Path)
 
     close_fds = []
     delete_fds = []
@@ -190,8 +182,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # Get a file object to the content
     if isinstance(name_or_obj, PATH_TYPES):
         # name_or_obj could be a Path object if pathlib is available
-        if HAS_PATHLIB:
-            name_or_obj = str(name_or_obj)
+        name_or_obj = str(name_or_obj)
 
         is_url = _is_url(name_or_obj)
         if is_url:

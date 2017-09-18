@@ -11,6 +11,7 @@ This is a set of regression tests for vo.
 # STDLIB
 import difflib
 import io
+import pathlib
 import sys
 import gzip
 
@@ -26,13 +27,6 @@ from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import raises, catch_warnings
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
@@ -826,7 +820,6 @@ def test_validate(test_path_object=False):
     assert truth == output
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_validate_path_object():
     """
     Validating when source is passed as path object. (#4412)
