@@ -602,7 +602,7 @@ class TestFileFunctions(FitsTestCase):
                 pass
 
         with open(self.temp('temp.fits'), 'wb') as handle:
-            with fits.open(handle) as fitsfile:
+            with fits.open(handle, mode='ostream') as fitsfile:
                 pass
 
         # Opening without explicitly specifying binary mode should fail
