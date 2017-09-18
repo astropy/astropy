@@ -22,6 +22,9 @@ from .common import (raises, assert_equal, assert_almost_equal,
 from .. import core
 from ..ui import _probably_html, get_read_trace
 
+# setup/teardown function to have the tests run in the correct directory
+from .common import setup_function, teardown_function
+
 try:
     import bz2  # pylint: disable=W0611
 except ImportError:
