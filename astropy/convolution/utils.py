@@ -303,7 +303,7 @@ def discretize_integrate_2D(model, x_range, y_range):
                                    lambda x: y[j], lambda x: y[j + 1])[0]
     return values
 
-def profile_memory_usage_convolve_fft(sizes=[10,50,100,128,200,256,300,512,600,768],
+def profile_memory_usage_convolve_fft(sizes=[10,50,100,128,200,256,300,512],
                                       kernelsizefractions=[1./8., 1./4., 1./2., 1],
                                       dtype='float64',
                                       complex_dtype='complex',
@@ -528,18 +528,20 @@ def plot_convolve_fft_profiling_results(results):
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
             xmax = np.max([L.get_data()[0].max() for L in ax.get_lines()])
-            ax.set_xlim(0, xmax)
+            ax.set_xlim(1e-4, xmax)
             ymax = np.max([L.get_data()[1].max() for L in ax.get_lines()])
-            ax.set_ylim(0, ymax*1.1)
+            ax.set_ylim(1e-4, ymax*1.1)
+
+            ax.set_yscale('log')
 
         ax1.legend(loc='center left', bbox_to_anchor=(1.05, 0.50))
         #ax2.legend(loc='best', bbox_to_anchor)
 
     box = phaseax.get_position()
     xmax = np.max([L.get_data()[0].max() for L in phaseax.get_lines()])
-    phaseax.set_xlim(0, xmax)
+    phaseax.set_xlim(1e-4, xmax)
     ymax = np.max([L.get_data()[1].max() for L in phaseax.get_lines()])
-    phaseax.set_ylim(0, ymax*1.1)
+    phaseax.set_ylim(1e-4, ymax*1.1)
     phaseax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
 
     phaseax.set_ylabel("Execution time (s)")
