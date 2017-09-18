@@ -367,7 +367,7 @@ def isinstancemethod(cls, obj):
     >>> class MetaClass(type):
     ...     def a_classmethod(cls): pass
     ...
-    ... class MyClass(object, metaclass=MetaClass):
+    >>> class MyClass(metaclass=MetaClass):
     ...     def an_instancemethod(self): pass
     ...
     ...     @classmethod
