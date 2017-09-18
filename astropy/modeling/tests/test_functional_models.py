@@ -30,19 +30,6 @@ def test_Trapezoid1D():
     assert_allclose(yy, yy_ref, rtol=0, atol=1e-6)
 
 
-def test_GaussianAbsorption1D():
-    g_em = models.Gaussian1D(0.8, 3000, 20)
-    with catch_warnings(AstropyDeprecationWarning) as w:
-        g_ab = models.GaussianAbsorption1D(0.8, 3000, 20)
-        assert len(w) == 1
-    xx = np.arange(2900, 3100, 2)
-    assert_allclose(g_ab(xx), 1 - g_em(xx))
-    assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
-                    -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
-    assert g_ab.bounding_box == g_em.bounding_box
-    assert_allclose(g_ab.fwhm, 47.096400900618988)
-
-
 def test_Gaussian2D():
     """
     Test rotated elliptical Gaussian2D model.

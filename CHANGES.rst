@@ -133,9 +133,9 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-  - When writing to HDF5 files, the serialized metadata are now saved in a new
-    dataset instead of the HDF5 dataset attributes. This allows for metadata of
-    any dimensions. [#6304]
+- When writing to HDF5 files, the serialized metadata are now saved in a new
+  dataset instead of the HDF5 dataset attributes. This allows for metadata of
+  any dimensions. [#6304]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -145,6 +145,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Removed deprecated ``GaussianAbsorption1D`` model.
+  Use ``Const1D - Gaussian1D`` instead. [#6542]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
