@@ -1817,7 +1817,7 @@ class _UnitMetaClass(InheritDocstrings):
             raise TypeError("{0} can not be converted to a Unit".format(s))
 
 
-class Unit(NamedUnit):
+class Unit(NamedUnit, metaclass=_UnitMetaClass):
     """
     The main unit class.
 
