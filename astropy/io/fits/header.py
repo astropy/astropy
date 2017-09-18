@@ -1767,7 +1767,7 @@ class Header(object):
         increment = 1 if increment else -1
 
         for index_sets in (self._keyword_indices, self._rvkc_indices):
-            for indices in itervalues(index_sets):
+            for indices in index_sets.values():
                 for jdx, keyword_index in enumerate(indices):
                     if keyword_index >= idx:
                         indices[jdx] += increment
@@ -1966,7 +1966,7 @@ class _CardAccessor(object):
             else:
                 return False
 
-        for a, b in zip_longest(self, other):
+        for a, b in itertools.zip_longest(self, other):
             if a != b:
                 return False
         else:

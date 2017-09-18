@@ -4,6 +4,7 @@ from __future__ import division, with_statement
 
 import bz2
 import gzip
+import http.client
 import mmap
 import operator
 import io
@@ -139,7 +140,7 @@ class _File(object):
             mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
-        elif isinstance(fileobj, http_client.HTTPResponse):
+        elif isinstance(fileobj, http.client.HTTPResponse):
             if mode in ('ostream', 'append', 'update'):
                 raise ValueError(
                     "Mode {} not supported for HTTPResponse".format(mode))
