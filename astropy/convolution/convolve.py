@@ -626,26 +626,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # find ideal size (power of 2, 3, and/or 5) for fft.
     shapestack = np.vstack([arrayshape, kernshape])
-    # Can add shapes because they are tuples
-    if fft_pad:  # default=True
-        if psf_pad:  # default=False
-            # add the dimensions and then take the max (bigger)
-            biggestdim = np.sum(shapestack,
-                                          axis=0)
-            newshape = [next_fast_len(x) for x in biggestdim]
-        else:
-            # concatenate the shape lists (max of a list of length 4) (smaller)
-            biggestdim = np.max(shapestack, axis=0)
-            newshape = [next_fast_len(x) for x in biggestdim]
-    else:
-        if psf_pad:
-            # just add the biggest dimensions
-            newshape = np.sum(shapestack, axis=0)
-        else:
-            # bigger of the two in each dimension
-            newshape = np.max(shapestack, axis=0)
-    log.debug("Input array shape: {0}  Kernel shape: {1}  New shape: {2}"
-              .format(arrayshape, kernshape, newshape))
+    newshape = determine_shape(shapestack, fft_pad=fft_pad, psf_pad=psf_pad)
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
@@ -829,3 +810,25 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         raise ValueError('Mode {} is not supported.'.format(mode))
 
     return _CompoundModelMeta._from_operator(mode, model, kernel)
+
+def determine_shape(shapestack, psf_pad=True, fft_pad=True):
+
+    # Can add shapes because they are tuples
+    if fft_pad:  # default=True
+        if psf_pad:  # default=False
+            # add the dimensions and then take the max (bigger)
+            biggestdim = np.sum(shapestack, axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
+        else:
+            # concatenate the shape lists (max of a list of length 4) (smaller)
+            biggestdim = np.max(shapestack, axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
+    else:
+        if psf_pad:
+            # just add the biggest dimensions
+            newshape = np.sum(shapestack, axis=0)
+        else:
+            # bigger of the two in each dimension
+            newshape = np.max(shapestack, axis=0)
+
+    return newshape
