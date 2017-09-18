@@ -489,7 +489,7 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
-class ProgressBar(six.Iterator):
+class ProgressBar(object):
     """
     A class to display a progress bar in the terminal.
 
