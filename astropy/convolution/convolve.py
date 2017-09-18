@@ -624,13 +624,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    # find ideal size (power of 2) for fft.
+    # find ideal size (power of 2, 3, and/or 5) for fft.
+    shapestack = np.vstack([arrayshape, kernshape])
     # Can add shapes because they are tuples
     if fft_pad:  # default=True
         if psf_pad:  # default=False
             # add the dimensions and then take the max (bigger)
-            fsize = 2 ** np.ceil(np.log2(
-                np.max(np.array(arrayshape) + np.array(kernshape))))
+            biggestdim = np.sum(shapestack,
+                                          axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
         else:
             # concatenate the shape lists (max of a list of length 4) (smaller)
             biggestdim = np.max(shapestack, axis=0)
