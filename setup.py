@@ -85,7 +85,7 @@ setup(name=NAME,
       url='http://astropy.org',
       long_description=astropy.__doc__,
       keywords=['astronomy', 'astrophysics', 'cosmology', 'space', 'science',
-                'units', 'table', 'wcs', 'vo', 'samp', 'coordinate', 'fits',
+                'units', 'table', 'wcs', 'samp', 'coordinate', 'fits',
                 'modeling', 'models', 'fitting', 'ascii'],
       classifiers=[
           'Intended Audience :: Science/Research',

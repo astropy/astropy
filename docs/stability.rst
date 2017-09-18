@@ -209,6 +209,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.samp
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td>
+                Virtual Observatory service access: SAMP. This was renamed from astropy.vo.samp to astropy.samp in 2.0.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.stats
             </td>
             <td align='center'>
@@ -283,29 +294,6 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 New in v1.3. Originally developed as <tt class="docutils literal"><span class="pre">wcsaxes</span></tt> and has maintained a stable API.
-            </td>
-        </tr>
-        <tr>
-            <td>
-                astropy.samp
-            </td>
-            <td align='center'>
-                <span class="stable"></span>
-            </td>
-            <td>
-                Virtual Observatory service access: SAMP. This was renamed from astropy.vo.samp to astropy.samp in 2.0.
-            </td>
-        </tr>
-        <tr>
-            <td>
-                astropy.vo.client<br/>
-                astropy.vo.validator
-            </td>
-            <td align='center'>
-                <span class="deprecated"></span>
-            </td>
-            <td>
-                Virtual Observatory service access and validation: Simple Cone Search. This is deprecated in Astropy 2.0 and moved to Astroquery 0.3.5.
             </td>
         </tr>
         <tr>
