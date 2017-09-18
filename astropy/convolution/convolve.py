@@ -619,27 +619,26 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                                   "for fft-based convolution")
 
     # find ideal size (power of 2) for fft.
-    # Forces array to be square - it should be possible to avoid this, in
-    # principle, but that may require manipulating the tests too
+    shapestack = np.vstack([arrayshape, kernshape])
+
     # Can add shapes because they are tuples
     if fft_pad:  # default=True
         if psf_pad:  # default=False
-            # add the dimensions and then take the max (bigger)
-            fsize = max([_next_regular(x)
-                         for x in (np.array(arrayshape) +
-                                   np.array(kernshape))])
+            # add the dimensions (does not make shape square)
+            biggestdim = np.sum(shapestack,
+                                          axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
         else:
-            # add the shape lists (max of a list of length 4) (smaller)
-            fsize = _next_regular(np.max(arrayshape + kernshape))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+            # concatenate the shape lists (max of a list of length 4) (smaller)
+            biggestdim = np.max(shapestack, axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
     else:
         if psf_pad:
             # just add the biggest dimensions
-            newshape = np.array(arrayshape) + np.array(kernshape)
+            newshape = np.sum(shapestack, axis=0)
         else:
-            newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in
-                                 zip(arrayshape, kernshape)])
+            # bigger of the two in each dimension
+            newshape = np.max(shapestack, axis=0)
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
