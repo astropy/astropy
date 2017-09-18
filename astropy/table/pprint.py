@@ -19,7 +19,7 @@ def default_format_func(format_, val):
     if isinstance(val, bytes):
         return val.decode('utf-8', errors='replace')
     else:
-        return text_type(val)
+        return str(val)
 
 
 _format_funcs = {}

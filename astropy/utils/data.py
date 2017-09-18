@@ -177,7 +177,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
-    PATH_TYPES = str
+    PATH_TYPES = (str, )
     if HAS_PATHLIB:
         PATH_TYPES += (pathlib.Path,)
 
