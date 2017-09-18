@@ -6,8 +6,6 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 

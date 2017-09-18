@@ -6,8 +6,6 @@ Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 from ..angles import Angle

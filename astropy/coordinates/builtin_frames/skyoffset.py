@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# Note: `from __future__ import unicode_literals` is omitted here on purpose.
-# Adding it leads to str / unicode errors on Python 2
-from __future__ import (absolute_import, division, print_function)
-
 from ... import units as u
 from ...utils.compat import namedtuple_asdict
 from .. import representation as r

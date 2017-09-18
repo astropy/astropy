@@ -6,7 +6,6 @@ misc.py:
 :Author: Hannes Breytenbach (hannes@saao.ac.za)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 import itertools

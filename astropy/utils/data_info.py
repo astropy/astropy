@@ -14,7 +14,6 @@ table column attributes such as name, format, dtype, meta, and description.
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import re

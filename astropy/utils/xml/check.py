@@ -3,8 +3,6 @@
 A collection of functions for checking various XML-related strings for
 standards compliance.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import re

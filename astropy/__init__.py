@@ -6,7 +6,6 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-from __future__ import absolute_import
 
 import sys
 import os

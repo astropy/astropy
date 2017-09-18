@@ -23,7 +23,6 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 """
 
-from __future__ import division  # confidence high
 
 try:
     # Not guaranteed available at setup time

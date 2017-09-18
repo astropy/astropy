@@ -4,8 +4,6 @@
 This module provides utility functions for the models package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from collections import deque, MutableMapping
 

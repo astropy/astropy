@@ -4,7 +4,6 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # STDLIB
 import re

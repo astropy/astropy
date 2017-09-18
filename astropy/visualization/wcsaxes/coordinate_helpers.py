@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 """
 This file defines the classes used to represent a 'coordinate', which includes

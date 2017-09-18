@@ -3,8 +3,6 @@
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # STDLIB
 import contextlib

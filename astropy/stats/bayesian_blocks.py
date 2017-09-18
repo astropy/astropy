@@ -37,8 +37,6 @@ References
 .. [1] http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
 .. [2] http://astroML.org/ http://github.com/astroML/astroML/
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 

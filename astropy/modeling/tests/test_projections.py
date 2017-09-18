@@ -2,8 +2,6 @@
 
 """Test sky projections defined in WCS Paper II"""
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import os
 
 import pytest

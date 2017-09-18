@@ -5,8 +5,6 @@
 This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import math
 from collections import namedtuple

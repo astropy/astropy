@@ -4,8 +4,6 @@
 Contains the transformation functions for getting to "observed" systems from CIRS.
 Currently that just means AltAz.
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 

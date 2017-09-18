@@ -3,8 +3,6 @@
 
 # TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 """Test initialization of angles not already covered by the API tests"""
 

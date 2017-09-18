@@ -11,8 +11,6 @@ FITS files
 <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import keyword

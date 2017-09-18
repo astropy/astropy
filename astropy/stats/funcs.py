@@ -9,8 +9,6 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import math
 import itertools

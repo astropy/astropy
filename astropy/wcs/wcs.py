@@ -28,7 +28,6 @@ together in a pipeline:
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # STDLIB
 import copy

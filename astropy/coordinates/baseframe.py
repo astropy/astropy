@@ -5,8 +5,6 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Standard library
 import abc

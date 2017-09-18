@@ -4,8 +4,6 @@
 A collection of different unit formats.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # This is pretty atrocious, but it will prevent a circular import for those
 # formatters that need access to the units.core module An entry for it should

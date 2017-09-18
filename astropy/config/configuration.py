@@ -8,8 +8,6 @@ configuration files for Astropy and affiliated packages.
     `ConfigParser`. More information and documentation for configobj can be
     found at http://www.voidspace.org.uk/python/configobj.html.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from contextlib import contextmanager
 import hashlib

@@ -4,8 +4,6 @@
 This module contains simple functions for model selection.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 
 __all__ = ['bayesian_info_criterion', 'bayesian_info_criterion_lsq',

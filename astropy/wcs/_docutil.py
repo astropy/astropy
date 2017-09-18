@@ -3,7 +3,6 @@
 astropy.wcs-specific utilities for generating boilerplate in docstrings.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 __all__ = ['TWO_OR_THREE_ARGS', 'RETURNS', 'ORIGIN', 'RA_DEC_ORDER']

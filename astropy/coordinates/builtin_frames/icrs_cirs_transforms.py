@@ -4,8 +4,6 @@
 Contains the transformation functions for getting from ICRS/HCRS to CIRS and
 anything in between (currently that means GCRS)
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 
