@@ -636,11 +636,6 @@ class TestFileFunctions(FitsTestCase):
             with fits.open(handle, mode='readonly') as fitsfile:
                 pass
 
-        # These modes should also agree
-        with open(self.data('test0.fits'), 'rb') as handle:
-            with fits.open(handle, mode='rb') as fitsfile:
-                pass
-
         # This should not work since the modes conflict
         with pytest.raises(ValueError):
             with open(self.data('test0.fits'), 'rb') as handle:
