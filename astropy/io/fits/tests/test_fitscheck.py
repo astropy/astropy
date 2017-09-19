@@ -27,6 +27,14 @@ class TestFitscheck(FitsTestCase):
         stdout, stderr = capsys.readouterr()
         assert 'OK' in stderr
 
+    def test_remove_checksums(self, capsys):
+        self.copy_file('checksum.fits')
+        testfile = self.temp('checksum.fits')
+        assert fitscheck.main([testfile, '--checksum', 'remove']) == 1
+        assert fitscheck.main([testfile]) == 1
+        stdout, stderr = capsys.readouterr()
+        assert 'MISSING' in stderr
+
     def test_no_checksums(self, capsys):
         testfile = self.data('arange.fits')
 
