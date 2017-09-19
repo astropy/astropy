@@ -496,7 +496,7 @@ files manually`_ section since this explains what many of the files do.
    documentation, and if you are hosting your code in GitHub, you might also
    want to read the `Github help <http://help.github.com/>`_ to ensure you know
    how to push your code to GitHub and some recommended workflows that work for
-   the core Astropy project.
+   the core Astropy Project.
 
 #. Once you have started work on the affiliated package, you should register
    your package with the Astropy affiliated package registry. Instructions for
