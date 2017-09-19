@@ -28,9 +28,9 @@ from ..extern.six.moves import range
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',
            'poisson_conf_interval', 'median_absolute_deviation', 'mad_std',
-           'signal_to_noise_oir_ccd', 'bootstrap', 'kuiper', 'kuiper_FPP', 
-           'kuiper_two', 'cdf_from_intervals', 'interval_overlap_length', 
-           'histogram_intervals', 'fold_intervals']
+           'signal_to_noise_oir_ccd', 'bootstrap', 'kuiper', 'kuiper_two',
+           'kuiper_false_positive_probability', 'cdf_from_intervals',
+           'interval_overlap_length', 'histogram_intervals', 'fold_intervals']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
@@ -1254,7 +1254,7 @@ def _kraft_burrows_nousek(N, B, CL):
     raise ImportError('Either scipy or mpmath are required.')
 
 
-def kuiper_FPP(D, N):
+def kuiper_false_positive_probability(D, N):
     """Compute the false positive probability for the Kuiper statistic.
 
     Uses the set of four formulas described in Paltani 2004; they report
@@ -1302,7 +1302,7 @@ def kuiper_FPP(D, N):
                                                         N) / N - t * (t - 1) * (t - 2) / float(N)**2)
         s = 0.
         # NOTE: the upper limit of this sum is taken from Stephens 1965
-        for t in xrange(int(np.floor(N * (1 - D))) + 1):
+        for t in range(int(np.floor(N * (1 - D))) + 1):
             term = T(t) * comb(N, t) * (1 - D - t / float(N))**(N - t - 1)
             s += term
         return s
@@ -1400,7 +1400,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
     D = (np.amax(cdfv - np.arange(N) / float(N)) +
          np.amax((np.arange(N) + 1) / float(N) - cdfv))
 
-    return D, kuiper_FPP(D, N)
+    return D, kuiper_false_positive_probability(D, N)
 
 
 def kuiper_two(data1, data2):
@@ -1438,7 +1438,7 @@ def kuiper_two(data1, data2):
          np.amax(cdfv2 - np.arange(len(data2)) / float(len(data2))))
 
     Ne = len(data1) * len(data2) / float(len(data1) + len(data2))
-    return D, kuiper_FPP(D, Ne)
+    return D, kuiper_false_positive_probability(D, Ne)
 
 
 def fold_intervals(intervals):
