@@ -504,6 +504,31 @@ def test_table_aggregate_reduceat(T1):
                              '  2']
 
 
+def test_table_aggregate_multiple_columns(T1):
+    """Aggregate multiple columns at once"""
+    def average_weighted(table):
+        """Return a weighted average.
+        Column 'c' are the values, 'd' are the weights.
+        Take the first element of row 'a', since these are all the
+        same anyway.
+
+        """
+        result = {'a': table['a'][0],
+                  'c': (table['c'] * table['d']).sum() / table['d'].sum(),
+                  'd': table['d'].sum()}
+        return result
+
+    t1 = T1['a', 'c', 'd']
+    tg = t1.group_by('a')
+    tga = tg.groups.aggregate(average_weighted, use_table=True)
+    tga['c'].format = '.2f'
+    assert tga.pformat() == [' a   c    d ',
+                             '--- ---- ---',
+                             '  0 0.00   4',
+                             '  1 1.89  18',
+                             '  2 4.83   6']
+
+
 def test_column_aggregate(T1):
     """
     Aggregate a single table column

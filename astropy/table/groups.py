@@ -329,9 +329,8 @@ class TableGroups(BaseGroups):
         else:
             return self._indices
 
-    def aggregate(self, func):
-        """
-        Aggregate each group in the Table into a single row by applying the reduction
+    def aggregate(self, func, use_table=False):
+        """Aggregate each group in the Table into a single row by applying the reduction
         function ``func`` to group values in each column.
 
         Parameters
@@ -339,30 +338,43 @@ class TableGroups(BaseGroups):
         func : function
             Function that reduces an array of values to a single value
 
+        use_table : bool
+            If use_table is True, the aggregating functions obtains a
+            sliced table instance instead, and should return a table
+            Row or an object that can be used
+
         Returns
         -------
         out : Table
             New table with the aggregated rows.
+
         """
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
-        out_cols = []
+        out = []
         parent_table = self.parent_table
 
-        for col in six.itervalues(parent_table.columns):
-            # For key columns just pick off first in each group since they are identical
-            if col.info.name in self.key_colnames:
-                new_col = col.take(i0s)
-            else:
-                try:
-                    new_col = col.groups.aggregate(func)
-                except TypeError as err:
-                    warnings.warn(six.text_type(err), AstropyUserWarning)
-                    continue
+        if use_table:  # Pass the sliced table to ``func``
+            print('COLNAMES', parent_table.colnames)
+            for i0, i1 in izip(i0s, i1s):
+                row = func(parent_table[i0:i1][parent_table.colnames])
+                out.append(row.copy())
+        else:
+            for col in six.itervalues(parent_table.columns):
+                # For key columns just pick off first in each group
+                # since they are identical
+                if col.info.name in self.key_colnames:
+                    new_col = col.take(i0s)
+                else:
+                    try:
+                        new_col = col.groups.aggregate(func)
+                    except TypeError as err:
+                        warnings.warn(six.text_type(err), AstropyUserWarning)
+                        continue
 
-            out_cols.append(new_col)
+                out.append(new_col)
 
-        return parent_table.__class__(out_cols, meta=parent_table.meta)
+        return parent_table.__class__(out, meta=parent_table.meta)
 
     def filter(self, func):
         """
