@@ -6,6 +6,8 @@ language: c
 os:
     - linux
 
+stage: tests
+
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
 
@@ -46,9 +48,13 @@ env:
         # E902 - IOError
         - FLAKE8_OPT="--select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E502,E722,E901,E902"
 
-    matrix:
-        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+stages:
+   # Do the style check and a single test job, don't proceed if it fails
+   - name: single_test
+   # Do the rest of the tests
+   - name: tests
+   - name: cron_only
+     if: type = cron
 
 matrix:
 
@@ -57,9 +63,13 @@ matrix:
 
     include:
 
+        - env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+        - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+
         # Try MacOS X. Use a slightly old numpy version to help test against
         # all supported numpy versions.
         - os: osx
+          stage: cron_only
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem' NUMPY_VERSION=1.12
@@ -93,6 +103,7 @@ matrix:
                MATPLOTLIB_VERSION=1.5
 
         - os: linux
+          stage: single_test
           env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl bintrees'
@@ -108,6 +119,7 @@ matrix:
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
+          stage: single_test
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
@@ -122,12 +134,13 @@ matrix:
         # we can spot issues sooner. We do not use remote data here, since
         # that gives too many false positives due to URL timeouts.
         - os: linux
+          stage: cron_only
           env: NUMPY_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               EVENT_TYPE='cron'
 
     allow_failures:
-      - env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
+      - os: linux
+        env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
              CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
 install:
@@ -140,6 +153,8 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == *--coverage* ]]; then
-        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
-        coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
+        if [ $TRAVIS_REPO_SLUG = "astropy/astropy" -o $TRAVIS_PULL_REQUEST_SLUG = "astropy/astropy" ]; then
+          cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" -E ".*cython_impl.*" --dump c-coveralls.json;
+          coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
+        fi;
       fi
