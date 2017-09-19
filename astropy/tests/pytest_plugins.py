@@ -4,16 +4,11 @@ These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
 
-import __future__
-
-
 import ast
 import datetime
 import io
 import locale
-import math
 import os
-import re
 import sys
 import types
 from collections import OrderedDict
@@ -221,23 +216,7 @@ class Pair(pytest.File):
                 "HINT: remove __pycache__ / .pyc files and/or use a "
                 "unique basename for your test file modules".format(e.args))
 
-        # Now get the file's content.
-        with io.open(str(self.fspath), 'rb') as fd:
-            content = fd.read()
-
-        # If the file contains the special marker, only test it both ways.
-        if b'TEST_UNICODE_LITERALS' in content:
-            # Return the file in both unicode_literal-enabled and disabled forms
-            return [
-                UnicodeLiteralsModule(mod.__name__, content, self.fspath, self),
-                NoUnicodeLiteralsModule(mod.__name__, content, self.fspath, self)
-            ]
-        else:
-            return [pytest.Module(self.fspath, self)]
-
-
-_RE_FUTURE_IMPORTS = re.compile(br'from __future__ import ((\(.*?\))|([^\n]+))',
-                                flags=re.DOTALL)
+        return [pytest.Module(self.fspath, self)]
 
 
 class ModifiedModule(pytest.Module):
@@ -247,9 +226,7 @@ class ModifiedModule(pytest.Module):
         super(ModifiedModule, self).__init__(path, parent)
 
     def _importtestmodule(self):
-        # We have to remove the __future__ statements *before* parsing
-        # with compile, otherwise the flags are ignored.
-        content = re.sub(_RE_FUTURE_IMPORTS, b'\n', self.content)
+        content = self.content
 
         new_mod = types.ModuleType(self.mod_name)
         new_mod.__file__ = str(self.fspath)
@@ -280,49 +257,6 @@ class ModifiedModule(pytest.Module):
             os.chdir(pwd)
         self.config.pluginmanager.consider_module(new_mod)
         return new_mod
-
-
-class UnicodeLiteralsModule(ModifiedModule):
-    flags = (
-        __future__.absolute_import.compiler_flag |
-        __future__.division.compiler_flag |
-        __future__.print_function.compiler_flag |
-        __future__.unicode_literals.compiler_flag
-    )
-
-
-class NoUnicodeLiteralsModule(ModifiedModule):
-    flags = (
-        __future__.absolute_import.compiler_flag |
-        __future__.division.compiler_flag |
-        __future__.print_function.compiler_flag
-    )
-
-    def _transform_ast(self, tree):
-        # When unicode_literals is disabled, we still need to convert any
-        # byte string containing non-ascii characters into a Unicode string.
-        # If it doesn't decode as utf-8, we assume it's some other kind
-        # of byte string and just ultimately leave it alone.
-
-        # Note that once we drop support for Python 3.2, we should be
-        # able to remove this transformation and just put explicit u''
-        # prefixes in the test source code.
-
-        class NonAsciiLiteral(ast.NodeTransformer):
-            def visit_Str(self, node):
-                s = node.s
-                if isinstance(s, bytes):
-                    try:
-                        s.decode('ascii')
-                    except UnicodeDecodeError:
-                        try:
-                            s = s.decode('utf-8')
-                        except UnicodeDecodeError:
-                            pass
-                        else:
-                            return ast.copy_location(ast.Str(s=s), node)
-                return node
-        return NonAsciiLiteral().visit(tree)
 
 
 def pytest_terminal_summary(terminalreporter):
