@@ -51,9 +51,8 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Add unit support for tabular models. [#6529]
-  - Compound models now have a method deepcopy() which returns a new compound mdoels and
-    makes a copy of all child models. [#6515]
-  - A deepcopy() method was added to models. [#6515]
+
+- A ``deepcopy()`` method was added to models. [#6515]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
