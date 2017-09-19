@@ -677,7 +677,7 @@ Using a signed tag ensures the integrity of the contents of that tag for the
 future.  On a distributed VCS like git, anyone can create a tag of Astropy
 called "0.1" in their repository--and where it's easy to monkey around even
 after the tag has been created.  But only one "0.1" will be signed by one of
-the Astropy project coordinators and will be verifiable with their public key.
+the Astropy Project coordinators and will be verifiable with their public key.
 
 Generating a public/private key pair
 ------------------------------------

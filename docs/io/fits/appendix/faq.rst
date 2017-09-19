@@ -531,7 +531,7 @@ API than if one were to use CFITSIO directly.
 Why did Astropy adopt PyFITS as its FITS reader instead of fitsio?
 ------------------------------------------------------------------
 
-When the Astropy project was first started it was clear from the start that
+When the Astropy Project was first started it was clear from the start that
 one of its core components should be a submodule for reading and writing FITS
 files, as many other components would be likely to depend on this
 functionality.  At the time, the ``fitsio`` package was in its infancy (it
