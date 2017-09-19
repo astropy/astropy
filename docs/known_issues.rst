@@ -120,25 +120,6 @@ Quantities in np.linspace failure on numpy 1.10
 1.10.6 or later, in which the bug was fixed.
 
 
-Remote data utilities in `astropy.utils.data` fail on some Python distributions
--------------------------------------------------------------------------------
-
-The remote data utilities in `astropy.utils.data` depend on the Python
-standard library `shelve` module, which in some cases depends on the
-standard library `bsddb` module. Some Python distributions, including but
-not limited to
-
-* OS X, Python 2.7.5 via homebrew
-* Linux, Python 2.7.6 via conda [#]_
-
-are built without support for the ``bsddb`` module, resulting in an error
-such as::
-
-    ImportError: No module named _bsddb
-
-One workaround is to install the ``bsddb3`` module.
-
-
 mmap support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
@@ -159,46 +140,12 @@ will be fixed in a subsequent bug fix release of Astropy (see `bug report here
 <https://github.com/astropy/astropy/issues/3415>`_)
 
 
-Error *'buffer' does not have the buffer interface* in ``io.fits``
---------------------------------------------------------------------
-
-For Python 2.7.x versions prior to 2.7.4, the `astropy.io.fits` may under
-certain circumstances output the following error::
-
-    TypeError: 'buffer' does not have the buffer interface
-
-This can be resolved by upgrading to Python 2.7.4 or later (at the time of
-writing, the latest Python 2.7.x version is 2.7.9).
-
-
 Color printing on Windows
 -------------------------
 
 Colored printing of log messages and other colored text does work in Windows
 but only when running in the IPython console.  Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
-
-
-Pickling error on compound models
----------------------------------
-
-When calling `pickle.dumps` on a :ref:`compound model <compound-models>`, it
-is possible to get an exception with a `pickle.PickleError` or, depending on
-the Python version or whether the `cPickle` module was being used, an
-`AttributeError` like::
-
-    AttributeError: 'module' object has no attribute 'CompoundModel0'
-
-as originally reported in issue
-`#3867 <https://github.com/astropy/astropy/pull/3867>`_.  You may also get a
-`RuntimeError` that directed you to this documentation.
-
-This is due to a bug in Python versions older than 2.7.3 (see
-http://bugs.python.org/issue7689) that is very difficult to work around when
-trying to pickle compound models.  If the need is dire it may be possible
-to work around by using a patched copy of the `pickle` module (i.e.
-backporting a copy of the Python `pickle` module from newer Python versions
-and using it instead of the copy built-in to your Python).
 
 
 Build/installation/test issues
@@ -337,23 +284,3 @@ processing and you just want docstrings to work, this may be
 acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
-
-
-Installation fails on Mageia-2 or Mageia-3 distributions
---------------------------------------------------------
-
-Building may fail with warning messages such as::
-
-    unable to find 'pow' or 'sincos'
-
-at the linking phase. Upgrading the OS packages for Python should
-fix the issue, though an immediate workaround is to edit the file::
-
-    /usr/lib/python2.7/config/Makefile
-
-and search for the line that adds the option ``-Wl,--no-undefined`` to the
-``LDFLAGS`` variable and remove that option.
-
-.. [#] Continuum `says
-       <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
-       this will be fixed in their next Python build.
