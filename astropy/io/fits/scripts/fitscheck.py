@@ -35,7 +35,8 @@ Example uses of fitscheck:
 
 6. Delete checksum keywords::
 
-    $ fitscheck --checksum none --write *.fits
+    $ fitscheck --checksum remove --write *.fits
+
 """
 
 
@@ -67,9 +68,9 @@ def handle_options(args):
 
     parser.add_option(
         '-k', '--checksum', dest='checksum_kind',
-        type='choice', choices=['standard', 'none'],
+        type='choice', choices=['standard', 'remove', 'none'],
         help='Choose FITS checksum mode or none.  Defaults standard.',
-        default='standard', metavar='[standard | none]')
+        default='standard', metavar='[standard | remove | none]')
 
     parser.add_option(
         '-w', '--write', dest='write_file',
@@ -100,6 +101,9 @@ def handle_options(args):
 
     if OPTIONS.checksum_kind == 'none':
         OPTIONS.checksum_kind = False
+    elif OPTIONS.checksum_kind == 'remove':
+        OPTIONS.write_file = True
+        OPTIONS.force = True
 
     return fits_files
 
