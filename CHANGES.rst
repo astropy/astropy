@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Added a nicer error message when accidentally calling ``frame.representation``
+  instead of ``frame.data`` in the context of methods that use ``._apply()``.
+  [#6561]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
