@@ -50,6 +50,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Add unit support for tabular models. [#6529]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -92,9 +94,6 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
-
-astropy.vo
-^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -180,9 +179,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -256,9 +252,6 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-astropy.vo
-^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -268,6 +261,11 @@ Other Changes and Additions
 - Pytest <3.1 versions are no longer supported. [#6419]
 
 - The bundled CFITSIO was updated to version 3.41 [#6477]
+
+- ``analytic_functions`` sub-package is removed.
+  Use ``astropy.modeling.blackbody``. [#6541]
+- ``astropy.vo`` sub-package is removed. Use ``astropy.samp`` for SAMP and
+  ``astroquery`` for VO cone search. [#6540]
 
 
 2.0.3 (unreleased)
@@ -290,6 +288,10 @@ astropy.coordinates
 
 - Ecliptic frame classes now support attributes ``v_x``, ``v_y``, ``v_z`` when
   using with a Cartesian representation. [#6569]
+
+- Added a nicer error message when accidentally calling ``frame.representation``
+  instead of ``frame.data`` in the context of methods that use ``._apply()``.
+  [#6561]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^

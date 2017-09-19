@@ -70,7 +70,6 @@ Data structures and transformations
    coordinates/index
    wcs/index
    modeling/index
-   analytic_functions/index
 
 Files, I/O, and Communication
 -----------------------------
@@ -84,7 +83,6 @@ Files, I/O, and Communication
    io/votable/index
    io/misc
    samp/index
-   vo/index
 
 Computations and utilities
 --------------------------
