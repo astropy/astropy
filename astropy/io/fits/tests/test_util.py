@@ -4,7 +4,6 @@
 import os
 import signal
 import gzip
-from sys import version_info
 
 import pytest
 import numpy as np
@@ -98,17 +97,10 @@ class TestUtilMode(FitsTestCase):
         # The lists consist of tuples: filenumber, given mode, identified mode
         # The filenumber must be given because read expects the file to exist
         # and x expects it to NOT exist.
-        if (version_info.major < 3 or
-                (version_info.major >= 3 and version_info.minor < 4)):
-            num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
-                                (1, 'w', 'wb'), (1, 'wb', 'wb'),
-                                (1, 'r', 'rb'), (1, 'rb', 'rb')]
-        else:
-            # x mode was added in python 3.4
-            num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
-                                (0, 'w', 'wb'), (0, 'wb', 'wb'),
-                                (1, 'x', 'xb'),
-                                (1, 'r', 'rb'), (1, 'rb', 'rb')]
+        num_mode_resmode = [(0, 'a', 'ab'), (0, 'ab', 'ab'),
+                            (0, 'w', 'wb'), (0, 'wb', 'wb'),
+                            (1, 'x', 'xb'),
+                            (1, 'r', 'rb'), (1, 'rb', 'rb')]
 
         for num, mode, res in num_mode_resmode:
             filename = self.temp('test{0}.gz'.format(num))
@@ -119,17 +111,10 @@ class TestUtilMode(FitsTestCase):
         # Use the python IO with buffering parameter. Binary mode only:
 
         # see "test_mode_gzip" for explanation of tuple meanings.
-        if (version_info.major < 3 or
-                (version_info.major >= 3 and version_info.minor < 3)):
-            num_mode_resmode = [(0, 'ab', 'ab'),
-                                (1, 'wb', 'wb'),
-                                (1, 'rb', 'rb')]
-        else:
-            # x mode was added in python 3.3
-            num_mode_resmode = [(0, 'ab', 'ab'),
-                                (0, 'wb', 'wb'),
-                                (1, 'xb', 'xb'),
-                                (1, 'rb', 'rb')]
+        num_mode_resmode = [(0, 'ab', 'ab'),
+                            (0, 'wb', 'wb'),
+                            (1, 'xb', 'xb'),
+                            (1, 'rb', 'rb')]
         for num, mode, res in num_mode_resmode:
             filename = self.temp('test1{0}.dat'.format(num))
             with open(filename, mode, buffering=0) as fileobj:
@@ -139,17 +124,10 @@ class TestUtilMode(FitsTestCase):
         # Python IO without buffering
 
         # see "test_mode_gzip" for explanation of tuple meanings.
-        if (version_info.major < 3 or
-                (version_info.major >= 3 and version_info.minor < 3)):
-            num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
-                                (1, 'w', 'w'), (2, 'wb', 'wb'),
-                                (1, 'r', 'r'), (2, 'rb', 'rb')]
-        else:
-            # x mode was added in python 3.3
-            num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
-                                (0, 'w', 'w'), (0, 'wb', 'wb'),
-                                (1, 'x', 'x'),
-                                (1, 'r', 'r'), (1, 'rb', 'rb')]
+        num_mode_resmode = [(0, 'a', 'a'), (0, 'ab', 'ab'),
+                            (0, 'w', 'w'), (0, 'wb', 'wb'),
+                            (1, 'x', 'x'),
+                            (1, 'r', 'r'), (1, 'rb', 'rb')]
         for num, mode, res in num_mode_resmode:
             filename = self.temp('test2{0}.dat'.format(num))
             with open(filename, mode) as fileobj:

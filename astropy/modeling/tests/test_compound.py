@@ -833,7 +833,6 @@ class _TestPickleModel(Gaussian1D + Gaussian1D):
     pass
 
 
-@pytest.mark.skipif(str("sys.version_info < (2, 7, 3)"))
 def test_pickle_compound():
     """
     Regression test for
@@ -871,18 +870,6 @@ def test_pickle_compound():
     # at the end, which may differ between runs
     assert p[:p.rfind(b'p')] == exp[:exp.rfind(b'p')]
     assert pickle.loads(p) is _TestPickleModel
-
-
-@pytest.mark.skipif(str("sys.version_info >= (2, 7, 3)"))
-def test_pickle_compound_fallback():
-    """
-    Test fallback for pickling compound model on old versions of Python
-    affected by http://bugs.python.org/issue7689
-    """
-
-    gg = (Gaussian1D + Gaussian1D)()
-    with pytest.raises(RuntimeError):
-        pickle.dumps(gg)
 
 
 def test_update_parameters():

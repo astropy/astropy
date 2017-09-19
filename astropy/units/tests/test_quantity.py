@@ -360,11 +360,7 @@ class TestQuantityOperations(object):
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
-    @pytest.mark.skipif(sys.version_info[:2] < (3, 5),
-                        reason="__matmul__ only introduced in Python 3.5")
     def test_matrix_multiplication(self):
-        # We cannot write @ as an operator since class gets parsed also on
-        # Python <3.5, so we use eval instead.
         a = np.eye(3)
         q = a * u.m
         result1 = eval("q @ a")

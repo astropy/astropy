@@ -257,7 +257,7 @@ class AstropyLogger(Logger):
         if len(value.args) > 0:
             message = '{0}: {1}'.format(etype.__name__, str(value))
         else:
-            message = text_type(etype.__name__)
+            message = str(etype.__name__)
 
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
@@ -503,7 +503,7 @@ class AstropyLogger(Logger):
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, text_type(e)), RuntimeWarning)
+                    '{1}'.format(log_file_path, str(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)

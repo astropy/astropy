@@ -56,16 +56,13 @@ def test_localconnect_succeeds(localhost):
     urlopen('http://{localhost:s}:{port:d}'.format(localhost=localhost, port=port)).close()
 
 
-PY3_4 = sys.version_info[:2] >= (3, 4)
-
-
 # Used for the below test--inline functions aren't pickleable
 # by multiprocessing?
 def _square(x):
     return x ** 2
 
 
-@pytest.mark.skipif('not PY3_4 or sys.platform == "win32" or sys.platform.startswith("gnu0")')
+@pytest.mark.skipif('sys.platform == "win32" or sys.platform.startswith("gnu0")')
 def test_multiprocessing_forkserver():
     """
     Test that using multiprocessing with forkserver works.  Perhaps

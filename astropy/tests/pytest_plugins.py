@@ -155,9 +155,6 @@ def pytest_report_header(config):
         sys.getdefaultencoding(),
         locale.getpreferredencoding(),
         sys.getfilesystemencoding())
-    if sys.version_info < (3, 3, 0):
-        s += ", unicode bits: {0}".format(
-            int(math.log(sys.maxunicode, 2)))
     s += '\n'
 
     s += "byteorder: {0}\n".format(sys.byteorder)

@@ -258,29 +258,15 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = fileobj_new
     elif signature[:3] == b'\xfd7z':  # xz
         try:
-            # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
-            # but does not support TextIOWrapper
-            if sys.version_info >= (3, 3, 0):
-                import lzma
-                fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
-            else:
-                from backports import lzma
-                from backports.lzma import LZMAFile
-                # when called with file object, returns a non-seekable instance
-                # need a filename here, too, so have to write the data to a
-                # temporary file
-                with NamedTemporaryFile("wb", delete=False) as tmp:
-                    tmp.write(fileobj.read())
-                    tmp.close()
-                    fileobj_new = LZMAFile(tmp.name, mode='rb')
+            import lzma
+            fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really xz
         except ImportError:
             for fd in close_fds:
                 fd.close()
             raise ValueError(
                 ".xz format files are not supported since the Python "
-                "interpreter does not include the lzma module. "
-                "On Python versions < 3.3 consider installing backports.lzma")
+                "interpreter does not include the lzma module.")
         except (IOError, EOFError) as e:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
