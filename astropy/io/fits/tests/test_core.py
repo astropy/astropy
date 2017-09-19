@@ -595,6 +595,53 @@ class TestFileFunctions(FitsTestCase):
             assert os.path.exists(self.temp('foobar.fits'))
             os.remove(self.temp('foobar.fits'))
 
+    def test_open_file_handle(self):
+        # Make sure we can open a FITS file from an open file handle
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle) as fitsfile:
+                pass
+
+        with open(self.temp('temp.fits'), 'wb') as handle:
+            with fits.open(handle, mode='ostream') as fitsfile:
+                pass
+
+        # Opening without explicitly specifying binary mode should fail
+        with pytest.raises(ValueError):
+            with open(self.data('test0.fits')) as handle:
+                with fits.open(handle) as fitsfile:
+                    pass
+
+        # All of these read modes should fail
+        for mode in ['r', 'rt', 'r+', 'rt+', 'a', 'at', 'a+', 'at+']:
+            with pytest.raises(ValueError):
+                with open(self.data('test0.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
+
+        # These write modes should fail as well
+        for mode in ['w', 'wt', 'w+', 'wt+']:
+            with pytest.raises(ValueError):
+                with open(self.temp('temp.fits'), mode=mode) as handle:
+                    with fits.open(handle) as fitsfile:
+                        pass
+
+    def test_fits_file_handle_mode_combo(self):
+        # This should work fine since no mode is given
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle) as fitsfile:
+                pass
+
+        # This should work fine since the modes are compatible
+        with open(self.data('test0.fits'), 'rb') as handle:
+            with fits.open(handle, mode='readonly') as fitsfile:
+                pass
+
+        # This should not work since the modes conflict
+        with pytest.raises(ValueError):
+            with open(self.data('test0.fits'), 'rb') as handle:
+                with fits.open(handle, mode='ostream') as fitsfile:
+                    pass
+
     @pytest.mark.skipif(six.PY2,
         reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_url(self):
@@ -628,14 +675,26 @@ class TestFileFunctions(FitsTestCase):
                         pass
 
     def test_open_gzipped(self):
+        gzip_file = self._make_gzip_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_gzip_file())) == 5
+            with fits.open(gzip_file) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
+            with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
+
+    def test_open_gzipped_from_handle(self):
+        with open(self._make_gzip_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
 
     def test_detect_gzipped(self):
         """Test detection of a gzip file when the extension is not .gz."""
-
         with ignore_warnings():
-            assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
+            with fits.open(self._make_gzip_file('test0.fz')) as fits_handle:
+                assert fits_handle._file.compression == 'gzip'
+                assert len(fits_handle) == 5
 
     def test_writeto_append_mode_gzip(self):
         """Regression test for
@@ -660,14 +719,30 @@ class TestFileFunctions(FitsTestCase):
             assert hdul[0].header == h.header
 
     def test_open_bzipped(self):
+        bzip_file = self._make_bzip2_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_bzip2_file())) == 5
+            with fits.open(bzip_file) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
+
+            with fits.open(bz2.BZ2File(bzip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(six.PY2,
+        reason = "API difference in bz2 in 2.7, but will be deprecated anyway")
+    def test_open_bzipped_from_handle(self):
+        with open(self._make_bzip2_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
 
     def test_detect_bzipped(self):
         """Test detection of a bzip2 file when the extension is not .bz2."""
-
         with ignore_warnings():
-            assert len(fits.open(self._make_bzip2_file('test0.xx'))) == 5
+            with fits.open(self._make_bzip2_file('test0.xx')) as fits_handle:
+                assert fits_handle._file.compression == 'bzip2'
+                assert len(fits_handle) == 5
 
     def test_writeto_bzip2_fileobj(self):
         """Test writing to a bz2.BZ2File file like object"""
@@ -691,13 +766,20 @@ class TestFileFunctions(FitsTestCase):
             assert hdul[0].header == h.header
 
     def test_open_zipped(self):
-        zf = self._make_zip_file()
-
+        zip_file = self._make_zip_file()
         with ignore_warnings():
-            assert len(fits.open(self._make_zip_file())) == 5
+            with fits.open(zip_file) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
+            with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
 
-        with ignore_warnings():
-            assert len(fits.open(zipfile.ZipFile(zf))) == 5
+    def test_open_zipped_from_handle(self):
+        with open(self._make_zip_file(), 'rb') as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == 'zip'
+                assert len(fits_handle) == 5
 
     def test_detect_zipped(self):
         """Test detection of a zip file when the extension is not .zip."""
@@ -1068,7 +1150,7 @@ class TestFileFunctions(FitsTestCase):
             hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
 
-            with open(filename, mode='wb+') as fileobj:
+            with open(filename, mode='wb') as fileobj:
                 hdulist.writeto(fileobj)
 
         assert ("Not enough space on disk: requested 8000, available 0. "

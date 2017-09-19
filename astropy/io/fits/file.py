@@ -12,6 +12,7 @@ import sys
 import tempfile
 import warnings
 import zipfile
+import re
 
 from functools import reduce
 
@@ -49,6 +50,9 @@ FILE_MODES = {
     'wb': 'ostream', 'wb+': 'update',
     'ab': 'ostream', 'ab+': 'append'}
 
+# A match indicates the file was opened in text mode, which is not allowed
+TEXT_RE = re.compile(r'^[rwa]((t?\+?)|(\+?t?))$')
+
 
 # readonly actually uses copyonwrite for mmap so that readonly without mmap and
 # with mmap still have to same behavior with regard to updating the array.  To
@@ -76,6 +80,17 @@ except ImportError:
 else:
     HAS_PATHLIB = True
 
+def _normalize_fits_mode(mode):
+    if mode is not None and mode not in IO_FITS_MODES:
+        if TEXT_RE.match(mode):
+            raise ValueError(
+                "Text mode '{}' not supported: "
+                "files must be opened in binary mode".format(mode))
+        new_mode = FILE_MODES.get(mode)
+        if new_mode not in IO_FITS_MODES:
+            raise ValueError("Mode '{}' not recognized".format(mode))
+        mode = new_mode
+    return mode
 
 class _File(object):
     """
@@ -109,17 +124,17 @@ class _File(object):
         # Holds mmap instance for files that use mmap
         self._mmap = None
 
-        if mode is None:
-            if _is_random_access_file_backed(fileobj):
-                fmode = fileobj_mode(fileobj)
-                # If the mode is unsupported just leave it as None; we'll
-                # catch this case below
-                mode = FILE_MODES.get(fmode)
-            else:
-                mode = 'readonly'  # The default
-
-        if mode not in IO_FITS_MODES:
+        if mode is not None and mode not in IO_FITS_MODES:
             raise ValueError("Mode '{}' not recognized".format(mode))
+        if isfile(fileobj):
+            objmode = _normalize_fits_mode(fileobj_mode(fileobj))
+            if mode is not None and mode != objmode:
+                raise ValueError(
+                    "Requested FITS mode '{}' not compatible with open file "
+                    "handle mode '{}'".format(mode, objmode))
+            mode = objmode
+        if mode is None:
+            mode = 'readonly'
 
         # Handle raw URLs
         if (isinstance(fileobj, string_types) and
@@ -152,7 +167,7 @@ class _File(object):
         self.writeonly = False
 
         # Initialize the internal self._file object
-        if _is_random_access_file_backed(fileobj):
+        if isfile(fileobj):
             self._open_fileobj(fileobj, mode, overwrite)
         elif isinstance(fileobj, string_types):
             self._open_filename(fileobj, mode, overwrite)
@@ -408,8 +423,34 @@ class _File(object):
             else:
                 raise IOError("File {!r} already exists.".format(self.name))
 
+    def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
+        """Attempt to determine if the given file is compressed"""
+        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+            # Handle gzip files
+            kwargs = dict(mode=IO_FITS_MODES[mode])
+            if isinstance(obj_or_name, string_types):
+                kwargs['filename'] = obj_or_name
+            else:
+                kwargs['fileobj'] = obj_or_name
+            self._file = gzip.GzipFile(**kwargs)
+            self.compression = 'gzip'
+        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
+            # Handle zip files
+            self._open_zipfile(self.name, mode)
+            self.compression = 'zip'
+        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
+            # Handle bzip2 files
+            if mode in ['update', 'append']:
+                raise IOError("update and append modes are not supported "
+                              "with bzip2 files")
+            # bzip2 only supports 'w' and 'r' modes
+            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
+            self.compression = 'bzip2'
+        return self.compression is not None
+
     def _open_fileobj(self, fileobj, mode, overwrite):
-        """Open a FITS file from a file object or a GzipFile object."""
+        """Open a FITS file from a file object (including compressed files)."""
 
         closed = fileobj_closed(fileobj)
         fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
@@ -418,29 +459,28 @@ class _File(object):
             self._overwrite_existing(overwrite, fileobj, closed)
 
         if not closed:
-            # Although we have a specific mapping in IO_FITS_MODES from our
-            # custom file modes to raw file object modes, many of the latter
-            # can be used appropriately for the former.  So determine whether
-            # the modes match up appropriately
-            if ((mode in ('readonly', 'denywrite', 'copyonwrite') and
-                    not ('r' in fmode or '+' in fmode)) or
-                    (mode == 'append' and fmode not in ('ab+', 'rb+')) or
-                    (mode == 'ostream' and
-                     not ('w' in fmode or 'a' in fmode or '+' in fmode)) or
-                    (mode == 'update' and fmode not in ('rb+', 'wb+'))):
-                raise ValueError(
-                    "Mode argument '{}' does not match mode of the input "
-                    "file ({}).".format(mode, fmode))
             self._file = fileobj
         elif isfile(fileobj):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
-        else:
-            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
 
-        if fmode == 'ab+':
-            # Return to the beginning of the file--in Python 3 when opening in
-            # append mode the file pointer is at the end of the file
+        # Attempt to determine if the file represented by the open file object
+        # is compressed
+        try:
+            # We need to account for the possibility that the underlying file
+            # handle may have been opened with either 'ab' or 'ab+', which
+            # means that the current file position is at the end of the file.
+            if mode in ['ostream', 'append']:
+                self._file.seek(0)
+            magic = self._file.read(4)
+            # No matter whether the underlying file was opened with 'ab' or
+            # 'ab+', we need to return to the beginning of the file in order
+            # to properly process the FITS header (and handle the possibility
+            # of a compressed file).
             self._file.seek(0)
+        except (IOError,OSError):
+            return
+
+        self._try_read_compressed(fileobj, magic, mode)
 
     def _open_filelike(self, fileobj, mode, overwrite):
         """Open a FITS file from a file-like object, i.e. one that has
@@ -456,7 +496,6 @@ class _File(object):
 
         if isinstance(fileobj, zipfile.ZipFile):
             self._open_zipfile(fileobj, mode)
-            self._file.seek(0)
             # We can bypass any additional checks at this point since now
             # self._file points to the temp file extracted from the zip
             return
@@ -495,31 +534,14 @@ class _File(object):
 
         ext = os.path.splitext(self.name)[1]
 
-        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
-            # Handle gzip files
-            self._file = gzip.open(self.name, IO_FITS_MODES[mode])
-            self.compression = 'gzip'
-        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
-            # Handle zip files
-            self._open_zipfile(self.name, mode)
-        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
-            # Handle bzip2 files
-            if mode in ['update', 'append']:
-                raise IOError("update and append modes are not supported "
-                              "with bzip2 files")
-            # bzip2 only supports 'w' and 'r' modes
-            bzip2_mode = 'w' if mode == 'ostream' else 'r'
-            self._file = bz2.BZ2File(self.name, bzip2_mode)
-        else:
+        if not self._try_read_compressed(self.name, magic, mode, ext=ext):
             self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
             self.close_on_error = True
 
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
         # when opening a file for write, bz2.BZ2File always truncates anyway.
-        if isinstance(self._file, bz2.BZ2File) and mode == 'ostream':
-            pass
-        else:
+        if not (isinstance(self._file, bz2.BZ2File) and mode == 'ostream'):
             self._file.seek(0)
 
     @classproperty(lazy=True)
@@ -586,16 +608,7 @@ class _File(object):
 
         if close:
             zfile.close()
-        self.compression = 'zip'
-
-
-def _is_random_access_file_backed(fileobj):
-    """Returns `True` if fileobj is a `file` or `io.FileIO` object or a
-    `gzip.GzipFile` object.
-
-    Although reading from a zip file is supported, this does not include
-    support for random access, and we do not yet support reading directly
-    from an already opened `zipfile.ZipFile` object.
-    """
-
-    return isfile(fileobj) or isinstance(fileobj, gzip.GzipFile)
+        # We just wrote the contents of the first file in the archive to a new
+        # temp file, which now serves as our underlying file object. So it's
+        # necessary to reset the position back to the beginning
+        self._file.seek(0)
