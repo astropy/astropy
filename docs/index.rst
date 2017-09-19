@@ -28,9 +28,15 @@ Astropy Documentation
 
     .. image:: _static/astropy_logo.pdf
 
-Welcome to the Astropy documentation! Astropy is a community-driven
-package intended to contain much of the core functionality and some common
-tools needed for performing astronomy and astrophysics with Python.
+The ``astropy`` core package is a community-driven package which contains key
+functionality and common tools needed for performing astronomy and astrophysics
+with Python.
+
+This package is at the core of the `Astropy Project
+<http://www.astropy.org/about.html>`_, which aims to enable the community to
+develop a robust ecosystem of `Affiliated Packages
+<http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
+needs for astronomical research, data processing, and data analysis.
 
 .. _getting-started:
 
@@ -48,7 +54,7 @@ Getting Started
    Tutorials <http://tutorials.astropy.org/>
    Get Help <http://www.astropy.org/help.html>
    Contribute and Report Problems <http://www.astropy.org/contribute.html>
-   About the astropy project <http://www.astropy.org/about.html>
+   About the Astropy Project <http://www.astropy.org/about.html>
 
 .. _user-docs:
 
