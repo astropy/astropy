@@ -20,6 +20,7 @@ import shutil
 import socket
 import sys
 import time
+import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
@@ -1051,7 +1052,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
-            with _open_shelve(urlmapfn, True) as url2hash:
+            with shelve.open(urlmapfn) as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
 
@@ -1099,7 +1100,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         if cache:
             _acquire_download_cache_lock()
             try:
-                with _open_shelve(urlmapfn, True) as url2hash:
+                with shelve.open(urlmapfn) as url2hash:
                     # We check now to see if another process has
                     # inadvertently written the file underneath us
                     # already
@@ -1161,7 +1162,7 @@ def is_url_in_cache(url_key):
         # shelve DBs don't accept unicode strings in Python 2
         url_key = url_key.encode('utf-8')
 
-    with _open_shelve(urlmapfn, True) as url2hash:
+    with shelve.open(urlmapfn) as url2hash:
         if url_key in url2hash:
             return True
     return False
@@ -1271,7 +1272,7 @@ def clear_download_cache(hashorurl=None):
             if os.path.exists(dldir):
                 shutil.rmtree(dldir)
         else:
-            with _open_shelve(urlmapfn, True) as url2hash:
+            with shelve.open(urlmapfn) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
                 if not _is_inside(filepath, dldir):
                     raise RuntimeError("attempted to use clear_download_cache on"
@@ -1341,24 +1342,6 @@ def _get_download_cache_locs():
         raise IOError(msg.format(shelveloc))
 
     return datadir, shelveloc
-
-
-def _open_shelve(shelffn, withclosing=False):
-    """
-    Opens a shelf file.  If `withclosing` is  True, it will be opened with closing,
-    allowing use like:
-
-        with _open_shelve('somefile',True) as s:
-            ...
-    """
-    import shelve
-
-    shelf = shelve.open(shelffn, protocol=2)
-
-    if withclosing:
-        return contextlib.closing(shelf)
-    else:
-        return shelf
 
 
 # the cache directory must be locked before any writes are performed.  Same for
