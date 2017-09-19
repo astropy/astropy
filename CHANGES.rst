@@ -288,6 +288,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Ecliptic frame classes now support attributes ``v_x``, ``v_y``, ``v_z`` when
+  using with a Cartesian representation. [#6569]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
