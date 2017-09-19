@@ -16,6 +16,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Ecliptic frame classes now support attributes ``v_x``, ``v_y``, ``v_z`` when
+  using with a Cartesian representation. [#6569]
+
 - Added a nicer error message when accidentally calling ``frame.representation``
   instead of ``frame.data`` in the context of methods that use ``._apply()``.
   [#6561]
