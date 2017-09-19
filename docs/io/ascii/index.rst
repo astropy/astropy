@@ -99,8 +99,7 @@ disable the fast engine::
 .. Note::
 
    Reading a table which contains non-ASCII (unicode) characters is only
-   supported in Python 3 or greater.  If you have Python 2.x and need
-   this functionality, consider using a newer version of Python. With Python
+   supported in Python 3 or greater.  With Python
    3 and the pure-Python readers, it is also possible to specify the encoding
    of the file with the ``encoding`` parameter.
 
