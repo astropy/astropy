@@ -153,7 +153,7 @@ blackbody flux for 10000K at 6000 Angstrom::
     >>> blackbody_nu(6000 * u.AA, 10000 * u.K)
     <Quantity 0.00018391673686797075 erg / (cm2 Hz s sr)
 
-See :ref:`astropy_analytic_functions` for more details.
+See ``astropy.analytic_functions`` documentation for more details.
 
 In future versions of Astropy, the functions in this module might also be
 accessible as `~astropy.modeling.Model` classes.
@@ -366,4 +366,3 @@ Full change log
 
 To see a detailed list of all changes in version v1.0, including changes in API,
 please see the :ref:`changelog`.
-
