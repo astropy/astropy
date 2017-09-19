@@ -547,30 +547,3 @@ def plot_convolve_fft_profiling_results(results):
     phaseax.set_ylabel("Execution time (s)")
     phaseax.set_xlabel("Peak memory use (MB)")
     phaseax.legend(loc='center left', bbox_to_anchor=(1.05, 0.50))
-
-def parse_profiling_printed_results(filename, valid_ksfs=None):
-    """
-    In case the profiler crashes, you can copy and paste the results into a
-    file and parse it with this tool
-
-    Parameters
-    ----------
-    valid_ksvs : list
-        Valid kernel size fractions.  Meant to fix roundoff errors.
-    """
-    with open(filename, 'r') as f:
-        results = [{'psf_pad': bool(int(row[12])),
-                    'fft_pad': bool(int(row[27])),
-                    'size': int(row[36:40]),
-                    'kernelsize': int(row[54:59]),
-                    'peak_memuse': float(row[74:81])*u.MB,
-                    'meantime': float(row[154:][:-2])*u.s}
-                   for row in f.readlines()]
-    for r in results:
-        ksf = float(r['kernelsize'])/r['size']
-        if valid_ksfs is not None:
-            closest = np.argmin(np.abs(ksf - np.array(valid_ksfs)))
-            ksf = valid_ksfs[closest]
-        r['kernelsizefraction'] = ksf
-
-    return results
