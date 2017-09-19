@@ -64,6 +64,8 @@ astropy.stats
 - Added false alarm probability computation to ``astropy.stats.LombScargle``
   [#6488]
 
+- Implemeteed Kuiper functions in ``astropy.stats`` [#3724]
+
 astropy.table
 ^^^^^^^^^^^^^
 
