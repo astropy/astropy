@@ -40,7 +40,7 @@ for a 400-pixel image, a kernel with KSV=0.125 (one eighth) would be 50 pixels
 on a side.   Solid lines show FFT-based convolution and dashed lines show
 direct convolution.
 
-.. image:: images/timingmemoryvssize_psfTrue_fftTrue.png'
+.. image:: images/timingmemoryvssize_psfTrue_fftTrue.png
    :width: 600px
 
 Two main features are evident: First, direct convolution exhibits a stronger
@@ -57,7 +57,7 @@ that the image is padded with zeros of at least the PSF's size, but not to
 an optimal FFT size.  This example illustrates that ``fft_pad`` should generally
 be set to ``True`` unless your memory is very limited.
 
-.. image:: images/timingmemoryvssize_psfTrue_fftFalse.png'
+.. image:: images/timingmemoryvssize_psfTrue_fftFalse.png
    :width: 600px
 
 The next example has ``fft_pad=True`` and ``psf_pad=False``.  These parameters
@@ -66,7 +66,8 @@ failing to pad the edges by the PSF size means that the boundary conditions may
 be violated (for ``boundary='fill'``, ``psf_pad`` is required).  While scientifically
 somewhat useless, these parameters helpfully illustrate the FFT's weak dependence
 on kernel size:
-.. image:: images/timingmemoryvssize_psfFalse_fftTrue.png'
+
+.. image:: images/timingmemoryvssize_psfFalse_fftTrue.png
    :width: 600px
 
 
@@ -74,7 +75,8 @@ Finally, with both ``fft_pad=False`` and ``psf_pad=False``, the memory
 requirement is minimized.  However, as with the previous example, such
 convolutions are likely to be scientifically useless, at least around their
 edges.
-.. image:: images/timingmemoryvssize_psfFalse_fftFalse.png'
+
+.. image:: images/timingmemoryvssize_psfFalse_fftFalse.png
    :width: 600px
 
 Performance Comparison with other packages
