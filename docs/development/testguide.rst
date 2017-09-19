@@ -225,8 +225,8 @@ If we place this in a ``test.py`` file and then run::
 The result is::
 
     ============================= test session starts ==============================
-    python: platform darwin -- Python 2.7.2 -- pytest-1.1.1
-    test object 1: /Users/tom/tmp/test.py
+    python: platform darwin -- Python 3.6.0 -- pytest-3.2.0
+    test object 1: /Users/username/tmp/test.py
 
     test.py F
 
@@ -609,22 +609,6 @@ For example::
         with conf.set_temp('max_lines', 6):
             # ...
 
-Testing with Unicode literals
-=============================
-
-Python 2 can run code in two modes: by default, string literals are
-8-bit `bytes` objects.  However, when ``from __future__ import
-unicode_literals`` is used, string literals are `unicode` objects.  In
-order to ensure that astropy supports user code written in both
-styles, the testing framework has a special feature to run a module
-containing tests in both modes.  Simply add the comment::
-
-    # TEST_UNICODE_LITERALS
-
-anywhere in the file, and all tests in that file will be tested twice:
-once in the default mode where string literals are `bytes`, and again
-where string literals are `unicode`.
-
 Marking blocks of code to exclude from coverage
 ===============================================
 
@@ -634,23 +618,6 @@ block::
 
     if this_rarely_happens:  # pragma: no cover
         this_call_is_ignored()
-
-Blocks of code that are intended to run only in Python 2.x or 3.x may
-also be marked so that they will be ignored when appropriate by
-``coverage.py``::
-
-    if sys.version_info[0] >= 3:  # pragma: py3
-        do_it_the_python3_way()
-    else:  # pragma: py2
-        do_it_the_python2_way()
-
-Using ``six.PY3`` and ``six.PY2`` will also automatically exclude
-blocks from coverage, without requiring the pragma comment::
-
-    if six.PY3:
-        do_it_the_python3_way()
-    elif six.PY2:
-        do_it_the_python2_way()
 
 .. _image-tests:
 
@@ -867,10 +834,6 @@ without the test checking that it is exactly right.  For example::
 
     >>> print('Hello world')  # doctest: +IGNORE_OUTPUT
     We don't really care what the output is as long as there were no errors...
-
-Similarly the ``IGNORE_OUTPUT_2`` and ``IGNORE_OUTPUT_3`` flags can be used
-to ignore output only on Python 2 or only on Python 3 respectively.
-
 
 Handling float output
 =====================
