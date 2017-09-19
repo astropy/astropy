@@ -17,6 +17,7 @@ import socket
 import sys
 import time
 import urllib
+import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
