@@ -75,7 +75,12 @@ class BaseEclipticFrame(BaseCoordinateFrame):
             RepresentationMapping('d_lon', 'pm_lon', u.mas/u.yr),
             RepresentationMapping('d_lat', 'pm_lat', u.mas/u.yr),
             RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ]
+        ],
+        r.CartesianDifferential: [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s),
+        ],
     }
 
     frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
