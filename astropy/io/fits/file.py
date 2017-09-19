@@ -124,7 +124,8 @@ class _File(object):
         # Holds mmap instance for files that use mmap
         self._mmap = None
 
-        mode = _normalize_fits_mode(mode)
+        if mode is not None and mode not in IO_FITS_MODES:
+            raise ValueError("Mode '{}' not recognized".format(mode))
         if isfile(fileobj):
             objmode = _normalize_fits_mode(fileobj_mode(fileobj))
             if mode is not None and mode != objmode:
