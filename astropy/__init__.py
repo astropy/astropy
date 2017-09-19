@@ -11,8 +11,8 @@ import sys
 import os
 from warnings import warn
 
-if sys.version_info[:2] < (2, 7):
-    warn("Astropy does not support Python 2.6 (in v1.2 and later)")
+if sys.version_info[:2] < (3, 5):
+    warn("Astropy does not support Python <3.5 (in v3.0 and later)")
 
 
 def _is_astropy_source(path=None):
@@ -53,10 +53,7 @@ try:
     _ASTROPY_SETUP_
 except NameError:
     from sys import version_info
-    if version_info[0] >= 3:
-        import builtins
-    else:
-        import __builtin__ as builtins
+    import builtins
 
     # This will set the _ASTROPY_SETUP_ to True by default if
     # we are running Astropy's setup.py
