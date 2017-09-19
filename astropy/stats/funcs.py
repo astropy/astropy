@@ -29,7 +29,7 @@ __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',
            'poisson_conf_interval', 'median_absolute_deviation', 'mad_std',
            'signal_to_noise_oir_ccd', 'bootstrap', 'kuiper', 'kuiper_FPP', 
-           'kuiper_two', 'cdf_from_intervals' 'interval_overlap_length', 
+           'kuiper_two', 'cdf_from_intervals', 'interval_overlap_length', 
            'histogram_intervals', 'fold_intervals']
 
 __doctest_skip__ = ['binned_binom_proportion']
