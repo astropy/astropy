@@ -26,14 +26,12 @@ def _find_home():
         directories.
     """
 
-    decodepath = lambda pth: pth
-
     # First find the home directory - this is inspired by the scheme ipython
     # uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         if 'HOME' in os.environ:
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         else:
             raise OSError('Could not find unix home directory to search for '
                           'astropy config dir')
@@ -41,18 +39,17 @@ def _find_home():
         if 'MSYSTEM' in os.environ and os.environ.get('HOME'):
             # Likely using an msys shell; use whatever it is using for its
             # $HOME directory
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         # Next try for a network home
         elif 'HOMESHARE' in os.environ:
-            homedir = decodepath(os.environ['HOMESHARE'])
+            homedir = os.environ['HOMESHARE']
         # See if there's a local home
         elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
             homedir = os.path.join(os.environ['HOMEDRIVE'],
                                    os.environ['HOMEPATH'])
-            homedir = decodepath(homedir)
         # Maybe a user profile?
         elif 'USERPROFILE' in os.environ:
-            homedir = decodepath(os.path.join(os.environ['USERPROFILE']))
+            homedir = os.path.join(os.environ['USERPROFILE'])
         else:
             try:
                 import winreg as wreg
@@ -60,19 +57,18 @@ def _find_home():
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
-                homedir = decodepath(homedir)
                 key.Close()
             except Exception:
                 # As a final possible resort, see if HOME is present
                 if 'HOME' in os.environ:
-                    homedir = decodepath(os.environ['HOME'])
+                    homedir = os.environ['HOME']
                 else:
                     raise OSError('Could not find windows home directory to '
                                   'search for astropy config dir')
     else:
         # for other platforms, try HOME, although it probably isn't there
         if 'HOME' in os.environ:
-            homedir = decodepath(os.environ['HOME'])
+            homedir = os.environ['HOME']
         else:
             raise OSError('Could not find a home directory to search for '
                           'astropy config dir - are you on an unspported '
