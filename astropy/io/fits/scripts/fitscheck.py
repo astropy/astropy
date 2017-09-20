@@ -42,9 +42,9 @@ Example uses of fitscheck:
 
 import logging
 import optparse
+import os
 import sys
 import textwrap
-import warnings
 
 from ....tests.helper import catch_warnings
 from ... import fits
@@ -170,13 +170,25 @@ def update(filename):
     Also updates fixes standards violations if possible and requested.
     """
 
-    with fits.open(filename, do_not_scale_image_data=True) as hdulist:
-        try:
-            output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
-            hdulist.writeto(filename, checksum=OPTIONS.checksum_kind,
-                            overwrite=True, output_verify=output_verify)
-        except fits.VerifyError:
-            pass  # unfixable errors already noted during verification phase
+    tmpfile = filename + '.bak'
+    try:
+        tmpfile_written = False
+        with fits.open(filename, do_not_scale_image_data=True) as hdulist:
+            try:
+                output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
+                hdulist.writeto(tmpfile, checksum=OPTIONS.checksum_kind,
+                                overwrite=True, output_verify=output_verify)
+            except fits.VerifyError:
+                # unfixable errors already noted during verification phase
+                pass
+            else:
+                tmpfile_written = True
+    finally:
+        if os.path.exists(tmpfile):
+            if tmpfile_written:
+                os.rename(tmpfile, filename)
+            else:
+                os.remove(tmpfile)
 
 
 def process_file(filename):
