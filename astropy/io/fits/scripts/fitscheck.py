@@ -186,7 +186,7 @@ def update(filename):
     finally:
         if os.path.exists(tmpfile):
             if tmpfile_written:
-                os.rename(tmpfile, filename)
+                os.replace(tmpfile, filename)
             else:
                 os.remove(tmpfile)
 
