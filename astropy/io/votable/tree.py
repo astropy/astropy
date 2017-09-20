@@ -2072,10 +2072,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     def __bytes__(self):
         return bytes(self.to_table())
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.to_table())
-
-    __str__ = __unicode__
 
     @property
     def ref(self):

@@ -868,10 +868,8 @@ class Table(object):
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
 
-    def __unicode__(self):
+    def __str__(self):
         return '\n'.join(self.pformat())
-
-    __str__ = __unicode__
 
     def __bytes__(self):
         return str(self).encode('utf-8')

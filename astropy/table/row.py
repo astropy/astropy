@@ -157,11 +157,9 @@ class Row(object):
     def __repr__(self):
         return self._base_repr_(html=False)
 
-    def __unicode__(self):
+    def __str__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
-
-    __str__ = __unicode__
 
     def __bytes__(self):
         return str(self).encode('utf-8')

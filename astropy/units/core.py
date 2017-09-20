@@ -515,11 +515,9 @@ class UnitBase(object, metaclass=InheritDocstrings):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self).encode('unicode_escape')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self)
-
-    __str__ = __unicode__
 
     def __repr__(self):
         string = unit_format.Generic.to_string(self)
@@ -1682,10 +1680,8 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
-
-    __str__ = __unicode__
 
     def to_string(self, format=None):
         return self.name
