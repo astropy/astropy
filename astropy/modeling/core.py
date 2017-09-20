@@ -2905,7 +2905,7 @@ class _CompoundModel(Model):
         Return a deep copy of a compound model.
         """
         new_model = self.copy()
-        new_model._submodels = [model.copy() for model in self._submodels]
+        new_model._submodels = [model.deepcopy() for model in self._submodels]
         return new_model
 
 
