@@ -924,11 +924,7 @@ class ShapedLikeNDArray(object, metaclass=abc.ABCMeta):
                             .format(self.__class__.__name__))
         return self.shape[0]
 
-    def __bool__(self):  # Python 3
-        """Any instance should evaluate to True, except when it is empty."""
-        return self.size > 0
-
-    def __nonzero__(self):  # Python 2
+    def __bool__(self):
         """Any instance should evaluate to True, except when it is empty."""
         return self.size > 0
 

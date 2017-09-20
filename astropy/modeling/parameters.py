@@ -871,13 +871,11 @@ class Parameter(OrderedDescriptor):
 
         return arr
 
-    def __nonzero__(self):
+    def __bool__(self):
         if self._model is None:
             return True
         else:
             return bool(self.value)
-
-    __bool__ = __nonzero__
 
     __add__ = _binary_arithmetic_operation(operator.add)
     __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)
