@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import warnings
 from math import factorial

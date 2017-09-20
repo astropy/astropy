@@ -7,8 +7,6 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import functools
 import numbers

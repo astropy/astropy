@@ -3,8 +3,6 @@
 This is a collection of monkey patches and workarounds for bugs in
 earlier versions of Numpy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 from ...utils import minversion
 
 

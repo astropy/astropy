@@ -6,7 +6,6 @@ The three images must be aligned and have the same pixel scale and size.
 
 For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from . import ZScaleInterval

@@ -3,8 +3,6 @@
 Astronomical and physics constants in cgs units.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 

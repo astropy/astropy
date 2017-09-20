@@ -14,8 +14,6 @@ integrates to one per default.
 
 Currently only symmetric 2D kernels are supported.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 import copy

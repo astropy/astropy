@@ -14,8 +14,6 @@ celestial/spatial coordinate frames, generally focused around matrix-style
 transformations that are typically how the algorithms are defined.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import heapq
 import inspect

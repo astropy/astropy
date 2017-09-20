@@ -8,8 +8,6 @@ framework, but it is useful for some users who are used to more functional
 interfaces.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 

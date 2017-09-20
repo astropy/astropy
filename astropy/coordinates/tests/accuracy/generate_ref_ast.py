@@ -3,8 +3,6 @@ This series of functions are used to generate the reference CSV files
 used by the accuracy tests.  Running this as a comand-line script will
 generate them all.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 

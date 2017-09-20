@@ -4,8 +4,6 @@ normalizations of Python expression output.  See the docstring on
 `AstropyOutputChecker` for more details.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import doctest
 import re

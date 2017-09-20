@@ -3,8 +3,6 @@
 """
 Utilities for console input and output.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import codecs
 import locale

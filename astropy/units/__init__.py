@@ -9,7 +9,6 @@ This code is adapted from the `pynbody
 Pontzen, who has granted the Astropy project permission to use the
 code under a BSD license.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .core import *
 from .quantity import *

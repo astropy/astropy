@@ -3,8 +3,6 @@
 """
 Test broadcast_arrays replacement on Quantity class.
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 import numpy as np
