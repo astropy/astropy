@@ -5,7 +5,6 @@
 Regression tests for the units.format package
 """
 
-# TEST_UNICODE_LITERALS
 
 
 import pytest
