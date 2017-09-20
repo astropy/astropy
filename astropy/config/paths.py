@@ -55,6 +55,7 @@ def _find_home():
             homedir = decodepath(os.path.join(os.environ['USERPROFILE']))
         else:
             try:
+                import winreg as wreg
                 shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
