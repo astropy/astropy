@@ -696,7 +696,7 @@ def test_printwcs():
 
 
 def test_invalid_spherical():
-    header = str("""
+    header = """
 SIMPLE  =                    T / conforms to FITS standard
 BITPIX  =                    8 / array data type
 WCSAXES =                    2 / no comment
@@ -717,7 +717,7 @@ CD2_1   =     0.00250608809647 / no comment
 CD2_2   =    -0.00912247310646 / no comment
 IMAGEW  =                 4256 / Image width,  in pixels.
 IMAGEH  =                 2832 / Image height, in pixels.
-""")
+    """
 
     f = io.StringIO(header)
     header = fits.Header.fromtextfile(f)

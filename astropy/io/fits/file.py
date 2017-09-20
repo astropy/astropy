@@ -528,7 +528,7 @@ class _File(object):
             with fileobj_open(self.name, 'rb') as f:
                 magic = f.read(4)
         else:
-            magic = ''.encode("latin-1")
+            magic = b''
 
         ext = os.path.splitext(self.name)[1]
 
