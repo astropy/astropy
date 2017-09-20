@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 # This file defines the AngleFormatterLocator class which is a class that
 # provides both a method for a formatter and one for a locator, for a given

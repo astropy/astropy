@@ -1,6 +1,4 @@
 """Implements the Astropy TestRunner which is a thin wrapper around py.test."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import inspect
 import os

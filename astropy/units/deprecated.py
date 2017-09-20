@@ -17,8 +17,6 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> deprecated.enable()  # doctest: +SKIP
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 _ns = globals()
 

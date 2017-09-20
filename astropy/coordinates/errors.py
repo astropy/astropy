@@ -3,8 +3,6 @@
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates.
 '''
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from ..utils.exceptions import AstropyWarning
 

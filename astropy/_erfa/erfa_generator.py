@@ -9,7 +9,6 @@ module/script to function.
 Note that this does *not* currently automate the process of creating structs
 or dtypes for those structs.  They should be added manually in the template file.
 """
-from __future__ import absolute_import, division, print_function
 # note that we do *not* use unicode_literals here, because that makes the
 # generated code's strings have u'' in them on py 2.x
 

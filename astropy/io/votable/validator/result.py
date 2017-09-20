@@ -4,7 +4,6 @@ Contains a class to handle a validation result for a single VOTable
 file.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 from ....extern import six
 from ....extern.six.moves import http_client, urllib
 from ....extern.six.moves import cPickle as pickle
