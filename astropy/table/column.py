@@ -876,15 +876,13 @@ class Column(BaseColumn):
     def __repr__(self):
         return self._base_repr_(html=False)
 
-    def __unicode__(self):
+    def __str__(self):
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
             return str(self.item())
 
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
-
-    __str__ = __unicode__
 
     def __bytes__(self):
         return str(self).encode('utf-8')
