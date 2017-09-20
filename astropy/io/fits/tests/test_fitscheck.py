@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
 from . import FitsTestCase
 from ..scripts import fitscheck
 from ... import fits
 from ....tests.helper import pytest
+
+on_win32 = sys.platform.startswith('win32')
 
 
 class TestFitscheck(FitsTestCase):
@@ -14,8 +17,9 @@ class TestFitscheck(FitsTestCase):
 
     def test_missing_file(self, capsys):
         assert fitscheck.main(['missing.fits']) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'No such file or directory' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'No such file or directory' in stderr
 
     def test_valid_file(self, capsys):
         testfile = self.data('checksum.fits')
@@ -24,27 +28,31 @@ class TestFitscheck(FitsTestCase):
         assert fitscheck.main([testfile, '--compliance']) == 0
 
         assert fitscheck.main([testfile, '-v']) == 0
-        stdout, stderr = capsys.readouterr()
-        assert 'OK' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'OK' in stderr
 
     def test_remove_checksums(self, capsys):
         self.copy_file('checksum.fits')
         testfile = self.temp('checksum.fits')
         assert fitscheck.main([testfile, '--checksum', 'remove']) == 1
         assert fitscheck.main([testfile]) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'MISSING' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'MISSING' in stderr
 
     def test_no_checksums(self, capsys):
         testfile = self.data('arange.fits')
 
         assert fitscheck.main([testfile]) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'Checksum not found' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'Checksum not found' in stderr
 
         assert fitscheck.main([testfile, '--ignore-missing']) == 0
-        stdout, stderr = capsys.readouterr()
-        assert stderr == ''
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert stderr == ''
 
     def test_overwrite_invalid(self, capsys):
         """
@@ -65,13 +73,15 @@ class TestFitscheck(FitsTestCase):
             hdul.writeto(testfile)
 
         assert fitscheck.main([testfile]) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'BAD' in stderr
-        assert 'Checksum verification failed' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'BAD' in stderr
+            assert 'Checksum verification failed' in stderr
 
         assert fitscheck.main([testfile, '--write', '--force']) == 1
-        stdout, stderr = capsys.readouterr()
-        assert 'BAD' in stderr
+        if not on_win32:
+            stdout, stderr = capsys.readouterr()
+            assert 'BAD' in stderr
 
         # check that the file was fixed
         assert fitscheck.main([testfile]) == 0
