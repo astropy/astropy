@@ -1171,13 +1171,11 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     # __contains__ is OK
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Quantities should always be treated as non-False; there is too much
         potential for ambiguity otherwise.
         """
         return True
-
-    __bool__ = __nonzero__
 
     def __len__(self):
         if self.isscalar:

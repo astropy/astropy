@@ -491,10 +491,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def __len__(self):
         return len(self.data)
 
-    def __nonzero__(self):  # Py 2.x
-        return self.has_data and self.size > 0
-
-    def __bool__(self):  # Py 3.x
+    def __bool__(self):
         return self.has_data and self.size > 0
 
     @property
