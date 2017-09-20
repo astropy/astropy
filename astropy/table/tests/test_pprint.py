@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import pytest
 import numpy as np

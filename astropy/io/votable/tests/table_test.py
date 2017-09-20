@@ -3,7 +3,6 @@
 Test the conversion to/from astropy.table
 """
 
-# TEST_UNICODE_LITERALS
 
 import io
 import os
