@@ -164,7 +164,7 @@ The syntax for the format string is the following:
 All the ``h...``, ``d...``, ``m...``, and ``s...`` formats can be used for
 angular coordinate axes, while the ``x...`` format or valid Python formats
 (see `String Formatting Operations
-<https://docs.python.org/2/library/stdtypes.html#string-formatting>`_) should
+<https://docs.python.org/3/library/stdtypes.html#string-formatting>`_) should
 be used for non-angular coordinate axes.
 
 The separators for angular coordinate tick labels can also be set by
