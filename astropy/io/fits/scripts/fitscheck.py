@@ -46,6 +46,7 @@ import sys
 import textwrap
 import warnings
 
+from ....tests.helper import catch_warnings
 from ... import fits
 
 
@@ -124,7 +125,7 @@ def verify_checksums(filename):
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
 
-    with warnings.catch_warnings(record=True) as wlist:
+    with catch_warnings() as wlist:
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):
                 # looping on HDUs is needed to read them and verify the
