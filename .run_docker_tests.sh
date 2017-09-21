@@ -23,6 +23,6 @@ easy_install-3.5 pytest pytest-xdist
 # Install git
 apt-get install -y git
 
-python3 setup.py test --parallel=4
+PYTHONHASHSEED=42 python3 setup.py test --parallel=4
 
 EOF
