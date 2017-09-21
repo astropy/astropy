@@ -97,7 +97,7 @@ keyword argument.
 It is also possible to create custom writers. To go with our custom reader
 above, we can write a custom writer::
 
-   def my_table_writer(table, filename, clobber=False):
+   def my_table_writer(table, filename, overwrite=False):
        ...  # Write the table out to a file
 
 Writer functons should take a dataset object (either an instance of the
