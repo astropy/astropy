@@ -258,7 +258,7 @@ Other Credits
 * Everyone on the `astropy-dev mailing list`_ and the `Astropy mailing list`_
   for contributing to many discussions and decisions!
 
-(If you have contributed to the Astropy project and your name is missing,
+(If you have contributed to the ``astropy`` core package and your name is missing,
 please send an email to the coordinators, or
 `open a pull request for this page <https://github.com/astropy/astropy/edit/master/docs/credits.rst>`_
 in the `astropy repository <https://github.com/astropy/astropy>`_)

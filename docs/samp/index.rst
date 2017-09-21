@@ -75,5 +75,5 @@ Acknowledgments
 ===============
 
 This code is adapted from the `SAMPy <https://pypi.python.org/pypi/sampy>`__
-package written by Luigi Paioro, who has granted the Astropy project permission
+package written by Luigi Paioro, who has granted the Astropy Project permission
 to use the code under a BSD license.
