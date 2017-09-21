@@ -28,13 +28,10 @@ Astropy Documentation
 
     .. image:: _static/astropy_logo.pdf
 
-The ``astropy`` core package is a community-driven package which contains key
-functionality and common tools needed for performing astronomy and astrophysics
-with Python.
-
-This package is at the core of the `Astropy Project
-<http://www.astropy.org/about.html>`_, which aims to enable the community to
-develop a robust ecosystem of `Affiliated Packages
+The ``astropy`` package contains key functionality and common tools needed for
+performing astronomy and astrophysics with Python.  It is at the core of the
+`Astropy Project <http://www.astropy.org/about.html>`_, which aims to enable
+the community to develop a robust ecosystem of `Affiliated Packages
 <http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
 needs for astronomical research, data processing, and data analysis.
 
