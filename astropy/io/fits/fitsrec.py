@@ -5,6 +5,7 @@ import operator
 import warnings
 import weakref
 
+from contextlib import suppress
 from functools import reduce
 
 import numpy as np
@@ -16,7 +17,6 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
 from ...utils import lazyproperty
-from ...utils.compat import suppress
 
 
 class FITS_record:

@@ -24,6 +24,7 @@ import sys
 import types
 
 from collections import defaultdict, OrderedDict
+from contextlib import suppress
 from inspect import signature
 from itertools import chain, islice
 
@@ -37,7 +38,6 @@ from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat import suppress
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)

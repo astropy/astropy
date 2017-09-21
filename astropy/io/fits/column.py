@@ -10,6 +10,7 @@ import numbers
 
 from functools import reduce
 from collections import OrderedDict
+from contextlib import suppress
 
 import numpy as np
 from numpy import char as chararray
@@ -21,7 +22,6 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
 from .verify import VerifyError, VerifyWarning
 
 from ...utils import lazyproperty, isiterable, indent
-from ...utils.compat import suppress
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
