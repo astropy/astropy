@@ -481,7 +481,7 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-class UnitBase(object, metaclass=InheritDocstrings):
+class UnitBase(metaclass=InheritDocstrings):
     """
     Abstract base class for units.
 

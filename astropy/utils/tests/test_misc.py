@@ -62,7 +62,7 @@ def test_JsonCustomEncoder():
 
 
 def test_inherit_docstrings():
-    class Base(object, metaclass=misc.InheritDocstrings):
+    class Base(metaclass=misc.InheritDocstrings):
         def __call__(self, *args):
             "FOO"
             pass

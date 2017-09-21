@@ -23,7 +23,7 @@ DEFAULT_ACC = 1e-07
 DEFAULT_BOUNDS = (-10 ** 12, 10 ** 12)
 
 
-class Optimization(object, metaclass=abc.ABCMeta):
+class Optimization(metaclass=abc.ABCMeta):
     """
     Base class for optimizers.
 

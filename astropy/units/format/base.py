@@ -21,7 +21,7 @@ class _FormatterMeta(InheritDocstrings):
         return cls
 
 
-class Base(object, metaclass=_FormatterMeta):
+class Base(metaclass=_FormatterMeta):
     """
     The abstract base class of all unit formats.
     """

@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 __all__ = ['NDDataBase']
 
 
-class NDDataBase(object, metaclass=ABCMeta):
+class NDDataBase(metaclass=ABCMeta):
     """Base metaclass that defines the interface for N-dimensional datasets
     with associated meta information used in ``astropy``.
 
