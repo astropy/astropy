@@ -93,6 +93,11 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Deprecated conversion of quantities to truth values. Currently, the expression
+  ``bool(0 * u.dimensionless_unscaled)`` evaluates to ``True``. In the future,
+  attempting to convert a ``Quantity`` to a ``bool`` will raise ``ValueError``.
+  [#6580, #6590]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
