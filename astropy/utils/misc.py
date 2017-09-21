@@ -499,7 +499,7 @@ class InheritDocstrings(type):
     For example::
 
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> class A(object, metaclass=InheritDocstrings):
+        >>> class A(metaclass=InheritDocstrings):
         ...     def wiggle(self):
         ...         "Wiggle the thingamajig"
         ...         pass
@@ -530,7 +530,7 @@ class InheritDocstrings(type):
         super(InheritDocstrings, cls).__init__(name, bases, dct)
 
 
-class OrderedDescriptor(object, metaclass=abc.ABCMeta):
+class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
     preserved.  Intended for use in concert with the
@@ -693,7 +693,7 @@ class OrderedDescriptorContainer(type):
 
     Now let's create an example class that uses this ``TypedAttribute``::
 
-        >>> class Point2D(object, metaclass=OrderedDescriptorContainer):
+        >>> class Point2D(metaclass=OrderedDescriptorContainer):
         ...     x = TypedAttribute((float, int))
         ...     y = TypedAttribute((float, int))
         ...
@@ -849,7 +849,7 @@ def set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
-class ShapedLikeNDArray(object, metaclass=abc.ABCMeta):
+class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     """Mixin class to provide shape-changing methods.
 
     The class proper is assumed to have some underlying data, which are arrays

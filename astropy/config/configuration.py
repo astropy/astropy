@@ -74,7 +74,7 @@ class _ConfigNamespaceMeta(type):
                 val.name = key
 
 
-class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
+class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
     """
     A namespace of configuration items.  Each subpackage with
     configuration items should define a subclass of this class,
@@ -157,7 +157,7 @@ class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
                 item.set(item.defaultvalue)
 
 
-class ConfigItem(object, metaclass=InheritDocstrings):
+class ConfigItem(metaclass=InheritDocstrings):
     """
     A setting and associated value stored in a configuration file.
 

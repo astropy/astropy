@@ -484,7 +484,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             return parts[0]
 
 
-class Model(object, metaclass=_ModelMeta):
+class Model(metaclass=_ModelMeta):
     """
     Base class for all models.
 

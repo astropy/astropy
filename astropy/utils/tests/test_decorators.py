@@ -140,7 +140,7 @@ class TMeta(type):
 
 
 @deprecated('100.0')
-class TB(object, metaclass=TMeta):
+class TB(metaclass=TMeta):
     pass
 
 

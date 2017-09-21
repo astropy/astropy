@@ -110,7 +110,7 @@ class MergeStrategyMeta(type):
         return cls
 
 
-class MergeStrategy(object, metaclass=MergeStrategyMeta):
+class MergeStrategy(metaclass=MergeStrategyMeta):
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.

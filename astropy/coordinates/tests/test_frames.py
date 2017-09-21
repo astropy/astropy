@@ -28,7 +28,7 @@ def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
     from ..attributes import Attribute
 
-    class TestAttributes(object, metaclass=OrderedDescriptorContainer):
+    class TestAttributes(metaclass=OrderedDescriptorContainer):
         attr_none = Attribute()
         attr_2 = Attribute(default=2)
         attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')

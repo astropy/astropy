@@ -411,7 +411,7 @@ class _DescriptionProperty(object):
 
 ######################################################################
 # ELEMENT CLASSES
-class Element(object, metaclass=InheritDocstrings):
+class Element(metaclass=InheritDocstrings):
     """
     A base class for all classes that represent XML elements in the
     VOTABLE file.

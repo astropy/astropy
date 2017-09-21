@@ -179,7 +179,7 @@ def fitter_unit_support(func):
     return wrapper
 
 
-class Fitter(object, metaclass=_FitterMeta):
+class Fitter(metaclass=_FitterMeta):
     """
     Base class for all fitters.
 
@@ -249,7 +249,7 @@ class Fitter(object, metaclass=_FitterMeta):
 # TODO: I have ongoing branch elsewhere that's refactoring this module so that
 # all the fitter classes in here are Fitter subclasses.  In the meantime we
 # need to specify that _FitterMeta is its metaclass.
-class LinearLSQFitter(object, metaclass=_FitterMeta):
+class LinearLSQFitter(metaclass=_FitterMeta):
     """
     A class performing a linear least square fitting.
 
@@ -567,7 +567,7 @@ class FittingWithOutlierRemoval(object):
         return filtered_data, fitted_model
 
 
-class LevMarLSQFitter(object, metaclass=_FitterMeta):
+class LevMarLSQFitter(metaclass=_FitterMeta):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
 
@@ -882,7 +882,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
-class JointFitter(object, metaclass=_FitterMeta):
+class JointFitter(metaclass=_FitterMeta):
     """
     Fit models which share a parameter.
 

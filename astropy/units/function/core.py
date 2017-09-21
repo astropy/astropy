@@ -27,7 +27,7 @@ SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
 # a large number of overrides. Hence, define new class.
-class FunctionUnitBase(object, metaclass=ABCMeta):
+class FunctionUnitBase(metaclass=ABCMeta):
     """Abstract base class for function units.
 
     Function units are functions containing a physical unit, such as dB(mW).

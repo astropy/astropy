@@ -54,7 +54,7 @@ class FixRemoteDataOption(type):
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
-class AstropyTest(Command, object, metaclass=FixRemoteDataOption):
+class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = 'Run the tests for this package'
 
     user_options = [

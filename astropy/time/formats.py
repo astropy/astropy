@@ -91,7 +91,7 @@ class TimeFormatMeta(type):
         return cls
 
 
-class TimeFormat(object, metaclass=TimeFormatMeta):
+class TimeFormat(metaclass=TimeFormatMeta):
     """
     Base class for time representations.
 
