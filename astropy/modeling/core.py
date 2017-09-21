@@ -1551,6 +1551,14 @@ class Model(object):
 
         return copy.deepcopy(self)
 
+    def deepcopy(self):
+        """
+        Return a deep copy of this model.
+
+        """
+
+        return copy.deepcopy(self)
+
     @sharedmethod
     def rename(self, name):
         """
@@ -2891,6 +2899,14 @@ class _CompoundModel(Model):
                 param = self._param_map_inverse[(imodel, param_sub)]
                 units_for_data[param] = units_for_data_sub[param_sub]
         return units_for_data
+
+    def deepcopy(self):
+        """
+        Return a deep copy of a compound model.
+        """
+        new_model = self.copy()
+        new_model._submodels = [model.deepcopy() for model in self._submodels]
+        return new_model
 
 
 def custom_model(*args, **kwargs):

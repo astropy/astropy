@@ -52,6 +52,8 @@ astropy.modeling
 
 - Add unit support for tabular models. [#6529]
 
+- A ``deepcopy()`` method was added to models. [#6515]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
