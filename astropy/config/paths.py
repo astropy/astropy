@@ -159,7 +159,7 @@ def get_cache_dir():
     return os.path.abspath(_find_or_create_astropy_dir('cache', linkto))
 
 
-class _SetTempPath(object):
+class _SetTempPath:
     _temp_path = None
     _default_path_getter = None
 

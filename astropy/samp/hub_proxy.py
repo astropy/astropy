@@ -12,7 +12,7 @@ from .lockfile_helpers import get_main_running_hub
 __all__ = ['SAMPHubProxy']
 
 
-class SAMPHubProxy(object):
+class SAMPHubProxy:
     """
     Proxy class to simplify the client interaction with a SAMP hub (via the
     standard profile).

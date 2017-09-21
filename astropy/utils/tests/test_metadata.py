@@ -15,7 +15,7 @@ class OrderedDictSubclass(OrderedDict):
     pass
 
 
-class MetaBaseTest(object):
+class MetaBaseTest:
 
     __metaclass__ = abc.ABCMeta
 
@@ -61,7 +61,7 @@ class MetaBaseTest(object):
         assert d.meta['OBSERVER'] == 'Edwin Hubble'
 
 
-class ExampleData(object):
+class ExampleData:
     meta = MetaData()
 
     def __init__(self, meta=None):

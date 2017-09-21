@@ -81,7 +81,7 @@ def timefunc(num_tries=1, verbose=True):
     return real_decorator
 
 
-class RunTimePredictor(object):
+class RunTimePredictor:
     """Class to predict run time.
 
     .. note:: Only predict for single varying numeric input parameter.

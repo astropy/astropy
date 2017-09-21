@@ -219,7 +219,7 @@ def test_subpixel_indices(position, subpixel_index):
 
 
 @pytest.mark.skipif('not HAS_SKIMAGE')
-class TestBlockReduce(object):
+class TestBlockReduce:
     def test_1d(self):
         """Test 1D array."""
         data = np.arange(4)
@@ -278,7 +278,7 @@ class TestBlockReduce(object):
 
 
 @pytest.mark.skipif('not HAS_SKIMAGE')
-class TestBlockReplicate(object):
+class TestBlockReplicate:
     def test_1d(self):
         """Test 1D array."""
         data = np.arange(2)
@@ -323,7 +323,7 @@ class TestBlockReplicate(object):
             block_replicate(data, (2, 2))
 
 
-class TestCutout2D(object):
+class TestCutout2D:
     def setup_class(self):
         self.data = np.arange(20.).reshape(5, 4)
         self.position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')

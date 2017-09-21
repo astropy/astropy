@@ -1038,7 +1038,7 @@ class TestFileFunctions(FitsTestCase):
         that don't have an obvious "open" or "closed" state.
         """
 
-        class MyFileLike(object):
+        class MyFileLike:
             def __init__(self, foobar):
                 self._foobar = foobar
 

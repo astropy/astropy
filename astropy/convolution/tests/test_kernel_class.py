@@ -46,7 +46,7 @@ random_data_1D = np.random.rand(61)
 random_data_2D = np.random.rand(61, 61)
 
 
-class TestKernels(object):
+class TestKernels:
     """
     Test class for the built-in convolution kernels.
     """

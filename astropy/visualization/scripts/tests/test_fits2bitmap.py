@@ -14,7 +14,7 @@ except ImportError:
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-class TestFits2Bitmap(object):
+class TestFits2Bitmap:
     def setup_class(self):
         self.filename = 'test.fits'
 

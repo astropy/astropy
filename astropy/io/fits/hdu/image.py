@@ -852,7 +852,7 @@ class _ImageBaseHDU(_ValidHDU):
             return super(_ImageBaseHDU, self)._calculate_datasum()
 
 
-class Section(object):
+class Section:
     """
     Image section.
 
@@ -1125,7 +1125,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         return errs
 
 
-class _IndexInfo(object):
+class _IndexInfo:
     def __init__(self, indx, naxis):
         if _is_int(indx):
             if 0 <= indx < naxis:

@@ -31,7 +31,7 @@ def equal_data(a, b):
     return True
 
 
-class TestSingleTable(object):
+class TestSingleTable:
 
     def setup_class(self):
         self.data = np.array(list(zip([1, 2, 3, 4],
@@ -155,7 +155,7 @@ class TestSingleTable(object):
         assert equal_data(t, self.data)
 
 
-class TestMultipleHDU(object):
+class TestMultipleHDU:
 
     def setup_class(self):
         self.data1 = np.array(list(zip([1, 2, 3, 4],

@@ -131,7 +131,7 @@ def test_custom_model_bounding_box():
     assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
 
-class Fittable2DModelTester(object):
+class Fittable2DModelTester:
     """
     Test class for all two dimensional parametric models.
 
@@ -305,7 +305,7 @@ class Fittable2DModelTester(object):
                               rtol=0.1)
 
 
-class Fittable1DModelTester(object):
+class Fittable1DModelTester:
     """
     Test class for all one dimensional parametric models.
 

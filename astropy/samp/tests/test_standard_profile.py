@@ -19,7 +19,7 @@ def setup_module(module):
     conf.use_internet = False
 
 
-class TestStandardProfile(object):
+class TestStandardProfile:
 
     @property
     def hub_init_kwargs(self):

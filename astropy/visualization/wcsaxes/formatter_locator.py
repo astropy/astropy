@@ -26,7 +26,7 @@ DSEC_RE = re.compile('^s(.(s)+)?$')
 SCAL_RE = re.compile('^x(.(x)+)?$')
 
 
-class BaseFormatterLocator(object):
+class BaseFormatterLocator:
     """
     A joint formatter/locator
     """

@@ -54,7 +54,7 @@ class ExtensionNotFoundException(Exception):
     pass
 
 
-class HeaderFormatter(object):
+class HeaderFormatter:
     """Class to format the header(s) of a FITS file for display by the
     `fitsheader` tool; essentially a wrapper around a `HDUList` object.
 

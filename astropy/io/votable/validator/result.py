@@ -23,7 +23,7 @@ from .. import exceptions
 from .. import xmlutil
 
 
-class Result(object):
+class Result:
     def __init__(self, url, root='results', timeout=10):
         self.url = url
         m = hashlib.md5()

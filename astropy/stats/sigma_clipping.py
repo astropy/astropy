@@ -8,7 +8,7 @@ from ..utils.exceptions import AstropyUserWarning
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
 
 
-class SigmaClip(object):
+class SigmaClip:
     """
     Class to perform sigma clipping.
 

@@ -48,7 +48,7 @@ _COL_ATTRS = [('unit', 'units'), ('null', 'null values'),
 indent = functools.partial(indent, width=2)
 
 
-class _BaseDiff(object):
+class _BaseDiff:
     """
     Base class for all FITS diff objects.
 

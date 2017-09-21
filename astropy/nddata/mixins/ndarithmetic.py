@@ -98,7 +98,7 @@ _arit_doc = """
     """
 
 
-class NDArithmeticMixin(object):
+class NDArithmeticMixin:
     """
     Mixin class to add arithmetic to an NDData object.
 

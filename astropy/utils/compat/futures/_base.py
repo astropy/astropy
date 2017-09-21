@@ -62,7 +62,7 @@ class TimeoutError(Error):
     pass
 
 
-class _Waiter(object):
+class _Waiter:
     """Provides the event that `wait` and `as_completed` block on."""
     def __init__(self):
         self.event = threading.Event()
@@ -145,7 +145,7 @@ class _AllCompletedWaiter(_Waiter):
         self._decrement_pending_calls()
 
 
-class _AcquireFutures(object):
+class _AcquireFutures:
     """A context manager that does an ordered acquire of `Future`
     conditions.
     """
@@ -311,7 +311,7 @@ def wait(fs, timeout=None, return_when=ALL_COMPLETED):
     return DoneAndNotDoneFutures(done, set(fs) - done)
 
 
-class Future(object):
+class Future:
     """Represents the result of an asynchronous computation."""
 
     def __init__(self):
@@ -557,7 +557,7 @@ class Future(object):
         self._invoke_callbacks()
 
 
-class Executor(object):
+class Executor:
     """This is an abstract base class for concrete asynchronous executors."""
 
     def submit(self, fn, *args, **kwargs):

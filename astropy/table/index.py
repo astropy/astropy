@@ -45,7 +45,7 @@ class QueryError(ValueError):
     pass
 
 
-class Index(object):
+class Index:
     '''
     The Index class makes it possible to maintain indices
     on columns of a Table, so that column values can be queried
@@ -408,7 +408,7 @@ class Index(object):
         return index
 
 
-class SlicedIndex(object):
+class SlicedIndex:
     '''
     This class provides a wrapper around an actual Index object
     to make index slicing function correctly. Since numpy expects
@@ -629,7 +629,7 @@ def get_index(table, table_copy):
     return None
 
 
-class _IndexModeContext(object):
+class _IndexModeContext:
     '''
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
@@ -765,7 +765,7 @@ class TableIndices(list):
         return super(TableIndices, self).__getitem__(item)
 
 
-class TableLoc(object):
+class TableLoc:
     '''
     A pseudo-list of Table rows allowing for retrieval
     of rows by indexed column values.

@@ -61,7 +61,7 @@ def _remove_dead_thread_references():
 atexit.register(_python_exit)
 
 
-class _WorkItem(object):
+class _WorkItem:
     def __init__(self, future, fn, args, kwargs):
         self.future = future
         self.fn = fn

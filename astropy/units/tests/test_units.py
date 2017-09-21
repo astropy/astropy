@@ -255,7 +255,7 @@ def test_convertible_exception2():
 
 @raises(TypeError)
 def test_invalid_type():
-    class A(object):
+    class A:
         pass
 
     u.Unit(A())

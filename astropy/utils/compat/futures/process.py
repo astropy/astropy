@@ -110,7 +110,7 @@ def _remove_dead_thread_references():
 EXTRA_QUEUED_CALLS = 1
 
 
-class _WorkItem(object):
+class _WorkItem:
     def __init__(self, future, fn, args, kwargs):
         self.future = future
         self.fn = fn
@@ -118,14 +118,14 @@ class _WorkItem(object):
         self.kwargs = kwargs
 
 
-class _ResultItem(object):
+class _ResultItem:
     def __init__(self, work_id, exception=None, result=None):
         self.work_id = work_id
         self.exception = exception
         self.result = result
 
 
-class _CallItem(object):
+class _CallItem:
     def __init__(self, work_id, fn, args, kwargs):
         self.work_id = work_id
         self.fn = fn

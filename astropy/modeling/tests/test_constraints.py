@@ -22,7 +22,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestNonLinearConstraints(object):
+class TestNonLinearConstraints:
 
     def setup_class(self):
         self.g1 = models.Gaussian1D(10, 14.9, stddev=.3)
@@ -106,7 +106,7 @@ class TestNonLinearConstraints(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestBounds(object):
+class TestBounds:
 
     def setup_class(self):
         A = -2.0
@@ -210,7 +210,7 @@ class TestBounds(object):
         assert y_stddev - 10 ** -5 <= bounds['y_stddev'][1]
 
 
-class TestLinearConstraints(object):
+class TestLinearConstraints:
 
     def setup_class(self):
         self.p1 = models.Polynomial1D(4)

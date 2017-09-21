@@ -180,7 +180,7 @@ class TableColumns(OrderedDict):
         return cols
 
 
-class Table(object):
+class Table:
     """A class to represent tables of heterogeneous data.
 
     `Table` provides a class for heterogeneous tabular data, making use of a

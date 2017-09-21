@@ -35,7 +35,7 @@ model2d_params = [
 ]
 
 
-class TestInputType(object):
+class TestInputType:
     """
     This class tests that models accept numbers, lists and arrays.
 
@@ -64,7 +64,7 @@ class TestInputType(object):
         m(self.x2, self.y2)
 
 
-class TestFitting(object):
+class TestFitting:
     """Test various input options to fitting routines."""
 
     def setup_class(self):
@@ -215,7 +215,7 @@ class TestFitting(object):
             model = gfit(g2, self.x, self.y, z)
 
 
-class TestEvaluation(object):
+class TestEvaluation:
     """
     Test various input options to model evaluation
 
@@ -311,7 +311,7 @@ class TModel_1_1(Fittable1DModel):
         return x + p1 + p2
 
 
-class TestSingleInputSingleOutputSingleModel(object):
+class TestSingleInputSingleOutputSingleModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = n_output = 1 on a toy model with n_models=1.
@@ -457,7 +457,7 @@ class TestSingleInputSingleOutputSingleModel(object):
                                [31.10, 32.11, 33.12]]]])
 
 
-class TestSingleInputSingleOutputTwoModel(object):
+class TestSingleInputSingleOutputTwoModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = n_output = 1 on a toy model with n_models=2.
@@ -634,7 +634,7 @@ class TModel_1_2(FittableModel):
         return (x + p1 + p2, x + p1 + p2 + p3)
 
 
-class TestSingleInputDoubleOutputSingleModel(object):
+class TestSingleInputDoubleOutputSingleModel:
     """
     A suite of tests to check various cases of parameter and input combinations
     on models with n_input = 1 but n_output = 2 on a toy model with n_models=1.
