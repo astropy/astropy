@@ -426,7 +426,7 @@ class _File(object):
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
             kwargs = dict(mode=IO_FITS_MODES[mode])
-            if isinstance(obj_or_name, string_types):
+            if isinstance(obj_or_name, str):
                 kwargs['filename'] = obj_or_name
             else:
                 kwargs['fileobj'] = obj_or_name
