@@ -5,7 +5,7 @@ Writing Documentation
 *********************
 
 High-quality, consistent documentation for astronomy code is one of
-the major goals of the Astropy project.  Hence, we describe our
+the major goals of the Astropy Project.  Hence, we describe our
 documentation procedures and rules here.  For the astropy core
 project we try to keep to these as closely as possible, while the
 standards for affiliated packages are somewhat looser.

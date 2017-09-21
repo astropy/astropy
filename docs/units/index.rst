@@ -216,5 +216,5 @@ Acknowledgments
 
 This code is adapted from the `pynbody
 <https://github.com/pynbody/pynbody>`__ units module written by Andrew
-Pontzen, who has granted the Astropy project permission to use the code
+Pontzen, who has granted the Astropy Project permission to use the code
 under a BSD license.
