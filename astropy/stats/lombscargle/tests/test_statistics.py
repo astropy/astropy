@@ -102,7 +102,7 @@ def test_inverse_bootstrap(null_data, normalization, use_errs, fmax=5):
     assert_allclose(fap, fap_out, atol=0.05)
 
 
-@pytest.mark.parametrize('method', set(METHODS) - {'bootstrap'})
+@pytest.mark.parametrize('method', sorted(set(METHODS) - {'bootstrap'}))
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 @pytest.mark.parametrize('use_errs', [True, False])
 @pytest.mark.parametrize('N', [10, 100, 1000])
@@ -127,7 +127,7 @@ def test_inverses(method, normalization, use_errs, N, T=5, fmax=5):
     assert_allclose(fap, fap_out)
 
 
-@pytest.mark.parametrize('method', METHODS)
+@pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('normalization', NORMALIZATIONS)
 def test_false_alarm_smoketest(method, normalization, data):
     if not HAS_SCIPY and method in ['baluev', 'davies']:
@@ -150,9 +150,9 @@ def test_false_alarm_smoketest(method, normalization, data):
         assert np.all(fap[:-1] >= fap[1:])  # monotonically decreasing
 
 
-@pytest.mark.parametrize('method', METHODS)
+@pytest.mark.parametrize('method', sorted(METHODS))
 @pytest.mark.parametrize('use_errs', [True, False])
-@pytest.mark.parametrize('normalization', set(NORMALIZATIONS) - {'psd'})
+@pytest.mark.parametrize('normalization', sorted(set(NORMALIZATIONS) - {'psd'}))
 def test_false_alarm_equivalence(method, normalization, use_errs, data):
     # Note: the PSD normalization is not equivalent to the others, in that it
     # depends on the absolute errors rather than relative errors. Because the
