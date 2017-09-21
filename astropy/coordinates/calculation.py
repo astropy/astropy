@@ -106,7 +106,7 @@ def horoscope(birthday, corrected=True):
                              'corrected=False.'.format(zodiac_sign.title()))
     else:
         zodiac_sign = get_sign(birthday.to_datetime())
-    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.asp?sign={sign}&id=45"
+    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.php?sign={sign}&id=45"
 
     f = urlopen(url.format(sign=zodiac_sign.capitalize()))
     try:  # urlopen in py2 is not a decorator
