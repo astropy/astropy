@@ -10,6 +10,7 @@ import pytest
 import numpy as np
 from numpy import linalg
 from numpy.testing.utils import assert_allclose, assert_almost_equal
+from unittest import mock
 
 from . import irafutil
 from .. import models
@@ -29,15 +30,6 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-
-HAS_MOCK = True
-try:
-    from unittest import mock
-except ImportError:
-    try:
-        import mock
-    except ImportError:
-        HAS_MOCK = False
 
 try:
     from pkg_resources import EntryPoint
@@ -470,7 +462,6 @@ class TestNonLinearFitters(object):
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
 
-@pytest.mark.skipif('not HAS_MOCK')
 @pytest.mark.skipif('not HAS_PKG')
 class TestEntryPoint(object):
     """Tests population of fitting with entry point fitters"""
