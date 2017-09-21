@@ -6,6 +6,7 @@ import math
 import re
 import time
 import warnings
+from contextlib import suppress
 
 import numpy as np
 
@@ -21,7 +22,6 @@ from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _get_array_mmap)
 
 from ....utils import lazyproperty
-from ....utils.compat import suppress
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
                                   AstropyUserWarning)
 

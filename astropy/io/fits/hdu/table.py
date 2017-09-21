@@ -9,6 +9,7 @@ import re
 import sys
 import textwrap
 import warnings
+from contextlib import suppress
 
 import numpy as np
 from numpy import char as chararray
@@ -28,7 +29,6 @@ from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....utils import lazyproperty
-from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 

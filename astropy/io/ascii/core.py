@@ -19,6 +19,7 @@ import re
 import warnings
 
 from collections import OrderedDict
+from contextlib import suppress
 from io import StringIO
 
 import numpy
@@ -26,7 +27,6 @@ import numpy
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
-from ...utils.compat import suppress
 from ...utils.data import get_readable_fileobj
 from . import connect
 
