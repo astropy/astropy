@@ -722,8 +722,6 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
-    @pytest.mark.skipif(six.PY2,
-        reason = "API difference in bz2 in 2.7, but will be deprecated anyway")
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), 'rb') as handle:
             with fits.open(handle) as fits_handle:

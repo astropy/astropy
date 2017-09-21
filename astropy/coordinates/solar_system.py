@@ -4,7 +4,7 @@ This module contains convenience functions for retrieving solar system
 ephemerides from jplephem.
 """
 
-
+from urllib.parse import urlparse
 from collections import OrderedDict
 
 import numpy as np
@@ -157,7 +157,7 @@ def _get_kernel(value):
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
     else:
         try:
-            six.moves.urllib.parse.urlparse(value)
+            urlparse(value)
         except Exception:
             raise ValueError('{} was not one of the standard strings and '
                              'could not be parsed as a URL'.format(value))

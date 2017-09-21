@@ -30,4 +30,3 @@ exclude_lines =
 
    # Ignore branches that don't pertain to this version of Python
    pragma: py{ignore_python_version}
-   six.PY{ignore_python_version}
