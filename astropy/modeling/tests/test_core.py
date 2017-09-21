@@ -3,13 +3,13 @@
 
 import pytest
 import numpy as np
+from inspect import signature
 from numpy.testing.utils import assert_allclose
 
 from ..core import Model, custom_model
 from ..parameters import Parameter
 from .. import models
 
-from ...utils.compat.funcsigs import signature
 
 
 class NonFittableModel(Model):

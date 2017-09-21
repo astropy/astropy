@@ -9,6 +9,7 @@ import inspect
 import textwrap
 import types
 import warnings
+from inspect import signature
 
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
@@ -418,9 +419,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
         pending = [pending]
 
     def decorator(function):
-        # Lazy import to avoid cyclic imports
-        from .compat.funcsigs import signature
-
         # The named arguments of the function.
         arguments = signature(function).parameters
         keys = list(arguments.keys())
