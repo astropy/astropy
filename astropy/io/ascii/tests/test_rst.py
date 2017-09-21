@@ -138,18 +138,20 @@ def test_read_right_indented_table():
 
 def test_trailing_spaces_in_row_definition():
     """ Trailing spaces in the row definition column shouldn't matter"""
-    table = """
-# comment (with blank line above)
-   ==== ==== ====    
-   Col1 Col2 Col3
-   ==== ==== ====  
-    3    3.4  foo
-    1    4.5  bar
-   ==== ==== ====  
-"""  # noqa
-    # make sure noone accidentally deletes the trailing whitespaces in the
+    table = (
+        "\n"
+        "# comment (with blank line above)\n"
+        "   ==== ==== ====    \n"
+        "   Col1 Col2 Col3\n"
+        "   ==== ==== ====  \n"
+        "    3    3.4  foo\n"
+        "    1    4.5  bar\n"
+        "   ==== ==== ====  \n"
+    )
+    # make sure no one accidentally deletes the trailing whitespaces in the
     # table.
     assert len(table) == 151
+
     reader = ascii.get_reader(Reader=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
