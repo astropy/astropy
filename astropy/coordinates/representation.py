@@ -38,8 +38,8 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by the metaclass init so all representation and differential
 # classes get registered automatically.
-REPRESENTATION_CLASSES = OrderedDict()
-DIFFERENTIAL_CLASSES = OrderedDict()
+REPRESENTATION_CLASSES = {}
+DIFFERENTIAL_CLASSES = {}
 
 
 def _array2string(values, prefix=''):
