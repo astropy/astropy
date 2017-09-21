@@ -1,6 +1,8 @@
 3.0 (unreleased)
 =================
 
+- Add missing htmldict keyword args to ``table.jsviewer.write_table_jsviewer``.
+
 New Features
 ------------
 

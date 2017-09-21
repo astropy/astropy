@@ -172,6 +172,8 @@ class JSViewer(object):
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                          table_class="display compact", jskwargs=None,
+                         raw_html_cols=[],raw_html_clean_kwargs={},
+                         multicol=True,
                          css=DEFAULT_CSS):
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
@@ -184,6 +186,9 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
     htmldict = {
         'table_id': table_id,
         'table_class': table_class,
+        'multicol': multicol,
+        'raw_html_cols': raw_html_cols,
+        'raw_html_clean_kwargs': raw_html_clean_kwargs,
         'css': css,
         'cssfiles': jsv.css_urls,
         'jsfiles': jsv.jquery_urls,
