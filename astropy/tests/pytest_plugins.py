@@ -6,7 +6,6 @@ into conftest.py in the root directory.
 
 import ast
 import datetime
-import io
 import locale
 import os
 import sys
@@ -252,7 +251,7 @@ class ModifiedModule(pytest.Module):
         pwd = os.getcwd()
         try:
             os.chdir(os.path.dirname(str(self.fspath)))
-            six.exec_(code, new_mod.__dict__)
+            exec(code, new_mod.__dict__)
         finally:
             os.chdir(pwd)
         self.config.pluginmanager.consider_module(new_mod)
