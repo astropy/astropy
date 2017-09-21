@@ -27,7 +27,7 @@ script using the `warnings.filterwarnings` function as follows::
      >>> import warnings
      >>> from astropy.io import fits
      >>> warnings.filterwarnings('ignore', category=UserWarning, append=True)
-     >>> fits.writeto(filename, data, clobber=True)
+     >>> fits.writeto(filename, data, overwrite=True)
 
 An equivalent way to insert an entry into the list of warning filter specifications
 for simple call `warnings.simplefilter`::
@@ -49,7 +49,7 @@ Warning filters may also be modified just within a certain context using the
 
     >>> with warnings.catch_warnings():
     ...     warnings.simplefilter('ignore', AstropyWarning)
-    ...     fits.writeto(filename, data, clobber=True)
+    ...     fits.writeto(filename, data, overwrite=True)
 
 As mentioned above, there are actually *two* base classes for Astropy warnings.
 The main distinction is that `~astropy.utils.exceptions.AstropyUserWarning` is
