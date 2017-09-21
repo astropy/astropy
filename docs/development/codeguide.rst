@@ -196,11 +196,6 @@ Coding Style/Conventions
   it fits in one file, it should simply be a single file, rather than a
   directory with an ``__init__.py`` file.
 
-* When ``try...except`` blocks are used to catch exceptions, the ``as``
-  syntax should always be used, because this is available in all supported
-  versions of Python and is less ambiguous syntax (see
-  :ref:`try-except-as-example`).
-
 * Command-line scripts should follow the form outlined in the :doc:`scripts`
   document.
 
@@ -549,31 +544,6 @@ might read::
 This ensures that ``from submodule import *`` only imports ``':func:`foo'``
 and ``':class:`AClass'``, but not ``':class:`numpy.array'`` or
 ``':func:`numpy.linspace'``.
-
-.. _try-except-as-example:
-
-try...except block "as" syntax
-------------------------------
-
-Catching of exceptions should always use this syntax::
-
-    try:
-        ... some code that might produce a variety of exceptions ...
-    except ImportError as e:
-        if 'somemodule' in e.args[0]:
-            #for whatever reason, failed import of somemodule is ok
-            pass
-        else:
-            raise
-    except ValueError, TypeError as e:
-        msg = 'Hit an input problem, which is ok,'
-        msg2 = 'but we're printing it here just so you know:'
-        print(msg, msg2, e)
-
-This avoids the old style syntax of ``except ImportError, e`` or
-``except (ValueError,TypeError), e``, which is dangerous because it's easy to
-instead accidentally do something like ``except ValueError,TypeError``, which
-won't catch `TypeError`.
 
 
 Additional Resources
