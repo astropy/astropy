@@ -6,6 +6,7 @@ import datetime
 import os
 import sys
 import warnings
+from inspect import signature, Parameter
 
 import numpy as np
 
@@ -19,7 +20,6 @@ from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty
 from ....utils.compat import suppress
-from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 

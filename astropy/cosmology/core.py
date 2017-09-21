@@ -4,6 +4,7 @@
 import sys
 from math import sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
+from inspect import signature
 
 import numpy as np
 
@@ -12,7 +13,6 @@ from . import scalar_inv_efuncs
 from .. import constants as const
 from .. import units as u
 from ..utils import isiterable
-from ..utils.compat.funcsigs import signature
 from ..utils.state import ScienceState
 
 from . import parameters

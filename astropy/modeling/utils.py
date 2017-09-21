@@ -6,12 +6,12 @@ This module provides utility functions for the models package
 
 
 from collections import deque, MutableMapping
+from inspect import signature
 
 import numpy as np
 
 
 from ..utils import isiterable, check_broadcast
-from ..utils.compat.funcsigs import signature
 
 from .. import units as u
 

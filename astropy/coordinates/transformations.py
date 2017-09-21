@@ -22,12 +22,12 @@ from warnings import warn
 
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, OrderedDict
+from inspect import signature
 
 import numpy as np
 
 from .. import units as u
 from ..utils.compat import suppress
-from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyWarning
 
 from .representation import REPRESENTATION_CLASSES
