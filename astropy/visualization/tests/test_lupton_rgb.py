@@ -84,7 +84,7 @@ def test_compute_intensity_3_uint():
     assert_equal(intensity, (image_r+image_g+image_b)//3)
 
 
-class TestLuptonRgb(object):
+class TestLuptonRgb:
     """A test case for Rgb"""
 
     def setup_method(self, method):

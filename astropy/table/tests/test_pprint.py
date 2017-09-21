@@ -335,7 +335,7 @@ class TestFormat():
         t = table_type([[1., 2.], [3, 4]], names=('a', 'b'))
 
         # mathematical function
-        class format(object):
+        class format:
             def __call__(self, x):
                 return str(x * 3.)
         t['a'].format = format()
@@ -476,7 +476,7 @@ class TestFormatWithMaskedElements():
         t['a'].mask = [True, False, True]
 
         # mathematical function
-        class format(object):
+        class format:
             def __call__(self, x):
                 return str(x * 3.)
         t['a'].format = format()

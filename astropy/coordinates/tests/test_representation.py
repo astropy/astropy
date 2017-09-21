@@ -42,7 +42,7 @@ def teardown_function(func):
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
 
 
-class TestSphericalRepresentation(object):
+class TestSphericalRepresentation:
 
     def test_name(self):
         assert SphericalRepresentation.get_name() == 'spherical'
@@ -196,7 +196,7 @@ class TestSphericalRepresentation(object):
         assert not isiterable(s)
 
 
-class TestUnitSphericalRepresentation(object):
+class TestUnitSphericalRepresentation:
 
     def test_name(self):
         assert UnitSphericalRepresentation.get_name() == 'unitspherical'
@@ -304,7 +304,7 @@ class TestUnitSphericalRepresentation(object):
             s_slc = s[0]
 
 
-class TestPhysicsSphericalRepresentation(object):
+class TestPhysicsSphericalRepresentation:
 
     def test_name(self):
         assert PhysicsSphericalRepresentation.get_name() == 'physicsspherical'
@@ -434,7 +434,7 @@ class TestPhysicsSphericalRepresentation(object):
             s_slc = s[0]
 
 
-class TestCartesianRepresentation(object):
+class TestCartesianRepresentation:
 
     def test_name(self):
         assert CartesianRepresentation.get_name() == 'cartesian'
@@ -665,7 +665,7 @@ class TestCartesianRepresentation(object):
         assert s2.z.unit is u.kpc
 
 
-class TestCylindricalRepresentation(object):
+class TestCylindricalRepresentation:
 
     def test_name(self):
         assert CylindricalRepresentation.get_name() == 'cylindrical'
@@ -1080,7 +1080,7 @@ def test_combine_xyz():
     assert np.all(xyz[..., 2] == z)
 
 
-class TestCartesianRepresentationWithDifferential(object):
+class TestCartesianRepresentationWithDifferential:
 
     def test_init_differential(self):
 

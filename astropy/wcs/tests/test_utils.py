@@ -245,7 +245,7 @@ def test_wcs_to_celestial_frame_extend():
     with pytest.raises(ValueError):
         wcs_to_celestial_frame(mywcs)
 
-    class OffsetFrame(object):
+    class OffsetFrame:
         pass
 
     def identify_offset(wcs):
@@ -323,7 +323,7 @@ def test_celestial_frame_to_wcs():
 
 def test_celestial_frame_to_wcs_extend():
 
-    class OffsetFrame(object):
+    class OffsetFrame:
         pass
 
     frame = OffsetFrame()

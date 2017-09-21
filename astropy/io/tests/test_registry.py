@@ -18,7 +18,7 @@ _WRITERS_ORIGINAL = copy(_writers)
 _IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
 
-class TestData(object):
+class TestData:
     read = classmethod(io_registry.read)
     write = io_registry.write
 

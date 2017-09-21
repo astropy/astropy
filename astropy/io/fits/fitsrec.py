@@ -19,7 +19,7 @@ from ...utils import lazyproperty
 from ...utils.compat import suppress
 
 
-class FITS_record(object):
+class FITS_record:
     """
     FITS record class.
 

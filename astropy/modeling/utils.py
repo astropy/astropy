@@ -19,7 +19,7 @@ __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']
 
 
-class ExpressionTree(object):
+class ExpressionTree:
     __slots__ = ['left', 'right', 'value']
 
     def __init__(self, value, left=None, right=None):

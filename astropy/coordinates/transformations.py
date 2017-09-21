@@ -38,7 +38,7 @@ __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'FunctionTransformWithFiniteDifference', 'CompositeTransform']
 
 
-class TransformGraph(object):
+class TransformGraph:
     """
     A graph representing the paths between coordinate frames.
     """

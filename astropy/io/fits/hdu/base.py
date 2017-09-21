@@ -24,7 +24,7 @@ from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 
 
-class _Delayed(object):
+class _Delayed:
     pass
 
 

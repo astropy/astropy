@@ -54,7 +54,7 @@ def test_wraps_exclude_names():
     # This particular test demonstrates wrapping an instance method
     # as a function and excluding the "self" argument:
 
-    class TestClass(object):
+    class TestClass:
         def method(self, a, b, c=1, d=2, **kwargs):
             return (a, b, c, d, kwargs)
 
@@ -123,7 +123,7 @@ def test_deprecated_attribute():
 # This needs to be defined outside of the test function, because we
 # want to try to pickle it.
 @deprecated('100.0')
-class TA(object):
+class TA:
     """
     This is the class docstring.
     """
@@ -177,7 +177,7 @@ def test_deprecated_class_with_super():
     """
 
     @deprecated('100.0')
-    class TB(object):
+    class TB:
         def __init__(self, a, b):
             super(TB, self).__init__()
 
@@ -215,7 +215,7 @@ def test_deprecated_static_and_classmethod():
     where it appears that deprecated staticmethods didn't work on Python 2.6.
     """
 
-    class A(object):
+    class A:
         """Docstring"""
 
         @deprecated('1.0')
@@ -246,7 +246,7 @@ def test_deprecated_static_and_classmethod():
 def test_deprecated_argument():
     # Tests the decorator with function, method, staticmethod and classmethod.
 
-    class Test(object):
+    class Test:
 
         @classmethod
         @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
@@ -454,7 +454,7 @@ def test_sharedmethod_reuse_on_subclasses():
         def foo(cls):
             return cls.x
 
-    class A(object):
+    class A:
         x = 3
 
         def __init__(self, x):
@@ -488,7 +488,7 @@ def test_classproperty_docstring():
     set __doc__ properly on instances of property subclasses.
     """
 
-    class A(object):
+    class A:
         # Inherits docstring from getter
         @classproperty
         def foo(cls):
@@ -498,7 +498,7 @@ def test_classproperty_docstring():
 
     assert A.__dict__['foo'].__doc__ == "The foo."
 
-    class B(object):
+    class B:
         # Use doc passed to classproperty constructor
         def _get_foo(cls): return 1
 
@@ -672,7 +672,7 @@ def test_format_doc_onMethod():
     # decorator
     docstring = 'what we do {__doc__}'
 
-    class TestClass(object):
+    class TestClass:
         @format_doc(docstring)
         @format_doc(None, 'strange.')
         def test_method(self):
@@ -687,7 +687,7 @@ def test_format_doc_onClass():
     docstring = 'what we do {__doc__} {0}{opt}'
 
     @format_doc(docstring, 'strange', opt='.')
-    class TestClass(object):
+    class TestClass:
         '''is'''
         pass
 

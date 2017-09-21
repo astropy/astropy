@@ -36,7 +36,7 @@ END_CARD = 'END' + ' ' * 77
 __doctest_skip__ = ['Header', 'Header.*']
 
 
-class Header(object):
+class Header:
     """
     FITS header class.  This class exposes both a dict-like interface and a
     list-like interface to FITS headers.
@@ -1906,7 +1906,7 @@ collections.MutableSequence.register(Header)
 collections.MutableMapping.register(Header)
 
 
-class _CardAccessor(object):
+class _CardAccessor:
     """
     This is a generic class for wrapping a Header in such a way that you can
     use the header's slice/filtering capabilities to return a subset of cards

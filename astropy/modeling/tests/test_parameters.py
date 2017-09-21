@@ -128,7 +128,7 @@ def test_parameter_operators():
     assert abs(par) == abs(num)
 
 
-class TestParameters(object):
+class TestParameters:
 
     def setup_class(self):
         """
@@ -303,7 +303,7 @@ class TestParameters(object):
             sh1.offset = [3, 3]
 
 
-class TestMultipleParameterSets(object):
+class TestMultipleParameterSets:
 
     def setup_class(self):
         self.x1 = np.arange(1, 10, .1)
@@ -349,7 +349,7 @@ class TestMultipleParameterSets(object):
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
 
-class TestParameterInitialization(object):
+class TestParameterInitialization:
     """
     This suite of tests checks most if not all cases if instantiating a model
     with parameters of different shapes/sizes and with different numbers of

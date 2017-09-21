@@ -12,7 +12,7 @@ from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
 
 
-class TestUfuncCoverage(object):
+class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
     def test_coverage(self):
@@ -28,7 +28,7 @@ class TestUfuncCoverage(object):
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
 
-class TestQuantityTrigonometricFuncs(object):
+class TestQuantityTrigonometricFuncs:
     """
     Test trigonometric functions
     """
@@ -210,7 +210,7 @@ class TestQuantityTrigonometricFuncs(object):
             np.degrees(3. * u.m)
 
 
-class TestQuantityMathFuncs(object):
+class TestQuantityMathFuncs:
     """
     Test other mathematical functions
     """
@@ -488,7 +488,7 @@ class TestQuantityMathFuncs(object):
                                      .format(function.__name__))
 
 
-class TestInvariantUfuncs(object):
+class TestInvariantUfuncs:
 
     # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
@@ -563,7 +563,7 @@ class TestInvariantUfuncs(object):
         assert "compatible dimensions" in exc.value.args[0]
 
 
-class TestComparisonUfuncs(object):
+class TestComparisonUfuncs:
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,
@@ -598,7 +598,7 @@ class TestComparisonUfuncs(object):
         assert "compatible dimensions" in exc.value.args[0]
 
 
-class TestInplaceUfuncs(object):
+class TestInplaceUfuncs:
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
@@ -770,7 +770,7 @@ class TestInplaceUfuncs(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncAt(object):
+class TestUfuncAt:
     """Test that 'at' method for ufuncs (calculates in-place at given indices)
 
     For Quantities, since calculations are in-place, it makes sense only
@@ -859,7 +859,7 @@ class TestUfuncAt(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncReduceReduceatAccumulate(object):
+class TestUfuncReduceReduceatAccumulate:
     """Test 'reduce', 'reduceat' and 'accumulate' methods for ufuncs
 
     For Quantities, it makes sense only if the unit does not have to change
@@ -934,7 +934,7 @@ class TestUfuncReduceReduceatAccumulate(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncOuter(object):
+class TestUfuncOuter:
     """Test 'outer' methods for ufuncs
 
     Just a few spot checks, since it uses the same code as the regular

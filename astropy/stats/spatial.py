@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 
-class RipleysKEstimator(object):
+class RipleysKEstimator:
     """
     Estimators for Ripley's K function for two-dimensional spatial data.
     See [1]_, [2]_, [3]_, [4]_, [5]_ for detailed mathematical and

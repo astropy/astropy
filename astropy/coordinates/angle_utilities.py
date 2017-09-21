@@ -24,7 +24,7 @@ from ..utils import format_exception
 from .. import units as u
 
 
-class _AngleParser(object):
+class _AngleParser:
     """
     Parses the various angle formats including:
 

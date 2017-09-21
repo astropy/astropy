@@ -79,7 +79,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
                                      str(targets[0])))
 
 
-class QuantityInput(object):
+class QuantityInput:
 
     @classmethod
     def as_decorator(cls, func=None, **kwargs):

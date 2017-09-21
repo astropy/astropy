@@ -38,7 +38,7 @@ options = list(itertools.product(BOUNDARY_OPTIONS,
                                  ))
 
 
-class TestConvolve1D(object):
+class TestConvolve1D:
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1_none(self, boundary, nan_treatment, normalize_kernel):
@@ -340,7 +340,7 @@ class TestConvolve1D(object):
                 assert_allclose(result, array * kernel, atol=1e-14)
 
 
-class TestConvolve2D(object):
+class TestConvolve2D:
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1x1_none(self, boundary, nan_treatment, normalize_kernel):

@@ -551,7 +551,7 @@ class StreamHandler(logging.StreamHandler):
         print(": " + record.message, file=stream)
 
 
-class FilterOrigin(object):
+class FilterOrigin:
     '''A filter for the record origin'''
 
     def __init__(self, origin):

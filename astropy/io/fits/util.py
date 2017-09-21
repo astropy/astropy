@@ -26,7 +26,7 @@ try:
     from StringIO import StringIO
 except ImportError:
     # Use for isinstance test only
-    class StringIO(object):
+    class StringIO:
         pass
 
 from ...utils import wraps
@@ -38,7 +38,7 @@ cmp = lambda a, b: (a > b) - (a < b)
 all_integer_types = (int, np.integer)
 
 
-class NotifierMixin(object):
+class NotifierMixin:
     """
     Mixin class that provides services by which objects can register
     listeners to changes on that object.
@@ -71,7 +71,7 @@ class NotifierMixin(object):
     ...         self.state += 1
     ...         self._notify('widget_state_changed', self)
     ...
-    >>> class WidgetListener(object):
+    >>> class WidgetListener:
     ...     def _update_widget_state_changed(self, widget):
     ...         print('Widget {0} changed state to {1}'.format(
     ...             widget.name, widget.state))
@@ -175,7 +175,7 @@ def itersubclasses(cls, _seen=None):
 
     Generator over all subclasses of a given class, in depth first order.
 
-    >>> class A(object): pass
+    >>> class A: pass
     >>> class B(A): pass
     >>> class C(A): pass
     >>> class D(B,C): pass
@@ -225,7 +225,7 @@ def ignore_sigint(func):
         single_thread = (threading.activeCount() == 1 and
                          curr_thread.getName() == 'MainThread')
 
-        class SigintHandler(object):
+        class SigintHandler:
             def __init__(self):
                 self.sigint_received = False
 

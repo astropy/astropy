@@ -35,7 +35,7 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation']
 
 
-class _EulerRotation(object):
+class _EulerRotation:
     """
     Base class which does the actual computation.
     """

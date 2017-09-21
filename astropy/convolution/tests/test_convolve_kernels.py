@@ -44,7 +44,7 @@ for shape in SHAPES_ODD:
                                       factor=10))
 
 
-class Test2DConvolutions(object):
+class Test2DConvolutions:
 
     @pytest.mark.parametrize('kernel', KERNELS)
     def test_centered_makekernel(self, kernel):

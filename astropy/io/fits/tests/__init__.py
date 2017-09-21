@@ -9,7 +9,7 @@ import time
 from ... import fits
 
 
-class FitsTestCase(object):
+class FitsTestCase:
     def setup(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')

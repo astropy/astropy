@@ -549,7 +549,7 @@ class classproperty(property):
 
     ::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -567,7 +567,7 @@ class classproperty(property):
     As previously noted, a `classproperty` is limited to implementing
     read-only attributes::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -583,7 +583,7 @@ class classproperty(property):
 
     When the ``lazy`` option is used, the getter is only called once::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     @classproperty(lazy=True)
         ...     def bar(cls):
         ...         print("Performing complicated calculation")
@@ -694,7 +694,7 @@ class lazyproperty(property):
     useful for computing the value of some property that should otherwise be
     invariant.  For example::
 
-        >>> class LazyTest(object):
+        >>> class LazyTest:
         ...     @lazyproperty
         ...     def complicated_property(self):
         ...         print('Computing the value for complicated_property...')
@@ -766,7 +766,7 @@ class sharedmethod(classmethod):
     behaves like a normal instance method (a reference to the instance is
     automatically passed as the first ``self`` argument of the method)::
 
-        >>> class Example(object):
+        >>> class Example:
         ...     @sharedmethod
         ...     def identify(self, *args):
         ...         print('self was', self)

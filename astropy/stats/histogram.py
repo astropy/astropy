@@ -278,7 +278,7 @@ def knuth_bin_width(data, return_bins=False, quiet=True):
         return dx
 
 
-class _KnuthF(object):
+class _KnuthF:
     r"""Class which implements the function minimized by knuth_bin_width
 
     Parameters

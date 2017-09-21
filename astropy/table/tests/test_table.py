@@ -31,7 +31,7 @@ else:
     HAS_PANDAS = True
 
 
-class SetupData(object):
+class SetupData:
     def _setup(self, table_types):
         self._table_type = table_types.Table
         self._column_type = table_types.Column
@@ -1521,7 +1521,7 @@ def test_table_init_from_degenerate_arrays(table_types):
 
 
 @pytest.mark.skipif('not HAS_PANDAS')
-class TestPandas(object):
+class TestPandas:
 
     def test_simple(self):
 
@@ -1677,7 +1677,7 @@ class Test__Astropy_Table__():
     implements the __astropy_table__ interface method.
     """
 
-    class SimpleTable(object):
+    class SimpleTable:
         def __init__(self):
             self.columns = [[1, 2, 3],
                             [4, 5, 6],

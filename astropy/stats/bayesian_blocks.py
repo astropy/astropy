@@ -154,7 +154,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     return fitfunc.fit(t, x, sigma)
 
 
-class FitnessFunc(object):
+class FitnessFunc:
     """Base class for bayesian blocks fitness functions
 
     Derived classes should overload the following method:

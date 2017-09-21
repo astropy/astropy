@@ -83,7 +83,7 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology(object):
+class Cosmology:
     """ Placeholder for when a more general Cosmology class is
     implemented. """
 

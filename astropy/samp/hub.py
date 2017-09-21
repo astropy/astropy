@@ -30,7 +30,7 @@ __all__ = ['SAMPHubServer', 'WebProfileDialog']
 __doctest_skip__ = ['.', 'SAMPHubServer.*']
 
 
-class SAMPHubServer(object):
+class SAMPHubServer:
     """
     SAMP Hub Server.
 
@@ -1354,7 +1354,7 @@ class SAMPHubServer(object):
                                  .format(private_key))
 
 
-class WebProfileDialog(object):
+class WebProfileDialog:
     """
     A base class to make writing Web Profile GUI consent dialogs
     easier.

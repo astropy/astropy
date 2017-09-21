@@ -263,7 +263,7 @@ def test_empty_config_file():
     assert is_unedited_config_file(content)
 
 
-class TestAliasRead(object):
+class TestAliasRead:
 
     def setup_class(self):
         configuration._override_config_file = get_pkg_data_filename('data/alias.cfg')

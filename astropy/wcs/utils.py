@@ -138,7 +138,7 @@ WCS_FRAME_MAPPINGS = [[_wcs_to_celestial_frame_builtin]]
 FRAME_WCS_MAPPINGS = [[_celestial_frame_to_wcs_builtin]]
 
 
-class custom_wcs_to_frame_mappings(object):
+class custom_wcs_to_frame_mappings:
     def __init__(self, mappings=[]):
         if hasattr(mappings, '__call__'):
             mappings = [mappings]
@@ -155,7 +155,7 @@ class custom_wcs_to_frame_mappings(object):
 custom_frame_mappings = custom_wcs_to_frame_mappings
 
 
-class custom_frame_to_wcs_mappings(object):
+class custom_frame_to_wcs_mappings:
     def __init__(self, mappings=[]):
         if hasattr(mappings, '__call__'):
             mappings = [mappings]

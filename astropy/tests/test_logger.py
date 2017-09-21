@@ -157,7 +157,7 @@ def test_import_error_in_warning_logging():
     this problem.
     """
 
-    class FakeModule(object):
+    class FakeModule:
         def __getattr__(self, attr):
             raise ImportError('_showwarning should ignore any exceptions '
                               'here')

@@ -184,7 +184,7 @@ def _get_data_attribute(dat, attr=None):
     return str(val)
 
 
-class DataInfo(object):
+class DataInfo:
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be

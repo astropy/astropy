@@ -24,7 +24,7 @@ lq_subclasses = [u.Dex, u.Magnitude, u.Decibel]
 pu_sample = (u.dimensionless_unscaled, u.m, u.g/u.s**2, u.Jy)
 
 
-class TestLogUnitCreation(object):
+class TestLogUnitCreation:
 
     def test_logarithmic_units(self):
         """Check logarithmic units are set up correctly."""
@@ -114,7 +114,7 @@ def test_inequality():
     assert lu1 == lu4
 
 
-class TestLogUnitStrings(object):
+class TestLogUnitStrings:
 
     def test_str(self):
         """Do some spot checks that str, repr, etc. work as expected."""
@@ -142,7 +142,7 @@ class TestLogUnitStrings(object):
         assert lu4._repr_latex_() == lu4.to_string('latex')
 
 
-class TestLogUnitConversion(object):
+class TestLogUnitConversion:
     @pytest.mark.parametrize('lu_unit, physical_unit',
                              itertools.product(lu_units, pu_sample))
     def test_physical_unit_conversion(self, lu_unit, physical_unit):
@@ -232,7 +232,7 @@ class TestLogUnitConversion(object):
         assert lu.is_equivalent(pu_sample)
 
 
-class TestLogUnitArithmetic(object):
+class TestLogUnitArithmetic:
     def test_multiplication_division(self):
         """Check that multiplication/division with other units is only
         possible when the physical unit is dimensionless, and that this
@@ -406,7 +406,7 @@ def test_hashable():
     assert len(luset) == 2
 
 
-class TestLogQuantityCreation(object):
+class TestLogQuantityCreation:
 
     @pytest.mark.parametrize('lq, lu', zip(lq_subclasses + [u.LogQuantity],
                                            lu_subclasses + [u.LogUnit]))
@@ -517,7 +517,7 @@ def test_quantity_decomposition():
     assert lq.cgs.unit.physical_unit.bases == [u.g, u.s]
 
 
-class TestLogQuantityViews(object):
+class TestLogQuantityViews:
     def setup(self):
         self.lq = u.Magnitude(np.arange(10.) * u.Jy)
         self.lq2 = u.Magnitude(np.arange(5.))
@@ -549,7 +549,7 @@ class TestLogQuantityViews(object):
         assert np.all(lq3 == self.lq2)
 
 
-class TestLogQuantitySlicing(object):
+class TestLogQuantitySlicing:
     def test_item_get_and_set(self):
         lq1 = u.Magnitude(np.arange(1., 11.)*u.Jy)
         assert lq1[9] == u.Magnitude(10.*u.Jy)
@@ -576,7 +576,7 @@ class TestLogQuantitySlicing(object):
         assert np.all(lq1[2] == u.Magnitude(100.*u.Jy))
 
 
-class TestLogQuantityArithmetic(object):
+class TestLogQuantityArithmetic:
     def test_multiplication_division(self):
         """Check that multiplication/division with other quantities is only
         possible when the physical unit is dimensionless, and that this turns
@@ -750,7 +750,7 @@ class TestLogQuantityArithmetic(object):
                       (m_st.physical*4.*np.pi*(100.*u.pc)**2) - 1.) < 1.e-15
 
 
-class TestLogQuantityComparisons(object):
+class TestLogQuantityComparisons:
     def test_comparison_to_non_quantities_fails(self):
         lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
         with pytest.raises(TypeError):
@@ -788,7 +788,7 @@ class TestLogQuantityComparisons(object):
             lq6 < 2.*u.m
 
 
-class TestLogQuantityMethods(object):
+class TestLogQuantityMethods:
     def setup(self):
         self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
         self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()
@@ -835,7 +835,7 @@ class TestLogQuantityMethods(object):
             getattr(self.m1, method)()
 
 
-class TestLogQuantityUfuncs(object):
+class TestLogQuantityUfuncs:
     """Spot checks on ufuncs."""
 
     def setup(self):

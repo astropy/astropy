@@ -208,7 +208,7 @@ def pytest_configure(config):
     config.pluginmanager.unregister(doctest_plugin)
 
 
-class DoctestPlus(object):
+class DoctestPlus:
     def __init__(self, doctest_module_item_cls, doctest_textfile_item_cls,
                  run_rst_doctests):
         """

@@ -31,7 +31,7 @@ def wrap_angle_at(values, coord_wrap):
         return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
 
 
-class CoordinateHelper(object):
+class CoordinateHelper:
     """
     Helper class to control one of the coordinates in the
     :class:`~astropy.visualization.wcsaxes.WCSAxes`.

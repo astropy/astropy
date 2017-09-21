@@ -9,7 +9,7 @@ from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
                         AsymmetricPercentileInterval, ZScaleInterval)
 
 
-class TestInterval(object):
+class TestInterval:
 
     data = np.linspace(-20., 60., 100)
 

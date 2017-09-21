@@ -16,7 +16,7 @@ else:
     HAS_SCIPY = True
 
 
-class TestConvolve1DModels(object):
+class TestConvolve1DModels:
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_is_consistency_with_astropy_convolution(self, mode):
