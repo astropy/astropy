@@ -394,8 +394,8 @@ def fileobj_open(filename, mode):
     This exists because in Python 3, `open()` returns an
     `io.BufferedReader` by default.  This is bad, because
     `io.BufferedReader` doesn't support random access, which we need in
-    some cases.  In the Python 3 case (implemented in the py3compat module)
-    we must call open with buffering=0 to get a raw random-access file
+    some cases.  In the Python 3 case we must call open with
+    buffering=0 to get a raw random-access file
     reader.
     """
 
