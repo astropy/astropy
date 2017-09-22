@@ -101,6 +101,6 @@ setup(name=NAME,
       cmdclass=cmdclassd,
       zip_safe=False,
       entry_points=entry_points,
-      python_requires='>=3.5',
+      python_requires='>=' + astropy.__minimum_python_version__,
       **package_info
 )
