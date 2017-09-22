@@ -12,9 +12,6 @@ standard, see the NASA/Science Office of Standards and Technology
 publication, NOST 100-2.0.
 """
 
-
-from . import py3compat
-
 from ... import config as _config
 
 # Set module-global boolean variables
