@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-import itertools
 
 import numpy as np
 from numpy.random import randn, normal
@@ -25,7 +24,6 @@ else:
 from .. import funcs
 from ... import units as u
 from ...tests.helper import catch_warnings
-from ...utils.compat import NUMPY_LT_1_10  # pylint: disable=W0611
 from ...utils.misc import NumpyRNGContext
 
 
@@ -94,7 +92,6 @@ def test_median_absolute_deviation_masked():
         funcs.median_absolute_deviation(array, axis=1).data, [0, 0])
 
 
-@pytest.mark.skipif('NUMPY_LT_1_10')
 def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan],
                       [2, 5, np.nan, 4]])
@@ -324,7 +321,7 @@ def test_mad_std():
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
-@pytest.mark.xfail('not NUMPY_LT_1_10')
+@pytest.mark.xfail()
 def test_mad_std_scalar_return():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(10, 10))
@@ -350,12 +347,7 @@ def test_mad_std_warns():
 
         with catch_warnings() as warns:
             rslt = funcs.mad_std(data, ignore_nan=False)
-            if NUMPY_LT_1_10:
-                w = warns[0]
-                assert str(w.message).startswith(
-                    "Numpy versions <1.10 will return")
-            else:
-                assert np.isnan(rslt)
+            assert np.isnan(rslt)
 
 
 def test_mad_std_withnan():
@@ -365,8 +357,7 @@ def test_mad_std_withnan():
         data[1:-1, 1:-1] = normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
-    if not NUMPY_LT_1_10:
-        assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
+    assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
     assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
                     1.482602218505602)
 

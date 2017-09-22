@@ -17,7 +17,6 @@ import numpy as np
 
 from warnings import warn
 
-from ..utils.compat import NUMPY_LT_1_10
 from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
 
@@ -789,11 +788,6 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
             func = np.median
     else:
         is_masked = None
-
-    if not ignore_nan and NUMPY_LT_1_10 and np.any(np.isnan(data)):
-        warn("Numpy versions <1.10 will return a number rather than NaN for "
-             "the median of arrays containing NaNs.  This behavior is "
-             "unlikely to be what you expect.")
 
     data = np.asanyarray(data)
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
