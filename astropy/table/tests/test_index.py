@@ -14,19 +14,20 @@ from ..column import BaseColumn
 try:
     import bintrees
 except ImportError:
-    _HAS_BINTREES = False
+    HAS_BINTREES = False
 else:
-    _HAS_BINTREES = True
+    HAS_BINTREES = True
 
 
-if _HAS_BINTREES:
-    @pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
-    def engine(request):
-        return request.param
+if HAS_BINTREES:
+    available_engines = [BST, FastBST, FastRBT, SortedArray]
 else:
-    @pytest.fixture(params=[BST, SortedArray])
-    def engine(request):
-        return request.param
+    available_engines = [BST, SortedArray]
+
+
+@pytest.fixture(params=available_engines)
+def engine(request):
+    return request.param
 
 
 _col = [1, 2, 3, 4, 5]
