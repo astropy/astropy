@@ -11,8 +11,11 @@ import sys
 import os
 from warnings import warn
 
-if sys.version_info[:2] < (3, 5):
-    warn("Astropy does not support Python <3.5 (in v3.0 and later)")
+__minimum_python_version__ = '3.5'
+__minimum_numpy_version__ = '1.9.0'
+
+if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
+    warn("Astropy does not support Python < {}".format(__minimum_python_version__))
 
 
 def _is_astropy_source(path=None):
@@ -70,9 +73,6 @@ try:
 except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
-
-
-__minimum_numpy_version__ = '1.9.0'
 
 
 # The location of the online documentation for astropy
