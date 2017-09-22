@@ -290,7 +290,6 @@ class TestQuantityMathFuncs:
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
-    # cbrt only introduced in numpy 1.10
     # heaviside only introduced in numpy 1.13
     @pytest.mark.skipif("not hasattr(np, 'heaviside')")
     def test_heaviside_scalar(self):

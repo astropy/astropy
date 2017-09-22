@@ -4,8 +4,6 @@
     Test the Quantity class and related.
 """
 
-
-import sys
 import copy
 import pickle
 import decimal
@@ -17,7 +15,6 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_10
 from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
@@ -578,10 +575,9 @@ class TestQuantityOperations:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # Fails for numpy >=1.10; see https://github.com/numpy/numpy/issues/5074
+    # See https://github.com/numpy/numpy/issues/5074
     # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(not NUMPY_LT_1_10,
-                       reason="list multiplication only works for numpy <=1.10")
+    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
     def test_numeric_converter_to_index_in_practice(self):
         """Test that use of __index__ actually works."""
         q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
