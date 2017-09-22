@@ -25,7 +25,7 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
-import datetime
+from datetime import datetime
 import os
 ON_RTD = os.environ.get('READTHEDOCS') == 'True'
 ON_TRAVIS = os.environ.get('TRAVIS') == 'true'
