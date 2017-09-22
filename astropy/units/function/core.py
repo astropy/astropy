@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
-from __future__ import (absolute_import, unicode_literals,
-                        division, print_function)
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy as np
 
-from ...extern import six
 from .. import (Unit, UnitBase, UnitsError, UnitTypeError,
                 dimensionless_unscaled, Quantity)
 
@@ -30,8 +27,7 @@ SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
 # a large number of overrides. Hence, define new class.
-@six.add_metaclass(ABCMeta)
-class FunctionUnitBase(object):
+class FunctionUnitBase(metaclass=ABCMeta):
     """Abstract base class for function units.
 
     Function units are functions containing a physical unit, such as dB(mW).
@@ -270,7 +266,7 @@ class FunctionUnitBase(object):
         return not self.__eq__(other)
 
     def __mul__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit * other
@@ -288,7 +284,7 @@ class FunctionUnitBase(object):
         return self.__mul__(other)
 
     def __div__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit / other
@@ -303,7 +299,7 @@ class FunctionUnitBase(object):
                 return NotImplemented
 
     def __rdiv__(self, other):
-        if isinstance(other, (six.string_types, UnitBase, FunctionUnitBase)):
+        if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
                 return other / self.function_unit

@@ -14,21 +14,20 @@ table column attributes such as name, format, dtype, meta, and description.
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
-from __future__ import absolute_import, division, print_function
 
 import os
+import re
 import sys
 import weakref
-from copy import deepcopy
-import numpy as np
-from functools import partial
 import warnings
-import re
+from io import StringIO
+from copy import deepcopy
+from functools import partial
 from collections import OrderedDict
 from contextlib import contextmanager
 
-from ..extern import six
-from ..extern.six.moves import zip, cStringIO as StringIO
+import numpy as np
+
 from . import metadata
 
 
@@ -94,7 +93,7 @@ def dtype_info_name(dtype):
     dtype = np.dtype(dtype)
     if dtype.kind in ('S', 'U'):
         length = re.search(r'(\d+)', dtype.str).group(1)
-        type_name = STRING_TYPE_NAMES[(not six.PY2, dtype.kind)]
+        type_name = STRING_TYPE_NAMES[(True, dtype.kind)]
         out = type_name + length
     else:
         out = dtype.name
@@ -137,7 +136,7 @@ def data_info_factory(names, funcs):
         outs = []
         for name, func in zip(names, funcs):
             try:
-                if isinstance(func, six.string_types):
+                if isinstance(func, str):
                     out = getattr(dat, func)()
                 else:
                     out = func(dat)
@@ -163,10 +162,6 @@ def _get_obj_attrs_map(obj, attrs):
         val = getattr(obj, attr, None)
 
         if val is not None:
-            if six.PY2:
-                attr = str(attr)
-                if isinstance(val, six.text_type):
-                    val = str(val)
             out[attr] = val
     return out
 
@@ -387,7 +382,7 @@ class DataInfo(object):
 
         options = option if isinstance(option, (list, tuple)) else [option]
         for option in options:
-            if isinstance(option, six.string_types):
+            if isinstance(option, str):
                 if hasattr(self, 'info_summary_' + option):
                     option = getattr(self, 'info_summary_' + option)
                 else:

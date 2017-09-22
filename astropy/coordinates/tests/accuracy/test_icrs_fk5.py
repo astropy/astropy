@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import numpy as np
@@ -11,7 +9,6 @@ from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_contents
-from ....extern.six.moves import range
 
 # the number of tests to run
 from . import N_ACCURACY_TESTS

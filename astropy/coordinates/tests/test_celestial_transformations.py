@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -16,7 +14,6 @@ from ...tests.helper import (pytest, quantity_allclose as allclose,
 from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
 
-from ...extern.six.moves import range
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]

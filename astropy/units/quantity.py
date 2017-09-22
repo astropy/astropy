@@ -6,8 +6,6 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Standard library
 import re
@@ -18,8 +16,6 @@ import warnings
 import numpy as np
 
 # AstroPy
-from ..extern import six
-from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
@@ -200,8 +196,7 @@ class QuantityInfo(QuantityInfoBase):
         return out
 
 
-@six.add_metaclass(InheritDocstrings)
-class Quantity(np.ndarray):
+class Quantity(np.ndarray, metaclass=InheritDocstrings):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
@@ -312,7 +307,7 @@ class Quantity(np.ndarray):
         # To ensure array remains fast, we short-circuit it.
         value_unit = None
         if not isinstance(value, np.ndarray):
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 # The first part of the regex string matches any integer/float;
                 # the second parts adds possible trailing .+-, which will break
                 # the float function below and ensure things like 1.2.3deg
@@ -1023,7 +1018,7 @@ class Quantity(np.ndarray):
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(self.copy(), other * self.unit)
             except UnitsError:  # let other try to deal with it
@@ -1034,7 +1029,7 @@ class Quantity(np.ndarray):
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
 
@@ -1050,7 +1045,7 @@ class Quantity(np.ndarray):
     def __truediv__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(self.copy(), self.unit / other)
             except UnitsError:  # let other try to deal with it
@@ -1061,7 +1056,7 @@ class Quantity(np.ndarray):
     def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
 
@@ -1070,7 +1065,7 @@ class Quantity(np.ndarray):
     def __rtruediv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, (UnitBase, six.string_types)):
+        if isinstance(other, (UnitBase, str)):
             return self._new_view(1. / self.value, other / self.unit)
 
         return super(Quantity, self).__rtruediv__(other)
@@ -1174,19 +1169,13 @@ class Quantity(np.ndarray):
             self.info.adjust_indices(i, value, len(self))
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
 
-    if six.PY2:  # don't fall through to ndarray.__setslice__
-        def __setslice__(self, i, j, value):
-            self.__setitem__(slice(i, j), value)
-
     # __contains__ is OK
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Quantities should always be treated as non-False; there is too much
         potential for ambiguity otherwise.
         """
         return True
-    if not six.PY2:
-        __bool__ = __nonzero__
 
     def __len__(self):
         if self.isscalar:
@@ -1219,14 +1208,6 @@ class Quantity(np.ndarray):
         except Exception:
             raise TypeError('only integer dimensionless scalar quantities '
                             'can be converted to a Python index')
-
-    if six.PY2:
-        def __long__(self):
-            try:
-                return long(self.to_value(dimensionless_unscaled))
-            except (UnitsError, TypeError):
-                raise TypeError('only dimensionless scalar quantities can be '
-                                'converted to Python scalars')
 
     @property
     def _unitstr(self):

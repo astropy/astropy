@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-import copy
 import gc
 import sys
+import copy
+from io import StringIO
 from collections import OrderedDict
 
 import numpy as np
 from numpy.testing import assert_allclose
 
-from ...extern import six
 from ...io import fits
 from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
                              ignore_warnings, catch_warnings)
@@ -20,7 +19,6 @@ from ... import table
 from ... import units as u
 from .conftest import MaskedTable
 
-from ...extern.six.moves import zip, range, cStringIO as StringIO
 
 try:
     with ignore_warnings(DeprecationWarning):
@@ -1049,16 +1047,16 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(
             name='firstname',
-            data=[six.text_type(x) for x in ["Max", "Jo", "John"]]))
+            data=[str(x) for x in ["Max", "Jo", "John"]]))
         t.add_column(table_types.Column(
             name='name',
-            data=[six.text_type(x) for x in ["Miller", "Miller", "Jackson"]]))
+            data=[str(x) for x in ["Miller", "Miller", "Jackson"]]))
         t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
         t.sort(['name', 'firstname'])
         assert np.all([t['firstname'] == np.array(
-            [six.text_type(x) for x in ["John", "Jo", "Max"]])])
+            [str(x) for x in ["John", "Jo", "Max"]])])
         assert np.all([t['name'] == np.array(
-            [six.text_type(x) for x in ["Jackson", "Miller", "Miller"]])])
+            [str(x) for x in ["Jackson", "Miller", "Miller"]])])
         assert np.all([t['tel'] == np.array([19, 15, 12])])
 
     def test_argsort(self, table_types):
@@ -1087,10 +1085,10 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(
             name='firstname',
-            data=[six.text_type(x) for x in ["Max", "Jo", "John"]]))
+            data=[str(x) for x in ["Max", "Jo", "John"]]))
         t.add_column(table_types.Column(
             name='name',
-            data=[six.text_type(x) for x in ["Miller", "Miller", "Jackson"]]))
+            data=[str(x) for x in ["Miller", "Miller", "Jackson"]]))
         t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
         assert np.all(t.argsort(['name', 'firstname']) == np.array([2, 1, 0]))
 
@@ -1415,18 +1413,6 @@ class TestMetaTable(MetaBaseTest):
     args = ()
 
 
-def test_unicode_column_names(table_types):
-    """
-    Test that unicode column names are accepted.  Only do this for
-    Python 2 since strings are unicode already in Python 3.
-    """
-    if six.PY2:
-        t = table_types.Table([[1]], names=(six.text_type('a'),))
-        assert t.colnames == ['a']
-        t[six.text_type('b')] = 0.0
-        assert t.colnames == ['a', 'b']
-
-
 def test_unicode_content():
     # If we don't have unicode literals then return
     if isinstance('', bytes):
@@ -1441,7 +1427,7 @@ def test_unicode_content():
          [string_b, 3]],
         names=('a', 'b'))
 
-    assert string_a in six.text_type(a)
+    assert string_a in str(a)
     # This only works because the coding of this file is utf-8, which
     # matches the default encoding of Table.__str__
     assert string_a.encode('utf-8') in bytes(a)
@@ -1481,8 +1467,8 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'].dtype.kind == 'U'
     assert t1['col1'].dtype.kind == 'U'
     assert t1['col2'].dtype.kind == 'i'
-    assert t1['col0'][0] == six.text_type('abc')
-    assert t1['col1'][0] == six.text_type('def')
+    assert t1['col0'][0] == str('abc')
+    assert t1['col1'][0] == str('def')
     assert t1['col2'][0] == 1
 
 

@@ -1,13 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import collections
 
 import numpy as np
-
-from ..extern import six
 
 
 class Row(object):
@@ -78,7 +74,7 @@ class Row(object):
 
     def __iter__(self):
         index = self._index
-        for col in six.itervalues(self._table.columns):
+        for col in self._table.columns.values():
             yield col[index]
 
     @property
@@ -161,16 +157,12 @@ class Row(object):
     def __repr__(self):
         return self._base_repr_(html=False)
 
-    def __unicode__(self):
+    def __str__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
-    if not six.PY2:
-        __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
+        return str(self).encode('utf-8')
 
 
 collections.Sequence.register(Row)

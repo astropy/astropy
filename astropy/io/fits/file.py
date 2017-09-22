@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division, with_statement
 
 import bz2
 import gzip
+import http.client
 import mmap
 import operator
 import io
@@ -22,8 +22,6 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
-from ...extern.six.moves import http_client
-from ...extern.six import b, string_types, moves
 from ...utils.data import download_file, _is_url
 from ...utils.decorators import classproperty, deprecated_renamed_argument
 from ...utils.exceptions import AstropyUserWarning
@@ -69,9 +67,9 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 # that would generate too many warnings for too many users.  If nothing else,
 # wait until the new logging system is in place.
 
-GZIP_MAGIC = b('\x1f\x8b\x08')
-PKZIP_MAGIC = b('\x50\x4b\x03\x04')
-BZIP2_MAGIC = b('\x42\x5a')
+GZIP_MAGIC = b'\x1f\x8b\x08'
+PKZIP_MAGIC = b'\x50\x4b\x03\x04'
+BZIP2_MAGIC = b'\x42\x5a'
 
 try:
     import pathlib
@@ -137,11 +135,11 @@ class _File(object):
             mode = 'readonly'
 
         # Handle raw URLs
-        if (isinstance(fileobj, string_types) and
+        if (isinstance(fileobj, str) and
             mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
-        elif isinstance(fileobj, http_client.HTTPResponse):
+        elif isinstance(fileobj, http.client.HTTPResponse):
             if mode in ('ostream', 'append', 'update'):
                 raise ValueError(
                     "Mode {} not supported for HTTPResponse".format(mode))
@@ -169,7 +167,7 @@ class _File(object):
         # Initialize the internal self._file object
         if isfile(fileobj):
             self._open_fileobj(fileobj, mode, overwrite)
-        elif isinstance(fileobj, string_types):
+        elif isinstance(fileobj, str):
             self._open_filename(fileobj, mode, overwrite)
         else:
             self._open_filelike(fileobj, mode, overwrite)
@@ -428,7 +426,7 @@ class _File(object):
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
             kwargs = dict(mode=IO_FITS_MODES[mode])
-            if isinstance(obj_or_name, string_types):
+            if isinstance(obj_or_name, str):
                 kwargs['filename'] = obj_or_name
             else:
                 kwargs['fileobj'] = obj_or_name
@@ -530,7 +528,7 @@ class _File(object):
             with fileobj_open(self.name, 'rb') as f:
                 magic = f.read(4)
         else:
-            magic = b('')
+            magic = b''
 
         ext = os.path.splitext(self.name)[1]
 

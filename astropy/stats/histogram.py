@@ -6,10 +6,7 @@ Methods for selecting the bin width of histograms
 Ported from the astroML project: http://astroML.org/
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
 
 import numpy as np
 from . import bayesian_blocks
@@ -64,7 +61,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     numpy.histogram
     """
     # if bins is a string, first compute bin edges with the desired heuristic
-    if isinstance(bins, six.string_types):
+    if isinstance(bins, str):
         a = np.asarray(a).ravel()
 
         # TODO: if weights is specified, we need to modify things.

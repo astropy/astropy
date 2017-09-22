@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -8,7 +7,6 @@ from numpy.testing import assert_almost_equal
 from numpy.testing import assert_allclose
 
 from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
-from ...extern.six.moves import range
 from ...time import Time
 from ... import units as u
 

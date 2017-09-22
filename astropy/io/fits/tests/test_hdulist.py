@@ -10,8 +10,6 @@ import pytest
 import numpy as np
 
 from ..verify import VerifyError
-from ....extern.six.moves import range
-from ....extern import six
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -913,8 +911,6 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(IOError):
             fits.open(filename)
 
-    @pytest.mark.skipif(six.PY2,
-                        reason='ResourceWarning is not created in Python 2')
     def test_no_resource_warning_raised_on_non_fits_file(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/6168

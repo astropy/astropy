@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 _tabversion   = '3.8'
 _lextokens    = set(('CARET', 'CLOSE_PAREN', 'SOLIDUS', 'FUNCNAME', 'UFLOAT', 'STAR', 'SIGN', 'UINT', 'DOUBLE_STAR', 'OPEN_PAREN', 'PERIOD', 'UNIT'))

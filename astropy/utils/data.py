@@ -4,11 +4,7 @@
 caching data files.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import urllib, range
 
 import atexit
 import contextlib
@@ -16,10 +12,12 @@ import fnmatch
 import hashlib
 import os
 import io
+import pathlib
 import shutil
 import socket
 import sys
 import time
+import urllib
 import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
@@ -28,13 +26,6 @@ from warnings import warn
 from .. import config as _config
 from ..utils.exceptions import AstropyWarning
 from ..utils.introspection import find_current_module, resolve_name
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 __all__ = [
     'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
@@ -179,9 +170,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
-    PATH_TYPES = six.string_types
-    if HAS_PATHLIB:
-        PATH_TYPES += (pathlib.Path,)
+    PATH_TYPES = (str, pathlib.Path)
 
     close_fds = []
     delete_fds = []
@@ -193,18 +182,14 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # Get a file object to the content
     if isinstance(name_or_obj, PATH_TYPES):
         # name_or_obj could be a Path object if pathlib is available
-        if HAS_PATHLIB:
-            name_or_obj = str(name_or_obj)
+        name_or_obj = str(name_or_obj)
 
         is_url = _is_url(name_or_obj)
         if is_url:
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
-        if six.PY2:
-            fileobj = open(name_or_obj, 'rb')
-        else:
-            fileobj = io.FileIO(name_or_obj, 'r')
+        fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
         close_fds.append(fileobj)
@@ -265,29 +250,15 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = fileobj_new
     elif signature[:3] == b'\xfd7z':  # xz
         try:
-            # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
-            # but does not support TextIOWrapper
-            if sys.version_info >= (3, 3, 0):
-                import lzma
-                fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
-            else:
-                from backports import lzma
-                from backports.lzma import LZMAFile
-                # when called with file object, returns a non-seekable instance
-                # need a filename here, too, so have to write the data to a
-                # temporary file
-                with NamedTemporaryFile("wb", delete=False) as tmp:
-                    tmp.write(fileobj.read())
-                    tmp.close()
-                    fileobj_new = LZMAFile(tmp.name, mode='rb')
+            import lzma
+            fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really xz
         except ImportError:
             for fd in close_fds:
                 fd.close()
             raise ValueError(
                 ".xz format files are not supported since the Python "
-                "interpreter does not include the lzma module. "
-                "On Python versions < 3.3 consider installing backports.lzma")
+                "interpreter does not include the lzma module.")
         except (IOError, EOFError) as e:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
@@ -303,10 +274,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
-    if six.PY2:
-        needs_textio_wrapper = encoding != 'binary' and encoding is not None
-    else:
-        needs_textio_wrapper = encoding != 'binary'
+    needs_textio_wrapper = encoding != 'binary'
 
     if needs_textio_wrapper:
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
@@ -323,20 +291,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 tmp.write(data)
                 tmp.close()
                 delete_fds.append(tmp)
-                if six.PY2:
-                    fileobj = open(tmp.name, 'rb')
-                else:
-                    fileobj = io.FileIO(tmp.name, 'r')
-                close_fds.append(fileobj)
 
-        # On Python 2.x, we need to first wrap the regular `file`
-        # instance in a `io.FileIO` object before it can be
-        # wrapped in a `TextIOWrapper`.  We don't just create an
-        # `io.FileIO` object in the first place, because we can't
-        # get a raw file descriptor out of it on Python 2.x, which
-        # is required for the XML iterparser.
-        if six.PY2 and isinstance(fileobj, file):
-            fileobj = io.FileIO(fileobj.fileno())
+                fileobj = io.FileIO(tmp.name, 'r')
+                close_fds.append(fileobj)
 
         fileobj = io.BufferedReader(fileobj)
         fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
@@ -1043,11 +1000,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-    if six.PY2 and isinstance(remote_url, six.text_type):
-        # shelve DBs don't accept unicode strings in Python 2
-        url_key = remote_url.encode('utf-8')
-    else:
-        url_key = remote_url
+    url_key = remote_url
 
     try:
         if cache:
@@ -1157,10 +1110,6 @@ def is_url_in_cache(url_key):
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
-
-    if six.PY2 and isinstance(url_key, six.text_type):
-        # shelve DBs don't accept unicode strings in Python 2
-        url_key = url_key.encode('utf-8')
 
     with shelve.open(urlmapfn) as url2hash:
         if url_key in url2hash:
@@ -1278,14 +1227,10 @@ def clear_download_cache(hashorurl=None):
                     raise RuntimeError("attempted to use clear_download_cache on"
                                        " a path outside the data cache directory")
 
-                # shelve DBs don't accept unicode strings as keys in Python 2
-                if six.PY2 and isinstance(hashorurl, six.text_type):
-                    hash_key = hashorurl.encode('utf-8')
-                else:
-                    hash_key = hashorurl
+                hash_key = hashorurl
 
                 if os.path.exists(filepath):
-                    for k, v in six.iteritems(url2hash):
+                    for k, v in url2hash.items():
                         if v == filepath:
                             del url2hash[k]
                     os.unlink(filepath)

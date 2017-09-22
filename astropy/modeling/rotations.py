@@ -19,8 +19,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import math
 
@@ -28,7 +26,6 @@ import numpy as np
 
 from .core import Model
 from .parameters import Parameter
-from ..extern.six.moves import zip
 from ..coordinates.matrix_utilities import rotation_matrix, matrix_product
 from .. import units as u
 from ..utils.decorators import deprecated

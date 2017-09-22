@@ -1,8 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import warnings
 import weakref
@@ -27,7 +23,6 @@ from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from ..utils.misc import dtype_bytes_or_chars
-from ..extern.six.moves import range
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -138,10 +133,6 @@ class FalseArray(np.ndarray):
             raise ValueError('Cannot set any element of {0} class to True'
                              .format(self.__class__.__name__))
 
-    if six.PY2:  # avoid falling back to ndarray.__setslice__
-        def __setslice__(self, start, stop, val):
-            self.__setitem__(slice(start, stop), val)
-
 
 class ColumnInfo(BaseColumnInfo):
     """
@@ -225,7 +216,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 meta = deepcopy(data.info.meta)
 
         else:
-            if not six.PY2 and np.dtype(dtype).char == 'S':
+            if np.dtype(dtype).char == 'S':
                 data = cls._encode_str(data)
             self_data = np.array(data, dtype=dtype, copy=copy)
 
@@ -354,7 +345,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if obj is None:
             return
 
-        if six.callable(super(BaseColumn, self).__array_finalize__):
+        if callable(super(BaseColumn, self).__array_finalize__):
             super(BaseColumn, self).__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
@@ -876,8 +867,6 @@ class Column(BaseColumn):
             self, show_name=False, show_unit=False, show_length=False, html=html)
 
         out = descr + '\n'.join(data_lines)
-        if six.PY2 and isinstance(out, six.text_type):
-            out = out.encode('utf-8')
 
         return out
 
@@ -887,20 +876,16 @@ class Column(BaseColumn):
     def __repr__(self):
         return self._base_repr_(html=False)
 
-    def __unicode__(self):
+    def __str__(self):
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
             return str(self.item())
 
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
-    if not six.PY2:
-        __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
+        return str(self).encode('utf-8')
 
     def _check_string_truncate(self, value):
         """
@@ -926,7 +911,7 @@ class Column(BaseColumn):
                           stacklevel=3)
 
     def __setitem__(self, index, value):
-        if not six.PY2 and self.dtype.char == 'S':
+        if self.dtype.char == 'S':
             value = self._encode_str(value)
 
         # Issue warning for string assignment that truncates ``value``
@@ -940,12 +925,6 @@ class Column(BaseColumn):
         # order-of-magnitude speed-up. [#2994]
         self.data[index] = value
 
-    if six.PY2:
-        # avoid falling through to ndarray.__setslice__, instead using
-        # self.__setitem__, which is much faster (see above).  [#3020]
-        def __setslice__(self, start, stop, value):
-            self.__setitem__(slice(start, stop), value)
-
     def _make_compare(oper):
         """
         Make comparison methods which encode the ``other`` object to utf-8
@@ -953,7 +932,7 @@ class Column(BaseColumn):
         """
 
         def _compare(self, other):
-            if not six.PY2 and self.dtype.char == 'S':
+            if self.dtype.char == 'S':
                 other = self._encode_str(other)
             return getattr(self.data, oper)(other)
         return _compare
@@ -1259,7 +1238,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     def __setitem__(self, index, value):
         # Issue warning for string assignment that truncates ``value``
-        if not six.PY2 and self.dtype.char == 'S':
+        if self.dtype.char == 'S':
             value = self._encode_str(value)
 
         if issubclass(self.dtype.type, np.character):

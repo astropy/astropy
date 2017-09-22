@@ -5,15 +5,11 @@
 Regression tests for the units.format package
 """
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 from numpy.testing.utils import assert_allclose
 
-from ...extern import six
 from ...tests.helper import catch_warnings
 from ... import units as u
 from ...constants import si
@@ -359,25 +355,25 @@ def test_deprecated_did_you_mean_units():
     try:
         u.Unit('ANGSTROM', format='fits')
     except ValueError as e:
-        assert 'Did you mean Angstrom or angstrom?' in six.text_type(e)
+        assert 'Did you mean Angstrom or angstrom?' in str(e)
 
     try:
         u.Unit('crab', format='ogip')
     except ValueError as e:
-        assert 'Crab (deprecated)' in six.text_type(e)
-        assert 'mCrab (deprecated)' in six.text_type(e)
+        assert 'Crab (deprecated)' in str(e)
+        assert 'mCrab (deprecated)' in str(e)
 
     try:
         u.Unit('ANGSTROM', format='vounit')
     except ValueError as e:
-        assert 'angstrom (deprecated)' in six.text_type(e)
-        assert '0.1nm' in six.text_type(e)
-        assert six.text_type(e).count('0.1nm') == 1
+        assert 'angstrom (deprecated)' in str(e)
+        assert '0.1nm' in str(e)
+        assert str(e).count('0.1nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
     assert len(w) == 1
-    assert '0.1nm' in six.text_type(w[0].message)
+    assert '0.1nm' in str(w[0].message)
 
 
 @pytest.mark.parametrize('string', ['mag(ct/s)', 'dB(mW)', 'dex(cm s**-2)'])

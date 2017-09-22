@@ -1,9 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six import text_type
-from ..extern.six.moves import zip, range
 
 import os
 import sys
@@ -22,7 +17,7 @@ def default_format_func(format_, val):
     if isinstance(val, bytes):
         return val.decode('utf-8', errors='replace')
     else:
-        return text_type(val)
+        return str(val)
 
 
 _format_funcs = {}
@@ -90,11 +85,11 @@ def get_auto_format_func(
         if format_key in _format_funcs:
             return _format_funcs[format_key](format_, val)
 
-        if six.callable(format_):
+        if callable(format_):
             format_func = lambda format_, val: format_(val)
             try:
                 out = format_func(format_, val)
-                if not isinstance(out, six.string_types):
+                if not isinstance(out, str):
                     raise ValueError('Format function for value {0} returned {1} '
                                      'instead of string type'
                                      .format(val, type(val)))
@@ -296,7 +291,7 @@ class TableFormatter(object):
                 match = re_fill_align.match(align)
                 if not match:
                     raise ValueError("column align must be one of '<', '^', '>', or '='")
-            elif isinstance(col.info.format, six.string_types):
+            elif isinstance(col.info.format, str):
                 # col.info.format need not match, in which case rjust gets used
                 match = re_fill_align.match(col.info.format)
 
@@ -365,16 +360,16 @@ class TableFormatter(object):
         if show_name:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
-            col_name = six.text_type(col.info.name)
+            col_name = str(col.info.name)
             if multidims:
                 col_name += ' [{0}]'.format(
-                    ','.join(six.text_type(n) for n in multidims))
+                    ','.join(str(n) for n in multidims))
             n_header += 1
             yield col_name
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
-            yield six.text_type(col.info.unit or '')
+            yield str(col.info.unit or '')
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
@@ -382,7 +377,7 @@ class TableFormatter(object):
                 dtype = dtype_info_name(col.dtype)
             except AttributeError:
                 dtype = 'object'
-            yield six.text_type(dtype)
+            yield str(dtype)
         if show_unit or show_name or show_dtype:
             i_dashes = n_header
             n_header += 1
@@ -530,11 +525,11 @@ class TableFormatter(object):
         cols = []
 
         if show_unit is None:
-            show_unit = any(col.info.unit for col in six.itervalues(table.columns))
+            show_unit = any(col.info.unit for col in table.columns.values())
 
         # Coerce align into a correctly-sized list of alignments (if possible)
         n_cols = len(table.columns)
-        if align is None or isinstance(align, six.string_types):
+        if align is None or isinstance(align, str):
             align = [align] * n_cols
 
         elif isinstance(align, (list, tuple)):

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
+
+from io import StringIO
 
 import pytest
 
@@ -10,8 +11,6 @@ from ....tests.helper import catch_warnings
 from ... import ascii
 from ....table import Table
 from ..core import masked
-
-from ....extern.six.moves import cStringIO as StringIO
 
 
 DATA = '''

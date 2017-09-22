@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # Standard library
-from datetime import datetime
-from xml.dom.minidom import parse
 import re
 import textwrap
+from datetime import datetime
+from xml.dom.minidom import parse
+from urllib.request import urlopen
 
 # Third-party
 from .. import time as atime
 from ..utils.console import color_print, _color_text
-from ..extern.six.moves.urllib.request import urlopen
 from . import get_sun
 
 __all__ = []

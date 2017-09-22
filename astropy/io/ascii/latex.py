@@ -8,12 +8,9 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 
-from ...extern import six
-from ...extern.six.moves import zip
 from . import core
 
 latexdicts = {'AA': {'tabletype': 'table',
@@ -47,7 +44,7 @@ def add_dictval_to_list(adict, key, alist):
         List where value should be added
     '''
     if key in adict:
-        if isinstance(adict[key], six.string_types):
+        if isinstance(adict[key], str):
             alist.append(adict[key])
         else:
             alist.extend(adict[key])

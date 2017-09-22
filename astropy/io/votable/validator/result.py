@@ -4,10 +4,6 @@ Contains a class to handle a validation result for a single VOTable
 file.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
-from ....extern.six.moves import http_client, urllib
-from ....extern.six.moves import cPickle as pickle
 
 # STDLIB
 from xml.parsers.expat import ExpatError
@@ -17,6 +13,9 @@ import shutil
 import socket
 import subprocess
 import warnings
+import pickle
+import urllib
+import http.client
 
 # VO
 from .. import table
@@ -104,11 +103,8 @@ class Result(object):
 
         r = None
         try:
-            if six.PY2:
-                r = urllib.request.urlopen(self.url, timeout=self.timeout)
-            else:
-                r = urllib.request.urlopen(
-                    self.url.decode('ascii'), timeout=self.timeout)
+            r = urllib.request.urlopen(
+                self.url.decode('ascii'), timeout=self.timeout)
         except urllib.error.URLError as e:
             if hasattr(e, 'reason'):
                 reason = e.reason
@@ -116,7 +112,7 @@ class Result(object):
                 reason = e.code
             fail(reason)
             return
-        except http_client.HTTPException as e:
+        except http.client.HTTPException as e:
             fail("HTTPException: {}".format(str(e)))
             return
         except (socket.timeout, socket.error) as e:
@@ -257,7 +253,7 @@ def get_result_subsets(results, root, s=None):
 
     for url in results:
         if s:
-            six.next(s)
+            next(s)
 
         if isinstance(url, Result):
             x = url
@@ -334,7 +330,7 @@ def get_result_subsets(results, root, s=None):
         ('warnings', 'Warnings', has_warnings)]
     for warning_code, warning in warning_set:
         if s:
-            six.next(s)
+            next(s)
 
         warning_class = getattr(exceptions, warning_code, None)
         if warning_class:
@@ -347,7 +343,7 @@ def get_result_subsets(results, root, s=None):
         ('exceptions', 'Exceptions', has_exceptions))
     for exception_code, exc in exception_set:
         if s:
-            six.next(s)
+            next(s)
 
         exception_class = getattr(exceptions, exception_code, None)
         if exception_class:

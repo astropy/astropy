@@ -9,6 +9,7 @@ Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 import os
 import copy
 import sys
+from io import StringIO
 
 import pytest
 import numpy as np
@@ -20,7 +21,6 @@ from ....time import Time, TimeDelta
 from ....tests.helper import quantity_allclose
 from ....units.quantity import QuantityInfo
 
-from ....extern.six.moves import StringIO
 from ..ecsv import DELIMITERS
 from ... import ascii
 from .... import units as u

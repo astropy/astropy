@@ -10,8 +10,6 @@ To enable them, do::
     >>> magnitude_zero_points.enable()  # doctest: +SKIP
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as _numpy
 from ..core import UnitBase, def_unit

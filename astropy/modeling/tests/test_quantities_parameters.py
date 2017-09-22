@@ -4,8 +4,6 @@
 Tests that relate to using quantities/units on parameters of models.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 

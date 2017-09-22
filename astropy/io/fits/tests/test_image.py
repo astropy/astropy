@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division, with_statement
 
 import math
 import os
@@ -13,7 +12,6 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
 from ....utils.compat import NUMPY_LT_1_12

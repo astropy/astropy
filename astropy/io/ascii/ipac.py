@@ -8,15 +8,12 @@ ipac.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth
@@ -140,9 +137,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # IPAC allows for continuation keywords, e.g.
                 # \SQL     = 'WHERE '
                 # \SQL     = 'SELECT (25 column names follow in next row.)'
-                if name in keywords and isinstance(val, six.string_types):
+                if name in keywords and isinstance(val, str):
                     prev_val = keywords[name]['value']
-                    if isinstance(prev_val, six.string_types):
+                    if isinstance(prev_val, str):
                         val = prev_val + val
 
                 keywords[name] = {'value': val}
@@ -457,13 +454,13 @@ class Ipac(basic.Basic):
         self.data.fill_values.append((core.masked, 'null'))
 
         # Check column names before altering
-        self.header.cols = list(six.itervalues(table.columns))
+        self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, self.guessing)
 
         core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         # Now use altered columns
-        new_cols = list(six.itervalues(table.columns))
+        new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols

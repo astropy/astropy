@@ -5,8 +5,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import abc
@@ -22,12 +20,12 @@ import unicodedata
 import locale
 import threading
 import re
+import urllib
 
+from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
-from ..extern import six
-from ..extern.six.moves import urllib, range, zip_longest
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
@@ -205,7 +203,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     from zlib import decompress
 
-    if (not isinstance(obj, six.string_types) and
+    if (not isinstance(obj, str) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
@@ -291,7 +289,7 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    signal_to_name_map = dict((k, v) for v, k in six.iteritems(signal.__dict__)
+    signal_to_name_map = dict((k, v) for v, k in signal.__dict__.items()
                               if v.startswith('SIG'))
 
     return signal_to_name_map.get(signum, 'UNKNOWN')
@@ -440,7 +438,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         s = strip_accents(s)
     s_lower = s.lower()
 
@@ -501,9 +499,7 @@ class InheritDocstrings(type):
     For example::
 
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> from astropy.extern import six
-        >>> @six.add_metaclass(InheritDocstrings)
-        ... class A(object):
+        >>> class A(metaclass=InheritDocstrings):
         ...     def wiggle(self):
         ...         "Wiggle the thingamajig"
         ...         pass
@@ -521,7 +517,7 @@ class InheritDocstrings(type):
                  and len(key) > 4) or
                 not key.startswith('_'))
 
-        for key, val in six.iteritems(dct):
+        for key, val in dct.items():
             if (inspect.isfunction(val) and
                 is_public_member(key) and
                 val.__doc__ is None):
@@ -534,8 +530,7 @@ class InheritDocstrings(type):
         super(InheritDocstrings, cls).__init__(name, bases, dct)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class OrderedDescriptor(object):
+class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
     preserved.  Intended for use in concert with the
@@ -648,7 +643,6 @@ class OrderedDescriptorContainer(type):
     Examples
     --------
 
-    >>> from astropy.extern import six
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"
@@ -699,8 +693,7 @@ class OrderedDescriptorContainer(type):
 
     Now let's create an example class that uses this ``TypedAttribute``::
 
-        >>> @six.add_metaclass(OrderedDescriptorContainer)
-        ... class Point2D(object):
+        >>> class Point2D(metaclass=OrderedDescriptorContainer):
         ...     x = TypedAttribute((float, int))
         ...     y = TypedAttribute((float, int))
         ...
@@ -856,8 +849,7 @@ def set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ShapedLikeNDArray(object):
+class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     """Mixin class to provide shape-changing methods.
 
     The class proper is assumed to have some underlying data, which are arrays
@@ -932,11 +924,7 @@ class ShapedLikeNDArray(object):
                             .format(self.__class__.__name__))
         return self.shape[0]
 
-    def __bool__(self):  # Python 3
-        """Any instance should evaluate to True, except when it is empty."""
-        return self.size > 0
-
-    def __nonzero__(self):  # Python 2
+    def __bool__(self):
         """Any instance should evaluate to True, except when it is empty."""
         return self.size > 0
 

@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
 
 
 from ....tests.helper import raises
@@ -42,7 +39,7 @@ examples = {
 
 
 def test_check():
-    for s, p in six.iteritems(examples):
+    for s, p in examples.items():
         assert ucd.parse_ucd(s, True, True) == p
         assert ucd.check_ucd(s, True, True)
 

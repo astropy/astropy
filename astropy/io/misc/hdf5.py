@@ -5,15 +5,12 @@ not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`table_io` for more details.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 import warnings
 
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ...extern import six
 from ...table import meta
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
@@ -242,7 +239,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             output_group = output
 
-    elif isinstance(output, six.string_types):
+    elif isinstance(output, str):
 
         if os.path.exists(output) and not append:
             if overwrite and not append:

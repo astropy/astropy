@@ -1,4 +1,3 @@
-from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import re
 import copy
@@ -8,8 +7,6 @@ import collections
 import numpy as np
 
 from ..utils.compat.misc import override__dir__
-from ..extern import six
-from ..extern.six.moves import zip, range
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
@@ -1479,7 +1476,7 @@ def _get_frame_class(frame):
     """
     import inspect
 
-    if isinstance(frame, six.string_types):
+    if isinstance(frame, str):
         frame_names = frame_transform_graph.get_names()
         if frame not in frame_names:
             raise ValueError('Coordinate frame {0} not in allowed values {1}'
@@ -1599,7 +1596,7 @@ def _get_units(args, kwargs):
     else:
         units = kwargs.pop('unit')
 
-        if isinstance(units, six.string_types):
+        if isinstance(units, str):
             units = [x.strip() for x in units.split(',')]
             # Allow for input like unit='deg' or unit='m'
             if len(units) == 1:
@@ -1642,7 +1639,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
-    if isinstance(coords, six.string_types):
+    if isinstance(coords, str):
         is_scalar = True
         coords = [coords]
 
@@ -1731,7 +1728,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # none of the elements are "frame-like"
             # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
             for coord in coords:
-                if isinstance(coord, six.string_types):
+                if isinstance(coord, str):
                     coord1 = coord.split()
                     if len(coord1) == 6:
                         coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
@@ -1829,7 +1826,7 @@ def _parse_ra_dec(coord_str):
         Parsed coordinate values.
     """
 
-    if isinstance(coord_str, six.string_types):
+    if isinstance(coord_str, str):
         coord1 = coord_str.split()
     else:
         # This exception should never be raised from SkyCoord

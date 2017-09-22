@@ -1,10 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ...extern import six
 
 import io
 import os
@@ -23,7 +20,6 @@ from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
-from ...extern.six.moves import range
 
 
 class TestMaps(object):
@@ -411,7 +407,7 @@ def test_validate_with_2_wcses():
     # From Issue #2053
     results = wcs.validate(get_pkg_data_filename("data/2wcses.hdr"))
 
-    assert "WCS key 'A':" in six.text_type(results)
+    assert "WCS key 'A':" in str(results)
 
 
 def test_all_world2pix(fname=None, ext=0,
@@ -700,7 +696,7 @@ def test_printwcs():
 
 
 def test_invalid_spherical():
-    header = six.text_type("""
+    header = """
 SIMPLE  =                    T / conforms to FITS standard
 BITPIX  =                    8 / array data type
 WCSAXES =                    2 / no comment
@@ -721,7 +717,7 @@ CD2_1   =     0.00250608809647 / no comment
 CD2_2   =    -0.00912247310646 / no comment
 IMAGEW  =                 4256 / Image width,  in pixels.
 IMAGEH  =                 2832 / Image height, in pixels.
-""")
+    """
 
     f = io.StringIO(header)
     header = fits.Header.fromtextfile(f)

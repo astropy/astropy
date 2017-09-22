@@ -2,8 +2,6 @@
 
 """Test sky projections defined in WCS Paper II"""
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import os
 
 import pytest
@@ -17,7 +15,6 @@ from ... import units as u
 from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
-from ...extern.six.moves import range, zip
 from ...tests.helper import assert_quantity_allclose
 
 

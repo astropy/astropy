@@ -31,10 +31,7 @@ Exceptions
 {exceptions}
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
 
 # STDLIB
 import io
@@ -176,7 +173,7 @@ def parse_vowarning(line):
         result['is_exception'] = False
         result['is_other'] = False
         result['is_something'] = False
-        if not isinstance(line, six.text_type):
+        if not isinstance(line, str):
             line = line.decode('utf-8')
         result['message'] = line
 
@@ -423,10 +420,8 @@ class W08(VOTableSpecWarning):
     make more sense.
     """
 
-    if not six.PY2:
-        message_template = "'{}' must be a str or bytes object"
-    else:
-        message_template = "'{}' must be a str or unicode object"
+    message_template = "'{}' must be a str or bytes object"
+
     default_args = ('x',)
 
 
@@ -1413,7 +1408,7 @@ class E21(VOWarning, ValueError):
 
 def _get_warning_and_exception_classes(prefix):
     classes = []
-    for key, val in six.iteritems(globals()):
+    for key, val in globals().items():
         if re.match(prefix + "[0-9]{2}", key):
             classes.append((key, val))
     classes.sort()
@@ -1429,14 +1424,14 @@ def _build_doc_string():
         for name, cls in classes:
             out.write(".. _{}:\n\n".format(name))
             msg = "{}: {}".format(cls.__name__, cls.get_short_name())
-            if not isinstance(msg, six.text_type):
+            if not isinstance(msg, str):
                 msg = msg.decode('utf-8')
             out.write(msg)
             out.write('\n')
             out.write('~' * len(msg))
             out.write('\n\n')
             doc = cls.__doc__
-            if not isinstance(doc, six.text_type):
+            if not isinstance(doc, str):
                 doc = doc.decode('utf-8')
             out.write(dedent(doc))
             out.write('\n\n')

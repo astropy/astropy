@@ -12,8 +12,6 @@ import tempfile
 
 from setuptools import Command
 
-from ..extern import six
-
 
 def _fix_user_options(options):
     """
@@ -56,8 +54,7 @@ class FixRemoteDataOption(type):
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
-@six.add_metaclass(FixRemoteDataOption)
-class AstropyTest(Command, object):
+class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = 'Run the tests for this package'
 
     user_options = [
@@ -148,10 +145,7 @@ class AstropyTest(Command, object):
             cmd_pre += pre
             cmd_post += post
 
-        if six.PY2:
-            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
-        else:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
 
         cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
                '{1.package_name}.test('
@@ -297,10 +291,9 @@ class AstropyTest(Command, object):
         # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
-        if not six.PY2:
-            ignore_python_version = '2'
-        else:
-            ignore_python_version = '3'
+
+        ignore_python_version = '2'
+
         coveragerc_content = coveragerc_content.replace(
             "{ignore_python_version}", ignore_python_version).replace(
                 "{packagename}", self.package_name)

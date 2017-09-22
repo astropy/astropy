@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
 
 import pytest
 
-from ...extern import six
 from .. import introspection
 from ..introspection import (find_current_module, find_mod_objs,
                              isinstancemethod, minversion)
@@ -79,8 +76,7 @@ def test_isinstancemethod():
     class MetaClass(type):
         def a_classmethod(cls): pass
 
-    @six.add_metaclass(MetaClass)
-    class MyClass(object):
+    class MyClass(metaclass=MetaClass):
         def an_instancemethod(self): pass
 
         @classmethod

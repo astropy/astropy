@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...coordinates import BaseCoordinateFrame
 
 # Modified from axis_artist, supports astropy.units
@@ -106,7 +104,7 @@ def get_coord_meta(frame):
 
     from astropy.coordinates import frame_transform_graph
 
-    if isinstance(frame, six.string_types):
+    if isinstance(frame, str):
         initial_frame = frame
         frame = frame_transform_graph.lookup_name(frame)
         if frame is None:

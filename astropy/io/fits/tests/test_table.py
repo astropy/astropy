@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement, print_function
 
 import contextlib
 import copy
 import gc
+import pickle
 import re
 
 import pytest
@@ -16,9 +16,6 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....extern import six
-from ....extern.six.moves import range, zip
-from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
@@ -1759,10 +1756,7 @@ class TestTableFunctions(FitsTestCase):
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
-            if six.PY2:
-                assert tbhdu.data['S'].dtype.str.endswith('S4')
-            else:
-                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            assert tbhdu.data['S'].dtype.str.endswith('U4')
 
             tbhdu.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1770,10 +1764,7 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu2 = hdul[1]
                 assert tbhdu2.header['TDIM1'] == '(4,2,3)'
                 assert tbhdu2.data['S'].shape == (5, 3, 2)
-                if six.PY2:
-                    assert tbhdu.data['S'].dtype.str.endswith('S4')
-                else:
-                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
                 assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
 
         test_dims_and_roundtrip(tbhdu1)

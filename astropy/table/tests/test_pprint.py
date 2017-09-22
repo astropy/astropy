@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import pytest
 import numpy as np
@@ -10,7 +9,6 @@ from ... import table
 from ...table import Table, QTable
 from ...table.table_helpers import simple_table
 from ... import units as u
-from ...extern.six import PY2
 from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
@@ -530,7 +528,7 @@ def test_pprint_py3_bytes():
     is printed correctly (without the "b" prefix like b'string').
     Also make sure special characters are printed in Python 2.
     """
-    val = str('val') if PY2 else bytes('val', encoding='utf-8')
+    val = bytes('val', encoding='utf-8')
     blah = u'bläh'.encode('utf-8')
     dat = np.array([val, blah], dtype=[(str('col'), 'S10')])
     t = table.Table(dat)

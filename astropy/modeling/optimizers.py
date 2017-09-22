@@ -4,12 +4,9 @@
 Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import warnings
 import abc
 import numpy as np
-from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ["Optimization", "SLSQP", "Simplex"]
@@ -26,8 +23,7 @@ DEFAULT_ACC = 1e-07
 DEFAULT_BOUNDS = (-10 ** 12, 10 ** 12)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Optimization(object):
+class Optimization(metaclass=abc.ABCMeta):
     """
     Base class for optimizers.
 

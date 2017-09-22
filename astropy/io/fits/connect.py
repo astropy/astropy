@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function
 
 import os
 import re
@@ -9,7 +8,6 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
@@ -219,7 +217,7 @@ def write_table_fits(input, output, overwrite=False):
     table_hdu = table_to_hdu(input)
 
     # Check if output file already exists
-    if isinstance(output, string_types) and os.path.exists(output):
+    if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:

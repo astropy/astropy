@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 from ...utils.misc import InheritDocstrings
-from ...extern import six
 
 
 class _FormatterMeta(InheritDocstrings):
@@ -24,8 +21,7 @@ class _FormatterMeta(InheritDocstrings):
         return cls
 
 
-@six.add_metaclass(_FormatterMeta)
-class Base(object):
+class Base(metaclass=_FormatterMeta):
     """
     The abstract base class of all unit formats.
     """

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division  # confidence high
 
 import contextlib
 import csv
@@ -28,9 +27,6 @@ from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
-from ....extern import six
-from ....extern.six import string_types
-from ....extern.six.moves import range, zip
 from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.exceptions import AstropyUserWarning
@@ -370,7 +366,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 raise TypeError('Table data has incorrect type.')
 
-        if not (isinstance(self._header[0], string_types) and
+        if not (isinstance(self._header[0], str) and
                 self._header[0].rstrip() == self._extension):
             self._header[0] = (self._extension, self._ext_comment)
 
@@ -682,7 +678,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """Populate the new table definition keywords from the header."""
 
         for idx, column in enumerate(self.columns):
-            for keyword, attr in six.iteritems(KEYWORD_TO_ATTRIBUTE):
+            for keyword, attr in KEYWORD_TO_ATTRIBUTE.items():
                 val = getattr(column, attr)
                 if val is not None:
                     keyword = keyword + str(idx + 1)
@@ -725,7 +721,7 @@ class TableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return card.keyword == 'XTENSION' and xtension == cls._extension
 
@@ -841,7 +837,7 @@ class BinTableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return (card.keyword == 'XTENSION' and
                 xtension in (cls._extension, 'A3DTABLE'))
@@ -1067,7 +1063,7 @@ class BinTableHDU(_TableBaseHDU):
         files = [datafile, cdfile, hfile]
 
         for f in files:
-            if isinstance(f, string_types):
+            if isinstance(f, str):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if overwrite:
                         warnings.warn(
@@ -1092,7 +1088,7 @@ class BinTableHDU(_TableBaseHDU):
         if hfile:
             self._header.tofile(hfile, sep='\n', endcard=False, padding=False)
 
-    if isinstance(dump.__doc__, string_types):
+    if isinstance(dump.__doc__, str):
         dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
     def load(cls, datafile, cdfile=None, hfile=None, replace=False,
@@ -1173,7 +1169,7 @@ class BinTableHDU(_TableBaseHDU):
         hdu.columns = coldefs
         return hdu
 
-    if isinstance(load.__doc__, string_types):
+    if isinstance(load.__doc__, str):
         load.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
     load = classmethod(load)
@@ -1192,7 +1188,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -1210,11 +1206,7 @@ class BinTableHDU(_TableBaseHDU):
                 return '{:21.15g}+{:.15g}j'.format(val.real, val.imag)
             elif format in np.typecodes['Float']:
                 # output floating point
-                # workaround as py2 doesn't support alternate form for format()
-                if six.PY2:
-                    return '%#21.15g' % val
-                else:
-                    return '{:#21.15g}'.format(val)
+                return '{:#21.15g}'.format(val)
 
         for row in self.data:
             line = []   # the line for this row of the table
@@ -1266,7 +1258,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -1291,7 +1283,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'r')
             close_file = True
 
@@ -1434,7 +1426,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             fileobj = open(fileobj, 'r')
             close_file = True
 

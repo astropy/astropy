@@ -4,9 +4,6 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ...extern import six
-from ...extern.six.moves import range, zip
 
 # STDLIB
 import re
@@ -43,15 +40,8 @@ _empty_bytes = b''
 _zero_byte = b'\0'
 
 
-if not six.PY2:
-    struct_unpack = _struct_unpack
-    struct_pack = _struct_pack
-else:
-    def struct_unpack(format, s):
-        return _struct_unpack(format.encode('ascii'), s)
-
-    def struct_pack(format, *args):
-        return _struct_pack(format.encode('ascii'), *args)
+struct_unpack = _struct_unpack
+struct_pack = _struct_pack
 
 
 if sys.byteorder == 'little':
@@ -102,8 +92,6 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if six.PY2:
-            byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
             bit = (bit != 0)
@@ -416,7 +404,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return ''
-        return xml_escape_cdata(six.text_type(value))
+        return xml_escape_cdata(str(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -685,7 +673,7 @@ class FloatingPoint(Numeric):
             format_parts = ['{:']
 
         if width is not None:
-            format_parts.append(six.text_type(width))
+            format_parts.append(str(width))
 
         if precision is not None:
             if precision.startswith("E"):
@@ -803,7 +791,7 @@ class Integer(Numeric):
         if config is None:
             config = {}
         mask = False
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.lower()
             if value == '':
                 if config['version_1_3_or_later']:
@@ -844,8 +832,8 @@ class Integer(Numeric):
             if self.null is None:
                 warn_or_raise(W31, W31)
                 return 'NaN'
-            return six.text_type(self.null)
-        return six.text_type(value)
+            return str(self.null)
+        return str(value)
 
     def binoutput(self, value, mask):
         if mask:
@@ -1144,8 +1132,6 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if six.PY2:
-                char = ord(char)
             value, mask = binparse(char)
             result.append(value)
             result_mask.append(mask)
@@ -1334,7 +1320,7 @@ def _all_bytes(column):
 
 def _all_unicode(column):
     for x in column:
-        if not isinstance(x, six.text_type):
+        if not isinstance(x, str):
             return False
     return True
 
@@ -1431,7 +1417,7 @@ def table_column_to_votable_datatype(column):
         if isinstance(column[0], bytes):
             if _all_bytes(column[1:]):
                 return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], six.text_type):
+        elif isinstance(column[0], str):
             if _all_unicode(column[1:]):
                 return {'datatype': 'unicodeChar', 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):

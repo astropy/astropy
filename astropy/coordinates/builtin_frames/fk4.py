@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 
-from ...extern.six.moves import range
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..attributes import TimeAttribute

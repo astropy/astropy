@@ -4,8 +4,6 @@ used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import abc
 import functools
@@ -18,7 +16,6 @@ import astropy.units as u
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12
@@ -345,8 +342,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         The record array fields will have the component names.
         """
-        # The "str(c)" is needed for PY2; it can be removed for astropy 3.0.
-        coo_items = [(str(c), getattr(self, c)) for c in self.components]
+        coo_items = [(c, getattr(self, c)) for c in self.components]
         result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
         for c, coo in coo_items:
             result[c] = coo.value
@@ -438,8 +434,8 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(BaseRepresentationOrDifferential):
+class BaseRepresentation(BaseRepresentationOrDifferential,
+                         metaclass=MetaBaseRepresentation):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -670,7 +666,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self.without_differentials()
 
         else:
-            if isinstance(other_class, six.string_types):
+            if isinstance(other_class, str):
                 raise ValueError("Input to a representation's represent_as "
                                  "must be a class, not a string. For "
                                  "strings, use frame objects")
@@ -1960,8 +1956,8 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
                                       .format(component))))
 
 
-@six.add_metaclass(MetaBaseDifferential)
-class BaseDifferential(BaseRepresentationOrDifferential):
+class BaseDifferential(BaseRepresentationOrDifferential,
+                       metaclass=MetaBaseDifferential):
     r"""A base class representing differentials of representations.
 
     These represent differences or derivatives along each component.
@@ -2080,7 +2076,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         """
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
-                     for component, e in six.iteritems(base_e)), copy=False)
+                     for component, e in base_e.items()), copy=False)
 
     def represent_as(self, other_class, base):
         """Convert coordinates to another representation.

@@ -4,15 +4,11 @@
 This module provides utility functions for the models package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from collections import deque, MutableMapping
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import range, zip
 
 from ..utils import isiterable, check_broadcast
 from ..utils.compat.funcsigs import signature
@@ -326,7 +322,7 @@ class AliasDict(MutableMapping):
         present in the parent), followed by any keys in the local store.
         """
 
-        for key, alias in six.iteritems(self._aliases):
+        for key, alias in self._aliases.items():
             if alias in self._parent:
                 yield key
 
@@ -342,7 +338,7 @@ class AliasDict(MutableMapping):
     def __repr__(self):
         # repr() just like any other dict--this should look transparent
         store_copy = self._store_type()
-        for key, alias in six.iteritems(self._aliases):
+        for key, alias in self._aliases.items():
             if alias in self._parent:
                 store_copy[key] = self._parent[alias]
 

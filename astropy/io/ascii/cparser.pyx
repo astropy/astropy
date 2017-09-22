@@ -18,7 +18,6 @@ from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning
 from ...table import pprint
-from ...extern import six
 from . import core
 
 try:
@@ -129,16 +128,12 @@ cdef class FileString:
             raise IOError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, access=mmap.ACCESS_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
-        if six.PY2:
-            PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
-        else:
-            PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
-            self.mmap_ptr = self.buf.buf
+        PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
+        self.mmap_ptr = self.buf.buf
 
     def __dealloc__(self):
         if self.mmap:
-            if not six.PY2: # free buffer memory to prevent a resource leak
-                PyBuffer_Release(&self.buf)
+            PyBuffer_Release(&self.buf)
             self.mmap.close()
             self.fhandle.close()
 
@@ -281,7 +276,7 @@ cdef class CParser:
     cpdef setup_tokenizer(self, source):
         cdef FileString fstring
 
-        if isinstance(source, six.string_types): # filename or data
+        if isinstance(source, str): # filename or data
             if '\n' not in source and '\r' not in source: # filename
                 fstring = FileString(source)
                 self.tokenizer.source = <char *>fstring.mmap_ptr
@@ -912,7 +907,7 @@ cdef class FastWriter:
         # to the fill_values dict. This prevents the writer from having
         # to call unicode() on every value, which is a major
         # performance hit.
-        for key, val in six.iteritems(fill_values):
+        for key, val in fill_values.items():
             try:
                 self.fill_values[int(key)] = val
                 self.fill_values[float(key)] = val
@@ -941,13 +936,13 @@ cdef class FastWriter:
         self.format_funcs = []
         self.line_comments = table.meta.get('comments', [])
 
-        for col in six.itervalues(table.columns):
+        for col in table.columns.values():
             if col.name in self.use_names: # iterate over included columns
                 # If col.format is None then don't use any formatter to improve
                 # speed.  However, if the column is a byte string and this
                 # is Py3, then use the default formatter (which in this case
                 # does val.decode('utf-8')) in order to avoid a leading 'b'.
-                if col.format is None and not (six.PY3 and col.dtype.kind == 'S'):
+                if col.format is None and not col.dtype.kind == 'S':
                     self.format_funcs.append(None)
                 else:
                     self.format_funcs.append(pprint._format_funcs.get(
@@ -1057,7 +1052,7 @@ cdef class FastWriter:
             output.close()
 
 def get_fill_values(fill_values, read=True):
-    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types):
+    if len(fill_values) > 0 and isinstance(fill_values[0], str):
         # e.g. fill_values=('999', '0')
         fill_values = [fill_values]
     else:

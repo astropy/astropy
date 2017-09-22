@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import io
 import os
@@ -12,7 +10,6 @@ import subprocess
 import pytest
 
 from ...tests.helper import catch_warnings
-from ...extern import six
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
@@ -137,7 +134,7 @@ def test_configitem_types():
     assert isinstance(conf.tstnm1, int)
     assert isinstance(conf.tstnm2, float)
     assert isinstance(conf.tstnm3, bool)
-    assert isinstance(conf.tstnm4, six.text_type)
+    assert isinstance(conf.tstnm4, str)
 
     with pytest.raises(TypeError):
         conf.tstnm1 = 34.3
@@ -161,7 +158,7 @@ def test_configitem_options(tmpdir):
 
     sec = get_config(cio.module)
 
-    assert isinstance(cio(), six.text_type)
+    assert isinstance(cio(), str)
     assert cio() == 'op1'
     assert sec['tstnmo'] == 'op1'
 
@@ -303,7 +300,7 @@ def test_configitem_unicode(tmpdir):
 
     sec = get_config(cio.module)
 
-    assert isinstance(cio(), six.text_type)
+    assert isinstance(cio(), str)
     assert cio() == 'ასტრონომიის'
     assert sec['tstunicode'] == 'ასტრონომიის'
 

@@ -25,8 +25,7 @@ Column is itself an array.
 import sys
 import numpy as np
 
-cdef int PYV = sys.version_info[0]
-cdef tuple INTEGER_TYPES = (int, long, np.integer) if PYV == 2 else (int, np.integer)
+cdef tuple INTEGER_TYPES = (int, np.integer)
 
 
 # Annoying boilerplate that we shouldn't have to write; Cython should
@@ -57,13 +56,11 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
 
     value = getitem(self, item)
 
-    # In Py3+ return a scalar bytes value as utf-8-encoded str
-    if PYV != 2:
-        try:
-            if value.dtype.char == 'S' and not value.shape:
-                value = value.decode('utf-8', errors='replace')
-        except AttributeError:
-            pass
+    try:
+        if value.dtype.char == 'S' and not value.shape:
+            value = value.decode('utf-8', errors='replace')
+    except AttributeError:
+        pass
 
     return value
 

@@ -5,7 +5,6 @@ import numpy as np
 
 from ..sorted_array import SortedArray
 from ..table import Table
-from ...extern.six.moves import range
 
 
 @pytest.fixture

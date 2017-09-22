@@ -8,7 +8,6 @@ ui.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 import os
@@ -32,7 +31,6 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
-from ...extern import six
 from ...utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
@@ -52,7 +50,7 @@ def _probably_html(table, maxchars=100000):
     Determine if ``table`` probably contains HTML content.  See PR #3693 and issue
     #3691 for context.
     """
-    if not isinstance(table, six.string_types):
+    if not isinstance(table, str):
         try:
             # If table is an iterable (list of strings) then take the first
             # maxchars of these.  Make sure this is something with random
@@ -68,7 +66,7 @@ def _probably_html(table, maxchars=100000):
         except Exception:
             pass
 
-    if isinstance(table, six.string_types):
+    if isinstance(table, str):
         # Look for signs of an HTML table in the first maxchars characters
         table = table[:maxchars]
 
@@ -645,7 +643,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     # a default comment character, there is no other option but to tell user to
     # simply remove the meta['comments'].
     if (isinstance(writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader))
-            and not isinstance(kwargs.get('comment', ''), six.string_types)):
+            and not isinstance(kwargs.get('comment', ''), str)):
         raise ValueError("for the commented_header writer you must supply a string\n"
                          "value for the `comment` keyword.  In order to disable writing\n"
                          "table comments use `del t.meta['comments']` prior to writing.")
@@ -696,7 +694,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwar
 
     """
     overwrite = kwargs.pop('overwrite', None)
-    if isinstance(output, six.string_types):
+    if isinstance(output, str):
         if os.path.lexists(output):
             if overwrite is None:
                 warnings.warn(

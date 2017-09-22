@@ -3,12 +3,9 @@
 """
 This module contains functions for matching coordinate catalogs.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
-from ..extern import six
 from .representation import UnitSphericalRepresentation
 from .. import units as u
 from . import Angle
@@ -162,7 +159,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         sep3d = catalogcoord[idx].separation_3d(newmatch)
 
     # update the kdtree on the actual passed-in coordinate
-    if isinstance(storekdtree, six.string_types):
+    if isinstance(storekdtree, str):
         catalogcoord.cache[storekdtree] = newcat_u.cache[storekdtree]
     elif storekdtree is True:
         # the old backwards-compatible name
@@ -440,7 +437,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='kdtree', forceunit=None):
         attrname_or_kdt = 'kdtree'
 
     # figure out where any cached KDTree might be
-    if isinstance(attrname_or_kdt, six.string_types):
+    if isinstance(attrname_or_kdt, str):
         kdt = coord.cache.get(attrname_or_kdt, None)
         if kdt is not None and not isinstance(kdt, KDTree):
             raise TypeError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))

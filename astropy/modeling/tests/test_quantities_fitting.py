@@ -4,8 +4,6 @@
 Tests that relate to fitting models with quantity parameters
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 

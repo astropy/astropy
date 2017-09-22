@@ -8,10 +8,7 @@
 Handles a "generic" string format for units
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
 
 import os
 import re
@@ -157,8 +154,7 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        lexer = lex.lex(optimize=True, lextab=str('generic_lextab'),
+        lexer = lex.lex(optimize=True, lextab='generic_lextab',
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
 
@@ -420,8 +416,7 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        parser = yacc.yacc(debug=False, tabmodule=str('generic_parsetab'),
+        parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
                            outputdir=os.path.dirname(__file__))
 
         return parser
@@ -433,7 +428,7 @@ class Generic(Base):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, {1}".format(
-                    t.lexpos, six.text_type(e)))
+                    t.lexpos, str(e)))
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
@@ -452,7 +447,7 @@ class Generic(Base):
 
     @classmethod
     def parse(cls, s, debug=False):
-        if not isinstance(s, six.text_type):
+        if not isinstance(s, str):
             s = s.decode('ascii')
 
         result = cls._do_parse(s, debug=debug)
@@ -473,7 +468,7 @@ class Generic(Base):
             try:
                 return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
-                if six.text_type(e):
+                if str(e):
                     raise
                 else:
                     raise ValueError(

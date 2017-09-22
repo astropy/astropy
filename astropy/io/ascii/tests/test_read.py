@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import re
 from io import BytesIO, open
 from collections import OrderedDict
 import locale
 import platform
+from io import StringIO
 
+import pathlib
 import pytest
 import numpy as np
 
-from ....extern import six  # noqa
-from ....extern.six.moves import zip, cStringIO as StringIO
 from ... import ascii
 from ....table import Table
 from ....units import Unit
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+                     assert_true)
 from .. import core
 from ..ui import _probably_html, get_read_trace
+
+# setup/teardown function to have the tests run in the correct directory
+from .common import setup_function, teardown_function
 
 try:
     import bz2  # pylint: disable=W0611
@@ -29,13 +31,6 @@ except ImportError:
     HAS_BZ2 = False
 else:
     HAS_BZ2 = True
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
@@ -1141,7 +1136,6 @@ def test_table_with_no_newline():
         assert len(t) == 0
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_object():
     fpath = pathlib.Path('t/simple.txt')
     data = ascii.read(fpath)
@@ -1259,7 +1253,6 @@ def text_aastex_no_trailing_backslash():
     assert np.all(dat['c'] == ['c', 'e'])
 
 
-@pytest.mark.skipif('six.PY2')
 @pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
 def test_read_with_encoding(tmpdir, encoding):
     data = {
@@ -1291,9 +1284,3 @@ def test_unsupported_read_with_encoding(tmpdir):
     with pytest.raises(ascii.ParameterError):
         ascii.read('t/simple3.txt', guess=False, fast_reader='force',
                    encoding='latin1', format='fast_csv')
-
-    # Python 2 is not supported, make sure it raises an exception
-    if six.PY2:
-        with pytest.raises(ValueError):
-            ascii.read('t/simple3.txt', guess=False, fast_reader=False,
-                       encoding='latin1', format='csv')

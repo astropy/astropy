@@ -15,12 +15,12 @@ except ImportError:
     HAS_YAML = False
 
 import copy
+import pickle
+from io import StringIO
 
 import pytest
 import numpy as np
 
-from ...extern import six
-from ...extern.six.moves import cPickle as pickle, cStringIO as StringIO
 from ...coordinates import EarthLocation
 from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
@@ -599,9 +599,9 @@ def test_ndarray_mixin():
     tests apply.
     """
     a = np.array([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
-                 dtype='<i4,' + ('|S1' if six.PY2 else '|U1'))
+                 dtype='<i4,' + ('|U1'))
     b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
-                 dtype=[('x', 'i4'), ('y', ('S2' if six.PY2 else 'U2'))])
+                 dtype=[('x', 'i4'), ('y', ('U2'))])
     c = np.rec.fromrecords([(100, 'raa'), (200, 'rbb'), (300, 'rcc'), (400, 'rdd')],
                            names=['rx', 'ry'])
     d = np.arange(8).reshape(4, 2).view(NdarrayMixin)

@@ -3,10 +3,7 @@
 These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern.six.moves import range
 
 
 def pytest_addoption(parser):

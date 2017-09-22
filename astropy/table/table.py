@@ -1,8 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip, range
 from .index import TableIndices, TableLoc, TableILoc
 
 import re
@@ -105,7 +101,7 @@ class TableColumns(OrderedDict):
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
           tc[1:3] # <TableColumns names=('b', 'c')>
         """
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             return OrderedDict.__getitem__(self, item)
         elif isinstance(item, (int, np.integer)):
             return self.values()[item]
@@ -126,7 +122,7 @@ class TableColumns(OrderedDict):
         super(TableColumns, self).__setitem__(item, value)
 
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in six.iterkeys(self))
+        names = ("'{0}'".format(x) for x in self.keys())
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
@@ -138,7 +134,7 @@ class TableColumns(OrderedDict):
 
         mapper = {name: new_name}
         new_names = [mapper.get(name, name) for name in self]
-        cols = list(six.itervalues(self))
+        cols = list(self.values())
         self.clear()
         self.update(list(zip(new_names, cols)))
 
@@ -471,7 +467,7 @@ class Table(object):
             New table with masked values filled
         """
         if self.masked:
-            data = [col.filled(fill_value) for col in six.itervalues(self.columns)]
+            data = [col.filled(fill_value) for col in self.columns.values()]
         else:
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))
@@ -523,7 +519,7 @@ class Table(object):
         unique : bool
             Whether the values of the index must be unique. Default is False.
         '''
-        if isinstance(colnames, six.string_types):
+        if isinstance(colnames, str):
             colnames = (colnames,)
         columns = self.columns[tuple(colnames)].values()
 
@@ -862,8 +858,6 @@ class Table(object):
             max_lines=max_lines, tableclass=tableclass)
 
         out = descr + '\n'.join(data_lines)
-        if six.PY2 and isinstance(out, six.text_type):
-            out = out.encode('utf-8')
 
         return out
 
@@ -874,15 +868,11 @@ class Table(object):
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
 
-    def __unicode__(self):
+    def __str__(self):
         return '\n'.join(self.pformat())
-    if not six.PY2:
-        __str__ = __unicode__
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
+        return str(self).encode('utf-8')
 
     @property
     def has_mixin_columns(self):
@@ -1079,9 +1069,9 @@ class Table(object):
         import os
         import webbrowser
         import tempfile
-        from ..extern.six.moves.urllib.parse import urljoin
-        from ..extern.six.moves.urllib.request import pathname2url
         from .jsviewer import DEFAULT_CSS
+        from urllib.parse import urljoin
+        from urllib.request import pathname2url
 
         if css is None:
             css = DEFAULT_CSS
@@ -1220,14 +1210,14 @@ class Table(object):
                                     show_unit=show_unit, show_dtype=show_dtype)
 
     def __getitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             return self.columns[item]
         elif isinstance(item, (int, np.integer)):
             return self.Row(self, item)
         elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
             return self.Row(self, item.item())
         elif (isinstance(item, (tuple, list)) and item and
-              all(isinstance(x, six.string_types) for x in item)):
+              all(isinstance(x, str) for x in item)):
             bad_names = [x for x in item if x not in self.colnames]
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
@@ -1258,7 +1248,7 @@ class Table(object):
     def __setitem__(self, item, value):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
-        if isinstance(item, six.string_types) and item not in self.colnames:
+        if isinstance(item, str) and item not in self.colnames:
             NewColumn = self.MaskedColumn if self.masked else self.Column
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
@@ -1311,7 +1301,7 @@ class Table(object):
         else:
             n_cols = len(self.columns)
 
-            if isinstance(item, six.string_types):
+            if isinstance(item, str):
                 # Set an existing column by first trying to replace, and if
                 # this fails do an in-place update.  See definition of mask
                 # property for discussion of the _setitem_inplace attribute.
@@ -1366,7 +1356,7 @@ class Table(object):
                                  .format(type(item)))
 
     def __delitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             self.remove_column(item)
         elif isinstance(item, tuple):
             self.remove_columns(item)
@@ -1826,7 +1816,7 @@ class Table(object):
         To remove several rows at the same time use remove_rows.
         """
         # check the index against the types that work with np.delete
-        if not isinstance(index, (six.integer_types, np.integer)):
+        if not isinstance(index, (int, np.integer)):
             raise TypeError("Row index must be an integer")
         self.remove_rows(index)
 
@@ -1980,7 +1970,7 @@ class Table(object):
 
         This gives the same as using remove_column.
         '''
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             names = [names]
 
         for name in names:
@@ -2003,8 +1993,6 @@ class Table(object):
         python3_only : bool
             Only do this operation for Python 3
         """
-        if python3_only and six.PY2:
-            return
 
         # If there are no `in_kind` columns then do nothing
         cols = self.columns.values()
@@ -2113,7 +2101,7 @@ class Table(object):
               3   z
         '''
 
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             names = [names]
 
         for name in names:
@@ -2389,7 +2377,7 @@ class Table(object):
             Array of indices that sorts the table by the specified key
             column(s).
         """
-        if isinstance(keys, six.string_types):
+        if isinstance(keys, str):
             keys = [keys]
 
         # use index sorted order if possible
@@ -2450,7 +2438,7 @@ class Table(object):
                 raise ValueError("Table sort requires input keys or a table index")
             keys = [x.info.name for x in self.indices[0].columns]
 
-        if isinstance(keys, six.string_types):
+        if isinstance(keys, str):
             keys = [keys]
 
         indexes = self.argsort(keys)
@@ -2578,32 +2566,16 @@ class Table(object):
         return self.copy(False)
 
     def __lt__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() < {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__lt__(other)
+        return super(Table, self).__lt__(other)
 
     def __gt__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() > {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__gt__(other)
+        return super(Table, self).__gt__(other)
 
     def __le__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() <= {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__le__(other)
+        return super(Table, self).__le__(other)
 
     def __ge__(self, other):
-        if six.PY2:
-            raise TypeError("unorderable types: Table() >= {0}".
-                            format(str(type(other))))
-        else:
-            return super(Table, self).__ge__(other)
+        return super(Table, self).__ge__(other)
 
     def __eq__(self, other):
 
@@ -2736,9 +2708,7 @@ class Table(object):
             if data.dtype.kind == 'O':
                 # If all elements of an object array are string-like or np.nan
                 # then coerce back to a native numpy str/unicode array.
-                string_types = six.string_types
-                if not six.PY2:
-                    string_types += (bytes,)
+                string_types = (str, bytes)
                 nan = np.nan
                 if all(isinstance(x, string_types) or x is nan for x in data):
                     # Force any missing (null) values to b''.  Numpy will
@@ -2831,7 +2801,7 @@ class NdarrayMixin(np.ndarray):
         if obj is None:
             return
 
-        if six.callable(super(NdarrayMixin, self).__array_finalize__):
+        if callable(super(NdarrayMixin, self).__array_finalize__):
             super(NdarrayMixin, self).__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))

@@ -7,7 +7,6 @@ Notes
 -----
 The pure python version here allows matrix multiplications for numpy <= 1.10
 """
-from __future__ import division, absolute_import, print_function
 
 import numpy as np
 

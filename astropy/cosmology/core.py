@@ -1,9 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import map
 
 import sys
 from math import sqrt, pi, exp, log, floor
@@ -92,8 +88,7 @@ class Cosmology(object):
     implemented. """
 
 
-@six.add_metaclass(ABCMeta)
-class FLRW(Cosmology):
+class FLRW(Cosmology, metaclass=ABCMeta):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -2896,7 +2891,7 @@ class default_cosmology(ScienceState):
     def validate(cls, value):
         if value is None:
             value = 'Planck15'
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return cls.get_cosmology_from_string(value)
         elif isinstance(value, Cosmology):
             return value

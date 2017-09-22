@@ -1,14 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base CCDData class.
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import textwrap
 
 import numpy as np
 import pytest
 
-from ...extern import six
 from ...io import fits
 from ..nduncertainty import StdDevUncertainty, MissingDataAssociationException
 from ... import units as u
@@ -678,7 +675,7 @@ def test_wcs_keyword_removal_for_wcs_test_files():
         # Check that the new wcs is the same as the old.
         new_wcs_header = new_wcs.to_header(relax=True)
         for k, v in new_wcs_header.items():
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 assert header[k] == v
             else:
                 np.testing.assert_almost_equal(header[k], v)

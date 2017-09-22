@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import print_function
 
 import bz2
 import gzip
@@ -20,11 +19,9 @@ from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-from ....extern.six import string_types, PY2
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
-from ....extern.six.moves import range
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -379,16 +376,6 @@ class HDUList(list, _Verify):
             self._truncate = False
             self._resize = True
 
-    if PY2:  # don't fall through to list.__getslice__, __delslice__
-        def __getslice__(self, start, end):
-            return self.__getitem__(slice(start, end))
-
-        def __delslice__(self, start, stop):
-            """
-            Delete a slice of HDUs from the `HDUList`, indexed by number only.
-            """
-            self.__delitem__(slice(start, stop))
-
     # Support the 'with' statement
     def __enter__(self):
         return self
@@ -669,7 +656,7 @@ class HDUList(list, _Verify):
             _key = key
             _ver = None
 
-        if not isinstance(_key, string_types):
+        if not isinstance(_key, str):
             raise KeyError(
                 '{} indices must be integers, extension names as strings, '
                 'or (extname, version) tuples; got {}'
@@ -680,7 +667,7 @@ class HDUList(list, _Verify):
         found = None
         for idx, hdu in enumerate(self):
             name = hdu.name
-            if isinstance(name, string_types):
+            if isinstance(name, str):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
@@ -869,7 +856,7 @@ class HDUList(list, _Verify):
         # make note of whether the input file object is already open, in which
         # case we should not close it after writing (that should be the job
         # of the caller)
-        closed = isinstance(fileobj, string_types) or fileobj_closed(fileobj)
+        closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
         # writeto is only for writing a new file from scratch, so the most
         # sensible mode to require is 'ostream'.  This can accept an open

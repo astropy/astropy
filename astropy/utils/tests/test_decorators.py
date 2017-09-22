@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import functools
 import inspect
@@ -12,7 +10,6 @@ from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
                           format_doc, deprecated_renamed_argument)
 from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from ...extern import six
 from ...tests.helper import catch_warnings
 
 
@@ -42,12 +39,8 @@ def test_wraps():
     if hasattr(foo, '__qualname__'):
         assert bar.__qualname__ == foo.__qualname__
 
-    if six.PY2:
-        argspec = inspect.getargspec(bar)
-        assert argspec.keywords == 'kwargs'
-    else:
-        argspec = inspect.getfullargspec(bar)
-        assert argspec.varkw == 'kwargs'
+    argspec = inspect.getfullargspec(bar)
+    assert argspec.varkw == 'kwargs'
 
     assert argspec.args == ['a', 'b', 'c', 'd', 'e']
     assert argspec.defaults == (1, 2, 3)
@@ -71,10 +64,7 @@ def test_wraps_exclude_names():
     def func(*args, **kwargs):
         return test.method(*args, **kwargs)
 
-    if six.PY2:
-        argspec = inspect.getargspec(func)
-    else:
-        argspec = inspect.getfullargspec(func)
+    argspec = inspect.getfullargspec(func)
     assert argspec.args == ['a', 'b', 'c', 'd']
 
     assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
@@ -150,8 +140,7 @@ class TMeta(type):
 
 
 @deprecated('100.0')
-@six.add_metaclass(TMeta)
-class TB(object):
+class TB(metaclass=TMeta):
     pass
 
 
@@ -451,56 +440,6 @@ def test_deprecated_argument_not_allowed_use():
             return kwargs
 
 
-@pytest.mark.skipif('not six.PY2')
-def test_sharedmethod_imfunc():
-    """
-    Test that the im_func of a sharedmethod always points to the correct
-    underlying function.
-
-    This only applies to Python 2 as Python 3 does not have an im_func
-    attribute on methods.
-    """
-
-    # The original function
-    def foo(self): pass
-    actual_foo = foo
-
-    class Bar(object):
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo
-    assert Bar().foo.im_func is actual_foo
-
-    # Now test the case where there the metaclass has a separate
-    # implementation
-    def foo(cls): pass
-    actual_foo_2 = foo
-
-    class MetaBar(type):
-        foo = actual_foo_2
-
-    class Bar(object):
-        __metaclass__ = MetaBar
-
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo_2
-    assert Bar().foo.im_func is actual_foo
-
-    # Finally, test case where the metaclass also has an attribute called
-    # 'foo', but it is not a method (hence sharedmethod should ignore it)
-    class MetaBar(type):
-        foo = None
-
-    class Bar(object):
-        __metaclass__ = MetaBar
-
-        foo = sharedmethod(actual_foo)
-
-    assert Bar.foo.im_func is actual_foo
-    assert Bar().foo.im_func is actual_foo
-
-
 def test_sharedmethod_reuse_on_subclasses():
     """
     Regression test for an issue where sharedmethod would bind to one class
@@ -514,8 +453,6 @@ def test_sharedmethod_reuse_on_subclasses():
     class AMeta(type):
         def foo(cls):
             return cls.x
-
-    six.add_metaclass(AMeta)
 
     class A(object):
         x = 3
@@ -745,7 +682,6 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == 'what we do is strange.'
 
 
-# @pytest.mark.skipif('six.PY2')
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = 'what we do {__doc__} {0}{opt}'

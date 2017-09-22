@@ -72,8 +72,6 @@ from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from ...units import Unit
 from ...units.format.fits import UnitScaleError
 from ...units import Quantity
-from ...extern import six
-from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
 
@@ -477,7 +475,7 @@ def table_to_hdu(table):
     # Create a new HDU object
     if table.masked:
         # float column's default mask value needs to be Nan
-        for column in six.itervalues(table.columns):
+        for column in table.columns.values():
             fill_value = column.get_fill_value()
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
@@ -796,7 +794,7 @@ def printdiff(inputa, inputb, *args, **kwargs):
                  if key in kwargs}
     has_extensions = args or extension
 
-    if isinstance(inputa, string_types) and has_extensions:
+    if isinstance(inputa, str) and has_extensions:
         # Use handy _getext to interpret any ext keywords, but
         # will need to close a if  fails
         modea, closeda = _get_file_mode(inputa)
@@ -907,7 +905,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
             f.close()
 
 
-if isinstance(tabledump.__doc__, string_types):
+if isinstance(tabledump.__doc__, str):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
@@ -946,7 +944,7 @@ def tableload(datafile, cdfile, hfile=None):
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
 
 
-if isinstance(tableload.__doc__, string_types):
+if isinstance(tableload.__doc__, str):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
@@ -976,7 +974,7 @@ def _getext(filename, mode, *args, **kwargs):
             if ext is not None or extname is not None or extver is not None:
                 raise TypeError(err_msg)
             ext = args[0]
-        elif isinstance(args[0], string_types):
+        elif isinstance(args[0], str):
             # The first arg is an extension name; it could still be valid
             # to provide an extver kwarg
             if ext is not None or extname is not None:
@@ -998,11 +996,11 @@ def _getext(filename, mode, *args, **kwargs):
     if (ext is not None and
             not (_is_int(ext) or
                  (isinstance(ext, tuple) and len(ext) == 2 and
-                  isinstance(ext[0], string_types) and _is_int(ext[1])))):
+                  isinstance(ext[0], str) and _is_int(ext[1])))):
         raise ValueError(
             'The ext keyword must be either an extension number '
             '(zero-indexed) or a (extname, extver) tuple.')
-    if extname is not None and not isinstance(extname, string_types):
+    if extname is not None and not isinstance(extname, str):
         raise ValueError('The extname argument must be a string.')
     if extver is not None and not _is_int(extver):
         raise ValueError('The extver argument must be an integer.')

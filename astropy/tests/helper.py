@@ -3,19 +3,15 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-import functools
 import os
 import sys
 import types
+import pickle
 import warnings
+import functools
 
 import pytest
-
-from ..extern import six
-from ..extern.six.moves import cPickle as pickle
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -204,7 +200,7 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
     _warnings_to_ignore_entire_module.update(warnings_to_ignore_entire_module)
 
     global _warnings_to_ignore_by_pyver
-    for key, val in six.iteritems(warnings_to_ignore_by_pyver):
+    for key, val in warnings_to_ignore_by_pyver.items():
         if key in _warnings_to_ignore_by_pyver:
             _warnings_to_ignore_by_pyver[key].update(val)
         else:
@@ -224,7 +220,7 @@ def treat_deprecations_as_exceptions():
     # First, totally reset the warning state. The modules may change during
     # this iteration thus we copy the original state to a list to iterate
     # on. See https://github.com/astropy/astropy/pull/5513.
-    for module in list(six.itervalues(sys.modules)):
+    for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
         # modules.
         if (isinstance(module, types.ModuleType) and
@@ -368,18 +364,17 @@ def assert_follows_unicode_guidelines(
         If not provided, no roundtrip testing will be performed.
     """
     from .. import conf
-    from ..extern import six
 
     with conf.set_temp('unicode_output', False):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
+        assert isinstance(unicode_x, str)
         unicode_x.encode('ascii')
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:
@@ -392,13 +387,13 @@ def assert_follows_unicode_guidelines(
 
     with conf.set_temp('unicode_output', True):
         bytes_x = bytes(x)
-        unicode_x = six.text_type(x)
+        unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
         bytes_x.decode('ascii')
-        assert isinstance(unicode_x, six.text_type)
-        assert isinstance(repr_x, six.string_types)
+        assert isinstance(unicode_x, str)
+        assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
             repr_x.decode('ascii')
         else:

@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 import pkgutil
 import os
@@ -29,7 +26,7 @@ def test_imports():
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm, six.string_types):
+    if isinstance(pkgornm, str):
         package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
     elif (isinstance(pkgornm, types.ModuleType) and
             '__init__' in pkgornm.__file__):
@@ -46,10 +43,7 @@ def test_imports():
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    if six.PY2:
-        excludes = _py3_packages
-    else:
-        excludes = _py2_packages
+    excludes = _py2_packages
 
     prefix = package.__name__ + '.'
 

@@ -1,25 +1,20 @@
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 
 import pytest
 import numpy as np
 
-from ...extern import six
 from ..data_info import dtype_info_name
 
-STRING_TYPE_NAMES = {(False, 'S'): 'str',  # PY2
-                     (False, 'U'): 'unicode',
-                     (True, 'S'): 'bytes',  # not PY2
+STRING_TYPE_NAMES = {(True, 'S'): 'bytes',
                      (True, 'U'): 'str'}
 
-DTYPE_TESTS = ((np.array(b'abcd').dtype, STRING_TYPE_NAMES[(not six.PY2, 'S')] + '4'),
-               (np.array(u'abcd').dtype, STRING_TYPE_NAMES[(not six.PY2, 'U')] + '4'),
-               ('S4', STRING_TYPE_NAMES[(not six.PY2, 'S')] + '4'),
-               ('U4', STRING_TYPE_NAMES[(not six.PY2, 'U')] + '4'),
+DTYPE_TESTS = ((np.array(b'abcd').dtype, STRING_TYPE_NAMES[(True, 'S')] + '4'),
+               (np.array(u'abcd').dtype, STRING_TYPE_NAMES[(True, 'U')] + '4'),
+               ('S4', STRING_TYPE_NAMES[(True, 'S')] + '4'),
+               ('U4', STRING_TYPE_NAMES[(True, 'U')] + '4'),
                (np.void, 'void'),
                (np.int32, 'int32'),
                (np.bool, 'bool'),

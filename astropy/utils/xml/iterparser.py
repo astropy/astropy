@@ -2,9 +2,6 @@
 """
 This module includes a fast iterator-based XML parser.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 # STDLIB
 import contextlib
@@ -59,7 +56,7 @@ def _convert_to_fd_or_read_function(fd):
     fd : context-dependent
         See above.
     """
-    if six.callable(fd):
+    if callable(fd):
         yield fd
         return
 
@@ -67,22 +64,16 @@ def _convert_to_fd_or_read_function(fd):
         if sys.platform.startswith('win'):
             yield new_fd.read
         else:
-            if six.PY2:
-                if isinstance(new_fd, file):
-                    yield new_fd
-                else:
-                    yield new_fd.read
+            if isinstance(new_fd, io.FileIO):
+                yield new_fd
             else:
-                if isinstance(new_fd, io.FileIO):
-                    yield new_fd
-                else:
-                    yield new_fd.read
+                yield new_fd.read
 
 
 def _fast_iterparse(fd, buffersize=2 ** 10):
     from xml.parsers import expat
 
-    if not six.callable(fd):
+    if not callable(fd):
         read = fd.read
     else:
         read = fd
@@ -100,8 +91,6 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
 
     parser = expat.ParserCreate()
-    if six.PY2:
-        parser.returns_unicode = True
     parser.specified_attributes = True
     parser.StartElementHandler = start
     parser.EndElementHandler = end
@@ -186,7 +175,7 @@ def get_xml_encoding(source):
     encoding : str
     """
     with get_xml_iterator(source) as iterator:
-        start, tag, data, pos = six.next(iterator)
+        start, tag, data, pos = next(iterator)
         if not start or tag != 'xml':
             raise IOError('Invalid XML file')
 

@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import os
@@ -9,9 +7,7 @@ import select
 import socket
 import threading
 import warnings
-
-from .. import log
-from ..extern.six.moves.urllib.parse import urlunparse
+from urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer

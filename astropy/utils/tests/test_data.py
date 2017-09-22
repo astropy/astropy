@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import hashlib
 import io
 import os
+import pathlib
 import sys
 import tempfile
+import urllib
 
 import pytest
 
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
                     get_pkg_data_filename, get_readable_fileobj)
 
-from ...extern import six
-from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, raises, pytest, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
@@ -34,21 +31,11 @@ else:
     HAS_BZ2 = True
 
 try:
-    if sys.version_info >= (3, 3, 0):
-        import lzma
-    else:
-        from backports import lzma  # pylint: disable=W0611
+    import lzma
 except ImportError:
     HAS_XZ = False
 else:
     HAS_XZ = True
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 @remote_data
@@ -364,7 +351,7 @@ def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
     contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
-    assert isinstance(contents, six.text_type)
+    assert isinstance(contents, str)
     contents = contents.splitlines()[1]
     assert contents == "האסטרונומי פייתון"
 
@@ -459,7 +446,6 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     assert len(tempdir_listing) == 0
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_path_objects_get_readable_fileobj():
     fpath = pathlib.Path(get_pkg_data_filename(os.path.join('data', 'local.dat')))
     with get_readable_fileobj(fpath) as f:

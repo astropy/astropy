@@ -1,5 +1,4 @@
 """Main Lomb-Scargle Implementation"""
-from __future__ import print_function, division
 
 import numpy as np
 
@@ -8,7 +7,6 @@ from .implementations.mle import periodic_fit
 from . import _statistics
 from ... import units
 from ...utils.compat.numpy import broadcast_arrays
-from ...extern.six.moves import map
 
 
 def has_units(obj):

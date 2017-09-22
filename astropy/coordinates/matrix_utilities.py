@@ -10,7 +10,6 @@ from ..utils.compat.numpy import matmul
 
 from .. import units as u
 from .angles import Angle
-from ..extern.six.moves import range
 
 
 def matrix_product(*matrices):

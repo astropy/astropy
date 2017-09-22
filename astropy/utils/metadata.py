@@ -2,10 +2,7 @@
 """
 This module contains helper functions and classes for handling metadata.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
 from ..utils import wraps
 
 import warnings
@@ -113,8 +110,7 @@ class MergeStrategyMeta(type):
         return cls
 
 
-@six.add_metaclass(MergeStrategyMeta)
-class MergeStrategy(object):
+class MergeStrategy(metaclass=MergeStrategyMeta):
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.
@@ -319,7 +315,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
 
     out = deepcopy(left)
 
-    for key, val in six.iteritems(right):
+    for key, val in right.items():
         # If no conflict then insert val into out dict and continue
         if key not in out:
             out[key] = deepcopy(val)

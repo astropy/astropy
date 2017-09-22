@@ -4,8 +4,6 @@
 This module contains models representing polynomials and polynomial series.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from collections import OrderedDict
 
@@ -16,7 +14,6 @@ from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
 from ..utils import indent, check_broadcast
-from ..extern.six.moves import range
 from ..units import Quantity
 
 __all__ = [

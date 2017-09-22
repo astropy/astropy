@@ -2,7 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-from __future__ import print_function
 
 
 import functools
@@ -14,8 +13,6 @@ import warnings
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
-from ..extern import six
-from ..extern.six.moves import zip
 
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
@@ -792,14 +789,12 @@ class sharedmethod(classmethod):
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 
-        >>> from astropy.extern.six import add_metaclass
         >>> class ExampleMeta(type):
         ...     def identify(self):
         ...         print('this implements the {0}.identify '
         ...               'classmethod'.format(self.__name__))
         ...
-        >>> @add_metaclass(ExampleMeta)
-        ... class Example(object):
+        >>> class Example(metaclass=ExampleMeta):
         ...     @sharedmethod
         ...     def identify(self):
         ...         print('this implements the instancemethod')
@@ -830,16 +825,9 @@ class sharedmethod(classmethod):
         else:
             return self._make_method(self.__func__, obj)
 
-    if not six.PY2:
-        # The 'instancemethod' type of Python 2 and the method type of
-        # Python 3 have slightly different constructors
-        @staticmethod
-        def _make_method(func, instance):
-            return types.MethodType(func, instance)
-    else:
-        @staticmethod
-        def _make_method(func, instance):
-            return types.MethodType(func, instance, type(instance))
+    @staticmethod
+    def _make_method(func, instance):
+        return types.MethodType(func, instance)
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
@@ -873,57 +861,35 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-if (isinstance(wraps.__doc__, six.string_types) and
+if (isinstance(wraps.__doc__, str) and
         wraps.__doc__ is not None and functools.wraps.__doc__ is not None):
     wraps.__doc__ += functools.wraps.__doc__
 
 
-if not six.PY2:
-    def _get_function_args_internal(func):
-        """
-        Utility function for `wraps`.
+def _get_function_args_internal(func):
+    """
+    Utility function for `wraps`.
 
-        Reads the argspec for the given function and converts it to arguments
-        for `make_function_with_signature`.  This requires different
-        implementations on Python 2 versus Python 3.
-        """
+    Reads the argspec for the given function and converts it to arguments
+    for `make_function_with_signature`.  This requires different
+    implementations on Python 2 versus Python 3.
+    """
 
-        argspec = inspect.getfullargspec(func)
+    argspec = inspect.getfullargspec(func)
 
-        if argspec.defaults:
-            args = argspec.args[:-len(argspec.defaults)]
-            kwargs = zip(argspec.args[len(args):], argspec.defaults)
-        else:
-            args = argspec.args
-            kwargs = []
+    if argspec.defaults:
+        args = argspec.args[:-len(argspec.defaults)]
+        kwargs = zip(argspec.args[len(args):], argspec.defaults)
+    else:
+        args = argspec.args
+        kwargs = []
 
-        if argspec.kwonlyargs:
-            kwargs.extend((argname, argspec.kwonlydefaults[argname])
-                          for argname in argspec.kwonlyargs)
+    if argspec.kwonlyargs:
+        kwargs.extend((argname, argspec.kwonlydefaults[argname])
+                      for argname in argspec.kwonlyargs)
 
-        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-                'varkwargs': argspec.varkw}
-else:
-    def _get_function_args_internal(func):
-        """
-        Utility function for `wraps`.
-
-        Reads the argspec for the given function and converts it to arguments
-        for `make_function_with_signature`.  This requires different
-        implementations on Python 2 versus Python 3.
-        """
-
-        argspec = inspect.getargspec(func)
-
-        if argspec.defaults:
-            args = argspec.args[:-len(argspec.defaults)]
-            kwargs = zip(argspec.args[len(args):], argspec.defaults)
-        else:
-            args = argspec.args
-            kwargs = {}
-
-        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
-                'varkwargs': argspec.keywords}
+    return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
+            'varkwargs': argspec.varkw}
 
 
 def _get_function_args(func, exclude_args=()):
@@ -1145,7 +1111,7 @@ def format_doc(docstring, *args, **kwargs):
             # Delete documentation in this case so we don't end up with
             # awkwardly self-inserted docs.
             obj.__doc__ = None
-        elif isinstance(docstring, six.string_types):
+        elif isinstance(docstring, str):
             # String: use the string that was given
             doc = docstring
         else:
@@ -1160,12 +1126,6 @@ def format_doc(docstring, *args, **kwargs):
         # If the original has a not-empty docstring append it to the format
         # kwargs.
         kwargs['__doc__'] = obj.__doc__ or ''
-        if six.PY2 and isinstance(obj, type):
-            # For python 2 we must create a subclass because there the __doc__
-            # is not mutable for objects.
-            obj = type(obj.__name__, (obj,), {'__doc__': doc.format(*args, **kwargs),
-                                              '__module__': obj.__module__})
-        else:
-            obj.__doc__ = doc.format(*args, **kwargs)
+        obj.__doc__ = doc.format(*args, **kwargs)
         return obj
     return set_docstring

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import sys
 
@@ -9,7 +8,6 @@ import numpy as np
 
 from ... import table
 from ...table import Row
-from ...extern.six.moves import zip
 from .conftest import MaskedTable
 
 

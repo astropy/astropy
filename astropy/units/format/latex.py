@@ -4,13 +4,10 @@
 Handles the "LaTeX" unit format.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
 from . import base, core, utils
-from ...extern.six.moves import zip
 
 
 class Latex(base.Base):

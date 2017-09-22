@@ -4,10 +4,6 @@
     Test the Logarithmic Units and Quantities
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-from ...extern import six
-from ...extern.six.moves import zip
 
 import pickle
 import itertools
@@ -757,11 +753,8 @@ class TestLogQuantityArithmetic(object):
 class TestLogQuantityComparisons(object):
     def test_comparison_to_non_quantities_fails(self):
         lq = u.Magnitude(np.arange(1., 10.)*u.Jy)
-        # On python2, ordering operations always succeed, given essentially
-        # meaningless results.
-        if not six.PY2:
-            with pytest.raises(TypeError):
-                lq > 'a'
+        with pytest.raises(TypeError):
+            lq > 'a'
 
         assert not (lq == 'a')
         assert lq != 'a'

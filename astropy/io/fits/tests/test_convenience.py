@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division, with_statement
 
 import warnings
 
 import pytest
 import numpy as np
 
-from ....extern import six  # pylint: disable=W0611
 from ....io import fits
 from ....table import Table
 from .. import printdiff
@@ -18,7 +16,6 @@ from . import FitsTestCase
 
 class TestConvenience(FitsTestCase):
 
-    @pytest.mark.skipif('six.PY2')
     def test_resource_warning(self):
         warnings.simplefilter('always', ResourceWarning)
         with catch_warnings() as w:
