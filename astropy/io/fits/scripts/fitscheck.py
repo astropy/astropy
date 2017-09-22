@@ -109,7 +109,12 @@ def handle_options(args):
     OPTIONS, fits_files = parser.parse_args(args)
 
     if OPTIONS.checksum_kind == 'none':
-        OPTIONS.checksum_kind = False
+        # Handle use case 7
+        if not OPTIONS.compliance and OPTIONS.write_file:
+            OPTIONS.checksum_kind = 'remove'
+        else:
+            # Handle use case 5
+            OPTIONS.checksum_kind = False
 
     return fits_files
 
@@ -181,6 +186,10 @@ def update(filename):
     except fits.VerifyError:
         pass  # unfixable errors already noted during verification phase
     finally:
+        if OPTIONS.checksum_kind == 'remove':
+            log.info('OK {!r} .. CHECKSUM and DATASUM keywords removed from all HDUs'.format(filename))
+        else:
+            log.info('OK {!r} .. All changes written'.format(filename))
         hdulist.close()
 
 
@@ -197,6 +206,8 @@ def process_file(filename):
         else:
             compliance_errors = 0
         if OPTIONS.write_file and checksum_errors == 0 or OPTIONS.force:
+            if OPTIONS.force:
+                log.warning('WARNING {!r}.. Ignoring errors and updating CHECKSUM and DATASUM forcibly'.format(filename))
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:

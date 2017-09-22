@@ -455,7 +455,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         hdu._data_size = size + _pad_length(size)
 
         # Checksums are not checked on invalid HDU types
-        if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
+        if isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum(checksum)
 
         return hdu
@@ -1339,10 +1339,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         if 'CHECKSUM' in self._header:
             self._checksum = self._header['CHECKSUM']
             self._checksum_comment = self._header.comments['CHECKSUM']
-            if not self.verify_checksum(blocking):
-                warnings.warn(
-                    'Checksum verification failed for HDU {0}.\n'.format(
-                        (self.name, self.ver)), AstropyUserWarning)
+            if blocking not in ('remove', False):
+                if not self.verify_checksum(blocking):
+                    warnings.warn(
+                        'Checksum verification failed for HDU {0}.\n'.format(
+                            (self.name, self.ver)), AstropyUserWarning)
         else:
             self._checksum = None
             self._checksum_comment = None
@@ -1350,11 +1351,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         if 'DATASUM' in self._header:
             self._datasum = self._header['DATASUM']
             self._datasum_comment = self._header.comments['DATASUM']
-
-            if not self.verify_datasum(blocking):
-                warnings.warn(
-                    'Datasum verification failed for HDU {0}.\n'.format(
-                        (self.name, self.ver)), AstropyUserWarning)
+            if blocking not in ('remove', False):
+                if not self.verify_datasum(blocking):
+                    warnings.warn(
+                        'Datasum verification failed for HDU {0}.\n'.format(
+                            (self.name, self.ver)), AstropyUserWarning)
         else:
             self._checksum = None
             self._checksum_comment = None
