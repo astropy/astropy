@@ -7,16 +7,14 @@ Note that this is intended to be a convenience, and is very simple. If you
 need precise coordinates for an object you should find the appropriate
 reference for that measurement and input the coordinates manually.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # Standard library
 import os
 import re
 import socket
+import urllib
 
 # Astropy
-from ..extern.six.moves import urllib
 from .. import units as u
 from .sky_coordinate import SkyCoord
 from ..utils import data

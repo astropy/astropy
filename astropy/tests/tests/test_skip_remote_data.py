@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # this test doesn't actually use any online data, it should just be skipped
 # by run_tests because it has the remote_data decorator.
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 

@@ -4,11 +4,10 @@
     Test the Quantity class and related.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import sys
 import copy
+import pickle
 import decimal
 from fractions import Fraction
 
@@ -22,9 +21,6 @@ from ...utils.compat import NUMPY_LT_1_10
 from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
-from ...extern.six.moves import range
-from ...extern.six.moves import cPickle as pickle
-from ...extern import six
 
 try:
     import matplotlib
@@ -364,11 +360,7 @@ class TestQuantityOperations(object):
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
-    @pytest.mark.skipif(sys.version_info[:2] < (3, 5),
-                        reason="__matmul__ only introduced in Python 3.5")
     def test_matrix_multiplication(self):
-        # We cannot write @ as an operator since class gets parsed also on
-        # Python <3.5, so we use eval instead.
         a = np.eye(3)
         q = a * u.m
         result1 = eval("q @ a")
@@ -536,11 +528,6 @@ class TestQuantityOperations(object):
             int(q1)
         assert exc.value.args[0] == converter_err_msg
 
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q1)
-            assert exc.value.args[0] == converter_err_msg
-
         # We used to test `q1 * ['a', 'b', 'c'] here, but that that worked
         # at all was a really odd confluence of bugs.  Since it doesn't work
         # in numpy >=1.10 any more, just go directly for `__index__` (which
@@ -555,9 +542,6 @@ class TestQuantityOperations(object):
         assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
         assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
 
-        if six.PY2:
-            assert long(q2) == long(q2.to_value(u.dimensionless_unscaled))
-
         with pytest.raises(TypeError) as exc:
             q2.__index__()
         assert exc.value.args[0] == index_err_msg
@@ -567,8 +551,6 @@ class TestQuantityOperations(object):
 
         assert float(q3) == 1.23
         assert int(q3) == 1
-        if six.PY2:
-            assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
             q3.__index__()
@@ -579,8 +561,6 @@ class TestQuantityOperations(object):
 
         assert float(q4) == 2.
         assert int(q4) == 2
-        if six.PY2:
-            assert long(q4) == 2
 
         assert q4.__index__() == 2
 
@@ -593,11 +573,6 @@ class TestQuantityOperations(object):
         with pytest.raises(TypeError) as exc:
             int(q5)
         assert exc.value.args[0] == converter_err_msg
-
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q5)
-            assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
             q5.__index__()
@@ -986,9 +961,6 @@ def test_arrays():
         float(qsec)
     with pytest.raises(TypeError):
         int(qsec)
-    if six.PY2:
-        with pytest.raises(TypeError):
-            long(qsec)
 
 
 def test_array_indexing_slicing():
@@ -1101,7 +1073,7 @@ def test_quantity_iterability():
     q1 = [15.0, 17.0] * u.m
     assert isiterable(q1)
 
-    q2 = six.next(iter(q1))
+    q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)

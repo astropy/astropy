@@ -37,8 +37,6 @@ References
 .. [1] http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
 .. [2] http://astroML.org/ http://github.com/astroML/astroML/
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 
@@ -46,7 +44,6 @@ import numpy as np
 
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyUserWarning
-from ..extern.six.moves import range
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 

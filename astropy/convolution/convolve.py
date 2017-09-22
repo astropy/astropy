@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 
@@ -17,7 +15,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
-from ..extern.six.moves import range, zip
 
 
 # Disabling all doctests in this module until a better way of handling warnings

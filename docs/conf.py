@@ -45,7 +45,6 @@ except ImportError:
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
-from astropy.extern import six
 
 import astropy
 
@@ -215,10 +214,7 @@ for line in open('nitpick-exceptions'):
         continue
     dtype, target = line.split(None, 1)
     target = target.strip()
-    nitpick_ignore.append((dtype, six.u(target)))
-
-if six.PY2:
-    nitpick_ignore.extend([('py:obj', six.u('bases'))])
+    nitpick_ignore.append((dtype, target))
 
 # -- Options for the Sphinx gallery -------------------------------------------
 

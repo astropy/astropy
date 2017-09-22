@@ -3,9 +3,6 @@
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 # STDLIB
 import contextlib
@@ -139,7 +136,7 @@ class XMLWriter:
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
-            attrib = list(six.iteritems(attrib))
+            attrib = list(attrib.items())
             attrib.sort()
             for k, v in attrib:
                 if v is not None:
@@ -347,5 +344,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = six.text_type(getattr(obj, attr))
+                d[attr.replace('_', '-')] = str(getattr(obj, attr))
         return d

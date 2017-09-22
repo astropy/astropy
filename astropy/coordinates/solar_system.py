@@ -4,9 +4,7 @@ This module contains convenience functions for retrieving solar system
 ephemerides from jplephem.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+from urllib.parse import urlparse
 from collections import OrderedDict
 
 import numpy as np
@@ -23,7 +21,6 @@ from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12
-from ..extern import six
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
            "get_body_barycentric_posvel", "solar_system_ephemeris"]
@@ -160,7 +157,7 @@ def _get_kernel(value):
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
     else:
         try:
-            six.moves.urllib.parse.urlparse(value)
+            urlparse(value)
         except Exception:
             raise ValueError('{} was not one of the standard strings and '
                              'could not be parsed as a URL'.format(value))
@@ -250,7 +247,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
                 copy=False)
 
     else:
-        if isinstance(body, six.string_types):
+        if isinstance(body, str):
             # Look up kernel chain for JPL ephemeris, based on name
             try:
                 kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]

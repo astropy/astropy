@@ -5,15 +5,12 @@
 This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import math
 from collections import namedtuple
 
 import numpy as np
 
-from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
@@ -94,7 +91,7 @@ class Angle(u.SpecificTypeQuantity):
             if isinstance(angle, tuple):
                 angle = cls._tuple_to_float(angle, unit)
 
-            elif isinstance(angle, six.string_types):
+            elif isinstance(angle, str):
                 angle, angle_unit = util.parse_angle(angle, unit)
                 if angle_unit is None:
                     angle_unit = unit

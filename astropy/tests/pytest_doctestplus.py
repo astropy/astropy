@@ -1,7 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
 
 import doctest
 import fnmatch
@@ -155,7 +152,7 @@ def pytest_configure(config):
             skip_all = False
 
             for entry in result:
-                if isinstance(entry, six.string_types) and entry:
+                if isinstance(entry, str) and entry:
                     required = []
                     skip_next = False
                     lines = entry.strip().splitlines()
@@ -351,7 +348,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                         return False
 
                 reqs = getattr(obj, '__doctest_requires__', {})
-                for pats, mods in six.iteritems(reqs):
+                for pats, mods in reqs.items():
                     if not isinstance(pats, tuple):
                         pats = (pats,)
                     for pat in pats:

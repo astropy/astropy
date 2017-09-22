@@ -14,8 +14,6 @@ celestial/spatial coordinate frames, generally focused around matrix-style
 transformations that are typically how the algorithms are defined.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import heapq
 import inspect
@@ -31,8 +29,6 @@ from .. import units as u
 from ..utils.compat import suppress
 from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import range
 
 from .representation import REPRESENTATION_CLASSES
 
@@ -128,7 +124,7 @@ class TransformGraph(object):
             raise TypeError('fromsys must be a class')
         if not inspect.isclass(tosys):
             raise TypeError('tosys must be a class')
-        if not six.callable(transform):
+        if not callable(transform):
             raise TypeError('transform must be callable')
 
         self._graph[fromsys][tosys] = transform
@@ -379,7 +375,7 @@ class TransformGraph(object):
         nms : list
             The aliases for coordinate systems.
         """
-        return list(six.iterkeys(self._cached_names))
+        return list(self._cached_names.keys())
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None, color_edges=True):
@@ -432,7 +428,7 @@ class TransformGraph(object):
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._cached_names)])
+        invclsaliases = dict([(v, k) for k, v in self._cached_names.items()])
         for n in nodes:
             if n in invclsaliases:
                 nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))
@@ -595,8 +591,7 @@ class TransformGraph(object):
 
 # <-------------------Define the builtin transform classes-------------------->
 
-@six.add_metaclass(ABCMeta)
-class CoordinateTransform(object):
+class CoordinateTransform(metaclass=ABCMeta):
     """
     An object that transforms a coordinate from one system to another.
     Subclasses must implement `__call__` with the provided signature.
@@ -730,7 +725,7 @@ class FunctionTransform(CoordinateTransform):
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
-        if not six.callable(func):
+        if not callable(func):
             raise TypeError('func must be callable')
 
         with suppress(TypeError):
@@ -1117,7 +1112,7 @@ class AffineTransform(BaseAffineTransform):
     def __init__(self, transform_func, fromsys, tosys, priority=1,
                  register_graph=None):
 
-        if not six.callable(transform_func):
+        if not callable(transform_func):
             raise TypeError('transform_func is not callable')
         self.transform_func = transform_func
 
@@ -1166,7 +1161,7 @@ class StaticMatrixTransform(BaseAffineTransform):
     """
 
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
-        if six.callable(matrix):
+        if callable(matrix):
             matrix = matrix()
         self.matrix = np.array(matrix)
 
@@ -1216,7 +1211,7 @@ class DynamicMatrixTransform(BaseAffineTransform):
 
     def __init__(self, matrix_func, fromsys, tosys, priority=1,
                  register_graph=None):
-        if not six.callable(matrix_func):
+        if not callable(matrix_func):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 

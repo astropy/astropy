@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import json
 import os
@@ -12,7 +10,6 @@ import numpy as np
 
 from .. import data, misc
 from ...tests.helper import remote_data
-from ...extern import six
 from ..compat import NUMPY_LT_1_10
 
 
@@ -65,8 +62,7 @@ def test_JsonCustomEncoder():
 
 
 def test_inherit_docstrings():
-    @six.add_metaclass(misc.InheritDocstrings)
-    class Base(object):
+    class Base(metaclass=misc.InheritDocstrings):
         def __call__(self, *args):
             "FOO"
             pass

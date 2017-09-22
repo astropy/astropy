@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -14,7 +12,6 @@ from ...time import Time
 from ...tests.helper import (pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 
-from ...extern.six.moves import range
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [

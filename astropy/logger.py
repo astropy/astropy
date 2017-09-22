@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module defines a logging class based on the built-in logging module"""
 
-from __future__ import print_function
-
 import inspect
 import os
 import sys
@@ -12,7 +10,6 @@ from contextlib import contextmanager
 
 from . import config as _config
 from . import conf as _conf
-from .extern.six import PY3, text_type
 from .utils import find_current_module
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
@@ -160,13 +157,9 @@ class AstropyLogger(Logger):
                 extra['origin'] = current_module.__name__
             else:
                 extra['origin'] = 'unknown'
-        if PY3:
-            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
-                                     args, exc_info, func=func, extra=extra,
-                                     sinfo=sinfo)
-        else:
-            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
-                                     args, exc_info, func=func, extra=extra)
+        return Logger.makeRecord(self, name, level, pathname, lineno, msg,
+                                 args, exc_info, func=func, extra=extra,
+                                 sinfo=sinfo)
 
     _showwarning_orig = None
 
@@ -195,26 +188,17 @@ class AstropyLogger(Logger):
         # module.__file__ is the original source file name, so things
         # are more direct.
         mod_name = None
-        if PY3:
-            mod_path, ext = os.path.splitext(mod_path)
-            for name, mod in list(sys.modules.items()):
-                try:
-                    # Believe it or not this can fail in some cases:
-                    # https://github.com/astropy/astropy/issues/2671
-                    path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-                except Exception:
-                    continue
-                if path == mod_path:
-                    mod_name = mod.__name__
-                    break
-        else:  # pragma: py2
-            for name, mod in list(sys.modules.items()):
-                try:
-                    if getattr(mod, '__file__', '') == mod_path:
-                        mod_name = mod.__name__
-                        break
-                except Exception:
-                    continue
+        mod_path, ext = os.path.splitext(mod_path)
+        for name, mod in list(sys.modules.items()):
+            try:
+                # Believe it or not this can fail in some cases:
+                # https://github.com/astropy/astropy/issues/2671
+                path = os.path.splitext(getattr(mod, '__file__', ''))[0]
+            except Exception:
+                continue
+            if path == mod_path:
+                mod_name = mod.__name__
+                break
 
         if mod_name is not None:
             self.warning(message, extra={'origin': mod_name})
@@ -273,7 +257,7 @@ class AstropyLogger(Logger):
         if len(value.args) > 0:
             message = '{0}: {1}'.format(etype.__name__, str(value))
         else:
-            message = text_type(etype.__name__)
+            message = str(etype.__name__)
 
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
@@ -519,7 +503,7 @@ class AstropyLogger(Logger):
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, text_type(e)), RuntimeWarning)
+                    '{1}'.format(log_file_path, str(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)

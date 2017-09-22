@@ -4,15 +4,12 @@ import re
 from collections import OrderedDict
 
 from . import core
-from ...extern import six
 from ...table import Table
 from . import cparser
-from ...extern.six.moves import zip
 from ...utils import set_locale
 
 
-@six.add_metaclass(core.MetaBaseReader)
-class FastBasic(object):
+class FastBasic(metaclass=core.MetaBaseReader):
     """
     This class is intended to handle the same format addressed by the
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C

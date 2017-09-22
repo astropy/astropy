@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import fnmatch
 import time
@@ -13,8 +11,6 @@ import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import day_frac, two_sum
 
 
@@ -95,8 +91,7 @@ class TimeFormatMeta(type):
         return cls
 
 
-@six.add_metaclass(TimeFormatMeta)
-class TimeFormat(object):
+class TimeFormat(metaclass=TimeFormatMeta):
     """
     Base class for time representations.
 
@@ -711,7 +706,7 @@ class TimeString(TimeUnique):
             fracsec = float(fracsec)
 
         for _, strptime_fmt_or_regex, _ in subfmts:
-            if isinstance(strptime_fmt_or_regex, six.string_types):
+            if isinstance(strptime_fmt_or_regex, str):
                 try:
                     tm = time.strptime(timestr, strptime_fmt_or_regex)
                 except ValueError:
@@ -1108,8 +1103,7 @@ class TimeDeltaFormatMeta(TimeFormatMeta):
     _registry = TIME_DELTA_FORMATS
 
 
-@six.add_metaclass(TimeDeltaFormatMeta)
-class TimeDeltaFormat(TimeFormat):
+class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
     """Base class for time delta representations"""
 
     def _check_scale(self, scale):

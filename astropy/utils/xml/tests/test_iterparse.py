@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # LOCAL
 from ....utils.xml.iterparser import _fast_iterparse
-from ....extern import six
 
 # SYSTEM
+import io
 import zlib
 
 # The C-based XML parser for VOTables previously used fixed-sized
@@ -122,7 +120,7 @@ def test_iterparser_over_read_simple():
     # Bytes vs. String  .encode()/.decode() for compatibility with Python 3.5.
     s = compo.compress(VOTABLE_XML.encode())
     s = s + compo.flush()
-    fd = six.BytesIO(s)
+    fd = io.BytesIO(s)
     fd.seek(0)
 
     # Finally setup the test of the C-based '_fast_iterparse()' iterator

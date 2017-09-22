@@ -5,8 +5,6 @@ Contains the transformation functions for getting to/from ITRS, GCRS, and CIRS.
 These are distinct from the ICRS and AltAz functions because they are just
 rotations without aberration corrections or offsets.
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 

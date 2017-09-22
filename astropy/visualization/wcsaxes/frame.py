@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import abc
 from collections import OrderedDict
 
 import numpy as np
 
-from ...extern import six
 
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
@@ -87,8 +85,7 @@ class Spine(object):
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseFrame(OrderedDict):
+class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     """
     Base class for frames, which are collections of
     :class:`~astropy.visualization.wcsaxes.frame.Spine` instances.

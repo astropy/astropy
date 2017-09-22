@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division
 
 
 import datetime
@@ -18,8 +17,6 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     _free_space_check, _extract_number)
 from ..verify import _Verify, _ErrList
 
-from ....extern.six import string_types, add_metaclass
-from ....extern.six.moves import range
 from ....utils import lazyproperty
 from ....utils.compat import suppress
 from ....utils.compat.funcsigs import signature, Parameter
@@ -123,8 +120,7 @@ class _BaseHDUMeta(type):
 
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
-@add_metaclass(_BaseHDUMeta)
-class _BaseHDU(object):
+class _BaseHDU(metaclass=_BaseHDUMeta):
     """Base class for all HDU (header data unit) classes."""
 
     _hdu_registry = set()
@@ -194,7 +190,7 @@ class _BaseHDU(object):
 
     @name.setter
     def name(self, value):
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise TypeError("'name' attribute must be a string")
         if not conf.extension_name_case_sensitive:
             value = value.upper()
@@ -1028,7 +1024,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         # Verify that the EXTNAME keyword exists and is a string
         if 'EXTNAME' in self._header:
-            if not isinstance(self._header['EXTNAME'], string_types):
+            if not isinstance(self._header['EXTNAME'], str):
                 err_text = 'The EXTNAME keyword must have a string value.'
                 fix_text = 'Converted the EXTNAME keyword to a string value.'
 
@@ -1646,7 +1642,7 @@ class NonstandardExtHDU(ExtensionHDU):
 
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         # A3DTABLE is not really considered a 'standard' extension, as it was
         # sort of the prototype for BINTABLE; however, since our BINTABLE

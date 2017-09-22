@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 import warnings
 from ..utils.exceptions import AstropyUserWarning
-from ..extern.six.moves import range
 
 
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']

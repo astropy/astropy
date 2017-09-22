@@ -13,8 +13,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 

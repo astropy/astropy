@@ -4,8 +4,6 @@
 Creates a common namespace for all pre-defined models.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from .core import custom_model  # pylint: disable=W0611
 from .mappings import *
@@ -17,7 +15,6 @@ from .powerlaws import *
 from .tabular import *
 from .blackbody import BlackBody1D
 
-from ..extern.six import string_types
 
 """
 Attach a docstring explaining constraints to all models which support them.
@@ -67,5 +64,5 @@ MODELS_WITH_CONSTRAINTS = [
 
 
 for item in MODELS_WITH_CONSTRAINTS:
-    if isinstance(item.__doc__, string_types):
+    if isinstance(item.__doc__, str):
         item.__doc__ += CONSTRAINTS_DOC

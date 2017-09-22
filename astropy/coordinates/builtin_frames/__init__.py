@@ -66,11 +66,10 @@ def _make_transform_graph_docs():
     """
     import inspect
     from textwrap import dedent
-    from ...extern import six
     from ..baseframe import BaseCoordinateFrame, frame_transform_graph
 
     isclass = inspect.isclass
-    coosys = [item for item in six.itervalues(globals())
+    coosys = [item for item in globals().values()
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
 
     # currently, all of the priorities are set to 1, so we don't need to show

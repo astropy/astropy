@@ -54,7 +54,6 @@ import weakref
 import sys
 
 from . import _base
-from ....extern.six.moves import range
 
 try:
     import queue

@@ -3,7 +3,6 @@
 import pytest
 
 from ..bst import BST
-from ...extern.six.moves import range
 
 
 def get_tree(TreeType):

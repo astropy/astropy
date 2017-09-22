@@ -10,8 +10,6 @@ are based on reference [1]_, which is also the basis for the R package
 'CircStats' [2]_.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 from astropy.units import Quantity
 from astropy.utils.compat.numpy import broadcast_to

@@ -9,8 +9,6 @@ the physical unit name of a `Unit` can be obtained using its `ptype`
 property.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from . import core
 from . import si

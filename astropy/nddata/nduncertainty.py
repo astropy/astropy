@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 from abc import ABCMeta, abstractproperty, abstractmethod
@@ -11,7 +9,6 @@ import weakref
 # from ..utils.compat import ignored
 from .. import log
 from ..units import Unit, Quantity
-from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
@@ -30,8 +27,7 @@ class MissingDataAssociationException(Exception):
     """
 
 
-@six.add_metaclass(ABCMeta)
-class NDUncertainty(object):
+class NDUncertainty(metaclass=ABCMeta):
     """This is the metaclass for uncertainty classes used with `NDData`.
 
     Parameters

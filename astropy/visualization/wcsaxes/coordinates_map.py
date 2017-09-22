@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
-from ...extern import six
 
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
@@ -119,7 +117,7 @@ class CoordinatesMap(object):
             self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             return self._coords[self._aliases[item.lower()]]
         else:
             return self._coords[item]

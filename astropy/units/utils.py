@@ -7,8 +7,6 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numbers
 import io
@@ -18,7 +16,6 @@ from fractions import Fraction
 import numpy as np
 from numpy import finfo
 
-from ..extern import six
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -51,7 +48,7 @@ def _iter_unit_summary(namespace):
     # prefixes
     units = []
     has_prefixes = set()
-    for key, val in six.iteritems(namespace):
+    for key, val in namespace.items():
         # Skip non-unit items
         if not isinstance(val, core.UnitBase):
             continue

@@ -4,11 +4,6 @@ This module contains simple input/output related functionality that is not
 part of a larger framework or standard.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from ...extern import six
-from ...extern.six.moves import range
 
 
 __all__ = ['fnpickle', 'fnunpickle']
@@ -46,12 +41,9 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
 
     """
 
-    if usecPickle and six.PY2:
-        import cPickle as pickle
-    else:
-        import pickle
+    import pickle
 
-    if isinstance(fileorname, six.string_types):
+    if isinstance(fileorname, str):
         f = open(fileorname, 'rb')
         close = True
     else:
@@ -103,15 +95,12 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
     """
 
-    if usecPickle and six.PY2:
-        import cPickle as pickle
-    else:
-        import pickle
+    import pickle
 
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL
 
-    if isinstance(fileorname, six.string_types):
+    if isinstance(fileorname, str):
         f = open(fileorname, 'ab' if append else 'wb')
         close = True
     else:

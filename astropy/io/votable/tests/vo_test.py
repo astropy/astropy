@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# TEST_UNICODE_LITERALS
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
-from ....extern.six.moves import range, zip
 
 # STDLIB
 import difflib
 import io
+import pathlib
 import sys
 import gzip
 
@@ -29,13 +26,6 @@ from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import raises, catch_warnings
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
@@ -824,18 +814,11 @@ def test_validate(test_path_object=False):
     output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
-        if six.PY2:
-            sys.stdout.write(
-                line.encode('unicode_escape').
-                replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
+        sys.stdout.write(line.replace('\\n', '\n'))
 
     assert truth == output
 
 
-@pytest.mark.skipif('not HAS_PATHLIB')
 def test_validate_path_object():
     """
     Validating when source is passed as path object. (#4412)
@@ -909,10 +892,7 @@ def test_fileobj():
         if sys.platform == 'win32':
             fd()
         else:
-            if six.PY2:
-                assert isinstance(fd, file)
-            else:
-                assert isinstance(fd, io.FileIO)
+            assert isinstance(fd, io.FileIO)
 
 
 def test_nonstandard_units():
@@ -1008,13 +988,7 @@ def test_no_resource_check():
     output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
-        if six.PY2:
-            sys.stdout.write(
-                line.encode('unicode_escape').
-                replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.replace('\\n', '\n'))
+        sys.stdout.write(line.replace('\\n', '\n'))
 
     assert truth == output
 

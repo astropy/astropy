@@ -20,8 +20,6 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
-from ...extern.six import string_types, iteritems, PY2
-from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
 from ...utils.compat import suppress
 
@@ -43,7 +41,7 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
               'D': 'f8', 'C': 'c8', 'M': 'c16', 'A': 'a'}
 
 # the inverse dictionary of the above
-NUMPY2FITS = {val: key for key, val in iteritems(FITS2NUMPY)}
+NUMPY2FITS = {val: key for key, val in FITS2NUMPY.items()}
 # Normally booleans are represented as ints in pyfits, but if passed in a numpy
 # boolean array, that should be supported
 NUMPY2FITS['b1'] = 'L'
@@ -775,7 +773,7 @@ class Column(NotifierMixin):
 
         # Check that the name meets the recommended standard--other column
         # names are *allowed*, but will be discouraged
-        if isinstance(name, string_types) and not TTYPE_RE.match(name):
+        if isinstance(name, str) and not TTYPE_RE.match(name):
             warnings.warn(
                 'It is strongly recommended that column names contain only '
                 'upper and lower-case ASCII letters, digits, or underscores '
@@ -784,7 +782,7 @@ class Column(NotifierMixin):
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
-        if (not isinstance(name, string_types)
+        if (not isinstance(name, str)
                 or len(str(Card('TTYPE', name))) != CARD_LENGTH):
             raise AssertionError(
                 'Column name must be a string able to fit in a single '
@@ -797,7 +795,7 @@ class Column(NotifierMixin):
         if coord_type is None:
             return
 
-        if (not isinstance(coord_type, string_types)
+        if (not isinstance(coord_type, str)
                 or len(coord_type) > 8):
             raise AssertionError(
                 'Coordinate/axis type must be a string of atmost 8 '
@@ -806,7 +804,7 @@ class Column(NotifierMixin):
     @ColumnAttribute('TCUNI')
     def coord_unit(col, coord_unit):
         if (coord_unit is not None
-                and not isinstance(coord_unit, string_types)):
+                and not isinstance(coord_unit, str)):
             raise AssertionError(
                 'Coordinate/axis unit must be a string.')
 
@@ -836,7 +834,7 @@ class Column(NotifierMixin):
     @ColumnAttribute('TRPOS')
     def time_ref_pos(col, time_ref_pos):
         if (time_ref_pos is not None
-                and not isinstance(time_ref_pos, string_types)):
+                and not isinstance(time_ref_pos, str)):
             raise AssertionError(
                 'Time reference position must be a string.')
 
@@ -970,7 +968,7 @@ class Column(NotifierMixin):
         # TODO: Add full parsing and validation of TDISPn keywords
         if disp is not None and disp != '':
             msg = None
-            if not isinstance(disp, string_types):
+            if not isinstance(disp, str):
                 msg = (
                     'Column disp option (TDISPn) must be a string (got {!r}).'
                     'The invalid value will be ignored for the purpose of '
@@ -1034,7 +1032,7 @@ class Column(NotifierMixin):
                     'columns (got {!r}).  The invalid keyword will be ignored '
                     'for the purpose of formatting this column.'.format(dim))
 
-            elif isinstance(dim, string_types):
+            elif isinstance(dim, str):
                 dims_tuple = _parse_tdim(dim)
             elif isinstance(dim, tuple):
                 dims_tuple = dim
@@ -1062,7 +1060,7 @@ class Column(NotifierMixin):
 
         if coord_type is not None and coord_type != '':
             msg = None
-            if not isinstance(coord_type, string_types):
+            if not isinstance(coord_type, str):
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
                     "(got {!r}). The invalid keyword will be ignored for the "
@@ -1081,7 +1079,7 @@ class Column(NotifierMixin):
 
         if coord_unit is not None and coord_unit != '':
             msg = None
-            if not isinstance(coord_unit, string_types):
+            if not isinstance(coord_unit, str):
                 msg = (
                     "Coordinate/axis unit option (TCUNIn) must be a string "
                     "(got {!r}). The invalid keyword will be ignored for the "
@@ -1110,7 +1108,7 @@ class Column(NotifierMixin):
 
         if time_ref_pos is not None and time_ref_pos != '':
             msg=None
-            if not isinstance(time_ref_pos, string_types):
+            if not isinstance(time_ref_pos, str):
                 msg = (
                     "Time coordinate reference position option (TRPOSn) must be "
                     "a string (got {!r}). The invalid keyword will be ignored for "
@@ -1396,7 +1394,7 @@ class ColDefs(NotifierMixin):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
         col_keywords = [{} for i in range(nfields)]
-        for keyword, value in iteritems(hdr):
+        for keyword, value in hdr.items():
             key = TDEF_RE.match(keyword)
             try:
                 keyword = key.group('label')
@@ -1536,12 +1534,6 @@ class ColDefs(NotifierMixin):
                 else:
                     dt = np.dtype((dt.base, dim))
 
-            # On Python 2, force the `name` to `str`
-            # because Numpy structured arrays can't handle unicode `name`
-            # See https://github.com/astropy/astropy/issues/5204
-            if PY2:  # pragma: py2
-                name = str(name)
-
             fields.append((name, dt))
 
         return nh.realign_dtype(np.dtype(fields), offsets)
@@ -1569,7 +1561,7 @@ class ColDefs(NotifierMixin):
         return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             key = _get_index(self.names, key)
 
         x = self.columns[key]
@@ -1960,7 +1952,7 @@ def _get_index(names, key):
 
     if _is_int(key):
         indx = int(key)
-    elif isinstance(key, string_types):
+    elif isinstance(key, str):
         # try to find exact match first
         try:
             indx = names.index(key.rstrip())

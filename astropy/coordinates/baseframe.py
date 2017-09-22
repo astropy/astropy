@@ -5,8 +5,6 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Standard library
 import abc
@@ -22,8 +20,6 @@ import numpy as np
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
@@ -212,8 +208,7 @@ class RepresentationMapping(_RepresentationMappingBase):
                                                          defaultunit)
 
 
-@six.add_metaclass(FrameMeta)
-class BaseCoordinateFrame(ShapedLikeNDArray):
+class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     """
     The base class for coordinate frames.
 
@@ -496,10 +491,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __len__(self):
         return len(self.data)
 
-    def __nonzero__(self):  # Py 2.x
-        return self.has_data and self.size > 0
-
-    def __bool__(self):  # Py 3.x
+    def __bool__(self):
         return self.has_data and self.size > 0
 
     @property
@@ -579,7 +571,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
 
-            if isinstance(repr_diff_cls, six.string_types):
+            if isinstance(repr_diff_cls, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
                 repr_diff_cls = _get_repr_cls(repr_diff_cls)
@@ -597,7 +589,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                     # need the isinstance because otherwise if it's a unit it
                     # will try to compare to the unit string representation
-                    if not (isinstance(mapp.defaultunit, six.string_types) and
+                    if not (isinstance(mapp.defaultunit, str) and
                             mapp.defaultunit == 'recommended'):
                         uns[i] = mapp.defaultunit
                         # else we just leave it as recommended_units says above

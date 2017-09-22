@@ -30,13 +30,9 @@ Notes
     array.view(Column) -> no indices
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 from copy import deepcopy
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import range
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
 from ..time import Time
@@ -751,7 +747,7 @@ class TableIndices(list):
         item : int, str, tuple, or list
             Position in list or name(s) of indexed column(s)
         '''
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             item = [item]
         if isinstance(item, (list, tuple)):
             item = list(item)

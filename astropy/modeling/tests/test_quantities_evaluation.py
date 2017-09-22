@@ -4,8 +4,6 @@
 Tests that relate to evaluating models with quantity parameters
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import numpy as np
 from numpy.testing import assert_allclose

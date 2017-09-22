@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import os
@@ -11,10 +9,10 @@ import threading
 import time
 import uuid
 import warnings
+import queue
+import xmlrpc.client as xmlrpc
+from urllib.parse import urlunparse
 
-from ..extern.six.moves import queue, range
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six.moves.urllib.parse import urlunparse
 from .. import log
 
 from .constants import SAMP_STATUS_OK

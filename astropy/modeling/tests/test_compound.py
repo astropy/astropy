@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import inspect
 from copy import deepcopy
 
+import pickle
 import pytest
 import numpy as np
 
 from numpy.testing.utils import assert_allclose, assert_array_equal
 
-from ...extern.six.moves import cPickle as pickle
 
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
@@ -835,7 +833,6 @@ class _TestPickleModel(Gaussian1D + Gaussian1D):
     pass
 
 
-@pytest.mark.skipif(str("sys.version_info < (2, 7, 3)"))
 def test_pickle_compound():
     """
     Regression test for
@@ -873,18 +870,6 @@ def test_pickle_compound():
     # at the end, which may differ between runs
     assert p[:p.rfind(b'p')] == exp[:exp.rfind(b'p')]
     assert pickle.loads(p) is _TestPickleModel
-
-
-@pytest.mark.skipif(str("sys.version_info >= (2, 7, 3)"))
-def test_pickle_compound_fallback():
-    """
-    Test fallback for pickling compound model on old versions of Python
-    affected by http://bugs.python.org/issue7689
-    """
-
-    gg = (Gaussian1D + Gaussian1D)()
-    with pytest.raises(RuntimeError):
-        pickle.dumps(gg)
 
 
 def test_update_parameters():

@@ -5,7 +5,6 @@ import pytest
 
 from ..table import Table
 from ... import extern
-from ...extern.six.moves import zip
 
 try:
     import IPython  # pylint: disable=W0611

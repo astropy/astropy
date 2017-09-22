@@ -7,7 +7,6 @@ from numpy.testing import assert_almost_equal
 from matplotlib import rc_context
 
 from .... import units as u
-from ....extern import six
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 
@@ -111,11 +110,11 @@ class TestAngleFormatterLocator(object):
 
         assert_almost_equal(minor_values.to_value(u.degree), [])
 
-    @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
-                                                    ('dd:mm', six.u('15\xb024\'')),
-                                                    ('dd:mm:ss', six.u('15\xb023\'32"')),
-                                                    ('dd:mm:ss.s', six.u('15\xb023\'32.0"')),
-                                                    ('dd:mm:ss.ssss', six.u('15\xb023\'32.0316"')),
+    @pytest.mark.parametrize(('format', 'string'), [('dd', '15\xb0'),
+                                                    ('dd:mm', '15\xb024\''),
+                                                    ('dd:mm:ss', '15\xb023\'32"'),
+                                                    ('dd:mm:ss.s', '15\xb023\'32.0"'),
+                                                    ('dd:mm:ss.ssss', '15\xb023\'32.0316"'),
                                                     ('hh', '1h'),
                                                     ('hh:mm', '1h02m'),
                                                     ('hh:mm:ss', '1h01m34s'),
@@ -153,7 +152,7 @@ class TestAngleFormatterLocator(object):
 
     def test_latex_format(self):
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
-        assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
+        assert fl.formatter([15.392231] * u.degree, None)[0] == '15\xb023\'32"'
         with rc_context(rc={'text.usetex': True}):
             assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\\circ$23'32\""
 
@@ -193,10 +192,10 @@ class TestAngleFormatterLocator(object):
         fl.format = 'dd:mm:ss'
         assert_almost_equal(fl.spacing.to_value(u.arcsec), 115.)
 
-    @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, six.u('15\xb0')),
-                                                     (2 * u.arcmin, six.u('15\xb024\'')),
-                                                     (2 * u.arcsec, six.u('15\xb023\'32"')),
-                                                     (0.1 * u.arcsec, six.u('15\xb023\'32.0"'))])
+    @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, '15\xb0'),
+                                                     (2 * u.arcmin, '15\xb024\''),
+                                                     (2 * u.arcsec, '15\xb023\'32"'),
+                                                     (0.1 * u.arcsec, '15\xb023\'32.0"')])
     def test_formatter_no_format(self, spacing, string):
         fl = AngleFormatterLocator()
         assert fl.formatter([15.392231] * u.degree, spacing)[0] == string

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-
-from __future__ import division, with_statement
-
 import copy
 import warnings
 import collections
@@ -13,9 +10,6 @@ from io import StringIO, BytesIO
 import pytest
 import numpy as np
 
-from ....extern import six
-from ....extern.six import u, iterkeys, itervalues, iteritems
-from ....extern.six.moves import zip, range
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import catch_warnings, ignore_warnings
@@ -381,7 +375,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         h2 = fits.Header()
         with catch_warnings() as w:
-            h2['TEST'] = u('abcdefg') * 30
+            h2['TEST'] = 'abcdefg' * 30
             assert len(w) == 0
 
         assert str(h1) == str(h2)
@@ -567,8 +561,7 @@ class TestHeaderFunctions(FitsTestCase):
         normally invalid keyword characters are not considered invalid.
         """
 
-        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value',
-                        'a comment')
+        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value', 'a comment')
         # This should not raise any exceptions
         c.verify('exception')
         assert c.keyword == 'WeirdCard.~!@#_^$%&'
@@ -959,16 +952,16 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_items(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        assert list(header.items()) == list(iteritems(header))
+        assert list(header.items()) == [('A', 'B'), ('C', 'D')]
 
     def test_header_iterkeys(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(iterkeys(header), header):
+        for a, b in zip(header.keys(), header):
             assert a == b
 
     def test_header_itervalues(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in zip(itervalues(header), ['B', 'D']):
+        for a, b in zip(header.values(), ['B', 'D']):
             assert a == b
 
     def test_header_keys(self):
@@ -1654,7 +1647,6 @@ class TestHeaderFunctions(FitsTestCase):
             assert str(w[0].message).startswith(
                 "Missing padding to end of the FITS block")
 
-    @pytest.mark.skipif('six.PY2')
     def test_invalid_characters(self):
         """
         Test header with invalid characters
@@ -1959,37 +1951,26 @@ class TestHeaderFunctions(FitsTestCase):
         Also tests unicode for keywords and comments.
         """
 
-        erikku = u('\u30a8\u30ea\u30c3\u30af')
+        erikku = '\u30a8\u30ea\u30c3\u30af'
 
         def assign(keyword, val):
             h[keyword] = val
 
         h = fits.Header()
-        h[u('FOO')] = 'BAR'
+        h['FOO'] = 'BAR'
         assert 'FOO' in h
         assert h['FOO'] == 'BAR'
-        assert h[u('FOO')] == 'BAR'
         assert repr(h) == _pad("FOO     = 'BAR     '")
         pytest.raises(ValueError, assign, erikku, 'BAR')
 
-        h['FOO'] = u('BAZ')
-        assert h[u('FOO')] == 'BAZ'
-        assert h[u('FOO')] == u('BAZ')
+        h['FOO'] = 'BAZ'
+        assert h['FOO'] == 'BAZ'
         assert repr(h) == _pad("FOO     = 'BAZ     '")
         pytest.raises(ValueError, assign, 'FOO', erikku)
 
-        h['FOO'] = ('BAR', u('BAZ'))
+        h['FOO'] = ('BAR', 'BAZ')
         assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
         assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
-        assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
-
-        h['FOO'] = (u('BAR'), u('BAZ'))
-        assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u('BAR')
-        assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
 
         pytest.raises(ValueError, assign, 'FOO', ('BAR', erikku))
@@ -2012,11 +1993,9 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header()
-        if six.PY2:
-            pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
-        else:
-            pytest.raises(ValueError, h.set, 'TEST',
-                          bytes('Hello', encoding='ascii'))
+
+        pytest.raises(ValueError, h.set, 'TEST',
+                      bytes('Hello', encoding='ascii'))
 
     def test_header_strip_whitespace(self):
         """

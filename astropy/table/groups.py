@@ -1,8 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import platform
 import warnings
@@ -39,7 +35,7 @@ def _table_group_by(table, keys):
     """
     from .table import Table
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
-    if isinstance(keys, six.string_types):
+    if isinstance(keys, str):
         keys = (keys,)
 
     if isinstance(keys, (list, tuple)):
@@ -349,7 +345,7 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        for col in six.itervalues(parent_table.columns):
+        for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
             if col.info.name in self.key_colnames:
                 new_col = col.take(i0s)
@@ -357,7 +353,7 @@ class TableGroups(BaseGroups):
                 try:
                     new_col = col.groups.aggregate(func)
                 except TypeError as err:
-                    warnings.warn(six.text_type(err), AstropyUserWarning)
+                    warnings.warn(str(err), AstropyUserWarning)
                     continue
 
             out_cols.append(new_col)

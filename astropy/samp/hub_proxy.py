@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
-
-from ..extern.six.moves import xmlrpc_client as xmlrpc
+import xmlrpc.client as xmlrpc
 
 from .errors import SAMPHubError
 from .utils import ServerProxyPool

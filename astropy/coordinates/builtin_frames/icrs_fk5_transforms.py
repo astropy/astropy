@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from ..matrix_utilities import (rotation_matrix,
                                 matrix_product, matrix_transpose)

@@ -10,8 +10,6 @@ from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
 
-from ....extern.six import string_types
-from ....extern.six.moves import range, zip
 from ....utils import isiterable, lazyproperty
 
 
@@ -1110,7 +1108,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return card.keyword == 'XTENSION' and xtension == cls._extension
 

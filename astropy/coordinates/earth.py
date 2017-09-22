@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 
 from warnings import warn
 import collections
 import socket
 import json
+import urllib
 
 import numpy as np
 from .. import units as u
 from ..units.quantity import QuantityInfoBase
-from ..extern import six
-from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from ..utils.compat.numpy import broadcast_to
@@ -472,15 +470,11 @@ class EarthLocation(u.Quantity):
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
-                    if isinstance(force_download, six.string_types):
+                    if isinstance(force_download, str):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()
-                except (six.moves.urllib.error.URLError, IOError):
-                    # In Python 2.7 the IOError raised by @remote_data stays as
-                    # is, while in Python 3.6 the IOError gets converted to a
-                    # URLError, so we catch IOError above too, but this can be
-                    # removed once we don't support Python 2.7 anymore.
+                except IOError:
                     if force_download:
                         raise
                     msg = ('Could not access the online site list. Falling '

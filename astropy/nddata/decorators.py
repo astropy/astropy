@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 from itertools import islice
@@ -10,8 +8,6 @@ import warnings
 from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.funcsigs import signature
-from ..extern import six
-from ..extern.six.moves import zip
 
 from .nddata import NDData
 
@@ -150,7 +146,7 @@ def support_nddata(_func=None, accepts=NDData,
         # Find out args and kwargs
         func_args, func_kwargs = [], []
         sig = signature(func).parameters
-        for param_name, param in six.iteritems(sig):
+        for param_name, param in sig.items():
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
             try:

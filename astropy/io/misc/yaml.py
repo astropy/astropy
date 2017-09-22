@@ -67,7 +67,6 @@ Example
   <EarthLocation ( 1000.,  2000.,  3000.) km>
 """
 
-from __future__ import absolute_import, division
 
 import base64
 import numpy as np
@@ -76,7 +75,6 @@ from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
-from ...extern import six
 from ...table import SerializedColumn
 
 
@@ -247,7 +245,7 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, tuple) and data == ():
                 return True
-            if isinstance(data, six.string_types + (bool, int, float)):
+            if isinstance(data, (str, bool, int, float)):
                 return True
 
 

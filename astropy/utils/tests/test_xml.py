@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import io
 
 import pytest
 
 from ..xml import check, unescaper, writer
-from ...extern import six
 
 
 def test_writer():
@@ -65,7 +62,7 @@ def test_unescape_all():
 
 def test_escape_xml():
     s = writer.xml_escape('This & That')
-    assert type(s) == six.text_type
+    assert type(s) == str
     assert s == 'This &amp; That'
 
     s = writer.xml_escape(1)

@@ -5,8 +5,6 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 try:
@@ -25,7 +23,6 @@ from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ... import units as u
 from ...utils import minversion
-from ...extern.six.moves import zip
 from ...tests.helper import assert_quantity_allclose
 from ...utils import NumpyRNGContext
 

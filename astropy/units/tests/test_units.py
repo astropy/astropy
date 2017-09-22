@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 """
 Regression tests for the units package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
+import pickle
 from fractions import Fraction
 
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...extern import six
-from ...extern.six.moves import range, cPickle as pickle
 from ...tests.helper import raises, catch_warnings
 
 from ... import units as u
@@ -637,7 +633,7 @@ def test_suggestions():
         try:
             u.Unit(search)
         except ValueError as e:
-            assert 'Did you mean {0}?'.format(matches) in six.text_type(e)
+            assert 'Did you mean {0}?'.format(matches) in str(e)
         else:
             assert False, 'Expected ValueError'
 

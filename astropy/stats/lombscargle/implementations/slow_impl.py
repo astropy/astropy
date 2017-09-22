@@ -1,7 +1,5 @@
-from __future__ import print_function, division
 
 import numpy as np
-from ....extern.six.moves import map
 
 
 def lombscargle_slow(t, y, dy, frequency, normalization='standard',

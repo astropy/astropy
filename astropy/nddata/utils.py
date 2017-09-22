@@ -2,8 +2,6 @@
 """
 This module includes helper functions for array operations.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 from copy import deepcopy
 
 import numpy as np
@@ -11,7 +9,6 @@ import numpy as np
 from .decorators import support_nddata
 from .. import units as u
 from ..coordinates import SkyCoord
-from ..extern.six.moves import range, zip
 from ..utils import lazyproperty
 from ..wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 

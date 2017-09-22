@@ -40,8 +40,6 @@ WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
 doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # Note: if you add a new cosmology, please also update the table
 # in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst

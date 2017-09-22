@@ -16,8 +16,6 @@ Examples
 ...                fill_value=None, method='nearest')
 
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 
@@ -26,7 +24,6 @@ import numpy as np
 from .core import Model
 from .. import units as u
 from ..utils import minversion
-from ..extern.six.moves import range
 
 try:
     import scipy

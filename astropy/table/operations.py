@@ -6,10 +6,6 @@ High-level table operations:
 - vstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip, range
 
 from copy import deepcopy
 import warnings
@@ -362,7 +358,7 @@ def unique(input_table, keys=None, silent=False, keep='first'):
     if keep not in ('first', 'last', 'none'):
         raise ValueError("'keep' should be one of 'first', 'last', 'none'")
 
-    if isinstance(keys, six.string_types):
+    if isinstance(keys, str):
         keys = [keys]
     if keys is None:
         keys = input_table.colnames
@@ -416,7 +412,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_list = []
 
     if table_names is None:
-        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]
@@ -441,7 +437,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
 
     # Check for duplicate output column names
     col_name_count = Counter(col_name_list)
-    repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
                               'Change uniq_col_name or table_names args to fix this.'
@@ -463,7 +459,7 @@ def get_descrs(arrays, col_name_map):
 
     out_descrs = []
 
-    for out_name, in_names in six.iteritems(col_name_map):
+    for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
         in_cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
@@ -552,7 +548,7 @@ def _join(left, right, keys=None, join_type='inner',
         keys = tuple(name for name in left.colnames if name in right.colnames)
         if len(keys) == 0:
             raise TableMergeError('No keys in common between left and right tables')
-    elif isinstance(keys, six.string_types):
+    elif isinstance(keys, str):
         keys = (keys,)
 
     # Check the key columns
@@ -709,7 +705,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
     if join_type == 'exact':
-        for names in six.itervalues(col_name_map):
+        for names in col_name_map.values():
             if any(x is None for x in names):
                 raise TableMergeError('Inconsistent columns in input arrays '
                                       "(use 'inner' or 'outer' join_type to "
@@ -718,7 +714,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
 
     # For an inner join, keep only columns where all input arrays have that column
     if join_type == 'inner':
-        col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
+        col_name_map = OrderedDict((name, in_names) for name, in_names in col_name_map.items()
                                    if all(x is not None for x in in_names))
         if len(col_name_map) == 0:
             raise TableMergeError('Input arrays have no columns in common')
@@ -727,7 +723,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
     masked = any(getattr(arr, 'masked', False) for arr in arrays)
-    for names in six.itervalues(col_name_map):
+    for names in col_name_map.values():
         if any(x is None for x in names):
             masked = True
             break
@@ -736,7 +732,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     n_rows = sum(lens)
     out = _get_out_class(arrays)(masked=masked)
 
-    for out_name, in_names in six.iteritems(col_name_map):
+    for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
         cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
@@ -846,7 +842,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
     n_rows = max(arr_lens)
     out = _get_out_class(arrays)(masked=masked)
 
-    for out_name, in_names in six.iteritems(col_name_map):
+    for out_name, in_names in col_name_map.items():
         for name, array, arr_len in zip(in_names, arrays, arr_lens):
             if name is None:
                 continue

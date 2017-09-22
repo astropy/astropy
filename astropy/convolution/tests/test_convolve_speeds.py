@@ -1,12 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import timeit
 
 import numpy as np  # pylint: disable=W0611
 
-from ...extern.six.moves import range, zip
 
 # largest image size to use for "linear" and fft convolutions
 max_exponents_linear = {1: 15, 2: 7, 3: 5}

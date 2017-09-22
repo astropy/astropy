@@ -15,8 +15,6 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
-from ...extern.six import string_types, PY2
-from ...extern.six.moves import range, zip
 from ...utils import lazyproperty
 from ...utils.compat import suppress
 
@@ -63,7 +61,7 @@ class FITS_record(object):
         self.base = base
 
     def __getitem__(self, key):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -80,7 +78,7 @@ class FITS_record(object):
         return self.array.field(indx)[self.row]
 
     def __setitem__(self, key, value):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -481,7 +479,7 @@ class FITS_rec(np.recarray):
         if self._coldefs is None:
             return super(FITS_rec, self).__getitem__(key)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
             # Have to view as a recarray then back as a FITS_rec, otherwise the
@@ -522,7 +520,7 @@ class FITS_rec(np.recarray):
         if self._coldefs is None:
             return super(FITS_rec, self).__setitem__(key, value)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             self[key][:] = value
             return
 
@@ -549,14 +547,6 @@ class FITS_rec(np.recarray):
         else:
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
-
-    if PY2:
-        # avoid falling back through to ndarray.__getslice__
-        def __getslice__(self, start, end):
-            return self.__getitem__(slice(start, end))
-
-        def __setslice__(self, start, end, value):
-            self.__setitem__(slice(start, end), value)
 
     def copy(self, order='C'):
         """

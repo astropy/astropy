@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ....extern.six.moves import cStringIO as StringIO
+from io import StringIO
 
 from ... import ascii
-from .common import (assert_equal, assert_almost_equal,
-                     setup_function, teardown_function)
+from .common import (assert_equal, assert_almost_equal)
 
 
 def assert_equal_splitlines(arg1, arg2):

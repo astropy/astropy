@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import contextlib
+import pathlib
 import re
 import sys
 
@@ -12,8 +11,6 @@ from operator import itemgetter
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
@@ -27,14 +24,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = six.string_types
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-    PATH_TYPES += (pathlib.Path,)
+PATH_TYPES = (str, pathlib.Path)
 
 
 class IORegistryError(Exception):
@@ -163,7 +153,7 @@ def _update__doc__(data_class, readwrite):
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
 
-    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+    if not isinstance(class_readwrite_func.__doc__, str):
         # No docstring--could just be test code, or possibly code compiled
         # without docstrings
         return
@@ -506,9 +496,8 @@ def read(cls, *args, **kwargs):
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
                     from ..utils.data import get_readable_fileobj
-                    # path might be a pathlib.Path object if HAS_PATHLIB,
-                    # so coerce to a regular string.
-                    if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                    # path might be a pathlib.Path object
+                    if isinstance(args[0], pathlib.Path):
                         args = (str(args[0]),) + args[1:]
                     path = args[0]
                     try:
@@ -564,9 +553,8 @@ def write(data, *args, **kwargs):
         fileobj = None
         if len(args):
             if isinstance(args[0], PATH_TYPES):
-                # path might be a pathlib.Path object if HAS_PATHLIB,
-                # so coerce to a regular string.
-                if HAS_PATHLIB and isinstance(args[0], pathlib.Path):
+                # path might be a pathlib.Path object
+                if isinstance(args[0], pathlib.Path):
                     args = (str(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None

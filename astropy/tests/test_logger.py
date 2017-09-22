@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import imp
 import sys
@@ -265,8 +263,7 @@ def test_exception_logging_origin():
     assert log_list[0].origin == 'astropy.utils.collections'
 
 
-@pytest.mark.skipif("sys.version_info[:2] >= (3, 5)",
-                    reason="Infinite recursion on Python 3.5")
+@pytest.mark.xfail(True, reason="Infinite recursion on Python 3.5+, probably a real issue")
 @pytest.mark.xfail(str("ip is not None"))
 def test_exception_logging_argless_exception():
     """

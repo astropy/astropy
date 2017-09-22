@@ -3,8 +3,6 @@
 This module tests fitting and model evaluation with various inputs
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 import numpy as np
@@ -14,7 +12,6 @@ from .. import models
 from .. import fitting
 from ..core import Model, FittableModel, Fittable1DModel
 from ..parameters import Parameter
-from ...extern.six.moves import range
 
 try:
     from scipy import optimize  # pylint: disable=W0611

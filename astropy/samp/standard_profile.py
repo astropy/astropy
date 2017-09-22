@@ -1,21 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import sys
 import traceback
 import warnings
-
-from ..extern.six.moves import xmlrpc_client as xmlrpc
-from ..extern.six.moves import socketserver
-from ..extern import six
-
-if six.PY2:
-    from SimpleXMLRPCServer import (SimpleXMLRPCRequestHandler,
-                                    SimpleXMLRPCServer)
-else:
-    from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
+import socketserver
+import xmlrpc.client as xmlrpc
+from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from .constants import SAMP_ICON
 from .errors import SAMPWarning

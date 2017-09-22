@@ -5,12 +5,10 @@ Classes that deal with computing intervals from arrays of values based on
 various criteria.
 """
 
-from __future__ import division, print_function
 
 import abc
 import numpy as np
 
-from ..extern import six
 from ..utils.misc import InheritDocstrings
 from .transform import BaseTransform
 
@@ -20,8 +18,7 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'ZScaleInterval']
 
 
-@six.add_metaclass(InheritDocstrings)
-class BaseInterval(BaseTransform):
+class BaseInterval(BaseTransform, metaclass=InheritDocstrings):
     """
     Base class for the interval classes, which, when called with an
     array of values, return an interval computed following different
@@ -252,7 +249,7 @@ class ZScaleInterval(BaseInterval):
         ngrow = max(1, int(npix * 0.01))
         kernel = np.ones(ngrow, dtype=bool)
 
-        for niter in six.moves.range(self.max_iterations):
+        for niter in range(self.max_iterations):
             if ngoodpix >= last_ngoodpix or ngoodpix < minpix:
                 break
 

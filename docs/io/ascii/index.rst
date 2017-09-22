@@ -157,8 +157,8 @@ ASCII with no loss of information.
   >>> t['x'][1] = np.ma.masked
   >>> t['y'] = MaskedColumn([False, True], dtype='bool')
 
-  >>> from astropy.extern.six.moves import StringIO
-  >>> fh = StringIO()
+  >>> import io
+  >>> fh = io.StringIO()
   >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
   >>> table_string = fh.getvalue()      # doctest: +SKIP
   >>> print(table_string)               # doctest: +SKIP

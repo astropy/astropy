@@ -5,10 +5,6 @@
 Core units classes and functions
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip
 
 import inspect
 import operator
@@ -17,15 +13,12 @@ import warnings
 
 import numpy as np
 
-from ..utils.decorators import lazyproperty, deprecated
+from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format
-
-if six.PY2:
-    import cmath
 
 
 __all__ = [
@@ -99,8 +92,8 @@ def _normalize_equivalencies(equivalencies):
                 "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
         if not (funit is Unit(funit) and
                 (tunit is None or tunit is Unit(tunit)) and
-                six.callable(a) and
-                six.callable(b)):
+                callable(a) and
+                callable(b)):
             raise ValueError(
                 "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
         normalized.append((funit, tunit, a, b))
@@ -127,7 +120,7 @@ class _UnitRegistry(object):
             # All of these must be copied otherwise we could alter the old
             # registry.
             self._by_physical_type = {k: v.copy() for k, v in
-                                      six.iteritems(init._by_physical_type)}
+                                      init._by_physical_type.items()}
 
         else:
             self._reset_units()
@@ -488,8 +481,7 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-@six.add_metaclass(InheritDocstrings)
-class UnitBase(object):
+class UnitBase(metaclass=InheritDocstrings):
     """
     Abstract base class for units.
 
@@ -522,19 +514,13 @@ class UnitBase(object):
     def __bytes__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self).encode('unicode_escape')
-    if six.PY2:
-        __str__ = __bytes__
 
-    def __unicode__(self):
+    def __str__(self):
         """Return string representation for unit"""
         return unit_format.Generic.to_string(self)
-    if not six.PY2:
-        __str__ = __unicode__
 
     def __repr__(self):
         string = unit_format.Generic.to_string(self)
-        if six.PY2:
-            string = string.encode('unicode_escape')
 
         return 'Unit("{0}")'.format(string)
 
@@ -619,7 +605,7 @@ class UnitBase(object):
         try:
             return self.to_string(format=format_spec)
         except ValueError:
-            return format(six.text_type(self), format_spec)
+            return format(str(self), format_spec)
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
@@ -652,7 +638,7 @@ class UnitBase(object):
         return CompositeUnit(1, [self], [p])
 
     def __div__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -668,7 +654,7 @@ class UnitBase(object):
             return NotImplemented
 
     def __rdiv__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             return Unit(m) / self
 
         try:
@@ -690,7 +676,7 @@ class UnitBase(object):
     __rtruediv__ = __rdiv__
 
     def __mul__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -708,7 +694,7 @@ class UnitBase(object):
             return NotImplemented
 
     def __rmul__(self, m):
-        if isinstance(m, (bytes, six.text_type)):
+        if isinstance(m, (bytes, str)):
             return Unit(m) * self
 
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
@@ -1216,9 +1202,9 @@ class UnitBase(object):
             if len(units) == 0:
                 units = get_current_unit_registry().non_prefix_units
         elif isinstance(units, dict):
-            units = set(filter_units(six.itervalues(units)))
+            units = set(filter_units(units.values()))
         elif inspect.ismodule(units):
-            units = filter_units(six.itervalues(vars(units)))
+            units = filter_units(vars(units).values())
         else:
             units = filter_units(_flatten_units_collection(units))
 
@@ -1480,7 +1466,7 @@ class NamedUnit(UnitBase):
 
         UnitBase.__init__(self)
 
-        if isinstance(st, (bytes, six.text_type)):
+        if isinstance(st, (bytes, str)):
             self._names = [st]
             self._short_names = [st]
             self._long_names = []
@@ -1693,13 +1679,9 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
-    if six.PY2:
-        __str__ = __bytes__
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
-    if not six.PY2:
-        __str__ = __unicode__
 
     def to_string(self, format=None):
         return self.name
@@ -1784,7 +1766,7 @@ class _UnitMetaClass(InheritDocstrings):
         if isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, (bytes, six.text_type)):
+        elif isinstance(s, (bytes, str)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return dimensionless_unscaled
@@ -1793,7 +1775,7 @@ class _UnitMetaClass(InheritDocstrings):
                 format = unit_format.Generic
 
             f = unit_format.get_format(format)
-            if not six.PY2 and isinstance(s, bytes):
+            if isinstance(s, bytes):
                 s = s.decode('ascii')
 
             try:
@@ -1809,7 +1791,7 @@ class _UnitMetaClass(InheritDocstrings):
                     else:
                         format_clause = ''
                     msg = ("'{0}' did not parse as {1}unit: {2}"
-                           .format(s, format_clause, six.text_type(e)))
+                           .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
                     elif parse_strict == 'warn':
@@ -1829,8 +1811,7 @@ class _UnitMetaClass(InheritDocstrings):
             raise TypeError("{0} can not be converted to a Unit".format(s))
 
 
-@six.add_metaclass(_UnitMetaClass)
-class Unit(NamedUnit):
+class Unit(NamedUnit, metaclass=_UnitMetaClass):
     """
     The main unit class.
 
@@ -2053,13 +2034,6 @@ class CompositeUnit(UnitBase):
                         scale *= unit._to(base) ** power
                     except UnitsError:
                         pass
-                    except ValueError:
-                        # on python2, sqrt(negative number) does not
-                        # automatically lead to a complex number, but this is
-                        # needed for the corner case of mag=-0.4*dex
-                        scale *= cmath.exp(power * cmath.log(unit._to(base)))
-                        unit = base
-                        break
                     else:
                         unit = base
                         break
@@ -2079,20 +2053,14 @@ class CompositeUnit(UnitBase):
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
-                try:
-                    scale *= b._scale ** p
-                except ValueError:
-                    # on python2, sqrt(negative number) does not
-                    # automatically lead to a complex number, but this is
-                    # needed for the corner case of mag=-0.4*dex
-                    scale *= cmath.exp(p * cmath.log(b._scale))
+                scale *= b._scale ** p
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     a, b = resolve_fractions(p_sub, p)
                     scale = add_unit(b_sub, a * b, scale)
             else:
                 scale = add_unit(b, p, scale)
 
-        new_parts = [x for x in six.iteritems(new_parts) if x[1] != 0]
+        new_parts = [x for x in new_parts.items() if x[1] != 0]
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
@@ -2205,7 +2173,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                     format['latex'] = r'\mu ' + u.get_format_name('latex')
                     format['unicode'] = 'μ' + u.get_format_name('unicode')
 
-                for key, val in six.iteritems(u._format):
+                for key, val in u._format.items():
                     format.setdefault(key, prefix + val)
 
         for prefix in full:
@@ -2312,7 +2280,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (float, six.integer_types, complex)):
+    if isinstance(value, (float, int, complex)):
         return value
 
     if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:

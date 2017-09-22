@@ -10,6 +10,8 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
+from io import StringIO
+
 from .. import html
 from .. import core
 from ....table import Table
@@ -19,7 +21,6 @@ import numpy as np
 
 from .common import setup_function, teardown_function
 from ... import ascii
-from ....extern.six.moves import range, cStringIO as StringIO
 from ....utils.xml.writer import HAS_BLEACH
 
 # Check to see if the BeautifulSoup dependency is present.

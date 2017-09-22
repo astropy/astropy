@@ -4,10 +4,6 @@ High-level operations for numpy structured arrays.
 Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
-from ..extern.six.moves import zip, range
 
 from itertools import chain
 import collections
@@ -44,7 +40,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_list = []
 
     if table_names is None:
-        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]
@@ -69,7 +65,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
 
     # Check for duplicate output column names
     col_name_count = Counter(col_name_list)
-    repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
                               'Change uniq_col_name or table_names args to fix this.'
@@ -91,7 +87,7 @@ def get_descrs(arrays, col_name_map):
 
     out_descrs = []
 
-    for out_name, in_names in six.iteritems(col_name_map):
+    for out_name, in_names in col_name_map.items():
         # List of input arrays that contribute to this output column
         in_cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
@@ -171,10 +167,6 @@ def fix_column_name(val):
         try:
             val = str(val)
         except UnicodeEncodeError:
-            if six.PY2:
-                raise ValueError(
-                    "Column names must not contain Unicode characters "
-                    "on Python 2")
             raise
 
     return val

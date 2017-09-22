@@ -8,7 +8,6 @@ cds.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import fnmatch
 import itertools
@@ -19,7 +18,6 @@ from . import core
 from . import fixedwidth
 
 from ...utils.compat import suppress
-from ...extern.six.moves import range
 
 
 __doctest_skip__ = ['*']

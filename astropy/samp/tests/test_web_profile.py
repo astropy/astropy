@@ -8,9 +8,8 @@ parallel.
 import os
 import threading
 import tempfile
+from urllib.request import Request, urlopen
 
-from ...extern import six
-from ...extern.six.moves.urllib.request import Request, urlopen
 from ...utils.data import get_readable_fileobj
 
 from .. import SAMPIntegratedClient, SAMPHubServer
@@ -19,7 +18,6 @@ from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
 
 from .. import conf
-
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
 
@@ -83,11 +81,6 @@ class TestWebProfile(BaseTestStandardProfile):
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
 
-        if six.PY2:
-            assert resp.info().getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-            assert resp.info().getheader('Access-Control-Allow-Headers') == 'Content-Type'
-            assert resp.info().getheader('Access-Control-Allow-Credentials') == 'true'
-        else:
-            assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-            assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
-            assert resp.getheader('Access-Control-Allow-Credentials') == 'true'
+        assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
+        assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
+        assert resp.getheader('Access-Control-Allow-Credentials') == 'true'

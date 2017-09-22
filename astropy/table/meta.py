@@ -2,7 +2,6 @@ import textwrap
 import copy
 from collections import OrderedDict
 
-from ..extern import six
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
@@ -144,7 +143,7 @@ def _repr_odict(dumper, data):
     >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
-    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', six.iteritems(data))
+    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.items())
 
 
 def _repr_column_dict(dumper, data):
@@ -167,7 +166,7 @@ def _get_col_attributes(col):
     attrs['name'] = col.info.name
 
     type_name = col.info.dtype.type.__name__
-    if not six.PY2 and type_name.startswith(('bytes', 'str')):
+    if type_name.startswith(('bytes', 'str')):
         type_name = 'string'
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
@@ -200,7 +199,7 @@ def get_yaml_from_table(table):
         List of text lines with YAML header content
     """
 
-    header = {'cols': list(six.itervalues(table.columns))}
+    header = {'cols': list(table.columns.values())}
     if table.meta:
         header['meta'] = table.meta
 

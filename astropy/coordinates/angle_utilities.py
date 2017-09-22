@@ -11,8 +11,6 @@ This module contains utility functions that are for internal use in
 astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 from warnings import warn
@@ -126,8 +124,7 @@ class _AngleParser(object):
                 "Invalid character at col {0}".format(t.lexpos))
 
         # Build the lexer
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        lexer = lex.lex(optimize=True, lextab=str('angle_lextab'),
+        lexer = lex.lex(optimize=True, lextab='angle_lextab',
                         outputdir=os.path.dirname(__file__))
 
         def p_angle(p):
@@ -252,8 +249,7 @@ class _AngleParser(object):
         def p_error(p):
             raise ValueError
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        parser = yacc.yacc(debug=False, tabmodule=str('angle_parsetab'),
+        parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 

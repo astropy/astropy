@@ -9,8 +9,6 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import math
 import itertools
@@ -22,7 +20,6 @@ from warnings import warn
 from ..utils.compat import NUMPY_LT_1_10
 from ..utils.decorators import deprecated_renamed_argument
 from ..utils import isiterable
-from ..extern.six.moves import range
 
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',

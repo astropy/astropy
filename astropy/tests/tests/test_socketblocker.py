@@ -1,5 +1,3 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import sys
 import time
@@ -7,10 +5,10 @@ import time
 from threading import Thread
 
 import pytest
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+from urllib.request import urlopen
 
 from ..disable_internet import no_internet
-from ...extern.six.moves import BaseHTTPServer, SimpleHTTPServer
-from ...extern.six.moves.urllib.request import urlopen
 
 
 def test_outgoing_fails():
@@ -19,7 +17,7 @@ def test_outgoing_fails():
             urlopen('http://www.astropy.org')
 
 
-class StoppableHTTPServer(BaseHTTPServer.HTTPServer, object):
+class StoppableHTTPServer(HTTPServer, object):
     def __init__(self, *args):
         super(StoppableHTTPServer, self).__init__(*args)
         self.stop = False
@@ -45,8 +43,7 @@ def test_localconnect_succeeds(localhost):
 
     # port "0" means find open port
     # see http://stackoverflow.com/questions/1365265/on-localhost-how-to-pick-a-free-port-number
-    httpd = StoppableHTTPServer(('localhost', 0),
-                                SimpleHTTPServer.SimpleHTTPRequestHandler)
+    httpd = StoppableHTTPServer(('localhost', 0), SimpleHTTPRequestHandler)
 
     port = httpd.socket.getsockname()[1]
 
@@ -59,16 +56,13 @@ def test_localconnect_succeeds(localhost):
     urlopen('http://{localhost:s}:{port:d}'.format(localhost=localhost, port=port)).close()
 
 
-PY3_4 = sys.version_info[:2] >= (3, 4)
-
-
 # Used for the below test--inline functions aren't pickleable
 # by multiprocessing?
 def _square(x):
     return x ** 2
 
 
-@pytest.mark.skipif('not PY3_4 or sys.platform == "win32" or sys.platform.startswith("gnu0")')
+@pytest.mark.skipif('sys.platform == "win32" or sys.platform.startswith("gnu0")')
 def test_multiprocessing_forkserver():
     """
     Test that using multiprocessing with forkserver works.  Perhaps

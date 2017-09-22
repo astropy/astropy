@@ -8,7 +8,6 @@ core.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import copy
 import csv
@@ -20,12 +19,10 @@ import re
 import warnings
 
 from collections import OrderedDict
+from io import StringIO
 
 import numpy
 
-from ...extern import six
-from ...extern.six.moves import zip, range
-from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
@@ -1079,8 +1076,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         table.remove_columns(remove_names)
 
 
-@six.add_metaclass(MetaBaseReader)
-class BaseReader(object):
+class BaseReader(metaclass=MetaBaseReader):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
 
@@ -1287,7 +1283,7 @@ class BaseReader(object):
         """
 
         # Check column names before altering
-        self.header.cols = list(six.itervalues(table.columns))
+        self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
 
         # In-place update of columns in input ``table`` to reflect column
@@ -1301,7 +1297,7 @@ class BaseReader(object):
         table = self.update_table_data(table)
 
         # Now use altered columns
-        new_cols = list(six.itervalues(table.columns))
+        new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols
@@ -1457,12 +1453,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'fill_exclude_names' in kwargs:
         reader.data.fill_exclude_names = kwargs['fill_exclude_names']
     if 'encoding' in kwargs:
-        if six.PY2:
-            raise ValueError("the encoding parameter is not supported on "
-                             "Python 2")
-        else:
-            reader.encoding = kwargs['encoding']
-            reader.inputter.encoding = kwargs['encoding']
+        reader.encoding = kwargs['encoding']
+        reader.inputter.encoding = kwargs['encoding']
 
     return reader
 

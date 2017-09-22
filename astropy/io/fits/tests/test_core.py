@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement
 
 import gzip
 import bz2
@@ -24,8 +23,6 @@ from ..convenience import _getext
 from ..diff import FITSDiff
 from ..file import _File, GZIP_MAGIC
 
-from ....extern import six
-from ....extern.six.moves import range, zip
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....tests.helper import remote_data
@@ -642,8 +639,6 @@ class TestFileFunctions(FitsTestCase):
                 with fits.open(handle, mode='ostream') as fitsfile:
                     pass
 
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_url(self):
         import urllib.request
         file_url = "file:///" + self.data('test0.fits')
@@ -659,8 +654,6 @@ class TestFileFunctions(FitsTestCase):
                         pass
 
     @remote_data(source='astropy')
-    @pytest.mark.skipif(six.PY2,
-        reason="urrlib has incompatible Py2 API, but we will deprecate anyway")
     def test_open_from_remote_url(self):
         import urllib.request
         remote_url = '{}/{}'.format(conf.dataurl, 'allsky/allsky_rosat.fits')
@@ -729,8 +722,6 @@ class TestFileFunctions(FitsTestCase):
                 assert fits_handle._file.compression == 'bzip2'
                 assert len(fits_handle) == 5
 
-    @pytest.mark.skipif(six.PY2,
-        reason = "API difference in bz2 in 2.7, but will be deprecated anyway")
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), 'rb') as handle:
             with fits.open(handle) as fits_handle:

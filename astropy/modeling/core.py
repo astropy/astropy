@@ -13,11 +13,10 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import copy
+import copyreg
 import inspect
 import functools
 import operator
@@ -30,8 +29,6 @@ from itertools import chain, islice
 import numpy as np
 
 from ..utils import indent, isinstancemethod, metadata
-from ..extern import six
-from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..units import Quantity, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray
@@ -221,12 +218,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             True
         """
 
-        if six.PY2 and isinstance(name, six.text_type):
-            # Unicode names are not allowed in Python 2, so just convert to
-            # ASCII.  As such, for cross-compatibility all model names should
-            # just be ASCII for now.
-            name = name.encode('ascii')
-
         mod = find_current_module(2)
         if mod:
             modname = mod.__name__
@@ -300,9 +291,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             if len(sig.parameters) > 1:
                 bounding_box = \
                         cls._create_bounding_box_subclass(bounding_box, sig)
-
-        if six.PY2 and isinstance(bounding_box, types.MethodType):
-            bounding_box = bounding_box.__func__
 
         # See the Model.bounding_box getter definition for how this attribute
         # is used
@@ -410,7 +398,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional arguments
-            if all(p.default is not None for p in six.itervalues(cls._parameters_)):
+            if all(p.default is not None for p in cls._parameters_.values()):
                 args = ('self',)
                 kwargs = []
                 for param_name in cls.param_names:
@@ -441,11 +429,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-
-    if six.PY2:
-        # The classic __div__ operator need only be implemented for Python 2
-        # without from __future__ import division
-        __div__ = _model_oper('/')
 
     # *** Other utilities ***
 
@@ -501,8 +484,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             return parts[0]
 
 
-@six.add_metaclass(_ModelMeta)
-class Model(object):
+class Model(metaclass=_ModelMeta):
     """
     Base class for all models.
 
@@ -813,9 +795,6 @@ class Model(object):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-
-    if six.PY2:
-        __div__ = _model_oper('/')
 
     # *** Properties ***
     @property
@@ -1615,7 +1594,7 @@ class Model(object):
         self._parameters = existing._parameters
 
         self._param_metrics = defaultdict(dict)
-        for param_a, param_b in six.iteritems(aliases):
+        for param_a, param_b in aliases.items():
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
@@ -1757,7 +1736,7 @@ class Model(object):
             else:
                 min_ndim = model_set_axis + 1
 
-            for name, value in six.iteritems(params):
+            for name, value in params.items():
                 param_ndim = np.ndim(value)
                 if param_ndim < min_ndim:
                     raise InputParameterError(
@@ -2675,7 +2654,7 @@ class _CompoundModelMeta(_ModelMeta):
 
             return index
 
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             return get_index_from_name(index)
         elif isinstance(index, slice):
             if index.step not in (1, None):
@@ -2691,9 +2670,9 @@ class _CompoundModelMeta(_ModelMeta):
                 start = check_for_negative_index(start)
             if isinstance(stop, (int, np.integer)):
                 stop = check_for_negative_index(stop)
-            if isinstance(start, six.string_types):
+            if isinstance(start, str):
                 start = get_index_from_name(start)
-            if isinstance(stop, six.string_types):
+            if isinstance(stop, str):
                 stop = get_index_from_name(stop) + 1
             length = stop - start
 
@@ -2769,8 +2748,7 @@ class _CompoundModelMeta(_ModelMeta):
         return (f, n_inputs, n_outputs)
 
 
-@six.add_metaclass(_CompoundModelMeta)
-class _CompoundModel(Model):
+class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     fit_deriv = None
     col_fit_deriv = False
 
@@ -2813,23 +2791,6 @@ class _CompoundModel(Model):
                                 for name in model.param_names)
 
         return model._from_existing(self, param_names)
-
-    if sys.version_info[:3] < (2, 7, 3):
-        def __reduce__(self):
-            # _CompoundModel classes have a generated evaluate() that is cached
-            # off in the _evaluate attribute.  This can't be pickled, and so
-            # should be regenerated after unpickling (alas)
-            if find_current_module(2) is not copy:
-                # The copy module also uses __reduce__, but there's no problem
-                # there.
-                raise RuntimeError(
-                    "Pickling of compound models is not possible using Python "
-                    "versions less than 2.7.3 due to a bug in Python.  See "
-                    "http://docs.astropy.org/en/v1.0.4/known_issues.html#"
-                    "pickling-error-on-compound-models for more information ("
-                    "tried to pickle {0!r}).".format(self))
-            else:
-                return super(_CompoundModel, self).__reduce__()
 
     @property
     def submodel_names(self):
@@ -2980,7 +2941,7 @@ def custom_model(*args, **kwargs):
 
     fit_deriv = kwargs.get('fit_deriv', None)
 
-    if len(args) == 1 and six.callable(args[0]):
+    if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
     elif not args:
         return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
@@ -3003,12 +2964,12 @@ def _custom_model_wrapper(func, fit_deriv=None):
     function is returned by `custom_model`.
     """
 
-    if not six.callable(func):
+    if not callable(func):
         raise ModelDefinitionError(
             "func is not callable; it must be a function or other callable "
             "object")
 
-    if fit_deriv is not None and not six.callable(fit_deriv):
+    if fit_deriv is not None and not callable(fit_deriv):
         raise ModelDefinitionError(
             "fit_deriv not callable; it must be a function or other "
             "callable object")
@@ -3018,7 +2979,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     inputs, params = get_inputs_and_params(func)
 
     if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != len(params)):
+            len(fit_deriv.__defaults__) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 

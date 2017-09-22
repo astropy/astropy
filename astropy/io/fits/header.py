@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division
-
 import collections
 import copy
 import itertools
@@ -12,9 +10,6 @@ from .card import Card, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import encode_ascii, decode_ascii, fileobj_closed, fileobj_is_binary
 
-from ...extern import six
-from ...extern.six import string_types, itervalues, iteritems, next
-from ...extern.six.moves import zip, range, zip_longest
 from ...utils import isiterable
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
@@ -105,7 +100,7 @@ class Header(object):
                 cards = cards.copy()
             cards = cards.cards
         elif isinstance(cards, dict):
-            cards = six.iteritems(cards)
+            cards = cards.items()
 
         for card in cards:
             self.append(card, end=True)
@@ -138,7 +133,7 @@ class Header(object):
         elif self._haswildcard(key):
             return Header([copy.copy(self._cards[idx])
                            for idx in self._wildcardmatch(key)])
-        elif (isinstance(key, string_types) and
+        elif (isinstance(key, str) and
               key.upper() in Card._commentary_keywords):
             key = key.upper()
             # Special case for commentary cards
@@ -212,7 +207,7 @@ class Header(object):
             for idx in reversed(indices):
                 del self[idx]
             return
-        elif isinstance(key, string_types):
+        elif isinstance(key, str):
             # delete ALL cards with the same keyword name
             key = Card.normalize_keyword(key)
             indices = self._keyword_indices
@@ -426,7 +421,7 @@ class Header(object):
         """
 
         close_file = False
-        if isinstance(fileobj, string_types):
+        if isinstance(fileobj, str):
             # Open in text mode by default to support newline handling; if a
             # binary-mode file object is passed in, the user is on their own
             # with respect to newline handling
@@ -932,35 +927,22 @@ class Header(object):
     def items(self):
         """Like :meth:`dict.items`."""
 
-        return list(iteritems(self))
-
-    def iteritems(self):
-        """Like :meth:`dict.iteritems`."""
-
         for card in self._cards:
             yield (card.keyword, card.value)
 
-    def iterkeys(self):
+    def keys(self):
         """
-        Like :meth:`dict.iterkeys`--iterating directly over the `Header`
+        Like :meth:`dict.keys`--iterating directly over the `Header`
         instance has the same behavior.
         """
 
         return self.__iter__()
 
-    def itervalues(self):
-        """Like :meth:`dict.itervalues`."""
+    def values(self):
+        """Like :meth:`dict.values`."""
 
-        for _, v in iteritems(self):
+        for _, v in self.items():
             yield v
-
-    def keys(self):
-        """
-        Return a list of keywords in the header in the order they
-        appear--like :meth:`dict.keys` but ordered.
-        """
-
-        return [keyword for keyword in self]
 
     def pop(self, *args):
         """
@@ -991,7 +973,7 @@ class Header(object):
         """Similar to :meth:`dict.popitem`."""
 
         try:
-            k, v = next(iteritems(self))
+            k, v = next(self.items())
         except StopIteration:
             raise KeyError('Header is empty')
         del self[k]
@@ -1096,7 +1078,7 @@ class Header(object):
         if other is None:
             pass
         elif hasattr(other, 'items'):
-            for k, v in iteritems(other):
+            for k, v in other.items():
                 update_from_dict(k, v)
         elif hasattr(other, 'keys'):
             for k in other.keys():
@@ -1115,11 +1097,6 @@ class Header(object):
                         'a keyword, value, and comment string.'.format(idx))
         if kwargs:
             self.update(kwargs)
-
-    def values(self):
-        """Returns a list of the values of all cards in the header."""
-
-        return [v for _, v in iteritems(self)]
 
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         """
@@ -1156,7 +1133,7 @@ class Header(object):
 
         """
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -1420,7 +1397,7 @@ class Header(object):
             self.append(card, end=True)
             return
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -1635,7 +1612,7 @@ class Header(object):
         # This used to just set key = (key, 0) and then go on to act as if the
         # user passed in a tuple, but it's much more common to just be given a
         # string as the key, so optimize more for that case
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             keyword = key
             n = 0
         elif isinstance(key, int):
@@ -1648,7 +1625,7 @@ class Header(object):
         elif isinstance(key, slice):
             return key
         elif isinstance(key, tuple):
-            if (len(key) != 2 or not isinstance(key[0], string_types) or
+            if (len(key) != 2 or not isinstance(key[0], str) or
                     not isinstance(key[1], int)):
                 raise ValueError(
                     'Tuple indices must be 2-tuples consisting of a '
@@ -1770,7 +1747,7 @@ class Header(object):
         increment = 1 if increment else -1
 
         for index_sets in (self._keyword_indices, self._rvkc_indices):
-            for indices in itervalues(index_sets):
+            for indices in index_sets.values():
                 for jdx, keyword_index in enumerate(indices):
                     if keyword_index >= idx:
                         indices[jdx] += increment
@@ -1793,7 +1770,7 @@ class Header(object):
     def _haswildcard(self, keyword):
         """Return `True` if the input keyword contains a wildcard pattern."""
 
-        return (isinstance(keyword, string_types) and
+        return (isinstance(keyword, str) and
                 (keyword.endswith('...') or '*' in keyword or '?' in keyword))
 
     def _wildcardmatch(self, pattern):
@@ -1824,7 +1801,7 @@ class Header(object):
             else:
                 indices = self._wildcardmatch(key)
 
-            if isinstance(value, string_types) or not isiterable(value):
+            if isinstance(value, str) or not isiterable(value):
                 value = itertools.repeat(value, len(indices))
 
             for idx, val in zip(indices, value):
@@ -1924,16 +1901,6 @@ class Header(object):
         else:
             self[key] = value
 
-    # Some fixes for compatibility with the Python 3 dict interface, where
-    # iteritems -> items, etc.
-    if not six.PY2:
-        keys = iterkeys
-        values = itervalues
-        items = iteritems
-        del iterkeys
-        del itervalues
-        del iteritems
-
 
 collections.MutableSequence.register(Header)
 collections.MutableMapping.register(Header)
@@ -1966,13 +1933,13 @@ class _CardAccessor(object):
     def __eq__(self, other):
         # If the `other` item is a scalar we will still treat it as equal if
         # this _CardAccessor only contains one item
-        if not isiterable(other) or isinstance(other, string_types):
+        if not isiterable(other) or isinstance(other, str):
             if len(self) == 1:
                 other = [other]
             else:
                 return False
 
-        for a, b in zip_longest(self, other):
+        for a, b in itertools.zip_longest(self, other):
             if a != b:
                 return False
         else:
@@ -1999,7 +1966,7 @@ class _CardAccessor(object):
                 indices = range(*item.indices(len(self)))
             else:
                 indices = self._header._wildcardmatch(item)
-            if isinstance(value, string_types) or not isiterable(value):
+            if isinstance(value, str) or not isiterable(value):
                 value = itertools.repeat(value, len(indices))
             for idx, val in zip(indices, value):
                 self[idx] = val

@@ -6,8 +6,6 @@ If called, their arguments are used to initialize the corresponding function
 unit (e.g., ``u.mag(u.ct/u.s)``).  Note that the prefixed versions cannot be
 called, as it would be unclear what, e.g., ``u.mmag(u.ct/u.s)`` would mean.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 from ..core import _add_prefixes
 from .mixin import RegularFunctionUnit, IrreducibleFunctionUnit
 

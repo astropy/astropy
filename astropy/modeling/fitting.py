@@ -21,8 +21,6 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 implementation.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import inspect
@@ -36,8 +34,6 @@ import numpy as np
 from .utils import poly_map_domain, _combine_equivalency_dict
 from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
-from ..extern import six
-from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
@@ -183,8 +179,7 @@ def fitter_unit_support(func):
     return wrapper
 
 
-@six.add_metaclass(_FitterMeta)
-class Fitter(object):
+class Fitter(metaclass=_FitterMeta):
     """
     Base class for all fitters.
 
@@ -254,8 +249,7 @@ class Fitter(object):
 # TODO: I have ongoing branch elsewhere that's refactoring this module so that
 # all the fitter classes in here are Fitter subclasses.  In the meantime we
 # need to specify that _FitterMeta is its metaclass.
-@six.add_metaclass(_FitterMeta)
-class LinearLSQFitter(object):
+class LinearLSQFitter(metaclass=_FitterMeta):
     """
     A class performing a linear least square fitting.
 
@@ -573,8 +567,7 @@ class FittingWithOutlierRemoval(object):
         return filtered_data, fitted_model
 
 
-@six.add_metaclass(_FitterMeta)
-class LevMarLSQFitter(object):
+class LevMarLSQFitter(metaclass=_FitterMeta):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
 
@@ -889,8 +882,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
-@six.add_metaclass(_FitterMeta)
-class JointFitter(object):
+class JointFitter(metaclass=_FitterMeta):
     """
     Fit models which share a parameter.
 
@@ -1172,16 +1164,16 @@ def _validate_constraints(supported_constraints, model):
 
     message = 'Optimizer cannot handle {0} constraints.'
 
-    if (any(six.itervalues(model.fixed)) and
+    if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('fixed parameter'))
 
-    if any(six.itervalues(model.tied)) and 'tied' not in supported_constraints:
+    if any(model.tied.values()) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
                 message.format('tied parameter'))
 
-    if (any(tuple(b) != (None, None) for b in six.itervalues(model.bounds)) and
+    if (any(tuple(b) != (None, None) for b in model.bounds.values()) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('bound parameter'))

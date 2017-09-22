@@ -22,8 +22,6 @@ from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
     FastRdb, FastNoHeader
 from .common import assert_equal, assert_almost_equal, assert_true
-from ....extern import six
-from ....extern.six.moves import range
 
 TRAVIS = os.environ.get('TRAVIS', False)
 
@@ -39,9 +37,9 @@ def assert_table_equal(t1, t2, check_meta=False):
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
-                    if not isinstance(el, six.string_types) and np.isnan(el):
-                        assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
-                    elif isinstance(el, six.string_types):
+                    if not isinstance(el, str) and np.isnan(el):
+                        assert_true(not isinstance(t2[name][i], str) and np.isnan(t2[name][i]))
+                    elif isinstance(el, str):
                         assert_equal(el, t2[name][i])
                     else:
                         assert_almost_equal(el, t2[name][i])

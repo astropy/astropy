@@ -265,7 +265,9 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Pytest <3.1 versions are no longer supported. [#6419]
+- Versions of Python <3.5 are no longer supported. [#6556]
+
+- Versions of Pytest <3.1 are no longer supported. [#6419]
 
 - The bundled CFITSIO was updated to version 3.41 [#6477]
 

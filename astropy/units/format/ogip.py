@@ -11,10 +11,7 @@ FITS files
 <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
 
 import keyword
 import math
@@ -163,8 +160,7 @@ class OGIP(generic.Generic):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        lexer = lex.lex(optimize=True, lextab=str('ogip_lextab'),
+        lexer = lex.lex(optimize=True, lextab='ogip_lextab',
                         outputdir=os.path.dirname(__file__))
 
         return lexer
@@ -354,8 +350,7 @@ class OGIP(generic.Generic):
         def p_error(p):
             raise ValueError()
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        parser = yacc.yacc(debug=False, tabmodule=str('ogip_parsetab'),
+        parser = yacc.yacc(debug=False, tabmodule='ogip_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
@@ -368,7 +363,7 @@ class OGIP(generic.Generic):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, '{1}': {2}".format(
-                    t.lexpos, t.value, six.text_type(e)))
+                    t.lexpos, t.value, str(e)))
 
     @classmethod
     def _validate_unit(cls, unit, detailed_exception=True):
@@ -405,7 +400,7 @@ class OGIP(generic.Generic):
                 return core.Unit(
                     cls._parser.parse(s, lexer=cls._lexer, debug=debug))
             except ValueError as e:
-                if six.text_type(e):
+                if str(e):
                     raise
                 else:
                     raise ValueError(
