@@ -17,7 +17,7 @@ Astropy.
 3.4.0 (2016-01-29)
 ==================
 
-This is the last released version of PyFITS as standalone.
+This is the last released version of PyFITS as a standalone package.
 
 
 3.3.0 (2014-07-17)
