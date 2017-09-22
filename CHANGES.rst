@@ -77,6 +77,8 @@ astropy.table
 - Improved exception handling and error messages when column ``format``
   attribute is incorrect for the column type. [#6385]
 
+- Allow to pass ``htmldict`` option to the jsviewer writer. [#6551]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
