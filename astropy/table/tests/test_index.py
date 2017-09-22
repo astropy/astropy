@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from .test_table import SetupData
-from ..bst import BST, FastRBT
+from ..bst import BST, FastRBT, FastBST
 from ..sorted_array import SortedArray
 from ..table import QTable, Row
 from ... import units as u
@@ -12,8 +12,21 @@ from ...time import Time
 from ..column import BaseColumn
 from ...extern.six.moves import range
 
+try:
+    import bintrees
+except ImportError:
+    HAS_BINTREES = False
+else:
+    HAS_BINTREES = True
 
-@pytest.fixture(params=[BST, FastRBT, SortedArray])
+
+if HAS_BINTREES:
+    available_engines = [BST, FastBST, FastRBT, SortedArray]
+else:
+    available_engines = [BST, SortedArray]
+
+
+@pytest.fixture(params=available_engines)
 def engine(request):
     return request.param
 
