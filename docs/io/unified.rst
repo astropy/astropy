@@ -410,7 +410,7 @@ By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
 .. _table_io_hdf5:
 
 HDF5
---------
+----
 
 .. _HDF5: http://www.hdfgroup.org/HDF5/
 .. _h5py: http://www.h5py.org/
@@ -464,6 +464,34 @@ used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
 
+
+
+.. _table_io_jsviewer:
+
+JSViewer
+--------
+
+Provides an interactive HTML export of a Table, like the
+:class:`~astropy.io.ascii.HTML` writer but using the DataTables_ library, which
+allow to visualize interactively an HTML table (with columns sorting, search,
+pagination).
+
+To write a table ``t`` to a new file::
+
+    >>> t.write('new_table.html', format='jsviewer')
+
+Several additional parameters can be used:
+
+- *table_id*: the HTML id of the ``<table>`` tag, defaults to ``'table{id}'``
+  where ``id`` is the id of the Table object.
+- *max_lines*: maximum number of lines.
+- *table_class*: HTML classes added to the ``<table>`` tag, can be useful to
+  customize the style of the table.
+- *jskwargs*: additional arguments passed to :class:`~astropy.table.JSViewer`.
+- *css*: CSS style, default to ``astropy.table.jsviewer.DEFAULT_CSS``.
+- *htmldict*: additional arguments passed to :class:`~astropy.io.ascii.HTML`.
+
+.. _Datatables: https://www.datatables.net/
 
 
 
