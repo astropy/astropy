@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # TODO: Test FITS parsing
 
-
 # STDLIB
 import io
 import re
@@ -69,8 +68,6 @@ def _resize(masked, new_size):
 
     new_array[:length] = masked[:length]
 
-    if length != 0:
-        new_array.mask[:length] = masked.mask[:length]
     return new_array
 
 
