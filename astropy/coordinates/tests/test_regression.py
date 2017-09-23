@@ -555,3 +555,12 @@ def test_regression_6448():
     sc2 = SkyCoord([c1, c2])
     # without 6448 this fails
     assert sc2.galcen_v_sun is None
+
+
+def test_regression_6597():
+    frame_name = 'galactic'
+    c1 = SkyCoord(1, 3, unit='deg', frame=frame_name)
+    c2 = SkyCoord(2, 4, unit='deg', frame=frame_name)
+    sc1 = SkyCoord([c1, c2])
+
+    assert sc1.frame.name == frame_name
