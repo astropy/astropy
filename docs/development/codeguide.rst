@@ -215,9 +215,8 @@ to `False` by default.
 The following conventions should be used for classes that define the
 standard string conversion methods (``__str__``, ``__repr__``,
 ``__bytes__``, and ``__format__``).  In the bullets
-below, the phrase "string instance" is used to refer to
-`str` on Python 3.  The phrase "bytes instance" is used
-to refer to `bytes` on Python 3.
+below, the phrase "string instance" is used to refer to `str`, while
+"bytes instance" is used to refer to `bytes`.
 
 - ``__repr__``: Return a "string instance" containing only 7-bit characters.
 
@@ -305,14 +304,6 @@ Including C Code
   for building the extension via the mechanisms described in
   :ref:`building-c-or-cython-extensions`.
 
-.. _dev-portable:
-
-Writing portable code for Python 2 and 3
-========================================
-
-As of astropy 3.0, Python 2 is no longer supported. Therefore, only code
-that is compatible with Python 3.5 or later is acceptable.
-
 
 Compatibility between versions of Numpy
 =======================================
@@ -345,9 +336,9 @@ Requirements Specific to Affiliated Packages
   or ``awastropy.packagename`` ("affiliated with Astropy").
 
 * If the affiliated package requires compatibility with Python 2, it should
-  pin to astropy<=2 until it is ready to drop Python 2 support.
+  pin to ``astropy<3`` until it is ready to drop Python 2 support.
   On the other hand, package that only supports Python 3 may still use
-  astropy<=2. New affiliated packages created from astropy's package template
+  ``astropy<3``. New affiliated packages created from Astropy's package template
   should check with template maintainers regarding Python versions supported
   if unsure.
 

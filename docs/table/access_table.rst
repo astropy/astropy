@@ -668,10 +668,6 @@ strings are actually ASCII and can be represented with 1 byte per character.
 Starting with astropy 2.0 it is possible to work directly and conveniently with
 bytestring data in astropy Table and Column
 
-Taking this further, there is an *advantage* to using Python 3 because it is
-supported to reliably store arbitrary UTF-8 encoded characters in bytestring
-columns.  This only applies to Python 3.
-
 Note that the bytestring issue is a particular problem when dealing with HDF5
 files, where character data are read as bytestrings (``'S'`` dtype) when using
 the :ref:`table_io`. Since HDF5 files are frequently used to store very large
