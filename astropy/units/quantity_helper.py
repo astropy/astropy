@@ -90,10 +90,9 @@ UFUNC_HELPERS[np.square] = lambda f, unit: (
 UFUNC_HELPERS[np.reciprocal] = lambda f, unit: (
     [None], unit ** -1 if unit is not None else dimensionless_unscaled)
 
-if isinstance(getattr(np, 'cbrt', None), np.ufunc):
-    UFUNC_HELPERS[np.cbrt] = lambda f, unit: (
-        [None], (unit ** Fraction(1, 3) if unit is not None
-                 else dimensionless_unscaled))
+UFUNC_HELPERS[np.cbrt] = lambda f, unit: (
+    [None], (unit ** Fraction(1, 3) if unit is not None
+             else dimensionless_unscaled))
 UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
                                            ([None], dimensionless_unscaled))
 
