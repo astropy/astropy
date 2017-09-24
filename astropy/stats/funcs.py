@@ -214,8 +214,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         raise ValueError('conf must be between 0. and 1.')
     alpha = 1. - conf
 
-    k = np.asarray(k).astype(np.int)
-    n = np.asarray(n).astype(np.int)
+    k = np.asarray(k).astype(int)
+    n = np.asarray(n).astype(int)
 
     if (n <= 0).any():
         raise ValueError('n must be positive')

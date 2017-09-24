@@ -7,7 +7,7 @@ def test_common_dtype():
     """
     Test that allowed combinations are those expected.
     """
-    dtype = [(str('int'), np.int),
+    dtype = [(str('int'), int),
              (str('uint8'), np.uint8),
              (str('float32'), np.float32),
              (str('float64'), np.float64),

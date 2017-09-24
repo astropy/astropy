@@ -615,7 +615,7 @@ def test_ogamma():
     assert allclose(cosmo.comoving_distance(z), targvals, rtol=1e-5)
 
     # And integers for z
-    assert allclose(cosmo.comoving_distance(z.astype(np.int)),
+    assert allclose(cosmo.comoving_distance(z.astype(int)),
                     targvals, rtol=1e-5)
 
     # Try Tcmb0 = 4
@@ -1471,7 +1471,7 @@ def test_massivenu_density():
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
     # Integer redshifts
-    ztest = ztest.astype(np.int)
+    ztest = ztest.astype(int)
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
                     rtol=5e-3)
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)

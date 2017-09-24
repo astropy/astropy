@@ -269,12 +269,12 @@ class TimeDecimalYear(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
 
         sum12, err12 = two_sum(val1, val2)
-        iy_start = np.trunc(sum12).astype(np.int)
+        iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
 
         val = (val1 + val2).astype(np.double)
-        iy_start = np.trunc(val).astype(np.int)
+        iy_start = np.trunc(val).astype(int)
 
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
