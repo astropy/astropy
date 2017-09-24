@@ -391,7 +391,7 @@ class JsonCustomEncoder(json.JSONEncoder):
             return dict(value=obj.value, unit=obj.unit.to_string())
         if isinstance(obj, (np.number, np.ndarray)):
             return obj.tolist()
-        elif isinstance(obj, (complex, np.complex)):
+        elif isinstance(obj, (complex, np.complexfloating)):
             return [obj.real, obj.imag]
         elif isinstance(obj, set):
             return list(obj)

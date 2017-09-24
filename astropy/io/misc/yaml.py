@@ -270,7 +270,7 @@ for np_type in [np.float_, float, np.float16, np.float32, np.float64,
                 np.longdouble]:
     AstropyDumper.add_representer(np_type,
                                  yaml.representer.SafeRepresenter.represent_float)
-for np_type in [np.complex_, np.complex, np.complex64, np.complex128]:
+for np_type in [np.complex_, complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type,
                                  _complex_representer)
 
