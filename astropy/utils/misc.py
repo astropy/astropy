@@ -568,15 +568,17 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
     # thread-safe though.
     _nextid = 1
 
-    _class_attribute_ = abc.abstractproperty()
-    """
-    Subclasses should define this attribute to the name of an attribute on
-    classes containing this subclass.  That attribute will contain the mapping
-    of all instances of that `OrderedDescriptor` subclass defined in the class
-    body.  If the same descriptor needs to be used with different classes,
-    each with different names of this attribute, multiple subclasses will be
-    needed.
-    """
+    @property
+    @abc.abstractmethod
+    def _class_attribute_(self):
+        """
+        Subclasses should define this attribute to the name of an attribute on
+        classes containing this subclass.  That attribute will contain the mapping
+        of all instances of that `OrderedDescriptor` subclass defined in the class
+        body.  If the same descriptor needs to be used with different classes,
+        each with different names of this attribute, multiple subclasses will be
+        needed.
+        """
 
     _name_attribute_ = None
     """
@@ -876,7 +878,8 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     # copies rather than views of data (see the special-case treatment of
     # 'flatten' in Time).
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self):
         """The shape of the instance and underlying arrays."""
 

@@ -106,7 +106,8 @@ class Projection(Model):
     # This sets the circumference to 360 deg so that arc length is measured in deg.
     r0 = 180 * u.deg / np.pi
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def inverse(self):
         """
         Inverse projection--all projection models must provide an inverse.

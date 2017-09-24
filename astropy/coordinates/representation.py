@@ -184,9 +184,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return name
 
     # The two methods that any subclass has to define.
-    # Should be replaced by abstractclassmethod once we support only PY3
+    @classmethod
     @abc.abstractmethod
-    def from_cartesian(self, other):
+    def from_cartesian(cls, other):
         """Create a representation of this class from a supplied Cartesian one.
 
         Parameters
