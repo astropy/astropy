@@ -548,7 +548,7 @@ def test_multicolumn_read():
     """
 
     table = Table.read('t/html2.html', format='ascii.html')
-    str_type = np.dtype((np.str, 21))
+    str_type = np.dtype((str, 21))
     expected = Table(np.array([(['1', '2.5000000000000000001'], 3),
                                (['1a', '1'], 3.5)],
                               dtype=[('A', str_type, (2,)), ('B', '<f8')]))

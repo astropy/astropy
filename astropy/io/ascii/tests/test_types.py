@@ -12,7 +12,7 @@ from .common import assert_equal
 
 def test_types_from_dat():
     converters = {'a': [ascii.convert_numpy(float)],
-                  'e': [ascii.convert_numpy(np.str)]}
+                  'e': [ascii.convert_numpy(str)]}
 
     dat = ascii.read(['a b c d e', '1 1 cat 2.1 4.2'],
                      Reader=ascii.Basic,
