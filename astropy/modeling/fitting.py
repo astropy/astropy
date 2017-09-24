@@ -440,7 +440,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
-            weights = np.asarray(weights, dtype=np.float)
+            weights = np.asarray(weights, dtype=float)
             if len(x) != len(weights):
                 raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
@@ -1033,11 +1033,11 @@ class JointFitter(metaclass=_FitterMeta):
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
 
-    x = np.asarray(x, dtype=np.float)
-    y = np.asarray(y, dtype=np.float)
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
 
     if z is not None:
-        z = np.asarray(z, dtype=np.float)
+        z = np.asarray(z, dtype=float)
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations

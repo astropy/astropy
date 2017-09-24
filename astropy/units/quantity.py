@@ -298,7 +298,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                     return value
 
                 if not np.can_cast(np.float32, value.dtype):
-                    dtype = np.float
+                    dtype = float
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
@@ -379,7 +379,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # by default, cast any integer, boolean, etc., to float
         if dtype is None and (not np.can_cast(np.float32, value.dtype)
                               or value.dtype.kind == 'O'):
-            value = value.astype(np.float)
+            value = value.astype(float)
 
         value = value.view(cls)
         value._set_unit(value_unit)

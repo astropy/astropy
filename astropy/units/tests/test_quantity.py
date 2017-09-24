@@ -908,9 +908,9 @@ def test_arrays():
     # but with multiple dtypes, single elements are OK; need to use str()
     # since numpy under python2 cannot handle unicode literals
     a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
-                 dtype=[(str('x'), np.float),
-                        (str('y'), np.float),
-                        (str('z'), np.float)])
+                 dtype=[(str('x'), float),
+                        (str('y'), float),
+                        (str('z'), float)])
     qkpc = u.Quantity(a, u.kpc)
     assert not qkpc.isscalar
     qkpc0 = qkpc[0]

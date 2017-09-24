@@ -225,8 +225,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     if interval == 'wilson' or interval == 'wald':
         from scipy.special import erfinv
         kappa = np.sqrt(2.) * min(erfinv(conf), 1.e10)  # Avoid overflows.
-        k = k.astype(np.float)
-        n = n.astype(np.float)
+        k = k.astype(float)
+        n = n.astype(float)
         p = k / n
 
         if interval == 'wilson':

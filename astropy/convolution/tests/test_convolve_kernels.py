@@ -110,7 +110,7 @@ class Test2DConvolutions:
         Compares a small uniform kernel to the Box2DKernel
         """
 
-        kernel1 = np.ones([width, width]) / np.float(width) ** 2
+        kernel1 = np.ones([width, width]) / float(width) ** 2
         kernel2 = Box2DKernel(width, mode='oversample', factor=10)
 
         x = np.zeros(shape)

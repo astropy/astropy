@@ -132,7 +132,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # kernel_internal.  However -- we do want to keep track of what type
     # the input array was so we can cast the result to that at the end
     # if it's a floating point type.  Don't bother with this for lists --
-    # just always push those as np.float.
+    # just always push those as float.
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
@@ -160,7 +160,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Check that the arguments are lists or Numpy arrays
 
     if isinstance(array, list):
-        array_internal = np.array(array, dtype=np.float)
+        array_internal = np.array(array, dtype=float)
         array_dtype = array_internal.dtype
     elif isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
