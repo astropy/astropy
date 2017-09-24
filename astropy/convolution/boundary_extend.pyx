@@ -2,7 +2,7 @@
 import numpy as np
 cimport numpy as np
 
-DTYPE = np.float
+DTYPE = float
 ctypedef np.float_t DTYPE_t
 
 cdef inline int int_max(int a, int b) nogil: return a if a >= b else b
