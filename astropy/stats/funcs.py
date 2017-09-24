@@ -1271,8 +1271,8 @@ def kuiper_false_positive_probability(D, N):
     fpp : float
         The probability of a score this large arising from the null hypothesis.
 
-    Reference
-    ---------
+    References
+    ----------
 
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
@@ -1380,8 +1380,8 @@ def kuiper(data, cdf=lambda x: x, args=()):
     it will be necessary to do Monte Carlo simulations to interpret D.
     D should normally be independent of the shape of CDF.
 
-    Reference
-    ---------
+    References
+    ----------
 
     .. [1] Stephens, M. A., "Use of the Kolmogorov-Smirnov, Cramer-Von Mises
            and Related Statistics Without Extensive Tables", Journal of the
