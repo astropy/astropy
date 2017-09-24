@@ -105,6 +105,13 @@ if find_loader('pytest_doctestplus') is None:
                             test.name, self, runner, test)
 
         class DocTestTextfilePlus(doctest_plugin.DoctestItem, pytest.Module):
+
+            # Some pytest plugins such as hypothesis try and access the 'obj'
+            # attribute, and by default this returns an error for this class
+            # so we override it here to avoid any issues.
+            def obj(self):
+                pass
+
             def runtest(self):
                 # satisfy `FixtureRequest` constructor...
                 self.funcargs = {}
@@ -141,7 +148,6 @@ if find_loader('pytest_doctestplus') is None:
                - ``.. doctest-requires:: module1, module2``: Skip the next
                  doctest chunk if the given modules/packages are not
                  installed.
-
                - ``.. doctest-skip-all``: Skip all subsequent doctests.
             """
 

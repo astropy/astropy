@@ -97,6 +97,8 @@ astropy.tests
   using --remote-data=astropy. [#6724]
 - Split pytest plugins into separate modules. [#6384]
 
+- Fixed a bug that caused the doctestplus plugin to not work nicely with the hypothesis package. [#6605]
+
 astropy.time
 ^^^^^^^^^^^^
 
