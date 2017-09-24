@@ -727,10 +727,10 @@ class Model(metaclass=_ModelMeta):
                     bbox = [bbox]
                 # indices where input is outside the bbox
                 # have a value of 1 in ``nan_ind``
-                nan_ind = np.zeros(inputs[0].shape, dtype=np.bool)
+                nan_ind = np.zeros(inputs[0].shape, dtype=bool)
                 for ind, inp in enumerate(inputs):
                     # Pass an ``out`` array so that ``axis_ind`` is array for scalars as well.
-                    axis_ind = np.zeros(inp.shape, dtype=np.bool)
+                    axis_ind = np.zeros(inp.shape, dtype=bool)
                     axis_ind = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1], out=axis_ind)
                     nan_ind[axis_ind] = 1
                 # get an array with indices of valid inputs

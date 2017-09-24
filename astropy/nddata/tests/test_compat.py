@@ -82,7 +82,7 @@ def test_convert_unit_to():
     # workaround because zeros_like does not support dtype arg until v1.6
     # and NDData accepts only bool ndarray as mask
     tmp = np.zeros_like(d.data)
-    d.mask = np.array(tmp, dtype=np.bool)
+    d.mask = np.array(tmp, dtype=bool)
     d1 = d.convert_unit_to('m')
     assert np.all(d1.data == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)

@@ -13,7 +13,7 @@ def test_common_dtype():
              (str('float64'), np.float64),
              (str('str'), 'S2'),
              (str('uni'), 'U2'),
-             (str('bool'), np.bool),
+             (str('bool'), bool),
              (str('object'), np.object_)]
     arr = np.empty(1, dtype=dtype)
     fail = set()
