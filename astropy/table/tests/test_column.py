@@ -229,7 +229,7 @@ class TestColumn():
         Tests for #3095, which forces integer item access to always return a plain
         ndarray or MaskedArray, even in the case of a multi-dim column.
         """
-        integer_types = int
+        integer_types = [int]
 
         for int_type in integer_types:
             c = Column([[1, 2], [3, 4]])
