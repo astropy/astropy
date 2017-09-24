@@ -1869,7 +1869,7 @@ class Table:
         for index in self.indices:
             index.remove_rows(row_specifier)
 
-        keep_mask = np.ones(len(self), dtype=np.bool)
+        keep_mask = np.ones(len(self), dtype=bool)
         keep_mask[row_specifier] = False
 
         columns = self.TableColumns()

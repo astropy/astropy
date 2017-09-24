@@ -1563,16 +1563,16 @@ class TestTableFunctions(FitsTestCase):
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
 
         assert (tbhdu1.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu1.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
         tbhdu = fits.BinTableHDU.from_columns(tbhdu1.data)
 
         assert (tbhdu.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
     def test_fits_rec_column_access(self):
         t = fits.open(self.data('table.fits'))
@@ -2039,7 +2039,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         # Create a table containing a variety of data types.
-        a0 = np.array([False, True, False], dtype=np.bool)
+        a0 = np.array([False, True, False], dtype=bool)
         c0 = fits.Column(name='c0', format='L', array=a0)
 
         # Format X currently not supported by the format

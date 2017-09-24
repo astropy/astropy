@@ -191,7 +191,7 @@ class BaseGroups:
             except Exception:
                 raise TypeError('Index item for groups attribute must be a slice, '
                                 'numpy mask or int array')
-            mask = np.zeros(len(parent), dtype=np.bool)
+            mask = np.zeros(len(parent), dtype=bool)
             # Is there a way to vectorize this in numpy?
             for i0, i1 in zip(i0s, i1s):
                 mask[i0:i1] = True
@@ -293,7 +293,7 @@ class ColumnGroups(BaseGroups):
         out : Column
             New column with the aggregated rows.
         """
-        mask = np.empty(len(self), dtype=np.bool)
+        mask = np.empty(len(self), dtype=bool)
         for i, group_column in enumerate(self):
             mask[i] = func(group_column)
 
@@ -390,7 +390,7 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-        mask = np.empty(len(self), dtype=np.bool)
+        mask = np.empty(len(self), dtype=bool)
         key_colnames = self.key_colnames
         for i, group_table in enumerate(self):
             mask[i] = func(group_table, key_colnames)

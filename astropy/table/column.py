@@ -124,7 +124,7 @@ class FalseArray(np.ndarray):
         Data shape
     """
     def __new__(cls, shape):
-        obj = np.zeros(shape, dtype=np.bool).view(cls)
+        obj = np.zeros(shape, dtype=bool).view(cls)
         return obj
 
     def __setitem__(self, item, val):
@@ -793,7 +793,7 @@ class Column(BaseColumn):
       Examples include:
 
       - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, bool)
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
@@ -1050,7 +1050,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
       Examples include:
 
       - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, bool)
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
@@ -1214,7 +1214,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             if self.dtype.kind == 'O':
                 mask = False
             else:
-                mask = np.zeros(values.shape, dtype=np.bool)
+                mask = np.zeros(values.shape, dtype=bool)
         new_mask = np.insert(self_ma.mask, obj, mask, axis=axis)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 

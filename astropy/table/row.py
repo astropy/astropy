@@ -111,7 +111,7 @@ class Row:
             masks = tuple(col.mask[index] if hasattr(col, 'mask') else False
                           for col in cols)
             descrs = (descr(col) for col in cols)
-            mask_dtypes = [(name, np.bool, shape) for name, type_, shape in descrs]
+            mask_dtypes = [(name, bool, shape) for name, type_, shape in descrs]
             row_mask = np.array([masks], dtype=mask_dtypes)[0]
 
             # Make np.void version of values, and then the final mvoid row

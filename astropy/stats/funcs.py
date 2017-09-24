@@ -427,7 +427,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     """
 
     x = np.ravel(x)
-    success = np.ravel(success).astype(np.bool)
+    success = np.ravel(success).astype(bool)
     if x.shape != success.shape:
         raise ValueError('sizes of x and success must match')
 
