@@ -28,7 +28,7 @@ pytestmark = pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('c', [True, np.uint8(8), np.int16(4),
                                np.int32(1), np.int64(3), np.int64(2**63 - 1),
                                2.0, np.float64(),
-                               np.complex(3, 4), np.complex_(3 + 4j),
+                               complex(3, 4), np.complex_(3 + 4j),
                                np.complex64(3 + 4j),
                                np.complex128(1. - 2**-52 + 1j * (1. - 2**-52))])
 def test_numpy_types(c):

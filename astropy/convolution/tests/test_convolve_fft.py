@@ -546,9 +546,9 @@ class TestConvolve2D:
 
         with pytest.raises((ValueError, MemoryError)):
             # while a good idea, this approach did not work; it actually writes to disk
-            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=np.complex)
+            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=complex)
             # this just allocates the memory but never touches it; it's better:
-            arr = np.empty([512, 512, 512], dtype=np.complex)
+            arr = np.empty([512, 512, 512], dtype=complex)
             # note 512**3 * 16 bytes = 2.0 GB
             convolve_fft(arr, arr)
 
