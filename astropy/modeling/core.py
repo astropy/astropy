@@ -1696,7 +1696,7 @@ class Model(metaclass=_ModelMeta):
             # We use quantity_asanyarray here instead of np.asanyarray because
             # if any of the arguments are quantities, we need to return a
             # Quantity object not a plain Numpy array.
-            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=np.float)
+            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -1712,7 +1712,7 @@ class Model(metaclass=_ModelMeta):
                 # We use quantity_asanyarray here instead of np.asanyarray because
                 # if any of the arguments are quantities, we need to return a
                 # Quantity object not a plain Numpy array.
-                params[param_name] = quantity_asanyarray(value, dtype=np.float)
+                params[param_name] = quantity_asanyarray(value, dtype=float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are

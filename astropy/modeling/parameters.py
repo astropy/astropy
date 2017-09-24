@@ -42,7 +42,7 @@ def _tofloat(value):
 
     if isiterable(value):
         try:
-            value = np.asanyarray(value, dtype=np.float)
+            value = np.asanyarray(value, dtype=float)
         except (TypeError, ValueError):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
