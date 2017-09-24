@@ -79,7 +79,7 @@ class TestConvenience(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/5988
         """
-        data = np.zeros((5, ), dtype=[('x', float), ('y', np.int)])
+        data = np.zeros((5, ), dtype=[('x', float), ('y', int)])
         h_in = fits.Header()
         h_in['ANSWER'] = (42.0, 'LTU&E')
         filename = self.temp('tabhdr42.fits')
