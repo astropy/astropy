@@ -86,7 +86,10 @@ class _Tabular(Model):
     standard_broadcasting = False
     outputs = ('y',)
 
-    lookup_table = abc.abstractproperty()
+    @property
+    @abc.abstractmethod
+    def lookup_table(self):
+        pass
 
     _is_dynamic = True
 

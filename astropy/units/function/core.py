@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
@@ -50,7 +50,8 @@ class FunctionUnitBase(metaclass=ABCMeta):
     """
     # ↓↓↓ the following four need to be set by subclasses
     # Make this a property so we can ensure subclasses define it.
-    @abstractproperty
+    @property
+    @abstractmethod
     def _default_function_unit(self):
         """Default function unit corresponding to the function.
 
@@ -60,7 +61,8 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
     # This has to be a property because the function quantity will not be
     # known at unit definition time, as it gets defined after.
-    @abstractproperty
+    @property
+    @abstractmethod
     def _quantity_class(self):
         """Function quantity class corresponding to this function unit.
 

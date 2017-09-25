@@ -2,7 +2,7 @@
 # This module implements the base NDDataBase class.
 
 
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
 __all__ = ['NDDataBase']
@@ -21,13 +21,15 @@ class NDDataBase(metaclass=ABCMeta):
     def __init__(self):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def data(self):
         """The stored dataset.
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def mask(self):
         """Mask for the dataset.
 
@@ -36,19 +38,22 @@ class NDDataBase(metaclass=ABCMeta):
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def unit(self):
         """Unit for the dataset.
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def wcs(self):
         """World coordinate system (WCS) for the dataset.
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def meta(self):
         """Additional meta information about the dataset.
 
@@ -56,7 +61,8 @@ class NDDataBase(metaclass=ABCMeta):
         """
         return None
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def uncertainty(self):
         """Uncertainty in the dataset.
 
