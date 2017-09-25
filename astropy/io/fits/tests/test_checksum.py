@@ -55,21 +55,6 @@ class TestChecksumFunctions(FitsTestCase):
                 assert hdul[0].header['CHECKSUM'] == 'ZHMkeGKjZGKjbGKj'
                 assert hdul[0].header['DATASUM'] == '4950'
 
-    def test_nonstandard_checksum(self):
-        hdu = fits.PrimaryHDU(np.arange(10.0 ** 6, dtype=np.float64))
-        hdu.writeto(self.temp('tmp.fits'), overwrite=True,
-                    checksum='nonstandard')
-        del hdu
-        with fits.open(self.temp('tmp.fits'), checksum='nonstandard') as hdul:
-            assert 'CHECKSUM' in hdul[0].header
-            assert 'DATASUM' in hdul[0].header
-
-            if not sys.platform.startswith('win32'):
-                # The checksum ends up being different on Windows, possibly due
-                # to slight floating point differences
-                assert hdul[0].header['CHECKSUM'] == 'jD4Am942jC48j948'
-                assert hdul[0].header['DATASUM'] == '4164005614'
-
     def test_scaled_data(self):
         with fits.open(self.data('scale.fits')) as hdul:
             orig_data = hdul[0].data.copy()
@@ -367,14 +352,6 @@ class TestChecksumFunctions(FitsTestCase):
             if not (hasattr(hdul[0], '_checksum') and not hdul[0]._checksum):
                 pytest.fail(msg='Non-empty CHECKSUM keyword')
 
-            if not (hasattr(hdul[0], '_datasum_comment') and
-                    hdul[0]._datasum_comment):
-                pytest.fail(msg='Missing DATASUM Card comment')
-
-            if not (hasattr(hdul[0], '_checksum_comment') and
-                    not hdul[0]._checksum_comment):
-                pytest.fail(msg='Non-empty CHECKSUM Card comment')
-
     def test_open_update_mode_preserve_checksum(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148 where
@@ -439,15 +416,42 @@ class TestChecksumFunctions(FitsTestCase):
             assert (data2['TIME'][1:] == data['TIME'][1:]).all()
             assert data2['TIME'][0] == 42
 
+    def test_overwrite_invalid(self):
+        """
+        Tests that invalid checksum or datasum are overwriten when the file is
+        saved.
+        """
+
+        reffile = self.temp('ref.fits')
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul.writeto(reffile, checksum=True)
+
+        testfile = self.temp('test.fits')
+        with fits.open(self.data('tb.fits')) as hdul:
+            hdul[0].header['DATASUM'] = '1       '
+            hdul[0].header['CHECKSUM'] = '8UgqATfo7TfoATfo'
+            hdul[1].header['DATASUM'] = '2349680925'
+            hdul[1].header['CHECKSUM'] = '11daD8bX98baA8bU'
+            hdul.writeto(testfile)
+
+        with fits.open(testfile) as hdul:
+            hdul.writeto(self.temp('test2.fits'), checksum=True)
+
+        with fits.open(self.temp('test2.fits')) as hdul:
+            with fits.open(reffile) as ref:
+                assert 'CHECKSUM' in hdul[0].header
+                # These checksums were verified against CFITSIO
+                assert hdul[0].header['CHECKSUM'] == ref[0].header['CHECKSUM']
+                assert 'DATASUM' in hdul[0].header
+                assert hdul[0].header['DATASUM'] == '0'
+                assert 'CHECKSUM' in hdul[1].header
+                assert hdul[1].header['CHECKSUM'] == ref[1].header['CHECKSUM']
+                assert 'DATASUM' in hdul[1].header
+                assert hdul[1].header['DATASUM'] == ref[1].header['DATASUM']
+
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, '_datasum') and hdu._datasum):
             pytest.fail(msg='Missing DATASUM keyword')
 
         if not (hasattr(hdu, '_checksum') and hdu._checksum):
             pytest.fail(msg='Missing CHECKSUM keyword')
-
-        if not (hasattr(hdu, '_datasum_comment') and hdu._datasum_comment):
-            pytest.fail(msg='Missing DATASUM Card comment')
-
-        if not (hasattr(hdu, '_checksum_comment') and hdu._checksum_comment):
-            pytest.fail(msg='Missing CHECKSUM Card comment')
