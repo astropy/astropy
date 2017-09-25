@@ -62,8 +62,6 @@ entry_points['pytest11'] = [
     'repeat = astropy.tests.plugins.repeat',
     'config = astropy.tests.plugins.config',
     'display = astropy.tests.plugins.display',
-    # TODO: this plugin should no longer be required when PY2 support goes away
-    'unicode = astropy.tests.plugins.unicode'
 ]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
