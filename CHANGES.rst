@@ -98,6 +98,12 @@ astropy.utils
   ``ipython_widget=True`` to get both multiprocess speedup and a progress bar
   widget in an IPython Notebook. [#6368]
 
+- The ``astropy.utils.compat.funcsigs`` module has now been deprecated. Use the
+  Python 'inspect' module directly instead. [#6598]
+
+- The ``astropy.utils.compat.futures`` module has now been deprecated. Use the
+  Python 'concurrent.futures' module directly instead. [#6598]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
