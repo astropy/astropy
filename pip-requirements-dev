@@ -14,3 +14,4 @@ jplephem
 # below here are used only for tests
 skyfield
 mpmath
+pytest-xdist
