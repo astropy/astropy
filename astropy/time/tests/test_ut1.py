@@ -4,7 +4,7 @@ import functools
 import pytest
 import numpy as np
 
-from ...tests.disable_internet import INTERNET_OFF
+from ...tests.helper import remote_data
 from .. import Time
 from ...utils.iers import iers  # used in testing
 
@@ -23,6 +23,7 @@ else:
 class TestTimeUT1():
     """Test Time.ut1 using IERS tables"""
 
+    @remote_data
     def test_utc_to_ut1(self):
         "Test conversion of UTC to UT1, making sure to include a leap second"""
         t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
@@ -40,15 +41,7 @@ class TestTimeUT1():
 
         tnow = Time.now()
 
-        # With internet off (which is the default for testing) then this will
-        # fall back to the bundled IERS-B table and raise an exception.  But when
-        # testing with --remote-data the IERS_Auto class will get the latest IERS-A
-        # and this works.
-        if INTERNET_OFF:
-            with pytest.raises(IndexError):
-                tnow.ut1
-        else:
-            tnow.ut1
+        tnow.ut1
 
     def test_ut1_to_utc(self):
         """Also test the reverse, around the leap second
@@ -88,7 +81,7 @@ class TestTimeUT1_IERSA():
         assert tnow_ut1_jd != tnow.jd
 
 
-@pytest.mark.skipif('INTERNET_OFF')
+@remote_data
 class TestTimeUT1_IERS_Auto():
     def test_ut1_iers_auto(self):
         tnow = Time.now()
