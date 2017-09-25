@@ -2674,7 +2674,7 @@ class Table:
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
-                    out[name] = column.astype(np.object).filled(np.nan)
+                    out[name] = column.astype(object).filled(np.nan)
             else:
                 out[name] = column
 
