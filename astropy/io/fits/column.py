@@ -1896,9 +1896,9 @@ class _VLF(np.ndarray):
                 raise ValueError(
                     'Inconsistent input data array: {0}'.format(input))
 
-        a = np.array(input, dtype=np.object)
+        a = np.array(input, dtype=object)
         self = np.ndarray.__new__(cls, shape=(len(input),), buffer=a,
-                                  dtype=np.object)
+                                  dtype=object)
         self.max = 0
         self.element_dtype = dtype
         return self
