@@ -2,7 +2,7 @@
 
 
 import numpy as np
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import weakref
 
@@ -96,7 +96,8 @@ class NDUncertainty(metaclass=ABCMeta):
         self.array = array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def uncertainty_type(self):
         """`str` : Short description of the type of uncertainty.
 
