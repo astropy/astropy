@@ -24,7 +24,6 @@ from ...table import Table, QTable
 from ...utils.data import get_pkg_data_filename, clear_download_cache
 from ... import utils
 from ...utils.exceptions import AstropyWarning
-from ...tests import disable_internet
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
@@ -103,10 +102,6 @@ class Conf(_config.ConfigNamespace):
 
 
 conf = Conf()
-
-# If internet is off for testing then do not download.  This
-# makes most tests fall back to using the built-in IERS-B table.
-conf.auto_download &= not disable_internet.INTERNET_OFF
 
 
 class IERSRangeError(IndexError):
