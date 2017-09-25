@@ -793,7 +793,7 @@ class Column(BaseColumn):
       Examples include:
 
       - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool\\_)
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
@@ -1050,7 +1050,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
       Examples include:
 
       - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool\\_)
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
