@@ -138,6 +138,8 @@ astropy.io.fits
 - Automatically detect and handle compression in FITS files that are opened by
   passing a file handle to ``fits.open`` [#6373]
 
+- Remove the ``nonstandard`` checksum option. [#6571]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -221,6 +223,9 @@ astropy.io.fits
 - Properly handle opening of FITS files from ``http.client.HTTPResponse`` (i.e.
   it now works correctly when passing the results of ``urllib.request.urlopen``
   to ``fits.open``). [#6378]
+
+- Fix the ``fitscheck`` script for updating invalid checksums, or removing
+  checksums. [#6571]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

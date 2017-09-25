@@ -803,7 +803,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         return (self.name, self.ver, class_name, len(self._header), shape, format, '')
 
-    def _calculate_datasum(self, blocking):
+    def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
@@ -835,8 +835,7 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 byteswapped = False
 
-            cs = self._compute_checksum(d.flatten().view(np.uint8),
-                                        blocking=blocking)
+            cs = self._compute_checksum(d.flatten().view(np.uint8))
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
@@ -850,8 +849,7 @@ class _ImageBaseHDU(_ValidHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(_ImageBaseHDU, self)._calculate_datasum(
-                blocking=blocking)
+            return super(_ImageBaseHDU, self)._calculate_datasum()
 
 
 class Section(object):
