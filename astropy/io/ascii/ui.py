@@ -16,6 +16,7 @@ import copy
 import time
 import warnings
 import contextlib
+from io import StringIO
 
 from . import core
 from . import basic
@@ -670,9 +671,8 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
 
     # Convert table-as-string to a File object.  Finding a newline implies
     # that the string is not a filename.
-    if (isinstance(table, six.string_types) and
-            ('\n' in table or '\r' in table)):
-        table = six.moves.cStringIO(table)
+    if (isinstance(table, str) and ('\n' in table or '\r' in table)):
+        table = StringIO(table)
         fileobj_context = passthrough_fileobj
     elif hasattr(table, 'read') and hasattr(table, 'seek'):
         fileobj_context = passthrough_fileobj
