@@ -68,6 +68,8 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
+- Fixed a bug that causes tests for rst files to not be run on certain platforms. [#6555, #6608]
+
 astropy.time
 ^^^^^^^^^^^^
 
