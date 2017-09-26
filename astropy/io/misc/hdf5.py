@@ -5,13 +5,14 @@ not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`table_io` for more details.
 """
 
-
 import os
 import warnings
 
 import numpy as np
+
+# NOTE: Do not import anything from astropy.table here.
+# https://github.com/astropy/astropy/issues/6604
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ...table import meta
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
@@ -143,7 +144,8 @@ def read_table_hdf5(input, path=None):
     # convert to a Table.
 
     # Create a Table object
-    from ...table import Table
+    from ...table import Table, meta
+
     table = Table(np.array(input))
 
     # Read the meta-data from the file. For back-compatibility, we can read
@@ -206,6 +208,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
+    from ...table import meta
 
     try:
         import h5py
@@ -311,3 +314,15 @@ def write_table_hdf5(table, output, path=None, compression=False,
                               "HDF5 files - skipping. (Consider specifying "
                               "serialize_meta=True to write all meta data)".format(key, type(val)),
                               AstropyUserWarning)
+
+
+def register_hdf5():
+    """
+    Register HDF5 with Unified I/O.
+    """
+    from .. import registry as io_registry
+    from ...table import Table
+
+    io_registry.register_reader('hdf5', Table, read_table_hdf5)
+    io_registry.register_writer('hdf5', Table, write_table_hdf5)
+    io_registry.register_identifier('hdf5', Table, is_hdf5)

@@ -334,6 +334,9 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fix ``ImportError`` when ``hdf5`` is imported first in a fresh Python
+  interpreter in Python 3. [#6604, #6610]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
