@@ -659,15 +659,15 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     For fast_reader read the ``table`` in chunks and return a generator
     of tables for each chunk.
     """
-    kwargs['fast_reader']['return_header_chars'] = True
-
-    header = ''
 
     @contextlib.contextmanager
     def passthrough_fileobj(fileobj, encoding=None):
         """Stub for get_readable_fileobj, which does not seem to work in Py3
         for input File-like object, see #6460"""
         yield fileobj
+
+    # Set up to coerce `table` input into a readable file object by selecting
+    # an appropriate function.
 
     # Convert table-as-string to a File object.  Finding a newline implies
     # that the string is not a filename.
@@ -680,11 +680,15 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
         # string filename or pathlib
         fileobj_context = get_readable_fileobj
 
+    # Set up for iterating over chunks
+    kwargs['fast_reader']['return_header_chars'] = True
+    header = ''  # Table header (up to start of data)
+    prev_chunk_chars = ''  # Chars from previous chunk after last newline
+    first_chunk = True  # True for the first chunk, False afterward
+
     with fileobj_context(table, encoding=kwargs.get('encoding')) as fh:
-        fh_index = 0
 
         while True:
-            fh.seek(fh_index)
             chunk = fh.read(chunk_size)
             # Got fewer chars than requested, must be end of fie
             final_chunk = len(chunk) < chunk_size
@@ -701,22 +705,21 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
                 raise ValueError('no newline found in chunk (chunk_size too small?)')
 
             # Stick on the header to the chunk part up to (and including) the
-            # last newline.
-            chunk = header + chunk[:idx + 1]
+            # last newline.  Make sure the small strings are concatenated first.
+            complete_chunk = (header + prev_chunk_chars) + chunk[:idx + 1]
+            prev_chunk_chars = chunk[idx + 1:]
 
             # Now read the chunk as a complete table
-            tbl = read(chunk, guess=False, **kwargs)
+            tbl = read(complete_chunk, guess=False, **kwargs)
 
             # For the first chunk pop the meta key which contains the header
             # characters (everything up to the start of data) then fix kwargs
             # so it doesn't return that in meta any more.
-            if fh_index == 0:
+            if first_chunk:
                 header = tbl.meta.pop('__ascii_fast_reader_header_chars__')
+                first_chunk = False
 
             yield tbl
-
-            # Advance the file handle index
-            fh_index += idx + 1
 
             if final_chunk:
                 break
