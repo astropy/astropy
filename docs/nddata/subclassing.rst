@@ -254,9 +254,7 @@ signature of ``_arithmetic``::
 
 The parameter controlling how properties are handled are all keyword-only
 so using the ``*args, **kwargs`` approach allows one to only alter one default
-without needing to care about the positional order of arguments. But using
-``def _arithmetic(self, *args, handle_mask=None, **kwargs)`` doesn't work
-for python 2.
+without needing to care about the positional order of arguments.
 
 
 Arithmetic with an additional property

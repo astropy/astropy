@@ -17,9 +17,7 @@ single argument that holds the ``sys.argv`` list, except for the script name
 
 Command-line options can be parsed however desired, but the :mod:`argparse`
 module is recommended when possible, due to its simpler and more flexible
-interface relative to the older :mod:`optparse`.  :mod:`argparse` is only
-available in python >=2.7 and >=3.2, however, so it should be imported as ``from
-astropy.utils.compat import argparse`` .
+interface relative to the older :mod:`optparse`.
 
 .. _"entry points": https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
 
@@ -36,7 +34,7 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
                 ...do something else...
 
     def main(args=None):
-        
+
         import argparse
 
         parser = argparse.ArgumentParser(description='Process some integers.')

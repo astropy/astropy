@@ -7,13 +7,7 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.7, 3.4, 3.5 or 3.6
-
-  - Prior to Astropy v1.0, Python 3.1 and 3.2 were also supported.
-
-  - Prior to Astropy v1.2, Python 2.6 was supported.
-
-  - Prior to Astropy v2.0, Python 3.3 was supported.
+- `Python <http://www.python.org/>`_ 3.5 or 3.6
 
 - `Numpy`_ |minimum_numpy_version| or later
 
@@ -51,9 +45,6 @@ Astropy also depends on other packages for optional features:
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
-  Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
-
 - `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
@@ -67,7 +58,7 @@ Installing Astropy
 ==================
 
 Using pip
--------------
+---------
 
 To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
 
@@ -131,7 +122,7 @@ run::
 Binary installers
 -----------------
 
-Binary installers are available on Windows for Python 2.7, and >= 3.3
+Binary installers are available on Windows for Python >= 3.5
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 .. _testing_installed_astropy:
@@ -379,9 +370,9 @@ Python installation.
 In short: If you encounter this problem it's because you need the appropriate
 entries in the Windows registry for Python. You can download `this script`__
 and execute it with the same Python as the one you want to install Astropy
-into.  For example to add the missing registry entries to your Python 2.7::
+into.  For example to add the missing registry entries to your Python 3.6::
 
-    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
+    C:\>C:\Python36\python.exe C:\Path\To\Downloads\win_register_python.py
 
 __ https://gist.github.com/embray/6042780#file-win_register_python-py
 
