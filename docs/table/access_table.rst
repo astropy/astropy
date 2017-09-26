@@ -301,7 +301,7 @@ Formatted printing
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
 
-- `print` statement (Python 2) or `print()` function (Python 3).
+- `print()` function.
 - Table :meth:`~astropy.table.Table.more` or Column
   :meth:`~astropy.table.Column.more` methods to interactively scroll
   through table values.
@@ -658,9 +658,7 @@ Prior to astropy 2.0, using bytestring columns (numpy ``'S'`` dtype) in Python
 3 was inconvenient because it was not possible to compare with the natural
 Python string (``str``) type.  See `The bytes/str dichotomy in Python 3
 <http://eli.thegreenplace.net/2012/01/30/the-bytesstr-dichotomy-in-python-3>`_
-for a very brief overview of the difference.  In Python 2 this is not an issue
-because of the language itself blurs the distinction between bytes, string, and
-unicode.
+for a very brief overview of the difference.
 
 The standard method of representing Python 3 strings in `numpy` is via the
 unicode ``'U'`` dtype.  The problem is that this requires 4 bytes per
@@ -669,12 +667,6 @@ fill memory and impact performance.  A very common use case is that these
 strings are actually ASCII and can be represented with 1 byte per character.
 Starting with astropy 2.0 it is possible to work directly and conveniently with
 bytestring data in astropy Table and Column
-
-Taking this further, there is an *advantage* to using Python 3 because it is
-supported to reliably store arbitrary UTF-8 encoded characters in bytestring
-columns.  This is not possible in Python 2, and in fact it should be emphasized
-that astropy 2.0 makes absolutely no change the handling of bytestrings for
-Python 2 -- this only applies to Python 3.
 
 Note that the bytestring issue is a particular problem when dealing with HDF5
 files, where character data are read as bytestrings (``'S'`` dtype) when using

@@ -4,8 +4,8 @@ astropy.io.fits History
 ***********************
 
 Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
-alone package called `PyFITS`_.  Though for the time being active development
-is continuing on PyFITS, that development is also being merged into Astropy.
+alone package called `PyFITS`_.  PyFITS is no longer actively maintained, and
+its development is now solely in Astropy.
 This page documents the release history of PyFITS prior to its merge into
 Astropy.
 
@@ -14,7 +14,13 @@ Astropy.
    :local:
 
 
-3.3.0 (unreleased)
+3.4.0 (2016-01-29)
+==================
+
+This is the last released version of PyFITS as a standalone package.
+
+
+3.3.0 (2014-07-17)
 ==================
 
 New Features
@@ -135,18 +141,12 @@ Bug Fixes
   GZIP_COMPRESSED_DATA column. (spacetelescope/#71)
 
 
-3.2.4 (unreleased)
+3.2.4 (2014-06-02)
 ==================
 
 - Fixed a regression where multiple consecutive calls of the ``writeto``
   method on the same HDU but to different files could lead to corrupt data or
   crashes on the subsequent calls after the first. (spacetelescope/PyFITS#40)
-
-
-3.1.7 (unreleased)
-==================
-
-- Nothing changed yet.
 
 
 3.2.3 (2014-05-14)
