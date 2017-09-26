@@ -1330,7 +1330,7 @@ def test_read_chunks_formats():
     """
     Test different supported formats for chunked reading.
     """
-    t1 = simple_table(size=100, cols=10)
+    t1 = simple_table(size=100, cols=10, kinds='fS')
     for i, name in enumerate(t1.colnames):
         t1.rename_column(name, 'col{}'.format(i + 1))
 
