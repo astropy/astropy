@@ -45,9 +45,6 @@ Astropy also depends on other packages for optional features:
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
-  Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
-
 - `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
   ``FastBST`` indexing engines with ``Table``, although these will still be
   slower in most cases than the default indexing engine.
