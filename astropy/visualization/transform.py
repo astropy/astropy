@@ -29,7 +29,7 @@ class CompositeTransform(BaseTransform):
     """
 
     def __init__(self, transform_1, transform_2):
-        super(CompositeTransform, self).__init__()
+        super().__init__()
         self.transform_1 = transform_1
         self.transform_2 = transform_2
 

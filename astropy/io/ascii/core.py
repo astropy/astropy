@@ -1004,7 +1004,7 @@ class TableOutputter(BaseOutputter):
 
 class MetaBaseReader(type):
     def __init__(cls, name, bases, dct):
-        super(MetaBaseReader, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
         format = dct.get('_format_name')
         if format is None:

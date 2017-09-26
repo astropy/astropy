@@ -21,7 +21,7 @@ from ....tests.image_tests import IMAGE_REFERENCE_DIR
 class DistanceToLonLat(CurvedTransform):
 
     def __init__(self, R=6e3):
-        super(DistanceToLonLat, self).__init__()
+        super().__init__()
         self.R = R
 
     def transform(self, xy):
@@ -39,7 +39,7 @@ class DistanceToLonLat(CurvedTransform):
 class LonLatToDistance(CurvedTransform):
 
     def __init__(self, R=6e3):
-        super(LonLatToDistance, self).__init__()
+        super().__init__()
         self.R = R
 
     def transform(self, lamphi):

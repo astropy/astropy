@@ -166,7 +166,7 @@ class FastCsv(FastBasic):
     fill_extra_cols = True
 
     def __init__(self, **kwargs):
-        super(FastCsv, self).__init__({'delimiter': ',', 'comment': None}, **kwargs)
+        super().__init__({'delimiter': ',', 'comment': None}, **kwargs)
 
     def write(self, table, output):
         """
@@ -186,7 +186,7 @@ class FastTab(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastTab, self).__init__({'delimiter': '\t'}, **kwargs)
+        super().__init__({'delimiter': '\t'}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
 
@@ -202,7 +202,7 @@ class FastNoHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastNoHeader, self).__init__({'header_start': None, 'data_start': 0}, **kwargs)
+        super().__init__({'header_start': None, 'data_start': 0}, **kwargs)
 
     def write(self, table, output):
         """
@@ -223,7 +223,7 @@ class FastCommentedHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastCommentedHeader, self).__init__({}, **kwargs)
+        super().__init__({}, **kwargs)
         # Mimic CommentedHeader's behavior in which data_start
         # is relative to header_start if unspecified; see #2692
         if 'data_start' not in kwargs:
@@ -234,7 +234,7 @@ class FastCommentedHeader(FastBasic):
         Read input data (file-like object, filename, list of strings, or
         single string) into a Table and return the result.
         """
-        out = super(FastCommentedHeader, self).read(table)
+        out = super().read(table)
 
         # Strip off first comment since this is the header line for
         # commented_header format.
@@ -283,7 +283,7 @@ class FastRdb(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        super(FastRdb, self).__init__({'delimiter': '\t', 'data_start': 2}, **kwargs)
+        super().__init__({'delimiter': '\t', 'data_start': 2}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
 

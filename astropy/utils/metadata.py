@@ -83,7 +83,7 @@ class MergeStrategyMeta(type):
     """
 
     def __new__(mcls, name, bases, members):
-        cls = super(MergeStrategyMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         # Wrap ``merge`` classmethod to catch any exception and re-raise as
         # MergeConflictError.

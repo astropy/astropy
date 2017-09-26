@@ -68,7 +68,7 @@ def make_skyoffset_cls(framecls):
             newname = name[:-5] if name.endswith('Frame') else name
             newname += framecls.__name__
 
-            res = super(SkyOffsetMeta, cls).__new__(cls, newname, bases, members)
+            res = super().__new__(cls, newname, bases, members)
 
             # now go through all the component names and make any spherical names be "lon" and "lat"
             # instead of e.g. "ra" and "dec"
@@ -209,12 +209,12 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         # See above for why this is necessary. Basically, because some child
         # may override __new__, we must override it here to never pass
         # arguments to the object.__new__ method.
-        if super(SkyOffsetFrame, cls).__new__ is object.__new__:
-            return super(SkyOffsetFrame, cls).__new__(cls)
-        return super(SkyOffsetFrame, cls).__new__(cls, *args, **kwargs)
+        if super().__new__ is object.__new__:
+            return super().__new__(cls)
+        return super().__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
-        super(SkyOffsetFrame, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.origin is not None and not self.origin.has_data:
             raise ValueError('The origin supplied to SkyOffsetFrame has no '
                              'data.')

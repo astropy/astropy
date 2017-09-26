@@ -85,7 +85,7 @@ class LatexSplitter(core.BaseSplitter):
         if not last_line.endswith(r'\\'):
             lines[-1] = last_line + r'\\'
 
-        return super(LatexSplitter, self).__call__(lines)
+        return super().__call__(lines)
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
@@ -303,7 +303,7 @@ class Latex(core.BaseReader):
     def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline'],
                  latexdict={}, caption='', col_align=None):
 
-        super(Latex, self).__init__()
+        super().__init__()
 
         self.latex = {}
         # The latex dict drives the format of the table and needs to be shared

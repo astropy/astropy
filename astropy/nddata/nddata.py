@@ -119,7 +119,7 @@ class NDData(NDDataBase):
         # but before the NDDataBase did call the uncertainty
         # setter. But if anyone wants to alter this behaviour again the call
         # to the superclass NDDataBase should be in here.
-        super(NDData, self).__init__()
+        super().__init__()
 
         # Check if data is any type from which to collect some implicitly
         # passed parameters.

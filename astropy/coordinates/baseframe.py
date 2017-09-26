@@ -131,7 +131,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
 
         # somewhat hacky, but this is the best way to get the MRO according to
         # https://mail.python.org/pipermail/python-list/2002-December/167861.html
-        tmp_cls = super(FrameMeta, mcls).__new__(mcls, name, bases, members)
+        tmp_cls = super().__new__(mcls, name, bases, members)
 
         # now look through the whole MRO for the class attributes, raw for
         # frame_attr_names, and leading underscore for others
@@ -172,7 +172,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if 'name' not in members:
             members['name'] = name.lower()
 
-        return super(FrameMeta, mcls).__new__(mcls, name, bases, members)
+        return super().__new__(mcls, name, bases, members)
 
     @staticmethod
     def readonly_prop_factory(members, attr, value):
@@ -203,9 +203,7 @@ class RepresentationMapping(_RepresentationMappingBase):
 
     def __new__(cls, reprname, framename, defaultunit='recommended'):
         # this trick just provides some defaults
-        return super(RepresentationMapping, cls).__new__(cls, reprname,
-                                                         framename,
-                                                         defaultunit)
+        return super().__new__(cls, reprname, framename, defaultunit)
 
 
 class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
@@ -1252,7 +1250,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             raise AttributeError(
                 'Cannot set any frame attribute {0}'.format(attr))
         else:
-            super(BaseCoordinateFrame, self).__setattr__(attr, value)
+            super().__setattr__(attr, value)
 
     def separation(self, other):
         """
@@ -1384,7 +1382,7 @@ class GenericFrame(BaseCoordinateFrame):
             self.frame_attributes[name] = Attribute(default)
             setattr(self, '_' + name, default)
 
-        super(GenericFrame, self).__init__(None)
+        super().__init__(None)
 
     def __getattr__(self, name):
         if '_' + name in self.__dict__:
@@ -1396,4 +1394,4 @@ class GenericFrame(BaseCoordinateFrame):
         if name in self.get_frame_attr_names():
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
-            super(GenericFrame, self).__setattr__(name, value)
+            super().__setattr__(name, value)

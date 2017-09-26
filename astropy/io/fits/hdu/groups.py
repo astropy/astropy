@@ -20,7 +20,7 @@ class Group(FITS_record):
 
     def __init__(self, input, row=0, start=None, end=None, step=None,
                  base=None):
-        super(Group, self).__init__(input, row, start, end, step, base)
+        super().__init__(input, row, start, end, step, base)
 
     @property
     def parnames(self):
@@ -202,14 +202,14 @@ class GroupData(FITS_rec):
         return self
 
     def __array_finalize__(self, obj):
-        super(GroupData, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         if isinstance(obj, GroupData):
             self.parnames = obj.parnames
         elif isinstance(obj, FITS_rec):
             self.parnames = obj._coldefs.names
 
     def __getitem__(self, key):
-        out = super(GroupData, self).__getitem__(key)
+        out = super().__getitem__(key)
         if isinstance(out, GroupData):
             out.parnames = self.parnames
         return out
@@ -267,7 +267,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     """
 
     def __init__(self, data=None, header=None):
-        super(GroupsHDU, self).__init__(data=data, header=header)
+        super().__init__(data=data, header=header)
 
         # Update the axes; GROUPS HDUs should always have at least one axis
         if len(self._axes) <= 0:
@@ -499,7 +499,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         return size
 
     def _verify(self, option='warn'):
-        errs = super(GroupsHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
 
         # Verify locations and values of mandatory keywords.
         self.req_cards('NAXIS', 2,
@@ -564,10 +564,10 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(GroupsHDU, self)._calculate_datasum()
+            return super()._calculate_datasum()
 
     def _summary(self):
-        summary = super(GroupsHDU, self)._summary()
+        summary = super()._summary()
         name, ver, classname, length, shape, format, gcount = summary
 
         # Drop the first axis from the shape

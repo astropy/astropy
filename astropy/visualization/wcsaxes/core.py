@@ -78,7 +78,7 @@ class WCSAxes(Axes):
                  transData=None, slices=None, frame_class=RectangularFrame,
                  **kwargs):
 
-        super(WCSAxes, self).__init__(fig, rect, **kwargs)
+        super().__init__(fig, rect, **kwargs)
         self._bboxes = []
 
         self.frame_class = frame_class
@@ -171,7 +171,7 @@ class WCSAxes(Axes):
                 X = X.transpose(FLIP_TOP_BOTTOM)
                 kwargs['origin'] = 'lower'
 
-        return super(WCSAxes, self).imshow(X, *args, **kwargs)
+        return super().imshow(X, *args, **kwargs)
 
     def plot_coord(self, *args, **kwargs):
         """
@@ -224,7 +224,7 @@ class WCSAxes(Axes):
 
             args = tuple(plot_data) + args[1:]
 
-        super(WCSAxes, self).plot(*args, **kwargs)
+        super().plot(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
@@ -322,7 +322,7 @@ class WCSAxes(Axes):
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
-        super(WCSAxes, self).draw(renderer, inframe)
+        super().draw(renderer, inframe)
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.

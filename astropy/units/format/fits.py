@@ -150,7 +150,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def parse(cls, s, debug=False):
-        result = super(Fits, cls).parse(s, debug)
+        result = super().parse(s, debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported for "
                              "FITS units.")

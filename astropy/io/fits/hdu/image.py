@@ -40,7 +40,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         from .groups import GroupsHDU
 
-        super(_ImageBaseHDU, self).__init__(data=data, header=header)
+        super().__init__(data=data, header=header)
 
         if header is not None:
             if not isinstance(header, Header):
@@ -569,7 +569,7 @@ class _ImageBaseHDU(_ValidHDU):
         self.update_header()
         self._verify_blank()
 
-        return super(_ImageBaseHDU, self)._verify(option)
+        return super()._verify(option)
 
     def _verify_blank(self):
         # Probably not the best place for this (it should probably happen
@@ -608,7 +608,7 @@ class _ImageBaseHDU(_ValidHDU):
             # with the correct post-rescaling headers
             _ = self.data
 
-        return super(_ImageBaseHDU, self)._prewriteto(checksum, inplace)
+        return super()._prewriteto(checksum, inplace)
 
     def _writedata_internal(self, fileobj):
         size = 0
@@ -849,7 +849,7 @@ class _ImageBaseHDU(_ValidHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(_ImageBaseHDU, self)._calculate_datasum()
+            return super()._calculate_datasum()
 
 
 class Section(object):
@@ -994,7 +994,7 @@ class PrimaryHDU(_ImageBaseHDU):
             (default: None)
         """
 
-        super(PrimaryHDU, self).__init__(
+        super().__init__(
             data=data, header=header,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
             ignore_blank=ignore_blank,
@@ -1017,7 +1017,7 @@ class PrimaryHDU(_ImageBaseHDU):
                 card.value)
 
     def update_header(self):
-        super(PrimaryHDU, self).update_header()
+        super().update_header()
 
         # Update the position of the EXTEND keyword if it already exists
         if 'EXTEND' in self._header:
@@ -1028,7 +1028,7 @@ class PrimaryHDU(_ImageBaseHDU):
             self._header.set('EXTEND', after=after)
 
     def _verify(self, option='warn'):
-        errs = super(PrimaryHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
 
         # Verify location and value of mandatory keywords.
         # The EXTEND keyword is only mandatory if the HDU has extensions; this
@@ -1097,7 +1097,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         # This __init__ currently does nothing differently from the base class,
         # and is only explicitly defined for the docstring.
 
-        super(ImageHDU, self).__init__(
+        super().__init__(
             data=data, header=header, name=name,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
             scale_back=scale_back, ver=ver)
@@ -1115,7 +1115,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         ImageHDU verify method.
         """
 
-        errs = super(ImageHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
         naxis = self._header.get('NAXIS', 0)
         # PCOUNT must == 0, GCOUNT must == 1; the former is verified in
         # ExtensionHDU._verify, however ExtensionHDU._verify allows PCOUNT

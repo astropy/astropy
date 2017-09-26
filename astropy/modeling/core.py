@@ -108,12 +108,12 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
 
-        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+        return super().__new__(mcls, name, bases, members)
 
     def __init__(cls, name, bases, members):
         # Make sure OrderedDescriptorContainer gets to run before doing
         # anything else
-        super(_ModelMeta, cls).__init__(name, bases, members)
+        super().__init__(name, bases, members)
 
         if cls._parameters_:
             if hasattr(cls, '_param_names'):
@@ -443,7 +443,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         # For the sake of familiarity start the output with the standard class
         # __repr__
-        parts = [super(_ModelMeta, cls).__repr__()]
+        parts = [super().__repr__()]
 
         if not cls._is_concrete:
             return parts[0]
@@ -675,7 +675,7 @@ class Model(metaclass=_ModelMeta):
     input_units_equivalencies = None
 
     def __init__(self, *args, **kwargs):
-        super(Model, self).__init__()
+        super().__init__()
         meta = kwargs.pop('meta', None)
         if meta is not None:
             self.meta = meta
@@ -2228,7 +2228,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         try:
             # Annoyingly, this will only work for Python 3.3+
-            basedir = super(_CompoundModelMeta, cls).__dir__()
+            basedir = super().__dir__()
         except AttributeError:
             basedir = list(set((dir(type(cls)) + list(cls.__dict__))))
 
@@ -2241,7 +2241,7 @@ class _CompoundModelMeta(_ModelMeta):
         return basedir
 
     def __reduce__(cls):
-        rv = super(_CompoundModelMeta, cls).__reduce__()
+        rv = super().__reduce__()
 
         if isinstance(rv, tuple):
             # Delete _evaluate from the members dict
@@ -2761,7 +2761,7 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
             ('Expression', expression),
             ('Components', '\n' + indent(components))
         ]
-        return super(_CompoundModel, self)._format_str(keywords=keywords)
+        return super()._format_str(keywords=keywords)
 
     def __getattr__(self, attr):
         # This __getattr__ is necessary, because _CompoundModelMeta creates

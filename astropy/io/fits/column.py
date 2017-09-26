@@ -202,7 +202,7 @@ class _ColumnFormat(_BaseColumnFormat):
     """
 
     def __new__(cls, format):
-        self = super(_ColumnFormat, cls).__new__(cls, format)
+        self = super().__new__(cls, format)
         self.repeat, self.format, self.option = _parse_tformat(format)
         self.format = self.format.upper()
         if self.format in ('P', 'Q'):
@@ -266,7 +266,7 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     """
 
     def __new__(cls, format, strict=False):
-        self = super(_AsciiColumnFormat, cls).__new__(cls, format)
+        self = super().__new__(cls, format)
         self.format, self.width, self.precision = \
             _parse_ascii_tformat(format, strict)
 
@@ -318,7 +318,7 @@ class _FormatX(str):
     def __new__(cls, repeat=1):
         nbytes = ((repeat - 1) // 8) + 1
         # use an array, even if it is only ONE u1 (i.e. use tuple always)
-        obj = super(_FormatX, cls).__new__(cls, repr((nbytes,)) + 'u1')
+        obj = super().__new__(cls, repr((nbytes,)) + 'u1')
         obj.repeat = repeat
         return obj
 
@@ -345,7 +345,7 @@ class _FormatP(str):
     _descriptor_format = '2i4'
 
     def __new__(cls, dtype, repeat=None, max=None):
-        obj = super(_FormatP, cls).__new__(cls, cls._descriptor_format)
+        obj = super().__new__(cls, cls._descriptor_format)
         obj.format = NUMPY2FITS[dtype]
         obj.dtype = dtype
         obj.repeat = repeat
@@ -1801,7 +1801,7 @@ class _AsciiColDefs(ColDefs):
     _col_format_cls = _AsciiColumnFormat
 
     def __init__(self, input, ascii=True):
-        super(_AsciiColDefs, self).__init__(input)
+        super().__init__(input)
 
         # if the format of an ASCII column has no width, add one
         if not isinstance(input, _AsciiColDefs):
@@ -1843,11 +1843,11 @@ class _AsciiColDefs(ColDefs):
         return ['a' + str(w) for w in widths]
 
     def add_col(self, column):
-        super(_AsciiColDefs, self).add_col(column)
+        super().add_col(column)
         self._update_field_metrics()
 
     def del_col(self, col_name):
-        super(_AsciiColDefs, self).del_col(col_name)
+        super().del_col(col_name)
         self._update_field_metrics()
 
     def _update_field_metrics(self):

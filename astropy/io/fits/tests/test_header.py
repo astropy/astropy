@@ -2283,7 +2283,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
     """
 
     def setup(self):
-        super(TestRecordValuedKeywordCards, self).setup()
+        super().setup()
         self._test_header = fits.Header()
         self._test_header.set('DP1', 'NAXIS: 2')
         self._test_header.set('DP1', 'AXIS.1: 1')

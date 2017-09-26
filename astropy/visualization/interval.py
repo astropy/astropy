@@ -174,9 +174,8 @@ class PercentileInterval(AsymmetricPercentileInterval):
     def __init__(self, percentile, n_samples=None):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
-        super(PercentileInterval, self).__init__(lower_percentile,
-                                                 upper_percentile,
-                                                 n_samples=n_samples)
+        super().__init__(
+            lower_percentile, upper_percentile, n_samples=n_samples)
 
 
 class ZScaleInterval(BaseInterval):

@@ -212,7 +212,7 @@ class Parameter(OrderedDescriptor):
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
                  max=None, bounds=None, model=None):
-        super(Parameter, self).__init__()
+        super().__init__()
 
         self._name = name
         self.__doc__ = self._description = description.strip()

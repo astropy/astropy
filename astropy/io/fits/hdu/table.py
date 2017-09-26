@@ -260,8 +260,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     """
 
     def __init__(self, data=None, header=None, name=None, uint=False, ver=None):
-        super(_TableBaseHDU, self).__init__(data=data, header=header,
-                                            name=name, ver=ver)
+        super().__init__(data=data, header=header, name=name, ver=ver)
 
         if header is not None and not isinstance(header, Header):
             raise ValueError('header must be a Header object.')
@@ -527,14 +526,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     format = format_cls(format.dtype, repeat=format.repeat,
                                         max=_max)
                     self._header['TFORM' + str(idx + 1)] = format.tform
-        return super(_TableBaseHDU, self)._prewriteto(checksum, inplace)
+        return super()._prewriteto(checksum, inplace)
 
     def _verify(self, option='warn'):
         """
         _TableBaseHDU verify method.
         """
 
-        errs = super(_TableBaseHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
         self.req_cards('NAXIS', None, lambda v: (v == 2), 2, option, errs)
         self.req_cards('BITPIX', None, lambda v: (v == 8), 8, option, errs)
         self.req_cards('TFIELDS', 7,
@@ -578,7 +577,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         return (self.name, self.ver, class_name, ncards, dims, format)
 
     def _update_column_removed(self, columns, idx):
-        super(_TableBaseHDU, self)._update_column_removed(columns, idx)
+        super()._update_column_removed(columns, idx)
 
         # Fix the header to reflect the column removal
         self._clear_table_keywords(index=idx)
@@ -715,7 +714,7 @@ class TableHDU(_TableBaseHDU):
         r'(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?')
 
     def __init__(self, data=None, header=None, name=None, ver=None):
-        super(TableHDU, self).__init__(data, header, name=name, ver=ver)
+        super().__init__(data, header, name=name, ver=ver)
 
     @classmethod
     def match_header(cls, header):
@@ -779,14 +778,14 @@ class TableHDU(_TableBaseHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(TableHDU, self)._calculate_datasum()
+            return super()._calculate_datasum()
 
     def _verify(self, option='warn'):
         """
         `TableHDU` verify method.
         """
 
-        errs = super(TableHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
         self.req_cards('PCOUNT', None, lambda v: (v == 0), 0, option, errs)
         tfields = self._header['TFIELDS']
         for idx in range(tfields):
@@ -830,8 +829,7 @@ class BinTableHDU(_TableBaseHDU):
             data = hdu.data
             header = hdu.header
 
-        super(BinTableHDU, self).__init__(
-            data, header, name=name, uint=uint, ver=ver)
+        super().__init__(data, header, name=name, uint=uint, ver=ver)
 
     @classmethod
     def match_header(cls, header):
@@ -888,7 +886,7 @@ class BinTableHDU(_TableBaseHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(BinTableHDU, self)._calculate_datasum()
+            return super()._calculate_datasum()
 
     def _writedata_internal(self, fileobj):
         size = 0

@@ -244,7 +244,7 @@ class Time(ShapedLikeNDArray):
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
         else:
-            self = super(Time, cls).__new__(cls)
+            self = super().__new__(cls)
 
         return self
 
@@ -1543,7 +1543,7 @@ class TimeDelta(Time):
                 self.SCALES = TIME_DELTA_TYPES[scale]
 
     def replicate(self, *args, **kwargs):
-        out = super(TimeDelta, self).replicate(*args, **kwargs)
+        out = super().replicate(*args, **kwargs)
         out.SCALES = self.SCALES
         return out
 
@@ -1747,7 +1747,7 @@ def _make_array(val, copy=False):
 class OperandTypeError(TypeError):
     def __init__(self, left, right, op=None):
         op_string = '' if op is None else ' for {0}'.format(op)
-        super(OperandTypeError, self).__init__(
+        super().__init__(
             "Unsupported operand type(s){0}: "
             "'{1}' and '{2}'".format(op_string,
                                      left.__class__.__name__,

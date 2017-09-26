@@ -172,4 +172,4 @@ class UnknownSiteException(KeyError):
         self.site = site
         self.attribute = attribute
         self.close_names = close_names
-        return super(UnknownSiteException, self).__init__(message)
+        return super().__init__(message)

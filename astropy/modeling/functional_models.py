@@ -307,7 +307,7 @@ class Gaussian2D(Fittable2DModel):
         kwargs['bounds'].setdefault('x_stddev', (FLOAT_EPSILON, None))
         kwargs['bounds'].setdefault('y_stddev', (FLOAT_EPSILON, None))
 
-        super(Gaussian2D, self).__init__(
+        super().__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
 
@@ -1486,7 +1486,7 @@ class Ring2D(Fittable2DModel):
         elif width is None:
             width = self.width.default
 
-        super(Ring2D, self).__init__(
+        super().__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, r_in=r_in, width=width,
             **kwargs)
 

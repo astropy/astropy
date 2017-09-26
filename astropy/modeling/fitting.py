@@ -80,7 +80,7 @@ class _FitterMeta(abc.ABCMeta):
     registry = set()
 
     def __new__(mcls, name, bases, members):
-        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -609,7 +609,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                          'param_jac': None,
                          'param_cov': None}
 
-        super(LevMarLSQFitter, self).__init__()
+        super().__init__()
 
     def objective_function(self, fps, *args):
         """
@@ -768,7 +768,7 @@ class SLSQPLSQFitter(Fitter):
     supported_constraints = SLSQP.supported_constraints
 
     def __init__(self):
-        super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
+        super().__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support
@@ -834,8 +834,7 @@ class SimplexLSQFitter(Fitter):
     supported_constraints = Simplex.supported_constraints
 
     def __init__(self):
-        super(SimplexLSQFitter, self).__init__(optimizer=Simplex,
-                                               statistic=leastsquare)
+        super().__init__(optimizer=Simplex, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support

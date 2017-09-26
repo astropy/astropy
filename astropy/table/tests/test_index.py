@@ -52,7 +52,7 @@ def assert_col_equal(col, array):
 @pytest.mark.usefixtures('table_types')
 class TestIndex(SetupData):
     def _setup(self, main_col, table_types):
-        super(TestIndex, self)._setup(table_types)
+        super()._setup(table_types)
         self.main_col = main_col
         if isinstance(main_col, u.Quantity):
             self._table_type = QTable

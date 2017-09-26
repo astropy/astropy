@@ -7,7 +7,7 @@ from ..nddata_base import NDDataBase
 
 class MinimalSubclass(NDDataBase):
     def __init__(self):
-        super(MinimalSubclass, self).__init__()
+        super().__init__()
 
     @property
     def data(self):
@@ -15,23 +15,23 @@ class MinimalSubclass(NDDataBase):
 
     @property
     def mask(self):
-        return super(MinimalSubclass, self).mask
+        return super().mask
 
     @property
     def unit(self):
-        return super(MinimalSubclass, self).unit
+        return super().unit
 
     @property
     def wcs(self):
-        return super(MinimalSubclass, self).wcs
+        return super().wcs
 
     @property
     def meta(self):
-        return super(MinimalSubclass, self).meta
+        return super().meta
 
     @property
     def uncertainty(self):
-        return super(MinimalSubclass, self).uncertainty
+        return super().uncertainty
 
 
 def test_nddata_base_subclass():
