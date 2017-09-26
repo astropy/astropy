@@ -64,14 +64,17 @@ entry_points['pytest11'] = [
     'display = astropy.tests.plugins.display',
 ]
 
-setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+setup_requires = [min_numpy_version]
 
 # Make sure to have the packages needed for building astropy, but do not require them
 # when installing from an sdist as the c files are included there.
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
     setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
-install_requires = ['pytest>=3.1', 'numpy>=' + astropy.__minimum_numpy_version__]
+# Eventually, if we can do away with the test runner, then pytest-astropy
+# should be a test dependency, not an install dependency
+install_requires = ['pytest>=3.1', min_numpy_version]
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
