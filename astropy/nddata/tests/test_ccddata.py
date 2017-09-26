@@ -116,7 +116,7 @@ def test_initialize_from_FITS(ccd_data, tmpdir):
     cd = CCDData.read(filename, unit=u.electron)
     assert cd.shape == (10, 10)
     assert cd.size == 100
-    assert np.issubdtype(cd.data.dtype, np.float)
+    assert np.issubdtype(cd.data.dtype, np.floating)
     for k, v in hdu.header.items():
         assert cd.meta[k] == v
 
