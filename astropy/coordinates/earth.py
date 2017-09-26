@@ -243,7 +243,7 @@ class EarthLocation(u.Quantity):
         x, y, z = np.broadcast_arrays(x, y, z)
         struc = np.empty(x.shape, cls._location_dtype)
         struc['x'], struc['y'], struc['z'] = x, y, z
-        return super(EarthLocation, cls).__new__(cls, struc, unit, copy=False)
+        return super().__new__(cls, struc, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0., ellipsoid=None):
@@ -647,14 +647,14 @@ class EarthLocation(u.Quantity):
         return self['z']
 
     def __getitem__(self, item):
-        result = super(EarthLocation, self).__getitem__(item)
+        result = super().__getitem__(item)
         if result.dtype is self.dtype:
             return result.view(self.__class__)
         else:
             return result.view(u.Quantity)
 
     def __array_finalize__(self, obj):
-        super(EarthLocation, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         if hasattr(obj, '_ellipsoid'):
             self._ellipsoid = obj._ellipsoid
 
@@ -662,7 +662,7 @@ class EarthLocation(u.Quantity):
         if self.shape == ():
             raise IndexError('0-d EarthLocation arrays cannot be indexed')
         else:
-            return super(EarthLocation, self).__len__()
+            return super().__len__()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""

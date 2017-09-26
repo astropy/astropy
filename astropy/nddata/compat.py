@@ -84,7 +84,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         flags = kwd.pop('flags', None)
 
         # Initialize with the parent...
-        super(NDDataArray, self).__init__(data, *args, **kwd)
+        super().__init__(data, *args, **kwd)
 
         # ...then reset uncertainty to force it to go through the
         # setter logic below. In base NDData all that is done is to

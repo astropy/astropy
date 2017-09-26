@@ -294,7 +294,7 @@ class FixedWidth(basic.Basic):
     data_class = FixedWidthData
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
-        super(FixedWidth, self).__init__()
+        super().__init__()
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
         self.header.col_starts = col_starts
@@ -343,8 +343,8 @@ class FixedWidthNoHeader(FixedWidth):
     data_class = FixedWidthNoHeaderData
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
-        super(FixedWidthNoHeader, self).__init__(col_starts, col_ends,
-                            delimiter_pad=delimiter_pad, bookend=bookend)
+        super().__init__(col_starts, col_ends, delimiter_pad=delimiter_pad,
+                         bookend=bookend)
 
 
 class FixedWidthTwoLineHeader(FixedWidthHeader):
@@ -398,7 +398,7 @@ class FixedWidthTwoLine(FixedWidth):
     header_class = FixedWidthTwoLineHeader
 
     def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
-        super(FixedWidthTwoLine, self).__init__(delimiter_pad=delimiter_pad, bookend=bookend)
+        super().__init__(delimiter_pad=delimiter_pad, bookend=bookend)
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1

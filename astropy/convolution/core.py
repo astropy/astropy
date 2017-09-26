@@ -237,7 +237,7 @@ class Kernel1D(Kernel):
         elif array is not None:
             self._model = None
 
-        super(Kernel1D, self).__init__(array)
+        super().__init__(array)
 
 
 class Kernel2D(Kernel):
@@ -309,7 +309,7 @@ class Kernel2D(Kernel):
         elif array is not None:
             self._model = None
 
-        super(Kernel2D, self).__init__(array)
+        super().__init__(array)
 
 
 def kernel_arithmetics(kernel, value, operation):

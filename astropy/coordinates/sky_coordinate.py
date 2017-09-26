@@ -78,7 +78,7 @@ class SkyCoordInfo(MixinInfo):
 
         self._represent_as_dict_attrs = attrs
 
-        out = super(SkyCoordInfo, self)._represent_as_dict()
+        out = super()._represent_as_dict()
 
         out['representation'] = obj.representation.get_name()
         out['frame'] = obj.frame.name
@@ -533,7 +533,7 @@ class SkyCoord(ShapedLikeNDArray):
         if attr in frame_transform_graph.frame_attributes:
             # All possible frame attributes can be set, but only via a private
             # variable.  See __getattr__ above.
-            super(SkyCoord, self).__setattr__('_' + attr, val)
+            super().__setattr__('_' + attr, val)
             # Validate it
             frame_transform_graph.frame_attributes[attr].__get__(self)
             # And add to set of extra attributes
@@ -541,7 +541,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         else:
             # Otherwise, do the standard Python attribute setting
-            super(SkyCoord, self).__setattr__(attr, val)
+            super().__setattr__(attr, val)
 
     def __delattr__(self, attr):
         # mirror __setattr__ above
@@ -561,13 +561,13 @@ class SkyCoord(ShapedLikeNDArray):
         if attr in frame_transform_graph.frame_attributes:
             # All possible frame attributes can be deleted, but need to remove
             # the corresponding private variable.  See __getattr__ above.
-            super(SkyCoord, self).__delattr__('_' + attr)
+            super().__delattr__('_' + attr)
             # Also remove it from the set of extra attributes
             self._extra_frameattr_names -= {attr}
 
         else:
             # Otherwise, do the standard Python attribute setting
-            super(SkyCoord, self).__delattr__(attr)
+            super().__delattr__(attr)
 
     @override__dir__
     def __dir__(self):

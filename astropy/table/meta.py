@@ -13,7 +13,7 @@ class ColumnOrderList(list):
     """
 
     def sort(self, *args, **kwargs):
-        super(ColumnOrderList, self).sort()
+        super().sort()
 
         column_keys = ['name', 'unit', 'datatype', 'format', 'description', 'meta']
         in_dict = dict(self)
@@ -44,7 +44,7 @@ class ColumnDict(dict):
         Return items as a ColumnOrderList, which sorts in the preferred
         way for column attributes.
         """
-        return ColumnOrderList(super(ColumnDict, self).items())
+        return ColumnOrderList(super().items())
 
 
 def _construct_odict(load, node):

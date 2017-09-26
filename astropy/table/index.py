@@ -65,7 +65,7 @@ class Index(object):
         Whether the values of the index must be unique
     '''
     def __new__(cls, *args, **kwargs):
-        self = super(Index, cls).__new__(cls)
+        self = super().__new__(cls)
 
         # If (and only if) unpickling for protocol >= 2, then args and kwargs
         # are both empty.  The class __init__ requires at least the `columns`
@@ -736,7 +736,7 @@ class TableIndices(list):
     '''
 
     def __init__(self, lst):
-        super(TableIndices, self).__init__(lst)
+        super().__init__(lst)
 
     def __getitem__(self, item):
         '''
@@ -762,7 +762,7 @@ class TableIndices(list):
             # index search failed
             raise IndexError("No index found for {0}".format(item))
 
-        return super(TableIndices, self).__getitem__(item)
+        return super().__getitem__(item)
 
 
 class TableLoc(object):
@@ -837,7 +837,7 @@ class TableILoc(TableLoc):
     '''
 
     def __init__(self, table):
-        super(TableILoc, self).__init__(table)
+        super().__init__(table)
 
     def __getitem__(self, item):
         if isinstance(item, tuple):

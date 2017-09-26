@@ -413,7 +413,7 @@ class ExtraFunction(Function):
             self.args.append(Return(self.ret, self.doc))
 
     def __repr__(self):
-        r = super(ExtraFunction, self).__repr__()
+        r = super().__repr__()
         if r.startswith('Function'):
             r = 'Extra' + r
         return r

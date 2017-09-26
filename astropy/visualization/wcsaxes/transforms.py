@@ -64,7 +64,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
     """
 
     def __init__(self, wcs, slice=None):
-        super(WCSWorld2PixelTransform, self).__init__()
+        super().__init__()
         self.wcs = wcs
         if self.wcs.wcs.naxis > 2:
             if slice is None:
@@ -119,7 +119,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
     """
 
     def __init__(self, wcs, slice=None):
-        super(WCSPixel2WorldTransform, self).__init__()
+        super().__init__()
         self.wcs = wcs
         self.slice = slice
         if self.slice is not None:
@@ -190,7 +190,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
 class CoordinateTransform(CurvedTransform):
 
     def __init__(self, input_system, output_system):
-        super(CoordinateTransform, self).__init__()
+        super().__init__()
         self._input_system_name = input_system
         self._output_system_name = output_system
 

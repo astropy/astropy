@@ -89,7 +89,7 @@ class TableColumns(OrderedDict):
                 else:
                     newcols.append(col)
             cols = newcols
-        super(TableColumns, self).__init__(cols)
+        super().__init__(cols)
 
     def __getitem__(self, item):
         """Get items from a TableColumns object.
@@ -119,7 +119,7 @@ class TableColumns(OrderedDict):
         if item in self:
             raise ValueError("Cannot replace column '{0}'.  Use Table.replace_column() instead."
                              .format(item))
-        super(TableColumns, self).__setitem__(item, value)
+        super().__setitem__(item, value)
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.keys())
@@ -2566,16 +2566,16 @@ class Table(object):
         return self.copy(False)
 
     def __lt__(self, other):
-        return super(Table, self).__lt__(other)
+        return super().__lt__(other)
 
     def __gt__(self, other):
-        return super(Table, self).__gt__(other)
+        return super().__gt__(other)
 
     def __le__(self, other):
-        return super(Table, self).__le__(other)
+        return super().__le__(other)
 
     def __ge__(self, other):
-        return super(Table, self).__ge__(other)
+        return super().__ge__(other)
 
     def __eq__(self, other):
 
@@ -2778,7 +2778,7 @@ class QTable(Table):
             qcol.info = col.info
             col = qcol
         else:
-            col = super(QTable, self)._convert_col_for_table(col)
+            col = super()._convert_col_for_table(col)
 
         return col
 
@@ -2801,8 +2801,8 @@ class NdarrayMixin(np.ndarray):
         if obj is None:
             return
 
-        if callable(super(NdarrayMixin, self).__array_finalize__):
-            super(NdarrayMixin, self).__array_finalize__(obj)
+        if callable(super().__array_finalize__):
+            super().__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
@@ -2814,7 +2814,7 @@ class NdarrayMixin(np.ndarray):
         # patch to pickle Quantity objects (ndarray subclasses), see
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
-        object_state = list(super(NdarrayMixin, self).__reduce__())
+        object_state = list(super().__reduce__())
         object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
@@ -2823,5 +2823,5 @@ class NdarrayMixin(np.ndarray):
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         nd_state, own_state = state
-        super(NdarrayMixin, self).__setstate__(nd_state)
+        super().__setstate__(nd_state)
         self.__dict__.update(own_state)

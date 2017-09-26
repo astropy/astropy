@@ -134,7 +134,7 @@ class PowerStretch(BaseStretch):
     """
 
     def __init__(self, a):
-        super(PowerStretch, self).__init__()
+        super().__init__()
         self.power = a
 
     def __call__(self, values, clip=True, out=None):
@@ -167,7 +167,7 @@ class PowerDistStretch(BaseStretch):
     def __init__(self, a=1000.0):
         if a == 1:  # singularity
             raise ValueError("a cannot be set to 1")
-        super(PowerDistStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -203,7 +203,7 @@ class InvertedPowerDistStretch(BaseStretch):
     def __init__(self, a=1000.0):
         if a == 1:  # singularity
             raise ValueError("a cannot be set to 1")
-        super(InvertedPowerDistStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -230,7 +230,7 @@ class SquaredStretch(PowerStretch):
     """
 
     def __init__(self):
-        super(SquaredStretch, self).__init__(2)
+        super().__init__(2)
 
     @property
     def inverse(self):
@@ -254,7 +254,7 @@ class LogStretch(BaseStretch):
     """
 
     def __init__(self, a=1000.0):
-        super(LogStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -287,7 +287,7 @@ class InvertedLogStretch(BaseStretch):
     """
 
     def __init__(self, a):
-        super(InvertedLogStretch, self).__init__()
+        super().__init__()
         self.exp = a
 
     def __call__(self, values, clip=True, out=None):
@@ -324,7 +324,7 @@ class AsinhStretch(BaseStretch):
     """
 
     def __init__(self, a=0.1):
-        super(AsinhStretch, self).__init__()
+        super().__init__()
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -356,7 +356,7 @@ class SinhStretch(BaseStretch):
     """
 
     def __init__(self, a=1./3.):
-        super(SinhStretch, self).__init__()
+        super().__init__()
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -462,7 +462,7 @@ class ContrastBiasStretch(BaseStretch):
     """
 
     def __init__(self, contrast, bias):
-        super(ContrastBiasStretch, self).__init__()
+        super().__init__()
         self.contrast = contrast
         self.bias = bias
 
@@ -502,7 +502,7 @@ class InvertedContrastBiasStretch(BaseStretch):
     """
 
     def __init__(self, contrast, bias):
-        super(InvertedContrastBiasStretch, self).__init__()
+        super().__init__()
         self.contrast = contrast
         self.bias = bias
 

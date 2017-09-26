@@ -107,7 +107,7 @@ class SLSQP(Optimization):
 
     def __init__(self):
         from scipy.optimize import fmin_slsqp
-        super(SLSQP, self).__init__(fmin_slsqp)
+        super().__init__(fmin_slsqp)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,
@@ -189,7 +189,7 @@ class Simplex(Optimization):
 
     def __init__(self):
         from scipy.optimize import fmin as simplex
-        super(Simplex, self).__init__(simplex)
+        super().__init__(simplex)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,

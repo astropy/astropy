@@ -139,7 +139,7 @@ class Distance(u.SpecificTypeQuantity):
                                  'given to Distance constructor')
 
         # now we have arguments like for a Quantity, so let it do the work
-        distance = super(Distance, cls).__new__(
+        distance = super().__new__(
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 

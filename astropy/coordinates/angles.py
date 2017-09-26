@@ -108,8 +108,7 @@ class Angle(u.SpecificTypeQuantity):
                        angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit, copy=False) for x in angle]
 
-        return super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
-                                         copy=copy)
+        return super().__new__(cls, angle, unit, dtype=dtype, copy=copy)
 
     @staticmethod
     def _tuple_to_float(angle, unit):
@@ -131,7 +130,7 @@ class Angle(u.SpecificTypeQuantity):
         return u.hourangle if unit is u.hour else unit
 
     def _set_unit(self, unit):
-        super(Angle, self)._set_unit(self._convert_unit_to_angle_unit(unit))
+        super()._set_unit(self._convert_unit_to_angle_unit(unit))
 
     @property
     def hour(self):
@@ -504,7 +503,7 @@ class Latitude(Angle):
         # Forbid creating a Lat from a Long.
         if isinstance(angle, Longitude):
             raise TypeError("A Latitude angle cannot be created from a Longitude angle")
-        self = super(Latitude, cls).__new__(cls, angle, unit=unit, **kwargs)
+        self = super().__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
         return self
 
@@ -530,7 +529,7 @@ class Latitude(Angle):
             raise TypeError("A Longitude angle cannot be assigned to a Latitude angle")
         # first check bounds
         self._validate_angles(value)
-        super(Latitude, self).__setitem__(item, value)
+        super().__setitem__(item, value)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
@@ -538,7 +537,7 @@ class Latitude(Angle):
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):
-        results = super(Latitude, self).__array_ufunc__(*args, **kwargs)
+        results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
 
 
@@ -610,7 +609,7 @@ class Longitude(Angle):
         if isinstance(angle, Latitude):
             raise TypeError("A Longitude angle cannot be created from "
                             "a Latitude angle.")
-        self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
+        self = super().__new__(cls, angle, unit=unit, **kwargs)
         if wrap_angle is None:
             wrap_angle = getattr(angle, 'wrap_angle', self._default_wrap_angle)
         self.wrap_angle = wrap_angle
@@ -620,7 +619,7 @@ class Longitude(Angle):
         # Forbid assigning a Lat to a Long.
         if isinstance(value, Latitude):
             raise TypeError("A Latitude angle cannot be assigned to a Longitude angle")
-        super(Longitude, self).__setitem__(item, value)
+        super().__setitem__(item, value)
         self._wrap_internal()
 
     def _wrap_internal(self):
@@ -640,7 +639,7 @@ class Longitude(Angle):
         if np.any(self_angle < wrap_angle_floor) or np.any(self_angle >= wrap_angle):
             wrapped = np.mod(self_angle - wrap_angle, a360) + wrap_angle_floor
             value = u.Quantity(wrapped, self.unit)
-            super(Longitude, self).__setitem__((), value)
+            super().__setitem__((), value)
 
     @property
     def wrap_angle(self):
@@ -652,7 +651,7 @@ class Longitude(Angle):
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
-        super(Longitude, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         self._wrap_angle = getattr(obj, '_wrap_angle',
                                    self._default_wrap_angle)
 
@@ -662,5 +661,5 @@ class Longitude(Angle):
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):
-        results = super(Longitude, self).__array_ufunc__(*args, **kwargs)
+        results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)

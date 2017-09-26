@@ -177,7 +177,7 @@ class FITS_rec(np.recarray):
         column_state = state[-2]
         state = state[:-2]
 
-        super(FITS_rec, self).__setstate__(state)
+        super().__setstate__(state)
 
         self._col_weakrefs = weakref.WeakSet()
 
@@ -191,8 +191,7 @@ class FITS_rec(np.recarray):
         values that get used in __setstate__.
         """
 
-        reconst_func, reconst_func_args, state = \
-            super(FITS_rec, self).__reduce__()
+        reconst_func, reconst_func_args, state = super().__reduce__()
 
         # Define FITS_rec-specific attrs that get added to state
         column_state = []
@@ -477,7 +476,7 @@ class FITS_rec(np.recarray):
 
     def __getitem__(self, key):
         if self._coldefs is None:
-            return super(FITS_rec, self).__getitem__(key)
+            return super().__getitem__(key)
 
         if isinstance(key, str):
             return self.field(key)
@@ -518,7 +517,7 @@ class FITS_rec(np.recarray):
 
     def __setitem__(self, key, value):
         if self._coldefs is None:
-            return super(FITS_rec, self).__setitem__(key, value)
+            return super().__setitem__(key, value)
 
         if isinstance(key, str):
             self[key][:] = value
@@ -559,7 +558,7 @@ class FITS_rec(np.recarray):
         any data.
         """
 
-        new = super(FITS_rec, self).copy(order=order)
+        new = super().copy(order=order)
 
         new.__dict__ = copy.deepcopy(self.__dict__)
         return new
@@ -1211,7 +1210,7 @@ class FITS_rec(np.recarray):
 
         # The the index of the "end" column of the record, beyond
         # which we can't write
-        end = super(FITS_rec, self).field(-1).itemsize
+        end = super().field(-1).itemsize
         starts.append(end + starts[-1])
 
         if col_idx > 0:
@@ -1302,8 +1301,7 @@ def _rstrip_inplace(array, chars=None):
 
 class _UnicodeArrayEncodeError(UnicodeEncodeError):
     def __init__(self, encoding, object_, start, end, reason, index):
-        super(_UnicodeArrayEncodeError, self).__init__(encoding, object_,
-                start, end, reason)
+        super().__init__(encoding, object_, start, end, reason)
         self.index = index
 
 

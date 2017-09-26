@@ -632,8 +632,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                        for input_, converter in zip(inputs, converters))
 
         # Call our superclass's __array_ufunc__
-        result = super(Quantity, self).__array_ufunc__(function, method,
-                                                       *arrays, **kwargs)
+        result = super().__array_ufunc__(function, method, *arrays, **kwargs)
         # If unit is None, a plain array is expected (e.g., comparisons), which
         # means we're done.
         # We're also done if the result was None (for method 'at') or
@@ -789,7 +788,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # patch to pickle Quantity objects (ndarray subclasses), see
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
-        object_state = list(super(Quantity, self).__reduce__())
+        object_state = list(super().__reduce__())
         object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
@@ -798,7 +797,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         nd_state, own_state = state
-        super(Quantity, self).__setstate__(nd_state)
+        super().__setstate__(nd_state)
         self.__dict__.update(own_state)
 
     info = QuantityInfo()
@@ -992,7 +991,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     def __eq__(self, other):
         try:
             try:
-                return super(Quantity, self).__eq__(other)
+                return super().__eq__(other)
             except DeprecationWarning:
                 # We treat the DeprecationWarning separately, since it may
                 # mask another Exception.  But we do not want to just use
@@ -1006,7 +1005,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     def __ne__(self, other):
         try:
             try:
-                return super(Quantity, self).__ne__(other)
+                return super().__ne__(other)
             except DeprecationWarning:
                 return np.not_equal(self, other)
         except UnitsError:
@@ -1024,7 +1023,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
-        return super(Quantity, self).__mul__(other)
+        return super().__mul__(other)
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
@@ -1033,7 +1032,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             self._set_unit(other * self.unit)
             return self
 
-        return super(Quantity, self).__imul__(other)
+        return super().__imul__(other)
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -1051,7 +1050,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
-        return super(Quantity, self).__truediv__(other)
+        return super().__truediv__(other)
 
     def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
@@ -1060,7 +1059,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             self._set_unit(self.unit / other)
             return self
 
-        return super(Quantity, self).__itruediv__(other)
+        return super().__itruediv__(other)
 
     def __rtruediv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
@@ -1068,7 +1067,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         if isinstance(other, (UnitBase, str)):
             return self._new_view(1. / self.value, other / self.unit)
 
-        return super(Quantity, self).__rtruediv__(other)
+        return super().__rtruediv__(other)
 
     def __div__(self, other):
         """ Division between `Quantity` objects. """
@@ -1097,7 +1096,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return self._new_view(self.value ** float(other),
                                   self.unit ** other)
 
-        return super(Quantity, self).__pow__(other)
+        return super().__pow__(other)
 
     # For Py>=3.5
     def __matmul__(self, other, reverse=False):
@@ -1145,7 +1144,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     def __getitem__(self, key):
         try:
-            out = super(Quantity, self).__getitem__(key)
+            out = super().__getitem__(key)
         except IndexError:
             # We want zero-dimensional Quantity objects to behave like scalars,
             # so they should raise a TypeError rather than an IndexError.
@@ -1364,7 +1363,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     # http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#array-conversion
 
     def item(self, *args):
-        return self._new_view(super(Quantity, self).item(*args))
+        return self._new_view(super().item(*args))
 
     def tolist(self):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
@@ -1671,8 +1670,7 @@ class SpecificTypeQuantity(Quantity):
         if unit.is_equivalent(self._equivalent_unit):
             return type(self), True
         else:
-            return super(SpecificTypeQuantity,
-                         self).__quantity_subclass__(unit)[0], False
+            return super().__quantity_subclass__(unit)[0], False
 
     def _set_unit(self, unit):
         if unit is None or not unit.is_equivalent(self._equivalent_unit):
@@ -1682,4 +1680,4 @@ class SpecificTypeQuantity(Quantity):
                 (", but no unit was given." if unit is None else
                  ", so cannot set it to '{0}'.".format(unit)))
 
-        super(SpecificTypeQuantity, self)._set_unit(unit)
+        super()._set_unit(unit)

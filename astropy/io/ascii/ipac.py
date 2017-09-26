@@ -424,7 +424,7 @@ class Ipac(basic.Basic):
     header_class = IpacHeader
 
     def __init__(self, definition='ignore', DBMS=False):
-        super(Ipac, self).__init__()
+        super().__init__()
         # Usually the header is not defined in __init__, but here it need a keyword
         if definition in ['ignore', 'left', 'right']:
             self.header.ipac_definition = definition
