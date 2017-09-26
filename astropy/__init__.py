@@ -15,7 +15,8 @@ __minimum_python_version__ = '3.5'
 __minimum_numpy_version__ = '1.9.0'
 
 if sys.version_info < tuple((int(val) for val in __minimum_python_version__.split('.'))):
-    raise Exception("Astropy does not support Python < {}".format(__minimum_python_version__))
+    class TooOldPythonError(Exception): pass
+    raise TooOldPythonError("Astropy does not support Python < {}".format(__minimum_python_version__))
 
 
 def _is_astropy_source(path=None):
