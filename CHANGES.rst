@@ -304,6 +304,10 @@ astropy.coordinates
   instead of ``frame.data`` in the context of methods that use ``._apply()``.
   [#6561]
 
+- Creating a new ``SkyCoord`` from a list of multiple ``SkyCoord`` objects now
+  yield the correct type of frame, and works at all for non-equatorial frames.
+  [#6612]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
