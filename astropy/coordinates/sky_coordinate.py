@@ -1566,6 +1566,14 @@ def _get_frame(args, kwargs):
     # if a coordinate is supplied in the args list.  If the frame still had not
     # been set by this point and a coordinate was supplied, then use that frame.
     for arg in args:
+        # this catches the "single list passed in" case.  For that case we want
+        # to allow the first argument to set the class.  That's OK because
+        # _parse_coordinate_arg goes and checks that the frames match between
+        # the first and all the others
+        if (isinstance(arg, (collections.Sequence, np.ndarray)) and
+             len(args) == 1 and len(arg) > 0):
+            arg = arg[0]
+
         coord_frame_cls = None
         if isinstance(arg, BaseCoordinateFrame):
             coord_frame_cls = arg.__class__
