@@ -5,7 +5,7 @@
 __all__ = ['BaseTransform', 'CompositeTransform']
 
 
-class BaseTransform(object):
+class BaseTransform:
     """
     A transformation object.
 

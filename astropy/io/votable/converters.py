@@ -139,7 +139,7 @@ def bool_to_bitarray(value):
     return struct_pack("{}B".format(len(bytes)), *bytes)
 
 
-class Converter(object):
+class Converter:
     """
     The base class for all converters.  Each subclass handles
     converting a specific VOTABLE data type to/from the TABLEDATA_ and

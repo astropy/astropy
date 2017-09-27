@@ -90,7 +90,7 @@ def test_transform_decos():
 
 
 def test_shortest_path():
-    class FakeTransform(object):
+    class FakeTransform:
         def __init__(self, pri):
             self.priority = pri
 
@@ -214,7 +214,7 @@ def test_obstime():
 # just acting as a namespace
 
 
-class transfunc(object):
+class transfunc:
     rep = r.CartesianRepresentation(np.arange(3)*u.pc)
     dif = r.CartesianDifferential(*np.arange(3, 6)*u.pc/u.Myr)
     rep0 = r.CartesianRepresentation(np.zeros(3)*u.pc)

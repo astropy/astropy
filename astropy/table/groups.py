@@ -151,7 +151,7 @@ def column_group_by(column, keys):
     return out
 
 
-class BaseGroups(object):
+class BaseGroups:
     """
     A class to represent groups within a table of heterogeneous data.
 

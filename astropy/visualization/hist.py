@@ -2,8 +2,8 @@
 
 
 import numpy as np
+from inspect import signature
 from ..stats import histogram
-from ..utils.compat.funcsigs import signature
 
 __all__ = ['hist']
 

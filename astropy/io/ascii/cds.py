@@ -13,11 +13,10 @@ import fnmatch
 import itertools
 import re
 import os
+from contextlib import suppress
 
 from . import core
 from . import fixedwidth
-
-from ...utils.compat import suppress
 
 
 __doctest_skip__ = ['*']

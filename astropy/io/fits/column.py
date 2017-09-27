@@ -10,6 +10,7 @@ import numbers
 
 from functools import reduce
 from collections import OrderedDict
+from contextlib import suppress
 
 import numpy as np
 from numpy import char as chararray
@@ -21,7 +22,6 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
 from .verify import VerifyError, VerifyWarning
 
 from ...utils import lazyproperty, isiterable, indent
-from ...utils.compat import suppress
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -133,7 +133,7 @@ ASCIITNULL = 0
 DEFAULT_ASCII_TNULL = '---'
 
 
-class Delayed(object):
+class Delayed:
     """Delayed file-reading data."""
 
     def __init__(self, hdu=None, field=None):
@@ -386,7 +386,7 @@ class _FormatQ(_FormatP):
     _descriptor_format = '2i8'
 
 
-class ColumnAttribute(object):
+class ColumnAttribute:
     """
     Descriptor for attributes of `Column` that are associated with keywords
     in the FITS header and describe properties of the column as specified in

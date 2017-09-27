@@ -36,7 +36,7 @@ except ImportError:
 """ The Quantity class will represent a number + unit + uncertainty """
 
 
-class TestQuantityCreation(object):
+class TestQuantityCreation:
 
     def test_1(self):
         # create objects through operations with Unit objects:
@@ -262,7 +262,7 @@ class TestQuantityCreation(object):
             u.Quantity(mylookalike)
 
 
-class TestQuantityOperations(object):
+class TestQuantityOperations:
     q1 = u.Quantity(11.42, u.meter)
     q2 = u.Quantity(8.0, u.centimeter)
 
@@ -713,7 +713,7 @@ def test_cgs():
     assert q.cgs.unit == u.barye
 
 
-class TestQuantityComparison(object):
+class TestQuantityComparison:
 
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
@@ -748,7 +748,7 @@ class TestQuantityComparison(object):
         assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
 
 
-class TestQuantityDisplay(object):
+class TestQuantityDisplay:
     scalarintq = u.Quantity(1, unit='m', dtype=int)
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
@@ -1308,7 +1308,7 @@ def test_repr_array_of_quantity():
     assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
 
 
-class TestSpecificTypeQuantity(object):
+class TestSpecificTypeQuantity:
     def setup(self):
         class Length(u.SpecificTypeQuantity):
             _equivalent_unit = u.m
@@ -1369,7 +1369,7 @@ class TestSpecificTypeQuantity(object):
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 @pytest.mark.xfail('MATPLOTLIB_LT_15')
-class TestQuantityMatplotlib(object):
+class TestQuantityMatplotlib:
     """Test if passing matplotlib quantities works.
 
     TODO: create PNG output and check against reference image

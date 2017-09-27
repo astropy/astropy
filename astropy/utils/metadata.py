@@ -212,7 +212,7 @@ def _not_equal(left, right):
         return True
 
 
-class _EnableMergeStrategies(object):
+class _EnableMergeStrategies:
     def __init__(self, *merge_strategies):
         self.merge_strategies = merge_strategies
         self.orig_enabled = {}
@@ -370,7 +370,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
     return out
 
 
-class MetaData(object):
+class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 

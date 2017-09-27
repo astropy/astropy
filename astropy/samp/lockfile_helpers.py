@@ -9,6 +9,7 @@ import os
 import socket
 import stat
 import warnings
+from contextlib import suppress
 from urllib.parse import urlparse
 import xmlrpc.client as xmlrpc
 
@@ -17,7 +18,6 @@ from ..config.paths import _find_home
 
 from .. import log
 
-from ..utils.compat import suppress
 from ..utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning

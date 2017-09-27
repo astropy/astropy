@@ -20,7 +20,7 @@ from .standard_profile import ThreadingXMLRPCServer
 __all__ = ['SAMPClient']
 
 
-class SAMPClient(object):
+class SAMPClient:
     """
     Utility class which provides facilities to create and manage a SAMP
     compliant XML-RPC server that acts as SAMP callable client application.

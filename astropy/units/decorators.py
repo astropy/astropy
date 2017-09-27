@@ -3,8 +3,8 @@
 
 __all__ = ['quantity_input']
 
+import inspect
 from ..utils.decorators import wraps
-from ..utils.compat import funcsigs
 from ..utils.misc import isiterable
 
 from .core import Unit, UnitsError, add_enabled_equivalencies
@@ -79,7 +79,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies):
                                      str(targets[0])))
 
 
-class QuantityInput(object):
+class QuantityInput:
 
     @classmethod
     def as_decorator(cls, func=None, **kwargs):
@@ -156,7 +156,7 @@ class QuantityInput(object):
     def __call__(self, wrapped_function):
 
         # Extract the function signature for the function we are wrapping.
-        wrapped_signature = funcsigs.signature(wrapped_function)
+        wrapped_signature = inspect.signature(wrapped_function)
 
         # Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
@@ -167,8 +167,8 @@ class QuantityInput(object):
             # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
                 # We do not support variable arguments (*args, **kwargs)
-                if param.kind in (funcsigs.Parameter.VAR_KEYWORD,
-                                  funcsigs.Parameter.VAR_POSITIONAL):
+                if param.kind in (inspect.Parameter.VAR_KEYWORD,
+                                  inspect.Parameter.VAR_POSITIONAL):
                     continue
 
                 # Catch the (never triggered) case where bind relied on a default value.
@@ -187,7 +187,7 @@ class QuantityInput(object):
 
                 # If the targets is empty, then no target units or physical
                 #   types were specified so we can continue to the next arg
-                if targets is funcsigs.Parameter.empty:
+                if targets is inspect.Parameter.empty:
                     continue
 
                 # If the argument value is None, and the default value is None,
@@ -221,7 +221,7 @@ class QuantityInput(object):
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
-            if wrapped_signature.return_annotation is not funcsigs.Signature.empty:
+            if wrapped_signature.return_annotation is not inspect.Signature.empty:
                 return return_.to(wrapped_signature.return_annotation)
             else:
                 return return_

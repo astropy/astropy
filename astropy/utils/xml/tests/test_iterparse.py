@@ -78,7 +78,7 @@ VOTABLE_XML = HEADER + 125*ROW + FOOTER
 # http://stackoverflow.com/questions/4013843/how-to-wrap-file-object-read-and-write-operation-which-are-readonly
 
 
-class UngzipFileWrapper(object):
+class UngzipFileWrapper:
     def __init__(self, fd, **kwargs):
         self._file = fd
         self._z = zlib.decompressobj(16 + zlib.MAX_WBITS)

@@ -14,7 +14,7 @@ from .table import Table, Column
 from ..utils.data_info import ParentDtypeInfo
 
 
-class TimingTables(object):
+class TimingTables:
     """
     Object which contains two tables and various other attributes that
     are useful for timing and other API tests.
@@ -137,7 +137,7 @@ def complex_table():
     return table
 
 
-class ArrayWrapper(object):
+class ArrayWrapper:
     """
     Minimal mixin using a simple wrapper around a numpy array
     """

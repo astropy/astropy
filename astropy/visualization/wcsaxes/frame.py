@@ -13,7 +13,7 @@ from matplotlib.patches import PathPatch
 __all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 
 
-class Spine(object):
+class Spine:
     """
     A single side of an axes.
 

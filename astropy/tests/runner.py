@@ -16,7 +16,7 @@ from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-class keyword(object):
+class keyword:
     """
     A decorator to mark a method as keyword argument for the ``TestRunner``.
 
@@ -46,7 +46,7 @@ class keyword(object):
         return keyword
 
 
-class TestRunnerBase(object):
+class TestRunnerBase:
     """
     The base class for the TestRunner.
 

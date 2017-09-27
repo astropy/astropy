@@ -262,7 +262,7 @@ def test_read_filobj_group_path(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_wrong_fileobj():
 
-    class FakeFile(object):
+    class FakeFile:
         def read(self):
             pass
 

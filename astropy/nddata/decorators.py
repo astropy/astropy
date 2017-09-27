@@ -2,12 +2,12 @@
 
 
 from copy import deepcopy
+from inspect import signature
 from itertools import islice
 import warnings
 
 from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
-from ..utils.compat.funcsigs import signature
 
 from .nddata import NDData
 

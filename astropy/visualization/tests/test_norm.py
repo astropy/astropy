@@ -30,7 +30,7 @@ def test_normalize_error_message():
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-class TestNormalize(object):
+class TestNormalize:
     def test_invalid_interval(self):
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2., vmax=10., interval=ManualInterval,
@@ -121,7 +121,7 @@ class TestNormalize(object):
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
-class TestImageScaling(object):
+class TestImageScaling:
 
     def test_linear(self):
         """Test linear scaling."""

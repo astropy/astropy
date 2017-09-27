@@ -13,7 +13,7 @@ from ..util import fileobj_name
 
 
 
-class StreamingHDU(object):
+class StreamingHDU:
     """
     A class that provides the capability to stream data to a FITS file
     instead of requiring data to all be written at once.

@@ -25,7 +25,7 @@ def _searchsorted(array, val, side='left'):
     return begin
 
 
-class SortedArray(object):
+class SortedArray:
     '''
     Implements a sorted array container using
     a list of numpy arrays.

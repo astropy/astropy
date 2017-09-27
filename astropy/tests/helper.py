@@ -90,7 +90,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
 
 
-class raises(object):
+class raises:
     """
     A decorator to mark that a test should raise a given exception.
     Use as follows::

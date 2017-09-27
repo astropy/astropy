@@ -5,7 +5,7 @@ import pytest
 from ... import units as u
 
 
-class TestQuantityLinAlgFuncs(object):
+class TestQuantityLinAlgFuncs:
     """
     Test linear algebra functions
     """

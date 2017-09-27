@@ -286,7 +286,7 @@ def check_ucd(ucd, config=None, pos=None):
 
 ######################################################################
 # PROPERTY MIXINS
-class _IDProperty(object):
+class _IDProperty:
     @property
     def ID(self):
         """
@@ -305,7 +305,7 @@ class _IDProperty(object):
         self._ID = None
 
 
-class _NameProperty(object):
+class _NameProperty:
     @property
     def name(self):
         """An optional name for the element."""
@@ -321,7 +321,7 @@ class _NameProperty(object):
         self._name = None
 
 
-class _XtypeProperty(object):
+class _XtypeProperty:
     @property
     def xtype(self):
         """Extended data type information."""
@@ -341,7 +341,7 @@ class _XtypeProperty(object):
         self._xtype = None
 
 
-class _UtypeProperty(object):
+class _UtypeProperty:
     _utype_in_v1_2 = False
 
     @property
@@ -365,7 +365,7 @@ class _UtypeProperty(object):
         self._utype = None
 
 
-class _UcdProperty(object):
+class _UcdProperty:
     _ucd_in_v1_2 = False
 
     @property
@@ -391,7 +391,7 @@ class _UcdProperty(object):
         self._ucd = None
 
 
-class _DescriptionProperty(object):
+class _DescriptionProperty:
     @property
     def description(self):
         """

@@ -22,7 +22,7 @@ from ...utils.misc import NumpyRNGContext
 from ...io import fits
 
 
-class TestMaps(object):
+class TestMaps:
     def setup(self):
         # get the list of the hdr files that we want to test
         self._file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
@@ -55,7 +55,7 @@ class TestMaps(object):
             assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
 
-class TestSpectra(object):
+class TestSpectra:
     def setup(self):
         self._file_list = list(get_pkg_data_filenames("spectra",
                                                       pattern="*.hdr"))

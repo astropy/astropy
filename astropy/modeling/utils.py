@@ -6,12 +6,12 @@ This module provides utility functions for the models package
 
 
 from collections import deque, MutableMapping
+from inspect import signature
 
 import numpy as np
 
 
 from ..utils import isiterable, check_broadcast
-from ..utils.compat.funcsigs import signature
 
 from .. import units as u
 
@@ -19,7 +19,7 @@ __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']
 
 
-class ExpressionTree(object):
+class ExpressionTree:
     __slots__ = ['left', 'right', 'value']
 
     def __init__(self, value, left=None, right=None):

@@ -54,7 +54,7 @@ def get_database_string(fname):
     return dtb
 
 
-class Record(object):
+class Record:
 
     """
     A base class for all records - represents an IRAF database record
@@ -216,7 +216,7 @@ class FitcoordsRecord(Record):
         return self._surface[8:]
 
 
-class IDB(object):
+class IDB:
 
     """
     Base class for an IRAF identify database

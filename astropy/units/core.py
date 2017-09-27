@@ -101,7 +101,7 @@ def _normalize_equivalencies(equivalencies):
     return normalized
 
 
-class _UnitRegistry(object):
+class _UnitRegistry:
     """
     Manages a registry of the enabled units.
     """
@@ -261,7 +261,7 @@ class _UnitRegistry(object):
         self._equivalencies |= set(equivalencies)
 
 
-class _UnitContext(object):
+class _UnitContext:
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(
             _UnitRegistry(init=init, equivalencies=equivalencies))

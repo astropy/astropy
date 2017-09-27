@@ -43,7 +43,7 @@ def getattr_recursive(variable, attribute):
         return getattr(variable, attribute)
 
 
-class _ServerProxyPoolMethod(object):
+class _ServerProxyPoolMethod:
 
     # some magic to bind an XML-RPC method to an RPC server.
     # supports "nested" methods (e.g. examples.getStateName)
@@ -67,7 +67,7 @@ class _ServerProxyPoolMethod(object):
         return response
 
 
-class ServerProxyPool(object):
+class ServerProxyPool:
     """
     A thread-safe pool of `xmlrpc.ServerProxy` objects.
     """
@@ -83,7 +83,7 @@ class ServerProxyPool(object):
         return _ServerProxyPoolMethod(self._proxies, name)
 
 
-class SAMPMsgReplierWrapper(object):
+class SAMPMsgReplierWrapper:
     """
     Function decorator that allows to automatically grab errors and returned
     maps (if any) from a function bound to a SAMP call (or notify).
@@ -125,7 +125,7 @@ class SAMPMsgReplierWrapper(object):
         return wrapped_f
 
 
-class _HubAsClient(object):
+class _HubAsClient:
 
     def __init__(self, handler):
         self._handler = handler
@@ -135,7 +135,7 @@ class _HubAsClient(object):
         return _HubAsClientMethod(self._handler, name)
 
 
-class _HubAsClientMethod(object):
+class _HubAsClientMethod:
 
     def __init__(self, send, name):
         self.__send = send

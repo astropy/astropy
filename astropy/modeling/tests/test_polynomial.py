@@ -91,7 +91,7 @@ linear2d = {
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestFitting(object):
+class TestFitting:
     """Test linear fitter with polynomial models."""
 
     def setup_class(self):

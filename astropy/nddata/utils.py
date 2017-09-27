@@ -472,7 +472,7 @@ def block_replicate(data, block_size, conserve_sum=True):
     return data
 
 
-class Cutout2D(object):
+class Cutout2D:
     """
     Create a cutout object from a 2D array.
 

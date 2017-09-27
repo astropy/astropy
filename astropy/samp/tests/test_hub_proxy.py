@@ -8,7 +8,7 @@ def setup_module(module):
     conf.use_internet = False
 
 
-class TestHubProxy(object):
+class TestHubProxy:
 
     def setup_method(self, method):
 
