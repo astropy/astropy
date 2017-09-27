@@ -6,7 +6,7 @@ language: c
 os:
     - linux
 
-stage: tests
+stage: Comprehensive tests
 
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
@@ -50,10 +50,10 @@ env:
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
-   - name: single_test
+   - name: Initial tests
    # Do the rest of the tests
-   - name: tests
-   - name: cron_only
+   - name: Comprehensive tests
+   - name: Cron tests
      if: type = cron
 
 matrix:
@@ -63,13 +63,16 @@ matrix:
 
     include:
 
-        - env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-        - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+        - stage: Initial tests
+          env: PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+
+        - stage: Initial tests
+          env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
         # Try MacOS X. Use a slightly old numpy version to help test against
         # all supported numpy versions.
         - os: osx
-          stage: cron_only
+          stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='jplephem' NUMPY_VERSION=1.12
@@ -103,8 +106,8 @@ matrix:
                MATPLOTLIB_VERSION=1.5
 
         - os: linux
-          stage: single_test
-          env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
+          stage: Initial tests
+          env: SETUP_CMD='test --coverage -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
@@ -119,7 +122,7 @@ matrix:
 
         # Do a PEP8/pyflakes test with flake8
         - os: linux
-          stage: single_test
+          stage: Initial tests
           env: MAIN_CMD="flake8 astropy --count $FLAKE8_OPT" SETUP_CMD=''
 
         # Try developer version of Numpy with optional dependencies and also
@@ -134,7 +137,7 @@ matrix:
         # we can spot issues sooner. We do not use remote data here, since
         # that gives too many false positives due to URL timeouts.
         - os: linux
-          stage: cron_only
+          stage: Cron tests
           env: NUMPY_VERSION=dev
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
