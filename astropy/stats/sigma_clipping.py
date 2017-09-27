@@ -453,9 +453,9 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     std = np.ma.std(data_clip, ddof=std_ddof, axis=axis)
 
     if axis is None and np.ma.isMaskedArray(median):
-        # With Numpy 1.10 np.ma.median always return a MaskedArray, even with
-        # one element. So for compatibility with previous versions, we take the
-        # scalar value
+        # np.ma.median now always return a MaskedArray, even with one
+        # element. So for compatibility with previous versions of astropy,
+        # we keep taking the scalar value.
         median = median.item()
 
     return mean, median, std

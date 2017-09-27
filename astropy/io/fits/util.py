@@ -391,12 +391,10 @@ def fileobj_open(filename, mode):
     """
     A wrapper around the `open()` builtin.
 
-    This exists because in Python 3, `open()` returns an
-    `io.BufferedReader` by default.  This is bad, because
-    `io.BufferedReader` doesn't support random access, which we need in
-    some cases.  In the Python 3 case (implemented in the py3compat module)
-    we must call open with buffering=0 to get a raw random-access file
-    reader.
+    This exists because `open()` returns an `io.BufferedReader` by default.
+    This is bad, because `io.BufferedReader` doesn't support random access,
+    which we need in some cases.  We must call open with buffering=0 to get
+    a raw random-access file reader.
     """
 
     return open(filename, mode, buffering=0)

@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4
+from ...utils.compat import NUMPY_LT_1_10_4
 
 
 class TestQuantityArrayCopy:
@@ -143,9 +143,6 @@ class TestQuantityStatsFuncs:
         q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
 
-    # For 1.7 <= Numpy < 1.9.1, inplace causes the variance to be stored instead
-    # of the standard deviation; https://github.com/numpy/numpy/issues/5240
-    @pytest.mark.xfail(NUMPY_LT_1_9_1, reason="Numpy 1.9.1 or later is required")
     def test_std_inplace(self):
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
