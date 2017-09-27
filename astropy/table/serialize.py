@@ -17,7 +17,8 @@ __construct_mixin_classes = ('astropy.time.core.Time',
                              'astropy.coordinates.distances.Distance',
                              'astropy.coordinates.earth.EarthLocation',
                              'astropy.coordinates.sky_coordinate.SkyCoord',
-                             'astropy.table.table.NdarrayMixin')
+                             'astropy.table.table.NdarrayMixin',
+                             'sunpy.coordinates.representation.Longitude180')
 
 
 class SerializedColumn(dict):
