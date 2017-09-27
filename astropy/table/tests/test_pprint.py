@@ -41,7 +41,7 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
+            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -80,7 +80,7 @@ class TestMultiD():
                          '</table>']
         nbclass = table.conf.default_notebook_table_class
         assert t._repr_html_().splitlines() == [
-            '&lt;{0} masked={1} length=2&gt;'.format(table_type.__name__, t.masked),
+            '<i>{0} masked={1} length=2</i>'.format(table_type.__name__, t.masked),
             '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
@@ -100,7 +100,7 @@ def test_html_escaping():
     t = table.Table([(str('<script>alert("gotcha");</script>'), 2, 3)])
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
-        '&lt;Table length=3&gt;',
+        '<i>Table length=3</i>',
         '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',

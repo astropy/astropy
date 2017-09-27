@@ -146,7 +146,7 @@ class TestRow():
                                          '--- ---',
                                          '  1   4']
 
-        assert row._repr_html_().splitlines() == ['&lt;{0} {1}{2}&gt;'
+        assert row._repr_html_().splitlines() == ['<i>{0} {1}{2}</i>'
                                                   .format(row.__class__.__name__,
                                                           'index=0',
                                                           ' masked=True' if table.masked else ''),
