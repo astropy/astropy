@@ -67,12 +67,13 @@ These parameters are:
 .. _fast_conversion_opts:
 
 Parallel and fast conversion options
-====================================
+------------------------------------
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a dict specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``. For example::
 
-   >>> ascii.read('data.txt', format='basic', fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
+   >>> ascii.read('data.txt', format='basic',
+   ...            fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
 
 These options allow for even faster table reading when enabled, but both are
 disabled by default because they come with some caveats.
@@ -92,21 +93,8 @@ The special setting ``'fortran'`` enables auto-detection of any valid
 exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
 
-Writing
-=======
-The fast engine supports the same functionality as the ordinary writing engine
-and is generally about 2 to 4 times faster than the ordinary engine. An IPython
-notebook testing the relative performance of the fast writer against the
-ordinary writing system and the data analysis library `Pandas
-<http://pandas.pydata.org/>`__ is available `here <http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
-The speed advantage of the faster engine is greatest for integer data and least
-for floating-point data; the fast engine is around 3.6 times faster for a
-sample file including a mixture of floating-point, integer, and text data.
-Also note that stripping string values slows down the writing process, so
-specifying ``strip_whitespace=False`` can improve performance.
-
 Fast converter
-==============
+--------------
 Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
@@ -131,6 +119,24 @@ within 0.5 ULP and about 90% within 1.0 ULP. Another notebook analyzing
 the fast converter's behavior with extreme values (such as subnormals
 and values out of the range of floats) is available `here
 <http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
+
+Reading large tables
+--------------------
+For reading very large tables using the fast reader see the section on
+:ref:`chunk_reading`.
+
+Writing
+=======
+The fast engine supports the same functionality as the ordinary writing engine
+and is generally about 2 to 4 times faster than the ordinary engine. An IPython
+notebook testing the relative performance of the fast writer against the
+ordinary writing system and the data analysis library `Pandas
+<http://pandas.pydata.org/>`__ is available `here <http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
+The speed advantage of the faster engine is greatest for integer data and least
+for floating-point data; the fast engine is around 3.6 times faster for a
+sample file including a mixture of floating-point, integer, and text data.
+Also note that stripping string values slows down the writing process, so
+specifying ``strip_whitespace=False`` can improve performance.
 
 Speed gains
 ===========

@@ -250,7 +250,7 @@ def read(table, guess=None, **kwargs):
             If supplied with a value > 0 then read the table in chunks of
             approximately ``chunk_size`` bytes. Default is reading table in one pass.
         chunk_generator : bool
-            If True and ``chunk_size > 0`` then return a generator that returns a
+            If True and ``chunk_size > 0`` then return an iterator that returns a
             table for each chunk.  The default is to return a single stacked table
             for all the chunks.
 
