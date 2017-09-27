@@ -1326,11 +1326,12 @@ def test_read_chunks_input_types():
         assert np.all(t1 == t3)
 
 
-def test_read_chunks_formats():
+@pytest.mark.parametrize('masked', [True, False])
+def test_read_chunks_formats(masked):
     """
     Test different supported formats for chunked reading.
     """
-    t1 = simple_table(size=100, cols=10, kinds='fS')
+    t1 = simple_table(size=100, cols=10, kinds='fS', masked=masked)
     for i, name in enumerate(t1.colnames):
         t1.rename_column(name, 'col{}'.format(i + 1))
 

@@ -18,6 +18,8 @@ import warnings
 import contextlib
 from io import StringIO
 
+import numpy as np
+
 from . import core
 from . import basic
 from . import cds
@@ -644,16 +646,26 @@ def _read_in_chunks(table, **kwargs):
 
     tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
     tbl0 = next(tbl_chunks)
+    masked = tbl0.masked
+
     # Numpy won't allow resizing the original so make a copy here.
-    out_cols = [col.data.copy() for col in tbl0.itercols()]
+    out_cols = {col.name: col.data.copy() for col in tbl0.itercols()}
 
     for tbl in tbl_chunks:
         col_len = len(tbl)
-        for out_col, col, name in zip(out_cols, tbl.itercols(), tbl.colnames):
-            out_col.resize(len(out_col) + col_len, refcheck=False)
-            out_col[-col_len:] = col.data
+        masked |= tbl.masked
+        for name, col in tbl.columns.items():
+            if masked:
+                # For masked case, concatenate old + new columns
+                out_cols[name] = np.ma.concatenate([out_cols[name], col.data])
+            else:
+                # For unmasked do an inplace resize and assignment (saves memory?)
+                out_col = out_cols[name]
+                out_col.resize(len(out_col) + col_len, refcheck=False)
+                out_col[-col_len:] = col.data
 
-    # Make final table from numpy arrays
+    # Make final table from numpy arrays, converting dict to list
+    out_cols = [out_cols[name] for name in tbl0.colnames]
     out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta,
                          copy=False)
 
