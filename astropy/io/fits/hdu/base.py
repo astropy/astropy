@@ -6,6 +6,8 @@ import datetime
 import os
 import sys
 import warnings
+from contextlib import suppress
+from inspect import signature, Parameter
 
 import numpy as np
 
@@ -18,13 +20,11 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
 from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty
-from ....utils.compat import suppress
-from ....utils.compat.funcsigs import signature, Parameter
 from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
 
 
-class _Delayed(object):
+class _Delayed:
     pass
 
 

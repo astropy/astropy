@@ -90,7 +90,7 @@ def _normalize_fits_mode(mode):
         mode = new_mode
     return mode
 
-class _File(object):
+class _File:
     """
     Represents a FITS file on disk (or in some other file-like object).
     """

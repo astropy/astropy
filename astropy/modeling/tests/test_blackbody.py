@@ -21,7 +21,7 @@ except ImportError:
 __doctest_skip__ = ['*']
 
 
-class TestBlackbody1D(object):
+class TestBlackbody1D:
 
     # Make sure the temperature equivalency automatically applies by trying
     # to pass temperatures in celsius

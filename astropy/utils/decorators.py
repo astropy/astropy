@@ -9,6 +9,7 @@ import inspect
 import textwrap
 import types
 import warnings
+from inspect import signature
 
 from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
@@ -418,9 +419,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
         pending = [pending]
 
     def decorator(function):
-        # Lazy import to avoid cyclic imports
-        from .compat.funcsigs import signature
-
         # The named arguments of the function.
         arguments = signature(function).parameters
         keys = list(arguments.keys())
@@ -549,7 +547,7 @@ class classproperty(property):
 
     ::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -567,7 +565,7 @@ class classproperty(property):
     As previously noted, a `classproperty` is limited to implementing
     read-only attributes::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     _bar_internal = 1
         ...     @classproperty
         ...     def bar(cls):
@@ -583,7 +581,7 @@ class classproperty(property):
 
     When the ``lazy`` option is used, the getter is only called once::
 
-        >>> class Foo(object):
+        >>> class Foo:
         ...     @classproperty(lazy=True)
         ...     def bar(cls):
         ...         print("Performing complicated calculation")
@@ -694,7 +692,7 @@ class lazyproperty(property):
     useful for computing the value of some property that should otherwise be
     invariant.  For example::
 
-        >>> class LazyTest(object):
+        >>> class LazyTest:
         ...     @lazyproperty
         ...     def complicated_property(self):
         ...         print('Computing the value for complicated_property...')
@@ -766,7 +764,7 @@ class sharedmethod(classmethod):
     behaves like a normal instance method (a reference to the instance is
     automatically passed as the first ``self`` argument of the method)::
 
-        >>> class Example(object):
+        >>> class Example:
         ...     @sharedmethod
         ...     def identify(self, *args):
         ...         print('self was', self)

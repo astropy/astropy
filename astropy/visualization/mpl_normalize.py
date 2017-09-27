@@ -21,7 +21,7 @@ try:
         class Normalize(Normalize, object):
             pass
 except ImportError:
-    class Normalize(object):
+    class Normalize:
         def __init__(self, *args, **kwargs):
             raise ImportError('matplotlib is required in order to use this '
                               'class.')

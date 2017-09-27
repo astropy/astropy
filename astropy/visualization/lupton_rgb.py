@@ -46,7 +46,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     return np.asarray(intensity, dtype=image_r.dtype)
 
 
-class Mapping(object):
+class Mapping:
     """
     Baseclass to map red, blue, green intensities into uint8 values.
 

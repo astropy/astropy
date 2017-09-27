@@ -54,7 +54,7 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-class QuantityIterator(object):
+class QuantityIterator:
     """
     Flat iterator object to iterate over Quantities
 

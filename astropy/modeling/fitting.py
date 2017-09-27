@@ -475,7 +475,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         return model_copy
 
 
-class FittingWithOutlierRemoval(object):
+class FittingWithOutlierRemoval:
     """
     This class combines an outlier removal technique with a fitting procedure.
     Basically, given a number of iterations ``niter``, outliers are removed

@@ -141,7 +141,7 @@ def get_auto_format_func(
     return _auto_format_func
 
 
-class TableFormatter(object):
+class TableFormatter:
     @staticmethod
     def _get_pprint_size(max_lines=None, max_width=None):
         """Get the output size (number of lines and character width) for Column and

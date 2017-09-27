@@ -25,7 +25,7 @@ def strip_units(*arrs):
         return map(strip, arrs)
 
 
-class LombScargle(object):
+class LombScargle:
     """Compute the Lomb-Scargle Periodogram.
 
     This implementations here are based on code presented in [1]_ and [2]_;

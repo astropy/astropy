@@ -41,7 +41,7 @@ def assert_output(mtype, private_key, sender_id, params, timeout=None):
     assert rec_params == params
 
 
-class Receiver(object):
+class Receiver:
 
     def __init__(self, client):
         self.client = client

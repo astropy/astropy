@@ -7,7 +7,7 @@ from ... import log
 __all__ = ['NDSlicingMixin']
 
 
-class NDSlicingMixin(object):
+class NDSlicingMixin:
     """Mixin to provide slicing on objects using the `NDData`
     interface.
 

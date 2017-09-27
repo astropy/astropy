@@ -9,7 +9,7 @@ from .frame import RectangularFrame
 from .coordinate_range import find_coordinate_range
 
 
-class CoordinatesMap(object):
+class CoordinatesMap:
     """
     A container for coordinate helpers that represents a coordinate system.
 

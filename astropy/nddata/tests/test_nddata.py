@@ -34,7 +34,7 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
-class FakeNumpyArray(object):
+class FakeNumpyArray:
     """
     Class that has a few of the attributes of a numpy array.
 
@@ -57,7 +57,7 @@ class FakeNumpyArray(object):
         return 'fake'
 
 
-class MinimalUncertainty(object):
+class MinimalUncertainty:
     """
     Define the minimum attributes acceptable as an uncertainty object.
     """
@@ -277,7 +277,7 @@ def test_nddata_init_data_fail():
         NDData({'a': 'dict'})
 
     # This has a shape but is not sliceable
-    class Shape(object):
+    class Shape:
         def __init__(self):
             self.shape = 5
 

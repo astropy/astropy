@@ -24,7 +24,7 @@ VERIFY_OPTIONS = ['ignore', 'warn', 'exception', 'fix', 'silentfix',
                   'silentfix+ignore', 'silentfix+warn', 'silentfix+exception']
 
 
-class _Verify(object):
+class _Verify:
     """
     Shared methods for verification.
     """

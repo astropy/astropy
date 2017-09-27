@@ -168,7 +168,7 @@ def test_projection_default(code):
     x, y = tinv(0, 0)
 
 
-class TestZenithalPerspective(object):
+class TestZenithalPerspective:
     """Test Zenithal Perspective projection"""
 
     def setup_class(self):
@@ -200,7 +200,7 @@ class TestZenithalPerspective(object):
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
-class TestCylindricalPerspective(object):
+class TestCylindricalPerspective:
     """Test cylindrical perspective projection"""
 
     def setup_class(self):

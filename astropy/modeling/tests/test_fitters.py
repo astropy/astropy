@@ -10,6 +10,7 @@ import pytest
 import numpy as np
 from numpy import linalg
 from numpy.testing.utils import assert_allclose, assert_almost_equal
+from unittest import mock
 
 from . import irafutil
 from .. import models
@@ -30,15 +31,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-HAS_MOCK = True
-try:
-    from unittest import mock
-except ImportError:
-    try:
-        import mock
-    except ImportError:
-        HAS_MOCK = False
-
 try:
     from pkg_resources import EntryPoint
     HAS_PKG = True
@@ -51,7 +43,7 @@ fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 _RANDOM_SEED = 0x1337
 
 
-class TestPolynomial2D(object):
+class TestPolynomial2D:
     """Tests for 2D polynomail fitting."""
 
     def setup_class(self):
@@ -81,7 +73,7 @@ class TestPolynomial2D(object):
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
 
-class TestICheb2D(object):
+class TestICheb2D:
     """
     Tests 2D Chebyshev polynomial fitting
 
@@ -135,7 +127,7 @@ class TestICheb2D(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestJointFitter(object):
+class TestJointFitter:
 
     """
     Tests the joint fitting routine using 2 gaussian models
@@ -192,7 +184,7 @@ class TestJointFitter(object):
         assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
 
-class TestLinearLSQFitter(object):
+class TestLinearLSQFitter:
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
 
@@ -299,7 +291,7 @@ class TestLinearLSQFitter(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class TestNonLinearFitters(object):
+class TestNonLinearFitters:
     """Tests non-linear least squares fitting and the SLSQP algorithm."""
 
     def setup_class(self):
@@ -470,9 +462,8 @@ class TestNonLinearFitters(object):
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
 
-@pytest.mark.skipif('not HAS_MOCK')
 @pytest.mark.skipif('not HAS_PKG')
-class TestEntryPoint(object):
+class TestEntryPoint:
     """Tests population of fitting with entry point fitters"""
 
     def setup_class(self):
@@ -496,7 +487,7 @@ class TestEntryPoint(object):
 
     def returnbadclass(self):
         # This should import But it should fail subclass type check
-        class badclass(object):
+        class badclass:
             pass
         return badclass
 
@@ -560,7 +551,7 @@ class TestEntryPoint(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class Test1DFittingWithOutlierRemoval(object):
+class Test1DFittingWithOutlierRemoval:
     def setup_class(self):
         self.x = np.linspace(-5., 5., 200)
         self.model_params = (3.0, 1.3, 0.8)
@@ -597,7 +588,7 @@ class Test1DFittingWithOutlierRemoval(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-class Test2DFittingWithOutlierRemoval(object):
+class Test2DFittingWithOutlierRemoval:
     def setup_class(self):
         self.y, self.x = np.mgrid[-3:3:128j, -3:3:128j]
         self.model_params = (3.0, 1.0, 0.0, 0.8, 0.8)

@@ -19,6 +19,7 @@ import re
 import warnings
 
 from collections import OrderedDict
+from contextlib import suppress
 from io import StringIO
 
 import numpy
@@ -26,7 +27,6 @@ import numpy
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
-from ...utils.compat import suppress
 from ...utils.data import get_readable_fileobj
 from . import connect
 
@@ -37,7 +37,7 @@ FORMAT_CLASSES = {}
 FAST_CLASSES = {}
 
 
-class CsvWriter(object):
+class CsvWriter:
     """
     Internal class to replace the csv writer ``writerow`` and ``writerows``
     functions so that in the case of ``delimiter=' '`` and
@@ -188,7 +188,7 @@ class FastOptionsError(NotImplementedError):
     """
 
 
-class NoType(object):
+class NoType:
     """
     Superclass for ``StrType`` and ``NumType`` classes.
 
@@ -236,7 +236,7 @@ class AllType(StrType, FloatType, IntType):
     """
 
 
-class Column(object):
+class Column:
     """Table column.
 
     The key attributes of a Column object are:
@@ -256,7 +256,7 @@ class Column(object):
         self.fill_values = {}
 
 
-class BaseInputter(object):
+class BaseInputter:
     """
     Get the lines from the table input and return a list of lines.
 
@@ -319,7 +319,7 @@ class BaseInputter(object):
         return lines
 
 
-class BaseSplitter(object):
+class BaseSplitter:
     """
     Base splitter that uses python's split method to do the work.
 
@@ -513,7 +513,7 @@ def _get_line_index(line_or_func, lines):
         return line_or_func
 
 
-class BaseHeader(object):
+class BaseHeader:
     """
     Base table header reader
     """
@@ -664,7 +664,7 @@ class BaseHeader(object):
                              ' of table columns ({1})'.format(len(names), len(self.colnames)))
 
 
-class BaseData(object):
+class BaseData:
     """
     Base table data reader.
     """
@@ -905,7 +905,7 @@ def convert_numpy(numpy_type):
     return converter, converter_type
 
 
-class BaseOutputter(object):
+class BaseOutputter:
     """Output table as a dict of column objects keyed on column name.  The
     table data are stored as plain python lists within the column objects.
     """

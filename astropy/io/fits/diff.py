@@ -19,6 +19,7 @@ import warnings
 
 from collections import defaultdict
 from functools import reduce
+from inspect import signature
 from itertools import islice
 
 import numpy as np
@@ -26,7 +27,6 @@ import numpy as np
 from ... import __version__
 
 from ...utils import indent
-from ...utils.compat.funcsigs import signature
 from .card import Card, BLANK_CARD
 from .header import Header
 from ...utils.decorators import deprecated_renamed_argument
@@ -48,7 +48,7 @@ _COL_ATTRS = [('unit', 'units'), ('null', 'null values'),
 indent = functools.partial(indent, width=2)
 
 
-class _BaseDiff(object):
+class _BaseDiff:
     """
     Base class for all FITS diff objects.
 

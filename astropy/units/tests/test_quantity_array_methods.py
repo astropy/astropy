@@ -8,7 +8,7 @@ from ... import units as u
 from ...utils.compat import NUMPY_LT_1_9_1, NUMPY_LT_1_10_4
 
 
-class TestQuantityArrayCopy(object):
+class TestQuantityArrayCopy:
     """
     Test whether arrays are properly copied/used in place
     """
@@ -74,7 +74,7 @@ class TestQuantityArrayCopy(object):
         assert q[2, 2] == -1. * u.km / u.s
 
 
-class TestQuantityReshapeFuncs(object):
+class TestQuantityReshapeFuncs:
     """Test different ndarray methods that alter the array shape
 
     tests: reshape, squeeze, ravel, flatten, transpose, swapaxes
@@ -123,7 +123,7 @@ class TestQuantityReshapeFuncs(object):
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
 
-class TestQuantityStatsFuncs(object):
+class TestQuantityStatsFuncs:
     """
     Test statistical functions
     """
@@ -396,7 +396,7 @@ class TestQuantityStatsFuncs(object):
         assert np.all(cont == expected)
 
 
-class TestArrayConversion(object):
+class TestArrayConversion:
     """
     Test array conversion methods
     """
@@ -539,7 +539,7 @@ class TestArrayConversion(object):
             q1.dumps()
 
 
-class TestRecArray(object):
+class TestRecArray:
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
 

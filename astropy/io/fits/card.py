@@ -27,7 +27,7 @@ VALUE_INDICATOR = '= '  # The standard FITS value indicator
 HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
 
 
-class Undefined(object):
+class Undefined:
     """Undefined value."""
 
     def __init__(self):

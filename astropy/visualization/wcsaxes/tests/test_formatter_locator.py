@@ -10,7 +10,7 @@ from .... import units as u
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 
-class TestAngleFormatterLocator(object):
+class TestAngleFormatterLocator:
 
     def test_no_options(self):
 
@@ -201,7 +201,7 @@ class TestAngleFormatterLocator(object):
         assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
 
 
-class TestScalarFormatterLocator(object):
+class TestScalarFormatterLocator:
 
     def test_no_options(self):
 

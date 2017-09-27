@@ -57,7 +57,7 @@ def indent(s, shift=1, width=4):
     return indented
 
 
-class _DummyFile(object):
+class _DummyFile:
     """A noop writeable object."""
 
     def write(self, s):
@@ -112,7 +112,7 @@ def format_exception(msg, *args, **kwargs):
                       text=text, **kwargs)
 
 
-class NumpyRNGContext(object):
+class NumpyRNGContext:
     """
     A context manager (for use with the ``with`` statement) that will seed the
     numpy random number generator (RNG) to a specific value, and then restore

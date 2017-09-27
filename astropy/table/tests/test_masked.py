@@ -10,7 +10,7 @@ import numpy.ma as ma
 from ...table import Column, MaskedColumn, Table
 
 
-class SetupData(object):
+class SetupData:
     def setup_method(self, method):
         self.a = MaskedColumn(name='a', data=[1, 2, 3], fill_value=1)
         self.b = MaskedColumn(name='b', data=[4, 5, 6], mask=True)
@@ -26,7 +26,7 @@ class TestPprint(SetupData):
         assert self.t.pformat() == [' a   b ', '--- ---', '  1  --', '  2  --', '  3  --']
 
 
-class TestFilled(object):
+class TestFilled:
     """Test the filled method in MaskedColumn and Table"""
 
     def setup_method(self, method):
@@ -206,7 +206,7 @@ class TestTableInit(SetupData):
                 assert np.all(t[name].mask == mask)
 
 
-class TestAddColumn(object):
+class TestAddColumn:
 
     def test_add_masked_column_to_masked_table(self):
         t = Table(masked=True)
@@ -257,7 +257,7 @@ class TestAddColumn(object):
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
 
-class TestRenameColumn(object):
+class TestRenameColumn:
 
     def test_rename_masked_column(self):
         t = Table(masked=True)
@@ -271,7 +271,7 @@ class TestRenameColumn(object):
         assert t.colnames == ['b']
 
 
-class TestRemoveColumn(object):
+class TestRemoveColumn:
 
     def test_remove_masked_column(self):
         t = Table(masked=True)
@@ -286,7 +286,7 @@ class TestRemoveColumn(object):
         assert t.colnames == ['a']
 
 
-class TestAddRow(object):
+class TestAddRow:
 
     def test_add_masked_row_to_masked_table_iterable(self):
         t = Table(masked=True)

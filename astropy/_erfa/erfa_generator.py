@@ -29,7 +29,7 @@ ctype_to_dtype = {'double': "numpy.double",
 NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*', '.*').replace(r'\<', '(').replace(r'\>', ')'))
 
 
-class FunctionDoc(object):
+class FunctionDoc:
 
     def __init__(self, doc):
         self.doc = doc.replace("**", "  ").replace("/*\n", "").replace("*/", "")
@@ -98,7 +98,7 @@ class FunctionDoc(object):
         return self.doc.replace("  \n", "\n")
 
 
-class ArgumentDoc(object):
+class ArgumentDoc:
 
     def __init__(self, doc):
         match = re.search("^ +([^ ]+)[ ]+([^ ]+)[ ]+(.+)", doc)
@@ -115,7 +115,7 @@ class ArgumentDoc(object):
         return "    {0:15} {1:15} {2}".format(self.name, self.type, self.doc)
 
 
-class Argument(object):
+class Argument:
 
     def __init__(self, definition, doc):
         self.doc = doc
@@ -196,7 +196,7 @@ class Argument(object):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
 
-class ReturnDoc(object):
+class ReturnDoc:
 
     def __init__(self, doc):
         self.doc = doc
@@ -226,7 +226,7 @@ class ReturnDoc(object):
         return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
 
 
-class Return(object):
+class Return:
 
     def __init__(self, ctype, doc):
         self.name = 'c_retval'
@@ -257,7 +257,7 @@ class Return(object):
         return self.doc.ret_info
 
 
-class Function(object):
+class Function:
     """
     A class representing a C function.
 
@@ -346,7 +346,7 @@ class Function(object):
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
 
 
-class Constant(object):
+class Constant:
 
     def __init__(self, name, value, doc):
         self.name = name.replace("ERFA_", "")

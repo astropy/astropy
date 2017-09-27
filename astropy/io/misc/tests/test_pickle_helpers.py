@@ -38,7 +38,7 @@ def test_fnpickling_simple(tmpdir):
         assert obj1 == res
 
 
-class ToBePickled(object):
+class ToBePickled:
     def __init__(self, item):
         self.item = item
 

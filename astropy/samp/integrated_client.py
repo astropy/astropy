@@ -9,7 +9,7 @@ __all__ = ['SAMPIntegratedClient']
 __doctest_skip__ = ['SAMPIntegratedClient.*']
 
 
-class SAMPIntegratedClient(object):
+class SAMPIntegratedClient:
     """
     A Simple SAMP client.
 

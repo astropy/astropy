@@ -7,7 +7,7 @@ from ...io import registry as io_registry
 __all__ = ['NDIOMixin']
 
 
-class NDIOMixin(object):
+class NDIOMixin:
     """
     Mixin class to connect NDData to the astropy input/output registry.
 

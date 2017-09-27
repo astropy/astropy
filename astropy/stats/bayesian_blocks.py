@@ -42,7 +42,7 @@ import warnings
 
 import numpy as np
 
-from ..utils.compat.funcsigs import signature
+from inspect import signature
 from ..utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
@@ -154,7 +154,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     return fitfunc.fit(t, x, sigma)
 
 
-class FitnessFunc(object):
+class FitnessFunc:
     """Base class for bayesian blocks fitness functions
 
     Derived classes should overload the following method:

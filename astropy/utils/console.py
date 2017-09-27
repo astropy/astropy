@@ -37,7 +37,7 @@ __all__ = [
 _DEFAULT_ENCODING = 'utf-8'
 
 
-class _IPython(object):
+class _IPython:
     """Singleton class given access to IPython streams, etc."""
 
     @classproperty
@@ -487,7 +487,7 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
-class ProgressBar(object):
+class ProgressBar:
     """
     A class to display a progress bar in the terminal.
 
@@ -752,7 +752,7 @@ class ProgressBar(object):
         return results
 
 
-class Spinner(object):
+class Spinner:
     """
     A class to display a spinner in the terminal.
 
@@ -868,7 +868,7 @@ class Spinner(object):
             yield
 
 
-class ProgressBarOrSpinner(object):
+class ProgressBarOrSpinner:
     """
     A class that displays either a `ProgressBar` or `Spinner`
     depending on whether the total size of the operation is
@@ -1027,7 +1027,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
 
-class Getch(object):
+class Getch:
     """Get a single character from standard input without screen echo.
 
     Returns
@@ -1048,7 +1048,7 @@ class Getch(object):
         return self.impl()
 
 
-class _GetchUnix(object):
+class _GetchUnix:
     def __init__(self):
         import tty  # pylint: disable=W0611
         import sys  # pylint: disable=W0611
@@ -1071,7 +1071,7 @@ class _GetchUnix(object):
         return ch
 
 
-class _GetchWindows(object):
+class _GetchWindows:
     def __init__(self):
         import msvcrt  # pylint: disable=W0611
 
@@ -1080,7 +1080,7 @@ class _GetchWindows(object):
         return msvcrt.getch()
 
 
-class _GetchMacCarbon(object):
+class _GetchMacCarbon:
     """
     A function which returns the current ASCII key that is down;
     if no ASCII key is down, the null string is returned.  The

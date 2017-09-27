@@ -6,7 +6,7 @@ import collections
 import numpy as np
 
 
-class Row(object):
+class Row:
     """A class to represent one row of a Table object.
 
     A Row object is returned when a Table object is indexed with an integer

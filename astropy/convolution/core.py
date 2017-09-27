@@ -28,7 +28,7 @@ MAX_NORMALIZATION = 100
 __all__ = ['Kernel', 'Kernel1D', 'Kernel2D', 'kernel_arithmetics']
 
 
-class Kernel(object):
+class Kernel:
     """
     Convolution kernel base class.
 
