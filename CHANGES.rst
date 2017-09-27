@@ -269,6 +269,11 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- The ``deprecated`` decorator applied to a class will now modify the class
+  itself, rather than to create a class that just looks and behave like the
+  original. This is needed so that the Python 3 ``super`` without arguments
+  works for decorated classes. [#6615]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

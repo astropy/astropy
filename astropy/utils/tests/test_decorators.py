@@ -169,6 +169,37 @@ def test_deprecated_class():
     pickle.dumps(TA)
 
 
+def test_deprecated_class_with_new_method():
+    """
+    Test that a class with __new__ method still works even if it accepts
+    additional arguments.
+    This previously failed because the deprecated decorator would wrap objects
+    __init__ which takes no arguments.
+    """
+    @deprecated('1.0')
+    class A:
+        def __new__(cls, a):
+            return super().__new__(cls)
+
+    # Creating an instance should work but raise a DeprecationWarning
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        A(1)
+    assert len(w) == 1
+
+    @deprecated('1.0')
+    class B:
+        def __new__(cls, a):
+            return super().__new__(cls)
+
+        def __init__(self, a):
+            pass
+
+    # Creating an instance should work but raise a DeprecationWarning
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        B(1)
+    assert len(w) == 1
+
+
 def test_deprecated_class_with_super():
     """
     Regression test for an issue where classes that used `super()` in their
@@ -179,7 +210,7 @@ def test_deprecated_class_with_super():
     @deprecated('100.0')
     class TB:
         def __init__(self, a, b):
-            super(TB, self).__init__()
+            super().__init__()
 
     with catch_warnings(AstropyDeprecationWarning) as w:
         TB(1, 2)
