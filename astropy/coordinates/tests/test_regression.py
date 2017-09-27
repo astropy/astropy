@@ -555,3 +555,25 @@ def test_regression_6448():
     sc2 = SkyCoord([c1, c2])
     # without 6448 this fails
     assert sc2.galcen_v_sun is None
+
+
+def test_regression_6597():
+    frame_name = 'galactic'
+    c1 = SkyCoord(1, 3, unit='deg', frame=frame_name)
+    c2 = SkyCoord(2, 4, unit='deg', frame=frame_name)
+    sc1 = SkyCoord([c1, c2])
+
+    assert sc1.frame.name == frame_name
+
+
+def test_regression_6597_2():
+    """
+    This tests the more subtle flaw that #6597 indirectly uncovered: that even
+    in the case that the frames are ra/dec, they still might be the wrong *kind*
+    """
+    frame = FK4(equinox='J1949')
+    c1 = SkyCoord(1, 3, unit='deg', frame=frame)
+    c2 = SkyCoord(2, 4, unit='deg', frame=frame)
+    sc1 = SkyCoord([c1, c2])
+
+    assert sc1.frame.name == frame.name
