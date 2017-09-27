@@ -1297,17 +1297,17 @@ def test_unsupported_read_with_encoding(tmpdir):
                    encoding='latin1', format='fast_csv')
 
 
-
 def test_read_chunks_input_types():
     """
     Test chunked reading for different input types: file path, file object,
     and string input.
     """
     fpath = 't/test5.dat'
-    t1 = ascii.read(fpath, header_start=1, data_start=3)
+    t1 = ascii.read(fpath, header_start=1, data_start=3, )
 
     for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
         t_gen = ascii.read(fp, header_start=1, data_start=3,
+                           guess=False, format='fast_basic',
                            fast_reader={'chunk_size': 400, 'chunk_generator': True})
         ts = list(t_gen)
         for t in ts:
@@ -1341,7 +1341,7 @@ def test_read_chunks_formats():
         out = StringIO()
         ascii.write(t1, out, format=format)
         t_gen = ascii.read(out.getvalue(), format=format,
-                           fast_reader={'chunk_size': 300, 'chunk_generator': True})
+                           fast_reader={'chunk_size': 400, 'chunk_generator': True})
         ts = list(t_gen)
         for t in ts:
             for col, col1 in zip(t.columns.values(), t1.columns.values()):
@@ -1353,7 +1353,7 @@ def test_read_chunks_formats():
         assert np.all(t1 == t2)
 
         # Now read the full table in chunks
-        t3 = ascii.read(out.getvalue(), format=format, fast_reader={'chunk_size': 300})
+        t3 = ascii.read(out.getvalue(), format=format, fast_reader={'chunk_size': 400})
         assert np.all(t1 == t3)
 
 
