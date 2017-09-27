@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # TODO: Test FITS parsing
 
-
 # STDLIB
 import io
 import re
@@ -66,15 +65,8 @@ def _resize(masked, new_size):
     """
     new_array = ma.zeros((new_size,), dtype=masked.dtype)
     length = min(len(masked), new_size)
-    try:
-        # Pre Numpy 1.10 way
-        new_array.data[:length] = masked.data[:length]
-    except TypeError:
-        # Numpy 1.10 and later
-        new_array[:length] = masked[:length]
-    else:
-        if length != 0:
-            new_array.mask[:length] = masked.mask[:length]
+    new_array[:length] = masked[:length]
+
     return new_array
 
 

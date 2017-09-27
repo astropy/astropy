@@ -290,7 +290,6 @@ class TestQuantityMathFuncs:
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
-    # cbrt only introduced in numpy 1.10
     # heaviside only introduced in numpy 1.13
     @pytest.mark.skipif("not hasattr(np, 'heaviside')")
     def test_heaviside_scalar(self):
@@ -307,11 +306,9 @@ class TestQuantityMathFuncs:
                                    halfway * u.dimensionless_unscaled) ==
                       [0, 0.25, 0.75, +1.] * u.dimensionless_unscaled)
 
-    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_scalar(self):
         assert np.cbrt(8. * u.m**3) == 2. * u.m
 
-    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_array(self):
         # Calculate cbrt on both sides since on Windows the cube root of 64
         # does not exactly equal 4.  See 4388.

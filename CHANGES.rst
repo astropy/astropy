@@ -282,6 +282,8 @@ Other Changes and Additions
 
 - Versions of Pytest <3.1 are no longer supported. [#6419]
 
+- Versions of Numpy <1.10 are no longer supported. [#6593]
+
 - The bundled CFITSIO was updated to version 3.41 [#6477]
 
 - ``analytic_functions`` sub-package is removed.
