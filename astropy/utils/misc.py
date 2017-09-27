@@ -402,7 +402,7 @@ class JsonCustomEncoder(json.JSONEncoder):
                 obj = 'dimensionless_unit'
             else:
                 return obj.to_string()
-        #
+
         return json.JSONEncoder.default(self, obj)
 
 
