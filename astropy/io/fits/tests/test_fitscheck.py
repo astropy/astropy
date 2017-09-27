@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 from . import FitsTestCase
 from ..scripts import fitscheck
 from ... import fits
-from ....tests.helper import pytest
 
 
 class TestFitscheck(FitsTestCase):
