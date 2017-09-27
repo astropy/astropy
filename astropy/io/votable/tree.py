@@ -65,7 +65,6 @@ def _resize(masked, new_size):
     """
     new_array = ma.zeros((new_size,), dtype=masked.dtype)
     length = min(len(masked), new_size)
-
     new_array[:length] = masked[:length]
 
     return new_array
