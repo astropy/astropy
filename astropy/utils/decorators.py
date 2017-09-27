@@ -131,35 +131,25 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     def deprecate_class(cls, message):
         """
-        Returns a wrapper class with the docstrings updated and an
-        __init__ function that will raise an
-        ``AstropyDeprectationWarning`` warning when called.
+        Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
+        if the class or any of the bases overrides ``__new__``) so it will give
+        a deprecation warning when an instance is created.
+
+        This won't work for extension classes because these can't be modified
+        in-place and the alternatives don't work in the general case:
+
+        - Using a new class that looks and behaves like the original doesn't
+          work because the __new__ method of extension types usually makes sure
+          that it's the same class or a subclass.
+        - Subclassing the class and return the subclass can lead to problems
+          with pickle and will look weird in the Sphinx docs.
         """
-        # Creates a new class with the same name and bases as the
-        # original class, but updates the dictionary with a new
-        # docstring and a wrapped __init__ method.  __module__ needs
-        # to be manually copied over, since otherwise it will be set
-        # to *this* module (astropy.utils.misc).
-
-        # This approach seems to make Sphinx happy (the new class
-        # looks enough like the original class), and works with
-        # extension classes (which functools.wraps does not, since
-        # it tries to modify the original class).
-
-        # We need to add a custom pickler or you'll get
-        #     Can't pickle <class ..>: it's not found as ...
-        # errors. Picklability is required for any class that is
-        # documented by Sphinx.
-
-        members = cls.__dict__.copy()
-
-        members.update({
-            '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(get_function(cls.__init__),
-                                           message),
-        })
-
-        return type(cls)(cls.__name__, cls.__bases__, members)
+        cls.__doc__ = deprecate_doc(cls.__doc__, message)
+        if cls.__new__ is object.__new__:
+            cls.__init__ = deprecate_function(get_function(cls.__init__), message)
+        else:
+            cls.__new__ = deprecate_function(get_function(cls.__new__), message)
+        return cls
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
                   pending=pending):
