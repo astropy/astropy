@@ -319,6 +319,8 @@ def main(args=None):
     finally:
         if close_file:
             out_file.close()
+        # Close the file if used for the logging output, and remove handlers to
+        # avoid having them multiple times for unit tests.
         for handler in log.handlers:
             if isinstance(handler, logging.FileHandler):
                 handler.close()
