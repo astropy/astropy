@@ -319,3 +319,7 @@ def main(args=None):
     finally:
         if close_file:
             out_file.close()
+        for handler in log.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+            log.removeHandler(handler)
