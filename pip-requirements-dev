@@ -12,6 +12,8 @@ bleach
 jplephem
 
 # below here are used only for tests
+coverage
 skyfield
 mpmath
 pytest-xdist
+pytest-mpl
