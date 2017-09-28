@@ -255,13 +255,13 @@ def match_files(paths):
     return zip(*filelists)
 
 
-def main():
-    if 'FITSDIFF_SETTINGS' in os.environ:
-        argv = os.environ['FITSDIFF_SETTINGS'].split() + sys.argv[1:]
-    else:
-        argv = sys.argv[1:]
+def main(args=None):
+    args = args or sys.argv[1:]
 
-    opts, args = handle_options(argv)
+    if 'FITSDIFF_SETTINGS' in os.environ:
+        args = os.environ['FITSDIFF_SETTINGS'].split() + args
+
+    opts, args = handle_options(args)
 
     if opts.tolerance is not None:
         warnings.warn(
@@ -293,7 +293,7 @@ def main():
     if opts.quiet:
         out_file = None
     elif opts.output_file:
-        out_file = open(opts.output_file, 'wb')
+        out_file = open(opts.output_file, 'w')
         close_file = True
     else:
         out_file = sys.stdout
@@ -320,3 +320,9 @@ def main():
     finally:
         if close_file:
             out_file.close()
+        # Close the file if used for the logging output, and remove handlers to
+        # avoid having them multiple times for unit tests.
+        for handler in log.handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+            log.removeHandler(handler)
