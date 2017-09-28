@@ -425,14 +425,14 @@ class Events(FitnessFunc):
                           'recommended that you run random trials on signal-'
                           'free noise to calibrate ncp_prior to achieve a '
                           'desired false positive rate.', AstropyUserWarning)
-        super(Events, self).__init__(p0, gamma, ncp_prior)
+        super().__init__(p0, gamma, ncp_prior)
 
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012
         return N_k * (np.log(N_k) - np.log(T_k))
 
     def validate_input(self, t, x, sigma):
-        t, x, sigma = super(Events, self).validate_input(t, x, sigma)
+        t, x, sigma = super().validate_input(t, x, sigma)
         if x is not None and np.any(x % 1 > 0):
             raise ValueError("x must be integer counts for fitness='events'")
         return t, x, sigma
@@ -461,10 +461,10 @@ class RegularEvents(FitnessFunc):
     """
     def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
-        super(RegularEvents, self).__init__(p0, gamma, ncp_prior)
+        super().__init__(p0, gamma, ncp_prior)
 
     def validate_input(self, t, x, sigma):
-        t, x, sigma = super(RegularEvents, self).validate_input(t, x, sigma)
+        t, x, sigma = super().validate_input(t, x, sigma)
         if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
         return t, x, sigma
@@ -502,7 +502,7 @@ class PointMeasures(FitnessFunc):
         ignored.
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
-        super(PointMeasures, self).__init__(p0, gamma, ncp_prior)
+        super().__init__(p0, gamma, ncp_prior)
 
     def fitness(self, a_k, b_k):
         # eq. 41 from Scargle 2012
@@ -511,4 +511,4 @@ class PointMeasures(FitnessFunc):
     def validate_input(self, t, x, sigma):
         if x is None:
             raise ValueError("x must be specified for point measures")
-        return super(PointMeasures, self).validate_input(t, x, sigma)
+        return super().validate_input(t, x, sigma)

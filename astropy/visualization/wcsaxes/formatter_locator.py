@@ -106,10 +106,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
     def __init__(self, values=None, number=None, spacing=None, format=None):
         self._unit = u.degree
         self._sep = None
-        super(AngleFormatterLocator, self).__init__(values=values,
-                                                    number=number,
-                                                    spacing=spacing,
-                                                    format=format)
+        super().__init__(values=values, number=number, spacing=spacing,
+                         format=format)
 
     @property
     def spacing(self):
@@ -340,10 +338,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         elif values is not None:
             self._unit = values.unit
             self._format_unit = values.unit
-        super(ScalarFormatterLocator, self).__init__(values=values,
-                                                     number=number,
-                                                     spacing=spacing,
-                                                     format=format)
+        super().__init__(values=values, number=number, spacing=spacing,
+                         format=format)
 
     @property
     def format_unit(self):

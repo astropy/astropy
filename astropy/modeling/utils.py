@@ -363,7 +363,7 @@ class _BoundingBox(tuple):
     _model = None
 
     def __new__(cls, input_, _model=None):
-        self = super(_BoundingBox, cls).__new__(cls, input_)
+        self = super().__new__(cls, input_)
         if _model is not None:
             # Bind this _BoundingBox (most likely a subclass) to a Model
             # instance so that its __call__ can access the model

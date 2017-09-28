@@ -13,7 +13,7 @@ class AxisLabels(Text):
 
     def __init__(self, frame, minpad=1, *args, **kwargs):
         self._frame = frame
-        super(AxisLabels, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self.set_ha('center')
@@ -119,7 +119,7 @@ class AxisLabels(Text):
 
                 self.set_position((xcen + dx, ycen + dy))
 
-            super(AxisLabels, self).draw(renderer)
+            super().draw(renderer)
 
-            bb = super(AxisLabels, self).get_window_extent(renderer)
+            bb = super().get_window_extent(renderer)
             bboxes.append(bb)

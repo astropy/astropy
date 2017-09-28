@@ -153,7 +153,7 @@ class CommentedHeader(Basic):
         Read input data (file-like object, filename, list of strings, or
         single string) into a Table and return the result.
         """
-        out = super(CommentedHeader, self).read(table)
+        out = super().read(table)
 
         # Strip off first comment since this is the header line for
         # commented_header format.

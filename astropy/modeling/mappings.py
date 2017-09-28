@@ -55,7 +55,7 @@ class Mapping(FittableModel):
                                  for idx in range(n_inputs))
         self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
-        super(Mapping, self).__init__(name=name, meta=meta)
+        super().__init__(name=name, meta=meta)
 
     @property
     def inputs(self):
@@ -158,7 +158,7 @@ class Identity(Mapping):
 
     def __init__(self, n_inputs, name=None, meta=None):
         mapping = tuple(range(n_inputs))
-        super(Identity, self).__init__(mapping, name=name, meta=meta)
+        super().__init__(mapping, name=name, meta=meta)
 
     def __repr__(self):
         if self.name is None:

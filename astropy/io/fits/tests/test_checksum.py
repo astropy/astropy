@@ -17,7 +17,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     # All checksums have been verified against CFITSIO
     def setup(self):
-        super(TestChecksumFunctions, self).setup()
+        super().setup()
         self._oldfilters = warnings.filters[:]
         warnings.filterwarnings(
             'error',
@@ -32,7 +32,7 @@ class TestChecksumFunctions(FitsTestCase):
         _ValidHDU._get_timestamp = lambda self: '2013-12-20T13:36:10'
 
     def teardown(self):
-        super(TestChecksumFunctions, self).teardown()
+        super().teardown()
         warnings.filters = self._oldfilters
         _ValidHDU._get_timestamp = self._old_get_timestamp
 

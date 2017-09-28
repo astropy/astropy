@@ -205,7 +205,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_ZenithalPerspective, self).__init__(mu, gamma, **kwargs)
+        super().__init__(mu, gamma, **kwargs)
 
     @mu.validator
     def mu(self, value):

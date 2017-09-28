@@ -491,9 +491,8 @@ class FunctionQuantity(Quantity):
             unit = cls._unit_class(physical_unit, function_unit=unit)
 
         # initialise!
-        return super(FunctionQuantity,
-                     cls).__new__(cls, value, unit, dtype=dtype, copy=copy,
-                                  order=order, subok=subok, ndmin=ndmin)
+        return super().__new__(cls, value, unit, dtype=dtype, copy=copy,
+                               order=order, subok=subok, ndmin=ndmin)
 
     # ↓↓↓ properties not found in Quantity
     @property
@@ -546,14 +545,13 @@ class FunctionQuantity(Quantity):
                                 "quantities that are not dimensionless."
                                 .format(context[0].__name__))
 
-        return super(FunctionQuantity, self).__array_prepare__(obj, context)
+        return super().__array_prepare__(obj, context)
 
     def __quantity_subclass__(self, unit):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
         else:
-            return super(FunctionQuantity,
-                         self).__quantity_subclass__(unit)[0], False
+            return super().__quantity_subclass__(unit)[0], False
 
     def _set_unit(self, unit):
         if not isinstance(unit, self._unit_class):
@@ -640,8 +638,7 @@ class FunctionQuantity(Quantity):
     # Ensure Quantity methods are used only if they make sense.
     def _wrap_function(self, function, *args, **kwargs):
         if function in self._supported_functions:
-            return super(FunctionQuantity,
-                         self)._wrap_function(function, *args, **kwargs)
+            return super()._wrap_function(function, *args, **kwargs)
 
         # For dimensionless, we can convert to regular quantities.
         if all(arg.unit.physical_unit == dimensionless_unscaled

@@ -538,7 +538,7 @@ class InheritDocstrings(type):
                         val.__doc__ = super_method.__doc__
                         break
 
-        super(InheritDocstrings, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
 
 class OrderedDescriptor(metaclass=abc.ABCMeta):
@@ -604,7 +604,7 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
         # between themselves
         self.__order = OrderedDescriptor._nextid
         OrderedDescriptor._nextid += 1
-        super(OrderedDescriptor, self).__init__()
+        super().__init__()
 
     def __lt__(self, other):
         """
@@ -671,7 +671,7 @@ class OrderedDescriptorContainer(type):
     ...
     ...     def __init__(self, type):
     ...         # Make sure not to forget to call the super __init__
-    ...         super(TypedAttribute, self).__init__()
+    ...         super().__init__()
     ...         self.type = type
     ...
     ...     def __get__(self, obj, objtype=None):
@@ -821,8 +821,7 @@ class OrderedDescriptorContainer(type):
             instances = OrderedDict((key, value) for value, key in instances)
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
-        super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
-                                                        members)
+        super().__init__(cls_name, bases, members)
 
 
 LOCALE_LOCK = threading.Lock()
@@ -1058,8 +1057,7 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
 
 class IncompatibleShapeError(ValueError):
     def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
-        super(IncompatibleShapeError, self).__init__(
-                shape_a, shape_a_idx, shape_b, shape_b_idx)
+        super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
 def check_broadcast(*shapes):

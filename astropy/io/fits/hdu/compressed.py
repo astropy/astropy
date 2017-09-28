@@ -136,7 +136,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(keyword):
             return
 
-        super(CompImageHeader, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
         if index is not None:
             remapped_keyword = self._remap_keyword(keyword)
@@ -148,7 +148,7 @@ class CompImageHeader(Header):
             # If given a slice pass that on to the superclass and bail out
             # early; we only want to make updates to _table_header when given
             # a key specifying a single keyword
-            return super(CompImageHeader, self).__delitem__(key)
+            return super().__delitem__(key)
 
         if isinstance(key, int):
             keyword, index = self._keyword_from_index(key)
@@ -160,7 +160,7 @@ class CompImageHeader(Header):
         if key not in self:
             raise KeyError("Keyword {!r} not found.".format(key))
 
-        super(CompImageHeader, self).__delitem__(key)
+        super().__delitem__(key)
 
         remapped_keyword = self._remap_keyword(keyword)
 
@@ -187,8 +187,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(card.keyword):
             return
 
-        super(CompImageHeader, self).append(card=card, useblanks=useblanks,
-                                            bottom=bottom, end=end)
+        super().append(card=card, useblanks=useblanks, bottom=bottom, end=end)
 
         remapped_keyword = self._remap_keyword(card.keyword)
         card = Card(remapped_keyword, card.value, card.comment)
@@ -236,8 +235,7 @@ class CompImageHeader(Header):
         remapped_index = self._remap_index(key)
         remapped_keyword = self._remap_keyword(card.keyword)
 
-        super(CompImageHeader, self).insert(key, card, useblanks=useblanks,
-                                            after=after)
+        super().insert(key, card, useblanks=useblanks, after=after)
 
         card = Card(remapped_keyword, card.value, card.comment)
 
@@ -255,7 +253,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(keyword):
             return
 
-        super(CompImageHeader, self)._update(card)
+        super()._update(card)
 
         if keyword in Card._commentary_keywords:
             # Otherwise this will result in a duplicate insertion
@@ -286,9 +284,8 @@ class CompImageHeader(Header):
                 remapped_before = self._remap_keyword(before)
             remapped_after = None
 
-        super(CompImageHeader, self)._relativeinsert(card, before=before,
-                                                     after=after,
-                                                     replace=replace)
+        super()._relativeinsert(card, before=before, after=after,
+                                replace=replace)
 
         remapped_keyword = self._remap_keyword(keyword)
 
@@ -633,11 +630,11 @@ class CompImageHDU(BinTableHDU):
 
         if data is DELAYED:
             # Reading the HDU from a file
-            super(CompImageHDU, self).__init__(data=data, header=header)
+            super().__init__(data=data, header=header)
         else:
             # Create at least a skeleton HDU that matches the input
             # header and data (if any were input)
-            super(CompImageHDU, self).__init__(data=None, header=header)
+            super().__init__(data=None, header=header)
 
             # Store the input image data
             self.data = data
@@ -1831,8 +1828,7 @@ class CompImageHDU(BinTableHDU):
             # handles it properly
             self.__dict__['data'] = self.compressed_data
 
-        return super(CompImageHDU, self)._prewriteto(checksum=checksum,
-                                                     inplace=inplace)
+        return super()._prewriteto(checksum=checksum, inplace=inplace)
 
     def _writeheader(self, fileobj):
         """
@@ -1850,7 +1846,7 @@ class CompImageHDU(BinTableHDU):
         """
 
         try:
-            return super(CompImageHDU, self)._writedata(fileobj)
+            return super()._writedata(fileobj)
         finally:
             # Restore the .data attribute to its rightful value (if any)
             if hasattr(self, '_imagedata'):
@@ -1860,7 +1856,7 @@ class CompImageHDU(BinTableHDU):
                 del self.data
 
     def _close(self, closed=True):
-        super(CompImageHDU, self)._close(closed=closed)
+        super()._close(closed=closed)
 
         # Also make sure to close access to the compressed data mmaps
         if (closed and self._data_loaded and

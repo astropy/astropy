@@ -172,7 +172,7 @@ class HTMLOutputter(core.TableOutputter):
                 new_cols.append(col)
                 col_num += 1
 
-        return super(HTMLOutputter, self).__call__(new_cols, meta)
+        return super().__call__(new_cols, meta)
 
 
 class HTMLHeader(core.BaseHeader):
@@ -325,7 +325,7 @@ class HTML(core.BaseReader):
         """
         Initialize classes for HTML reading and writing.
         """
-        super(HTML, self).__init__()
+        super().__init__()
         self.html = deepcopy(htmldict)
         if 'multicol' not in htmldict:
             self.html['multicol'] = True
@@ -339,7 +339,7 @@ class HTML(core.BaseReader):
         """
 
         self.outputter = HTMLOutputter()
-        return super(HTML, self).read(table)
+        return super().read(table)
 
     def write(self, table):
         """

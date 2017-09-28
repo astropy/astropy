@@ -17,7 +17,7 @@ class TickLabels(Text):
     def __init__(self, frame, *args, **kwargs):
         self.clear()
         self._frame = frame
-        super(TickLabels, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self.pad = 0.3
@@ -154,7 +154,7 @@ class TickLabels(Text):
 
                     # Set initial position and find bounding box
                     self.set_position((x, y))
-                    bb = super(TickLabels, self).get_window_extent(renderer)
+                    bb = super().get_window_extent(renderer)
 
                     # Find width and height, as well as angle at which we
                     # transition which side of the label we use to anchor the
@@ -198,13 +198,13 @@ class TickLabels(Text):
                     self.set_ha('center')
                     self.set_va('center')
 
-                bb = super(TickLabels, self).get_window_extent(renderer)
+                bb = super().get_window_extent(renderer)
 
                 # TODO: the problem here is that we might get rid of a label
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
                 if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
-                    super(TickLabels, self).draw(renderer)
+                    super().draw(renderer)
                     bboxes.append(bb)
                     ticklabels_bbox.append(bb)

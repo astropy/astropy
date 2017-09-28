@@ -18,8 +18,7 @@ class NonFittableModel(Model):
     a = Parameter()
 
     def __init__(self, a, model_set_axis=None):
-        super(NonFittableModel, self).__init__(
-            a, model_set_axis=model_set_axis)
+        super().__init__(a, model_set_axis=model_set_axis)
 
     @staticmethod
     def evaluate():
@@ -146,7 +145,7 @@ def test_custom_model_subclass():
         # Override the evaluate from model_a
         @classmethod
         def evaluate(cls, x, a):
-            return -super(model_b, cls).evaluate(x, a)
+            return -super().evaluate(x, a)
 
     b = model_b()
     assert b.param_names == ('a',)

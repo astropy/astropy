@@ -221,7 +221,7 @@ class HDUList(list, _Verify):
                 raise TypeError("Element {} in the HDUList input is "
                                 "not an HDU.".format(idx))
 
-        super(HDUList, self).__init__(hdus)
+        super().__init__(hdus)
 
         if file is None:
             # Only do this when initializing from an existing list of HDUs
@@ -234,7 +234,7 @@ class HDUList(list, _Verify):
             while self._read_next_hdu():
                 pass
 
-        return super(HDUList, self).__len__()
+        return super().__len__()
 
     def __repr__(self):
         # In order to correctly repr an HDUList we need to load all the
@@ -242,7 +242,7 @@ class HDUList(list, _Verify):
         while self._read_next_hdu():
             pass
 
-        return super(HDUList, self).__repr__()
+        return super().__repr__()
 
     def __iter__(self):
         # While effectively this does the same as:
@@ -279,7 +279,7 @@ class HDUList(list, _Verify):
             # Just in case the max_idx is negative...
             max_idx = self._positive_index_of(max_idx)
 
-            number_loaded = super(HDUList, self).__len__()
+            number_loaded = super().__len__()
 
             if max_idx >= number_loaded:
                 # We need more than we have, try loading up to and including
@@ -292,7 +292,7 @@ class HDUList(list, _Verify):
                         break
 
             try:
-                hdus = super(HDUList, self).__getitem__(key)
+                hdus = super().__getitem__(key)
             except IndexError as e:
                 # Raise a more helpful IndexError if the file was not fully read.
                 if self._read_all:
@@ -308,8 +308,8 @@ class HDUList(list, _Verify):
         # a very large number of HDUs could blow the stack, so use a loop
         # instead
         try:
-            return self._try_while_unread_hdus(super(HDUList, self).__getitem__,
-                                            self._positive_index_of(key))
+            return self._try_while_unread_hdus(super().__getitem__,
+                                               self._positive_index_of(key))
         except IndexError as e:
             # Raise a more helpful IndexError if the file was not fully read.
             if self._read_all:
@@ -348,8 +348,7 @@ class HDUList(list, _Verify):
                 raise ValueError('{} is not an HDU.'.format(hdu))
 
         try:
-            self._try_while_unread_hdus(super(HDUList, self).__setitem__,
-                                        _key, hdu)
+            self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
             raise IndexError('Extension {} is out of bound or not found.'
                             .format(key))
@@ -368,7 +367,7 @@ class HDUList(list, _Verify):
             key = self._positive_index_of(key)
             end_index = len(self) - 1
 
-        self._try_while_unread_hdus(super(HDUList, self).__delitem__, key)
+        self._try_while_unread_hdus(super().__delitem__, key)
 
         if (key == end_index or key == -1 and not self._resize):
             self._truncate = True
@@ -542,8 +541,8 @@ class HDUList(list, _Verify):
                 hdu1 = ImageHDU(self[0].data, self[0].header)
 
                 # Insert it into position 1, then delete HDU at position 0.
-                super(HDUList, self).insert(1, hdu1)
-                super(HDUList, self).__delitem__(0)
+                super().insert(1, hdu1)
+                super().__delitem__(0)
 
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary HDU.
@@ -557,7 +556,7 @@ class HDUList(list, _Verify):
                     # we append the new Extension HDU.
                     phdu = PrimaryHDU()
 
-                    super(HDUList, self).insert(0, phdu)
+                    super().insert(0, phdu)
                     index = 1
         else:
             if isinstance(hdu, GroupsHDU):
@@ -569,7 +568,7 @@ class HDUList(list, _Verify):
                 # so create an Extension HDU from the input Primary HDU.
                 hdu = ImageHDU(hdu.data, hdu.header)
 
-        super(HDUList, self).insert(index, hdu)
+        super().insert(index, hdu)
         hdu._new = True
         self._resize = True
         self._truncate = False
@@ -613,9 +612,9 @@ class HDUList(list, _Verify):
                     # simple Primary HDU and append that first before
                     # we append the new Extension HDU.
                     phdu = PrimaryHDU()
-                    super(HDUList, self).append(phdu)
+                    super().append(phdu)
 
-        super(HDUList, self).append(hdu)
+        super().append(hdu)
         hdu._new = True
         self._resize = True
         self._truncate = False
@@ -1105,7 +1104,7 @@ class HDUList(list, _Verify):
                     hdu = _BaseHDU.fromstring(data, **kwargs)
                     self._data = data[hdu._data_offset + hdu._data_size:]
 
-                super(HDUList, self).append(hdu)
+                super().append(hdu)
                 if len(self) == 1:
                     # Check for an extension HDU and update the EXTEND
                     # keyword of the primary HDU accordingly
