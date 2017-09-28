@@ -51,6 +51,7 @@ def test_skip_hidden():
 
 
 def test_JsonCustomEncoder():
+    from ... import units as u
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
     assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
     assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
@@ -58,6 +59,20 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+    assert json.dumps({1: u.m}, cls=misc.JsonCustomEncoder) == '{"1": "m"}'
+    # Quantities
+    tmp = json.dumps({'a': 5*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp)
+    tmpd = {"a": {"unit": "cm", "value": 5.0}}
+    assert newd == tmpd
+    tmp2 = json.dumps({'a': np.arange(2)*u.cm}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp2)
+    tmpd = {"a": {"unit": "cm", "value": [0., 1.]}}
+    assert newd == tmpd
+    tmp3 = json.dumps({'a': np.arange(2)*u.erg/u.s}, cls=misc.JsonCustomEncoder)
+    newd = json.loads(tmp3)
+    tmpd = {"a": {"unit": "erg / s", "value": [0., 1.]}}
+    assert newd == tmpd
 
 
 def test_inherit_docstrings():
