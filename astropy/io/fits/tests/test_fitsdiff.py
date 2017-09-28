@@ -24,7 +24,7 @@ class TestFITSDiff_script(FitsTestCase):
         assert e.value.code == 2
 
     def test_nodiff(self):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         hdu_b = PrimaryHDU(data=b)
@@ -36,7 +36,7 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 0
 
     def test_onediff(self):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         b[1, 0] = 12
@@ -49,7 +49,7 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 1
 
     def test_manydiff(self, capsys):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a + 1
         hdu_b = PrimaryHDU(data=b)
@@ -77,7 +77,7 @@ class TestFITSDiff_script(FitsTestCase):
             '     100 different pixels found (100.00% different).']
 
     def test_outputfile(self):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         b[1, 0] = 12
@@ -98,7 +98,7 @@ class TestFITSDiff_script(FitsTestCase):
             '     1 different pixels found (1.00% different).']
 
     def test_atol(self):
-        a = np.arange(100, dtype=np.float).reshape((10, 10))
+        a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         b[1, 0] = 11
@@ -115,7 +115,7 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 1
 
     def test_rtol(self):
-        a = np.arange(100, dtype=np.float).reshape((10, 10))
+        a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         b[1, 0] = 11
@@ -128,7 +128,7 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 0
 
     def test_rtol_diff(self, capsys):
-        a = np.arange(100, dtype=np.float).reshape((10, 10))
+        a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         b[1, 0] = 11
@@ -157,7 +157,7 @@ Primary HDU:\n\n   Data contains differences:
         assert err == ""
 
     def test_fitsdiff_script_both_d_and_r(self, capsys):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         hdu_b = PrimaryHDU(data=b)
@@ -190,7 +190,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         assert e.value.code == 2
 
     def test_not_quiet(self, capsys):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         hdu_b = PrimaryHDU(data=b)
@@ -212,7 +212,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         assert err == ""
 
     def test_quiet(self, capsys):
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
         hdu_b = PrimaryHDU(data=b)
