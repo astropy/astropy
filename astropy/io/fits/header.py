@@ -2009,7 +2009,7 @@ class _HeaderComments(_CardAccessor):
         returned cards.  Otherwise the comment of a single card is returned.
         """
 
-        item = super(_HeaderComments, self).__getitem__(item)
+        item = super().__getitem__(item)
         if isinstance(item, _HeaderComments):
             # The item key was a slice
             return item
@@ -2039,7 +2039,7 @@ class _HeaderCommentaryCards(_CardAccessor):
     """
 
     def __init__(self, header, keyword=''):
-        super(_HeaderCommentaryCards, self).__init__(header)
+        super().__init__(header)
         self._keyword = keyword
         self._count = self._header.count(self._keyword)
         self._indices = slice(self._count).indices(self._count)

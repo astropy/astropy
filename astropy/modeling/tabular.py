@@ -101,7 +101,7 @@ class _Tabular(Model):
         n_models = kwargs.get('n_models', 1)
         if n_models > 1:
             raise NotImplementedError('Only n_models=1 is supported.')
-        super(_Tabular, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if lookup_table is None:
             raise ValueError('Must provide a lookup table.')

@@ -87,4 +87,4 @@ class SphericalCircle(Polygon):
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
 
-        super(SphericalCircle, self).__init__(vertices, **kwargs)
+        super().__init__(vertices, **kwargs)

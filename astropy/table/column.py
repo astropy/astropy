@@ -345,8 +345,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if obj is None:
             return
 
-        if callable(super(BaseColumn, self).__array_finalize__):
-            super(BaseColumn, self).__array_finalize__(obj)
+        if callable(super().__array_finalize__):
+            super().__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
@@ -376,7 +376,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        out_arr = super(BaseColumn, self).__array_wrap__(out_arr, context)
+        out_arr = super().__array_wrap__(out_arr, context)
         if (self.shape != out_arr.shape or
             (isinstance(out_arr, BaseColumn) and
              (context is not None and context[0] in _comparison_functions))):
@@ -818,16 +818,16 @@ class Column(BaseColumn):
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
 
-        self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
-                                          shape=shape, length=length, description=description,
-                                          unit=unit, format=format, meta=meta,
-                                          copy=copy, copy_indices=copy_indices)
+        self = super().__new__(
+            cls, data=data, name=name, dtype=dtype, shape=shape, length=length,
+            description=description, unit=unit, format=format, meta=meta,
+            copy=copy, copy_indices=copy_indices)
         return self
 
     def __setattr__(self, item, value):
         if not isinstance(self, MaskedColumn) and item == "mask":
             raise AttributeError("cannot set mask value to a column in non-masked Table")
-        super(Column, self).__setattr__(item, value)
+        super().__setattr__(item, value)
 
         if item == 'unit' and issubclass(self.dtype.type, np.number):
             try:
@@ -1161,7 +1161,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         if fill_value is None:
             fill_value = self.fill_value
 
-        data = super(MaskedColumn, self).filled(fill_value)
+        data = super().filled(fill_value)
         # Use parent table definition of Column if available
         column_cls = self.parent_table.Column if (self.parent_table is not None) else Column
         out = column_cls(name=self.name, data=data, unit=self.unit,

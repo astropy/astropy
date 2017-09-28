@@ -317,7 +317,7 @@ class FITSDiff(_BaseDiff):
         self.diff_hdus = []
 
         try:
-            super(FITSDiff, self).__init__(a, b)
+            super().__init__(a, b)
         finally:
             if close_a:
                 a.close()
@@ -460,7 +460,7 @@ class HDUDiff(_BaseDiff):
         self.diff_headers = None
         self.diff_data = None
 
-        super(HDUDiff, self).__init__(a, b)
+        super().__init__(a, b)
 
     def _diff(self):
         if self.a.name != self.b.name:
@@ -640,7 +640,7 @@ class HeaderDiff(_BaseDiff):
             raise TypeError('HeaderDiff can only diff astropy.io.fits.Header '
                             'objects or strings containing FITS headers.')
 
-        super(HeaderDiff, self).__init__(a, b)
+        super().__init__(a, b)
 
     # TODO: This doesn't pay much attention to the *order* of the keywords,
     # except in the case of duplicate keywords.  The order should be checked
@@ -850,7 +850,7 @@ class ImageDataDiff(_BaseDiff):
         # the images, but not the different values
         self.diff_total = 0
 
-        super(ImageDataDiff, self).__init__(a, b)
+        super().__init__(a, b)
 
     def _diff(self):
         if self.a.shape != self.b.shape:
@@ -948,10 +948,10 @@ class RawDataDiff(ImageDataDiff):
         self.diff_dimensions = ()
         self.diff_bytes = []
 
-        super(RawDataDiff, self).__init__(a, b, numdiffs=numdiffs)
+        super().__init__(a, b, numdiffs=numdiffs)
 
     def _diff(self):
-        super(RawDataDiff, self)._diff()
+        super()._diff()
         if self.diff_dimensions:
             self.diff_dimensions = (self.diff_dimensions[0][0],
                                     self.diff_dimensions[1][0])
@@ -1072,7 +1072,7 @@ class TableDataDiff(_BaseDiff):
         self.diff_ratio = 0
         self.diff_total = 0
 
-        super(TableDataDiff, self).__init__(a, b)
+        super().__init__(a, b)
 
     def _diff(self):
         # Much of the code for comparing columns is similar to the code for

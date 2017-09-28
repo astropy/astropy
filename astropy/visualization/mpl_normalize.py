@@ -64,7 +64,7 @@ class ImageNormalize(Normalize):
     def __init__(self, data=None, interval=None, vmin=None, vmax=None,
                  stretch=LinearStretch(), clip=False):
         # this super call checks for matplotlib
-        super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
+        super().__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin
         self.vmax = vmax

@@ -148,7 +148,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         """
 
         klass = _hdu_class_from_header(cls, header)
-        return super(_BaseHDU, cls).__new__(klass)
+        return super().__new__(klass)
 
     def __init__(self, data=None, header=None, *args, **kwargs):
         if header is None:
@@ -867,7 +867,7 @@ class _ValidHDU(_BaseHDU, _Verify):
     """
 
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
-        super(_ValidHDU, self).__init__(data=data, header=header)
+        super().__init__(data=data, header=header)
 
         # NOTE:  private data members _checksum and _datasum are used by the
         # utility script "fitscheck" to detect missing checksums.
@@ -1545,7 +1545,7 @@ class ExtensionHDU(_ValidHDU):
 
     def _verify(self, option='warn'):
 
-        errs = super(ExtensionHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
 
         # Verify location and value of mandatory keywords.
         naxis = self._header.get('NAXIS', 0)

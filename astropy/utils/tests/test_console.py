@@ -21,7 +21,7 @@ class FakeTTY(io.StringIO):
     def __new__(cls, encoding=None):
         # Return a new subclass of FakeTTY with the requested encoding
         if encoding is None:
-            return super(FakeTTY, cls).__new__(cls)
+            return super().__new__(cls)
 
         # Since we're using unicode_literals in this module ensure that this is
         # a 'str' object (since a class name can't be unicode in Python 2.7)
@@ -32,7 +32,7 @@ class FakeTTY(io.StringIO):
         return cls.__new__(cls)
 
     def __init__(self, encoding=None):
-        super(FakeTTY, self).__init__()
+        super().__init__()
 
     def write(self, s):
         if isinstance(s, bytes):
@@ -41,7 +41,7 @@ class FakeTTY(io.StringIO):
         elif self.encoding is not None:
             s.encode(self.encoding)
 
-        return super(FakeTTY, self).write(s)
+        return super().write(s)
 
     def isatty(self):
         return True

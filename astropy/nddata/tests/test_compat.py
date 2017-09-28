@@ -102,7 +102,7 @@ class SubNDData(NDDataArray):
     NDData.convert_unit_to
     """
     def __init__(self, *arg, **kwd):
-        super(SubNDData, self).__init__(*arg, **kwd)
+        super().__init__(*arg, **kwd)
         if self.unit is None:
             raise ValueError("Unit for subclass must be specified")
         if self.wcs is None:

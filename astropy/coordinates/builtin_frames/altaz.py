@@ -135,7 +135,7 @@ class AltAz(BaseCoordinateFrame):
     obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
-        super(AltAz, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def secz(self):

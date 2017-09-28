@@ -188,7 +188,7 @@ class NoConvergence(Exception):
     """
 
     def __init__(self, *args, **kwargs):
-        super(NoConvergence, self).__init__(*args)
+        super().__init__(*args)
 
         self.best_solution = kwargs.pop('best_solution', None)
         self.accuracy = kwargs.pop('accuracy', None)

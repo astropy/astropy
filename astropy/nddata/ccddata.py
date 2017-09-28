@@ -158,7 +158,7 @@ class CCDData(NDDataArray):
         if 'header' in kwd:
             raise ValueError("can't have both header and meta.")
 
-        super(CCDData, self).__init__(*args, **kwd)
+        super().__init__(*args, **kwd)
 
         # Check if a unit is set. This can be temporarly disabled by the
         # _CCDDataUnit contextmanager.

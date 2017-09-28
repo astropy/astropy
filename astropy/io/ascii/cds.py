@@ -283,7 +283,7 @@ class Cds(core.BaseReader):
     header_class = CdsHeader
 
     def __init__(self, readme=None):
-        super(Cds, self).__init__()
+        super().__init__()
         self.header.readme = readme
 
     def write(self, table=None):
@@ -313,7 +313,7 @@ class Cds(core.BaseReader):
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
                 with suppress(Exception):
-                    table = super(Cds, self).read(lines)
+                    table = super().read(lines)
                     return table
         else:
-            return super(Cds, self).read(table)
+            return super().read(table)

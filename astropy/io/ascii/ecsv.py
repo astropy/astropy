@@ -143,7 +143,7 @@ class EcsvHeader(basic.BasicHeader):
 
         # Read the first non-commented line of table and split to get the CSV
         # header column names.  This is essentially what the Basic reader does.
-        header_line = next(super(EcsvHeader, self).process_lines(raw_lines))
+        header_line = next(super().process_lines(raw_lines))
         header_names = next(self.splitter([header_line]))
 
         # Check for consistency of the ECSV vs. CSV header column names
@@ -181,7 +181,7 @@ class EcsvOutputter(core.TableOutputter):
 
     def __call__(self, cols, meta):
         # Convert to a Table with all plain Column subclass columns
-        out = super(EcsvOutputter, self).__call__(cols, meta)
+        out = super().__call__(cols, meta)
 
         # If mixin columns exist (based on the special '__mixin_columns__'
         # key in the table ``meta``), then use that information to construct

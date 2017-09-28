@@ -145,7 +145,7 @@ class IdentifyRecord(Record):
         function (modelname) coefficients
     """
     def __init__(self, recstr):
-        super(IdentifyRecord, self).__init__(recstr)
+        super().__init__(recstr)
         self._flatcoeff = self.fields['coefficients'].flatten()
         self.x = self.fields['features'][:, 0]
         self.y = self.get_ydata()
@@ -203,7 +203,7 @@ class FitcoordsRecord(Record):
 
     """
     def __init__(self, recstr):
-        super(FitcoordsRecord, self).__init__(recstr)
+        super().__init__(recstr)
         self._surface = self.fields['surface'].flatten()
         self.modelname = iraf_models_map[self._surface[0]]
         self.xorder = self._surface[1]
@@ -252,7 +252,7 @@ class ReidentifyRecord(IDB):
     Represents a database record for the onedspec.reidentify task
     """
     def __init__(self, databasestr):
-        super(ReidentifyRecord, self).__init__(databasestr)
+        super().__init__(databasestr)
         self.x = np.array([r.x for r in self.records])
         self.y = self.get_ydata()
         self.z = np.array([r.z for r in self.records])

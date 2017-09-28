@@ -36,7 +36,7 @@ class SetterModel(FittableModel):
 
     def __init__(self, xc, yc, p):
         self.p = p  # p is a value intended to be used by the setter
-        super(SetterModel, self).__init__()
+        super().__init__()
         self.xc = xc
         self.yc = yc
 
@@ -56,7 +56,7 @@ class TParModel(Model):
     e = Parameter()
 
     def __init__(self, coeff, e, **kwargs):
-        super(TParModel, self).__init__(coeff=coeff, e=e, **kwargs)
+        super().__init__(coeff=coeff, e=e, **kwargs)
 
     @staticmethod
     def evaluate(coeff, e):

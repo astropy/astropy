@@ -226,14 +226,14 @@ class set_temp_config(_SetTempPath):
         # cached config objects
         from .configuration import _cfgobjs
 
-        path = super(set_temp_config, self).__enter__()
+        path = super().__enter__()
         _cfgobjs.clear()
         return path
 
     def __exit__(self, *args):
         from .configuration import _cfgobjs
 
-        super(set_temp_config, self).__exit__(*args)
+        super().__exit__(*args)
         _cfgobjs.clear()
 
 

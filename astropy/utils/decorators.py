@@ -605,7 +605,7 @@ class classproperty(property):
 
             return wrapper
 
-        return super(classproperty, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, fget, doc=None, lazy=False):
         self._lazy = lazy
@@ -613,7 +613,7 @@ class classproperty(property):
             self._cache = {}
         fget = self._wrap_fget(fget)
 
-        super(classproperty, self).__init__(fget=fget, doc=doc)
+        super().__init__(fget=fget, doc=doc)
 
         # There is a buglet in Python where self.__doc__ doesn't
         # get set properly on instances of property subclasses if
@@ -632,7 +632,7 @@ class classproperty(property):
             # function (which takes the class as its sole argument)
             val = self.fget.__wrapped__(objtype)
         else:
-            val = super(classproperty, self).__get__(obj, objtype=objtype)
+            val = super().__get__(obj, objtype=objtype)
 
         if self._lazy:
             if objtype is None:
@@ -643,7 +643,7 @@ class classproperty(property):
         return val
 
     def getter(self, fget):
-        return super(classproperty, self).getter(self._wrap_fget(fget))
+        return super().getter(self._wrap_fget(fget))
 
     def setter(self, fset):
         raise NotImplementedError(
@@ -711,7 +711,7 @@ class lazyproperty(property):
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
-        super(lazyproperty, self).__init__(fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
         self._key = self.fget.__name__
 
     def __get__(self, obj, owner=None):

@@ -145,7 +145,7 @@ class NotifierMixin:
         # objects it will be necessary when HDU objects' states are restored to
         # re-register themselves as listeners on their new column instances.
         try:
-            state = super(NotifierMixin, self).__getstate__()
+            state = super().__getstate__()
         except AttributeError:
             # Chances are the super object doesn't have a getstate
             state = self.__dict__.copy()

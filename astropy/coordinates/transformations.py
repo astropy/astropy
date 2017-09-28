@@ -737,8 +737,8 @@ class FunctionTransform(CoordinateTransform):
 
         self.func = func
 
-        super(FunctionTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         res = self.func(fromcoord, toframe)
@@ -797,8 +797,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                  finite_difference_frameattr_name='obstime',
                  finite_difference_dt=1*u.second,
                  symmetric_finite_difference=True):
-        super(FunctionTransformWithFiniteDifference, self).__init__(func,
-              fromsys, tosys, priority, register_graph)
+        super().__init__(func, fromsys, tosys, priority, register_graph)
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
         self.finite_difference_dt = finite_difference_dt
         self.symmetric_finite_difference = symmetric_finite_difference
@@ -1116,8 +1115,8 @@ class AffineTransform(BaseAffineTransform):
             raise TypeError('transform_func is not callable')
         self.transform_func = transform_func
 
-        super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
-                                              register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
 
@@ -1168,9 +1167,8 @@ class StaticMatrixTransform(BaseAffineTransform):
         if self.matrix.shape != (3, 3):
             raise ValueError('Provided matrix is not 3 x 3')
 
-        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
-                                                    priority=priority,
-                                                    register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         newrep = self._apply_transform(fromcoord, self.matrix, None)
@@ -1218,9 +1216,8 @@ class DynamicMatrixTransform(BaseAffineTransform):
         def _transform_func(fromcoord, toframe):
             return self.matrix_func(fromcoord, toframe), None
 
-        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-                                                     priority=priority,
-                                                     register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         M = self.matrix_func(fromcoord, toframe)
@@ -1260,9 +1257,8 @@ class CompositeTransform(CoordinateTransform):
 
     def __init__(self, transforms, fromsys, tosys, priority=1,
                  register_graph=None, collapse_static_mats=True):
-        super(CompositeTransform, self).__init__(fromsys, tosys,
-                                                 priority=priority,
-                                                 register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
         if collapse_static_mats:
             transforms = self._combine_statics(transforms)

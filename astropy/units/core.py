@@ -1759,7 +1759,7 @@ class _UnitMetaClass(InheritDocstrings):
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
-            return super(_UnitMetaClass, self).__call__(
+            return super().__call__(
                 s, represents, format=format, namespace=namespace, doc=doc)
 
         # or interpret a Quantity (now became unit), string or number?
@@ -1989,7 +1989,7 @@ class CompositeUnit(UnitBase):
 
     def __repr__(self):
         if len(self._bases):
-            return super(CompositeUnit, self).__repr__()
+            return super().__repr__()
         else:
             if self._scale != 1.0:
                 return 'Unit(dimensionless with a scale of {0})'.format(

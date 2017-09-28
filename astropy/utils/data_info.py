@@ -248,7 +248,7 @@ class DataInfo:
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super(DataInfo, self).__getattribute__(attr)
+            return super().__getattribute__(attr)
 
         if attr in self.attrs_from_parent:
             return getattr(self._parent, attr)
@@ -256,7 +256,7 @@ class DataInfo:
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(DataInfo, self).__getattribute__(attr)  # Generate AttributeError
+            super().__getattribute__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -287,7 +287,7 @@ class DataInfo:
 
         # Private attr names get directly set
         if attr.startswith('_'):
-            super(DataInfo, self).__setattr__(attr, value)
+            super().__setattr__(attr, value)
             return
 
         # Finally this must be an actual data attribute that this class is handling.
@@ -417,7 +417,7 @@ class DataInfo:
 
     def __repr__(self):
         if self._parent is None:
-            return super(DataInfo, self).__repr__()
+            return super().__repr__()
 
         out = StringIO()
         self.__call__(out=out)
@@ -606,7 +606,7 @@ class MixinInfo(BaseColumnInfo):
             new_name = fix_column_name(value)  # Ensure col name is numpy compatible
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        super(MixinInfo, self).__setattr__(attr, value)
+        super().__setattr__(attr, value)
 
 
 class ParentDtypeInfo(MixinInfo):

@@ -41,7 +41,7 @@ class FakeNumpyArray:
     These attributes are checked for by NDData.
     """
     def __init__(self):
-        super(FakeNumpyArray, self).__init__()
+        super().__init__()
 
     def shape(self):
         pass

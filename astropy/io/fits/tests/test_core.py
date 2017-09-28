@@ -201,7 +201,7 @@ class TestCore(FitsTestCase):
     def test_unfixable_missing_card(self):
         class TestHDU(fits.hdu.base.NonstandardExtHDU):
             def _verify(self, option='warn'):
-                errs = super(TestHDU, self)._verify(option)
+                errs = super()._verify(option)
                 hdu.req_cards('TESTKW', None, None, None, 'fix', errs)
                 return errs
 

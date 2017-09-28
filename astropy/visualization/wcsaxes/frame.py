@@ -93,7 +93,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
     def __init__(self, parent_axes, transform, path=None):
 
-        super(BaseFrame, self).__init__()
+        super().__init__()
 
         self.parent_axes = parent_axes
         self._transform = transform

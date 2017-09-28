@@ -37,8 +37,8 @@ def test_unit_representation_subclass():
 
     class Longitude180(Longitude):
         def __new__(cls, angle, unit=None, wrap_angle=180*u.deg, **kwargs):
-            self = super(Longitude180, cls).__new__(cls, angle, unit=unit,
-                                                    wrap_angle=wrap_angle, **kwargs)
+            self = super().__new__(cls, angle, unit=unit, wrap_angle=wrap_angle,
+                                   **kwargs)
             return self
 
     class UnitSphericalWrap180Representation(UnitSphericalRepresentation):
