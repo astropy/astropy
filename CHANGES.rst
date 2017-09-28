@@ -104,6 +104,9 @@ astropy.utils
 - The ``astropy.utils.compat.futures`` module has now been deprecated. Use the
   Python 'concurrent.futures' module directly instead. [#6598]
 
+- ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
+  [#5471]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
