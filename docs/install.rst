@@ -60,9 +60,9 @@ Installing Astropy
 Using pip
 ---------
 
-To install Astropy with `pip <https://pip.pypa.io/en/latest/>`_, simply run::
+To install Astropy with `pip <https://pip.pypa.io>`__, simply run::
 
-    pip install --no-deps astropy
+    pip install astropy --no-deps
 
 .. warning::
 
@@ -99,11 +99,11 @@ To install Astropy with `pip <https://pip.pypa.io/en/latest/>`_, simply run::
 
 .. _anaconda_install:
 
-Anaconda python distribution
-----------------------------
+Using conda
+-----------
 
-Astropy is installed by default with Anaconda. To update to the latest version
-run::
+Astropy is installed by default with the `Anaconda Distribution
+<https://www.anaconda.com/download/>`_. To update to the latest version run::
 
     conda update astropy
 
@@ -115,18 +115,10 @@ run::
 
 .. note::
 
-    Attempting to use ``pip`` to upgrade your installation of Astropy may result
+    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation of Astropy may result
     in a corrupted installation.
 
-
-Binary installers
------------------
-
-Binary installers are available on Windows for Python >= 3.5
-at `PyPI <https://pypi.python.org/pypi/astropy>`_.
-
 .. _testing_installed_astropy:
-
 
 Testing an installed Astropy
 ----------------------------
@@ -150,9 +142,8 @@ the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 .. note::
 
     Running the tests this way is currently disabled in the IPython REPL due
-    to conflicts with some common display settings in IPython.  Please run the
+    to conflicts with some common display settings in IPython. Please run the
     Astropy tests under the standard Python command-line interpreter.
-
 
 
 Building from source
@@ -166,16 +157,16 @@ Numpy in order to build Astropy.
 
 You will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
-to build from source, unless you are installing a numbered release. (The
-releases packages have the necessary C files packaged with them, and hence do
+to build from source, unless you are installing a stable release. (The
+released packages have the necessary C files packaged with them, and hence do
 not require Cython.)
 
 Prerequisites for Linux
 -----------------------
 
-On Linux, using the package manager for your distribution will usually be
-the easiest route. In order to build from source, you'll need the python development package
-for your distro.
+On Linux, using the package manager for your distribution will usually be the
+easiest route. In order to build from source, you'll need the python development
+package for your distribution.
 
 For Debian/Ubuntu::
 
@@ -188,38 +179,18 @@ For Fedora/RHEL::
 Prerequisites for Mac OS X
 --------------------------
 
-On MacOS X you will need the XCode command line tools which can be installed using
-
-For installing XCode command line tools::
+On MacOS X you will need the XCode command line tools which can be installed
+using::
 
     xcode-select --install
 
-and follow the onscreen instructions to install the command line tools required.
-
-You'll also need the python development package for Mac OS X to proceed in building
-astropy from source.
-
-To install the python development package for Mac OS X, from a package manager
-like brew, macports or fink.
-
+Follow the onscreen instructions to install the command line tools required.
+Note that you do **not** need to install the full XCode distribution (assuming
+you are using MacOS X 10.9 or later).
 
 The `instructions for building Numpy from source
-<https://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+<https://docs.scipy.org/doc/numpy/user/building.html>`_ are a good
 resource for setting up your environment to build Python packages.
-
-.. note::
-
-    If you are using MacOS X, you will need to the XCode command line tools.
-    One way to get them is to install `XCode
-    <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7 (Lion)
-    or later, you must also explicitly install the command line tools. You can
-    do this by opening the XCode application, going to **Preferences**, then
-    **Downloads**, and then under **Components**, click on the Install button
-    to the right of **Command Line Tools**.  Alternatively, on 10.7 (Lion) or
-    later, you do not need to install XCode, you can download just the command
-    line tools from https://developer.apple.com/downloads/index.action
-    (requires an Apple developer account).
-
 
 Obtaining the source packages
 -----------------------------
@@ -247,12 +218,11 @@ using this command::
 Building and Installing
 -----------------------
 
-Astropy uses the Python `distutils framework
-<https://docs.python.org/3/install/index.html>`_ for building and
-installing and requires the
-`distribute <https://pypi.python.org/pypi/distribute>`_ extension--the later is
-automatically downloaded when running ``python setup.py`` if it is not already
-provided by your system.
+Astropy uses the Python built-in `distutils framework
+<http://docs.python.org/install/index.html>`_ for building and
+installing and requires the `setuptools`_ package -- the later is automatically
+downloaded when running ``python setup.py`` if it is not already provided by
+your system.
 
 If Numpy is not already installed in your Python environment, the
 astropy setup process will try to download and install it before
@@ -325,64 +295,13 @@ The C libraries currently bundled with Astropy include:
   bundled version.
 
 
-The required version of setuptools is not available
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If upon running the ``setup.py`` script you get a message like
-
-    The required version of setuptools (>=0.9.8) is not available,
-    and can't be installed while this script is running. Please
-    install a more recent version first, using
-    'easy_install -U setuptools'.
-
-    (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
-
-this is because you have a very outdated version of the `setuptools
-<https://setuptools.readthedocs.io>`_ package which is used to install
-Python packages.  Normally Astropy will bootstrap newer version of
-setuptools via the network, but setuptools suggests that you first
-*uninstall* the old version (the ``easy_install -U setuptools`` command).
-
-However, in the likely case that your version of setuptools was installed by an
-OS system package (on Linux check your package manager like apt or yum for a
-package called ``python-setuptools``), trying to uninstall with
-``easy_install`` and without using ``sudo`` may not work, or may leave your
-system package in an inconsistent state.
-
-As the best course of action at this point depends largely on the individual
-system and how it is configured, if you are not sure yourself what do please
-ask on the `Astropy mailing list`_.
-
-
-The Windows installer can't find Python in the registry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This is a common issue with Windows installers for Python packages that do not
-support the new User Access Control (UAC) framework added in Windows Vista and
-later.  In particular, when a Python is installed "for all users" (as opposed
-to for a single user) it adds entries for that Python installation under the
-``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
-``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
-settings, if the Astropy installer is not executed with elevated privileges it
-will not be able to check in HKLM for the required information about your
-Python installation.
-
-In short: If you encounter this problem it's because you need the appropriate
-entries in the Windows registry for Python. You can download `this script`__
-and execute it with the same Python as the one you want to install Astropy
-into.  For example to add the missing registry entries to your Python 3.6::
-
-    C:\>C:\Python36\python.exe C:\Path\To\Downloads\win_register_python.py
-
-__ https://gist.github.com/embray/6042780#file-win_register_python-py
-
 Installing Astropy into CASA
 ----------------------------
 
 If you want to be able to use Astropy inside `CASA
 <https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
 
-First, we need to make sure `pip <https://pypi.python.org/pypi/pip>`__ is
+First, we need to make sure `pip <https://pip.pypa.io>`__ is
 installed. Start up CASA as normal, and type::
 
     CASA <2>: from setuptools.command import easy_install
