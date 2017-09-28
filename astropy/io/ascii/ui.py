@@ -267,13 +267,13 @@ def read(table, guess=None, **kwargs):
     """
     del _read_trace[:]
 
-    kwargs = copy.copy(kwargs)
+    # Downstream readers might munge kwargs
+    kwargs = copy.deepcopy(kwargs)
 
     # Convert fast_reader into a dict if not already and make sure 'enable'
     # key is available.
     fast_reader = kwargs.get('fast_reader', True)
     if isinstance(fast_reader, dict):
-        fast_reader = copy.deepcopy(fast_reader)  # this gets munged later
         fast_reader.setdefault('enable', 'force')
     else:
         fast_reader = {'enable': fast_reader}
@@ -407,17 +407,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     format : str
         Table format
     fast_reader : dict
-        Whether to use the C engine as a dict with options which
-        defaults to `False`; parameters for options dict:
-
-        use_fast_converter: bool
-            enable faster but slightly imprecise floating point conversion method
-        parallel: bool or int
-            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
-        exponent_style: str
-            Character to use for exponent or ``'Fortran'`` to auto-detect any
-            Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
-            all case-insensitive; default ``'E'``, all other imply ``use_fast_converter``
+        Options for the C engine fast reader.  See read() function for details.
 
     Returns
     -------
@@ -641,10 +631,10 @@ def _read_in_chunks(table, **kwargs):
     chunk_generator = fast_reader.pop('chunk_generator', False)
     fast_reader['parallel'] = False  # No parallel with chunks
 
-    if chunk_generator:
-        return _read_in_chunks_generator(table, chunk_size, **kwargs)
-
     tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
+    if chunk_generator:
+        return tbl_chunks
+
     tbl0 = next(tbl_chunks)
     masked = tbl0.masked
 

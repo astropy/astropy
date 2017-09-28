@@ -93,7 +93,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
         fast_reader = self.kwargs.get('fast_reader', True)
         if not isinstance(fast_reader, dict):
             fast_reader = {}
-            # else fast_reader = copy.deepcopy(fast_reader)  # this gets munged later
+
         fast_reader.pop('enable', None)
         self.return_header_chars = fast_reader.pop('return_header_chars', False)
         self.kwargs['fast_reader'] = fast_reader
@@ -126,6 +126,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
         return out
 
     def make_table(self, data, comments):
+        """Actually make the output table give the data and comments."""
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
@@ -247,6 +248,11 @@ class FastCommentedHeader(FastBasic):
             self.data_start = 0
 
     def make_table(self, data, comments):
+        """
+        Actually make the output table give the data and comments.  This is
+        slightly different from the base FastBasic method in the way comments
+        are handled.
+        """
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments[1:]
