@@ -23,7 +23,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D']
 
 TWOPI = 2 * np.pi
-FLOAT_EPSILON = np.float(np.finfo(np.float32).tiny)
+FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
 
 
 class Gaussian1D(Fittable1DModel):

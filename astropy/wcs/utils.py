@@ -318,7 +318,7 @@ def proj_plane_pixel_scales(wcs):
     astropy.wcs.utils.proj_plane_pixel_area
 
     """
-    return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=np.float))
+    return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=float))
 
 
 def proj_plane_pixel_area(wcs):

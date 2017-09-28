@@ -353,7 +353,7 @@ def fap_bootstrap(Z, fmax, t, y, dy, normalization='standard',
     """Bootstrap estimate of the false alarm probability"""
     pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
                                       normalization, random_seed),
-                       np.float, n_bootstraps)
+                       float, n_bootstraps)
     pmax.sort()
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
 
@@ -364,7 +364,7 @@ def inv_fap_bootstrap(fap, fmax, t, y, dy, normalization='standard',
     fap = np.asarray(fap)
     pmax = np.fromiter(_bootstrap_max(t, y, dy, fmax,
                                       normalization, random_seed),
-                       np.float, n_bootstraps)
+                       float, n_bootstraps)
     pmax.sort()
     return pmax[np.clip(np.floor((1 - fap) * len(pmax)).astype(int),
                         0, len(pmax) - 1)]

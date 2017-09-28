@@ -214,8 +214,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         raise ValueError('conf must be between 0. and 1.')
     alpha = 1. - conf
 
-    k = np.asarray(k).astype(np.int)
-    n = np.asarray(n).astype(np.int)
+    k = np.asarray(k).astype(int)
+    n = np.asarray(n).astype(int)
 
     if (n <= 0).any():
         raise ValueError('n must be positive')
@@ -225,8 +225,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     if interval == 'wilson' or interval == 'wald':
         from scipy.special import erfinv
         kappa = np.sqrt(2.) * min(erfinv(conf), 1.e10)  # Avoid overflows.
-        k = k.astype(np.float)
-        n = n.astype(np.float)
+        k = k.astype(float)
+        n = n.astype(float)
         p = k / n
 
         if interval == 'wilson':
@@ -427,7 +427,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     """
 
     x = np.ravel(x)
-    success = np.ravel(success).astype(np.bool)
+    success = np.ravel(success).astype(bool)
     if x.shape != success.shape:
         raise ValueError('sizes of x and success must match')
 

@@ -114,7 +114,7 @@ class _Tabular(Model):
                              "{0} dimensions.".format(self.lookup_table.ndim))
 
         if points is None:
-            points = tuple(np.arange(x, dtype=np.float)
+            points = tuple(np.arange(x, dtype=float)
                            for x in lookup_table.shape)
         else:
             if lookup_table.ndim == 1 and not isinstance(points, tuple):

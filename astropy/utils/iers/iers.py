@@ -599,7 +599,7 @@ class IERS_Auto(IERS_A):
 
         # See explanation in _refresh_table_as_needed for these conditions
         auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(np.float).max)
+                        else np.finfo(float).max)
         if (max_input_mjd > predictive_mjd and
                 self.time_now.mjd - predictive_mjd > auto_max_age):
             raise ValueError(INTERPOLATE_ERROR)
@@ -628,7 +628,7 @@ class IERS_Auto(IERS_A):
 
         # Update table in place if necessary
         auto_max_age = (conf.auto_max_age if conf.auto_max_age is not None
-                        else np.finfo(np.float).max)
+                        else np.finfo(float).max)
 
         # If auto_max_age is smaller than IERS update time then repeated downloads may
         # occur without getting updated values (giving a IERSStaleWarning).

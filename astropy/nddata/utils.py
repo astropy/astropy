@@ -677,10 +677,10 @@ class Cutout2D:
         # so evaluate each axis separately
         for axis, side in enumerate(size):
             if not isinstance(side, u.Quantity):
-                shape[axis] = np.int(np.round(size[axis]))     # pixels
+                shape[axis] = int(np.round(size[axis]))     # pixels
             else:
                 if side.unit == u.pixel:
-                    shape[axis] = np.int(np.round(side.value))
+                    shape[axis] = int(np.round(side.value))
                 elif side.unit.physical_type == 'angle':
                     if wcs is None:
                         raise ValueError('wcs must be input if any element '
@@ -688,7 +688,7 @@ class Cutout2D:
                     if pixel_scales is None:
                         pixel_scales = u.Quantity(
                             proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
-                    shape[axis] = np.int(np.round(
+                    shape[axis] = int(np.round(
                         (side / pixel_scales[axis]).decompose()))
                 else:
                     raise ValueError('shape can contain Quantities with only '

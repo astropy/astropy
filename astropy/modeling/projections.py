@@ -1983,7 +1983,7 @@ class AffineTransformation2D(Model):
 
     @staticmethod
     def _create_augmented_matrix(matrix, translation):
-        augmented_matrix = np.empty((3, 3), dtype=np.float)
+        augmented_matrix = np.empty((3, 3), dtype=float)
         augmented_matrix[0:2, 0:2] = matrix
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]

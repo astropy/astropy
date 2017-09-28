@@ -1869,7 +1869,7 @@ class Table:
         for index in self.indices:
             index.remove_rows(row_specifier)
 
-        keep_mask = np.ones(len(self), dtype=np.bool)
+        keep_mask = np.ones(len(self), dtype=bool)
         keep_mask[row_specifier] = False
 
         columns = self.TableColumns()
@@ -2674,7 +2674,7 @@ class Table:
                 elif column.dtype.kind in ['f', 'c']:
                     out[name] = column.filled(np.nan)
                 else:
-                    out[name] = column.astype(np.object).filled(np.nan)
+                    out[name] = column.astype(object).filled(np.nan)
             else:
                 out[name] = column
 

@@ -727,10 +727,10 @@ class Model(metaclass=_ModelMeta):
                     bbox = [bbox]
                 # indices where input is outside the bbox
                 # have a value of 1 in ``nan_ind``
-                nan_ind = np.zeros(inputs[0].shape, dtype=np.bool)
+                nan_ind = np.zeros(inputs[0].shape, dtype=bool)
                 for ind, inp in enumerate(inputs):
                     # Pass an ``out`` array so that ``axis_ind`` is array for scalars as well.
-                    axis_ind = np.zeros(inp.shape, dtype=np.bool)
+                    axis_ind = np.zeros(inp.shape, dtype=bool)
                     axis_ind = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1], out=axis_ind)
                     nan_ind[axis_ind] = 1
                 # get an array with indices of valid inputs
@@ -1696,7 +1696,7 @@ class Model(metaclass=_ModelMeta):
             # We use quantity_asanyarray here instead of np.asanyarray because
             # if any of the arguments are quantities, we need to return a
             # Quantity object not a plain Numpy array.
-            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=np.float)
+            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -1712,7 +1712,7 @@ class Model(metaclass=_ModelMeta):
                 # We use quantity_asanyarray here instead of np.asanyarray because
                 # if any of the arguments are quantities, we need to return a
                 # Quantity object not a plain Numpy array.
-                params[param_name] = quantity_asanyarray(value, dtype=np.float)
+                params[param_name] = quantity_asanyarray(value, dtype=float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are

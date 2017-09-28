@@ -378,7 +378,7 @@ class Chebyshev1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -484,7 +484,7 @@ class Hermite1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -640,7 +640,7 @@ class Hermite2D(OrthoPolynomialBase):
         Derivative of 1D Hermite series
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -727,7 +727,7 @@ class Legendre1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -818,7 +818,7 @@ class Polynomial1D(PolynomialModel):
             The Vandermonde matrix
         """
 
-        v = np.empty((self.degree + 1,) + x.shape, dtype=np.float)
+        v = np.empty((self.degree + 1,) + x.shape, dtype=float)
         v[0] = 1
         if self.degree > 0:
             v[1] = x
@@ -1131,7 +1131,7 @@ class Chebyshev2D(OrthoPolynomialBase):
         Derivative of 1D Chebyshev series
         """
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -1256,7 +1256,7 @@ class Legendre2D(OrthoPolynomialBase):
     def _legendderiv1d(self, x, deg):
         """Derivative of 1D Legendre polynomial"""
 
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:

@@ -269,12 +269,12 @@ class TimeDecimalYear(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
 
         sum12, err12 = two_sum(val1, val2)
-        iy_start = np.trunc(sum12).astype(np.int)
+        iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
 
         val = (val1 + val2).astype(np.double)
-        iy_start = np.trunc(val).astype(np.int)
+        iy_start = np.trunc(val).astype(int)
 
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
@@ -554,7 +554,7 @@ class TimeDatetime(TimeUnique):
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok'],
-                             op_dtypes=[np.object] + 5*[np.intc] + [np.double])
+                             op_dtypes=[object] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
 
@@ -604,7 +604,7 @@ class TimeDatetime(TimeUnique):
         ifracs = ihmsfs[..., 3]
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
-                             op_dtypes=7*[iys.dtype] + [np.object])
+                             op_dtypes=7*[iys.dtype] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
