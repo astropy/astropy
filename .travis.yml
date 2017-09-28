@@ -75,7 +75,7 @@ matrix:
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem' NUMPY_VERSION=1.12
+               PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
@@ -90,7 +90,7 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.11 is tested below in the image tests, 1.12 in the OSX test.
+        # Numpy 1.11 is tested below in the image tests, 1.12 in the Initial stage test.
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
                SETUP_CMD='test --open-files'
@@ -107,7 +107,10 @@ matrix:
 
         - os: linux
           stage: Initial tests
-          env: SETUP_CMD='test --coverage -a "--mpl"'
+          env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES NUMPY_VERSION=1.12
+
+        - os: linux
+          env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
@@ -138,7 +141,7 @@ matrix:
         # that gives too many false positives due to URL timeouts.
         - os: linux
           stage: Cron tests
-          env: NUMPY_VERSION=dev
+          env: NUMPY_VERSION=dev EVENT_TYPE='cron'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
     allow_failures:
