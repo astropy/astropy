@@ -151,7 +151,7 @@ class SLSQP(Optimization):
             if i[1] is None:
                 i[1] = DEFAULT_BOUNDS[1]
         # older versions of scipy require this array to be float
-        bounds = np.asarray(bounds, dtype=np.float)
+        bounds = np.asarray(bounds, dtype=float)
         eqcons = np.array(model.eqcons)
         ineqcons = np.array(model.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = self.opt_method(

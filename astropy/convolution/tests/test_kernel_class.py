@@ -32,7 +32,7 @@ KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
 
 
-NUMS = [1, 1., np.float(1.), np.float32(1.), np.float64(1.)]
+NUMS = [1, 1., np.float32(1.), np.float64(1.)]
 
 
 # Test data

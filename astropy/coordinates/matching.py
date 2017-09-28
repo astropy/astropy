@@ -235,7 +235,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     if len(coords1) == 0 or len(coords2) == 0:
         # Empty array input: return empty match
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+        return (np.array([], dtype=int), np.array([], dtype=int),
                 Angle([], u.deg),
                 u.Quantity([], coords1.distance.unit))
 
@@ -258,8 +258,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
         d2ds = Angle([], u.deg)
@@ -339,7 +339,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
             distunit = u.dimensionless_unscaled
         else:
             distunit = coords1.distance.unit
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int),
+        return (np.array([], dtype=int), np.array([], dtype=int),
                 Angle([], u.deg),
                 u.Quantity([], distunit))
 
@@ -376,8 +376,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
         for match in matches:
             idxs1.append(i)
             idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=np.int)
-    idxs2 = np.array(idxs2, dtype=np.int)
+    idxs1 = np.array(idxs1, dtype=int)
+    idxs2 = np.array(idxs2, dtype=int)
 
     if idxs1.size == 0:
         if coords2.distance.unit == u.dimensionless_unscaled:

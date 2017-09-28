@@ -1022,8 +1022,8 @@ def test_int_out_of_range(parallel):
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(np.int).min+1
-    imax = np.iinfo(np.int).max-1
+    imin = np.iinfo(int).min+1
+    imax = np.iinfo(int).max-1
     huge = '{:d}'.format(imax+2)
 
     text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)

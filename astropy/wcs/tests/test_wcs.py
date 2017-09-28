@@ -435,8 +435,8 @@ def test_all_world2pix(fname=None, ext=0,
     # Assume that CRPIX is at the center of the image and that the image has
     # a power-of-2 number of pixels along each axis. Only use the central
     # 1/64 for this testing purpose:
-    naxesi_l = list((7. / 16 * crpix).astype(np.int))
-    naxesi_u = list((9. / 16 * crpix).astype(np.int))
+    naxesi_l = list((7. / 16 * crpix).astype(int))
+    naxesi_u = list((9. / 16 * crpix).astype(int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in

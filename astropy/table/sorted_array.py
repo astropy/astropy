@@ -214,7 +214,7 @@ class SortedArray:
             return False
 
         self.data.remove_row(pos)
-        keep_mask = np.ones(len(self.row_index), dtype=np.bool)
+        keep_mask = np.ones(len(self.row_index), dtype=bool)
         keep_mask[pos] = False
         self.row_index = self.row_index[keep_mask]
         return True
@@ -253,7 +253,7 @@ class SortedArray:
             Mapping of row numbers to new row numbers
         '''
         num_rows = len(row_map)
-        keep_rows = np.zeros(len(self.row_index), dtype=np.bool)
+        keep_rows = np.zeros(len(self.row_index), dtype=bool)
         tagged = 0
         for i, row in enumerate(self.row_index):
             if row in row_map:

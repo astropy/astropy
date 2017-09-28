@@ -37,7 +37,7 @@ def common_dtype(arrs):
     Use numpy to find the common dtype for a list of ndarrays.
 
     Only allow arrays within the following fundamental numpy data types:
-    ``np.bool``, ``np.object``, ``np.number``, ``np.character``, ``np.void``
+    ``np.bool_``, ``np.object_``, ``np.number``, ``np.character``, ``np.void``
 
     Parameters
     ----------

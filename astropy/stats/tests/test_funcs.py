@@ -208,7 +208,7 @@ def test_binned_binom_proportion():
     # Check that it works.
     nbins = 20
     x = np.linspace(0., 10., 100)  # Guarantee an `x` in every bin.
-    success = np.ones(len(x), dtype=np.bool)
+    success = np.ones(len(x), dtype=bool)
     bin_ctr, bin_hw, p, perr = funcs.binned_binom_proportion(x, success,
                                                              bins=nbins)
 

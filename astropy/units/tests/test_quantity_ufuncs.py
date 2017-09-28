@@ -570,11 +570,11 @@ class TestComparisonUfuncs:
         q_i2 = np.array([10., -5., 1.e6]) * u.g / u.Ms
         q_o = ufunc(q_i1, q_i2)
         assert not isinstance(q_o, u.Quantity)
-        assert q_o.dtype == np.bool
+        assert q_o.dtype == bool
         assert np.all(q_o == ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
         q_o2 = ufunc(q_i1 / q_i2, 2.)
         assert not isinstance(q_o2, u.Quantity)
-        assert q_o2.dtype == np.bool
+        assert q_o2.dtype == bool
         assert np.all(q_o2 == ufunc((q_i1 / q_i2)
                                     .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities

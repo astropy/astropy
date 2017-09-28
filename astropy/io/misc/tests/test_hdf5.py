@@ -23,11 +23,11 @@ else:
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
-              np.bool, '|S3']
+              np.bool_, '|S3']
 
 
 def _default_values(dtype):
-    if dtype == np.bool:
+    if dtype == np.bool_:
         return [0, 1, 1]
     elif dtype == '|S3':
         return [b'abc', b'def', b'ghi']

@@ -169,12 +169,12 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         self.name = name
 
         # Tcmb may have units
-        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K, dtype=np.float)
+        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K)
         if not self._Tcmb0.isscalar:
             raise ValueError("Tcmb0 is a non-scalar quantity")
 
         # Hubble parameter at z=0, km/s/Mpc
-        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc, dtype=np.float)
+        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc)
         if not self._H0.isscalar:
             raise ValueError("H0 is a non-scalar quantity")
 
@@ -370,16 +370,14 @@ class FLRW(Cosmology, metaclass=ABCMeta):
             return None
         if not self._massivenu:
             # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), u.eV,
-                              dtype=np.float)
+            return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
         if self._nmasslessnu == 0:
             # Only massive
-            return u.Quantity(self._massivenu_mass, u.eV,
-                              dtype=np.float)
+            return u.Quantity(self._massivenu_mass, u.eV)
         # A mix -- the most complicated case
         numass = np.append(np.zeros(self._nmasslessnu),
                            self._massivenu_mass.value)
-        return u.Quantity(numass, u.eV, dtype=np.float)
+        return u.Quantity(numass, u.eV)
 
     @property
     def h(self):
@@ -598,7 +596,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
             z = np.asarray(z)
             # Common enough case to be worth checking explicitly
             if self._Ok0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Ok0 == 0:
                 return 0.0
@@ -624,7 +622,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
             z = np.asarray(z)
             # Common case worth checking
             if self._Ode0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Ode0 == 0:
                 return 0.0
@@ -671,7 +669,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         if isiterable(z):
             z = np.asarray(z)
             if self._Onu0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Onu0 == 0:
                 return 0.0
@@ -770,8 +768,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
             if np.isscalar(z):
                 return prefac * self._Neff
             else:
-                return prefac * self._Neff *\
-                    np.ones(np.asanyarray(z).shape, dtype=np.float)
+                return prefac * self._Neff * np.ones(np.asanyarray(z).shape)
 
         # These are purely fitting constants -- see the Komatsu paper
         p = 1.83
@@ -1592,7 +1589,7 @@ class LambdaCDM(FLRW):
         if np.isscalar(z):
             return -1.0
         else:
-            return -1.0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return -1.0 * np.ones(np.asanyarray(z).shape)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -1616,7 +1613,7 @@ class LambdaCDM(FLRW):
         if np.isscalar(z):
             return 1.
         else:
-            return np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return np.ones(np.asanyarray(z).shape)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1938,7 +1935,7 @@ class wCDM(FLRW):
         if np.isscalar(z):
             return self._w0
         else:
-            return self._w0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return self._w0 * np.ones(np.asanyarray(z).shape)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
