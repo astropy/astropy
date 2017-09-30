@@ -567,7 +567,7 @@ In pseudo-code, this means that a class will look like::
 
 	# __init__ is optional
         def __init__(self, comp1, comp2, comp3, copy=True):
-            super(MyRepresentation, self).__init__(comp1, comp2, comp3, copy=copy)
+            super().__init__(comp1, comp2, comp3, copy=copy)
             ...
 
         @classmethod

@@ -200,8 +200,8 @@ this looks something like:
 
         # Don't pass on cov_matrix since it doesn't mean anything to the base
         # class
-        super(Gaussian2D, self).__init__(amplitude, x_mean, y_mean, x_stddev,
-                                         y_stddev, theta, **kwargs)
+        super().__init__(amplitude, x_mean, y_mean, x_stddev, y_stddev, theta,
+                         **kwargs)
 
 
 Full example
@@ -292,7 +292,7 @@ The base class for all fitters is `~astropy.modeling.fitting.Fitter`::
         def __init__(self):
             # Most currently defined fitters take no arguments in their
             # __init__, but the option certainly exists for custom fitters
-            super(SLSQPFitter, self).__init__()
+            super().__init__()
 
 All fitters take a model (their ``__call__`` method modifies the model's
 parameters) as their first argument.
@@ -330,14 +330,14 @@ necessary::
 Defining a Plugin Fitter
 ========================
 
-`astropy.modeling` includes a plugin mechanism which allows fitters 
-defined outside of astropy's core to be inserted into the 
-`astropy.modeling.fitting` namespace through the use of entry points. 
+`astropy.modeling` includes a plugin mechanism which allows fitters
+defined outside of astropy's core to be inserted into the
+`astropy.modeling.fitting` namespace through the use of entry points.
 Entry points are references to importable objects. A tutorial on defining
 entry points can be found in `setuptools' documentation <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_.
-Plugin fitters must to extend from the `~astropy.modeling.fitting.Fitter` 
-base class. For the fitter to be discovered and inserted into 
-`astropy.modeling.fitting` the entry points must be inserted into 
+Plugin fitters must to extend from the `~astropy.modeling.fitting.Fitter`
+base class. For the fitter to be discovered and inserted into
+`astropy.modeling.fitting` the entry points must be inserted into
 the `astropy.modeling` entry point group
 
 .. doctest-skip::
@@ -353,8 +353,8 @@ This would allow users to import the ``PlugFitterName`` through `astropy.modelin
 
     from astropy.modeling.fitting import PlugFitterName
 
-One project which uses this functionality is `Saba <https://saba.readthedocs.io/>`_ 
-and be can be used as a reference. 
+One project which uses this functionality is `Saba <https://saba.readthedocs.io/>`_
+and be can be used as a reference.
 
 Using a Custom Statistic Function
 *********************************
@@ -422,8 +422,7 @@ above::
 
         def __init__(self, optimizer=Simplex):
             self.statistic = chi_line
-            super(LineFitter, self).__init__(optimizer,
-                                             statistic=self.statistic)
+            super().__init__(optimizer, statistic=self.statistic)
 
 The last thing to define is the ``__call__`` method::
 
