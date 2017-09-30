@@ -140,7 +140,7 @@ Working with compressed files
 The :func:`open` function will seamlessly open FITS files that have been
 compressed with gzip, bzip2 or pkzip. Note that in this context we're talking
 about a fits file that has been compressed with one of these utilities - e.g. a
-.fits.gz file. 
+.fits.gz file.
 
 There are some limitations with working with compressed files. For example with Zip
 files that contain multiple compressed files, only the first file will be accessible.
@@ -244,24 +244,24 @@ To update existing COMMENT or HISTORY cards, reference them by index::
 
 To see the entire header as it appears in the FITS file (with the END card and
 padding stripped), simply enter the header object by itself, or
-``print(repr(header))``::
+``print(repr(prihdr))``::
 
-    >>> header
+    >>> prihdr
     SIMPLE  =                    T / file does conform to FITS standard
     BITPIX  =                   16 / number of bits per data pixel
     NAXIS   =                    0 / number of data axes
     all cards are shown...
-    >>> print(repr(header))
+    >>> print(repr(prihdr))
     ... identical ...
 
-Entering simply ``print(header)`` will also work, but may not be very legible
+Entering simply ``print(prihdr)`` will also work, but may not be very legible
 on most displays, as this displays the header as it is written in the FITS file
 itself, which means there are no linebreaks between cards.  This is a common
 source of confusion for new users.
 
 It's also possible to view a slice of the header::
 
-   >>> header[:2]
+   >>> prihdr[:2]
    SIMPLE  =                    T / file does conform to FITS standard
    BITPIX  =                   16 / number of bits per data pixel
 
