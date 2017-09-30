@@ -177,7 +177,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
-   
+
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
@@ -202,7 +202,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
-      
+
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
    release line are *not* marked hidden.  For example, if v1.2.2 was
@@ -225,18 +225,25 @@ packages that use the full bugfix/maintenance branch approach.)
       but this should *not* be done, as it might push up some unintended tags.
 
 #. If this is a release of the current release (i.e., not an LTS supported along
-   side a more recent version), update the "stable" branch to point to the new
+   side a more recent version), update the "stable" tag to point to the new
    release::
 
-      $ git checkout stable
-      $ git reset --hard v<version>
+      $ git checkout v<version>
+      $ git tag -s --force stable
       $ git push upstream stable --force
 
-#. Update Readthedocs so that it builds docs for the version you just released.
-   You'll find this in the "admin" tab, with checkboxes next to each github tag.
-   Also verify that the ``stable`` Readthedocs version builds correctly for
-   the new version (it should trigger automatically once you've done the
-   previous step).
+#. If this release is an LTS release, update the "LTS" tag to point to the
+   new release::
+
+      $ git checkout v<version>
+      $ git tag -s --force LTS
+      $ git push upstream LTS --force
+
+#. Update Readthedocs so that it builds docs for the version you just
+   released.  You'll find this in the "admin" tab, with checkboxes next to
+   each github tag.  Also verify that the ``stable`` or ``LTS`` Readthedocs
+   version builds correctly for the new version (it should trigger
+   automatically once you've done the previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
    release history to "protected".  For example when releasing v1.1.2, set
