@@ -454,18 +454,18 @@ class should be handed control in the next :func:`super` call::
     class B(A):
         def method(self):
             print('Doing B')
-            super(B, self).method()
+            super().method()
 
 
     class C(A):
         def method(self):
             print('Doing C')
-            super(C, self).method()
+            super().method()
 
     class D(C, B):
         def method(self):
             print('Doing D')
-            super(D, self).method()
+            super().method()
 
 ::
 

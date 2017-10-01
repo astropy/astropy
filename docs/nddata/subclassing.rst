@@ -22,7 +22,7 @@ Adding another property
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -81,6 +81,9 @@ super property set the attribute afterwards::
     ...         # Call the setter of the super class in case it might contain some
     ...         # important logic (only True for meta, unit and uncertainty)
     ...         super(NDDataUncertaintyShapeChecker, self.__class__).uncertainty.fset(self, value)
+    ...         # Unlike "super(cls_name, cls_name).uncertainty.fset" or
+    ...         # or "NDData.uncertainty.fset" this will respect Pythons method
+    ...         # resolution order.
 
     >>> ndd = NDDataUncertaintyShapeChecker([1,2,3], uncertainty=[2,3,4])
     INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
@@ -238,7 +241,7 @@ signature of ``_arithmetic``::
     ...         if 'handle_mask' not in kwargs:
     ...             kwargs['handle_mask'] = None
     ...         # Call the original with the updated kwargs
-    ...         return super(NDDDiffAritDefaults, self)._arithmetic(*args, **kwargs)
+    ...         return super()._arithmetic(*args, **kwargs)
 
     >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
     >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
@@ -270,7 +273,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -296,7 +299,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...
     ...         # Let the superclass do all the other attributes note that
     ...         # this returns the result and a dictionary containing other attributes
-    ...         result, kwargs = super(NDDataWithFlags, self)._arithmetic(operation, operand, *args, **kwargs)
+    ...         result, kwargs = super()._arithmetic(operation, operand, *args, **kwargs)
     ...         # The arguments for creating a new instance are saved in kwargs
     ...         # so we need to add another keyword "flags" and add the processed flags
     ...         kwargs['flags'] = result_flags
@@ -325,7 +328,7 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
     ...             # only use the first dimension of the slice
     ...             return self.mask[item[0]]
     ...         # Let the superclass deal with the other cases
-    ...         return super(NDDataMask1D, self)._slice_mask(item)
+    ...         return super()._slice_mask(item)
 
     >>> ndd = NDDataMask1D(np.ones((3,3)), mask=np.ones(3, dtype=bool))
     >>> nddsliced = ndd[1:3,1:3]
@@ -350,7 +353,7 @@ Building on the added property ``flags`` we want them to be sliceable:
     ...     def __init__(self, *args, **kwargs):
     ...         # Remove flags attribute if given and pass it to the setter.
     ...         self.flags = kwargs.pop('flags') if 'flags' in kwargs else None
-    ...         super(NDDataWithFlags, self).__init__(*args, **kwargs)
+    ...         super().__init__(*args, **kwargs)
     ...
     ...     @property
     ...     def flags(self):
@@ -362,7 +365,7 @@ Building on the added property ``flags`` we want them to be sliceable:
     ...
     ...     def _slice(self, item):
     ...         # slice all normal attributes
-    ...         kwargs = super(NDDataWithFlags, self)._slice(item)
+    ...         kwargs = super()._slice(item)
     ...         # The arguments for creating a new instance are saved in kwargs
     ...         # so we need to add another keyword "flags" and add the sliced flags
     ...         kwargs['flags'] = self.flags[item]
