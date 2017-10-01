@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-
-
 from ...utils.misc import InheritDocstrings
 
 
@@ -14,7 +11,7 @@ class _FormatterMeta(InheritDocstrings):
         else:
             formatter_name = members['name'] = name.lower()
 
-        cls = super(mcls, _FormatterMeta).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         mcls.registry[formatter_name] = cls
 
