@@ -80,7 +80,10 @@ super property set the attribute afterwards::
     ...             raise ValueError('uncertainty must have the same shape as the data.')
     ...         # Call the setter of the super class in case it might contain some
     ...         # important logic (only True for meta, unit and uncertainty)
-    ...         NDData.uncertainty.fset(self, value)
+    ...         super(NDDataUncertaintyShapeChecker, self.__class__).uncertainty.fset(self, value)
+    ...         # Unlike "super(cls_name, cls_name).uncertainty.fset" or
+    ...         # or "NDData.uncertainty.fset" this will respect Pythons method
+    ...         # resolution order.
 
     >>> ndd = NDDataUncertaintyShapeChecker([1,2,3], uncertainty=[2,3,4])
     INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
