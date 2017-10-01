@@ -170,8 +170,6 @@ def first(iterable):
 
 def itersubclasses(cls, _seen=None):
     """
-    itersubclasses(cls)
-
     Generator over all subclasses of a given class, in depth first order.
 
     >>> class A: pass
@@ -186,16 +184,13 @@ def itersubclasses(cls, _seen=None):
     D
     E
     C
-    >>> # get ALL (new-style) classes currently defined
+    >>> # get ALL classes currently defined
     >>> [cls.__name__ for cls in itersubclasses(object)]
     [...'tuple', ...'type', ...]
 
     From http://code.activestate.com/recipes/576949/
     """
 
-    if not isinstance(cls, type):
-        raise TypeError('itersubclasses must be called with '
-                        'new-style classes, not {:.100r}'.format(cls))
     if _seen is None:
         _seen = set()
     try:
