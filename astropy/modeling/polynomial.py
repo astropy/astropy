@@ -1350,7 +1350,7 @@ class _SIP1D(PolynomialBase):
 
         for i in range(coef.shape[0]):
             for j in range(coef.shape[1]):
-                if i + j > 1 and i + j < self.order + 1:
+                if 1 < i + j < self.order + 1:
                     result = result + coef[i, j] * x ** i * y ** j
         return result
 

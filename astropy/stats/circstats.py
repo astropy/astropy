@@ -402,7 +402,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
-    if(x >= 0 and x < 0.53):
+    if 0 <= x < 0.53:
         return 2.0*x + x*x*x + (5.0*x**5)/6.0
     elif x < 0.85:
         return -0.4 + 1.39*x + 0.43/(1.0 - x)
