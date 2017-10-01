@@ -503,7 +503,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # Verify locations and values of mandatory keywords.
         self.req_cards('NAXIS', 2,
-                       lambda v: (_is_int(v) and v >= 1 and v <= 999), 1,
+                       lambda v: (_is_int(v) and 1 <= v <= 999), 1,
                        option, errs)
         self.req_cards('NAXIS1', 3, lambda v: (_is_int(v) and v == 0), 0,
                        option, errs)

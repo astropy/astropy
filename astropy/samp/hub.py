@@ -1119,7 +1119,7 @@ class SAMPHubServer:
             self._sync_msg_ids_heap[msg_id] = None
 
             while self._is_running:
-                if timeout > 0 and time.time() - now >= timeout:
+                if 0 < timeout <= time.time() - now:
                     del(self._sync_msg_ids_heap[msg_id])
                     raise SAMPProxyError(1, "Timeout expired!")
 
