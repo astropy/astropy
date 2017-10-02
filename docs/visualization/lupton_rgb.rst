@@ -7,7 +7,7 @@ Creating color RGB images
 `Lupton et al. (2004)`_ describe an "optimal" algorithm for producing red-green-
 blue composite images from three separate high-dynamic range arrays. This method
 is implemented in `~astropy.visualization.make_lupton_rgb` as a convenience
-wraper function and an associated set of classes to provide alternate scalings.
+wrapper function and an associated set of classes to provide alternate scalings.
 The SDSS SkyServer color images were made using a variation on this technique.
 To generate a color PNG file with the default (arcsinh) scaling:
 
