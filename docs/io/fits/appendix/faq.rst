@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _io-fits-faq:
 
 astropy.io.fits FAQ
@@ -17,7 +15,7 @@ PyFITS_ is a library written in, and for use with the Python_ programming
 language for reading, writing, and manipulating FITS_ formatted files.  It
 includes a high-level interface to FITS headers with the ability for high and
 low-level manipulation of headers, and it supports reading image and table
-data as Numpy_ arrays.  It also supports more obscure and non-standard formats
+data as NumPy_ arrays.  It also supports more obscure and non-standard formats
 found in some FITS files.
 
 The `astropy.io.fits` module is identical to PyFITS but with the names changed.
@@ -30,12 +28,12 @@ the next question.
 
 Although PyFITS is written mostly in Python, it includes an optional module
 written in C that's required to read/write compressed image data.  However,
-the rest of PyFITS functions without this extension module.
+the rest of PyFITS functions work without this extension module.
 
 .. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits
-.. _Python: http://www.python.org
-.. _FITS: http://fits.gsfc.nasa.gov/
-.. _Numpy: http://numpy.scipy.org/
+.. _Python: https://www.python.org
+.. _FITS: https://fits.gsfc.nasa.gov/
+.. _NumPy: http://numpy.scipy.org/
 
 
 What is the development status of PyFITS?
@@ -54,7 +52,7 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-PyFITS' current primary developer and active maintainer is `Erik Bray`_, though
+PyFITS' is currently maintained by the `Space Telescope Science Institute`_, though
 patch submissions are welcome from anyone.  PyFITS is now primarily developed
 in a Git repository for ease of merging to and from Astropy.  Patches and issue
 reports can be posted to the `GitHub project`_ for PyFITS, or for Astropy.
@@ -62,17 +60,14 @@ There is also a legacy `Trac site`_ with some older issue reports still open,
 but new issues should be submitted via GitHub if possible.  An `SVN mirror`_ of
 the repository is still maintained as well.
 
-The current stable release series is 3.3.x.  Each 3.3.x release tries to
-contain only bug fixes, and to not introduce any significant behavioral or API
-changes (though this isn't guaranteed to be perfect).  Patch releases for older
-release series may be released upon request.  Older versions of PyFITS (2.4 and
-earlier) are no longer actively supported.
+The current stable (and probably last) release as stand-alone package is 3.4.0.
+Patch releases for older release series may be released upon request.  Older
+versions of PyFITS (2.4 and earlier) are no longer actively supported.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
-.. _3-clause BSD license: http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
+.. _3-clause BSD license: https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
-.. _Erik Bray: mailto:embray@stsci.edu
 .. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
 .. _SVN mirror: https://aeon.stsci.edu/ssb/svn/pyfits/
 .. _GitHub project: https://github.com/spacetelescope/PyFITS
@@ -95,7 +90,7 @@ unexpected behavior.
 
 For the most common cases, however, such as reading and updating FITS headers,
 images, and tables, `astropy.io.fits`. is very stable and well-tested.  Before
-every Astropy/PyFITS release it is ensured that all its tests pass on a variety
+every Astropy release it is ensured that all its tests pass on a variety
 of platforms, and those tests cover the majority of use-cases (until new corner
 cases are discovered).
 
@@ -108,20 +103,16 @@ parlance a "traceback").  When an unhandled exception occurs in the code,
 causing the program to end, this is a way of displaying where the exception
 occurred and the path through the code that led to it.
 
-As Astropy is meant to be used as a piece in other software projects, some
+Astropy is meant to be used as a piece in other software projects, so some
 exceptions raised by Astropy are by design.  For example, one of the most
 common exceptions is a `KeyError` when an attempt is made to read
-the value of a non-existent keyword in a header::
+the value of a non-existent keyword from a ``Header``::
 
     >>> from astropy.io import fits
     >>> h = fits.Header()
     >>> h['NAXIS']
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/path/to/astropy/io/fits/header.py", line 125, in __getitem__
-        return self._cards[self._cardindex(key)].value
-      File "/path/to/astropy/io/fits/header.py", line 1535, in _cardindex
-        raise KeyError("Keyword %r not found." % keyword)
+        ...
     KeyError: "Keyword 'NAXIS' not found."
 
 This indicates that something was looking for a keyword called "NAXIS" that
@@ -136,7 +127,7 @@ likely that it was caused by a bug in Astropy.  So if you're getting an
 exception and you really don't know why or what to do about it, feel free to
 report it as a bug.
 
-.. _stack trace: http://en.wikipedia.org/wiki/Stack_trace
+.. _stack trace: https://en.wikipedia.org/wiki/Stack_trace
 
 
 Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
@@ -145,14 +136,14 @@ Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
 support due to a bug.  Sometimes it's even possible for a file to work in an
-older version of Astropy or PyFITS, but not a newer version due to a regression
+older version of Astropy, but not a newer version due to a regression
 that isn't tested for yet.
 
 Another problem with the FITS format is that, as old as it is, there are many
 conventions that appear in files from certain sources that do not meet the FITS
 standard.  And yet they are so common-place that it is necessary to support
 them in any FITS readers.  CONTINUE cards are one such example.  There are
-non-standard conventions supported by Astropy/PyFITS that are not supported by
+non-standard conventions supported by Astropy that are not supported by
 CFITSIO and possibly vice-versa.  You may have hit one of those cases.
 
 If Astropy is having trouble opening a file, a good way to rule out whether not
@@ -166,8 +157,8 @@ If fitsverify confirms no problems with a file, and Astropy is still having
 trouble opening it (especially if it produces a traceback) then it's possible
 there is a bug in Astropy.
 
-.. _fitsverify: http://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
-.. _online FITS verifier: http://fits.gsfc.nasa.gov/fits_verify.html
+.. _fitsverify: https://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
+.. _online FITS verifier: https://fits.gsfc.nasa.gov/fits_verify.html
 
 
 How do I turn off the warning messages Astropy keeps outputting to my console?
@@ -185,7 +176,7 @@ Any console output generated by Astropy can be assumed to be from the warnings
 subsystem.  See Astropy's documentation on the :ref:`python-warnings` for more
 information on how to control and quiet warnings.
 
-.. _warnings: http://docs.python.org/library/warnings.html
+.. _warnings: https://docs.python.org/library/warnings.html
 
 
 What convention does Astropy use for indexing, such as of image coordinates?
@@ -232,20 +223,8 @@ is likely to cause more difficulties than it's worth.
 How do I open a very large image that won't fit in memory?
 ----------------------------------------------------------
 
-In PyFITS, prior to version 3.1, when the data portion of an HDU is accessed,
-the data is read into memory in its entirety.  For example::
-
-    >>> hdul = pyfits.open('myimage.fits')
-    >>> hdul[0].data
-    ...
-
-reads the entire image array from disk into memory.  For very large images or
-tables this is clearly undesirable, if not impossible given the available
-resources.
-
 However, `astropy.io.fits.open` has an option to access the data portion of an
-HDU by memory mapping using `mmap`_.  In both Astropy and newer versions of
-PyFITS this is used by *default*.
+HDU by memory mapping using `mmap`_.  This is used by *default* in Astropy.
 
 What this means is that accessing the data as in the example above only reads
 portions of the data into memory on demand.  For example, if I request just a
@@ -274,7 +253,7 @@ space, such as on 32-bit systems.  Support for scaled image data is flakey with
 sections too, though that will be fixed.  See the documentation on :ref:`image
 sections <data-sections>` for more details on using this interface.
 
-.. _mmap: http://en.wikipedia.org/wiki/Mmap
+.. _mmap: https://en.wikipedia.org/wiki/Mmap
 
 
 How can I create a very large FITS file from scratch?
@@ -292,13 +271,13 @@ through the `PyTables`_ library.  The :ref:`Astropy Table <astropy-table>`
 interface can provide an abstraction layer between different on-disk table
 formats as well (for example for converting a table between FITS and HDF5).
 
-PyTables makes use of Numpy under the hood, and can be used to write binary
+PyTables makes use of NumPy under the hood, and can be used to write binary
 table data to disk in the same format required by FITS.  It is then possible
 to serialize your table to the FITS format for distribution.  At some point
 this FAQ might provide an example of how to do this.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5/
-.. _PyTables: http://www.pytables.org/moin
+.. _HDF5: https://www.hdfgroup.org/HDF5/
+.. _PyTables: http://www.pytables.org
 
 
 How do I create a multi-extension FITS file from scratch?
@@ -329,17 +308,22 @@ it, because it doesn't happen until the data portion of the HDU is accessed
 (to allow things like updating the header without rescaling the data).  For
 example::
 
-    >>> hdul = fits.open('scaled.fits')
-    >>> image = hdul['SCI', 1]
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> def _(filename):
+    ...     return get_pkg_data_filename(
+    ...         'io/fits/tests/data/{}'.format(filename), 'astropy')
+
+    >>> hdul = fits.open(_('scale.fits'))
+    >>> image = hdul[0]
     >>> image.header['BITPIX']
-    32
+    16
     >>> image.header['BSCALE']
-    2.0
+    0.045777764213996
     >>> data = image.data  # Read the data into memory
-    >>> data.dtype
-    dtype('float64')  # Got float64 despite BITPIX = 32 (32-bit int)
+    >>> data.dtype.name    # Got float32 despite BITPIX = 16 (16-bit int)
+    'float32'
     >>> image.header['BITPIX']  # The BITPIX will automatically update too
-    -64
+    -32
     >>> 'BSCALE' in image.header  # And the BSCALE keyword removed
     False
 
@@ -355,6 +339,7 @@ If the data must be returned to integers before saving, use the `ImageHDU.scale
     >>> image.scale('int32')
     >>> image.header['BITPIX']
     32
+    >>> hdul.close()  # close the file again
 
 Alternatively, if a file is opened with ``mode='update'`` along with the
 ``scale_back=True`` argument, the original BSCALE and BZERO scaling will
@@ -368,10 +353,11 @@ you don't intend for the code to access the data, it's good to err on the side
 of caution here), use the ``do_not_scale_image_data`` argument when opening
 the file::
 
-    >>> hdul = fits.open('scaled.fits', do_not_scale_image_data=True)
-    >>> image = hdul['SCI', 1]
-    >>> image.data.dtype
-    dtype('int32')
+    >>> hdul = fits.open(_('scale.fits'), do_not_scale_image_data=True)
+    >>> image = hdul[0]
+    >>> image.data.dtype.name
+    'int16'
+    >>> hdul.close()  # close the file again
 
 
 Why am I losing precision when I assign floating point values in the header?
@@ -388,7 +374,7 @@ can be stored in a 64-bit float with full precision.  So FITS also supports a
 "free" format in which the ASCII representation can be stored anywhere, using
 the full 70 bytes of the card (after the keyword).
 
-Currently Astropy/PyFITS only supports writing fixed format (it can read both
+Currently Astropy only supports writing fixed format (it can read both
 formats), so all floating point values assigned to a header are stored in the
 fixed format.  There are plans to add support for more flexible formatting.
 
@@ -409,8 +395,8 @@ according to the FITS standard).
 Why is reading rows out of a FITS table so slow?
 ------------------------------------------------
 
-Underlying every table data array returned by `astropy.io.fits` is a Numpy
-`~numpy.recarray` which is a Numpy array type specifically for representing
+Underlying every table data array returned by `astropy.io.fits` is a NumPy
+`~numpy.recarray` which is a NumPy array type specifically for representing
 structured array data (i.e. a table).  As with normal image arrays, Astropy
 accesses the underlying binary data from the FITS file via mmap (see the
 question "`What performance differences are there between astropy.io.fits and
@@ -422,8 +408,8 @@ However, for many (if not most) FITS tables it isn't all that simple.  For
 many columns there are conversions that have to take place between the actual
 data that's "on disk" (in the FITS file) and the data values that are returned
 to the user.  For example FITS binary tables represent boolean values
-differently from how Numpy expects them to be represented, "Logical" columns
-need to be converted on the fly to a format Numpy (and hence the user) can
+differently from how NumPy expects them to be represented, "Logical" columns
+need to be converted on the fly to a format NumPy (and hence the user) can
 understand.  This issue also applies to data that is linearly scaled via the
 ``TSCALn`` and ``TZEROn`` header keywords.
 
@@ -443,23 +429,21 @@ I'm opening many FITS files in a loop and getting OSError: Too many open files
 
 Say you have some code like:
 
-.. doctest-skip::
+.. code:: python
 
-    >>> from astropy.io import fits
-    >>> for filename in filenames:
-    ...     hdul = fits.open(filename)
-    ...     for hdu in hdul:
-    ...         hdu_data = hdul.data
-    ...         # Do some stuff with the data
-    ...     hdul.close()
-    ...
+    from astropy.io import fits
+    for filename in filenames:
+        with open(filename) as hdul:
+            for hdu in hdul:
+                hdu_data = hdul.data
+                # Do some stuff with the data
 
 The details may differ, but the qualitative point is that the data to many
 HDUs and/or FITS files are being accessed in a loop.  This may result in
 an exception like::
 
     Traceback (most recent call last):
-      File "<stdin>", line 2, in <module>
+        ...
     OSError: [Errno 24] Too many open files: 'my_data.fits'
 
 As explained in the :ref:`note on working with large files <fits-large-files>`,
@@ -468,7 +452,7 @@ you correctly close a file with `HDUList.close <astropy.io.fits.HDUList.close>`
 a handle is kept open to that file so that the memory-mapped data array can
 still be continued to be read transparently.
 
-The way Numpy supports mmap is such that the file mapping is not closed until
+The way NumPy supports mmap is such that the file mapping is not closed until
 the overlying `~numpy.ndarray` object has no references to it and is freed
 memory.  However, when looping over a large number of files (or even just HDUs)
 rapidly, this may not happen immediately.  Or in some cases if the HDU object
@@ -476,21 +460,19 @@ persists, the data array attached to it may persist too.  The easiest
 workaround is to *manually* delete the ``.data`` attribute on the HDU object so
 that the `~numpy.ndarray` reference is freed and the mmap can be closed:
 
-.. doctest-skip::
+.. code:: python
 
-    >>> from astropy.io import fits
-    >>> for filename in filenames:
-    ...     hdul = fits.open(filename)
-    ...     for hdu in hdul:
-    ...         hdu_data = hdul.data
-    ...         # Do some stuff with the data
-    ...         # ...
-    ...         # Don't need the data anymore; delete all references to it
-    ...         # so that it can be garbage collected
-    ...         del hdu_data
-    ...         del hdu.data
-    ...     hdul.close()
-    ...
+    from astropy.io import fits
+    for filename in filenames:
+        with fits.open(filename) as hdul:
+            for hdu in hdul:
+                hdu_data = hdul.data
+                # Do some stuff with the data
+                # ...
+                # Don't need the data anymore; delete all references to it
+                # so that it can be garbage collected
+                del hdu_data
+                del hdu.data
 
 In some extreme cases files are opened and closed fast enough that Python's
 garbage collector does not free them (and hence free the file handles) often
@@ -507,18 +489,18 @@ Comparison with Other FITS Readers
 What is the difference between astropy.io.fits and fitsio?
 ----------------------------------------------------------
 
-The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
+The `astropy.io.fits` module is a "pure Python" FITS
 reader in that all the code for parsing the FITS file format is in Python,
-though Numpy is used to provide access to the FITS data via the
+though NumPy is used to provide access to the FITS data via the
 `~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
-`CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
+`CFITSIO <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
 FITS Tile Compression convention, but this feature is optional.  It does not
 use CFITSIO outside of reading compressed images.
 
 `fitsio <https://github.com/esheldon/fitsio>`_, on the other hand, is a Python
 wrapper for the CFITSIO library.  All the heavy lifting of reading the FITS
 format is handled by CFITSIO, while ``fitsio`` provides an easier to use
-object-oriented API including providing a Numpy interface to FITS files read
+object-oriented API including providing a NumPy interface to FITS files read
 from CFITSIO.  Much of it is written in C (to provide the interface between
 Python and CFITSIO), and the rest is in Python.  The Python end mostly
 provides the documentation and user-level API.
@@ -587,11 +569,11 @@ of thousands of FITS files in succession (in either case the difference is
 not even an order of magnitude).
 
 Where data is concerned the situation is a little more complicated, and
-requires some understanding of how PyFITS is implemented versus CFITSIO and
+requires some understanding of how `astropy.io.fits` is implemented versus CFITSIO and
 ``fitsio``.  First it's important to understand how they differ in terms of
 memory management.
 
-`astropy.io.fits`/PyFITS uses mmap, by default, to provide access to the raw
+`astropy.io.fits` uses mmap, by default, to provide access to the raw
 binary data in FITS files.  Mmap is a system call (or in most cases these days
 a wrapper in your libc for a lower-level system call) which allows user-space
 applications to essentially do the same thing your OS is doing when it uses a
@@ -668,7 +650,7 @@ Astropy the test is written:
 
 .. code:: python
 
-    def read_test_pyfits(filename):
+    def read_test_astropy(filename):
         with fits.open(filename, memmap=True) as hdul:
             data = hdul[0].data
             c = data.copy()
@@ -681,7 +663,7 @@ using:
 
     for filename in filenames:
         print(filename)
-        %timeit read_test_pyfits(filename)
+        %timeit read_test_astropy(filename)
 
 where ``filenames`` is just a list of the aforementioned generated sample
 files.  The results were::
@@ -698,6 +680,8 @@ files.  The results were::
 For ``fitsio`` the test was:
 
 .. code:: python
+
+    import fitsio
 
     def read_test_fitsio(filename):
         with fitsio.FITS(filename) as f:
@@ -756,7 +740,7 @@ common example is how FITS represents boolean values in binary tables.
 Another, significantly more complicated example, is variable length arrays.
 
 As explained in "`Why is reading rows out of a FITS table so slow?`_",
-`astropy.io.fits`/PyFITS does not currently handle some of these cases as
+`astropy.io.fits` does not currently handle some of these cases as
 efficiently as it could, in particular in cases where a user only wishes to
 read a few rows out of a table.  Fitsio, on the other hand, has a better
 interface for copying one row at a time out of a table and performing the
@@ -768,7 +752,7 @@ table operations.
 Fitsio also exposes a microlanguage (implemented in CFITSIO) for making
 efficient SQL-like queries of tables (single tables only though--no joins or
 anything like that).  This format, described in the `CFITSIO documentation
-<http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
+<https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
 in some cases perform more efficient selections of rows than might be possible
-with Numpy alone, which requires creating an intermediate mask array in order
+with NumPy alone, which requires creating an intermediate mask array in order
 to perform row selection.
