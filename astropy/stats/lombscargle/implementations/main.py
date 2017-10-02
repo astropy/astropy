@@ -8,7 +8,6 @@ statement for the various implementations available in this submodule
 __all__ = ['lombscargle', 'available_methods']
 
 import warnings
-import imp
 
 import numpy as np
 
@@ -37,10 +36,11 @@ def available_methods():
 
     # Scipy required for scipy algorithm (obviously)
     try:
-        imp.find_module('scipy')
-        methods.append('scipy')
+        import scipy
     except ImportError:
         pass
+    else:
+        methods.append('scipy')
     return methods
 
 
