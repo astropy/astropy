@@ -38,7 +38,7 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
-Once the `astropy.io.fits` package is loaded using the standard convention\
+Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
     >>> from astropy.io import fits
