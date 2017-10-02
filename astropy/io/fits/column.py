@@ -1402,7 +1402,7 @@ class ColDefs(NotifierMixin):
                 continue  # skip if there is no match
             if keyword in KEYWORD_NAMES:
                 col = int(key.group('num'))
-                if col <= nfields and col > 0:
+                if 0 < col <= nfields:
                     attr = KEYWORD_TO_ATTRIBUTE[keyword]
                     if attr == 'format':
                         # Go ahead and convert the format value to the

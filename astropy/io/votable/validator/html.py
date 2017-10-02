@@ -98,7 +98,7 @@ def write_warning(w, line, xml_lines):
             msg = msg.decode('utf-8')
         w.write(xml_escape(msg))
         w.write('\n')
-        if warning['nline'] >= 1 and warning['nline'] < len(xml_lines):
+        if 1 <= warning['nline'] < len(xml_lines):
             write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
 
 

@@ -284,7 +284,7 @@ class RipleysKEstimator:
                         if i != j:
                             diff = abs(data[i] - data[j])
                             dist = math.sqrt((diff * diff).sum())
-                            if dist < radii[r] and lt_dist[i] > radii[r]:
+                            if dist < radii[r] < lt_dist[i]:
                                 ripley[r] = ripley[r] + 1
                 lt_dist_sum = (lt_dist > radii[r]).sum()
                 if not lt_dist_sum == 0:
