@@ -346,3 +346,4 @@ Here are some examples::
      >>> # the file existingfile.fits with only the appended HDU
      >>> # containing both CHECKSUM and DATASUM cards.
      >>> fits.append('existingfile.fits', data, checksum=True)
+
