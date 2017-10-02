@@ -2664,19 +2664,19 @@ The following enhancements were made:
     the appropriate card object given an input string.  These two methods are
     also available as convenience functions:
 
-      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX: 1','comment)
+      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX: 1','comment')
 
     or
 
-      >>> c1 = pyfits.createCard('DP1','AUX: 1','comment)
+      >>> c1 = pyfits.createCard('DP1','AUX: 1','comment')
       >>> print type(c1)
       <'pyfits.NP_pyfits.RecordValuedKeywordCard'>
 
-      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX 1','comment)
+      >>> c1 = pyfits.RecordValuedKeywordCard.createCard('DP1','AUX 1','comment')
 
     or
 
-      >>> c1 = pyfits.createCard('DP1','AUX 1','comment)
+      >>> c1 = pyfits.createCard('DP1','AUX 1','comment')
       >>> print type(c1)
       <'pyfits.NP_pyfits.Card'>
 
