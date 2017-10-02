@@ -41,7 +41,6 @@ it with Figure 1 of `Lupton et al. (2004)`_:
    :include-source:
    :align: center
 
-   import numpy as np
    import matplotlib.pyplot as plt
    from astropy.visualization import make_lupton_rgb
    from astropy.io import fits
