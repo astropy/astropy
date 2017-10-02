@@ -140,8 +140,7 @@ class TestPprint():
         nlines, width = console.terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
-            assert (len(line) > width - 10 and
-                    len(line) <= width)
+            assert width - 10 < len(line) <= width
 
     def test_format1(self, table_type):
         """Basic test of formatting, unit header row included"""

@@ -988,7 +988,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         self.req_cards('BITPIX', 1, lambda v: (_is_int(v) and is_valid(v)), 8,
                        option, errs)
         self.req_cards('NAXIS', 2,
-                       lambda v: (_is_int(v) and v >= 0 and v <= 999), 0,
+                       lambda v: (_is_int(v) and 0 <= v <= 999), 0,
                        option, errs)
 
         naxis = self._header.get('NAXIS', 0)
