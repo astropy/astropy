@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import imp
+import importlib
 import sys
 import warnings
 
@@ -29,8 +29,8 @@ except NameError:
 def setup_function(function):
 
     # Reset modules to default
-    imp.reload(warnings)
-    imp.reload(sys)
+    importlib.reload(warnings)
+    importlib.reload(sys)
 
     # Reset internal original hooks
     log._showwarning_orig = None
