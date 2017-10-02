@@ -229,15 +229,19 @@ packages that use the full bugfix/maintenance branch approach.)
    release::
 
       $ git checkout v<version>
-      $ git tag -s --force stable
-      $ git push upstream stable --force
+      $ git tag -d stable
+      $ git tag -s "stable" -m "Tagging v<version> as latest stable"
+      $ git push upstream :stable
+      $ git push upstream stable
 
 #. If this release is an LTS release, update the "LTS" tag to point to the
    new release::
 
       $ git checkout v<version>
-      $ git tag -s --force LTS
-      $ git push upstream LTS --force
+      $ git tag -d LTS
+      $ git tag -s "LTS" -m "Tagging v<version> as latest LTS"
+      $ git push upstream :LTS
+      $ git push upstream LTS
 
 #. Update Readthedocs so that it builds docs for the version you just
    released.  You'll find this in the "admin" tab, with checkboxes next to
