@@ -567,7 +567,7 @@ else:
         return s.translate(table)
 
 
-def fill(text, width, *args, **kwargs):
+def fill(text, width, **kwargs):
     """
     Like :func:`textwrap.wrap` but preserves existing paragraphs which
     :func:`textwrap.wrap` does not otherwise handle well.  Also handles section
@@ -580,7 +580,7 @@ def fill(text, width, *args, **kwargs):
         if all(len(l) < width for l in t.splitlines()):
             return t
         else:
-            return textwrap.fill(t, width, *args, **kwargs)
+            return textwrap.fill(t, width, **kwargs)
 
     return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
