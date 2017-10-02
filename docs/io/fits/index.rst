@@ -38,7 +38,7 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
-Once the `astropy.io.fits` package is loaded using the standard convention\
+Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
 
     >>> from astropy.io import fits
@@ -95,15 +95,15 @@ because by that point you're likely to run out of physical memory anyways), but
 64-bit systems are much less limited in this respect.
 
 .. warning::
-	When opening a file with ``memmap=True``, because of how mmap works this means that
-	when the HDU data is accessed (i.e. ``hdul[0].data``) another handle to the FITS file
-	is opened by mmap. This means that even after calling ``hdul.close()`` the mmap still
-	holds an open handle to the data so that it can still be accessed by unwary programs
-	that were built with the assumption that the .data attribute has all the data in-memory.
+    When opening a file with ``memmap=True``, because of how mmap works this means that
+    when the HDU data is accessed (i.e. ``hdul[0].data``) another handle to the FITS file
+    is opened by mmap. This means that even after calling ``hdul.close()`` the mmap still
+    holds an open handle to the data so that it can still be accessed by unwary programs
+    that were built with the assumption that the .data attribute has all the data in-memory.
 
-	In order to force the mmap to close either wait for the containing ``HDUList`` object to go
-	out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
-	references held to the data array).
+    In order to force the mmap to close either wait for the containing ``HDUList`` object to go
+    out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
+    references held to the data array).
 
 Unsigned integers
 """""""""""""""""
