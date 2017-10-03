@@ -224,6 +224,7 @@ class Ecsv(basic.Basic):
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'
+    _io_registry_suffix = '.ecsv'
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter
