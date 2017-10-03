@@ -138,7 +138,7 @@ Fitting models with units to data
 =================================
 
 Fitting models with units to data with units should be seamless provided that
-the model supports fitting with units. To demonstate this, we start off by
+the model supports fitting with units. To demonstrate this, we start off by
 generating synthetic data:
 
 .. plot::
