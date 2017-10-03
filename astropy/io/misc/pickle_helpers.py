@@ -9,7 +9,7 @@ part of a larger framework or standard.
 __all__ = ['fnpickle', 'fnunpickle']
 
 
-def fnunpickle(fileorname, number=0, usecPickle=True):
+def fnunpickle(fileorname, number=0):
     """ Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
@@ -22,9 +22,6 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         this specifies the number of objects to be unpickled, and a list will
         be returned with exactly that many objects. If <0, all objects in the
         file will be unpickled and returned as a list.
-    usecPickle : bool
-        If True, the :mod:`cPickle` module is to be used in place of
-        :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
 
     Raises
     ------
@@ -72,7 +69,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     return res
 
 
-def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
+def fnpickle(object, fileorname, protocol=None, append=False):
     """Pickle an object to a specified file.
 
     Parameters
@@ -82,9 +79,6 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     fileorname : str or file-like
         The filename or file into which the `object` should be pickled. If a
         file object, it should have been opened in binary mode.
-    usecPickle : bool
-        If True (default), the :mod:`cPickle` module is to be used in place of
-        :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
     protocol : int or None
         Pickle protocol to use - see the :mod:`pickle` module for details on
         these options. If None, the most recent protocol will be used.

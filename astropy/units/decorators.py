@@ -87,7 +87,7 @@ class QuantityInput:
         A decorator for validating the units of arguments to functions.
 
         Unit specifications can be provided as keyword arguments to the decorator,
-        or by using Python 3's function annotation syntax. Arguments to the decorator
+        or by using function annotation syntax. Arguments to the decorator
         take precedence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
@@ -108,14 +108,13 @@ class QuantityInput:
         Examples
         --------
 
-        Python 2 and 3::
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input(myangle=u.arcsec)
             def myfunction(myangle):
                 return myangle**2
 
-        Python 3 only:
 
         .. code-block:: python3
 
@@ -124,7 +123,7 @@ class QuantityInput:
             def myfunction(myangle: u.arcsec):
                 return myangle**2
 
-        Also in Python 3 you can specify a return value annotation, which will
+        Also you can specify a return value annotation, which will
         cause the function to always return a `~astropy.units.Quantity` in that
         unit.
 

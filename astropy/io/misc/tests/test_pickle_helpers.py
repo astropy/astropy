@@ -18,23 +18,11 @@ def test_fnpickling_simple(tmpdir):
     res = fnunpickle(fn)
     assert obj1 == res
 
-    # try without cPickle
-    fnpickle(obj1, fn, usecPickle=False)
-    res = fnunpickle(fn, usecPickle=False)
-    assert obj1 == res
-
     # now try with a file-like object instead of a string
     with open(fn, 'wb') as f:
         fnpickle(obj1, f)
     with open(fn, 'rb') as f:
         res = fnunpickle(f)
-        assert obj1 == res
-
-    # same without cPickle
-    with open(fn, 'wb') as f:
-        fnpickle(obj1, f, usecPickle=False)
-    with open(fn, 'rb') as f:
-        res = fnunpickle(f, usecPickle=False)
         assert obj1 == res
 
 

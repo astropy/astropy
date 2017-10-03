@@ -121,7 +121,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # If this is an extension function, we can't call
         # functools.wraps on it, but we normally don't care.
         # This crazy way to get the type of a wrapper descriptor is
-        # straight out of the Python 3.3 inspect module docs.
+        # straight out of the inspect module docs.
         if type(func) is not type(str.__dict__['__add__']):  # nopep8
             deprecated_func = functools.wraps(func)(deprecated_func)
 
@@ -379,11 +379,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
     In this case ``arg_in_kwargs`` and ``relax`` can be a single value (which
     is applied to all renamed arguments) or must also be a `tuple` or `list`
     with values for each of the arguments.
-
-    .. warning::
-        This decorator needs to access the original signature of the decorated
-        function. Therefore this decorator must be the **first** decorator on
-        any function if it needs to work for Python before version 3.4.
     """
     cls_iter = (list, tuple)
     if isinstance(old_name, cls_iter):
@@ -424,7 +419,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 if param.kind == param.POSITIONAL_OR_KEYWORD:
                     position[i] = keys.index(new_name[i])
 
-                # 2.) Keyword only argument (Python 3 only):
+                # 2.) Keyword only argument:
                 elif param.kind == param.KEYWORD_ONLY:
                     # These cannot be specified by position.
                     position[i] = None
@@ -667,9 +662,6 @@ class classproperty(property):
         def fget(obj):
             return orig_fget(obj.__class__)
 
-        # Set the __wrapped__ attribute manually for support on Python 2
-        fget.__wrapped__ = orig_fget
-
         return fget
 
 
@@ -798,14 +790,7 @@ class sharedmethod(classmethod):
             mcls = type(objtype)
             clsmeth = getattr(mcls, self.__func__.__name__, None)
             if callable(clsmeth):
-                if isinstance(clsmeth, types.MethodType):
-                    # This case will generally only apply on Python 2, which
-                    # uses MethodType for unbound methods; Python 3 has no
-                    # particular concept of unbound methods and will just
-                    # return a function
-                    func = clsmeth.__func__
-                else:
-                    func = clsmeth
+                func = clsmeth
             else:
                 func = self.__func__
 
@@ -859,8 +844,7 @@ def _get_function_args_internal(func):
     Utility function for `wraps`.
 
     Reads the argspec for the given function and converts it to arguments
-    for `make_function_with_signature`.  This requires different
-    implementations on Python 2 versus Python 3.
+    for `make_function_with_signature`.
     """
 
     argspec = inspect.getfullargspec(func)

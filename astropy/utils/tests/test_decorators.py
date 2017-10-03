@@ -226,8 +226,7 @@ def test_deprecated_class_with_super():
 def test_deprecated_class_with_custom_metaclass():
     """
     Regression test for an issue where deprecating a class with a metaclass
-    other than type did not restore the metaclass properly (at least not
-    on Python 3).
+    other than type did not restore the metaclass properly.
     """
 
     with catch_warnings(AstropyDeprecationWarning) as w:

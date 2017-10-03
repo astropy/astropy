@@ -994,7 +994,7 @@ def test_no_resource_check():
 
 
 def test_instantiate_vowarning():
-    # This used to raise a deprecation exception on Python 2.6.
+    # This used to raise a deprecation exception.
     # See https://github.com/astropy/astroquery/pull/276
     VOWarning(())
 

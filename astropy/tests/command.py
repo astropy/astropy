@@ -13,20 +13,6 @@ import tempfile
 from setuptools import Command
 
 
-def _fix_user_options(options):
-    """
-    This is for Python 2.x and 3.x compatibility.  distutils expects Command
-    options to all be byte strings on Python 2 and Unicode strings on Python 3.
-    """
-
-    def to_str_or_none(x):
-        if x is None:
-            return None
-        return str(x)
-
-    return [tuple(to_str_or_none(x) for x in y) for y in options]
-
-
 class FixRemoteDataOption(type):
     """
     This metaclass is used to catch cases where the user is running the tests
@@ -104,8 +90,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
          'If unspecified the system default is used (e.g. /tmp) as explained '
          'in the documentation for tempfile.mkstemp.')
     ]
-
-    user_options = _fix_user_options(user_options)
 
     package_name = ''
 
@@ -203,21 +187,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
 
-            # On Python 3.x prior to 3.3, the creation of .pyc files
-            # is not atomic.  py.test jumps through some hoops to make
-            # this work by parsing import statements and carefully
-            # importing files atomically.  However, it can't detect
-            # when __import__ is used, so its carefulness still fails.
-            # The solution here (admittedly a bit of a hack), is to
-            # turn off the generation of .pyc files altogether by
-            # passing the `-B` switch to `python`.  This does mean
-            # that each core will have to compile .py file to bytecode
-            # itself, rather than getting lucky and borrowing the work
-            # already done by another core.  Compilation is an
-            # insignificant fraction of total testing time, though, so
-            # it's probably not worth worrying about.
             testproc = subprocess.Popen(
-                [sys.executable, '-B', '-c', cmd],
+                [sys.executable, '-c', cmd],
                 cwd=self.testing_path, close_fds=False)
             retcode = testproc.wait()
         except KeyboardInterrupt:
@@ -286,17 +257,11 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         coveragerc = os.path.join(
             self.testing_path, self.package_name, 'tests', 'coveragerc')
 
-        # We create a coveragerc that is specific to the version
-        # of Python we're running, so that we can mark branches
-        # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
 
-        ignore_python_version = '2'
-
         coveragerc_content = coveragerc_content.replace(
-            "{ignore_python_version}", ignore_python_version).replace(
-                "{packagename}", self.package_name)
+            "{packagename}", self.package_name)
         tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
         with open(tmp_coveragerc, 'wb') as tmp:
             tmp.write(coveragerc_content.encode('utf-8'))

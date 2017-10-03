@@ -22,8 +22,7 @@ classes to define custom YAML tags for the following astropy classes:
 
 .. Note ::
 
-   This module requires PyYaml version 3.12 or later, which in turn requires
-   Python 2.7 or Python 3.4 or later.
+   This module requires PyYaml version 3.12 or later.
 
 Example
 =======

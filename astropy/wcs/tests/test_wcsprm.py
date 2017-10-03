@@ -821,9 +821,7 @@ def test_locale():
     orig_locale = locale.getlocale(locale.LC_NUMERIC)[0]
 
     try:
-        # str('fr_FR') because otherwise it will be a unicode string, which
-        # breaks setlocale on Python 2
-        locale.setlocale(locale.LC_NUMERIC, str('fr_FR'))
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR')
     except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
