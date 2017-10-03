@@ -568,8 +568,9 @@ class TimeDatetime(TimeUnique):
             imin[...] = dt.minute
             dsec[...] = dt.second + dt.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                        *iterator.operands[1:])
+        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                              *iterator.operands[1:])
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def to_value(self, timezone=None, parent=None):
         """
@@ -1071,7 +1072,8 @@ class TimeEpochDateString(TimeString):
 
         self._check_scale(self._scale)  # validate scale.
         epoch_to_jd = getattr(erfa, self.epoch_to_jd)
-        self.jd1, self.jd2 = epoch_to_jd(iterator.operands[-1])
+        jd1, jd2 = epoch_to_jd(iterator.operands[-1])
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
     def value(self):
