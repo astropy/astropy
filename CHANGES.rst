@@ -144,6 +144,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Allow ECSV files to be auto-identified by ``Table.read`` or ``Table.write`` based
+  on the ``.ecsv`` file name suffix. In this case it is not required to provide the
+  ``format`` keyword. [#6552]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 

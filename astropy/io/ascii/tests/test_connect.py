@@ -5,6 +5,10 @@ import pytest
 
 from ....table import Table, Column
 
+from ....table.table_helpers import simple_table
+
+import numpy as np
+
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 files = ['t/cds.dat', 't/ipac.dat', 't/daophot.dat', 't/latex1.tex',
@@ -17,6 +21,12 @@ try:
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
+
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 if HAS_BEAUTIFUL_SOUP:
     files.append('t/html.html')
@@ -138,3 +148,11 @@ def test_write_csv(tmpdir):
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.csv"))
     t.write(path)
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_auto_identify_ecsv(tmpdir):
+    tbl = simple_table()
+    tmpfile =  str(tmpdir.join('/tmpFile.ecsv'))
+    tbl.write(tmpfile)
+    tbl2 = Table.read(tmpfile)
+    assert np.all(tbl == tbl2)
