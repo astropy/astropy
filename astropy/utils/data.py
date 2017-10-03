@@ -137,8 +137,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -216,10 +215,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
-        except (IOError, EOFError):  # invalid gzip file
-            fileobj.seek(0)
-            fileobj_new.close()
-        except struct.error:  # invalid gzip file on Python 3
+        except (IOError, EOFError, struct.error):  # invalid gzip file
             fileobj.seek(0)
             fileobj_new.close()
         else:
@@ -369,8 +365,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -387,8 +382,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
-        Python 3 is returned).
+        `urllib.request.urlopen` is returned).
 
     Returns
     -------
@@ -624,8 +618,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -642,8 +635,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
-        Python 3 is returned).
+        `urllib.request.urlopen` is returned).
 
     Returns
     -------
@@ -754,8 +746,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.

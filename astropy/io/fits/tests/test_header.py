@@ -1982,14 +1982,10 @@ class TestHeaderFunctions(FitsTestCase):
         First regression test for
         https://github.com/spacetelescope/PyFITS/issues/37
 
-        Although test_assign_unicode ensures that Python 2 `unicode` objects
-        and Python 3 `str` objects containing non-ASCII characters cannot be
-        assigned to headers, there is a bug that allows Python 2 `str` objects
-        of arbitrary encoding containing non-ASCII characters to be passed
-        through.
+        Although test_assign_unicode ensures that `str` objects containing
+        non-ASCII characters cannot be assigned to headers.
 
-        On Python 3 it should not be possible to assign bytes to a header at
-        all.
+        It should not be possible to assign bytes to a header at all.
         """
 
         h = fits.Header()

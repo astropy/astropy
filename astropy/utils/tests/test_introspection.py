@@ -63,34 +63,6 @@ def test_find_mod_objs():
     assert namedtuple not in objs
 
 
-def test_isinstancemethod():
-    """
-    Note, this is an exact copy of the doctest in `isinstancemethod`'s
-    docstring.
-
-    It is included here as well so that it can be tested on Python 2 and 3
-    which require very different implementations.  Once we enable running
-    doctests on Python 3 this extra test can be dropped.
-    """
-
-    class MetaClass(type):
-        def a_classmethod(cls): pass
-
-    class MyClass(metaclass=MetaClass):
-        def an_instancemethod(self): pass
-
-        @classmethod
-        def another_classmethod(cls): pass
-
-        @staticmethod
-        def a_staticmethod(): pass
-
-    assert not isinstancemethod(MyClass, MyClass.a_classmethod)
-    assert not isinstancemethod(MyClass, MyClass.another_classmethod)
-    assert not isinstancemethod(MyClass, MyClass.a_staticmethod)
-    assert isinstancemethod(MyClass, MyClass.an_instancemethod)
-
-
 def _minversion_test():
     from types import ModuleType
     test_module = ModuleType(str("test_module"))

@@ -11,7 +11,6 @@ def bitceil(N):
     Roughly equivalent to int(2 ** np.ceil(np.log2(N)))
     """
     if hasattr(int, 'bit_length'):
-        # Python 2.7 and 3.x
         return 1 << int(N - 1).bit_length()
     else:
         N = int(N) - 1

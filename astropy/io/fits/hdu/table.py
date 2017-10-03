@@ -1041,8 +1041,8 @@ class BinTableHDU(_TableBaseHDU):
 
         overwrite : bool, optional
             If ``True``, overwrite the output file if it exists. Raises an
-            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-            output file exists. Default is ``False``.
+            ``OSError`` if ``False`` and the output file exists. Default is
+            ``False``.
 
             .. versionchanged:: 1.3
                ``overwrite`` replaces the deprecated ``clobber`` argument.

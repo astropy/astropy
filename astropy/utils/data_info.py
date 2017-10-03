@@ -77,8 +77,7 @@ def dtype_info_name(dtype):
     type that matches the dtype::
 
       Numpy          S<N>      U<N>
-      Python 2      str<N>  unicode<N>
-      Python 3    bytes<N>   str<N>
+      Python      bytes<N>   str<N>
 
     Parameters
     ----------

@@ -269,9 +269,7 @@ class HDUList(list, _Verify):
             max_idx = key.stop
             # Check for and handle the case when no maximum was
             # specified (e.g. [1:]).
-            # The first part of the or below is for python 2.7, the second
-            # part for python 3.
-            if max_idx == sys.maxsize or max_idx is None:
+            if max_idx is None:
                 # We need all of the HDUs, so load them
                 # and reset the maximum to the actual length.
                 max_idx = len(self)
@@ -435,10 +433,9 @@ class HDUList(list, _Verify):
             raise TypeError(
                 'The provided object {} does not contain an underlying '
                 'memory buffer.  fromstring() requires an object that '
-                'supports the buffer interface such as bytes, str '
-                '(in Python 2.x but not in 3.x), buffer, memoryview, '
-                'ndarray, etc.  This restriction is to ensure that '
-                'efficient access to the array/table data is possible.'
+                'supports the buffer interface such as bytes, buffer, '
+                'memoryview, ndarray, etc.  This restriction is to ensure '
+                'that efficient access to the array/table data is possible.'
                 ''.format(data))
 
         return cls._readfrom(data=data, **kwargs)
@@ -832,8 +829,8 @@ class HDUList(list, _Verify):
 
         overwrite : bool, optional
             If ``True``, overwrite the output file if it exists. Raises an
-            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-            output file exists. Default is ``False``.
+            ``OSError`` if ``False`` and the output file exists. Default is
+            ``False``.
 
             .. versionchanged:: 1.3
                ``overwrite`` replaces the deprecated ``clobber`` argument.

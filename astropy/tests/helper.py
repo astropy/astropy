@@ -38,9 +38,7 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
 remote_data = pytest.mark.remote_data
 
 
-# This is for Python 2.x and 3.x compatibility.  distutils expects
-# options to all be byte strings on Python 2 and Unicode strings on
-# Python 3.
+# distutils expects options to be Unicode strings
 def _fix_user_options(options):
     def to_str_or_none(x):
         if x is None:
@@ -134,14 +132,6 @@ _modules_to_ignore_on_import = set([
     'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
-    (3, 4): set([
-        # py.test reads files with the 'U' flag, which is now
-        # deprecated in Python 3.4.
-        r"'U' mode is deprecated",
-        # BeautifulSoup4 triggers warning in stdlib's html module.x
-        r"The strict argument and mode are deprecated\.",
-        r"The value of convert_charrefs will become True in 3\.5\. "
-        r"You are encouraged to set the value explicitly\."]),
     (3, 5): set([
         # py.test reads files with the 'U' flag, which is
         # deprecated.
@@ -366,7 +356,7 @@ def assert_follows_unicode_guidelines(
     roundtrip : module, optional
         When provided, this namespace will be used to evaluate
         ``repr(x)`` and ensure that it roundtrips.  It will also
-        ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
+        ensure that ``__bytes__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
     from .. import conf

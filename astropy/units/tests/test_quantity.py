@@ -904,12 +904,10 @@ def test_arrays():
         qseclen0array[0]
     assert isinstance(qseclen0array.value, int)
 
-    # but with multiple dtypes, single elements are OK; need to use str()
-    # since numpy under python2 cannot handle unicode literals
     a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
-                 dtype=[(str('x'), float),
-                        (str('y'), float),
-                        (str('z'), float)])
+                 dtype=[('x', float),
+                        ('y', float),
+                        ('z', float)])
     qkpc = u.Quantity(a, u.kpc)
     assert not qkpc.isscalar
     qkpc0 = qkpc[0]

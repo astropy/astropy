@@ -1151,24 +1151,19 @@ class FITS_rec(np.recarray):
     def _scale_back_strings(self, col_idx, input_field, output_field):
         # There are a few possibilities this has to be able to handle properly
         # The input_field, which comes from the _converted column is of dtype
-        # 'Sn' (where n in string length) on Python 2--this is maintain the
-        # existing user expectation of not being returned Python 2-style
-        # unicode strings.  One Python 3 the array in _converted is of dtype
-        # 'Un' so that elements read out of the array are normal Python 3 str
+        # 'Un' so that elements read out of the array are normal str
         # objects (i.e. unicode strings)
         #
         # At the other end the *output_field* may also be of type 'S' or of
-        # type 'U'.  It will *usually* be of type 'S' (regardless of Python
-        # version) because when reading an existing FITS table the raw data is
-        # just ASCII strings, and represented in Numpy as an S array.
-        # However, when a user creates a new table from scratch, they *might*
-        # pass in a column containing unicode strings (dtype 'U'), especially
-        # on Python 3 where this will be the default.  Therefore the
-        # output_field of the raw array is actually a unicode array.  But we
-        # still want to make sure the data is encodable as ASCII.  Later when
-        # we write out the array we use, in the dtype 'U' case, a different
-        # write routine that writes row by row and encodes any 'U' columns to
-        # ASCII.
+        # type 'U'.  It will *usually* be of type 'S' because when reading
+        # an existing FITS table the raw data is just ASCII strings, and
+        # represented in Numpy as an S array.  However, when a user creates
+        # a new table from scratch, they *might* pass in a column containing
+        # unicode strings (dtype 'U').  Therefore the output_field of the
+        # raw array is actually a unicode array.  But we still want to make
+        # sure the data is encodable as ASCII.  Later when we write out the
+        # array we use, in the dtype 'U' case, a different write routine
+        # that writes row by row and encodes any 'U' columns to ASCII.
 
         # If the output_field is non-ASCII we will worry about ASCII encoding
         # later when writing; otherwise we can do it right here
