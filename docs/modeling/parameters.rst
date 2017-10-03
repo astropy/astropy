@@ -10,7 +10,7 @@ Most models in this package are "parametric" in the sense that each subclass
 of `~astropy.modeling.Model` represents an entire family of models, each
 member of which is distinguished by a fixed set of parameters that fit that
 model to some some dependent and independent variable(s) (also referred to
-throughout the the package as the outputs and inputs of the model).
+throughout the package as the outputs and inputs of the model).
 
 Parameters are used in three different contexts within this package: Basic
 evaluation of models, fitting models to data, and providing information about
@@ -92,7 +92,7 @@ Parameter examples
       >>> p2
       <Polynomial1D(4, c0=0.0, c1=0.0, c2=0.0, c3=0.0, c4=0.0)>
 
-- Parameters can the be set/updated by accessing attributes on the model of
+- Parameters can then be set/updated by accessing attributes on the model of
   the same names as the parameters::
 
       >>> p2.c4 = 1
