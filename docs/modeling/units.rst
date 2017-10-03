@@ -147,6 +147,7 @@ generating synthetic data:
 
     import numpy as np
     from astropy import units as u
+    import matplotlib.pyplot as plt
 
     x = np.linspace(1, 5, 30) * u.micron
     y = np.exp(-0.5 * (x - 2.5 * u.micron)**2 / (200 * u.nm)**2) * u.mJy
