@@ -1132,3 +1132,14 @@ def test_epoch_date_jd_is_day_fraction():
 
     assert t1.jd1 == 2451545.0
     assert t1.jd2 == 0.0
+
+
+def test_sum_is_equivalent():
+    """
+    Ensure that two equal dates defined in different ways behave equally (#6638)
+    """
+    t0 = Time("J2000", scale="tdb")
+    t1 = Time("2000-01-01 12:00:00", scale="tdb")
+
+    assert t0 == t1
+    assert (t0 + 1 * u.second) == (t1 + 1 * u.second)
