@@ -73,6 +73,7 @@ The following example shows how you could for example define a hexagonal frame:
    :include-source:
    :nofigs:
 
+    import numpy as np
     from astropy.visualization.wcsaxes.frame import BaseFrame
 
     class HexagonalFrame(BaseFrame):
