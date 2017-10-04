@@ -35,8 +35,8 @@ def test_imports():
     prefix = package.__name__ + '.'
 
     def onerror(name):
-            # A legitimate error occurred in a module that wasn't excluded
-            raise
+        # A legitimate error occurred in a module that wasn't excluded
+        raise
 
     for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix,
                                                   onerror=onerror):
