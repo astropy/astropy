@@ -126,7 +126,7 @@ class TimeInfo(MixinInfo):
         if bound:
             # Specify how to serialize this object depending on context.
             # If ``True`` for a context, then use formatted ``value`` attribute
-            # (e.g. the ISO time string).  If ``False`` then use jd1 and jd2.
+            # (e.g. the ISO time string).  If ``False`` then use float jd1 and jd2.
             self.serialize_method = {'fits': 'jd1_jd2',
                                      'ecsv': 'formatted_value',
                                      'hdf5': 'jd1_jd2',
@@ -864,8 +864,7 @@ class Time(ShapedLikeNDArray):
             new_format = self.format
 
         if callable(method):
-            def apply_method(array):
-                return method(array, *args, **kwargs)
+            apply_method = lambda array: method(array, *args, **kwargs)
 
         else:
             if method == 'replicate':
