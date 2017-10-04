@@ -28,11 +28,7 @@ METHODS = {'slow': lombscargle_slow,
 
 
 def available_methods():
-    methods = ['auto', 'slow', 'chi2', 'cython']
-
-    # Numpy 1.8 or newer required for fast algorithms
-    if hasattr(np.ufunc, 'at'):
-        methods.extend(['fast', 'fastchi2'])
+    methods = ['auto', 'slow', 'chi2', 'cython', 'fast', 'fastchi2']
 
     # Scipy required for scipy algorithm (obviously)
     try:
@@ -89,16 +85,12 @@ def validate_method(method, dy, fit_mean, nterms,
     choose the appropriate method
     """
     methods = available_methods()
-    fast_method_ok = ('fast' in methods)
-    prefer_fast = (fast_method_ok and len(frequency) > 200
+    prefer_fast = (len(frequency) > 200
                    and (assume_regular_frequency or _is_regular(frequency)))
     prefer_scipy = 'scipy' in methods and dy is None and not fit_mean
 
     # automatically choose the appropriate method
     if method == 'auto':
-        if not fast_method_ok:
-            warnings.warn("Fast Lomb-Scargle methods require numpy version "
-                          "1.8 or newer. Using slower methods instead.")
 
         if nterms != 1:
             if prefer_fast:
