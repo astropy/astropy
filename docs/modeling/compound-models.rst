@@ -426,6 +426,7 @@ example, to create the following compound model:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
     class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
@@ -454,6 +455,7 @@ model *instances*:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D, Scale
 
     x = np.linspace(1000, 5000, 1000)
@@ -501,6 +503,7 @@ example:
     :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Rotation2D, Gaussian2D
 
     class RotatedGaussian(Rotation2D | Gaussian2D(1, 0, 0, 0.1, 0.3)):

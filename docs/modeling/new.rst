@@ -24,6 +24,7 @@ of two Gaussians:
    :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
     from astropy.modeling.fitting import LevMarLSQFitter
 
