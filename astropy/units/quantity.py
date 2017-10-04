@@ -19,7 +19,7 @@ import numpy as np
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_14
+from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
