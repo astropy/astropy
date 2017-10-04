@@ -203,6 +203,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``download_files_in_parallel`` now respects the given ``timeout`` value.
+  [#6658]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
