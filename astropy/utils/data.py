@@ -1349,5 +1349,5 @@ def get_cached_urls():
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return False
 
-    with _open_shelve(urlmapfn, True) as url2hash:
+    with shelve.open(urlmapfn) as url2hash:
         return list(url2hash.keys())
