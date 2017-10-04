@@ -249,8 +249,9 @@ class TimeMJD(TimeFormat):
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1, self.jd2 = day_frac(val1, val2)
-        self.jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
+        jd1, jd2 = day_frac(val1, val2)
+        jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
     def value(self):
@@ -378,8 +379,7 @@ class TimeFromEpoch(TimeFormat):
                                   .format(self.name, self.epoch_scale,
                                           self.scale, err))
 
-        self.jd1 = tm._time.jd1
-        self.jd2 = tm._time.jd2
+        self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
 
     def to_value(self, parent=None):
         # Make sure that scale is the same as epoch scale so we can just
@@ -743,8 +743,9 @@ class TimeString(TimeUnique):
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
                 self.parse_string(val.item(), subfmts))
 
-        self.jd1, self.jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                        *iterator.operands[1:])
+        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                              *iterator.operands[1:])
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def str_kwargs(self):
         """
