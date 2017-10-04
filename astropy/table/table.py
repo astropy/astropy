@@ -17,6 +17,8 @@ from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
+from ..utils.exceptions import AstropyDeprecationWarning
+
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -2008,7 +2010,15 @@ class Table:
 
         self._init_from_cols(newcols)
 
-    def convert_bytestring_to_unicode(self):
+    def convert_bytestring_to_unicode(self, **kwargs):
+        # temporary method to handle deprecated and removed keywords
+        if 'python3_only' in kwargs:
+            warnings.warn('The "python3_only" keyword is now deprecated.',
+                          AstropyDeprecationWarning)
+            del kwargs['python3_only']
+        return self._convert_bytestring_to_unicode(**kwargs)
+
+    def _convert_bytestring_to_unicode(self):
         """
         Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
         ASCII encoding.
@@ -2020,7 +2030,15 @@ class Table:
         """
         self._convert_string_dtype('S', 'U')
 
-    def convert_unicode_to_bytestring(self):
+    def convert_unicode_to_bytestring(self, **kwargs):
+        # temporary method to handle deprecated and removed keywords
+        if 'python3_only' in kwargs:
+            warnings.warn('The "python3_only" keyword is now deprecated.',
+                          AstropyDeprecationWarning)
+            del kwargs['python3_only']
+        return self._convert_unicode_to_bytestring(**kwargs)
+
+    def _convert_unicode_to_bytestring(self):
         """
         Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
 

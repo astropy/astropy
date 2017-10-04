@@ -4,12 +4,23 @@ This module contains simple input/output related functionality that is not
 part of a larger framework or standard.
 """
 
+import warnings
 
+from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['fnpickle', 'fnunpickle']
 
 
-def fnunpickle(fileorname, number=0):
+def fnunpickle(filename, **kwargs):
+    # temporary function to handle deprecated and removed keywords
+    if 'usecPickle' in kwargs:
+        warnings.warn('The "usecPickle" keyword is now deprecated.',
+                      AstropyDeprecationWarning)
+        del kwargs['usecPickle']
+    return _fnunpickle(filename, **kwargs)
+
+
+def _fnunpickle(fileorname, number=0):
     """ Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
@@ -69,7 +80,16 @@ def fnunpickle(fileorname, number=0):
     return res
 
 
-def fnpickle(object, fileorname, protocol=None, append=False):
+def fnpickle(object, fileorname, **kwargs):
+    # temporary function to handle deprecated and removed keywords
+    if 'usecPickle' in kwargs:
+        warnings.warn('The "usecPickle" keyword is now deprecated.',
+                      AstropyDeprecationWarning)
+        del kwargs['usecPickle']
+    return _fnpickle(object, fileorname, **kwargs)
+
+
+def _fnpickle(object, fileorname, protocol=None, append=False):
     """Pickle an object to a specified file.
 
     Parameters
@@ -106,3 +126,7 @@ def fnpickle(object, fileorname, protocol=None, append=False):
     finally:
         if close:
             f.close()
+
+
+fnpickle.__doc__ = _fnpickle.__doc__
+fnunpickle.__doc__ = _fnunpickle.__doc__
