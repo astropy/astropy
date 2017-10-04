@@ -86,6 +86,7 @@ Bayesian models such as `Knuth's rule
 
     import warnings
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import hist
 
     # generate some complicated data
