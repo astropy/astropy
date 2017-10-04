@@ -4,23 +4,6 @@ from math import factorial
 import numpy as np
 
 
-def add_at(arr, ind, vals):
-    """Utility that computes np.add.at()
-
-    The fast version is available only in Numpy 1.8+; for older versions of
-    numpy this defaults to a slower computation.
-    """
-    if hasattr(np.ufunc, 'at'):
-        return np.add.at(arr, ind, vals)
-    else:
-        warnings.warn("Using slow replacement for numpy.add.at(). "
-                      "For ~100x faster results update to numpy 1.8+")
-        arr = np.asarray(arr)
-        ind, vals = np.broadcast_arrays(ind, vals)
-        unq = np.unique(ind)
-        arr[unq] += [vals[ind == i].sum() for i in unq]
-
-
 def bitceil(N):
     """
     Find the bit (i.e. power of 2) immediately greater than or equal to N
@@ -85,7 +68,7 @@ def extirpolate(x, y, N=None, M=4):
 
     # first take care of the easy cases where x is an integer
     integers = (x % 1 == 0)
-    add_at(result, x[integers].astype(int), y[integers])
+    np.add.at(result, x[integers].astype(int), y[integers])
     x, y = x[~integers], y[~integers]
 
     # For each remaining x, find the index describing the extirpolation range.
@@ -99,7 +82,7 @@ def extirpolate(x, y, N=None, M=4):
         if j > 0:
             denominator *= j / (j - M)
         ind = ilo + (M - 1 - j)
-        add_at(result, ind, numerator / (denominator * (x - ind)))
+        np.add.at(result, ind, numerator / (denominator * (x - ind)))
     return result
 
 
