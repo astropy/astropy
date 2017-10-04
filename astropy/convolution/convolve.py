@@ -164,14 +164,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         array_dtype = array_internal.dtype
     elif isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
-        # because none of what follows modifies array_internal.  However,
-        # only numpy > 1.7 has support for no-copy astype, so we use
-        # a try/except because astropy supports 1.5 and 1.6
+        # because none of what follows modifies array_internal.
         array_dtype = array.dtype
-        try:
-            array_internal = array.astype(float, copy=False)
-        except TypeError:
-            array_internal = array.astype(float)
+        array_internal = array.astype(float, copy=False)
     else:
         raise TypeError("array should be a list or a Numpy array")
 
