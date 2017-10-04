@@ -48,16 +48,17 @@ class TestBasic():
         t = Time(times, format='iso', scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([1.4288980208333335e-06,
-                                             0.00000000e+00]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+1.4288980208333335e-06,
+                                             -0.50000000e+00]))
 
         # Set scale to TAI
         t = t.tai
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
                 "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([0.00037179926839122024, 0.00039351851851851852]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+0.00037179926839122024,
+                                             -0.5+0.00039351851851851852]))
 
         # Get a new ``Time`` object which is referenced to the TT scale
         # (internal JD1 and JD1 are now with respect to TT scale)"""
@@ -750,7 +751,7 @@ class TestCopyReplicate():
 
     def test_replicate(self):
         """Test replicate method"""
-        t = Time('2000:001', format='yday', scale='tai',
+        t = Time(['2000:001'], format='yday', scale='tai',
                  location=('45d', '45d'))
         t_yday = t.yday
         t_loc_x = t.location.x.copy()
