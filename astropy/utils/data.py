@@ -18,6 +18,9 @@ import socket
 import sys
 import time
 import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
@@ -1136,7 +1139,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         is `True`)
 
     timeout : float, optional
-        Timeout for the requests in seconds (default is the
+        Timeout for each individual requests in seconds (default is the
         configurable `astropy.utils.data.Conf.remote_timeout`).
 
     Returns
