@@ -147,12 +147,18 @@ _warnings_to_ignore_by_pyver = {
         r"The value of convert_charrefs will become True in 3\.5\. "
         r"You are encouraged to set the value explicitly\."]),
     (3, 5): set([
+        # py.test reads files with the 'U' flag, which is
+        # deprecated.
+        r"'U' mode is deprecated",
         # py.test raised this warning in inspect on Python 3.5.
         # See https://github.com/pytest-dev/pytest/pull/1009
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
         r"inspect\.signature\(\) instead"]),
     (3, 6): set([
+        # py.test reads files with the 'U' flag, which is
+        # deprecated.
+        r"'U' mode is deprecated",
         # inspect raises this slightly different warning on Python 3.6.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         r"inspect\.getargspec\(\) is deprecated, use "
@@ -269,7 +275,7 @@ def treat_deprecations_as_exceptions():
             warnings.filterwarnings('ignore', category=w, module=m)
 
     for v in _warnings_to_ignore_by_pyver:
-        if sys.version_info[:2] >= v:
+        if sys.version_info[:2] == v:
             for s in _warnings_to_ignore_by_pyver[v]:
                 warnings.filterwarnings("ignore", s, DeprecationWarning)
 
