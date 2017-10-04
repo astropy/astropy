@@ -16,7 +16,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises
 from ...utils import isiterable, minversion
-from ...utils.compat.numpy import NUMPY_LT_1_14
+from ...utils.compat import NUMPY_LT_1_14
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
