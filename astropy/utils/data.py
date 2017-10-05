@@ -18,6 +18,9 @@ import socket
 import sys
 import time
 import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
@@ -985,10 +988,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     missing_cache = False
 
-    if timeout is None:
-        # use configfile default
-        timeout = conf.remote_timeout()
-
     if cache:
         try:
             dldir, urlmapfn = _get_download_cache_locs()
@@ -1117,7 +1116,7 @@ def is_url_in_cache(url_key):
 
 
 def _do_download_files_in_parallel(args):
-    return download_file(*args, show_progress=False)
+    return download_file(*args)
 
 
 def download_files_in_parallel(urls, cache=False, show_progress=True,
@@ -1140,7 +1139,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         is `True`)
 
     timeout : float, optional
-        Timeout for the requests in seconds (default is the
+        Timeout for each individual requests in seconds (default is the
         configurable `astropy.utils.data.Conf.remote_timeout`).
 
     Returns
@@ -1158,15 +1157,11 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
     else:
         progress = io.BytesIO()
 
-    if timeout is None:
-        # use configfile default
-        timeout = REMOTE_TIMEOUT()
-
     # Combine duplicate URLs
     combined_urls = list(set(urls))
     combined_paths = ProgressBar.map(
         _do_download_files_in_parallel,
-        [(x, cache) for x in combined_urls],
+        [(x, cache, False, timeout) for x in combined_urls],
         file=progress,
         multiprocess=True)
     paths = []
