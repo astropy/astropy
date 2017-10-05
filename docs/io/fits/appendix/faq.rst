@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _io-fits-faq:
 
 astropy.io.fits FAQ
