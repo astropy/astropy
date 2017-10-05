@@ -479,11 +479,9 @@ def brightness_temperature(disp, beam_area=None):
         >>> beam_sigma = 50*u.arcsec
         >>> beam_area = 2*np.pi*(beam_sigma)**2
         >>> freq = 5*u.GHz
-        >>> equiv = u.brightness_temperature(freq, beam_area)
-        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        3.526294429423223
-        >>> (1*u.Jy).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        <Quantity 3.526294429423223 K>
+        >>> equiv = u.brightness_temperature(freq)
+        >>> (1*u.Jy/beam_area).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 3.526295144567176 K>
 
     VLA synthetic beam::
 
@@ -492,15 +490,15 @@ def brightness_temperature(disp, beam_area=None):
         >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
         >>> beam_area = 2.*np.pi*(bmaj*bmin*fwhm_to_sigma**2)
         >>> freq = 5*u.GHz
-        >>> equiv = u.brightness_temperature(freq, beam_area)
-        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        217.2658703625732
+        >>> equiv = u.brightness_temperature(freq)
+        >>> (u.Jy/beam_area).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 217.2658703625732 K>
 
     Any generic surface brightness:
 
         >>> surf_brightness = 1e6*u.MJy/u.sr
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz))
-        <Quantity 130.19316407428414 K>
+        <Quantity 130.1931904778803 K>
     """
     if disp.unit.is_equivalent(si.sr):
         if not beam_area.unit.is_equivalent(si.Hz):

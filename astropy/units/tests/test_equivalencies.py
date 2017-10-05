@@ -538,7 +538,7 @@ def test_swapped_args_brightness_temperature():
     """
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
-    tb = 7.05258885885 * u.K
+    tb = 7.052590289134352 * u.K
     # https://docs.pytest.org/en/latest/warnings.html#ensuring-function-triggers
     with warnings.catch_warnings():
         warnings.simplefilter('always')
