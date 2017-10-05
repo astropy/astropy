@@ -617,22 +617,16 @@ class classproperty(property):
         if doc is not None:
             self.__doc__ = doc
 
-    def __get__(self, obj, objtype=None):
+    def __get__(self, obj, objtype):
         if self._lazy and objtype in self._cache:
             return self._cache[objtype]
 
-        if objtype is not None:
-            # The base property.__get__ will just return self here;
-            # instead we pass objtype through to the original wrapped
-            # function (which takes the class as its sole argument)
-            val = self.fget.__wrapped__(objtype)
-        else:
-            val = super().__get__(obj, objtype=objtype)
+        # The base property.__get__ will just return self here;
+        # instead we pass objtype through to the original wrapped
+        # function (which takes the class as its sole argument)
+        val = self.fget.__wrapped__(objtype)
 
         if self._lazy:
-            if objtype is None:
-                objtype = obj.__class__
-
             self._cache[objtype] = val
 
         return val
