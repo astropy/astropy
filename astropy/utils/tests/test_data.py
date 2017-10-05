@@ -53,8 +53,7 @@ def test_download_parallel():
 
     fnout = download_files_in_parallel(
         ['http://data.astropy.org',
-         'https://astropy.stsci.edu/data/intersphinx/README'],
-        cache=True)  # cache=True is needed for Windows (see issue #6662)
+         'https://astropy.stsci.edu/data/intersphinx/README'])
     assert all([os.path.isfile(f) for f in fnout]), fnout
 
 
