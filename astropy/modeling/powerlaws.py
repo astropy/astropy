@@ -500,8 +500,8 @@ class Schechter1D(Fittable1DModel):
 
     .. [1] http://ned.ipac.caltech.edu/level5/Dickey/Dickey2.html
 
-    Example
-    -------
+    Examples
+    --------
     .. plot::
         :include-source:
 
