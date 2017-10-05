@@ -23,11 +23,8 @@ table, Astropy will automatically detect what kind of table it is.
 
 ::
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/ascii.fits', 'astropy')
-
     >>> from astropy.io import fits
+    >>> filename = fits.util.get_testdata_filepath('ascii.fits')
     >>> hdul = fits.open(filename)
     >>> hdul[1].data[:1]
     FITS_rec([(10.122999999999999, 37)],
@@ -144,8 +141,7 @@ array in the column. So, for a variable length field of int16, the
 corresponding format spec
 is, e.g.  'PJ(100)'::
 
-    >>> filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/variable_length_table.fits', 'astropy')
+    >>> filename = fits.util.get_testdata_filepath('variable_length_table.fits')
     >>> hdul = fits.open(filename)
     >>> hdul[1].header['tform1']
     'PI(3)'
@@ -175,7 +171,8 @@ is regular and the other variable length array::
     ...    array=np.array([[45, 56], [11, 12, 13]], dtype=np.object))
     >>> col2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
     >>> hdu = fits.BinTableHDU.from_columns([col1, col2])
-    >>> hdu.data
+    >>> data = hdu.data
+    >>> data  # doctest: +SKIP
     FITS_rec([([45, 56], [11,  3]), ([11, 12, 13], [12,  4])],
              dtype=(numpy.record, [('var', '<i4', (2,)), ('xyz', '<i2', (2,))]))
     >>> hdu.writeto('variable_length_table.fits')
@@ -231,8 +228,7 @@ other HDU. Just use the .header attribute.
 The content of the HDU can similarly be summarized by using the
 :meth:`HDUList.info` method::
 
-    >>> filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/group.fits', 'astropy')
+    >>> filename = fits.util.get_testdata_filepath('group.fits')
     >>> hdul = fits.open(filename)
     >>> hdul[0].header['groups']
     True
@@ -377,7 +373,8 @@ to create the HDU itself::
     PTYPE1  = 'abc     '
     PTYPE2  = 'xyz     '
     PTYPE3  = 'xyz     '
-    >>> hdu.data
+    >>> data = hdu.data
+    >>> hdu.data  # doctest: +SKIP
     GroupData([ ( 0.1       ,  42.,  42., [[[[   0.,    1.,    2.,    3.,    4.], [   5.,    6.,    7.,    8.,    9.], [  10.,   11.,   12.,   13.,   14.]]]]),
                ( 1.10000002,  42.,  42., [[[[  15.,   16.,   17.,   18.,   19.], [  20.,   21.,   22.,   23.,   24.], [  25.,   26.,   27.,   28.,   29.]]]]),
                ( 2.0999999 ,  42.,  42., [[[[  30.,   31.,   32.,   33.,   34.], [  35.,   36.,   37.,   38.,   39.], [  40.,   41.,   42.,   43.,   44.]]]]),
@@ -434,8 +431,7 @@ a FITS file.
 
 The content of the HDU header may be accessed using the ``.header`` attribute::
 
-    >>> filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/compressed_image.fits', 'astropy')
+    >>> filename = fits.util.get_testdata_filepath('compressed_image.fits')
 
     >>> hdul = fits.open(filename)
     >>> hdul[1].header

@@ -50,9 +50,7 @@ be accessed via keyword name or index of an HDU's header attribute. You can
 also use the wildcard character ``*`` to get the keyword value pairs that match
 your search string. Here is a quick summary::
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> fits_image_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/test0.fits', 'astropy')
+    >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
     >>> hdul = fits.open(fits_image_filename)  # open a FITS file
     >>> hdr = hdul[0].header  # the primary HDU header
     >>> print(hdr[34])  # get the 2nd keyword's value
@@ -163,9 +161,7 @@ to as commentary cards), which commonly appear in FITS headers more than once.
 They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Unlike other
 keywords, when accessing these keywords they are returned as a list::
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/history_header.fits', 'astropy')
+    >>> filename = fits.util.get_testdata_filepath('history_header.fits')
     >>> with fits.open(filename) as hdul:  # open a FITS file
     ...     hdr = hdul[0].header
 
