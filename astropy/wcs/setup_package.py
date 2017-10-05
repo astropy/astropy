@@ -177,7 +177,7 @@ MSVC, do not support string literals greater than 256 characters.
             section = val[i:i+12]
             if six.PY2:
                 section = [ord(x) for x in section]
-            c_file.write('    ');
+            c_file.write('    ')
             c_file.write(''.join('0x{0:02x}, '.format(x) for x in section))
             c_file.write('\n')
 
