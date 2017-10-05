@@ -164,8 +164,8 @@ class TestIERS_Auto():
     def test_simple(self):
         iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
         iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
-        iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
-        iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
+        iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(iers_a_file_1))
+        iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(iers_a_file_2))
 
         with iers.conf.set_temp('iers_auto_url', iers_a_url_1):
 

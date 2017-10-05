@@ -90,6 +90,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fixed bugs in remote data handling and also in IERS unit test related to path
+  URL, and URI normalization on Windows. [#6651]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

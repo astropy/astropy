@@ -586,8 +586,6 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
     get_pkg_data_fileobj : returns a file-like object with the data
     """
 
-    data_name = os.path.normpath(data_name)
-
     if remote_timeout is None:
         # use configfile default
         remote_timeout = conf.remote_timeout
@@ -612,7 +610,8 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
         else:
             return hashfn
     else:
-        datafn = _find_pkg_data_path(data_name, package=package)
+        fs_path = os.path.normpath(data_name)
+        datafn = _find_pkg_data_path(fs_path, package=package)
         if os.path.isdir(datafn):
             raise IOError("Tried to access a data file that's actually "
                           "a package data directory")
