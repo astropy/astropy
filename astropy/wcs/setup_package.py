@@ -164,7 +164,7 @@ MSVC, do not support string literals greater than 256 characters.
         c_file.write('char doc_{0}[{1}] = {{\n'.format(key, len(val)))
         for i in range(0, len(val), 12):
             section = val[i:i+12]
-            c_file.write('    ');
+            c_file.write('    ')
             c_file.write(''.join('0x{0:02x}, '.format(x) for x in section))
             c_file.write('\n')
 
