@@ -552,7 +552,7 @@ def test_swapped_args_brightness_temperature():
 def test_surfacebrightness():
     sb = 50*u.MJy/u.sr
     k = sb.to(u.K, u.brightness_temperature(50*u.GHz))
-    np.testing.assert_almost_equal(k.value, 0.6509658203714207)
+    np.testing.assert_almost_equal(k.value, 0.650965, 6)
     assert k.unit.is_equivalent(u.K)
 
 def test_equivalency_context():
