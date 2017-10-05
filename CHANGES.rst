@@ -90,6 +90,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``download_files_in_parallel`` now respects the given ``timeout`` value.
+  [#6658]
+
 - Fixed bugs in remote data handling and also in IERS unit test related to path
   URL, and URI normalization on Windows. [#6651]
 

@@ -60,6 +60,17 @@ def test_download_nocache():
 
 
 @remote_data
+def test_download_parallel():
+    from ..data import download_files_in_parallel
+
+    fnout = download_files_in_parallel(
+        ['http://data.astropy.org',
+         'https://astropy.stsci.edu/data/intersphinx/README'],
+        cache=True)  # cache=True is needed for Windows (see issue #6662)
+    assert all([os.path.isfile(f) for f in fnout]), fnout
+
+
+@remote_data
 def test_download_noprogress():
     from ..data import download_file
 
