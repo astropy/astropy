@@ -229,7 +229,7 @@ How do I open a very large image that won't fit in memory?
 ----------------------------------------------------------
 
 `astropy.io.fits.open` has an option to access the data portion of an
-HDU by memory mapping using `mmap`_.  In Astropy this is used by *default*.
+HDU by memory mapping using `mmap`_.  In Astropy this is used by default.
 
 What this means is that accessing the data as in the example above only reads
 portions of the data into memory on demand.  For example, if I request just a
@@ -239,7 +239,7 @@ image were already in memory.  This works the same way for tables.  For most
 cases this is your best bet for working with large files.
 
 To ensure use of memory mapping, just add the ``memmap=True`` argument to
-`fits.open <astropy.io.fits.open>`.  Likewise, using ``memmap=False`` will
+`fits.open <astropy.io.fits.open>`_.  Likewise, using ``memmap=False`` will
 force data to be read entirely into memory.
 
 
@@ -313,16 +313,9 @@ it, because it doesn't happen until the data portion of the HDU is accessed
 (to allow things like updating the header without rescaling the data).  For
 example::
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> def _(filename):
-    ...     """For real usage you would just pass your filename/-object to
-    ...     "fits.open" directly but to make this documentation testable it
-    ...     needs to access data from the astropy package.
-    ...     """
-    ...     return get_pkg_data_filename(
-    ...         'io/fits/tests/data/{}'.format(filename), 'astropy')
+    >>> fits_scaledimage_filename = fits.util.get_testdata_filepath('scale.fits')
 
-    >>> hdul = fits.open(_('scale.fits'))
+    >>> hdul = fits.open(fits_scaledimage_filename)
     >>> image = hdul[0]
     >>> image.header['BITPIX']
     16
@@ -343,12 +336,12 @@ on the side of not losing data, at the cost of causing some confusion at
 first.
 
 If the data must be returned to integers before saving, use the `ImageHDU.scale
-<astropy.io.fits.hdu.image.ImageHDU.scale>` method::
+<astropy.io.fits.hdu.image.ImageHDU.scale>`_ method::
 
     >>> image.scale('int32')
     >>> image.header['BITPIX']
     32
-    >>> hdul.close()  # close the file again
+    >>> hdul.close()
 
 Alternatively, if a file is opened with ``mode='update'`` along with the
 ``scale_back=True`` argument, the original BSCALE and BZERO scaling will
@@ -362,11 +355,11 @@ you don't intend for the code to access the data, it's good to err on the side
 of caution here), use the ``do_not_scale_image_data`` argument when opening
 the file::
 
-    >>> hdul = fits.open(_('scale.fits'), do_not_scale_image_data=True)
+    >>> hdul = fits.open(fits_scaledimage_filename, do_not_scale_image_data=True)
     >>> image = hdul[0]
     >>> image.data.dtype.name
     'int16'
-    >>> hdul.close()  # close the file again
+    >>> hdul.close()
 
 
 Why am I losing precision when I assign floating point values in the header?
@@ -459,7 +452,7 @@ an exception like::
 
 As explained in the :ref:`note on working with large files <fits-large-files>`,
 because Astropy uses mmap by default to read the data in a FITS file, even if
-you correctly close a file with `HDUList.close <astropy.io.fits.HDUList.close>`
+you correctly close a file with `HDUList.close <astropy.io.fits.HDUList.close>`_
 a handle is kept open to that file so that the memory-mapped data array can
 still be continued to be read transparently.
 

@@ -865,3 +865,8 @@ def _extract_number(value, default):
         return int(_str_to_num(value))
     except (TypeError, ValueError):
         return default
+
+
+def get_testdata_filepath(filename):
+    return data.get_pkg_data_filename(
+        'io/fits/tests/data/{}'.format(filename), 'astropy')

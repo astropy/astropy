@@ -31,11 +31,9 @@ the numpy array of its data will have the shape of (400, 300).
 
 Here is a summary of reading and updating image data values::
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> fits_image_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/test0.fits', 'astropy')
-
     >>> from astropy.io import fits
+    >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+
     >>> with fits.open(fits_image_filename) as hdul:  # open a FITS file
     ...     data = hdul[1].data  # assume the first extension is an image
     >>> print(data[1, 4])   # get the pixel value at x=5, y=2
@@ -106,8 +104,7 @@ For integer data type, the scaled data will always be single precision floating
 point (``numpy.float32``). Here is an example of what happens to such a file,
 before and after the data is touched::
 
-    >>> fits_scaledimage_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/scale.fits', 'astropy')
+    >>> fits_scaledimage_filename = fits.util.get_testdata_filepath('scale.fits')
 
     >>> hdul = fits.open(fits_scaledimage_filename)
     >>> hdu = hdul[0]

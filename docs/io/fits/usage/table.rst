@@ -74,18 +74,22 @@ Like images, the ``.data`` attribute of a table HDU contains the data of the
 table.  To recap, the simple example in the Quick Tutorial::
 
 
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> fits_table_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/btable.fits', 'astropy')
-
     >>> from astropy.io import fits
+    >>> fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
+
     >>> hdul = fits.open(fits_table_filename)  # open a FITS file
     >>> data = hdul[1].data  # assume the first extension is a table
-    >>> print(data[:2])  # show the first two rows
+    >>> # show the first two rows
+    >>> first_two_rows = data[:2]
+    >>> first_two_rows  # doctest: +SKIP
     [(1, 'Sirius', -1.45000005, 'A1V') (2, 'Canopus', -0.73000002, 'F0Ib')]
-    >>> data['mag']  # show the values in field "mag"
+    >>> # show the values in field "mag"
+    >>> magnitudes = data['mag']
+    >>> magnitudes  # doctest: +SKIP
     array([-1.45000005, -0.73000002, -0.1       ], dtype=float32)
-    >>> data.field(1).tolist()  # columns can be referenced by index too
+    >>> # columns can be referenced by index too
+    >>> names = data.field(1)
+    >>> names.tolist() # doctest: +SKIP
     ['Sirius', 'Canopus', 'Rigil Kent']
     >>> hdul.close()
 
@@ -119,12 +123,12 @@ In the next example, assuming the table's second field having the name
 'magnitude', an output table containing all the records of magnitude > -0.5 from
 the input table is generated::
 
-    >>> hdul = fits.open(fits_table_filename)
-    >>> data = hdul[1].data
-    >>> mask = data['mag'] > -0.5
-    >>> newdata = data[mask]
-    >>> hdu = fits.BinTableHDU(data=newdata)
-    >>> hdu.writeto('newtable.fits')
+    >>> with fits.open(fits_table_filename) as hdul:
+    ...     data = hdul[1].data
+    ...     mask = data['mag'] > -0.5
+    ...     newdata = data[mask]
+    ...     hdu = fits.BinTableHDU(data=newdata)
+    ...     hdu.writeto('newtable.fits')
 
 
 Merging Tables
@@ -133,8 +137,7 @@ Merging Tables
 Merging different tables is straightforward in Astropy. Simply merge the column
 definitions of the input tables::
 
-    >>> fits_other_table_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/table.fits', 'astropy')
+    >>> fits_other_table_filename = fits.util.get_testdata_filepath('table.fits')
 
     >>> with fits.open(fits_table_filename) as hdul1:
     ...     with fits.open(fits_other_table_filename) as hdul2:

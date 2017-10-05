@@ -42,11 +42,9 @@ Once the `astropy.io.fits` package is loaded using the standard convention
     >>> # Generally you would store the filename as string but in case you
     >>> # have no suitable FITS files you can use the ones shipped with Astropy
     >>> # like this:
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> fits_image_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/test0.fits', 'astropy')
-
     >>> from astropy.io import fits
+    >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+
     >>> hdul = fits.open(fits_image_filename)
 
 The :func:`open` function has several optional arguments which will be
@@ -65,7 +63,7 @@ FORTRAN in mind) uses one-based indexing.
 The :class:`HDUList` has a useful method :meth:`HDUList.info`, which
 summarizes the content of the opened FITS file:
 
-    >>> hdul.info()  # doctest: +ELLIPSIS
+    >>> hdul.info()
     Filename: ...test0.fits
     No.    Name      Ver    Type      Cards   Dimensions   Format
       0  PRIMARY       1 PrimaryHDU     138   ()
@@ -83,7 +81,7 @@ You can avoid closing the file manually by using :func:`open` as context
 manager::
 
     >>> with fits.open(fits_image_filename) as hdul:
-    ...     hdul.info()  # doctest: +ELLIPSIS
+    ...     hdul.info()
     Filename: ...test0.fits
     No.    Name      Ver    Type      Cards   Dimensions   Format
       0  PRIMARY       1 PrimaryHDU     138   ()
@@ -400,8 +398,7 @@ See the :ref:`Unified I/O FITS <table_io_fits>` section for details.
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute::
 
-    >>> fits_table_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/tb.fits', 'astropy')
+    >>> fits_table_filename = fits.util.get_testdata_filepath('tb.fits')
     >>> hdul = fits.open(fits_table_filename)
     >>> data = hdul[1].data # assuming the first extension is a table
 
@@ -743,9 +740,8 @@ Ambiguous specifications will raise an exception::
 After you get the header, you can access the information in it, such as getting
 and modifying a keyword value::
 
-    >>> fits_image_2_filename = get_pkg_data_filename(
-    ...     'io/fits/tests/data/o4sp040b0_raw.fits', 'astropy')
-    >>> hdr = getheader(fits_image_2_filename, 0)  # get primary hdu's header
+    >>> fits_image_2_filename = fits.util.get_testdata_filepath('o4sp040b0_raw.fits')
+    >>> hdr = getheader(fits_image_2_filename, 0)    # get primary hdu's header
     >>> filter = hdr['filter']                       # get the value of the keyword "filter'
     >>> val = hdr[10]                                # get the 11th keyword's value
     >>> hdr['filter'] = 'FW555'                      # change the keyword value
