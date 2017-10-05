@@ -8,7 +8,7 @@ import sys
 import gzip
 import base64
 import codecs
-import urllib
+import urllib.request
 import warnings
 
 # THIRD-PARTY

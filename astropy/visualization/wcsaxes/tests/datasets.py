@@ -3,7 +3,7 @@
 """
 
 import time
-import urllib
+import urllib.error
 
 from ....utils.data import download_file
 from ....io import fits

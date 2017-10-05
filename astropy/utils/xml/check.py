@@ -6,7 +6,7 @@ standards compliance.
 
 
 import re
-import urllib
+import urllib.parse
 
 
 def check_id(ID):

@@ -12,7 +12,9 @@ reference for that measurement and input the coordinates manually.
 import os
 import re
 import socket
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 
 # Astropy
 from .. import units as u
