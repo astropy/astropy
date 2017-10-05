@@ -9,7 +9,8 @@ import os
 import pathlib
 import sys
 import tempfile
-import urllib
+import urllib.request
+import urllib.error
 
 import pytest
 

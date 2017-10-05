@@ -20,7 +20,7 @@ import unicodedata
 import locale
 import threading
 import re
-import urllib
+import urllib.request
 
 from itertools import zip_longest
 from contextlib import contextmanager
