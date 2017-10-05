@@ -37,6 +37,9 @@ __all__ = [
     'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
 
 
+__main_pid = None
+
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.utils.data`.
@@ -1162,6 +1165,9 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         # use configfile default
         timeout = REMOTE_TIMEOUT()
 
+    global __main_pid
+    __main_pid = os.getpid()
+
     # Combine duplicate URLs
     combined_urls = list(set(urls))
     combined_paths = ProgressBar.map(
@@ -1181,9 +1187,12 @@ _tempfilestodel = []
 
 
 @atexit.register
-def _deltemps():
+def _deltemps(check_pid=True):
 
     global _tempfilestodel
+
+    if check_pid and os.getpid() != __main_pid:
+        return
 
     if _tempfilestodel is not None:
         while len(_tempfilestodel) > 0:

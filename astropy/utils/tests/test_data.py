@@ -320,7 +320,7 @@ def test_data_noastropy_fallback(monkeypatch):
     # now remove it so tests don't clutter up the temp dir this should get
     # called at exit, anyway, but we do it here just to make sure it's working
     # correctly
-    data._deltemps()
+    data._deltemps(check_pid=False)
     assert not os.path.isfile(fnout)
 
     assert len(w) > 0
@@ -458,3 +458,12 @@ def test_get_cached_urls():
     download_file(TESTURL, cache=True, show_progress=False)
 
     assert TESTURL in get_cached_urls()
+
+
+@remote_data
+def test_download_in_parallel_nocache():
+    from ..data import download_files_in_parallel
+
+    urls = ['https://www.google.com', 'https://www.wikipedia.org']
+    dwn = download_files_in_parallel(urls, cache=False)
+    assert all([os.path.isfile(f) for f in dwn]), dwn
