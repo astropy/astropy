@@ -188,14 +188,15 @@ its arguments the |quantity| for the spectral location. For example::
     ...      equivalencies=u.spectral_density(5500 * u.AA)) # doctest: +FLOAT_CMP
     <Quantity 3.6443382634999996e-23 erg / (Hz s)>
 
-Brightness Temperature / Flux Density Equivalency
--------------------------------------------------
+Brightness Temperature / Surface Brightness Equivalency
+-------------------------------------------------------
 
-There is an equivalency for brightness temperature and flux density.
-This equivalency is often referred to as "Antenna Gain" since, at a
-given frequency, telescope brightness sensitivity is unrelated to
-aperture size, but flux density sensitivity is, so this equivalency is
-only dependent on the aperture size.  See `Tools of Radio Astronomy
+There is an equivalency between surface brightness (flux density per area) and
+brightness temperature.  This equivalency is often referred to as "Antenna
+Gain" since, at a given frequency, telescope brightness sensitivity is
+unrelated to aperture size, but flux density sensitivity is, so this
+equivalency is only dependent on the aperture size.  See `Tools of Radio
+Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
@@ -216,13 +217,8 @@ here is an example::
     >>> beam_sigma = 50*u.arcsec
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
-    3.526295144567176
-
-.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
-          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
-          currently be used as a meaningful unit since it depends on the
-          observations).
+    >>> (u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 3.526295144567176 K>
 
 If you have beam full-width half-maxima (FWHM), which are often quoted and are
 the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
@@ -234,8 +230,8 @@ example converts the FWHM to sigma::
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
-    19.553928332631582
+    >>> (u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
+    <Quantity 19.553932298231704 K>
 
 
 Temperature Energy Equivalency
