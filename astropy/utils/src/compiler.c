@@ -7,14 +7,6 @@
  * the compilers we care about.
  ***************************************************************************/
 
-#ifndef PY3K
-#if PY_MAJOR_VERSION >= 3
-#define PY3K 1
-#else
-#define PY3K 0
-#endif
-#endif
-
 
 #define STRINGIZE(X) DO_STRINGIZE(X)
 #define DO_STRINGIZE(X) #X
@@ -84,46 +76,32 @@ struct module_state {
 #endif
 };
 
-#if PY3K
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "_compiler",
-        NULL,
-        sizeof(struct module_state),
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    };
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_compiler",
+    NULL,
+    sizeof(struct module_state),
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-    #define INITERROR return NULL
+#define INITERROR return NULL
 
-    PyMODINIT_FUNC
-    PyInit__compiler(void)
-
-#else
-    #define INITERROR return
-
-    PyMODINIT_FUNC
-    init_compiler(void)
-#endif
+PyMODINIT_FUNC
+PyInit__compiler(void)
 
 {
   PyObject* m;
 
-#if PY3K
   m = PyModule_Create(&moduledef);
-#else
-  m = Py_InitModule3("_compiler", NULL, NULL);
-#endif
 
   if (m == NULL)
     INITERROR;
 
   PyModule_AddStringConstant(m, "compiler", COMPILER);
 
-#if PY3K
   return m;
-#endif
 }

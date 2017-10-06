@@ -14,13 +14,6 @@
 #include "erfa.h"
 
 
-#if PY_MAJOR_VERSION >= 3
-#define PY3K 1
-#else
-#define PY3K 0
-#endif
-
-
 typedef struct {
     PyObject_HEAD
     NpyIter *iter;
@@ -99,7 +92,6 @@ struct module_state
     int _dummy;
 };
 
-#if PY3K
 
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -117,20 +109,10 @@ static struct PyModuleDef moduledef = {
 
 PyMODINIT_FUNC PyInit__core(void)
 
-#else
-#define INITERROR return
-
-PyMODINIT_FUNC init_core(void)
-#endif
-
 {
     PyObject *m;
 
-#if PY3K
     m = PyModule_Create(&moduledef);
-#else
-    m = Py_InitModule3("_core", module_functions, MODULE_DOCSTRING);
-#endif
 
     if (m == NULL) {
         INITERROR;
@@ -138,7 +120,5 @@ PyMODINIT_FUNC init_core(void)
 
     import_array();
 
-#if PY3K
     return m;
-#endif
 }

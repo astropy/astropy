@@ -16,13 +16,6 @@
 #include "wcsmath.h"
 
 
-#if PY_MAJOR_VERSION >= 3
-#define PY3K 1
-#else
-#define PY3K 0
-#endif
-
-
 static void set_error(int status) {
   switch (status) {
   case 1:
@@ -190,39 +183,27 @@ struct module_state {
 #endif
 };
 
-#if PY3K
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "_projections",
-        NULL,
-        sizeof(struct module_state),
-        module_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    };
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_projections",
+    NULL,
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-    #define INITERROR return NULL
+#define INITERROR return NULL
 
-    PyMODINIT_FUNC
-    PyInit__projections(void)
-
-#else
-    #define INITERROR return
-
-    PyMODINIT_FUNC
-    init_projections(void)
-#endif
+PyMODINIT_FUNC
+PyInit__projections(void)
 
 {
   PyObject* m;
 
-#if PY3K
   m = PyModule_Create(&moduledef);
-#else
-  m = Py_InitModule3("_projections", module_methods, NULL);
-#endif
 
   if (m == NULL)
     INITERROR;
@@ -239,7 +220,5 @@ struct module_state {
   }
 #endif
 
-#if PY3K
   return m;
-#endif
 }

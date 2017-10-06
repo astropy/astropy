@@ -99,17 +99,6 @@
 #include <fitsio2.h>
 #include "compressionmodule.h"
 
-/* Some defines for Python3 support--bytes objects should be used where */
-/* strings were previously used                                         */
-#if PY_MAJOR_VERSION >= 3
-#define IS_PY3K
-#endif
-
-#ifdef IS_PY3K
-#define PyString_FromString PyUnicode_FromString
-#define PyInt_AsLong PyLong_AsLong
-#endif
-
 
 /* These defaults mirror the defaults in astropy.io.fits.hdu.compressed */
 #define DEFAULT_COMPRESSION_TYPE "RICE_1"
@@ -251,24 +240,18 @@ int compress_type_from_string(char* zcmptype) {
 int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     PyObject* keystr;
     PyObject* keyval;
-#ifdef IS_PY3K
     PyObject* tmp;  // Temp pointer to decoded bytes object
-#endif
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
-#ifdef IS_PY3K
         // FITS header values should always be ASCII, but Latin1 is on the
         // safe side
         tmp = PyUnicode_AsLatin1String(keyval);
         strncpy(val, PyBytes_AsString(tmp), 72);
         Py_DECREF(tmp);
-#else
-        strncpy(val, PyString_AsString(keyval), 72);
-#endif
         retval = 0;
     }
     else {
@@ -288,11 +271,11 @@ int get_header_int(PyObject* header, char* keyword, int* val, int def) {
     PyObject* keyval;
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
-        *val = (int) PyInt_AsLong(keyval);
+        *val = (int) PyLong_AsLong(keyval);
         retval = 0;
     }
     else {
@@ -312,7 +295,7 @@ int get_header_long(PyObject* header, char* keyword, long* val, long def) {
     PyObject* keyval;
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
@@ -337,7 +320,7 @@ int get_header_float(PyObject* header, char* keyword, float* val,
     PyObject* keyval;
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
@@ -362,7 +345,7 @@ int get_header_double(PyObject* header, char* keyword, double* val,
     PyObject* keyval;
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
@@ -387,7 +370,7 @@ int get_header_longlong(PyObject* header, char* keyword, long long* val,
     PyObject* keyval;
     int retval;
 
-    keystr = PyString_FromString(keyword);
+    keystr = PyUnicode_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
@@ -1146,7 +1129,6 @@ static PyMethodDef compression_methods[] =
    {NULL, NULL}
 };
 
-#ifdef IS_PY3K
 static struct PyModuleDef compressionmodule = {
     PyModuleDef_HEAD_INIT,
     "compression",
@@ -1169,13 +1151,3 @@ PyInit_compression(void)
     import_array();
     return module;
 }
-#else
-PyMODINIT_FUNC initcompression(void)
-{
-   PyObject* module = Py_InitModule4("compression", compression_methods,
-                                     "astropy.io.fits.compression module",
-                                     NULL, PYTHON_API_VERSION);
-   compression_module_init(module);
-   import_array();
-}
-#endif

@@ -33,17 +33,6 @@ next_power_of_2(Py_ssize_t n)
 }
 
 /******************************************************************************
- * Python version compatibility macros
- ******************************************************************************/
-#if PY_MAJOR_VERSION >= 3
-#  define IS_PY3K
-#endif
-
-#ifndef Py_TYPE
-#  define Py_TYPE(o) ((o)->ob_type)
-#endif
-
-/******************************************************************************
  * Write TABLEDATA
  ******************************************************************************/
 
@@ -353,7 +342,6 @@ struct module_state {
     void* none;
 };
 
-#ifdef IS_PY3K
 static int module_traverse(PyObject* m, visitproc visit, void* arg)
 {
     return 0;
@@ -380,30 +368,13 @@ static struct PyModuleDef moduledef = {
 
 PyMODINIT_FUNC
 PyInit_tablewriter(void)
-#else /* Not PY3K */
-#  define INITERROR return
-
-#  ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
-#    define PyMODINIT_FUNC void
-#  endif
-
-PyMODINIT_FUNC
-inittablewriter(void)
-#endif
 {
     PyObject* m;
 
-#ifdef IS_PY3K
     m = PyModule_Create(&moduledef);
-#else
-    m = Py_InitModule3("tablewriter", module_methods,
-                       "Fast way to write VOTABLE TABLEDATA");
-#endif
 
     if (m == NULL)
         INITERROR;
 
-#ifdef IS_PY3K
     return m;
-#endif
 }
