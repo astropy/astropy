@@ -506,10 +506,10 @@ from/to FITS can be explicitly turned off, by opting to store the time
 representation values in the format specified by the ``format`` attribute
 of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
 no extra metadata in the header. This is the "lossy" version, but can help
-portability. The above specified FITS column ``t['a']`` will then store
-``[100.0 200.0]`` instead of ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
-This is done by using a special ``info.serialize_method`` attribute,
-as in the following example::
+portability. For the above example, the FITS column corresponding
+to ``t['a']`` will then store ``[100.0 200.0]`` instead of
+``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
+``info.serialize_method`` attribute, as in the following example::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
