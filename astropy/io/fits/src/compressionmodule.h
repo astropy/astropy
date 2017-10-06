@@ -1,17 +1,6 @@
 #ifndef _COMPRESSIONMODULE_H
 #define _COMPRESSIONMODULE_H
 
-/* Some defines for Python3 support--bytes objects should be used where */
-/* strings were previously used                                         */
-#if PY_MAJOR_VERSION >= 3
-#define IS_PY3K
-#endif
-
-#ifdef IS_PY3K
-#define PyString_FromString PyUnicode_FromString
-#define PyInt_AsLong PyLong_AsLong
-#endif
-
 
 /* CFITSIO version-specific feature support */
 #ifndef CFITSIO_MAJOR

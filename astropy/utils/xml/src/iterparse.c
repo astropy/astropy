@@ -55,13 +55,6 @@ next_power_of_2(Py_ssize_t n)
 /******************************************************************************
  * Python version compatibility macros
  ******************************************************************************/
-#if PY_MAJOR_VERSION >= 3
-#  define IS_PY3K
-#endif
-
-#  ifndef Py_TYPE
-#    define Py_TYPE(o) ((o)->ob_type)
-#  endif
 
 #if BYTEORDER == 1234
 # define TD_AS_INT      0x00004454
@@ -1101,12 +1094,7 @@ static PyMethodDef IterParser_methods[] =
 
 static PyTypeObject IterParserType =
 {
-    #ifdef IS_PY3K
     PyVarObject_HEAD_INIT(NULL, 0)
-    #else
-    PyObject_HEAD_INIT(NULL)
-    0,                            /*ob_size*/
-    #endif
     "astropy.utils.xml._iterparser.IterParser",    /*tp_name*/
     sizeof(IterParser),         /*tp_basicsize*/
     0,                          /*tp_itemsize*/
@@ -1198,15 +1186,9 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
     }
 
     /* First, try as Unicode */
-    #ifdef IS_PY3K
     if (!PyBytes_Check(input_obj)) {
         input_coerce = PyObject_Str(input_obj);
     }
-    #else
-    if (PyUnicode_Check(input_obj)) {
-        input_coerce = PyObject_Unicode(input_obj);
-    }
-    #endif
     if (input_coerce) {
         uinput = PyUnicode_AsUnicode(input_coerce);
         if (uinput == NULL) {
@@ -1314,11 +1296,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         }
     }
 
-    #ifdef IS_PY3K
     PyErr_SetString(PyExc_TypeError, "must be convertible to str or bytes");
-    #else
-    PyErr_SetString(PyExc_TypeError, "must be convertible to str or unicode");
-    #endif
     return NULL;
 }
 
@@ -1351,7 +1329,6 @@ struct module_state {
     void* none;
 };
 
-#ifdef IS_PY3K
 static int module_traverse(PyObject* m, visitproc visit, void* arg)
 {
     return 0;
@@ -1378,24 +1355,9 @@ static struct PyModuleDef moduledef = {
 
 PyMODINIT_FUNC
 PyInit__iterparser(void)
-#else /* Not PY3K */
-#  define INITERROR return
-
-#  ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
-#    define PyMODINIT_FUNC void
-#  endif
-
-PyMODINIT_FUNC
-init_iterparser(void)
-#endif
 {
     PyObject* m;
-
-#ifdef IS_PY3K
     m = PyModule_Create(&moduledef);
-#else
-    m = Py_InitModule3("_iterparser", module_methods, "Fast XML parser");
-#endif
 
     if (m == NULL)
         INITERROR;
@@ -1406,7 +1368,5 @@ init_iterparser(void)
     Py_INCREF(&IterParserType);
     PyModule_AddObject(m, "IterParser", (PyObject *)&IterParserType);
 
-#ifdef IS_PY3K
     return m;
-#endif
 }

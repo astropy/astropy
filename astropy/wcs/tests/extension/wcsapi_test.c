@@ -26,39 +26,27 @@ struct module_state {
 #endif
 };
 
-#if PY3K
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "wcsapi_test",
-        NULL,
-        sizeof(struct module_state),
-        module_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    };
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "wcsapi_test",
+    NULL,
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-    #define INITERROR return NULL
+#define INITERROR return NULL
 
-    PyMODINIT_FUNC
-    PyInit_wcsapi_test(void)
-
-#else
-    #define INITERROR return
-
-    PyMODINIT_FUNC
-    initwcsapi_test(void)
-#endif
+PyMODINIT_FUNC
+PyInit_wcsapi_test(void)
 
 {
   PyObject* m;
 
-#if PY3K
   m = PyModule_Create(&moduledef);
-#else
-  m = Py_InitModule3("wcsapi_test", module_methods, NULL);
-#endif
 
   if (m == NULL) {
       printf("HERE\n");
@@ -67,10 +55,8 @@ struct module_state {
 
   import_astropy_wcs();
 
-#if PY3K
   if (PyErr_Occurred())
       return NULL;
   else
       return m;
-#endif
 }
