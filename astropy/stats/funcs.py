@@ -1495,7 +1495,7 @@ def cdf_from_intervals(breaks, totals):
     ----------
     breaks : array of floats of length N
         The boundaries of successive intervals.
-    weights : array of floats of length N-1
+    totals : array of floats of length N-1
         The weight for each interval.
 
     Returns

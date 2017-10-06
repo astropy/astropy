@@ -981,7 +981,7 @@ class Polynomial2D(PolynomialModel):
         Parameters
         ----------
         x, y : array
-        coeff : array of coefficients in inverse lexical order
+        coeffs : array of coefficients in inverse lexical order
         """
 
         alpha = self._invlex()

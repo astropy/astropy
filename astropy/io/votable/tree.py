@@ -222,7 +222,7 @@ def check_string(string, attr_name, config=None, pos=None):
     string : str
         An astronomical year string
 
-    field : str
+    attr_name : str
         The name of the field this year was found in (used for error
         message)
 
