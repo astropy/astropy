@@ -184,7 +184,7 @@ def calc_moon(t):
 
     Parameters
     -----------
-    time : `~astropy.time.Time`
+    t : `~astropy.time.Time`
         Time of observation.
 
     Returns
