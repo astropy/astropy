@@ -43,6 +43,7 @@ env:
         # E111 - 4 spaces per indentation level
         # E112 - 4 spaces per indentation level
         # E113 - 4 spaces per indentation level
+        # E502 - the backslash is redundant between brackets
         # E722 - do not use bare except
         # E901 - SyntaxError or IndentationError
         # E902 - IOError
