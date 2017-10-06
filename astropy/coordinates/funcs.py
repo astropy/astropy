@@ -204,7 +204,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     Parameters
     ----------
-    coords : coordinate object
+    coord : coordinate object
         The object to determine the constellation of.
     short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated
