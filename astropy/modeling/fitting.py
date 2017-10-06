@@ -27,7 +27,7 @@ import inspect
 import operator
 import warnings
 
-from functools import reduce
+from functools import reduce, wraps
 
 import numpy as np
 
@@ -95,8 +95,9 @@ def fitter_unit_support(func):
     quantities itself. This is done by temporarily removing units from all
     parameters then adding them back once the fitting has completed.
     """
-
-    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
+    @wraps(func)
+    def wrapper(self, model, x, y, z=None, **kwargs):
+        equivalencies = kwargs.pop('equivalencies', None)
 
         data_has_units = (isinstance(x, Quantity) or
                           isinstance(y, Quantity) or
@@ -111,9 +112,9 @@ def fitter_unit_support(func):
                 # We now combine any instance-level input equivalencies with user
                 # specified ones at call-time.
 
-                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
-                                                                      equivalencies,
-                                                                      model.input_units_equivalencies)
+
+                input_units_equivalencies = _combine_equivalency_dict(
+                    model.inputs, equivalencies, model.input_units_equivalencies)
 
                 # If input_units is defined, we transform the input data into those
                 # expected by the model. We hard-code the input names 'x', and 'y'
@@ -326,6 +327,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             Cut-off ratio for small singular values of ``a``.
             Singular values are set to zero if they are smaller than ``rcond``
             times the largest singular value of ``a``.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -665,6 +669,9 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             If False (default) and if the model has a fit_deriv method,
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -801,6 +808,9 @@ class SLSQPLSQFitter(Fitter):
             the step size for finite-difference derivative estimates
         acc : float
             Requested accuracy
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -861,6 +871,9 @@ class SimplexLSQFitter(Fitter):
             maximum number of iterations
         acc : float
             Relative error in approximate solution
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
