@@ -281,7 +281,7 @@ Time
 Astropy provides the following features for reading and writing ``Time``:
 
 - Writing and reading `~astropy.time.Time` Table columns to and from FITS tables
-- Reading time coordinate columns in FITS tables (not written by Astropy) as
+- Reading time coordinate columns in FITS tables (compliant with the time standard) as
   `~astropy.time.Time` Table columns
 
 Writing and reading Astropy Time columns
@@ -331,28 +331,51 @@ FITS time standard will be set.  When reading this back into Astropy, the
 column will be an ordinary Column instead of a `~astropy.time.Time` object.
 See the `Details`_ section below for an example.
 
-Reading time columns in non-Astropy written FITS tables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Reading FITS standard compliant time coordinate columns in binary tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Reading FITS files which are compliant with the current FITS time standard,
-that is, the files written after the standard was set in stone, is supported
-by Astropy by following the rules and conventions set by the standard. Thus,
-time coordinate columns in arbitrary FITS files (compliant with the standard)
-will be read as native `~astropy.time.Time` objects.
+Reading FITS files which are compliant with the FITS time standard is supported
+by Astropy by following the multifarious rules and conventions set by the
+standard. The standard was devised in order to describe time coordinates in
+an unambiguous and comprehensive manner and also to provide flexibility for its
+multiple use-cases. Thus, while reading time coordinate columns in FITS compliant
+files, multiple aspects of the standard are taken into consideration.
 
-However, a major chunk of the astronomical datasets, most of which are dated
-prior to the FITS time standard, follow different conventions to store time
-coordinate columns.
+Time coordinate columns strictly compliant with the two-vector JD subset of the
+standard (described in the `Details`_ section below) can be read as native
+`~astropy.time.Time` objects. The other subsets of the standard are also supported
+by Astropy; a thorough examination of the FITS standard time-related keywords is
+done and the time data is interpreted accordingly.
+
+The standard describes the various components in the specification of time:
+
+- Time coordinate frame
+- Time unit
+- Corrections, errors, etc.
+- Durations
+
+The keywords used to specify times define these components. Using these keywords,
+time coordinate columns are identified and read as `~astropy.time.Time` objects.
+Refer to :ref:`fits_time_column` for the specification of these keywords and their
+description.
+
+There are two aspects of the standard that require special attention due to the
+subtleties involved while handling them. These are:
+
+* Column named TIME with time unit
 
 A common convention found in existing FITS files is that a FITS binary
 table column with ``TTYPEn = ‘TIME’`` represents a time coordinate column.
+Many astronomical data files, including official data products from major
+observatories, follow this convention that pre-dates the FITS standard.
 The FITS time standard states that such a column will be controlled by
 the global time reference frame keywords, and this will still be compliant
 with the present standard.
 
-Using this convention, Astropy can read time coordinate columns from all
-such FITS tables as native `~astropy.time.Time` objects. Common examples of
-FITS files following this convention are Chandra, XMM, and HST files.
+Using this convention which has been incorporated into the standard, Astropy
+can read time coordinate columns from all such FITS tables as native
+`~astropy.time.Time` objects. Common examples of FITS files following
+this convention are Chandra, XMM, and HST files.
 
 The following is an example of a Header extract of a Chandra event list:
 
@@ -393,12 +416,51 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
 By default, FITS table columns will be read as standard `~astropy.table.Column`
 objects without taking the FITS time standard into consideration.
 
+* String time column in ISO-8601 Datetime format
+
+FITS uses a subset of ISO-8601 (which in itself does not imply a particular time scale)
+for several time-related keywords, such as DATE-xxx. Following the FITS standard its
+values must be written as a character string in the following ``datetime`` format:
+
+``[+/-C]CCYY-MM-DD[Thh:mm:ss[.s...]]``
+
+A time coordinate column can be constructed using this representation of time.
+The following is an example of an ISO-8601 ``datetime`` format time column:
+
+.. parsed-literal::
+
+    TIME
+    ----
+    1999-01-01T00:00:00
+    1999-01-01T00:00:40
+    1999-01-01T00:01:06
+    .
+    .
+    .
+    1999-01-20T01:10:00
+
+The criteria for identifying a time coordinate column in ISO-8601 format is as follows:
+
+A time column is identified using the time coordinate frame keywords as described in
+:ref:`fits_time_column`. Once it has been identified, its datatype is checked in order
+to determine its representation format. Since ISO-8601 ``datetime`` format is the only
+string representation of time, a time coordinate column having string datatype will be
+automatically read as a `~astropy.time.Time` object with ``format='fits'`` ('fits'
+represents the FITS ISO-8601 format).
+
+As this format does not imply a particular time scale, it is determined using the time
+scale keywords in the header (``TCTYP`` or ``TIMESYS``) or their defaults. The other time
+coordinate information is also determined in the same way, using the time coordinate
+frame keywords. All ISO-8601 times are relative to a globally accepted zero point
+(year 0 corresponds to 1 BCE) and are thus are not relative to the reference time
+keywords (MJDREF, JDREF or DATEREF). Hence, these keywords will be ignored while dealing
+with ISO-8601 time columns.
+
 .. note::
 
-   Reading FITS files with time coordinate columns which are not written by
-   Astropy *may* fail.  Astropy supports a large subset of these files, but
-   there are still some FITS files which neither follow the above stated
-   convention nor are compliant with the standard.
+   Reading FITS files with time coordinate columns *may* fail. Astropy supports
+   a large subset of these files, but there are still some FITS files which are
+   not compliant with any aspect of the standard.
 
    Also, reading a column having ``TTYPEn = ‘TIME’`` as `~astropy.time.Time`
    will fail if ``TUNITn`` for the column is not a FITS recognized time unit.
@@ -429,22 +491,25 @@ singular ``location`` of `~astropy.time.Time`, to corresponding keywords.  Note
 that the arbitrary metadata allowed in `~astropy.table.Table` objects within
 the ``meta`` dict is not written and will be lost.
 
+Consider the following Time column:
+
+    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
+
 The FITS standard requires an additional translation layer back into
-the desired format. In the example stated above, the Time column ``t['a']``
-undergoes the translation ``Astropy Time --> FITS --> Astropy Time`` which
-corresponds to the format conversion ``mjd --> (jd1, jd2) --> jd``. Thus,
-the final conversion from ``(jd1, jd2)`` requires a software implementation which is
-fully compliant with the FITS time standard.
+the desired format. The Time column ``t['a']`` will undergo the translation
+``Astropy Time --> FITS --> Astropy Time`` which corresponds to the format conversion
+``mjd --> (jd1, jd2) --> jd``. Thus, the final conversion from ``(jd1, jd2)`` will
+require a software implementation which is fully compliant with the FITS time standard.
 
 Taking this into consideration, the functionality to read/write Time
 from/to FITS can be explicitly turned off, by opting to store the time
 representation values in the format specified by the ``format`` attribute
 of the `~astropy.time.Time` column, instead of the ``(jd1, jd2)`` format, with
 no extra metadata in the header. This is the "lossy" version, but can help
-portability. For the above example, the FITS column corresponding
-to ``t['a']`` will then store ``[100.0 200.0]`` instead of
-``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
-``info.serialize_method`` attribute, as in the following example::
+portability. The above specified FITS column ``t['a']`` will then store
+``[100.0 200.0]`` instead of ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``.
+This is done by using a special ``info.serialize_method`` attribute,
+as in the following example::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
