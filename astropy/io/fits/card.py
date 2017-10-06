@@ -550,7 +550,7 @@ class Card(_Verify):
 
         Parameters
         ----------
-        key : or str
+        keyword : or str
             A keyword value or a ``keyword.field-specifier`` value
         """
 
