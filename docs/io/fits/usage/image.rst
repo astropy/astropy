@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. currentmodule:: astropy.io.fits
 
 Image Data
@@ -33,22 +31,37 @@ the numpy array of its data will have the shape of (400, 300).
 
 Here is a summary of reading and updating image data values::
 
-    >>> f = fits.open('image.fits')  # open a FITS file
-    >>> scidata = f[1].data  # assume the first extension is an image
-    >>> print(scidata[1, 4])   # get the pixel value at x=5, y=2
-    >>> scidata[30:40, 10:20]  # get values of the subsection
-    ...                        # from x=11 to 20, y=31 to 40 (inclusive)
-    >>> scidata[1,4] = 999  # update a pixel value
-    >>> scidata[30:40, 10:20] = 0  # update values of a subsection
-    >>> scidata[3] = scidata[2]    # copy the 3rd row to the 4th row
+    >>> from astropy.io import fits
+    >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+
+    >>> with fits.open(fits_image_filename) as hdul:  # open a FITS file
+    ...     data = hdul[1].data  # assume the first extension is an image
+    >>> print(data[1, 4])   # get the pixel value at x=5, y=2
+    313
+    >>> # get values of the subsection from x=11 to 20, y=31 to 40 (inclusive)
+    >>> data[30:40, 10:20]
+    array([[314, 314, 313, 312, 313, 313, 313, 313, 313, 312],
+           [314, 314, 312, 313, 313, 311, 313, 312, 312, 314],
+           [314, 315, 313, 313, 313, 313, 315, 312, 314, 312],
+           [314, 313, 313, 314, 311, 313, 313, 313, 313, 313],
+           [313, 314, 312, 314, 312, 314, 314, 315, 313, 313],
+           [312, 311, 311, 312, 312, 312, 312, 313, 311, 312],
+           [314, 314, 314, 314, 312, 313, 314, 314, 314, 311],
+           [314, 313, 312, 313, 313, 314, 312, 312, 311, 314],
+           [313, 313, 313, 314, 313, 313, 315, 313, 312, 313],
+           [314, 313, 313, 314, 313, 312, 312, 314, 310, 314]], dtype=int16)
+    >>> data[1,4] = 999  # update a pixel value
+    >>> data[30:40, 10:20] = 0  # update values of a subsection
+    >>> data[3] = data[2]    # copy the 3rd row to the 4th row
 
 Here are some more complicated examples by using the concept of the "mask
-array". The first example is to change all negative pixel values in scidata to
+array". The first example is to change all negative pixel values in data to
 zero. The second one is to take logarithm of the pixel values which are
 positive::
 
-    >>> scidata[scidata < 0] = 0
-    >>> scidata[scidata > 0] = numpy.log(scidata[scidata > 0])
+    >>> data[data < 0] = 0
+    >>> import numpy as np
+    >>> data[data > 0] = np.log(data[data > 0])
 
 These examples show the concise nature of numpy array operations.
 
@@ -91,21 +104,25 @@ For integer data type, the scaled data will always be single precision floating
 point (``numpy.float32``). Here is an example of what happens to such a file,
 before and after the data is touched::
 
-    >>> f = fits.open('scaled_uint16.fits')
-    >>> hdu = f[1]
+    >>> fits_scaledimage_filename = fits.util.get_testdata_filepath('scale.fits')
+
+    >>> hdul = fits.open(fits_scaledimage_filename)
+    >>> hdu = hdul[0]
     >>> hdu.header['bitpix']
     16
     >>> hdu.header['bzero']
-    32768
-    >>> print(hdu.data)  # once data is touched, it is scaled
-    [ 11. 12. 13. 14. 15.]
+    1500.0
+    >>> hdu.data[0, 0]  # once data is touched, it is scaled
+    557.75629
     >>> hdu.data.dtype.name
     'float32'
     >>> hdu.header['bitpix']  # BITPIX is also updated
     -32
     >>> # BZERO and BSCALE are removed after the scaling
     >>> hdu.header['bzero']
-    KeyError: "Keyword 'bzero' not found."
+    Traceback (most recent call last):
+        ...
+    KeyError: "Keyword 'BZERO' not found."
 
 .. warning::
 
@@ -142,6 +159,7 @@ data with the `~ImageHDU.scale` method. Here are a few examples::
     >>> hdu.scale('int32', 'minmax')
     >>> # scale the data, using the original BSCALE/BZERO
     >>> hdu.scale('int32', 'old')
+    >>> hdul.close()
 
 The first example above shows how to store an unsigned short integer array.
 
@@ -154,9 +172,9 @@ files, i.e. calls of :meth:`~HDUList.writeto`, :meth:`~HDUList.flush`, or
 an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 :meth:`~ImageHDU.scale` call::
 
-    >>> hdu = fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
+    >>> hdu = fits.PrimaryHDU(np.array([0., 1, 2, 3]))
     >>> print(hdu.data)
-    [ 0. 1. 2. 3.]
+    [ 0.  1.  2.  3.]
     >>> hdu.scale('int16', bzero=32768)
     >>> print(hdu.data)  # now the data has storage values
     [-32768 -32767 -32766 -32765]
@@ -187,20 +205,21 @@ also insufficient for loading images larger than 2 to 4 GB on a 32-bit
 system--in such cases it may be necessary to use sections.
 
 Here is an example of getting the median image from 3 input images of the size
-5000x5000::
+5000x5000.
 
-    >>> f1 = fits.open('file1.fits')
-    >>> f2 = fits.open('file2.fits')
-    >>> f3 = fits.open('file3.fits')
-    >>> output = numpy.zeros(5000 * 5000)
-    >>> for i in range(50):
-    ...     j = i * 100
-    ...     k = j + 100
-    ...     x1 = f1[1].section[j:k,:]
-    ...     x2 = f2[1].section[j:k,:]
-    ...     x3 = f3[1].section[j:k,:]
-    ...     # use scipy.stsci.image's median function
-    ...     output[j:k] = image.median([x1, x2, x3])
+.. code:: python
+
+    hdul1 = fits.open('file1.fits')
+    hdul2 = fits.open('file2.fits')
+    hdul3 = fits.open('file3.fits')
+    output = np.zeros((5000, 5000))
+    for i in range(50):
+        j = i * 100
+        k = j + 100
+        x1 = hdul1[0].section[j:k,:]
+        x2 = hdul2[0].section[j:k,:]
+        x3 = hdul3[0].section[j:k,:]
+        output[j:k, :] = np.median([x1, x2, x3], axis=0)
 
 Data in each :attr:`~ImageHDU.section` does not need to be contiguous for
 memory savings to be possible.  PyFITS will do its best to join together
