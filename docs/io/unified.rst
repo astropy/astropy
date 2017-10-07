@@ -23,7 +23,7 @@ registered with the :class:`~astropy.table.Table` class (see
 To use this interface, first import the :class:`~astropy.table.Table` class, then
 simply call the :class:`~astropy.table.Table`
 :meth:`~astropy.table.Table.read` method with the name of the file and
-the file format, for instance ``'ascii.daophot'``::
+the file format, for instance ``'ascii.daophot'``:
 
 .. doctest-skip::
 
@@ -114,7 +114,7 @@ Use ``format='ascii'`` in order to interface to the generic
 :func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
 functions from `astropy.io.ascii`.  When reading a table this means
 that all supported ASCII table formats will be tried in order to successfully
-parse the input.  For example::
+parse the input.  For example:
 
 .. doctest-skip::
 
@@ -133,7 +133,7 @@ All additional arguments are passed to the `astropy.io.ascii`
 :func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
 functions. Further details are available in the sections on
 :ref:`io_ascii_read_parameters` and :ref:`io_ascii_write_parameters`.  For example, to change
-column delimiter and the output format for the ``colc`` column use::
+column delimiter and the output format for the ``colc`` column use:
 
 .. doctest-skip::
 
@@ -148,7 +148,7 @@ column delimiter and the output format for the ``colc`` column use::
    When specifying a specific ASCII table format using the unified interface, the format name is
    prefixed with ``ascii`` in order to identify the format as ASCII-based.  Compare the
    table above to the `astropy.io.ascii` list of :ref:`supported formats <supported_formats>` where the prefix is not
-   needed. Therefore the following are equivalent::
+   needed. Therefore the following are equivalent:
 
 .. doctest-skip::
 
@@ -172,7 +172,7 @@ Reading
 ^^^^^^^^
 
 If a FITS table file contains only a single table, then it can be read in
-with::
+with:
 
 .. doctest-skip::
 
@@ -214,7 +214,7 @@ Keywords
 
 The FITS keywords associated with an HDU table are represented in the ``meta``
 ordered dictionary attribute of a :ref:`Table <astropy-table>`.  After reading
-a table one can view the available keywords in a readable format using::
+a table one can view the available keywords in a readable format using:
 
 .. doctest-skip::
 
@@ -227,7 +227,7 @@ the FITS table properties (e.g. ``NAXIS``, ``TTYPE1``). ``HISTORY`` and
 values.
 
 Conversely, the following shows examples of setting user keyword values for a
-table ``t``::
+table ``t``:
 
 .. doctest-skip::
 
@@ -271,7 +271,7 @@ Quantity
 
 A `~astropy.units.Quantity` mixin column in a `~astropy.table.QTable` is
 represented in a FITS table using the ``TUNITn`` FITS column keyword to
-incorporate the unit attribute of Quantity.
+incorporate the unit attribute of Quantity. For example:
 
 .. doctest-skip::
 
@@ -312,7 +312,7 @@ closer native astropy representations are possible, and one can indicate these
 should be used by passing ``astropy_native=True`` (for backwards compatibility,
 this is not done by default). This will convert columns conforming to the
 FITS time standard to `~astropy.time.Time` instances, avoiding any loss of
-precision. For example::
+precision. For example:
 
 .. doctest-skip::
 
@@ -442,7 +442,9 @@ FITS uses a subset of ISO-8601 (which in itself does not imply a particular time
 for several time-related keywords, such as DATE-xxx. Following the FITS standard its
 values must be written as a character string in the following ``datetime`` format:
 
-``[+/-C]CCYY-MM-DD[Thh:mm:ss[.s...]]``
+.. parsed-literal::
+
+    [+/-C]CCYY-MM-DD[Thh:mm:ss[.s...]]
 
 A time coordinate column can be constructed using this representation of time.
 The following is an example of an ISO-8601 ``datetime`` format time column:
@@ -482,7 +484,7 @@ with ISO-8601 time columns.
    a large subset of these files, but there are still some FITS files which are
    not compliant with any aspect of the standard.
    If you have such a file, please don't hesitate to let us know, e.g., by opening
-   an issue in the issue tracker <https://github.com/astropy/astropy/issues>_.
+   an issue in the `issue tracker <https://github.com/astropy/astropy/issues>`_.
 
    Also, reading a column having ``TTYPEn = ‘TIME’`` as `~astropy.time.Time`
    will fail if ``TUNITn`` for the column is not a FITS recognized time unit.
@@ -531,7 +533,7 @@ no extra metadata in the header. This is the "lossy" version, but can help
 portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
 ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
-``info.serialize_method`` attribute, as in the following example::
+``info.serialize_method`` attribute, as in the following example:
 
 .. doctest-skip::
 
