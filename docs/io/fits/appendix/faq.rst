@@ -39,11 +39,11 @@ the rest of PyFITS functions without this extension module.
 What is the development status of PyFITS?
 -----------------------------------------
 
-PyFITS is written and maintained by the Science Software Branch at the `Space
+PyFITS was written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
 license`_ (see `LICENSE.txt`_ in the PyFITS source code).
 
-It is now primarily developed as primarily as a component of Astropy
+It is now exclusively developed as a component of Astropy
 (`astropy.io.fits`) rather than as a stand-alone module.  There are a few
 reasons for this: The first is simply to reduce development effort; the
 overhead of maintaining both PyFITS *and* `astropy.io.fits` in separate code
@@ -52,19 +52,14 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-PyFITS' current primary developer and active maintainer is `Erik Bray`_, though
-patch submissions are welcome from anyone.  PyFITS is now primarily developed
-in a Git repository for ease of merging to and from Astropy.  Patches and issue
-reports can be posted to the `GitHub project`_ for PyFITS, or for Astropy.
+PyFITS' past primary developer and active maintainer was `Erik Bray`_.  There
+is a `GitHub project`_ for PyFITS but PyFITS is not actively developed anymore
+so patches and issue reports should be posted on the Astropy issue tracker.
 There is also a legacy `Trac site`_ with some older issue reports still open,
 but new issues should be submitted via GitHub if possible.  An `SVN mirror`_ of
 the repository is still maintained as well.
 
-The current stable release series is 3.3.x.  Each 3.3.x release tries to
-contain only bug fixes, and to not introduce any significant behavioral or API
-changes (though this isn't guaranteed to be perfect).  Patch releases for older
-release series may be released upon request.  Older versions of PyFITS (2.4 and
-earlier) are no longer actively supported.
+The current (and probably last) stable release is 3.4.0.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
