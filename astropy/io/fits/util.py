@@ -897,3 +897,24 @@ def _extract_number(value, default):
         return int(_str_to_num(value))
     except (TypeError, ValueError):
         return default
+
+
+def get_testdata_filepath(filename):
+    """
+    Return a string representing the path to the file requested from the
+    io.fits test data set.
+
+    .. versionadded:: 2.0.3
+
+    Parameters
+    ----------
+    filename : str
+        The filename of the test data file.
+
+    Returns
+    -------
+    filepath : str
+        The path to the requested file.
+    """
+    return data.get_pkg_data_filename(
+        'io/fits/tests/data/{}'.format(filename), 'astropy')

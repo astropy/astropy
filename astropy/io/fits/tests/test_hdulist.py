@@ -697,6 +697,11 @@ class TestHDUListFunctions(FitsTestCase):
                 # versions of Numpy on Windows.  See PyFITS ticket
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
                 continue
+            elif filename.endswith('variable_length_table.fits'):
+                # Comparing variable length arrays is non-trivial and thus
+                # skipped at this point.
+                # TODO: That's probably possible, so one could make it work.
+                continue
             test_fromstring(filename)
 
         # Test that creating an HDUList from something silly raises a TypeError

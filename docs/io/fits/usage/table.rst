@@ -28,16 +28,14 @@ What is a Record Array?
 
 A record array is an array which contains records (i.e. rows) of heterogeneous
 data types. Record arrays are available through the records module in the numpy
-library. Here is a simple example of record array:
+library. Here is a simple example of record array::
 
-.. doctest-skip::
-
-    >>> from numpy import rec
-    >>> bright = rec.array([(1,'Sirius', -1.45, 'A1V'),
-    ...                     (2,'Canopus', -0.73, 'F0Ib'),
-    ...                     (3,'Rigil Kent', -0.1, 'G2V')],
-    ...                     formats='int16,a20,float32,a10',
-    ...                     names='order,name,mag,Sp')
+    >>> import numpy as np
+    >>> bright = np.rec.array([(1,'Sirius', -1.45, 'A1V'),
+    ...                        (2,'Canopus', -0.73, 'F0Ib'),
+    ...                        (3,'Rigil Kent', -0.1, 'G2V')],
+    ...                       formats='int16,a20,float32,a10',
+    ...                       names='order,name,mag,Sp')
 
 In this example, there are 3 records (rows) and 4 fields (columns). The first
 field is a short integer, second a character string (of length 20), third a
@@ -73,24 +71,31 @@ Reading a FITS Table
 --------------------
 
 Like images, the ``.data`` attribute of a table HDU contains the data of the
-table.  To recap, the simple example in the Quick Tutorial:
+table.  To recap, the simple example in the Quick Tutorial::
 
-.. doctest-skip::
 
     >>> from astropy.io import fits
-    >>> f = fits.open('bright_stars.fits')  # open a FITS file
-    >>> tbdata = f[1].data  # assume the first extension is a table
-    >>> print(tbdata[:2])  # show the first two rows
-    [(1, 'Sirius', -1.4500000476837158, 'A1V'),
-    (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-    >>> print(tbdata['mag'])  # show the values in field "mag"
-    [-1.45000005 -0.73000002 -0.1 ]
-    >>> print(tbdata.field(1))  # columns can be referenced by index too
-    ['Sirius' 'Canopus' 'Rigil Kent']
+    >>> fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
+
+    >>> hdul = fits.open(fits_table_filename)  # open a FITS file
+    >>> data = hdul[1].data  # assume the first extension is a table
+    >>> # show the first two rows
+    >>> first_two_rows = data[:2]
+    >>> first_two_rows  # doctest: +SKIP
+    [(1, 'Sirius', -1.45000005, 'A1V') (2, 'Canopus', -0.73000002, 'F0Ib')]
+    >>> # show the values in field "mag"
+    >>> magnitudes = data['mag']
+    >>> magnitudes  # doctest: +SKIP
+    array([-1.45000005, -0.73000002, -0.1       ], dtype=float32)
+    >>> # columns can be referenced by index too
+    >>> names = data.field(1)
+    >>> names.tolist() # doctest: +SKIP
+    ['Sirius', 'Canopus', 'Rigil Kent']
+    >>> hdul.close()
 
 Note that in Astropy, when using the ``field()`` method, it is 0-indexed while
 the suffixes in header keywords, such as TFORM is 1-indexed. So,
-``tbdata.field(0)`` is the data in the column with the name specified in TTYPE1
+``data.field(0)`` is the data in the column with the name specified in TTYPE1
 and format in TFORM1.
 
 .. warning::
@@ -115,33 +120,38 @@ Like image data, we can use the same "mask array" idea to pick out desired
 records from a table and make a new table out of it.
 
 In the next example, assuming the table's second field having the name
-'magnitude', an output table containing all the records of magnitude > 5 from
-the input table is generated:
+'magnitude', an output table containing all the records of magnitude > -0.5 from
+the input table is generated::
 
-.. doctest-skip::
-
-    >>> from astropy.io import fits
-    >>> t = fits.open('table.fits')
-    >>> tbdata = t[1].data
-    >>> mask = tbdata['magnitude'] > 5
-    >>> newtbdata = tbdata[mask]
-    >>> hdu = fits.BinTableHDU(data=newtbdata)
-    >>> hdu.writeto('newtable.fits')
+    >>> with fits.open(fits_table_filename) as hdul:
+    ...     data = hdul[1].data
+    ...     mask = data['mag'] > -0.5
+    ...     newdata = data[mask]
+    ...     hdu = fits.BinTableHDU(data=newdata)
+    ...     hdu.writeto('newtable.fits')
 
 
 Merging Tables
 --------------
 
 Merging different tables is straightforward in Astropy. Simply merge the column
-definitions of the input tables:
+definitions of the input tables::
 
-.. doctest-skip::
+    >>> fits_other_table_filename = fits.util.get_testdata_filepath('table.fits')
 
-    >>> t1 = fits.open('table1.fits')
-    >>> t2 = fits.open('table2.fits')
-    >>> new_columns = t1[1].columns + t2[1].columns
-    >>> hdu = fits.BinTableHDU.from_columns(new_columns)
-    >>> hdu.writeto('newtable.fits')
+    >>> with fits.open(fits_table_filename) as hdul1:
+    ...     with fits.open(fits_other_table_filename) as hdul2:
+    ...         new_columns = hdul1[1].columns + hdul2[1].columns
+    ...         new_hdu = fits.BinTableHDU.from_columns(new_columns)
+    >>> new_columns
+    ColDefs(
+            name = 'order'; format = 'I'
+            name = 'name'; format = '20A'
+            name = 'mag'; format = 'E'
+            name = 'Sp'; format = '10A'
+            name = 'target'; format = '20A'
+            name = 'V_mag'; format = 'E'
+        )
 
 The number of fields in the output table will be the sum of numbers of fields
 of the input tables. Users have to make sure the input tables don't share any
@@ -152,19 +162,17 @@ originally shorter table(s) will be zero (or blank) filled.
 A simpler version of this example can be used to append a new column to a
 table.  Updating an existing table with a new column is generally more
 difficult than it's worth, but one can "append" a column to a table by creating
-a new table with columns from the existing table plus the new column(s):
+a new table with columns from the existing table plus the new column(s)::
 
-.. doctest-skip::
-
-    >>> orig_table = fits.open('table.fits')[1].data
-    >>> orig_cols = orig_table.columns
+    >>> with fits.open(fits_table_filename) as hdul:
+    ...     orig_table = hdul[1].data
+    ...     orig_cols = orig_table.columns
     >>> new_cols = fits.ColDefs([
     ...     fits.Column(name='NEWCOL1', format='D',
     ...                 array=np.zeros(len(orig_table))),
     ...     fits.Column(name='NEWCOL2', format='D',
     ...                 array=np.zeros(len(orig_table)))])
     >>> hdu = fits.BinTableHDU.from_columns(orig_cols + new_cols)
-    >>> hdu.writeto('newtable.fits')
 
 Now ``newtable.fits`` contains a new table with the original table, plus the
 two new columns filled with zeros.
@@ -177,19 +185,16 @@ Appending one table after another is slightly trickier, since the two tables
 may have different field attributes. Here are two examples. The first is to
 append by field indices, the second one is to append by field names. In both
 cases, the output table will inherit column attributes (name, format, etc.) of
-the first table:
+the first table::
 
-.. doctest-skip::
-
-    >>> t1 = fits.open('table1.fits')
-    >>> t2 = fits.open('table2.fits')
-    >>> nrows1 = t1[1].data.shape[0]
-    >>> nrows2 = t2[1].data.shape[0]
-    >>> nrows = nrows1 + nrows2
-    >>> hdu = fits.BinTableHDU.from_columns(t1[1].columns, nrows=nrows)
-    >>> for colname in t1[1].columns.names:
-    ...     hdu.data[colname][nrows1:] = t2[1].data[colname]
-    >>> hdu.writeto('newtable.fits')
+    >>> with fits.open(fits_table_filename) as hdul1:
+    ...     with fits.open(fits_table_filename) as hdul2:
+    ...         nrows1 = hdul1[1].data.shape[0]
+    ...         nrows2 = hdul2[1].data.shape[0]
+    ...         nrows = nrows1 + nrows2
+    ...         hdu = fits.BinTableHDU.from_columns(hdul1[1].columns, nrows=nrows)
+    ...         for colname in hdul1[1].columns.names:
+    ...             hdu.data[colname][nrows1:] = hdul2[1].data[colname]
 
 
 Scaled Data in Tables
@@ -270,15 +275,13 @@ header keywords and descriptions:
 
 Here are a few Columns using various combination of these arguments::
 
-    >>> import numpy as np
-    >>> from astropy.io import fits
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
-    >>> c1 = fits.Column(name='target', format='10A', array=names)
-    >>> c2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
-    >>> c3 = fits.Column(name='notes', format='A10')
-    >>> c4 = fits.Column(name='spectrum', format='1000E')
-    >>> c5 = fits.Column(name='flag', format='L', array=[True, False, True, True])
+    >>> col1 = fits.Column(name='target', format='10A', array=names)
+    >>> col2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
+    >>> col3 = fits.Column(name='notes', format='A10')
+    >>> col4 = fits.Column(name='spectrum', format='1000E')
+    >>> col5 = fits.Column(name='flag', format='L', array=[True, False, True, True])
 
 In this example, formats are specified with the FITS letter codes. When there
 is a number (>1) preceding a (numeric type) letter code, it means each cell in
@@ -297,12 +300,12 @@ After the columns are constructed, the :meth:`BinTableHDU.from_columns` class
 method can be used to construct a table HDU. We can either go through the
 column definition object::
 
-    >>> coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
-    >>> tbhdu = fits.BinTableHDU.from_columns(coldefs)
+    >>> coldefs = fits.ColDefs([col1, col2, col3, col4, col5])
+    >>> hdu = fits.BinTableHDU.from_columns(coldefs)
 
 or directly use the :meth:`BinTableHDU.from_columns` method::
 
-    >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5])
+    >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5])
 
 .. note::
 
@@ -315,7 +318,7 @@ or directly use the :meth:`BinTableHDU.from_columns` method::
 A look of the newly created HDU's header will show that relevant keywords are
 properly populated::
 
-    >>> tbhdu.header
+    >>> hdu.header
     XTENSION= 'BINTABLE'           / binary table extension
     BITPIX  =                    8 / array data type
     NAXIS   =                    2 / number of array dimensions
@@ -349,11 +352,11 @@ existing record array, a kludge can be used to create a new table HDU without
 any copying.  First, create the Columns as before, but without using the
 ``array=`` argument::
 
-    >>> c1 = fits.Column(name='target', format='10A')
+    >>> col1 = fits.Column(name='target', format='10A')
 
 Then call :meth:`BinTableHDU.from_columns`::
 
-    >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5])
+    >>> hdu = fits.BinTableHDU.from_columns([col1, col2, col3, col4, col5])
 
 This will create a new table HDU as before, with the correct column
 definitions, but an empty data section.  Now simply assign your array directly
@@ -361,7 +364,7 @@ to the HDU's data attribute:
 
 .. doctest-skip::
 
-    >>> tbhdu.data = mydata
+    >>> hdu.data = mydata
 
 In a future version of Astropy table creation will be simplified and this
 process won't be necessary.
