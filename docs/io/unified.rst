@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _table_io:
 
 Unified file read/write interface
@@ -27,6 +25,8 @@ simply call the :class:`~astropy.table.Table`
 :meth:`~astropy.table.Table.read` method with the name of the file and
 the file format, for instance ``'ascii.daophot'``::
 
+.. doctest-skip::
+
     >>> from astropy.table import Table
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
@@ -35,16 +35,16 @@ download tables from Vizier catalogues in CDS format (``'ascii.cds'``)::
 
     >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
     ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe", 
-    ...         format="ascii.cds")
+    ...         format="ascii.cds")  # doctest: +SKIP
 
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
-    >>> t = Table.read('table.tex')
+    >>> t = Table.read('table.tex')  # doctest: +SKIP
 
 Similarly, for writing, the format can be explicitly specified::
 
-    >>> t.write(filename, format='latex')
+    >>> t.write(filename, format='latex')  # doctest: +SKIP
 
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
@@ -116,6 +116,8 @@ functions from `astropy.io.ascii`.  When reading a table this means
 that all supported ASCII table formats will be tried in order to successfully
 parse the input.  For example::
 
+.. doctest-skip::
+
   >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
   >>> print(t)
   cola colb colc
@@ -133,6 +135,8 @@ functions. Further details are available in the sections on
 :ref:`io_ascii_read_parameters` and :ref:`io_ascii_write_parameters`.  For example, to change
 column delimiter and the output format for the ``colc`` column use::
 
+.. doctest-skip::
+
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
   cola|colb|colc
   a|1|2.00
@@ -145,6 +149,8 @@ column delimiter and the output format for the ``colc`` column use::
    prefixed with ``ascii`` in order to identify the format as ASCII-based.  Compare the
    table above to the `astropy.io.ascii` list of :ref:`supported formats <supported_formats>` where the prefix is not
    needed. Therefore the following are equivalent::
+
+.. doctest-skip::
 
      >>> dat = ascii.read('file.dat', format='daophot')
      >>> dat = Table.read('file.dat', format='ascii.daophot')
@@ -168,18 +174,20 @@ Reading
 If a FITS table file contains only a single table, then it can be read in
 with::
 
+.. doctest-skip::
+
     >>> from astropy.table import Table
     >>> t = Table.read('data.fits')
 
 If more than one table is present in the file, you can select the HDU
 as follows::
 
-    >>> t = Table.read('data.fits', hdu=3)
+    >>> t = Table.read('data.fits', hdu=3)  # doctest: +SKIP
 
 In this case if the ``hdu`` argument is omitted then the first table found will be
 read in and a warning will be emitted::
 
-    >>> t = Table.read('data.fits')
+    >>> t = Table.read('data.fits')  # doctest: +SKIP
     WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
 
 Writing
@@ -187,12 +195,12 @@ Writing
 
 To write a table ``t`` to a new file::
 
-    >>> t.write('new_table.fits')
+    >>> t.write('new_table.fits')  # doctest: +SKIP
 
 If the file already exists and you want to overwrite it, then set the
 ``overwrite`` keyword::
 
-    >>> t.write('existing_table.fits', overwrite=True)
+    >>> t.write('existing_table.fits', overwrite=True)  # doctest: +SKIP
 
 At this time there is no support for appending an HDU to an existing
 file or writing multi-HDU files using the Table interface. Instead one
@@ -208,6 +216,8 @@ The FITS keywords associated with an HDU table are represented in the ``meta``
 ordered dictionary attribute of a :ref:`Table <astropy-table>`.  After reading
 a table one can view the available keywords in a readable format using::
 
+.. doctest-skip::
+
   >>> for key, value in t.meta.items():
   ...     print('{0} = {1}'.format(key, value))
 
@@ -218,6 +228,8 @@ values.
 
 Conversely, the following shows examples of setting user keyword values for a
 table ``t``::
+
+.. doctest-skip::
 
   >>> t.meta['MY_KEYWD'] = 'my value'
   >>> t.meta['COMMENT'] = ['First comment', 'Second comment', 'etc']
@@ -261,6 +273,8 @@ A `~astropy.units.Quantity` mixin column in a `~astropy.table.QTable` is
 represented in a FITS table using the ``TUNITn`` FITS column keyword to
 incorporate the unit attribute of Quantity.
 
+.. doctest-skip::
+
     >>> from astropy.table import QTable
     >>> import astropy.units as u
     >>> t = QTable([[1, 2] * u.angstrom)])
@@ -299,6 +313,8 @@ should be used by passing ``astropy_native=True`` (for backwards compatibility,
 this is not done by default). This will convert columns conforming to the
 FITS time standard to `~astropy.time.Time` instances, avoiding any loss of
 precision. For example::
+
+.. doctest-skip::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
@@ -400,9 +416,12 @@ whether its unit is a FITS recognized time unit (``TUNITn`` is a time unit).
 For example, reading a Chandra event list which has the above mentioned header
 and the time coordinate column ``time`` as ``[1, 2]`` will give::
 
-    >>> from astropy.time import Time, TimeDelta
     >>> from astropy.table import Table
-    >>> tm = Table.read('chandra_events.fits', astropy_native=True)
+    >>> from astropy.time import Time, TimeDelta
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
+    ...                                        package='astropy.io.fits.tests')
+    >>> tm = Table.read(chandra_events, astropy_native=True)
     WARNING: Time column "time" reference position will be ignored due to unspecified observatory position. [astropy.io.fits.fitstime]
     >>> tm['time']
     <Time object: scale='tt' format='mjd' value=[ 50814.00001157  50814.00002315]>
@@ -461,6 +480,8 @@ with ISO-8601 time columns.
    Reading FITS files with time coordinate columns *may* fail. Astropy supports
    a large subset of these files, but there are still some FITS files which are
    not compliant with any aspect of the standard.
+   If you have such a file, please don't hesitate to let us know, e.g., by opening
+   an issue in the issue tracker <https://github.com/astropy/astropy/issues>_.
 
    Also, reading a column having ``TTYPEn = ‘TIME’`` as `~astropy.time.Time`
    will fail if ``TUNITn`` for the column is not a FITS recognized time unit.
@@ -493,7 +514,7 @@ the ``meta`` dict is not written and will be lost.
 
 Consider the following Time column:
 
-    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
+    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')  # doctest: +SKIP
 
 The FITS standard requires an additional translation layer back into
 the desired format. The Time column ``t['a']`` will undergo the translation
@@ -510,6 +531,8 @@ portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
 ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by using a special
 ``info.serialize_method`` attribute, as in the following example::
+
+.. doctest-skip::
 
     >>> from astropy.time import Time
     >>> from astropy.table import Table
@@ -548,6 +571,8 @@ By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
 
    Hence the ``format`` attribute and a vector ``location`` attribute are not
    stored.  After reading from FITS the user must set the ``format`` as desired.
+
+.. doctest-skip-all
 
 .. _table_io_hdf5:
 

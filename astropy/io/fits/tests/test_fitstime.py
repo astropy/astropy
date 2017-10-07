@@ -214,13 +214,13 @@ class TestFitsTime(FitsTestCase):
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits(self, table_types):
         """
-        Test that FITS table with time columns (not written by astropy)
+        Test that FITS table with time columns (standard compliant)
         can be read by io.fits as a table with Time columns.
         This tests the following:
         1. The special-case where a column has the name 'TIME' and a
            time unit
         2. Time from Epoch (Reference time) is appropriately converted.
-        3. Coordinate columns (associated coordinate keywords in the header)
+        3. Coordinate columns (corresponding to coordinate keywords in the header)
            other than time, that is, spatial coordinates, are not mistaken
            to be time.
         """
@@ -236,9 +236,9 @@ class TestFitsTime(FitsTestCase):
 
         # Test case 2
         ref_time = Time(non_native.meta['MJDREF'], format='mjd',
-                      scale=non_native.meta['TIMESYS'].lower())
+                        scale=non_native.meta['TIMESYS'].lower())
         delta_time = TimeDelta(non_native['time'])
-        ref_time + delta_time == tm['time']
+        assert (ref_time + delta_time == tm['time']).all()
 
         # Test case 3
         for colname in ['chipx', 'chipy', 'detx', 'dety', 'x', 'y']:

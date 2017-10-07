@@ -353,8 +353,6 @@ def _convert_time_column(col, column_info):
         The time coordinate column to be converted to Time.
     column_info : dict
         Column-specific time reference frame override information.
-    global_info : dict
-        Global time reference frame information.
     """
 
     # The code might fail while attempting to read FITS files not written by astropy.
@@ -467,13 +465,11 @@ def fits_to_time(hdr, table):
                                                       column_info)
 
     # Check for special-cases of time coordinate columns
-    other_columns = [idx for idx in range(1, len(table.columns) + 1) if
-                     idx not in time_columns]
-    for idx in other_columns:
-        colname = table.colnames[idx - 1]
-        column_info = _get_info_if_time_column(table[colname], global_info)
-        if column_info:
-            table[colname] = _convert_time_column(table[colname], column_info)
+    for idx, colname in enumerate(table.colnames):
+        if (idx + 1) not in time_columns:
+            column_info = _get_info_if_time_column(table[colname], global_info)
+            if column_info:
+                table[colname] = _convert_time_column(table[colname], column_info)
 
     return hcopy
 
