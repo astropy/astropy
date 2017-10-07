@@ -421,14 +421,16 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
     ...                                        package='astropy.io.fits.tests')
-    >>> tm = Table.read(chandra_events, astropy_native=True)
-    >>> tm['time']
+    >>> native = Table.read(chandra_events, astropy_native=True)
+    >>> native['time']
     <Time object: scale='tt' format='mjd' value=[ 57413.76033393  57413.76033393]>
+    >>> non_native = Table.read(chandra_events)
     >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
-    >>> ref_time = Time(5.0814000000000E+04, format='mjd', scale='tt')
+    >>> ref_time = Time(non_native.meta['MJDREF'], format='mjd',
+    ...                 scale=non_native.meta['TIMESYS'].lower())
     >>> # TTYPE1  = 'time', TUNIT1 = 's'
-    >>> delta_time = TimeDelta([570219292.85144186, 570219292.85144186], format='sec')
-    >>> ref_time + delta_time == tm['time']
+    >>> delta_time = TimeDelta(non_native['time'])
+    >>> ref_time + delta_time == native['time']
     array([ True,  True], dtype=bool)
 
 By default, FITS table columns will be read as standard `~astropy.table.Column`
