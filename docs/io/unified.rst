@@ -423,11 +423,11 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     ...                                        package='astropy.io.fits.tests')
     >>> tm = Table.read(chandra_events, astropy_native=True)
     >>> tm['time']
-    <Time object: scale='tt' format='mjd' value=[ 50814.00001157  50814.00002315]>
+    <Time object: scale='tt' format='mjd' value=[ 57413.76033393  57413.76033393]>
     >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
     >>> ref_time = Time(5.0814000000000E+04, format='mjd', scale='tt')
     >>> # TTYPE1  = 'time', TUNIT1 = 's'
-    >>> delta_time = TimeDelta([1, 2], format='sec')
+    >>> delta_time = TimeDelta([570219292.85144186, 570219292.85144186], format='sec')
     >>> ref_time + delta_time == tm['time']
     array([ True,  True], dtype=bool)
 
