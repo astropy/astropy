@@ -99,7 +99,7 @@ def test_custom_model_signature():
     assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     sig = signature(model_a.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'args', 'kwargs']
+    assert list(sig.parameters.keys()) == ['self', 'args', 'meta', 'name', 'kwargs']
     sig = signature(model_a.__call__)
     assert list(sig.parameters.keys()) == ['self', 'x', 'model_set_axis',
                                            'with_bounding_box', 'fill_value',

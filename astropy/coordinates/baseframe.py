@@ -265,14 +265,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     frame_attributes = OrderedDict()
     # Default empty frame_attributes dict
 
-    def __init__(self, *args, **kwargs):
-        copy = kwargs.pop('copy', True)
+    def __init__(self, *args, copy=True, representation=None,
+                 differential_cls=None,**kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
-        # class or string.
-        representation = kwargs.pop('representation', None)
-        differential_cls = kwargs.pop('differential_cls', None)
+        # class or string for representation and differential_cls.
 
         if representation is not None or differential_cls is not None:
 

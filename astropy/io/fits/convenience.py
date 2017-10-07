@@ -115,7 +115,8 @@ def getheader(filename, *args, **kwargs):
     return header
 
 
-def getdata(filename, *args, **kwargs):
+def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
+            **kwargs):
     """
     Get the data from an extension of a FITS file (and optionally the
     header).
@@ -187,10 +188,6 @@ def getdata(filename, *args, **kwargs):
     """
 
     mode, closed = _get_file_mode(filename)
-    header = kwargs.pop('header', None)
-    lower = kwargs.pop('lower', None)
-    upper = kwargs.pop('upper', None)
-    view = kwargs.pop('view', None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
@@ -271,7 +268,8 @@ def getval(filename, keyword, *args, **kwargs):
     return hdr[keyword]
 
 
-def setval(filename, keyword, *args, **kwargs):
+def setval(filename, keyword, *args, value=None, comment=None, before=None,
+           after=None, savecomment=False, **kwargs):
     """
     Set a keyword's value from a header in a FITS file.
 
@@ -329,12 +327,6 @@ def setval(filename, keyword, *args, **kwargs):
 
     if 'do_not_scale_image_data' not in kwargs:
         kwargs['do_not_scale_image_data'] = True
-
-    value = kwargs.pop('value', None)
-    comment = kwargs.pop('comment', None)
-    before = kwargs.pop('before', None)
-    after = kwargs.pop('after', None)
-    savecomment = kwargs.pop('savecomment', False)
 
     closed = fileobj_closed(filename)
     hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
@@ -948,17 +940,14 @@ if isinstance(tableload.__doc__, str):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
-def _getext(filename, mode, *args, **kwargs):
+def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
+            **kwargs):
     """
     Open the input file, return the `HDUList` and the extension.
 
     This supports several different styles of extension selection.  See the
     :func:`getdata()` documentation for the different possibilities.
     """
-
-    ext = kwargs.pop('ext', None)
-    extname = kwargs.pop('extname', None)
-    extver = kwargs.pop('extver', None)
 
     err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
             {'args': args, 'ext': ext, 'extname': extname,
