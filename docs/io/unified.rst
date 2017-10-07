@@ -422,7 +422,6 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
     ...                                        package='astropy.io.fits.tests')
     >>> tm = Table.read(chandra_events, astropy_native=True)
-    WARNING: Time column "time" reference position will be ignored due to unspecified observatory position. [astropy.io.fits.fitstime]
     >>> tm['time']
     <Time object: scale='tt' format='mjd' value=[ 50814.00001157  50814.00002315]>
     >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
