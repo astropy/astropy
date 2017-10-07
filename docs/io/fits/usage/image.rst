@@ -55,7 +55,7 @@ Here is a summary of reading and updating image data values::
     >>> data[3] = data[2]    # copy the 3rd row to the 4th row
 
 Here are some more complicated examples by using the concept of the "mask
-array". The first example is to change all negative pixel values in data to
+array". The first example is to change all negative pixel values in ``data`` to
 zero. The second one is to take logarithm of the pixel values which are
 positive::
 
