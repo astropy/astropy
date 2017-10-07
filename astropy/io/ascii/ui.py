@@ -651,7 +651,8 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     return writer
 
 
-def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwargs):
+def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
+          overwrite=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -693,7 +694,6 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, **kwar
         Writer class (DEPRECATED).
 
     """
-    overwrite = kwargs.pop('overwrite', None)
     if isinstance(output, str):
         if os.path.lexists(output):
             if overwrite is None:

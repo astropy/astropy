@@ -471,9 +471,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
     recommended_units = {}  # subclasses can override
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
-        differentials = kwargs.pop('differentials', None)
         super().__init__(*args, **kwargs)
         self._differentials = self._validate_differentials(differentials)
 

@@ -187,14 +187,21 @@ class NoConvergence(Exception):
 
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, best_solution=None, accuracy=None, niter=None,
+                 divergent=None, slow_conv=None, **kwargs):
         super().__init__(*args)
 
-        self.best_solution = kwargs.pop('best_solution', None)
-        self.accuracy = kwargs.pop('accuracy', None)
-        self.niter = kwargs.pop('niter', None)
-        self.divergent = kwargs.pop('divergent', None)
-        self.slow_conv = kwargs.pop('slow_conv', None)
+        self.best_solution = best_solution
+        self.accuracy = accuracy
+        self.niter = niter
+        self.divergent = divergent
+        self.slow_conv = slow_conv
+
+        if kwargs:
+            warnings.warn("Function received unexpected arguments ({}) these "
+                          "are ignored but will raise an Exception in the "
+                          "future.".format(list(kwargs)),
+                          AstropyDeprecationWarning)
 
 
 class FITSFixedWarning(AstropyWarning):
@@ -1198,15 +1205,11 @@ reduce these to 2 dimensions using the naxis kwarg.
             out[:, 1] = sky[:, self.wcs.lat]
             return out
 
-    def _array_converter(self, func, sky, *args, **kwargs):
+    def _array_converter(self, func, sky, *args, ra_dec_order=False):
         """
         A helper function to support reading either a pair of arrays
         or a single Nx2 array.
         """
-        ra_dec_order = kwargs.pop('ra_dec_order', False)
-        if len(kwargs):
-            raise TypeError("Unexpected keyword argument {0!r}".format(
-                kwargs.keys()[0]))
 
         def _return_list_of_arrays(axes, origin):
             try:
@@ -1810,21 +1813,16 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         return pix
 
-    def all_world2pix(self, *args, **kwargs):
+    def all_world2pix(self, *args, tolerance=1e-4, maxiter=20, adaptive=False,
+                      detect_divergence=True, quiet=False, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-
-        tolerance = kwargs.pop('tolerance', 1e-4)
-        maxiter = kwargs.pop('maxiter', 20)
-        adaptive = kwargs.pop('adaptive', False)
-        detect_div = kwargs.pop('detect_divergence', True)
-        quiet = kwargs.pop('quiet', False)
 
         return self._array_converter(
             lambda *args, **kwargs:
             self._all_world2pix(
                 *args, tolerance=tolerance, maxiter=maxiter,
-                adaptive=adaptive, detect_divergence=detect_div,
+                adaptive=adaptive, detect_divergence=detect_divergence,
                 quiet=quiet),
             'input', *args, **kwargs
         )
