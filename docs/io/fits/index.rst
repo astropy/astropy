@@ -190,7 +190,7 @@ value associated with a header keyword, simply do (a la Python dicts)::
     >>> hdul[0].header['DATE']
     '01/04/99'
 
-to get the value of the keyword "date", which is a string '01/04/99'.
+to get the value of the keyword "DATE", which is a string '01/04/99'.
 
 Although keyword names are always in upper case inside the FITS file,
 specifying a keyword name with Astropy is case-insensitive, for the user's
@@ -310,7 +310,7 @@ on manipulating these numerical arrays::
 
     >>> data = hdul[1].data
 
-Here, data points to the data object in the second HDU (the first HDU,
+Here, ``data`` points to the data object in the second HDU (the first HDU,
 ``hdul[0]``, being the primary HDU) which corresponds to the 'SCI'
 extension. Alternatively, you can access the extension by its extension name
 (specified in the EXTNAME keyword)::
@@ -755,8 +755,15 @@ further simplify to just one call, instead of two as shown in the above
 examples::
 
     >>> from astropy.io.fits import getval
-    >>> flt = getval(fits_image_2_filename, 'filter', 0)   # get 0th extension's keyword FILTER's value
-    >>> val = getval(fits_image_2_filename, 10, 'sci', 2)  # get the 2nd sci extension's 11th keyword's value
+    >>> # get 0th extension's keyword FILTER's value
+    >>> flt = getval(fits_image_2_filename, 'filter', 0)
+    >>> flt
+    'Clear'
+
+    >>> # get the 2nd sci extension's 11th keyword's value
+    >>> val = getval(fits_image_2_filename, 10, 'sci', 2)
+    >>> val
+    False
 
 The function :func:`getdata` gets the data of an HDU. Similar to
 :func:`getheader`, it only requires the input FITS file name while the
@@ -765,8 +772,9 @@ optional argument header. If header is set to True, this function will return
 both data and header, otherwise only data is returned::
 
     >>> from astropy.io.fits import getdata
-    >>> data = getdata(fits_image_filename, 'sci', 3)  # get 3rd sci extension's data
-    >>> # get 1st extension's data AND header
+    >>> # get 3rd sci extension's data:
+    >>> data = getdata(fits_image_filename, 'sci', 3)
+    >>> # get 1st extension's data AND header:
     >>> data, hdr = getdata(fits_image_filename, 1, header=True)
 
 The functions introduced above are for reading. The next few functions
@@ -788,12 +796,12 @@ exist, it will create one.
 .. code:: python
 
     from astropy.io.fits import update
-    update(file, dat, hdr, 'sci')         # update the 'sci' extension
-    update(file, dat, 3)                  # update the 3rd extension
-    update(file, dat, hdr, 3)             # update the 3rd extension
-    update(file, dat, 'sci', 2)           # update the 2nd SCI extension
-    update(file, dat, 3, header=hdr)      # update the 3rd extension
-    update(file, dat, header=hdr, ext=5)  # update the 5th extension
+    update(filename, dat, hdr, 'sci')         # update the 'sci' extension
+    update(filename, dat, 3)                  # update the 3rd extension
+    update(filename, dat, hdr, 3)             # update the 3rd extension
+    update(filename, dat, 'sci', 2)           # update the 2nd SCI extension
+    update(filename, dat, 3, header=hdr)      # update the 3rd extension
+    update(filename, dat, header=hdr, ext=5)  # update the 5th extension
 
 The :func:`update` function will update the specified extension with the input
 data/header. The 3rd argument can be the header associated with the data. If
