@@ -93,7 +93,7 @@ unexpected behavior.
 
 For the most common cases, however, such as reading and updating FITS headers,
 images, and tables, `astropy.io.fits`. is very stable and well-tested.  Before
-every Astropy/PyFITS release it is ensured that all its tests pass on a variety
+every Astropy release it is ensured that all its tests pass on a variety
 of platforms, and those tests cover the majority of use-cases (until new corner
 cases are discovered).
 
@@ -139,14 +139,14 @@ Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
 support due to a bug.  Sometimes it's even possible for a file to work in an
-older version of Astropy or PyFITS, but not a newer version due to a regression
+older version of Astropy, but not a newer version due to a regression
 that isn't tested for yet.
 
 Another problem with the FITS format is that, as old as it is, there are many
 conventions that appear in files from certain sources that do not meet the FITS
 standard.  And yet they are so common-place that it is necessary to support
 them in any FITS readers.  CONTINUE cards are one such example.  There are
-non-standard conventions supported by Astropy/PyFITS that are not supported by
+non-standard conventions supported by Astropy that are not supported by
 CFITSIO and possibly vice-versa.  You may have hit one of those cases.
 
 If Astropy is having trouble opening a file, a good way to rule out whether not
@@ -374,7 +374,7 @@ can be stored in a 64-bit float with full precision.  So FITS also supports a
 "free" format in which the ASCII representation can be stored anywhere, using
 the full 70 bytes of the card (after the keyword).
 
-Currently Astropy/PyFITS only supports writing fixed format (it can read both
+Currently Astropy only supports writing fixed format (it can read both
 formats), so all floating point values assigned to a header are stored in the
 fixed format.  There are plans to add support for more flexible formatting.
 
@@ -493,7 +493,7 @@ Comparison with Other FITS Readers
 What is the difference between astropy.io.fits and fitsio?
 ----------------------------------------------------------
 
-The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
+The `astropy.io.fits` module is a "pure Python" FITS
 reader in that all the code for parsing the FITS file format is in Python,
 though Numpy is used to provide access to the FITS data via the
 `~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
@@ -573,11 +573,11 @@ of thousands of FITS files in succession (in either case the difference is
 not even an order of magnitude).
 
 Where data is concerned the situation is a little more complicated, and
-requires some understanding of how PyFITS is implemented versus CFITSIO and
+requires some understanding of how Astropy is implemented versus CFITSIO and
 ``fitsio``.  First it's important to understand how they differ in terms of
 memory management.
 
-`astropy.io.fits`/PyFITS uses mmap, by default, to provide access to the raw
+`astropy.io.fits` uses mmap, by default, to provide access to the raw
 binary data in FITS files.  Mmap is a system call (or in most cases these days
 a wrapper in your libc for a lower-level system call) which allows user-space
 applications to essentially do the same thing your OS is doing when it uses a
@@ -654,7 +654,7 @@ Astropy the test is written:
 
 .. code:: python
 
-    def read_test_pyfits(filename):
+    def read_test_astropy(filename):
         with fits.open(filename, memmap=True) as hdul:
             data = hdul[0].data
             c = data.copy()
@@ -667,7 +667,7 @@ using:
 
     for filename in filenames:
         print(filename)
-        %timeit read_test_pyfits(filename)
+        %timeit read_test_astropy(filename)
 
 where ``filenames`` is just a list of the aforementioned generated sample
 files.  The results were::
@@ -742,7 +742,7 @@ common example is how FITS represents boolean values in binary tables.
 Another, significantly more complicated example, is variable length arrays.
 
 As explained in "`Why is reading rows out of a FITS table so slow?`_",
-`astropy.io.fits`/PyFITS does not currently handle some of these cases as
+`astropy.io.fits` does not currently handle some of these cases as
 efficiently as it could, in particular in cases where a user only wishes to
 read a few rows out of a table.  Fitsio, on the other hand, has a better
 interface for copying one row at a time out of a table and performing the
