@@ -104,11 +104,11 @@ ASCII tables it is not technically a valid format.  ASCII table format codes
 technically require a character width for each column, such as ``'I10'`` to
 create a column that can hold integers up to 10 characters wide.
 
-However, PyFITS allows the width specification to be omitted in some cases.
+However, Astropy allows the width specification to be omitted in some cases.
 When it is omitted from ``'I'`` format columns the minimum width needed to
 accurately represent all integers in the column is used.  The only problem with
 using this shortcut is its ambiguity with the binary table ``'I'`` format, so
-specifying ``ascii=True`` is a good practice (though PyFITS will still figure
+specifying ``ascii=True`` is a good practice (though Astropy will still figure
 out what you meant in most cases).
 
 
