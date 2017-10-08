@@ -15,6 +15,8 @@ def GE1P10(module=np):
     return hasattr(module, 'matmul')
 
 def matmul(*args, **kwargs):
-    warnings.warn('This function is deprecated, you should use numpy.matmul '
-                  'directly.', AstropyDeprecationWarning)
+    warnings.warn(
+        'This function is deprecated, as it is available in all NumPy versions '
+        'that this version of Astropy supports. You should use '
+        'numpy.matmul directly.', AstropyDeprecationWarning)
     return np_matmul(*args, **kwargs)
