@@ -238,8 +238,8 @@ The content of the HDU can similarly be summarized by using the
     3
     >>> hdul.info()
     Filename: ...group.fits
-    No.    Name      Ver    Type      Cards   Dimensions   Format
-      0  PRIMARY       1 GroupsHDU       15   (5, 3, 1, 1)   float32   10 Groups  3 Parameters
+    No.   Name  Ver    Type   Cards  Dimensions   Format
+      0 PRIMARY   1 GroupsHDU    15 (5, 3, 1, 1) float32 10 Groups  3 Parameters
 
 
 Data: Group Parameters

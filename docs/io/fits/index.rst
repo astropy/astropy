@@ -65,12 +65,12 @@ summarizes the content of the opened FITS file:
 
     >>> hdul.info()
     Filename: ...test0.fits
-    No.    Name      Ver    Type      Cards   Dimensions   Format
-      0  PRIMARY       1 PrimaryHDU     138   ()
-      1  SCI           1 ImageHDU        61   (40, 40)   int16
-      2  SCI           2 ImageHDU        61   (40, 40)   int16
-      3  SCI           3 ImageHDU        61   (40, 40)   int16
-      4  SCI           4 ImageHDU        61   (40, 40)   int16
+    No.   Name  Ver    Type    Cards Dimensions Format
+      0 PRIMARY   1 PrimaryHDU   138 ()
+      1 SCI       1 ImageHDU      61 (40, 40)   int16
+      2 SCI       2 ImageHDU      61 (40, 40)   int16
+      3 SCI       3 ImageHDU      61 (40, 40)   int16
+      4 SCI       4 ImageHDU      61 (40, 40)   int16
 
 After you are done with the opened file, close it with the
 :meth:`HDUList.close` method:
@@ -83,12 +83,12 @@ manager::
     >>> with fits.open(fits_image_filename) as hdul:
     ...     hdul.info()
     Filename: ...test0.fits
-    No.    Name      Ver    Type      Cards   Dimensions   Format
-      0  PRIMARY       1 PrimaryHDU     138   ()
-      1  SCI           1 ImageHDU        61   (40, 40)   int16
-      2  SCI           2 ImageHDU        61   (40, 40)   int16
-      3  SCI           3 ImageHDU        61   (40, 40)   int16
-      4  SCI           4 ImageHDU        61   (40, 40)   int16
+    No.   Name  Ver    Type    Cards Dimensions Format
+      0 PRIMARY   1 PrimaryHDU   138 ()
+      1 SCI       1 ImageHDU      61 (40, 40)   int16
+      2 SCI       2 ImageHDU      61 (40, 40)   int16
+      3 SCI       3 ImageHDU      61 (40, 40)   int16
+      4 SCI       4 ImageHDU      61 (40, 40)   int16
 
 After exiting the ``with`` scope the file will be closed automatically. That's
 (generally) the preferred way to open a file in Python, because it will close
@@ -267,12 +267,12 @@ To see the entire header as it appears in the FITS file (with the END card and
 padding stripped), simply enter the header object by itself, or
 ``print(repr(hdr))``::
 
-    >>> hdr  # doctest: +ELLIPSIS
+    >>> hdr
     SIMPLE  =                    T / file does conform to FITS standard
     BITPIX  =                   16 / number of bits per data pixel
     NAXIS   =                    0 / number of data axes
     ...
-    >>> print(repr(hdr))  # doctest: +ELLIPSIS
+    >>> print(repr(hdr))
     SIMPLE  =                    T / file does conform to FITS standard
     BITPIX  =                   16 / number of bits per data pixel
     NAXIS   =                    0 / number of data axes
@@ -830,12 +830,12 @@ FITS file::
 
     >>> fits.info(fits_image_filename)
     Filename: ...test0.fits
-    No.    Name      Ver    Type      Cards   Dimensions   Format
-      0  PRIMARY       1 PrimaryHDU     138   ()
-      1  SCI           1 ImageHDU        61   (40, 40)   int16
-      2  SCI           2 ImageHDU        61   (40, 40)   int16
-      3  SCI           3 ImageHDU        61   (40, 40)   int16
-      4  SCI           4 ImageHDU        61   (40, 40)   int16
+    No.   Name  Ver    Type    Cards Dimensions Format
+      0 PRIMARY   1 PrimaryHDU   138 ()
+      1 SCI       1 ImageHDU      61 (40, 40)   int16
+      2 SCI       2 ImageHDU      61 (40, 40)   int16
+      3 SCI       3 ImageHDU      61 (40, 40)   int16
+      4 SCI       4 ImageHDU      61 (40, 40)   int16
 
 This is one of the most useful convenience functions for getting an overview of
 what a given file contains without looking at any of the details.

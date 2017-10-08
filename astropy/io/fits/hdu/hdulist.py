@@ -20,8 +20,8 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
+from ....utils.exceptions import AstropyUserWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -921,6 +921,12 @@ class HDUList(list, _Verify):
             output to a file and instead returns a list of tuples representing
             the HDU info.  Writes to ``sys.stdout`` by default.
         """
+        # Avoid circular importing
+        from astropy.table import Table
+
+        COLUMN_NAMES = ('No.', 'Name', 'Ver', 'Type', 'Cards', 'Dimensions',
+                        'Format', ' ')
+        COLUMN_ALIGN = ('>', '<', '>', '<', '>', '<', '<', '<')
 
         if output is None:
             output = sys.stdout
@@ -930,27 +936,30 @@ class HDUList(list, _Verify):
         else:
             name = self._file.name
 
-        results = ['Filename: {}'.format(name),
-                   'No.    Name      Ver    Type      Cards   Dimensions   Format']
-
-        format = '{:3d}  {:10}  {:3} {:11}  {:5d}   {}   {}   {}'
+        file_line = 'Filename: {}\n'.format(name)
+        results = []
         default = ('', '', '', 0, (), '', '')
         for idx, hdu in enumerate(self):
-            summary = hdu._summary()
-            if len(summary) < len(default):
-                summary += default[len(summary):]
-            summary = (idx,) + summary
+            hdu_summary = hdu._summary()
+            summary = [idx, *hdu_summary, *default[len(hdu_summary):]]
             if output:
-                results.append(format.format(*summary))
+                results.append(tuple(map(str, summary)))
             else:
-                results.append(summary)
+                results.append(tuple(summary))
 
         if output:
-            output.write('\n'.join(results))
+            t = Table(rows=results, names=COLUMN_NAMES)
+            t_strings = t.pformat(max_lines=-1, max_width=-1, show_dtype=False,
+                                  align=COLUMN_ALIGN)
+            output.write(file_line)
+            # Avoid seperator line between names and content of the columns
+            output.write(t_strings[0])
+            output.write('\n')
+            output.write('\n'.join(t_strings[2:]))
             output.write('\n')
             output.flush()
         else:
-            return results[2:]
+            return results
 
     def filename(self):
         """
