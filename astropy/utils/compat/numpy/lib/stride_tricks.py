@@ -25,12 +25,16 @@ def GE1P10(module=np):
 
 
 def broadcast_arrays(*args, **kwargs):
-    warnings.warn('This function is deprecated, you should use '
-                  'numpy.broadcast_arrays directly.', AstropyDeprecationWarning)
+    warnings.warn(
+        'This function is deprecated, as it is available in all NumPy versions '
+        'that this version of Astropy supports. You should use '
+        'numpy.broadcast_arrays directly.', AstropyDeprecationWarning)
     return np_broadcast_arrays(*args, **kwargs)
 
 
 def broadcast_to(*args, **kwargs):
-    warnings.warn('This function is deprecated, you should use '
-                  'numpy.broadcast_to directly.', AstropyDeprecationWarning)
+    warnings.warn(
+        'This function is deprecated, as it is available in all NumPy versions '
+        'that this version of Astropy supports. You should use '
+        'numpy.broadcast_to directly.', AstropyDeprecationWarning)
     return np_broadcast_to(*args, **kwargs)
