@@ -470,18 +470,6 @@ This attribute is a :class:`ColDefs` (column definitions) object. If we use the
         ['', '', '', '']
     dim:
         ['', '', '', '']
-    coord_type:
-        ['', '', '', '']
-    coord_unit:
-        ['', '', '', '']
-    coord_ref_point:
-        ['', '', '', '']
-    coord_ref_value:
-        ['', '', '', '']
-    coord_inc:
-        ['', '', '', '']
-    time_ref_pos:
-        ['', '', '', '']
 
 it will show the attributes of all columns in the table, such as their names,
 formats, bscales, bzeros, etc. A similar output that will display the column
