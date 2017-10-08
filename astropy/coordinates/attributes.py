@@ -8,7 +8,6 @@ import warnings
 
 # Project
 from .. import units as u
-from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils import OrderedDescriptor, ShapedLikeNDArray
 
@@ -111,10 +110,10 @@ class Attribute(OrderedDescriptor):
                 # If the shapes do not match, try broadcasting.
                 try:
                     if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np_broadcast_to, shape=instance_shape,
+                        out = out._apply(np.broadcast_to, shape=instance_shape,
                                          subok=True)
                     else:
-                        out = np_broadcast_to(out, instance_shape, subok=True)
+                        out = np.broadcast_to(out, instance_shape, subok=True)
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(

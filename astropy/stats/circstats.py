@@ -12,7 +12,6 @@ are based on reference [1]_, which is also the basis for the R package
 
 import numpy as np
 from astropy.units import Quantity
-from astropy.utils.compat.numpy import broadcast_to
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
@@ -25,7 +24,7 @@ def _components(data, p=1, phi=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
@@ -384,7 +383,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
