@@ -20,10 +20,6 @@ import shutil
 import socket
 import sys
 import time
-import urllib
-import urllib.error
-import urllib.parse
-import urllib.request
 
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
