@@ -1,10 +1,9 @@
-*********************************************
- Emacs setup for following coding guidelines
-*********************************************
+*******************************************
+Emacs setup for following coding guidelines
+*******************************************
 
-.. _flymake: http://www.emacswiki.org/emacs/FlyMake
-.. _pyflakes: http://pypi.python.org/pypi/pyflakes
-.. _pycodestyle: http://pypi.python.org/pypi/pycodestyle
+.. _flycheck: http://www.flycheck.org/
+.. _flake8: http://flake8.pycqa.org/
 .. include:: workflow/known_projects.inc
 
 The Astropy coding guidelines are listed in :doc:`codeguide`. This
@@ -14,11 +13,11 @@ be configured in several different ways. So instead of providing a drop
 in configuration file, only the individual configurations are presented
 below.
 
-For this setup we will need flymake_, pyflakes_ and the pycodestyle_ Python
-script, in addition to ``python-mode``.
-
-Flymake comes with Emacs 23. The rest can be obtained from their websites,
-or can be installed using `pip`_.
+For this setup, in addition to the standard ``python-mode``, we will
+need flycheck_ and the flake8_ python style checker.  For installation
+instructions, see their respective web sites (or just install via your
+distribution; e.g., in Debian/Ubuntu, the packages are called
+``elpa-flycheck`` and ``flake8``).
 
 Global settings
 ***************
@@ -110,61 +109,21 @@ Emacs configuration directory.
             (lambda () (interactive)
               (column-marker-1 fill-column)))
 
-Flymake
-=======
+Flycheck
+========
 
-Flymake will mark lines that do not satisfy syntax requirements in
-red. When cursor is on such a line a message is displayed in the
+One can make lines that do not satisfy syntax requirements using
+flycheck_. When cursor is on such a line a message is displayed in the
 mini-buffer. When mouse pointer is on such a line a "tool tip" message
-is also shown.
-
-For flymake to work with `pycodestyle`_ and `pyflakes`_, create an
-executable file named `pychecker`_ with the following contents. This
-file must be in the system path.
-
-.. code-block:: sh
-
-  #!/bin/bash
-
-  pyflakes "$1"
-  pycodestyle --ignore=E221,E701,E202 --repeat "$1"
-  true
-
-Also download `flymake-cursor.el
-<http://www.emacswiki.org/emacs/flymake-cursor.el>`_ and place it in the
-Emacs configuration directory.  Then add the following code to the Emacs
-configuration:
+is also shown. By default, flycheck_ will check if flake8_ is
+installed and, if so, use that for its syntax checking. To ensure
+flycheck_ starts upon opening python files, add:
 
 .. code-block:: scheme
+  (add-hook 'python-mode-hook 'flycheck-mode)
 
-  ;; Setup for Flymake code checking.
-  (require 'flymake)
-  (load-library "flymake-cursor")
-
-  ;; Script that flymake uses to check code. This script must be
-  ;; present in the system path.
-  (setq pycodechecker "pychecker")
-
-  (when (load "flymake" t)
-    (defun flymake-pycodecheck-init ()
-      (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                         'flymake-create-temp-inplace))
-             (local-file (file-relative-name
-                          temp-file
-                          (file-name-directory buffer-file-name))))
-        (list pycodechecker (list local-file))))
-    (add-to-list 'flymake-allowed-file-name-masks
-                 '("\\.py\\'" flymake-pycodecheck-init)))
-
-  (add-hook 'python-mode-hook 'flymake-mode)
-
-.. note::
-
-    Flymake will save files with suffix *_flymake* in the current
-    directory. If it crashes for some reason, then these files will not
-    get deleted.
-
-    Sometimes there is a delay in refreshing the results.
+Alternatively, you can just use ``(global-flycheck-mode)`` to run flycheck
+for all languages it supports.
 
 Delete trailing white spaces and blank lines
 ============================================
