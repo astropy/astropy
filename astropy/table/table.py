@@ -14,7 +14,6 @@ from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
-from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
@@ -1279,10 +1278,10 @@ class Table:
                                        len(value) == 1)):
                     new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
                     if isinstance(value, np.ndarray):
-                        value = np_broadcast_to(value, shape=new_shape,
+                        value = np.broadcast_to(value, shape=new_shape,
                                                 subok=True)
                     elif isinstance(value, ShapedLikeNDArray):
-                        value = value._apply(np_broadcast_to, shape=new_shape,
+                        value = value._apply(np.broadcast_to, shape=new_shape,
                                              subok=True)
 
                 new_column = col_copy(value)

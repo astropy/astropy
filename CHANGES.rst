@@ -110,6 +110,10 @@ astropy.utils
 - ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
   [#5471]
 
+- The functions ``matmul``, ``broadcast_arrays``, ``broadcast_to`` of the
+  ``astropy.utils.compat.numpy`` module have been deprecated. Use the
+  NumPy functions directly. [#6691]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

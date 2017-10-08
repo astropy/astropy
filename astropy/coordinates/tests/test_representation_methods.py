@@ -7,7 +7,6 @@ import numpy as np
 from ... import units as u
 from .. import (SphericalRepresentation, Longitude, Latitude,
                 SphericalDifferential)
-from ...utils.compat.numpy import broadcast_to as np_broadcast_to
 
 
 class TestManipulation():
@@ -235,7 +234,7 @@ class TestManipulation():
         assert np.all(s0_diff.d_lon == self.diff.d_lon.take((5, 2)))
 
     def test_broadcast_to(self):
-        s0_broadcast = self.s0._apply(np_broadcast_to, (3, 6, 7), subok=True)
+        s0_broadcast = self.s0._apply(np.broadcast_to, (3, 6, 7), subok=True)
         s0_diff = s0_broadcast.differentials['s']
         assert type(s0_broadcast) is type(self.s0)
         assert s0_broadcast.shape == (3, 6, 7)
@@ -247,7 +246,7 @@ class TestManipulation():
         assert np.may_share_memory(s0_broadcast.lat, self.s0.lat)
         assert np.may_share_memory(s0_broadcast.distance, self.s0.distance)
 
-        s1_broadcast = self.s1._apply(np_broadcast_to, shape=(3, 6, 7),
+        s1_broadcast = self.s1._apply(np.broadcast_to, shape=(3, 6, 7),
                                       subok=True)
         s1_diff = s1_broadcast.differentials['s']
         assert s1_broadcast.shape == (3, 6, 7)
@@ -265,7 +264,7 @@ class TestManipulation():
         sc = self.s0.copy()
         assert not np.may_share_memory(sc.lon, self.s0.lon)
         assert not np.may_share_memory(sc.lat, self.s0.lat)
-        sc_broadcast = sc._apply(np_broadcast_to, (3, 6, 7), subok=True)
+        sc_broadcast = sc._apply(np.broadcast_to, (3, 6, 7), subok=True)
         assert np.may_share_memory(sc_broadcast.lon, sc.lon)
         # Can only write to copy, not to broadcast version.
         sc.lon[0, 0] = 22. * u.hourangle
