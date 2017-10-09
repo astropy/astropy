@@ -157,16 +157,16 @@ Numpy in order to build Astropy.
 
 You will also need `Cython <http://cython.org/>`_ (v0.21 or later) and
 `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
-to build from source, unless you are installing a stable release. (The
-released packages have the necessary C files packaged with them, and hence do
-not require Cython.)
+to build from source, unless you are installing a release. (The released
+packages have the necessary C files packaged with them, and hence do not require
+Cython.)
 
 Prerequisites for Linux
 -----------------------
 
 On Linux, using the package manager for your distribution will usually be the
 easiest route. In order to build from source, you'll need the python development
-package for your distribution.
+package for your Linux distribution.
 
 For Debian/Ubuntu::
 
