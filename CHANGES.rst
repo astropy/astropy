@@ -378,6 +378,8 @@ astropy.coordinates
   yield the correct type of frame, and works at all for non-equatorial frames.
   [#6612]
 
+- Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6697]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -506,8 +508,6 @@ astropy.coordinates
 
 - Fixed a bug that was preventing ``SkyCoord`` objects made from lists of other
   coordinate objects from being written out to ECSV files. [#6448]
-
-- Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6697]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
