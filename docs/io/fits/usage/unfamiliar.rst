@@ -28,7 +28,7 @@ table, Astropy will automatically detect what kind of table it is.
     >>> hdul = fits.open(filename)
     >>> hdul[1].data[:1]
     FITS_rec([(10.122999999999999, 37)],
-             dtype=(numpy.record, {'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}))
+             dtype=...{'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}...)
     >>> hdul[1].data['a']
     array([  10.123,    5.2  ,   15.61 ,    0.   ,  345.   ])
     >>> hdul[1].data.formats
@@ -94,7 +94,7 @@ The other difference is the need to specify the table type when using the
     >>> hdu = fits.TableHDU.from_columns([col1, col2, col3])
     >>> hdu.data
     FITS_rec([('abc', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
-             dtype=(numpy.record, [('abc', 'S3'), ('def', 'S15'), ('t1', 'S10')]))
+             dtype=...[('abc', 'S3'), ('def', 'S15'), ('t1', 'S10')]...)
 
 It should be noted that when the formats of the columns are unambiguously
 specific to ASCII tables it is not necessary to specify ``ascii=True`` in
@@ -174,7 +174,7 @@ is regular and the other variable length array::
     >>> data = hdu.data
     >>> data  # doctest: +SKIP
     FITS_rec([([45, 56], [11,  3]), ([11, 12, 13], [12,  4])],
-             dtype=(numpy.record, [('var', '<i4', (2,)), ('xyz', '<i2', (2,))]))
+             dtype=...[('var', '<i4', (2,)), ('xyz', '<i2', (2,))]...)
     >>> hdu.writeto('variable_length_table.fits')
     >>> with fits.open('variable_length_table.fits') as hdul:
     ...     print(repr(hdul[1].header))
