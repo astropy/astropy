@@ -1804,7 +1804,7 @@ class TestTableFunctions(FitsTestCase):
             raw_bytes = f.read()
 
         # Artificially truncate TDIM in the header; this seems to be the
-        # easiest way to do this while getting around Astropys insistence on the
+        # easiest way to do this while getting around Astropy's insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them
         with open(self.temp('test.fits'), 'wb') as f:

@@ -656,7 +656,7 @@ class TestHDUListFunctions(FitsTestCase):
         entire multi-extension FITS file at once.
         """
 
-        # Tests HDUList.fromstring for all of Astropy built in test files
+        # Tests HDUList.fromstring for all of Astropy's built in test files
         def test_fromstring(filename):
             with fits.open(filename) as hdul:
                 orig_info = hdul.info(output=False)
