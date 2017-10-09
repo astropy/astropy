@@ -14,6 +14,7 @@ from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from .angles import Longitude, Latitude
+from .matrix_utilities import matrix_transpose, matmul
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
 from ..utils import data, deprecated
@@ -620,16 +621,22 @@ class EarthLocation(u.Quantity):
             The GCRS velocity of the object
         """
         # do this here to prevent a series of complicated circular imports
-        from .builtin_frames import GCRS
+        from .builtin_frames import CIRS, GCRS
+        from .builtin_frames.intermediate_rotation_transforms import gcrs_to_cirs_mat
 
         itrs = self.get_itrs(obstime)
+        cirs_frame = CIRS(obstime=obstime)
         geocentric_frame = GCRS(obstime=obstime)
+
         # GCRS position
         obsgeoloc = itrs.transform_to(geocentric_frame).cartesian
-        vel_x = -OMEGA_EARTH * obsgeoloc.y
-        vel_y = OMEGA_EARTH * obsgeoloc.x
-        vel_z = 0. * vel_x.unit
-        obsgeovel = CartesianRepresentation(vel_x, vel_y, vel_z)
+
+        # CIRS velocity
+        rotation_vector = CartesianRepresentation(0/u.s, 0/u.s, OMEGA_EARTH)
+        cirs_cart = itrs.transform_to(cirs_frame).cartesian
+        cirs_vel = rotation_vector.cross(cirs_cart)
+        # Transform to GCRS (rotation)
+        obsgeovel = cirs_vel.transform(matrix_transpose(gcrs_to_cirs_mat(obstime)))
         return obsgeoloc, obsgeovel
 
     @property
