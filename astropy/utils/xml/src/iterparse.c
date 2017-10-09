@@ -363,19 +363,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
             }
             do {
                 if (*(*(att_ptr + 1)) != 0) {
-                    /* Python < 2.6.5 can't handle unicode keyword
-                       arguments.  Since those were coming from here
-                       (the dictionary of attributes), we use byte
-                       strings for the keys instead.  Should be fine
-                       for VOTable, since it has ascii attribute
-                       names, but that's not true of XML in
-                       general. */
-                    #if PY_VERSION_HEX < 0x02060500
-                    /* Due to Python issue #4978 */
-                    key = PyBytes_FromString(*att_ptr);
-                    #else
                     key = PyUnicode_FromString(*att_ptr);
-                    #endif
                     if (key == NULL) {
                         goto fail;
                     }
