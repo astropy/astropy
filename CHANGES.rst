@@ -160,6 +160,9 @@ astropy.io.fits
 
 - Remove the ``nonstandard`` checksum option. [#6571]
 
+- The output of ``HDUList.info()`` changed in minor ways (more compact and
+  better alignment) [#6690]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

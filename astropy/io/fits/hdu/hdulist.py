@@ -936,7 +936,7 @@ class HDUList(list, _Verify):
         else:
             name = self._file.name
 
-        file_line = 'Filename: {}\n'.format(name)
+        file_line = 'Filename: {}'.format(name)
         results = []
         default = ('', '', '', 0, (), '', '')
         for idx, hdu in enumerate(self):
@@ -951,11 +951,10 @@ class HDUList(list, _Verify):
             t = Table(rows=results, names=COLUMN_NAMES)
             t_strings = t.pformat(max_lines=-1, max_width=-1, show_dtype=False,
                                   align=COLUMN_ALIGN)
-            output.write(file_line)
-            # Avoid seperator line between names and content of the columns
-            output.write(t_strings[0])
-            output.write('\n')
-            output.write('\n'.join(t_strings[2:]))
+            # Remove the seperator line between column names and content and
+            # prepend the "file_line".
+            t_strings[0], t_strings[1] = file_line, t_strings[0]
+            output.write('\n'.join(t_strings))
             output.write('\n')
             output.flush()
         else:
