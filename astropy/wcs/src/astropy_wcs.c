@@ -755,12 +755,7 @@ static PyMethodDef module_methods[] = {
 };
 
 static PyTypeObject WcsType = {
-  #if PY3K
   PyVarObject_HEAD_INIT(NULL, 0)
-  #else
-  PyObject_HEAD_INIT(NULL)
-  0,                            /*ob_size*/
-  #endif
   "astropy.wcs.WCSBase",                 /*tp_name*/
   sizeof(Wcs),                /*tp_basicsize*/
   0,                            /*tp_itemsize*/
@@ -822,30 +817,22 @@ struct module_state {
 #endif
 };
 
-#if PY3K
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "_wcs",
-        NULL,
-        sizeof(struct module_state),
-        module_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    };
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_wcs",
+    NULL,
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-    #define INITERROR return NULL
+#define INITERROR return NULL
 
-    PyMODINIT_FUNC
-    PyInit__wcs(void)
-
-#else
-    #define INITERROR return
-
-    PyMODINIT_FUNC
-    init_wcs(void)
-#endif
+PyMODINIT_FUNC
+PyInit__wcs(void)
 
 {
   PyObject* m;
@@ -867,11 +854,7 @@ struct module_state {
   wcs_errexc[12] = &WcsExc_InvalidSubimageSpecification; /* Invalid subimage specification (no spectral axis) */
   wcs_errexc[13] = &WcsExc_NonseparableSubimageCoordinateSystem; /* Non-separable subimage coordinate system */
 
-#if PY3K
   m = PyModule_Create(&moduledef);
-#else
-  m = Py_InitModule3("_wcs", module_methods, NULL);
-#endif
 
   if (m == NULL)
     INITERROR;
@@ -902,7 +885,5 @@ struct module_state {
   }
 #endif
 
-#if PY3K
   return m;
-#endif
 }
