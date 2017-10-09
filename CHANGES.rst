@@ -203,6 +203,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``download_files_in_parallel`` now always uses ``cache=True`` to make the
+  function work on Windows. [#6671]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

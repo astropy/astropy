@@ -1118,7 +1118,7 @@ def _do_download_files_in_parallel(args):
     return download_file(*args)
 
 
-def download_files_in_parallel(urls, cache=False, show_progress=True,
+def download_files_in_parallel(urls, cache=True, show_progress=True,
                                timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
@@ -1131,7 +1131,12 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         The URLs to retrieve.
 
     cache : bool, optional
-        Whether to use the cache
+        Whether to use the cache (default is `True`).
+
+        .. versionchanged:: 3.0
+            The default was changed to ``True`` and setting it to ``False`` will
+            print a Warning and set it to ``True`` again, because the function
+            will not work properly without cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
@@ -1150,6 +1155,16 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
 
     if timeout is None:
         timeout = conf.remote_timeout
+
+    if not cache:
+        # See issue #6662, on windows won't work because the files are removed
+        # again before they can be used. On *NIX systems it will behave as if
+        # cache was set to True because multiprocessing cannot insert the items
+        # in the list of to-be-removed files.
+        warn("Disabling the cache does not work because of multiprocessing, it "
+             "will be set to ``True``. You may need to manually remove the "
+             "cached files afterwards.", AstropyWarning)
+        cache = True
 
     if show_progress:
         progress = sys.stdout
