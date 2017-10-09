@@ -197,7 +197,7 @@ If a user does not need the entire image(s) at the same time, e.g. processing
 images(s) ten rows at a time, the :attr:`~ImageHDU.section` attribute of an
 HDU can be used to alleviate such memory problems.
 
-With Astropys improved support for memory-mapping, the sections feature is not
+With Astropy's improved support for memory-mapping, the sections feature is not
 as necessary as it used to be for handling very large images.  However, if the
 image's data is scaled with non-trivial BSCALE/BZERO values, accessing the data
 in sections may still be necessary under the current implementation.  Memmap is

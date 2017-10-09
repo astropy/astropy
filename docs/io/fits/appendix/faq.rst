@@ -52,20 +52,18 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-PyFITS' past primary developer and active maintainer was `Erik Bray`_.  There
-is a `GitHub project`_ for PyFITS but PyFITS is not actively developed anymore
+PyFITS' past primary developer and active maintainer was Erik Bray.  There
+is a `GitHub project`_ for PyFITS, but PyFITS is not actively developed anymore
 so patches and issue reports should be posted on the Astropy issue tracker.
 There is also a legacy `Trac site`_ with some older issue reports still open,
-but new issues should be submitted via GitHub if possible.  An `SVN mirror`_ of
-the repository is still maintained as well.
+but new issues should be submitted via GitHub if possible.
 
-The current (and probably last) stable release is 3.4.0.
+The current (and last) stable release is 3.4.0.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
 .. _3-clause BSD license: http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
-.. _Erik Bray: mailto:embray@stsci.edu
 .. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
 .. _SVN mirror: https://aeon.stsci.edu/ssb/svn/pyfits/
 .. _GitHub project: https://github.com/spacetelescope/PyFITS
@@ -488,7 +486,7 @@ Comparison with Other FITS Readers
 What is the difference between astropy.io.fits and fitsio?
 ----------------------------------------------------------
 
-The `astropy.io.fits` module is a "pure Python" FITS
+The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
 reader in that all the code for parsing the FITS file format is in Python,
 though Numpy is used to provide access to the FITS data via the
 `~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
@@ -568,7 +566,7 @@ of thousands of FITS files in succession (in either case the difference is
 not even an order of magnitude).
 
 Where data is concerned the situation is a little more complicated, and
-requires some understanding of how Astropy is implemented versus CFITSIO and
+requires some understanding of how ``astropy.io.fits`` is implemented versus CFITSIO and
 ``fitsio``.  First it's important to understand how they differ in terms of
 memory management.
 
