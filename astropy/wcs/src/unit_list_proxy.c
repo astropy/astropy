@@ -251,12 +251,7 @@ static PySequenceMethods PyUnitListProxy_sequence_methods = {
 };
 
 static PyTypeObject PyUnitListProxyType = {
-  #if PY3K
   PyVarObject_HEAD_INIT(NULL, 0)
-  #else
-  PyObject_HEAD_INIT(NULL)
-  0,                          /*ob_size*/
-  #endif
   "astropy.wcs.UnitListProxy", /*tp_name*/
   sizeof(PyUnitListProxy),  /*tp_basicsize*/
   0,                          /*tp_itemsize*/
