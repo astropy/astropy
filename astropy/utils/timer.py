@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """General purpose timer related functions."""
 
-
-
 # STDLIB
 import time
 import warnings
@@ -17,7 +15,6 @@ from .. import units as u
 from .. import log
 from .. import modeling
 from .exceptions import AstropyUserWarning
-
 
 __all__ = ['timefunc', 'RunTimePredictor']
 __doctest_skip__ = ['timefunc']
