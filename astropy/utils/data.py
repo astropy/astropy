@@ -17,10 +17,9 @@ import shutil
 import socket
 import sys
 import time
-import urllib
+import urllib.request
 import urllib.error
 import urllib.parse
-import urllib.request
 import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir

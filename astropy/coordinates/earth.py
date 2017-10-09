@@ -4,7 +4,9 @@ from warnings import warn
 import collections
 import socket
 import json
-import urllib
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import numpy as np
 from .. import units as u

@@ -6,7 +6,7 @@ This module contains tests for the name resolve convenience module.
 """
 
 import time
-import urllib
+import urllib.request
 
 import numpy as np
 
