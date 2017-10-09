@@ -14,7 +14,8 @@ import socket
 import subprocess
 import warnings
 import pickle
-import urllib
+import urllib.request
+import urllib.error
 import http.client
 
 # VO
