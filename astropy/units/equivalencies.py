@@ -12,7 +12,7 @@ from . import cgs
 from . import astrophys
 from .function import units as function_units
 from . import dimensionless_unscaled
-from .core import UnitsError
+from .core import UnitsError, Unit
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
@@ -523,7 +523,7 @@ def brightness_temperature(disp, beam_area=None):
             return (x_K * beam / factor)
 
         return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
-                (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy),
+                (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy)
                ]
     else:
         def convert_JySr_to_K(x_jysr):
@@ -534,22 +534,14 @@ def brightness_temperature(disp, beam_area=None):
             factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
             return (x_K / factor) # multiplied by 1x for 1 steradian
 
-        return [(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr), ]
+        return [(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)]
 
 def beam_angular_area(beam_area):
     """
     Convert between the `beam` unit, which is commonly used to express the area
     of a radio telescope resolution element, and an area on the sky.
     """
-    beam = beam_area.to(si.sr).value
-
-    def convert_beam_to_sr(x_beam):
-        return x_beam * beam
-
-    def convert_sr_to_beam(x_sr):
-        return x_sr / beam
-
-    return [(astrophys.beam, si.sr, convert_beam_to_sr, convert_sr_to_beam)]
+    return [(astrophys.beam, Unit(beam_area))]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because

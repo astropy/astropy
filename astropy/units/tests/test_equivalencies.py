@@ -526,12 +526,6 @@ def test_brightness_temperature():
         1.0, tb.to_value(
             u.Jy, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
 
-def test_beam():
-    omega_B = np.pi * (50 * u.arcsec) ** 2
-    new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
-    np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
-    assert new_beam.unit.is_equivalent(u.sr)
-
 def test_swapped_args_brightness_temperature():
     """
     #5173 changes the order of arguments but accepts the old (deprecated) args
@@ -554,6 +548,12 @@ def test_surfacebrightness():
     k = sb.to(u.K, u.brightness_temperature(50*u.GHz))
     np.testing.assert_almost_equal(k.value, 0.650965, 5)
     assert k.unit.is_equivalent(u.K)
+
+def test_beam():
+    omega_B = np.pi * (50 * u.arcsec) ** 2
+    new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
+    assert new_beam.unit.is_equivalent(u.sr)
 
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
