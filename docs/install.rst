@@ -438,22 +438,6 @@ packages:
 
 .. note::
 
-    Sphinx also requires a reasonably modern LaTeX installation to render
-    equations.  Per the `Sphinx documentation
-    <http://sphinx-doc.org/builders.html?highlight=latex#sphinx.builders.latex.LaTeXBuilder>`_,
-    for the TexLive distribution the following packages are required to be
-    installed:
-
-    * latex-recommended
-    * latex-extra
-    * fonts-recommended
-
-    For other LaTeX distributions your mileage may vary. To build the PDF
-    documentation using LaTeX, the ``fonts-extra`` TexLive package or the
-    ``inconsolata`` CTAN package are also required.
-
-.. note::
-
     If sphinx-gallery is not installed, you will see many Sphinx warnings
     building the documentation, e.g.::
 
