@@ -682,6 +682,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
