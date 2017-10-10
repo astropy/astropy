@@ -11,7 +11,7 @@ environment:
                           # of 32 bit and 64 bit builds are needed, move this
                           # to the matrix section.
         CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml matplotlib scikit-image pytz"
-        PIP_DEPENDENCIES: "objgraph"
+        PIP_DEPENDENCIES: "pytest-astropy objgraph"
 
     matrix:
         - PYTHON_VERSION: "3.6"
