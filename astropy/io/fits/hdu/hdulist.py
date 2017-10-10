@@ -2,10 +2,12 @@
 
 
 import bz2
+import functools
 import gzip
 import os
 import shutil
 import sys
+import textwrap
 import warnings
 
 import numpy as np
@@ -991,6 +993,7 @@ class HDUList(list, _Verify):
             t = Table(rows=results, names=COLUMN_NAMES)
             if isinstance(output, str) and output.lower() == 'table':
                 return t
+            t['Format'].format = functools.partial(textwrap.shorten, width=30)
             t_strings = t.pformat(max_lines=-1, max_width=-1, show_dtype=False,
                                   align=COLUMN_ALIGN)
             # Remove the seperator line between column names and content and
