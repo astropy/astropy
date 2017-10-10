@@ -982,7 +982,7 @@ class HDUList(list, _Verify):
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
                 fileobj = _File(fileobj, mode=mode, memmap=memmap, cache=cache)
-            # The pyfits mode is determined by the _File initializer if the
+            # The Astropy mode is determined by the _File initializer if the
             # supplied mode was None
             mode = fileobj.mode
             hdulist = cls(file=fileobj)

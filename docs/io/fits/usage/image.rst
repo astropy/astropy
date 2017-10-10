@@ -126,7 +126,7 @@ before and after the data is touched::
 
 .. warning::
 
-    An important caveat to be aware of when dealing with scaled data in PyFITS,
+    An important caveat to be aware of when dealing with scaled data in Astropy,
     is that when accessing the data via the ``.data`` attribute, the data is
     automatically scaled with the BZERO and BSCALE parameters.  If the file was
     opened in "update" mode, it will be saved with the rescaled data.  This
@@ -197,7 +197,7 @@ If a user does not need the entire image(s) at the same time, e.g. processing
 images(s) ten rows at a time, the :attr:`~ImageHDU.section` attribute of an
 HDU can be used to alleviate such memory problems.
 
-With PyFITS' improved support for memory-mapping, the sections feature is not
+With Astropy's improved support for memory-mapping, the sections feature is not
 as necessary as it used to be for handling very large images.  However, if the
 image's data is scaled with non-trivial BSCALE/BZERO values, accessing the data
 in sections may still be necessary under the current implementation.  Memmap is
@@ -222,7 +222,7 @@ Here is an example of getting the median image from 3 input images of the size
         output[j:k, :] = np.median([x1, x2, x3], axis=0)
 
 Data in each :attr:`~ImageHDU.section` does not need to be contiguous for
-memory savings to be possible.  PyFITS will do its best to join together
+memory savings to be possible.  Astropy will do its best to join together
 discontiguous sections of the array while reading as little as possible into
 main memory.
 

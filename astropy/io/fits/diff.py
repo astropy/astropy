@@ -1148,7 +1148,7 @@ class TableDataDiff(_BaseDiff):
 
         # Like in the old fitsdiff, compare tables on a column by column basis
         # The difficulty here is that, while FITS column names are meant to be
-        # case-insensitive, PyFITS still allows, for the sake of flexibility,
+        # case-insensitive, Astropy still allows, for the sake of flexibility,
         # two columns with the same name but different case.  When columns are
         # accessed in FITS tables, a case-sensitive is tried first, and failing
         # that a case-insensitive match is made.
