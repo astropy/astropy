@@ -85,3 +85,9 @@ py:obj RuntimeError
 py:obj NotImplementedError
 py:obj AttributeError
 py:obj NotImplementedError
+
+# Affecting mpl 2.1, may be removed in the future pending on
+# https://github.com/matplotlib/matplotlib/issues/9331
+# TODO: remove the exceptions
+py:obj matplotlib.pyplot
+py:mod matplotlib.pyplot
