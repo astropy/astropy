@@ -367,12 +367,5 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC
 PyInit_tablewriter(void)
 {
-    PyObject* m;
-
-    m = PyModule_Create(&moduledef);
-
-    if (m == NULL)
-        return NULL;
-
-    return m;
+    return PyModule_Create(&moduledef);
 }
