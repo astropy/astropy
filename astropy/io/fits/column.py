@@ -42,7 +42,7 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
 
 # the inverse dictionary of the above
 NUMPY2FITS = {val: key for key, val in FITS2NUMPY.items()}
-# Normally booleans are represented as ints in pyfits, but if passed in a numpy
+# Normally booleans are represented as ints in Astropy, but if passed in a numpy
 # boolean array, that should be supported
 NUMPY2FITS['b1'] = 'L'
 # Add unsigned types, which will be stored as signed ints with a TZERO card.
@@ -569,7 +569,7 @@ class Column(NotifierMixin):
         for attr in KEYWORD_ATTRIBUTES:
             setattr(self, attr, valid_kwargs.get(attr))
 
-        # TODO: For PyFITS 3.3 try to eliminate the following two special cases
+        # TODO: Try to eliminate the following two special cases
         # for recformat and dim:
         # This is not actually stored as an attribute on columns for some
         # reason
@@ -662,7 +662,7 @@ class Column(NotifierMixin):
 
         # Ideally the .array attribute never would have existed in the first
         # place, or would have been internal-only.  This is a legacy of the
-        # older design from PyFITS that needs to have continued support, for
+        # older design from Astropy that needs to have continued support, for
         # now.
 
         # One of the main problems with this design was that it created a
@@ -1135,7 +1135,7 @@ class Column(NotifierMixin):
         """
 
         # If the given format string is unambiguously a Numpy dtype or one of
-        # the Numpy record format type specifiers supported by PyFITS then that
+        # the Numpy record format type specifiers supported by Astropy then that
         # should take priority--otherwise assume it is a FITS format
         if isinstance(format, np.dtype):
             format, _, _ = _dtype_to_recformat(format)
@@ -1183,7 +1183,7 @@ class Column(NotifierMixin):
                 format = _AsciiColumnFormat(format, strict=True)
 
             # A safe guess which reflects the existing behavior of previous
-            # PyFITS versions
+            # Astropy versions
             guess_format = _ColumnFormat
 
         try:
@@ -2319,10 +2319,10 @@ def _dtype_to_recformat(dtype):
     """
     Utility function for converting a dtype object or string that instantiates
     a dtype (e.g. 'float32') into one of the two character Numpy format codes
-    that have been traditionally used by PyFITS.
+    that have been traditionally used by Astropy.
 
     In particular, use of 'a' to refer to character data is long since
-    deprecated in Numpy, but PyFITS remains heavily invested in its use
+    deprecated in Numpy, but Astropy remains heavily invested in its use
     (something to try to get away from sooner rather than later).
     """
 

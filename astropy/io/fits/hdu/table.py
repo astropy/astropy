@@ -35,7 +35,7 @@ from ....utils.decorators import deprecated_renamed_argument
 
 class FITSTableDumpDialect(csv.excel):
     """
-    A CSV dialect for the PyFITS format of ASCII dumps of FITS tables.
+    A CSV dialect for the Astropy format of ASCII dumps of FITS tables.
     """
 
     delimiter = ' '
