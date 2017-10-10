@@ -364,8 +364,6 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#  define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit_tablewriter(void)
 {
@@ -374,7 +372,7 @@ PyInit_tablewriter(void)
     m = PyModule_Create(&moduledef);
 
     if (m == NULL)
-        INITERROR;
+        return NULL;
 
     return m;
 }

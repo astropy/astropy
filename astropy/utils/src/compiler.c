@@ -88,8 +88,6 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit__compiler(void)
 
@@ -99,7 +97,7 @@ PyInit__compiler(void)
   m = PyModule_Create(&moduledef);
 
   if (m == NULL)
-    INITERROR;
+    return NULL;
 
   PyModule_AddStringConstant(m, "compiler", COMPILER);
 
