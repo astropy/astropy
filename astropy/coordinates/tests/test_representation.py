@@ -12,7 +12,6 @@ from ... import units as u
 from ...tests.helper import (pytest, assert_quantity_allclose as
                              assert_allclose_quantity)
 from ...utils import isiterable, IncompatibleShapeError, check_broadcast
-from ...utils.compat.numpy import broadcast_to
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,

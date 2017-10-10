@@ -15,7 +15,6 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
-from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
@@ -377,7 +376,7 @@ class TestQuantityOperations:
                         [1., 0., 0.],
                         [0., 1., 0.]]]) / u.s
         result4 = eval("q @ q2")
-        assert np.all(result4 == matmul(a, q2.value) * q.unit * q2.unit)
+        assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
 
