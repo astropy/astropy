@@ -10,8 +10,9 @@ environment:
         PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                           # of 32 bit and 64 bit builds are needed, move this
                           # to the matrix section.
-        CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml matplotlib scikit-image pytz"
-        PIP_DEPENDENCIES: "objgraph"
+        CONDA_DEPENDENCIES: "beautifulsoup4 bleach Cython h5py ipython jinja2 matplotlib mpmath pandas pytz pyyaml scikit-image scipy sphinx"
+        PIP_DEPENDENCIES: "objgraph sphinx-gallery>=0.1.12 pillow --no-deps jplephem"
+        CONDA_VERSION: "4.3.27"
 
     matrix:
         - PYTHON_VERSION: "3.6"
@@ -35,5 +36,5 @@ install:
 build: false
 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+    - "%CMD_IN_ENV% python setup.py build_docs"
 
