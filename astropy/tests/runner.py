@@ -153,7 +153,7 @@ class TestRunnerBase:
             func = getattr(self, keyword)
             result = func(keywords[keyword], keywords)
 
-            # Allow disabaling of options in a subclass
+            # Allow disabling of options in a subclass
             if result is NotImplemented:
                 raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
 
@@ -196,6 +196,16 @@ class TestRunnerBase:
             raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
 
         args = self._generate_args(**kwargs)
+
+        if 'plugins' not in self.keywords or self.keywords['plugins'] is None:
+            self.keywords['plugins'] = []
+
+        # Make plugins available to test runner without registering them
+        self.keywords['plugins'].extend([
+            'astropy.tests.plugins.display',
+            'astropy.tests.plugins.repeat',
+            'astropy.tests.plugins.config'
+        ])
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
