@@ -2,10 +2,12 @@
 
 
 import bz2
+import functools
 import gzip
 import os
 import shutil
 import sys
+import textwrap
 import warnings
 
 import numpy as np
@@ -20,8 +22,8 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
 from ....utils.decorators import deprecated_renamed_argument
+from ....utils.exceptions import AstropyUserWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -916,11 +918,57 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        output : file, bool, optional
-            A file-like object to write the output to.  If `False`, does not
-            output to a file and instead returns a list of tuples representing
-            the HDU info.  Writes to ``sys.stdout`` by default.
-        """
+        output : file, bool, ``'table'``, optional
+            A file-like object to write the output to.  If `False` or
+            ``'table'``, does not output to a file and instead returns a list
+            of tuples (if ``False``) or an `astropy.table.Table`
+            (if ``'table'``) representing the HDU info.
+            Writes to ``sys.stdout`` by default.
+
+        Examples
+        --------
+
+        ::
+
+            >>> from astropy.io import fits
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     hdul.info()
+            Filename: ...test0.fits
+            No.   Name  Ver    Type    Cards Dimensions Format
+              0 PRIMARY   1 PrimaryHDU   138 ()
+              1 SCI       1 ImageHDU      61 (40, 40)   int16
+              2 SCI       2 ImageHDU      61 (40, 40)   int16
+              3 SCI       3 ImageHDU      61 (40, 40)   int16
+              4 SCI       4 ImageHDU      61 (40, 40)   int16
+
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     t = hdul.info(output='table')
+            >>> print(t)
+            No.   Name  Ver    Type    Cards Dimensions Format
+            --- ------- --- ---------- ----- ---------- ------ ---
+              0 PRIMARY   1 PrimaryHDU   138         ()
+              1     SCI   1   ImageHDU    61   (40, 40)  int16
+              2     SCI   2   ImageHDU    61   (40, 40)  int16
+              3     SCI   3   ImageHDU    61   (40, 40)  int16
+              4     SCI   4   ImageHDU    61   (40, 40)  int16
+
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     l = hdul.info(output=False)
+            >>> for line in l:
+            ...     print(line)
+            (0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')
+            (1, 'SCI', 1, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (2, 'SCI', 2, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (3, 'SCI', 3, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (4, 'SCI', 4, 'ImageHDU', 61, (40, 40), 'int16', '')
+
+       """
+        # Avoid circular importing
+        from astropy.table import Table
+
+        COLUMN_NAMES = ('No.', 'Name', 'Ver', 'Type', 'Cards', 'Dimensions',
+                        'Format', ' ')
+        COLUMN_ALIGN = ('>', '<', '>', '<', '>', '<', '<', '<')
 
         if output is None:
             output = sys.stdout
@@ -930,27 +978,32 @@ class HDUList(list, _Verify):
         else:
             name = self._file.name
 
-        results = ['Filename: {}'.format(name),
-                   'No.    Name      Ver    Type      Cards   Dimensions   Format']
-
-        format = '{:3d}  {:10}  {:3} {:11}  {:5d}   {}   {}   {}'
+        file_line = 'Filename: {}'.format(name)
+        results = []
         default = ('', '', '', 0, (), '', '')
         for idx, hdu in enumerate(self):
-            summary = hdu._summary()
-            if len(summary) < len(default):
-                summary += default[len(summary):]
-            summary = (idx,) + summary
+            hdu_summary = hdu._summary()
+            summary = [idx, *hdu_summary, *default[len(hdu_summary):]]
             if output:
-                results.append(format.format(*summary))
+                results.append(tuple(map(str, summary)))
             else:
-                results.append(summary)
+                results.append(tuple(summary))
 
         if output:
-            output.write('\n'.join(results))
+            t = Table(rows=results, names=COLUMN_NAMES)
+            if isinstance(output, str) and output.lower() == 'table':
+                return t
+            t['Format'].format = functools.partial(textwrap.shorten, width=30)
+            t_strings = t.pformat(max_lines=-1, max_width=-1, show_dtype=False,
+                                  align=COLUMN_ALIGN)
+            # Remove the seperator line between column names and content and
+            # prepend the "file_line".
+            t_strings[0], t_strings[1] = file_line, t_strings[0]
+            output.write('\n'.join(t_strings))
             output.write('\n')
             output.flush()
         else:
-            return results[2:]
+            return results
 
     def filename(self):
         """
