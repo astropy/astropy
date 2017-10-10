@@ -6,7 +6,6 @@ from .implementations import lombscargle, available_methods
 from .implementations.mle import periodic_fit
 from . import _statistics
 from ... import units
-from ...utils.compat.numpy import broadcast_arrays
 
 
 def has_units(obj):
@@ -110,9 +109,9 @@ class LombScargle:
     def _validate_inputs(self, t, y, dy):
         # Validate shapes of inputs
         if dy is None:
-            t, y = broadcast_arrays(t, y, subok=True)
+            t, y = np.broadcast_arrays(t, y, subok=True)
         else:
-            t, y, dy = broadcast_arrays(t, y, dy, subok=True)
+            t, y, dy = np.broadcast_arrays(t, y, dy, subok=True)
         if t.ndim != 1:
             raise ValueError("Inputs (t, y, dy) must be 1-dimensional")
 

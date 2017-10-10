@@ -13,7 +13,6 @@ from .. import units as u
 from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
@@ -593,7 +592,7 @@ class EarthLocation(u.Quantity):
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
         if obstime and self.size == 1 and obstime.size > 1:
-            self = broadcast_to(self, obstime.shape, subok=True)
+            self = np.broadcast_to(self, obstime.shape, subok=True)
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS

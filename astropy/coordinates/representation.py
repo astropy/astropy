@@ -19,7 +19,6 @@ from .distances import Distance
 from ..utils import ShapedLikeNDArray, classproperty
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_arrays, broadcast_to
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -152,7 +151,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         attrs = [self.attr_classes[component](attr, copy=copy)
                  for component, attr in zip(components, attrs)]
         try:
-            attrs = broadcast_arrays(*attrs, subok=True)
+            attrs = np.broadcast_arrays(*attrs, subok=True)
         except ValueError:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
@@ -1003,15 +1002,15 @@ class CartesianRepresentation(BaseRepresentation):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
-        o = broadcast_to(0.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
+        o = np.broadcast_to(0.*u.one, self.shape, subok=True)
         return OrderedDict(
             (('x', CartesianRepresentation(l, o, o, copy=False)),
              ('y', CartesianRepresentation(o, l, o, copy=False)),
              ('z', CartesianRepresentation(o, o, l, copy=False))))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('x', l), ('y', l), ('z', l)))
 
     def get_xyz(self, xyz_axis=0):
@@ -1278,7 +1277,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                              coslat, copy=False))))
 
     def scale_factors(self, omit_coslat=False):
-        sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
+        sf_lat = np.broadcast_to(1./u.radian, self.shape, subok=True)
         sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
@@ -1457,7 +1456,7 @@ class RadialRepresentation(BaseRepresentation):
                                   '{0} instances'.format(self.__class__))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('distance', l),))
 
     def to_cartesian(self):
@@ -1576,7 +1575,7 @@ class SphericalRepresentation(BaseRepresentation):
     def scale_factors(self, omit_coslat=False):
         sf_lat = self.distance / u.radian
         sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
-        sf_distance = broadcast_to(1.*u.one, self.shape, subok=True)
+        sf_distance = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat),
                             ('distance', sf_distance)))
@@ -1735,7 +1734,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def scale_factors(self):
         r = self.r / u.radian
         sintheta = np.sin(self.theta)
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('phi', r * sintheta),
                             ('theta', r),
                             ('r', l)))
@@ -1867,7 +1866,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
-        l = broadcast_to(1., self.shape)
+        l = np.broadcast_to(1., self.shape)
         return OrderedDict(
             (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
              ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
@@ -1875,7 +1874,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def scale_factors(self):
         rho = self.rho / u.radian
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('rho', l),
                             ('phi', rho),
                             ('z', l)))

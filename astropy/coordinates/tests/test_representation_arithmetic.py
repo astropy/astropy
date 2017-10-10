@@ -15,7 +15,6 @@ from .. import (PhysicsSphericalRepresentation, CartesianRepresentation,
                 RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from ..representation import DIFFERENTIAL_CLASSES
 from ..angle_utilities import angular_separation
-from ...utils.compat.numpy import broadcast_arrays
 from ...tests.helper import assert_quantity_allclose
 
 
@@ -23,8 +22,8 @@ def assert_representation_allclose(actual, desired, rtol=1.e-7, atol=None,
                                    **kwargs):
     actual_xyz = actual.to_cartesian().get_xyz(xyz_axis=-1)
     desired_xyz = desired.to_cartesian().get_xyz(xyz_axis=-1)
-    actual_xyz, desired_xyz = broadcast_arrays(actual_xyz, desired_xyz,
-                                               subok=True)
+    actual_xyz, desired_xyz = np.broadcast_arrays(actual_xyz, desired_xyz,
+                                                  subok=True)
     assert_quantity_allclose(actual_xyz, desired_xyz, rtol, atol, **kwargs)
 
 

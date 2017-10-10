@@ -6,7 +6,6 @@ This module contains utililies used for constructing rotation matrices.
 """
 from functools import reduce
 import numpy as np
-from ..utils.compat.numpy import matmul
 
 from .. import units as u
 from .angles import Angle
@@ -25,7 +24,7 @@ def matrix_product(*matrices):
     possible to handle stacks of matrices. Once only python >=3.5 is supported,
     this function can be replaced by ``m1 @ m2 @ m3``.
     """
-    return reduce(matmul, matrices)
+    return reduce(np.matmul, matrices)
 
 
 def matrix_transpose(matrix):
