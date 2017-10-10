@@ -74,7 +74,12 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
 
 # Eventually, if we can do away with the test runner, then pytest-astropy
 # should be a test dependency, not an install dependency
-install_requires = ['pytest>=3.1', min_numpy_version]
+install_requires = [
+    'pytest>=3.1',
+    min_numpy_version,
+    'pytest-astropy',
+]
+
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
