@@ -18,7 +18,7 @@ python3 -c 'import sys; print(sys.maxsize)'
 
 # The doctestplus plugin in Astropy doesn't work correctly with pytest>=3.2, so
 # we install an older version here
-easy_install-3.5 pytest pytest-xdist
+easy_install-3.5 pytest pytest-astropy pytest-xdist
 
 # Install git
 apt-get install -y git
