@@ -46,7 +46,7 @@ The underlying data structure used for FITS tables is a class called
 :class:`FITS_rec` which is a specialized subclass of `numpy.recarray`.  A
 :class:`FITS_rec` can be instantiated directly using the same initialization
 format presented for plain recarrays as in the example above.  One may also
-instantiate a new :class:`FITS_rec` from a list of ``astropy.io.fits`` `Column`
+instantiate a new :class:`FITS_rec` from a list of `astropy.io.fits.Column`
 objects using the :meth:`FITS_rec.from_columns` class method.  This has the
 exact same semantics as :meth:`BinTableHDU.from_columns` and
 :meth:`TableHDU.from_columns`, except that it only returns an actual FITS_rec
