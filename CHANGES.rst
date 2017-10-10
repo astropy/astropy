@@ -179,6 +179,8 @@ astropy.modeling
 - Removed deprecated ``GaussianAbsorption1D`` model.
   Use ``Const1D - Gaussian1D`` instead. [#6542]
 
+- Removed the registry from modeling. [#6706]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
