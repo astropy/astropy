@@ -1339,8 +1339,6 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#  define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit__iterparser(void)
 {
@@ -1348,10 +1346,10 @@ PyInit__iterparser(void)
     m = PyModule_Create(&moduledef);
 
     if (m == NULL)
-        INITERROR;
+        return NULL;
 
     if (PyType_Ready(&IterParserType) < 0)
-        INITERROR;
+        return NULL;
 
     Py_INCREF(&IterParserType);
     PyModule_AddObject(m, "IterParser", (PyObject *)&IterParserType);

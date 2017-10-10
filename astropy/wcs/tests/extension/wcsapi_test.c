@@ -38,8 +38,6 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit_wcsapi_test(void)
 
@@ -49,8 +47,7 @@ PyInit_wcsapi_test(void)
   m = PyModule_Create(&moduledef);
 
   if (m == NULL) {
-      printf("HERE\n");
-    INITERROR;
+      return NULL;
   }
 
   import_astropy_wcs();

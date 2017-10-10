@@ -829,8 +829,6 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-#define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit__wcs(void)
 
@@ -857,7 +855,7 @@ PyInit__wcs(void)
   m = PyModule_Create(&moduledef);
 
   if (m == NULL)
-    INITERROR;
+    return NULL;
 
   import_array();
 
@@ -872,16 +870,16 @@ PyInit__wcs(void)
       _setup_wcs_type(m)          ||
       _define_exceptions(m)) {
     Py_DECREF(m);
-    INITERROR;
+    return NULL;
   }
 
 #ifdef HAVE_WCSLIB_VERSION
   if (PyModule_AddStringConstant(m, "__version__", wcslib_version(NULL))) {
-    INITERROR;
+    return NULL;
   }
 #else
   if (PyModule_AddStringConstant(m, "__version__", "4.x")) {
-    INITERROR;
+    return NULL;
   }
 #endif
 
