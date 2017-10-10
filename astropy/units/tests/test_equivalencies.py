@@ -540,8 +540,12 @@ def test_swapped_args_brightness_temperature():
             result = (1*u.Jy).to(u.K,
                                  equivalencies=u.brightness_temperature(omega_B,
                                                                         nu))
-    assert len(warning_list) == 1
+            roundtrip = result.to(u.Jy,
+                                  equivalencies=u.brightness_temperature(omega_B,
+                                                                         nu))
+    assert len(warning_list) == 2
     np.testing.assert_almost_equal(tb.value, result.value)
+    np.testing.assert_almost_equal(roundtrip.value, 1)
 
 def test_surfacebrightness():
     sb = 50*u.MJy/u.sr
@@ -550,10 +554,15 @@ def test_surfacebrightness():
     assert k.unit.is_equivalent(u.K)
 
 def test_beam():
-    omega_B = np.pi * (50 * u.arcsec) ** 2
+    # pick a beam area: 2 pi r^2 = area of a Gaussina with sigma=50 arcsec
+    omega_B = 2 * np.pi * (50 * u.arcsec) ** 2
     new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
     np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
     assert new_beam.unit.is_equivalent(u.sr)
+
+    # make sure that it's still consistent with 5 beams
+    nbeams = new_beam.to(u.beam, u.equivalencies.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(nbeams.value, 5)
 
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
