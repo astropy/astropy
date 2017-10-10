@@ -789,11 +789,20 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             weights = 1.0
 
         if any(model.fixed.values()) or any(model.tied.values()):
-
+            # update the parameters with the current values from the fitter
+            _fitter_to_model_params(model, params)
             if z is None:
-                full_deriv = np.ravel(weights) * np.array(model.fit_deriv(x, *model.parameters))
+                full = np.array(model.fit_deriv(x, *model.parameters))
+                if not model.col_fit_deriv:
+                    full_deriv = np.ravel(weights) * full.T
+                else:
+                    full_deriv = np.ravel(weights) * full
             else:
-                full_deriv = (np.ravel(weights) * np.array(model.fit_deriv(x, y, *model.parameters)).T).T
+                full = np.array([np.ravel(_) for _ in model.fit_deriv(x, y, *model.parameters)])
+                if not model.col_fit_deriv:
+                    full_deriv = np.ravel(weights) * full.T
+                else:
+                    full_deriv = np.ravel(weights) * full
 
             pars = [getattr(model, name) for name in model.param_names]
             fixed = [par.fixed for par in pars]
@@ -804,7 +813,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             ind = np.logical_not(fix_and_tie)
 
             if not model.col_fit_deriv:
-                full_deriv = np.asarray(full_deriv).T
                 residues = np.asarray(full_deriv[np.nonzero(ind)]).T
             else:
                 residues = full_deriv[np.nonzero(ind)]
@@ -815,7 +823,8 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                 return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
             else:
                 if not model.col_fit_deriv:
-                    return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
+                    return [np.ravel(_) for _ in (
+                        np.ravel(weights) * np.array(model.fit_deriv(x, y, *params)).T).T]
                 else:
                     return [np.ravel(_) for _ in (weights * np.array(model.fit_deriv(x, y, *params)))]
 
