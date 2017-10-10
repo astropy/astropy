@@ -848,8 +848,7 @@ class Header(object):
         created in the specified position, or appended to the end of the header
         if no position is specified.
 
-        This method is similar to :meth:`Header.update` prior to PyFITS 3.1
-        / Astropy v0.1.
+        This method is similar to :meth:`Header.update` prior to Astropy v0.1.
 
         .. note::
             It should be noted that ``header.set(keyword, value)`` and
@@ -1031,8 +1030,8 @@ class Header(object):
 
         .. warning::
             As this method works similarly to `dict.update` it is very
-            different from the ``Header.update()`` method in PyFITS versions
-            prior to 3.1.0 (or Astropy v0.1). Use of the old API was
+            different from the ``Header.update()`` method in Astropy v0.1.
+            Use of the old API was
             **deprecated** for a long time and is now removed. Most uses of the
             old API can be replaced as follows:
 

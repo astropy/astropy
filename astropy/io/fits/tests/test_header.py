@@ -323,7 +323,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
 
-        # This test used to check if PyFITS rewrote this card to a new format,
+        # This test used to check if Astropy rewrote this card to a new format,
         # something like "HISTO   = '=   (1, 2)".  But since ticket #109 if the
         # format is completely wrong we don't make any assumptions and the card
         # should be left alone
@@ -1775,7 +1775,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         # The example for this test requires creating a FITS file containing a
         # slightly misformatted float value.  I can't actually even find a way
-        # to do that directly through PyFITS--it won't let me.
+        # to do that directly through Astropy--it won't let me.
         hdu = fits.PrimaryHDU()
         hdu.header['TEST'] = 5.0022221e-07
         hdu.writeto(self.temp('test.fits'))
@@ -1804,7 +1804,7 @@ class TestHeaderFunctions(FitsTestCase):
         float values like 0.001 the leading zero was unnecessarily being
         stripped off when rewriting the header.  Though leading zeros should be
         removed from integer values to prevent misinterpretation as octal by
-        python (for now PyFITS will still maintain the leading zeros if now
+        python (for now Astropy will still maintain the leading zeros if now
         changes are made to the value, but will drop them if changes are made).
         """
 

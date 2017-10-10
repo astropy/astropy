@@ -658,7 +658,7 @@ class TestHDUListFunctions(FitsTestCase):
         entire multi-extension FITS file at once.
         """
 
-        # Tests HDUList.fromstring for all of PyFITS' built in test files
+        # Tests HDUList.fromstring for all of Astropy's built in test files
         def test_fromstring(filename):
             with fits.open(filename) as hdul:
                 orig_info = hdul.info(output=False)
@@ -694,7 +694,7 @@ class TestHDUListFunctions(FitsTestCase):
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
-                # versions of Numpy on Windows.  See PyFITS ticket
+                # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
                 continue
             elif filename.endswith('variable_length_table.fits'):

@@ -242,12 +242,14 @@ class Card(_Verify):
                     raise ValueError("Keyword 'END' not allowed.")
                 keyword = keyword_upper
             elif self._keywd_hierarch_RE.match(keyword):
-                # In prior versions of PyFITS HIERARCH cards would only be
+                # In prior versions of PyFITS (*) HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
                 # 'HIERARCH '.  Now we will create them automatically for long
                 # keywords, but we still want to support the old behavior too;
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
+                # (*) This has never affected Astropy, because it was changed
+                # before PyFITS was merged into Astropy!
                 self._hierarch = True
                 self._value_indicator = HIERARCH_VALUE_INDICATOR
 

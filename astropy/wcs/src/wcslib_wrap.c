@@ -1935,8 +1935,8 @@ PyWcsprm_to_header(
     goto exit;
   }
 
-  /* Just return the raw header string.  PyFITS on the Python side will help
-     to parse and use this information. */
+  /* Just return the raw header string.  astropy.io.fits on the Python side will
+     help to parse and use this information. */
   #if PY3K
   result = PyUnicode_FromStringAndSize(header, (Py_ssize_t)nkeyrec * 80);
   #else

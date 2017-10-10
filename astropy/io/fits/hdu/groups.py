@@ -254,7 +254,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     """
     FITS Random Groups HDU class.
 
-    See the :ref:`random-groups` section in the PyFITS documentation for more
+    See the :ref:`random-groups` section in the Astropy documentation for more
     details on working with this type of HDU.
     """
 
