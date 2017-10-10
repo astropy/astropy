@@ -161,7 +161,8 @@ astropy.io.fits
 - Remove the ``nonstandard`` checksum option. [#6571]
 
 - The output of ``HDUList.info()`` changed in minor ways (more compact and
-  better alignment) [#6690]
+  better alignment) and now also allows ``output='table'`` to get the HDU
+  informations as ``astropy.table.Table``. [#6690]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

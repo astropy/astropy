@@ -916,11 +916,51 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        output : file, bool, optional
-            A file-like object to write the output to.  If `False`, does not
-            output to a file and instead returns a list of tuples representing
-            the HDU info.  Writes to ``sys.stdout`` by default.
-        """
+        output : file, bool, ``'table'``, optional
+            A file-like object to write the output to.  If `False` or
+            ``'table'``, does not output to a file and instead returns a list
+            of tuples (if ``False``) or an `astropy.table.Table`
+            (if ``'table'``) representing the HDU info.
+            Writes to ``sys.stdout`` by default.
+
+        Examples
+        --------
+
+        ::
+
+            >>> from astropy.io import fits
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     hdul.info()
+            Filename: ...test0.fits
+            No.   Name  Ver    Type    Cards Dimensions Format
+              0 PRIMARY   1 PrimaryHDU   138 ()
+              1 SCI       1 ImageHDU      61 (40, 40)   int16
+              2 SCI       2 ImageHDU      61 (40, 40)   int16
+              3 SCI       3 ImageHDU      61 (40, 40)   int16
+              4 SCI       4 ImageHDU      61 (40, 40)   int16
+
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     t = hdul.info(output='table')
+            >>> print(t)
+            No.   Name  Ver    Type    Cards Dimensions Format
+            --- ------- --- ---------- ----- ---------- ------ ---
+              0 PRIMARY   1 PrimaryHDU   138         ()
+              1     SCI   1   ImageHDU    61   (40, 40)  int16
+              2     SCI   2   ImageHDU    61   (40, 40)  int16
+              3     SCI   3   ImageHDU    61   (40, 40)  int16
+              4     SCI   4   ImageHDU    61   (40, 40)  int16
+
+            >>> with fits.open(fits.util.get_testdata_filepath('test0.fits')) as hdul:
+            ...     l = hdul.info(output=False)
+            >>> for line in l:
+            ...     print(line)
+            (0, 'PRIMARY', 1, 'PrimaryHDU', 138, (), '', '')
+            (1, 'SCI', 1, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (2, 'SCI', 2, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (3, 'SCI', 3, 'ImageHDU', 61, (40, 40), 'int16', '')
+            (4, 'SCI', 4, 'ImageHDU', 61, (40, 40), 'int16', '')
+
+       """
         # Avoid circular importing
         from astropy.table import Table
 
@@ -949,6 +989,8 @@ class HDUList(list, _Verify):
 
         if output:
             t = Table(rows=results, names=COLUMN_NAMES)
+            if isinstance(output, str) and output.lower() == 'table':
+                return t
             t_strings = t.pformat(max_lines=-1, max_width=-1, show_dtype=False,
                                   align=COLUMN_ALIGN)
             # Remove the seperator line between column names and content and
