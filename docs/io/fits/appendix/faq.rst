@@ -65,7 +65,6 @@ The current (and last) stable release is 3.4.0.
 .. _3-clause BSD license: http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
 .. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
-.. _SVN mirror: https://aeon.stsci.edu/ssb/svn/pyfits/
 .. _GitHub project: https://github.com/spacetelescope/PyFITS
 
 
@@ -566,9 +565,9 @@ of thousands of FITS files in succession (in either case the difference is
 not even an order of magnitude).
 
 Where data is concerned the situation is a little more complicated, and
-requires some understanding of how ``astropy.io.fits`` is implemented versus CFITSIO and
-``fitsio``.  First it's important to understand how they differ in terms of
-memory management.
+requires some understanding of how `astropy.io.fits` is implemented versus
+CFITSIO and ``fitsio``.  First it's important to understand how they differ in
+terms of memory management.
 
 `astropy.io.fits` uses mmap, by default, to provide access to the raw
 binary data in FITS files.  Mmap is a system call (or in most cases these days
