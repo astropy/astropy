@@ -22,6 +22,7 @@ import functools
 import operator
 import sys
 import types
+import warnings
 
 from collections import defaultdict, OrderedDict
 from contextlib import suppress
@@ -38,6 +39,7 @@ from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
+from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
@@ -2868,7 +2870,7 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         return new_model
 
 
-def custom_model(*args, fit_deriv=None):
+def custom_model(*args, fit_deriv=None, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -2936,6 +2938,13 @@ def custom_model(*args, fit_deriv=None):
         >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
+
+    if kwargs:
+        warnings.warn(
+            "Function received unexpected arguments ({}) these "
+            "are ignored but will raise an Exception in the "
+            "future.".format(list(kwargs)),
+            AstropyDeprecationWarning)
 
     if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
