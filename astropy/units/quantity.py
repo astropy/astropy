@@ -1470,7 +1470,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     # the methods do not always allow calling with keyword arguments.
     # For instance, np.array([0.,2.]).clip(a_min=0., a_max=1.) gives
     # TypeError: 'a_max' is an invalid keyword argument for this function.
-    def _wrap_function(self, function, *args, out=None, **kwargs):
+    def _wrap_function(self, function, *args, unit=None, out=None, **kwargs):
         """Wrap a numpy function that processes self, returning a Quantity.
 
         Parameters
@@ -1500,7 +1500,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         out : `~astropy.units.Quantity`
             Result of the function call, with the unit set properly.
         """
-        unit = kwargs.pop('unit', self.unit)
+        if unit is None:
+            unit = self.unit
         # Ensure we don't loop back by turning any Quantity into array views.
         args = (self.value,) + tuple((arg.value if isinstance(arg, Quantity)
                                       else arg) for arg in args)
