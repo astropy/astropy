@@ -14,7 +14,7 @@ from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from .angles import Longitude, Latitude
-from .matrix_utilities import matrix_transpose, matmul
+from .matrix_utilities import matrix_transpose
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
 from ..utils import data, deprecated
