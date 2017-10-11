@@ -446,6 +446,14 @@ class BaseColumnInfo(DataInfo):
     # depending on context.
     _serialize_context = None
 
+    def __init__(self, bound=False):
+        super().__init__(bound=bound)
+
+        # If bound to a data object instance then add a _format_funcs dict
+        # for caching functions for print formatting.
+        if bound:
+            self._format_funcs = {}
+
     def iter_str_vals(self):
         """
         This is a mixin-safe version of Column.iter_str_vals.
