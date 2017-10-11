@@ -381,6 +381,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a problem when printing a table when a column is deleted and
+  garbage-collected, and the format function caching mechanism happens
+  to re-use the same cache key. [#6714]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
