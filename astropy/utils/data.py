@@ -1006,7 +1006,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             if cache:
                 # We don't need to acquire the lock here, since we are only
                 # reading
-                with _open_shelve(urlmapfn, True) as url2hash:
+                with shelve.open(urlmapfn) as url2hash:
                     if url_key in url2hash:
                         return url2hash[url_key]
 
@@ -1055,7 +1055,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
             if cache:
                 _acquire_download_cache_lock()
                 try:
-                    with _open_shelve(urlmapfn, True) as url2hash:
+                    with shelve.open(urlmapfn) as url2hash:
                         # We check now to see if another process has
                         # inadvertently written the file underneath us
                         # already

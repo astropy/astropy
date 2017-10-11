@@ -10,6 +10,7 @@ celestial-to-terrestrial coordinate transformations
 """
 
 from warnings import warn
+from urllib.parse import urlparse
 
 import numpy as np
 
@@ -20,8 +21,6 @@ from ...utils.data import get_pkg_data_filename, clear_download_cache
 from ... import utils
 from ...utils.exceptions import AstropyWarning
 from ...tests import disable_internet
-from ...extern.six.moves.urllib.error import HTTPError
-from ...extern.six.moves.urllib.parse import urlparse
 
 __all__ = ['Conf', 'conf',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
