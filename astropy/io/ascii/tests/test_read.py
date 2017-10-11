@@ -40,12 +40,11 @@ def test_convert_overflow(fast_reader):
     Test reading an extremely large integer, which falls through to
     string due to an overflow error (#2234). The C parsers used to
     return inf (kind 'f') for this.
-    Kind should be 'S' in Python2, 'U' in Python3.
     """
-    expected_kind = ('S', 'U')
+    expected_kind = 'U'
     dat = ascii.read(['a', '1' * 10000], format='basic',
                      fast_reader=fast_reader, guess=False)
-    assert dat['a'].dtype.kind in expected_kind
+    assert dat['a'].dtype.kind == expected_kind
 
 
 def test_guess_with_names_arg():

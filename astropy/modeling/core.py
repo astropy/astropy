@@ -225,8 +225,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             modname = '__main__'
 
         new_cls = type(name, (cls,), {})
-        # On Python 2 __module__ must be a str, not unicode
-        new_cls.__module__ = str(modname)
+        new_cls.__module__ = modname
 
         if hasattr(cls, '__qualname__'):
             if new_cls.__module__ == '__main__':
@@ -2226,11 +2225,7 @@ class _CompoundModelMeta(_ModelMeta):
         all of its parameters.
         """
 
-        try:
-            # Annoyingly, this will only work for Python 3.3+
-            basedir = super().__dir__()
-        except AttributeError:
-            basedir = list(set((dir(type(cls)) + list(cls.__dict__))))
+        basedir = super().__dir__()
 
         if cls._tree is not None:
             for name in cls.param_names:
@@ -2292,10 +2287,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._evaluate is None:
             func = cls._tree.evaluate(BINARY_OPERATORS,
                                       getter=cls._model_evaluate_getter)[0]
-            # Making this a staticmethod isn't strictly necessary for Python 3,
-            # but it is necessary on Python 2 since looking up cls._evaluate
-            # will return an unbound method otherwise
-            cls._evaluate = staticmethod(func)
+            cls._evaluate = func
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)

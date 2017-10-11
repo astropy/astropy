@@ -422,20 +422,14 @@ class DefaultSplitter(BaseSplitter):
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
 
-        # In Python 2.x the inputs to csv cannot be unicode.  In Python 3 these
-        # lines do nothing.
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
-        delimiter = None if self.delimiter is None else str(self.delimiter)
-
-        if delimiter == r'\s':
-            delimiter = ' '
+        if self.delimiter == r'\s':
+            self.delimiter = ' '
 
         csv_reader = csv.reader(lines,
-                                delimiter=delimiter,
+                                delimiter=self.delimiter,
                                 doublequote=self.doublequote,
-                                escapechar=escapechar,
-                                quotechar=quotechar,
+                                escapechar=self.escapechar,
+                                quotechar=self.quotechar,
                                 quoting=self.quoting,
                                 skipinitialspace=self.skipinitialspace
                                 )
@@ -447,16 +441,13 @@ class DefaultSplitter(BaseSplitter):
 
     def join(self, vals):
 
-        # In Python 2.x the inputs to csv cannot be unicode
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
         delimiter = ' ' if self.delimiter is None else str(self.delimiter)
 
         if self.csv_writer is None:
             self.csv_writer = CsvWriter(delimiter=delimiter,
                                         doublequote=self.doublequote,
-                                        escapechar=escapechar,
-                                        quotechar=quotechar,
+                                        escapechar=self.escapechar,
+                                        quotechar=self.quotechar,
                                         quoting=self.quoting,
                                         lineterminator='')
         if self.process_val:

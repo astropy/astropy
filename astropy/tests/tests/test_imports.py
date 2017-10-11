@@ -5,17 +5,6 @@ import os
 import types
 
 
-# Compatibility subpackages that should only be used on Python 2
-_py2_packages = set([
-    'astropy.extern.configobj_py2',
-])
-
-# Same but for Python 3
-_py3_packages = set([
-    'astropy.extern.configobj_py3',
-])
-
-
 def test_imports():
     """
     This just imports all modules in astropy, making sure they don't have any
@@ -43,14 +32,11 @@ def test_imports():
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    excludes = _py2_packages
-
     prefix = package.__name__ + '.'
 
     def onerror(name):
-        if not any(name.startswith(excl) for excl in excludes):
-            # A legitimate error occurred in a module that wasn't excluded
-            raise
+        # A legitimate error occurred in a module that wasn't excluded
+        raise
 
     for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix,
                                                   onerror=onerror):

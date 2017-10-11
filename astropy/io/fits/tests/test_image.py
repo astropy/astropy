@@ -692,7 +692,6 @@ class TestImageFunctions(FitsTestCase):
             # signed int array of the same bit width
             max_uint = (2 ** int_size) - 1
             if int_size == 64:
-                # Otherwise may get an overflow error, at least on Python 2
                 max_uint = np.uint64(int_size)
 
             dtype = 'uint{}'.format(int_size)

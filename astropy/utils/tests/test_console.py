@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-
 import io
-import locale
 
 import pytest
 
@@ -23,9 +21,7 @@ class FakeTTY(io.StringIO):
         if encoding is None:
             return super().__new__(cls)
 
-        # Since we're using unicode_literals in this module ensure that this is
-        # a 'str' object (since a class name can't be unicode in Python 2.7)
-        encoding = str(encoding)
+        encoding = encoding
         cls = type(encoding.title() + cls.__name__, (cls,),
                    {'encoding': encoding})
 

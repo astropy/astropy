@@ -525,7 +525,6 @@ def test_pprint_py3_bytes():
     """
     Test for #1346 and #4944. Make sure a bytestring (dtype=S<N>) in Python 3
     is printed correctly (without the "b" prefix like b'string').
-    Also make sure special characters are printed in Python 2.
     """
     val = bytes('val', encoding='utf-8')
     blah = u'bläh'.encode('utf-8')
