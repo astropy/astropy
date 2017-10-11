@@ -136,11 +136,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
             hdulist.close()
 
     # Check if table is masked
-    masked = False
-    for col in table.columns:
-        if col.null is not None:
-            masked = True
-            break
+    masked = any(col.null is not None for col in table.columns)
 
     # Convert to an astropy.table.Table object
     # Note: in future, it may make more sense to do this column-by-column,
