@@ -3,6 +3,8 @@
 import pytest
 
 from .. import fnpickle, fnunpickle
+from ....tests.helper import catch_warnings
+from ....utils.exceptions import AstropyDeprecationWarning
 
 
 def test_fnpickling_simple(tmpdir):
@@ -15,7 +17,7 @@ def test_fnpickling_simple(tmpdir):
 
     obj1 = 'astring'
     fnpickle(obj1, fn)
-    res = fnunpickle(fn)
+    res = fnunpickle(fn, 0)
     assert obj1 == res
 
     # now try with a file-like object instead of a string
@@ -24,6 +26,9 @@ def test_fnpickling_simple(tmpdir):
     with open(fn, 'rb') as f:
         res = fnunpickle(f)
         assert obj1 == res
+
+    with catch_warnings(AstropyDeprecationWarning):
+        fnunpickle(fn, 0, True)
 
 
 class ToBePickled:
