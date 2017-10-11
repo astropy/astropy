@@ -35,7 +35,7 @@ def determine_64_bit_int():
     """
     The only configuration parameter needed at compile-time is how to
     specify a 64-bit signed integer.  Python's ctypes module can get us
-    that information, but it is only available in Python 2.5 or later.
+    that information.
     If we can't be absolutely certain, we default to "long long int",
     which is correct on most platforms (x86, x86_64).  If we find
     platforms where this heuristic doesn't work, we may need to

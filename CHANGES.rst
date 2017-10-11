@@ -167,6 +167,9 @@ astropy.io.misc
   dataset instead of the HDF5 dataset attributes. This allows for metadata of
   any dimensions. [#6304]
 
+- Deprecated the ``usecPickle`` kwarg of ``fnunpickle`` and ``fnpickle`` as
+  it was needed only for Python2 usage. [#6655]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -194,6 +197,10 @@ astropy.table
 - When setting the column ``format`` attribute the value is now immediately
   validated. Previously one could set to any value and it was only checked
   when actually formatting the column. [#6385]
+
+- Deprecated the ``python3_only`` kwarg of the
+  ``convert_bytestring_to_unicode`` and ``convert_unicode_to_bytestring``
+  methods it was needed only for Python2 usage. [#6655]
 
 astropy.tests
 ^^^^^^^^^^^^^

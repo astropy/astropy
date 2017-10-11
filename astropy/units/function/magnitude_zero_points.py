@@ -14,8 +14,6 @@ To enable them, do::
 import numpy as _numpy
 from ..core import UnitBase, def_unit
 
-# One cannot import L_bol0 directly, or the order of imports of units and
-# constants starts to matter on python2. [#5121]
 from ...constants import si as _si
 from .. import si, astrophys
 

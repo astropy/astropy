@@ -10,14 +10,7 @@ def bitceil(N):
     Note: this works for numbers up to 2 ** 64.
     Roughly equivalent to int(2 ** np.ceil(np.log2(N)))
     """
-    if hasattr(int, 'bit_length'):
-        # Python 2.7 and 3.x
-        return 1 << int(N - 1).bit_length()
-    else:
-        N = int(N) - 1
-        for i in [1, 2, 4, 8, 16, 32]:
-            N |= N >> i
-        return N + 1
+    return 1 << int(N - 1).bit_length()
 
 
 def extirpolate(x, y, N=None, M=4):

@@ -180,13 +180,9 @@ class AstropyLogger(Logger):
             message = str(args[0])
 
         mod_path = args[2]
-        # Now that we have the module's path, we look through
-        # sys.modules to find the module object and thus the
-        # fully-package-specified module name.  On Python 2, the
-        # module.__file__ is the compiled file name, not the .py, so
-        # we have to ignore the extension.  On Python 3,
-        # module.__file__ is the original source file name, so things
-        # are more direct.
+        # Now that we have the module's path, we look through sys.modules to
+        # find the module object and thus the fully-package-specified module
+        # name.  The module.__file__ is the original source file name.
         mod_name = None
         mod_path, ext = os.path.splitext(mod_path)
         for name, mod in list(sys.modules.items()):

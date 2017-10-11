@@ -95,9 +95,8 @@ def format_exception(msg, *args, **kwargs):
 
     .. note::
         This uses `sys.exc_info` to gather up the information needed to fill
-        in the formatting arguments. Python 2.x and 3.x have slightly
-        different behavior regarding `sys.exc_info` (the latter will not
-        carry it outside a handled exception), so it's not wise to use this
+        in the formatting arguments. Since `sys.exc_info` is not carried
+        outside a handled exception, it's not wise to use this
         outside of an ``except`` clause - if it is, this will substitute
         '<unkown>' for the 4 formatting arguments.
     """
@@ -370,7 +369,7 @@ class JsonCustomEncoder(json.JSONEncoder):
         * Numpy array or number
         * Complex number
         * Set
-        * Bytes (Python 3)
+        * Bytes
         * astropy.UnitBase
         * astropy.Quantity
 
