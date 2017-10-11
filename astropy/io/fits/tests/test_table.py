@@ -2470,7 +2470,7 @@ class TestTableFunctions(FitsTestCase):
             readfile(self.data('memtest.fits'))
 
     @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
-    def test_reference_leak(self, tmpdir):
+    def test_reference_leak2(self, tmpdir):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539
 
