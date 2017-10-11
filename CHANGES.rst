@@ -10,6 +10,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- Add IERS2010 numerical standarts (constants). [#6715]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
