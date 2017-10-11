@@ -86,10 +86,10 @@ def fnpickle(object, fileorname, usecPickle=NoValue, protocol=None,
     fileorname : str or file-like
         The filename or file into which the `object` should be pickled. If a
         file object, it should have been opened in binary mode.
-    protocol : int or None, keyword only
+    protocol : int or None
         Pickle protocol to use - see the :mod:`pickle` module for details on
         these options. If None, the most recent protocol will be used.
-    append : bool, keyword only
+    append : bool
         If True, the object is appended to the end of the file, otherwise the
         file will be overwritten (if a file object is given instead of a
         file name, this has no effect).
