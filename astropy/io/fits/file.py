@@ -341,26 +341,14 @@ class _File:
             self._file.flush()
 
     def seek(self, offset, whence=0):
-        # In newer Python versions, GzipFiles support the whence argument, but
-        # I don't think it was added until 2.6; instead of assuming it's
-        # present, we implement our own support for it here
         if not hasattr(self._file, 'seek'):
             return
-        if isinstance(self._file, gzip.GzipFile):
-            if whence:
-                if whence == 1:
-                    offset = self._file.offset + offset
-                else:
-                    raise ValueError('Seek from end not supported')
-            self._file.seek(offset)
-        else:
-            self._file.seek(offset, whence)
-
+        self._file.seek(offset, whence)
         pos = self._file.tell()
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
-                          '({}) is smaller than the expected size ({})'.format(
-                    self.size, pos), AstropyUserWarning)
+                          '({}) is smaller than the expected size ({})'
+                          .format(self.size, pos), AstropyUserWarning)
 
     def tell(self):
         if not hasattr(self._file, 'tell'):
