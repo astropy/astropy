@@ -208,17 +208,15 @@ class Table:
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data. Default is True.
+        Copy the input data. If the input is a Table the ``meta`` is always
+        copied regardless of the ``copy`` parameter.
+        Default is True.
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
-
-    .. note::
-        If the input is a Table the ``meta`` is always copied regardless of the
-        ``copy`` parameter.
     """
 
     meta = MetaData()
@@ -2533,11 +2531,8 @@ class Table:
         ----------
         copy_data : bool
             If `True` (the default), copy the underlying data array.
-            Otherwise, use the same data array
-
-        .. note::
-            The ``meta`` is always deepcopied regardless of the value for
-            ``copy_data``.
+            Otherwise, use the same data array. The ``meta`` is always
+            deepcopied regardless of the value for ``copy_data``.
         '''
         out = self.__class__(self, copy=copy_data)
 
