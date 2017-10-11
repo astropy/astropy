@@ -17,7 +17,7 @@ from ..utils import isiterable, ShapedLikeNDArray
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning, NoValue
 
 from . import groups
 from .pprint import TableFormatter
@@ -2010,15 +2010,7 @@ class Table:
 
         self._init_from_cols(newcols)
 
-    def convert_bytestring_to_unicode(self, **kwargs):
-        # temporary method to handle deprecated and removed keywords
-        if 'python3_only' in kwargs:
-            warnings.warn('The "python3_only" keyword is now deprecated.',
-                          AstropyDeprecationWarning)
-            del kwargs['python3_only']
-        return self._convert_bytestring_to_unicode(**kwargs)
-
-    def _convert_bytestring_to_unicode(self):
+    def convert_bytestring_to_unicode(self, python3_only=NoValue):
         """
         Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
         ASCII encoding.
@@ -2028,17 +2020,13 @@ class Table:
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        self._convert_string_dtype('S', 'U')
-
-    def convert_unicode_to_bytestring(self, **kwargs):
-        # temporary method to handle deprecated and removed keywords
-        if 'python3_only' in kwargs:
+        if python3_only is not NoValue:
             warnings.warn('The "python3_only" keyword is now deprecated.',
                           AstropyDeprecationWarning)
-            del kwargs['python3_only']
-        return self._convert_unicode_to_bytestring(**kwargs)
 
-    def _convert_unicode_to_bytestring(self):
+        self._convert_string_dtype('S', 'U')
+
+    def convert_unicode_to_bytestring(self, python3_only=NoValue):
         """
         Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
 
@@ -2047,6 +2035,10 @@ class Table:
         advantage of numpy automated conversion which works for strings that
         are pure ASCII.
         """
+        if python3_only is not NoValue:
+            warnings.warn('The "python3_only" keyword is now deprecated.',
+                          AstropyDeprecationWarning)
+
         self._convert_string_dtype('U', 'S')
 
     def keep_columns(self, names):

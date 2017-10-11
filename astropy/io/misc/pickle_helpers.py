@@ -6,21 +6,12 @@ part of a larger framework or standard.
 
 import warnings
 
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning, NoValue
 
 __all__ = ['fnpickle', 'fnunpickle']
 
 
-def fnunpickle(filename, **kwargs):
-    # temporary function to handle deprecated and removed keywords
-    if 'usecPickle' in kwargs:
-        warnings.warn('The "usecPickle" keyword is now deprecated.',
-                      AstropyDeprecationWarning)
-        del kwargs['usecPickle']
-    return _fnunpickle(filename, **kwargs)
-
-
-def _fnunpickle(fileorname, number=0):
+def fnunpickle(fileorname, number=0, usecPickle=NoValue):
     """ Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
@@ -48,6 +39,10 @@ def _fnunpickle(fileorname, number=0):
         file.
 
     """
+
+    if usecPickle is not NoValue:
+        warnings.warn('The "usecPickle" keyword is now deprecated.',
+                      AstropyDeprecationWarning)
 
     import pickle
 
@@ -80,16 +75,8 @@ def _fnunpickle(fileorname, number=0):
     return res
 
 
-def fnpickle(object, fileorname, **kwargs):
-    # temporary function to handle deprecated and removed keywords
-    if 'usecPickle' in kwargs:
-        warnings.warn('The "usecPickle" keyword is now deprecated.',
-                      AstropyDeprecationWarning)
-        del kwargs['usecPickle']
-    return _fnpickle(object, fileorname, **kwargs)
-
-
-def _fnpickle(object, fileorname, protocol=None, append=False):
+def fnpickle(object, fileorname, usecPickle=NoValue, protocol=None,
+             append=False):
     """Pickle an object to a specified file.
 
     Parameters
@@ -99,15 +86,19 @@ def _fnpickle(object, fileorname, protocol=None, append=False):
     fileorname : str or file-like
         The filename or file into which the `object` should be pickled. If a
         file object, it should have been opened in binary mode.
-    protocol : int or None
+    protocol : int or None, keyword only
         Pickle protocol to use - see the :mod:`pickle` module for details on
         these options. If None, the most recent protocol will be used.
-    append : bool
+    append : bool, keyword only
         If True, the object is appended to the end of the file, otherwise the
         file will be overwritten (if a file object is given instead of a
         file name, this has no effect).
 
     """
+
+    if usecPickle is not NoValue:
+        warnings.warn('The "usecPickle" keyword is now deprecated.',
+                      AstropyDeprecationWarning)
 
     import pickle
 
@@ -126,7 +117,3 @@ def _fnpickle(object, fileorname, protocol=None, append=False):
     finally:
         if close:
             f.close()
-
-
-fnpickle.__doc__ = _fnpickle.__doc__
-fnunpickle.__doc__ = _fnunpickle.__doc__

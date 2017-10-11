@@ -42,3 +42,12 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
     The suggested procedure is to issue this warning for the version in
     which the change occurs, and remove it for all following versions.
     """
+
+class NoValue:
+    """Special keyword value.
+
+    This class may be used as the default value assigned to a
+    deprecated keyword in order to check if it has been given a user
+    defined value.
+    """
+    pass
