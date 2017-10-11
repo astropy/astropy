@@ -116,7 +116,7 @@ class QuantityInput:
                 return myangle**2
 
 
-        .. code-block:: python3
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input
@@ -127,7 +127,7 @@ class QuantityInput:
         cause the function to always return a `~astropy.units.Quantity` in that
         unit.
 
-        .. code-block:: python3
+        .. code-block:: python
 
             import astropy.units as u
             @u.quantity_input
