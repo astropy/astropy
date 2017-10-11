@@ -453,7 +453,7 @@ class TableFormatter:
                     raise ValueError(
                         'Unable to parse format string "{0}" for entry "{1}" '
                         'in column "{2}"'.format(col_format, col[idx],
-                                                 col.name))
+                                                 col.info.name))
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
