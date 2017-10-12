@@ -532,7 +532,7 @@ class TestHDUListFunctions(FitsTestCase):
         Open files with nulls for header block padding instead of spaces.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=a)
         hdu.writeto(self.temp('temp.fits'))
 
