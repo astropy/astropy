@@ -236,7 +236,7 @@ int compress_type_from_string(char* zcmptype) {
 
 
 PyObject *
-get_header_value(PyObject* header, char* key) {
+get_header_value(PyObject* header, const char* key) {
     PyObject* hdrkey;
     PyObject* hdrval;
     hdrkey = PyUnicode_FromString(key);
@@ -261,7 +261,8 @@ get_header_value(PyObject* header, char* key) {
    and the default was applied and -1 (with an exception set) if an Exception
    happened (like a MemoryError or Overflow).
 */
-int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
+int get_header_string(PyObject* header, const char* keyword, char* val,
+                      const char* def) {
     PyObject* keyval = get_header_value(header, keyword);
 
     if (keyval == NULL) {
@@ -282,7 +283,7 @@ int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
 }
 
 
-int get_header_long(PyObject* header, char* keyword, long* val, long def) {
+int get_header_long(PyObject* header, const char* keyword, long* val, long def) {
     PyObject* keyval = get_header_value(header, keyword);
 
     if (keyval == NULL) {
@@ -299,7 +300,7 @@ int get_header_long(PyObject* header, char* keyword, long* val, long def) {
 }
 
 
-int get_header_int(PyObject* header, char* keyword, int* val, int def) {
+int get_header_int(PyObject* header, const char* keyword, int* val, int def) {
     long tmp;
     int ret = get_header_long(header, keyword, &tmp, def);
     if (ret == 0) {
@@ -314,7 +315,8 @@ int get_header_int(PyObject* header, char* keyword, int* val, int def) {
 }
 
 
-int get_header_double(PyObject* header, char* keyword, double* val, double def) {
+int get_header_double(PyObject* header, const char* keyword, double* val,
+                      double def) {
     PyObject* keyval = get_header_value(header, keyword);
 
     if (keyval == NULL) {
@@ -331,7 +333,8 @@ int get_header_double(PyObject* header, char* keyword, double* val, double def) 
 }
 
 
-int get_header_float(PyObject* header, char* keyword, float* val, float def) {
+int get_header_float(PyObject* header, const char* keyword, float* val,
+                     float def) {
     double tmp;
     int ret = get_header_double(header, keyword, &tmp, def);
     if (ret == 0) {
@@ -346,7 +349,7 @@ int get_header_float(PyObject* header, char* keyword, float* val, float def) {
 }
 
 
-int get_header_longlong(PyObject* header, char* keyword, long long* val,
+int get_header_longlong(PyObject* header, const char* keyword, long long* val,
                         long long def) {
     PyObject* keyval = get_header_value(header, keyword);
 
