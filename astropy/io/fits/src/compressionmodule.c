@@ -254,6 +254,13 @@ get_header_value(PyObject* header, char* key) {
 // conversion function (eg. PyString_AsString) an argument to a macro or
 // something, but I'm not sure yet how easy it is to generalize the error
 // handling
+/* The get_header_* functions resemble "Header.get" where "def" is the default
+   value, "keyword" is a string representing the header-key and the result is
+   stored in "val".
+   The function returns 0 on success, 1 if the header didn't have the keyword
+   and the default was applied and -1 (with an exception set) if the default was
+   applied but an Exception happened (like a MemoryError or Overflow).
+*/
 int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     PyObject* keyval = get_header_value(header, keyword);
 
@@ -353,6 +360,7 @@ int get_header_longlong(PyObject* header, char* keyword, long long* val,
             return -1;
         }
         *val = tmp;
+        return 0;
     } else {
         *val = def;
         return PyErr_Occurred() ? -1 : 1;
