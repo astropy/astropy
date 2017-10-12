@@ -39,6 +39,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix bug when writing the results of ``fitsdiff`` to files. [#6726]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
