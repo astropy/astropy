@@ -258,8 +258,8 @@ get_header_value(PyObject* header, char* key) {
    value, "keyword" is a string representing the header-key and the result is
    stored in "val".
    The function returns 0 on success, 1 if the header didn't have the keyword
-   and the default was applied and -1 (with an exception set) if the default was
-   applied but an Exception happened (like a MemoryError or Overflow).
+   and the default was applied and -1 (with an exception set) if an Exception
+   happened (like a MemoryError or Overflow).
 */
 int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     PyObject* keyval = get_header_value(header, keyword);
