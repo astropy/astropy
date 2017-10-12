@@ -20,11 +20,7 @@ def default_format_func(format_, val):
         return str(val)
 
 
-_format_funcs = {}
-
-
 # The first three functions are helpers for _auto_format_func
-
 
 def _use_str_for_masked_values(format_func):
     """Wrap format function to trap masked values.
@@ -48,7 +44,7 @@ def _possible_string_format_functions(format_):
 
 
 def get_auto_format_func(
-        col_name=None,
+        col=None,
         possible_string_format_functions=_possible_string_format_functions):
     """
     Return a wrapped ``auto_format_func`` function which is used in
@@ -81,9 +77,8 @@ def get_auto_format_func(
         if format_ is None:
             return default_format_func(format_, val)
 
-        format_key = (format_, col_name)
-        if format_key in _format_funcs:
-            return _format_funcs[format_key](format_, val)
+        if format_ in col.info._format_funcs:
+            return col.info._format_funcs[format_](format_, val)
 
         if callable(format_):
             format_func = lambda format_, val: format_(val)
@@ -135,7 +130,7 @@ def get_auto_format_func(
             # wrap them in a function that traps them.
             format_func = _use_str_for_masked_values(format_func)
 
-        _format_funcs[format_key] = format_func
+        col.info._format_funcs[format_] = format_func
         return out
 
     return _auto_format_func
@@ -419,9 +414,8 @@ class TableFormatter:
                                                 None)
         pssf = (getattr(col.info, 'possible_string_format_functions', None) or
                 _possible_string_format_functions)
-        auto_format_func = get_auto_format_func(id(col), pssf)
-        format_key = (col_format, id(col))
-        format_func = _format_funcs.get(format_key, auto_format_func)
+        auto_format_func = get_auto_format_func(col, pssf)
+        format_func = col.info._format_funcs.get(col_format, auto_format_func)
 
         if len(col) > max_lines:
             if show_length is None:
@@ -459,7 +453,7 @@ class TableFormatter:
                     raise ValueError(
                         'Unable to parse format string "{0}" for entry "{1}" '
                         'in column "{2}"'.format(col_format, col[idx],
-                                                 col.name))
+                                                 col.info.name))
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
