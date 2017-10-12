@@ -9,6 +9,7 @@ import numpy as np
 from ..utils.compat.misc import override__dir__
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
+from ..constants import c as speed_of_light
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.data_info import MixinInfo
@@ -17,7 +18,7 @@ from ..utils import ShapedLikeNDArray
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS, GCRS, SkyOffsetFrame
+from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -1306,7 +1307,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         """
         # has to be here to prevent circular imports
-        from .solar_system import get_body_barycentric_posvel
+        from .solar_system import get_body_barycentric_posvel, get_body_barycentric
 
         # location validation
         timeloc = getattr(obstime, 'location', None)
@@ -1359,11 +1360,23 @@ class SkyCoord(ShapedLikeNDArray):
                              "'{}'".format(kind))
 
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
-        gtarg = self.transform_to(GCRS(obstime=obstime,
-                                       obsgeoloc=gcrs_p,
-                                       obsgeovel=gcrs_v))
-        targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
-        return targcart.dot(v_origin_to_earth + gcrs_v)
+        # transforming to GCRS is not the correct thing to do here, since we don't want to
+        # include aberration (or light deflection)? Instead, only apply parallax if necessary
+        if self.data.__class__ is UnitSphericalRepresentation:
+            targcart = self.represent_as(UnitSphericalRepresentation).to_cartesian()
+        else:
+            # skycoord has distances so apply parallax
+            obs_icrs_cart = get_body_barycentric('earth', obstime) + gcrs_p
+            icrs_cart = self.cartesian
+            targcart = (icrs_cart - obs_icrs_cart).represent_as(UnitSphericalRepresentation).to_cartesian()
+
+        beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
+        gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
+        gr = location.gravitational_redshift(obstime)
+        # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
+        # neglectic Shapiro delay and effects of the star's own motion
+        zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
+        return zb * speed_of_light
 
     # Table interactions
     @classmethod
