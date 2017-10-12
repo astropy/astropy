@@ -81,11 +81,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     Parameter descriptors declared at the class-level of Model subclasses.
     """
 
-    registry = set()
-    """
-    A registry of all known concrete (non-abstract) Model subclasses.
-    """
-
     _is_dynamic = False
     """
     This flag signifies whether this class was created in the "normal" way,
@@ -127,9 +122,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
-
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            cls.registry.add(cls)
 
     def __repr__(cls):
         """
