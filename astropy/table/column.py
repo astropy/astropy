@@ -2,12 +2,12 @@
 
 import warnings
 import weakref
-import re
 
 from copy import deepcopy
 
 import numpy as np
 from numpy import ma
+from IPython.core.debugger import Tracer
 
 # Remove this when Numpy no longer emits this warning and that Numpy version
 # becomes the minimum required version for Astropy.
@@ -19,20 +19,14 @@ except ImportError:
     MaskedArrayFutureWarning = None
 
 from ..units import Unit, Quantity
-from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from ..utils.misc import dtype_bytes_or_chars
 from . import groups
-from . import pprint
 from .np_utils import fix_column_name
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
-
-# Create a generic TableFormatter object for use by bare columns with no
-# parent table.
-FORMATTER = pprint.TableFormatter()
 
 
 class StringTruncateWarning(UserWarning):
@@ -141,7 +135,10 @@ class ColumnInfo(BaseColumnInfo):
     This is required when the object is used as a mixin column within a table,
     but can be used as a general way to store meta information.
     """
-    attrs_from_parent = BaseColumnInfo.attr_names
+    # ColumInfo gets all attrs from parent Column except for `format` (which
+    # is handled by BaseColumnInfo so that mixin columns like Quantity have
+    # immediate validation of format).
+    attrs_from_parent = BaseColumnInfo.attr_names - set(['format'])
     _supports_indexing = True
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
@@ -224,7 +221,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self._name = fix_column_name(name)
         self._parent_table = None
         self.unit = unit
-        self._format = format
+        self.format = format
         self.description = description
         self.meta = meta
         self.indices = deepcopy(getattr(data, 'indices', [])) if \
@@ -308,7 +305,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         5-tuple that has Column-specific state values.
         """
         # Get the Column attributes
-        names = ('_name', '_unit', '_format', 'description', 'meta', 'indices')
+        names = ('_name', '_unit', 'format', 'description', 'meta', 'indices')
         attrs = {name: val for name, val in zip(names, state[-1])}
 
         state = state[:-1]
@@ -344,6 +341,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return reconstruct_func, reconstruct_func_args, state
 
     def __array_finalize__(self, obj):
+        # Tracer()()
+        print('__array_finalize__ self: {} {} obj: {} {}'
+              .format(type(self), id(self), type(obj), id(obj)))
         # Obj will be none for direct call to Column() creator
         if obj is None:
             return
@@ -406,29 +406,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @property
     def format(self):
-        """
-        Format string for displaying values in this column.
-        """
-
-        return self._format
+        return self.info.format
 
     @format.setter
-    def format(self, format_string):
-
-        prev_format = getattr(self, '_format', None)
-
-        self._format = format_string  # set new format string
-
-        try:
-            # test whether it formats without error exemplarily
-            self.pformat(max_lines=1)
-        except Exception as err:
-            # revert to restore previous format if there was one
-            self._format = prev_format
-            raise ValueError(
-                "Invalid format for column '{0}': could not display "
-                "values in this column using this format ({1})".format(
-                    self.name, err.args[0]))
+    def format(self, value):
+        self.info.format = value
 
     @property
     def descr(self):
@@ -483,7 +465,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @property
     def _formatter(self):
-        return FORMATTER if (self.parent_table is None) else self.parent_table.formatter
+        return self.info._formatter
 
     def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False,
                 html=False):
@@ -519,10 +501,14 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             List of lines with header and formatted column values
 
         """
-        _pformat_col = self._formatter._pformat_col
-        lines, outs = _pformat_col(self, max_lines, show_name=show_name,
-                                   show_unit=show_unit, show_dtype=show_dtype,
-                                   html=html)
+        # _pformat_col = self._formatter._pformat_col
+        # lines, outs = _pformat_col(self, max_lines, show_name=show_name,
+        #                            show_unit=show_unit, show_dtype=show_dtype,
+        #                            html=html)
+        # return lines
+        lines = self.info.pformat(max_lines=max_lines, show_name=show_name,
+                                  show_unit=show_unit, show_dtype=show_dtype,
+                                  html=html)
         return lines
 
     def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
@@ -549,16 +535,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         show_dtype : bool
             Include column dtype. Default is True.
         """
-        _pformat_col = self._formatter._pformat_col
-        lines, outs = _pformat_col(self, max_lines, show_name=show_name, show_unit=show_unit,
-                                   show_dtype=show_dtype)
-
-        n_header = outs['n_header']
-        for i, line in enumerate(lines):
-            if i < n_header:
-                color_print(line, 'red')
-            else:
-                print(line)
+        self.info.pprint(max_lines=max_lines, show_name=show_name,
+                         show_unit=show_unit, show_dtype=show_dtype)
 
     def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
@@ -587,9 +565,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             Include a header row for unit. Default is False.
 
         """
-        _more_tabcol = self._formatter._more_tabcol
-        _more_tabcol(self, max_lines=max_lines, show_name=show_name,
-                     show_unit=show_unit)
+        self.info.more(max_lines=max_lines, show_name=show_name, show_unit=show_unit)
 
     @property
     def unit(self):
@@ -725,8 +701,14 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Copy key column attributes from ``obj`` to self
         """
-        for attr in ('name', 'unit', '_format', 'description'):
+        if getattr(obj, 'description', None) == 'stop':
+            import pdb
+            pdb.set_trace()
+
+        for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
+            if val is not None:
+                print('Setting {} = {}'.format(attr, val))
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
 

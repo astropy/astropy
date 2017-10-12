@@ -202,11 +202,13 @@ class DataInfo:
     """
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
-    attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
+    attr_names = set(['name', 'unit', 'dtype', 'format', 'description'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _represent_as_dict_attrs = ()
     _parent_ref = None
+
+    meta = metadata.MetaData()
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
@@ -479,17 +481,20 @@ class BaseColumnInfo(DataInfo):
         if bound:
             self._format_funcs = {}
 
+    @property
+    def _formatter(self):
+        if self.parent_table is None:
+            from ..table.pprint import FORMATTER as formatter
+        else:
+            formatter = self.parent_table.formatter
+        return formatter
+
     def iter_str_vals(self):
         """
         This is a mixin-safe version of Column.iter_str_vals.
         """
         col = self._parent
-        if self.parent_table is None:
-            from ..table.column import FORMATTER as formatter
-        else:
-            formatter = self.parent_table.formatter
-
-        _pformat_col_iter = formatter._pformat_col_iter
+        _pformat_col_iter = self._formatter._pformat_col_iter
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
 
@@ -626,6 +631,136 @@ class BaseColumnInfo(DataInfo):
         out['shape'] = uniq_shapes.pop()
 
         return out
+
+    @property
+    def format(self):
+        return self._attrs['format']
+
+    @format.setter
+    def format(self, format_string):
+
+        prev_format = self._attrs['format']
+
+        self._attrs['format'] = format_string  # set new format string
+
+        try:
+            # test whether it formats without error exemplarily
+            self.pformat(max_lines=1)
+        except TypeError as err:
+            # revert to restore previous format if there was one
+            self._attrs['format'] = prev_format
+            raise ValueError(
+                "Invalid format for column '{0}': could not display "
+                "values in this column using this format ({1})".format(
+                    self.name, err.args[0]))
+
+    def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False,
+                html=False):
+        """Return a list of formatted string representation of column values.
+
+        If no value of ``max_lines`` is supplied then the height of the
+        screen terminal is used to set ``max_lines``.  If the terminal
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum lines of output (header + data rows)
+
+        show_name : bool
+            Include column name. Default is True.
+
+        show_unit : bool
+            Include a header row for unit. Default is False.
+
+        show_dtype : bool
+            Include column dtype. Default is False.
+
+        html : bool
+            Format the output as an HTML table. Default is False.
+
+        Returns
+        -------
+        lines : list
+            List of lines with header and formatted column values
+
+        """
+        _pformat_col = self._formatter._pformat_col
+        lines, outs = _pformat_col(self._parent, max_lines, show_name=show_name,
+                                   show_unit=show_unit, show_dtype=show_dtype,
+                                   html=html)
+        return lines
+
+    def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
+        """Print a formatted string representation of column values.
+
+        If no value of ``max_lines`` is supplied then the height of the
+        screen terminal is used to set ``max_lines``.  If the terminal
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of values in output
+
+        show_name : bool
+            Include column name. Default is True.
+
+        show_unit : bool
+            Include a header row for unit. Default is False.
+
+        show_dtype : bool
+            Include column dtype. Default is True.
+        """
+        from .console import color_print
+
+        _pformat_col = self._formatter._pformat_col
+        lines, outs = _pformat_col(self._parent, max_lines, show_name=show_name,
+                                   show_unit=show_unit, show_dtype=show_dtype)
+
+        n_header = outs['n_header']
+        for i, line in enumerate(lines):
+            if i < n_header:
+                color_print(line, 'red')
+            else:
+                print(line)
+
+    def more(self, max_lines=None, show_name=True, show_unit=False):
+        """Interactively browse column with a paging interface.
+
+        Supported keys::
+
+          f, <space> : forward one page
+          b : back one page
+          r : refresh same page
+          n : next row
+          p : previous row
+          < : go to beginning
+          > : go to end
+          q : quit browsing
+          h : print this help
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output.
+
+        show_name : bool
+            Include a header row for column names. Default is True.
+
+        show_unit : bool
+            Include a header row for unit. Default is False.
+
+        """
+        _more_tabcol = self._formatter._more_tabcol
+        _more_tabcol(self._parent, max_lines=max_lines, show_name=show_name,
+                     show_unit=show_unit)
 
 
 class MixinInfo(BaseColumnInfo):

@@ -717,3 +717,7 @@ class TableFormatter:
             if i0 >= len(tabcol) - delta_lines:
                 i0 = len(tabcol) - delta_lines
             print("\n")
+
+# Create a generic TableFormatter object for use by bare columns with no
+# parent table.
+FORMATTER = TableFormatter()

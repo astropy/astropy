@@ -164,10 +164,13 @@ class TestColumn():
         c1.format = '%d'
         c1.description = 'bb'
         c1.meta = {'bbb': 2}
+        assert c1.format == '%d'
 
         for item in (slice(None, None), slice(None, 1), np.array([0, 2]),
                      np.array([False, True, False])):
+            assert c1.format == '%d'
             c2 = c1[item]
+            assert c1.format == '%d'
             assert c2.name == 'b'
             assert c2.unit is u.km
             assert c2.format == '%d'
