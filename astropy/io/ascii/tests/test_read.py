@@ -8,6 +8,7 @@ from collections import OrderedDict
 import locale
 import platform
 from io import StringIO
+import os
 
 import pathlib
 import pytest
@@ -1283,3 +1284,27 @@ def test_unsupported_read_with_encoding(tmpdir):
     with pytest.raises(ascii.ParameterError):
         ascii.read('t/simple3.txt', guess=False, fast_reader='force',
                    encoding='latin1', format='fast_csv')
+
+
+def test_read_pandas_csv(tmpdir):
+    pandas = pytest.importorskip('pandas')
+
+    df = pandas.DataFrame()
+    df['stuff'] = [x for x in range(10)]
+    no_index_fname = str(tmpdir.join('no_index.csv'))
+    df.to_csv(no_index_fname, index=False)
+
+    table = ascii.read(no_index_fname)
+    assert table.colnames == ['stuff']
+    assert all(table['stuff'] == [x for x in range(10)])
+
+    # This is the problematic case since by default the first column in a
+    # pandas csv is the index column. However, if we don't explicitly provide
+    # an index name, then the header column starts with a single delimiter,
+    # indicating an index header name of None
+    has_index_fname = str(tmpdir.join('has_index.csv'))
+    df.to_csv(has_index_fname)
+
+    table = ascii.read(has_index_fname)
+    assert table.colnames == ['stuff']
+    assert all(table['stuff'] == [x for x in range(10)])
