@@ -439,7 +439,7 @@ class TestImageFunctions(FitsTestCase):
         assert np.array_equal(sec[0, ...], dat[0, ...])
 
     def test_section_data_square(self):
-        a = np.arange(4).reshape((2, 2))
+        a = np.arange(4).reshape(2, 2)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -461,7 +461,7 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[0:2, 0:2] == dat[0:2, 0:2]).all()
 
     def test_section_data_cube(self):
-        a = np.arange(18).reshape((2, 3, 3))
+        a = np.arange(18).reshape(2, 3, 3)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -590,7 +590,7 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[1:2, 1:3, 2:3] == dat[1:2, 1:3, 2:3]).all()
 
     def test_section_data_four(self):
-        a = np.arange(256).reshape((4, 4, 4, 4))
+        a = np.arange(256).reshape(4, 4, 4, 4)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -1220,7 +1220,7 @@ class TestCompressedImage(FitsTestCase):
         be flattened to two dimensions.
         """
 
-        cube = np.arange(300, dtype=np.float32).reshape((3, 10, 10))
+        cube = np.arange(300, dtype=np.float32).reshape(3, 10, 10)
         hdu = fits.CompImageHDU(data=cube, name='SCI',
                                 compressionType='HCOMPRESS_1',
                                 quantizeLevel=16, tileSize=[5, 5, 1])
