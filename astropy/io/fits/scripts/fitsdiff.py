@@ -293,7 +293,7 @@ def main():
     if opts.quiet:
         out_file = None
     elif opts.output_file:
-        out_file = open(opts.output_file, 'wb')
+        out_file = open(opts.output_file, 'w')
         close_file = True
     else:
         out_file = sys.stdout
