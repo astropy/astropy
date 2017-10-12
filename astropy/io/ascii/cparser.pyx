@@ -14,6 +14,7 @@ from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
+from cpython cimport bool
 
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning
@@ -181,6 +182,7 @@ cdef class CParser:
         char *source_ptr
         object parallel
         set use_cols
+        bool pandas
 
     cdef public:
         int width
@@ -248,6 +250,7 @@ cdef class CParser:
         self.fill_exclude_names = fill_exclude_names
         self.fill_names = None
         self.fill_extra_cols = fill_extra_cols
+        self.pandas = False
 
         # parallel=True indicates that we should use the CPU count
         if parallel is True:
@@ -323,7 +326,15 @@ cdef class CParser:
             for i in range(self.tokenizer.output_len[0]): # header is in first col string
                 c = self.tokenizer.output_cols[0][i] # next char in header string
                 if not c: # zero byte -- field terminator
-                    if name:
+                    # Handle the case of pandas csv files where the first
+                    # column is an index, but there is no index column name.
+                    # This means that the first character of the header row
+                    # will just be the delimiter, in which case the tokenizer
+                    # will return an empty name.
+                    if name == '\x01' and len(self.header_names) == 0:
+                        self.pandas = True
+                        name = ''
+                    elif name:
                         # replace empty placeholder with ''
                         self.header_names.append(name.replace('\x01', ''))
                         name = ''
@@ -380,7 +391,11 @@ cdef class CParser:
         if self.data_end is not None and self.data_end >= 0:
             data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
 
-        if tokenize(self.tokenizer, data_end, 0, <int>len(self.names)) != 0:
+        num_cols = <int>len(self.names)
+        if self.pandas:
+            num_cols += 1
+
+        if tokenize(self.tokenizer, data_end, 0, num_cols) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
             return ([np.array([], dtype=np.int_)] * self.width, [])
@@ -773,6 +788,9 @@ cdef class CParser:
 
     def get_header_names(self):
         return self.header_names
+
+    def is_pandas(self):
+        return self.pandas
 
     def __reduce__(self):
         cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
