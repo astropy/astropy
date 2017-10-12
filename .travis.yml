@@ -3,6 +3,8 @@
 # install Python ourselves using conda.
 language: c
 
+compiler: gcc
+
 os:
     - linux
 
@@ -109,6 +111,7 @@ matrix:
         - os: linux
           stage: Initial tests
           env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES NUMPY_VERSION=1.12
+          compiler: clang
 
         # Pinning conda version temporarily to 4.3.21, as some anaconda
         # packges build with 4.3.27 are faulty and we see this job failing,
