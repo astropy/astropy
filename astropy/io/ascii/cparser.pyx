@@ -950,8 +950,8 @@ cdef class FastWriter:
                 if col.format is None and not (six.PY3 and col.dtype.kind == 'S'):
                     self.format_funcs.append(None)
                 else:
-                    self.format_funcs.append(pprint._format_funcs.get(
-                        (col.format, col.name), pprint.get_auto_format_func(col.name)))
+                    self.format_funcs.append(col.info._format_funcs.get(
+                        col.format, pprint.get_auto_format_func(col)))
                 # col is a numpy.ndarray, so we convert it to
                 # an ordinary list because csv.writer will call
                 # np.array_str() on each numpy value, which is

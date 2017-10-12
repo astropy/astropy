@@ -22,7 +22,7 @@ from . import core
 from . import fixedwidth
 from . import basic
 from ...utils.exceptions import AstropyUserWarning
-from ...table.pprint import _format_funcs, get_auto_format_func
+from ...table.pprint import get_auto_format_func
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -275,9 +275,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             # This may be incompatible with mixin columns
             null = col.fill_values[core.masked]
             try:
-                format_key = (col_format, col.info.name)
-                auto_format_func = get_auto_format_func(id(col))
-                format_func = _format_funcs.get(format_key, auto_format_func)
+                auto_format_func = get_auto_format_func(col)
+                format_func = col.info._format_funcs.get(col_format, auto_format_func)
                 nullist.append((format_func(col_format, null)).strip())
             except Exception:
                 # It is possible that null and the column values have different
