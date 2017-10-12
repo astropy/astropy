@@ -264,40 +264,38 @@ get_header_value(PyObject* header, char* key) {
 int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     PyObject* keyval = get_header_value(header, keyword);
 
-    if (keyval != NULL) {
-        PyObject* tmp = PyUnicode_AsLatin1String(keyval);
-        // FITS header values should always be ASCII, but Latin1 is on the
-        // safe side
-        Py_DECREF(keyval);
-        if (tmp == NULL) {
-            /* could always fail to allocate the memory or such like. */
-            return -1;
-        }
-        strncpy(val, PyBytes_AsString(tmp), 72);
-        Py_DECREF(tmp);
-        return 0;
-    } else {
+    if (keyval == NULL) {
         strncpy(val, def, 72);
         return PyErr_Occurred() ? -1 : 1;
     }
+    PyObject* tmp = PyUnicode_AsLatin1String(keyval);
+    // FITS header values should always be ASCII, but Latin1 is on the
+    // safe side
+    Py_DECREF(keyval);
+    if (tmp == NULL) {
+        /* could always fail to allocate the memory or such like. */
+        return -1;
+    }
+    strncpy(val, PyBytes_AsString(tmp), 72);
+    Py_DECREF(tmp);
+    return 0;
 }
 
 
 int get_header_long(PyObject* header, char* keyword, long* val, long def) {
     PyObject* keyval = get_header_value(header, keyword);
 
-    if (keyval != NULL) {
-        long tmp = PyLong_AsLong(keyval);
-        Py_DECREF(keyval);
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-        *val = tmp;
-        return 0;
-    } else {
+    if (keyval == NULL) {
         *val = def;
         return PyErr_Occurred() ? -1 : 1;
     }
+    long tmp = PyLong_AsLong(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
@@ -305,7 +303,7 @@ int get_header_int(PyObject* header, char* keyword, int* val, int def) {
     long tmp;
     int ret = get_header_long(header, keyword, &tmp, def);
     if (ret == 0) {
-        if (tmp > INT_MIN && tmp < INT_MAX) {
+        if (tmp >= INT_MIN && tmp <= INT_MAX) {
             *val = (int) tmp;
         } else {
             PyErr_Format(PyExc_OverflowError, "Cannot convert %ld to C 'int'", tmp);
@@ -319,18 +317,17 @@ int get_header_int(PyObject* header, char* keyword, int* val, int def) {
 int get_header_double(PyObject* header, char* keyword, double* val, double def) {
     PyObject* keyval = get_header_value(header, keyword);
 
-    if (keyval != NULL) {
-        double tmp = PyFloat_AsDouble(keyval);
-        Py_DECREF(keyval);
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-        *val = tmp;
-        return 0;
-    } else {
+    if (keyval == NULL) {
         *val = def;
         return PyErr_Occurred() ? -1 : 1;
     }
+    double tmp = PyFloat_AsDouble(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
@@ -338,7 +335,7 @@ int get_header_float(PyObject* header, char* keyword, float* val, float def) {
     double tmp;
     int ret = get_header_double(header, keyword, &tmp, def);
     if (ret == 0) {
-        if (tmp > FLT_MIN || tmp < FLT_MAX) { /* don't care about infs! */
+        if (tmp >= FLT_MIN || tmp <= FLT_MAX) { /* don't care about infs! */
             *val = (float) tmp;
         } else {
             PyErr_Format(PyExc_OverflowError, "Cannot convert %f to 'float'", tmp);
@@ -353,18 +350,17 @@ int get_header_longlong(PyObject* header, char* keyword, long long* val,
                         long long def) {
     PyObject* keyval = get_header_value(header, keyword);
 
-    if (keyval != NULL) {
-        long long tmp = PyLong_AsLongLong(keyval);
-        Py_DECREF(keyval);
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-        *val = tmp;
-        return 0;
-    } else {
+    if (keyval == NULL) {
         *val = def;
         return PyErr_Occurred() ? -1 : 1;
     }
+    long long tmp = PyLong_AsLongLong(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
