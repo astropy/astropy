@@ -10,6 +10,7 @@ import urllib.parse
 
 import numpy as np
 from .. import units as u
+from .. import constants as consts
 from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
@@ -638,6 +639,38 @@ class EarthLocation(u.Quantity):
         # Transform to GCRS (rotation)
         obsgeovel = cirs_vel.transform(matrix_transpose(gcrs_to_cirs_mat(obstime)))
         return obsgeoloc, obsgeovel
+
+    def gravitational_redshift(self, obstime):
+        """
+        Return the gravitational redshift at this EarthLocation.
+
+        The gravitational redshift due to the potential from the Earth itself,
+        the Sun and other bodies is of order 3 metres/sec. This routine calculates
+        the redshift, considering the effect of the Sun, Jupiter, the Moon and the
+        Earth itself.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the redshift at.
+
+        Returns
+        --------
+        redshift :  `~astropy.units.Quantity`
+            Gravitational redshift in velocity units at given obstime.
+        """
+        # needs to be here to avoid circular imports
+        from .solar_system import get_body_barycentric
+        masses = [consts.M_sun, consts.M_jup, 7.34767309e22*u.kg]
+        positions = [get_body_barycentric(name, obstime) for name in ('sun', 'jupiter', 'moon')]
+        earth_pos = get_body_barycentric('earth', obstime)
+        distances = [(pos - earth_pos).norm() for pos in positions]
+        redshifts = [-consts.G*mass/consts.c/distance for (mass, distance) in
+                     zip(masses, distances)]
+        # now Earth's contribution
+        distance = CartesianRepresentation(self.geocentric).norm()
+        redshifts.append(-consts.G*consts.M_earth/consts.c/distance)
+        return u.Quantity(redshifts).sum().to(u.m/u.s)
 
     @property
     def x(self):
