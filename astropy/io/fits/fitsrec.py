@@ -450,7 +450,7 @@ class FITS_rec(np.recarray):
                 if outarr.ndim > 1:
                     # The normal case where the first dimension is the rows
                     inarr_rowsize = inarr[0].size
-                    inarr = inarr.reshape((n, inarr_rowsize))
+                    inarr = inarr.reshape(n, inarr_rowsize)
                     outarr[:, :inarr_rowsize] = inarr
                 else:
                     # Special case for strings where the out array only has one
