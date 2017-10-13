@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 try:
@@ -8,7 +9,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-from ....tests.helper import pytest
 from .. import LombScargle
 from .._statistics import (cdf_single, pdf_single, fap_single, inv_fap_single,
                            METHODS)
