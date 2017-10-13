@@ -70,40 +70,35 @@ def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
         description=('Print tables from ASCII, FITS, HDF5, VOTable file(s).'))
+    addarg = parser.add_argument
 
     # pprint arguments
-    parser.add_argument('--max-lines', type=int,
-                        help='Maximum number of lines in table output.')
-    parser.add_argument('--max-width', type=int,
-                        help='Maximum character width of output.')
-    parser.add_argument('--hide-unit', action='store_true',
-                        help='Hide the header row for unit (which is shown '
-                        'only if one or more columns has a unit).')
-    parser.add_argument('--show-dtype', action='store_true',
-                        help='Include a header row for column dtypes.')
+    addarg('--max-lines', type=int,
+           help='Maximum number of lines in table output.')
+    addarg('--max-width', type=int,
+           help='Maximum character width of output.')
+    addarg('--hide-unit', action='store_true',
+           help='Hide the header row for unit (which is shown '
+           'only if one or more columns has a unit).')
+    addarg('--show-dtype', action='store_true',
+           help='Include a header row for column dtypes.')
 
     # ASCII-specific arguments
     # FIXME: add more args ? (delimiter, guess ?)
-    parser.add_argument('--format',
-                        help='Input table format (only for ASCII files).')
+    addarg('--format', help='Input table format (only for ASCII files).')
 
     # FITS-specific arguments
-    parser.add_argument('--hdu',
-                        help='Name of the HDU to show (only for FITS files).')
+    addarg('--hdu', help='Name of the HDU to show (only for FITS files).')
 
     # HDF5-specific arguments
-    parser.add_argument('--path',
-                        help='The path from which to read the table (only '
-                        'for HDF5 files).')
+    addarg('--path', help='The path from which to read the table (only '
+           'for HDF5 files).')
 
     # VOTable-specific arguments
-    parser.add_argument('--table_id', help='The table to read in (only '
-                        'for VOTable files).')
+    addarg('--table_id', help='The table to read in (only for VOTable files).')
 
-    parser.add_argument('filename', nargs='+',
-                        help='Path to one or more files.')
+    addarg('filename', nargs='+', help='Path to one or more files.')
 
-    # TODO: add `read` kwargs (to choose format, hdu, etc.)
     args = parser.parse_args(args)
 
     for idx, filename in enumerate(args.filename):
