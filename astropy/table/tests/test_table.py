@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import gc
 import sys
 import copy
 from io import StringIO
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from ...io import fits
-from ...tests.helper import (pytest, assert_follows_unicode_guidelines,
+from ...tests.helper import (assert_follows_unicode_guidelines,
                              ignore_warnings, catch_warnings)
 from ...utils.data import get_pkg_data_filename
 from ... import table
