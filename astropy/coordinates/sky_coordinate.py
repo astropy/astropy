@@ -194,13 +194,12 @@ class SkyCoord(ShapedLikeNDArray):
     # info property.
     info = SkyCoordInfo()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, copy=True, **kwargs):
 
         # Parse the args and kwargs to assemble a sanitized and validated
         # kwargs dict for initializing attributes for this object and for
         # creating the internal self._sky_coord_frame object
         args = list(args)  # Make it mutable
-        copy = kwargs.pop('copy', True)
         kwargs = self._parse_inputs(args, kwargs)
 
         frame = kwargs['frame']

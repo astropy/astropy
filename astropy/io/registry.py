@@ -478,14 +478,12 @@ def get_writer(data_format, data_class):
                 data_format, data_class.__name__, format_table_str))
 
 
-def read(cls, *args, **kwargs):
+def read(cls, *args, format=None, **kwargs):
     """
     Read in data.
 
     The arguments passed to this method depend on the format.
     """
-
-    format = kwargs.pop('format', None)
 
     ctx = None
     try:
@@ -539,14 +537,12 @@ def read(cls, *args, **kwargs):
     return data
 
 
-def write(data, *args, **kwargs):
+def write(data, *args, format=None, **kwargs):
     """
     Write out data.
 
     The arguments passed to this method depend on the format.
     """
-
-    format = kwargs.pop('format', None)
 
     if format is None:
         path = None
