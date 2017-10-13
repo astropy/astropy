@@ -48,7 +48,7 @@ class Conf(_config.ConfigNamespace):
         'http://data.astropy.org/',
         'Primary URL for astropy remote data site.')
     dataurl_mirror = _config.ConfigItem(
-        'http://astropy.org/astropy-data/',
+        'http://www.astropy.org/astropy-data/',
         'Mirror URL for astropy remote data site.')
     remote_timeout = _config.ConfigItem(
         10.,
