@@ -449,7 +449,7 @@ def test_get_readable_fileobj_cleans_up_temporary_files(tmpdir, monkeypatch):
     monkeypatch.setattr(tempfile, 'tempdir', str(tmpdir))
 
     # Call get_readable_fileobj() as a context manager
-    with get_readable_fileobj(url) as fileobj:  # noqa
+    with get_readable_fileobj(url):
         pass
 
     # Get listing of files in temporary directory
