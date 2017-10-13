@@ -1,7 +1,7 @@
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from ....tests.helper import pytest
 from ..utils import convert_normalization, compute_chi2_ref
 from ..core import LombScargle
 

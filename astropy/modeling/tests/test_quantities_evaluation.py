@@ -6,6 +6,7 @@ Tests that relate to evaluating models with quantity parameters
 
 
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 
@@ -13,7 +14,7 @@ from ..core import Model
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 
 
 # We start off by taking some simple cases where the units are defined by
