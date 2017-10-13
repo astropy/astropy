@@ -446,13 +446,13 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         all_urls = (conf.dataurl, conf.dataurl_mirror)
         for url in all_urls:
             try:
-                return get_readable_fileobj(url + datafn, encoding=encoding,
+                return get_readable_fileobj(url + data_name, encoding=encoding,
                                             cache=cache)
             except urllib.error.URLError as e:
                 pass
         urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
         raise urllib.error.URLError("Failed to download {0} from the following "
-                                    "repositories:\n\n{1}".format(datafn, urls))
+                                    "repositories:\n\n{1}".format(data_name, urls))
 
 
 def get_pkg_data_filename(data_name, package=None, show_progress=True,
