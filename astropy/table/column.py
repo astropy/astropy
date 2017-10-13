@@ -314,7 +314,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         state = state[:-1]
 
         # Using super().__setstate__(state) gives
-        # TypeError 'int' object is not iterable
+        # "TypeError 'int' object is not iterable", raised in
         # astropy.table._column_mixins._ColumnGetitemShim.__setstate_cython__()
         # Previously, it seems to have given an infinite recursion.
         # Hence, manually call the right super class to actually set up
