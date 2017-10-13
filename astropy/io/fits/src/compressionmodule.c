@@ -375,7 +375,7 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
 
     tcolumn* column;
     char tkw[9];
-    unsigned int idx;
+    int idx;
 
     int tfields;
     char ttype[72];
@@ -386,13 +386,25 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
     long long totalwidth;
     int status = 0;
 
-    get_header_int(header, "TFIELDS", &tfields, 0);
+    if (get_header_int(header, "TFIELDS", &tfields, 0) == -1) {
+        return;
+    }
+    /* To avoid issues in the loop we need to limit the number of TFIELDs to
+       999. Otherwise we would exceed the maximum length of the keyword name of
+       8. This could lead to multiple accesses of the same header keyword with
+       snprintf because we limit it to 8 characters + null-termination. */
+    if (tfields > 999) {
+        PyErr_SetString(PyExc_ValueError, "The TFIELDS value exceeds 999.");
+        return;
+    }
 
     // This used to use PyMem_New, but don't do that; CFITSIO will later
     // free() this object when the file is closed, so just use malloc here
     // *columns = column = PyMem_New(tcolumn, (size_t) tfields);
     *columns = column = calloc((size_t) tfields, sizeof(tcolumn));
     if (column == NULL) {
+        PyErr_SetString(PyExc_MemoryError,
+                        "Couldn't allocate memory for columns.");
         return;
     }
 
@@ -408,12 +420,16 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
         column->twidth = 0;
 
         snprintf(tkw, 9, "TTYPE%u", idx);
-        get_header_string(header, tkw, ttype, "");
+        if (get_header_string(header, tkw, ttype, "") == -1) {
+            return;
+        }
         strncpy(column->ttype, ttype, 69);
         column->ttype[69] = '\0';
 
         snprintf(tkw, 9, "TFORM%u", idx);
-        get_header_string(header, tkw, tform, "");
+        if (get_header_string(header, tkw, tform, "") == -1) {
+            return;
+        }
         strncpy(column->tform, tform, 9);
         column->tform[9] = '\0';
         fits_binary_tform(tform, &dtcode, &trepeat, &twidth, &status);
@@ -427,13 +443,19 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
         column->twidth = twidth;
 
         snprintf(tkw, 9, "TSCAL%u", idx);
-        get_header_double(header, tkw, &(column->tscale), 1.0);
+        if (get_header_double(header, tkw, &(column->tscale), 1.0) == -1) {
+            return;
+        }
 
         snprintf(tkw, 9, "TZERO%u", idx);
-        get_header_double(header, tkw, &(column->tzero), 0.0);
+        if (get_header_double(header, tkw, &(column->tzero), 0.0) == -1) {
+            return;
+        }
 
         snprintf(tkw, 9, "TNULL%u", idx);
-        get_header_longlong(header, tkw, &(column->tnull), NULL_UNDEFINED);
+        if (get_header_longlong(header, tkw, &(column->tnull), NULL_UNDEFINED) == -1) {
+            return;
+        }
     }
 
     fileptr->Fptr->tableptr = *columns;
