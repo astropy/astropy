@@ -13,13 +13,12 @@ deviations from the original APE5 plan.
 """
 
 import pytest
-
 import numpy as np
 from numpy.random import randn
 from numpy import testing as npt
-from ...tests.helper import (quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
 
+from ...tests.helper import (raises, quantity_allclose as allclose,
+                             assert_quantity_allclose as assert_allclose)
 from ... import units as u
 from ... import time
 from ... import coordinates as coords
@@ -30,8 +29,6 @@ except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
-
-raises = pytest.raises
 
 
 def test_representations_api():
