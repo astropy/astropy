@@ -877,9 +877,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     FITSfile* Fptr = NULL;
     int status = 0;
 
-    if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu))
-    {
-        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
+    if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu)) {
         return NULL;
     }
 
@@ -997,9 +995,7 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     int anynul = 0;
     int status = 0;
 
-    if (!PyArg_ParseTuple(args, "O:compression.decompress_hdu", &hdu))
-    {
-        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
+    if (!PyArg_ParseTuple(args, "O:compression.decompress_hdu", &hdu)) {
         return NULL;
     }
 
