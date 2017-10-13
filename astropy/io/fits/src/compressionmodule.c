@@ -1099,11 +1099,13 @@ fail:
 static double cfitsio_version;
 
 
-void compression_module_init(PyObject* module) {
-    /* Python version-indendependent initialization routine for the
-       compression module */
+int compression_module_init(PyObject* module) {
+    /* Python version-independent initialization routine for the
+       compression module. Returns 0 on success and -1 (with exception set)
+       on failure. */
     PyObject* tmp;
     float version_tmp;
+    int ok;
 
     fits_get_version(&version_tmp);
     cfitsio_version = (double) version_tmp;
@@ -1114,10 +1116,12 @@ void compression_module_init(PyObject* module) {
     cfitsio_version = floor((1000 * version_tmp + 0.5)) / 1000;
 
     tmp = PyFloat_FromDouble(cfitsio_version);
-    PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
-    Py_XDECREF(tmp);
-
-    return;
+    if (tmp == NULL) {
+        return -1;
+    }
+    ok = PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
+    Py_DECREF(tmp);
+    return ok;
 }
 
 
@@ -1141,7 +1145,13 @@ PyObject *
 PyInit_compression(void)
 {
     PyObject* module = PyModule_Create(&compressionmodule);
-    compression_module_init(module);
+    if (module == NULL) {
+        return NULL;
+    }
+    if (compression_module_init(module)) {
+        Py_DECREF(module);
+        return NULL;
+    }
 
     /* Needed to use Numpy routines */
     /* Note -- import_array() is a macro that behaves differently in Python2.x
