@@ -6,14 +6,14 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
-
 import copy
 
+import pytest
 import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data, catch_warnings,
+from ...tests.helper import (remote_data, catch_warnings,
                              quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
 from ..representation import REPRESENTATION_CLASSES

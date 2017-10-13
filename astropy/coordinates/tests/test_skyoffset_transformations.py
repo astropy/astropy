@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -9,9 +9,7 @@ from ..distances import Distance
 from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
 from .. import SkyCoord, EarthLocation
 from ...time import Time
-from ...tests.helper import (pytest, quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
-
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
