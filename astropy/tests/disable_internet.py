@@ -55,7 +55,7 @@ def check_internet_off(original_function, allow_astropy_data=False):
             valid_hosts = ('localhost', '127.0.0.1')
 
         if allow_astropy_data:
-            for valid_host in ('data.astropy.org', 'astropy.stsci.edu'):
+            for valid_host in ('data.astropy.org', 'astropy.stsci.edu', 'www.astropy.org'):
                 valid_host_ip = socket.gethostbyname(valid_host)
                 valid_hosts += (valid_host, valid_host_ip)
 

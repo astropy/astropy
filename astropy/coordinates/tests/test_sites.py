@@ -30,7 +30,7 @@ def test_builtin_sites():
 
 
 @remote_data(source='astropy')
-def test_online_stes():
+def test_online_sites():
     reg = get_downloaded_sites()
 
     keck = reg['keck']

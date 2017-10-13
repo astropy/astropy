@@ -16,7 +16,7 @@ from ...extern.six.moves.urllib.request import urlopen
 def test_outgoing_fails():
     with pytest.raises(IOError):
         with no_internet():
-            urlopen('http://www.astropy.org')
+            urlopen('http://www.python.org')
 
 
 class StoppableHTTPServer(BaseHTTPServer.HTTPServer, object):
