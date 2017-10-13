@@ -823,19 +823,26 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
         goto fail;
     }
 
-    get_header_longlong(header, "NAXIS1", &rowlen, 0);
-    get_header_longlong(header, "NAXIS2", &nrows, 0);
+    if (get_header_longlong(header, "NAXIS1", &rowlen, 0) == -1) {
+        goto fail;
+    }
+    if (get_header_longlong(header, "NAXIS2", &nrows, 0) == -1) {
+        goto fail;
+    }
 
     // The PCOUNT keyword contains the number of bytes in the table heap
-    get_header_longlong(header, "PCOUNT", &heapsize, 0);
+    if (get_header_longlong(header, "PCOUNT", &heapsize, 0) == -1) {
+        goto fail;
+    }
 
     // The THEAP keyword gives the offset of the heap from the beginning of
     // the HDU data portion; normally this offset is 0 but it can be set
     // to something else with THEAP
-    get_header_longlong(header, "THEAP", &theap, 0);
+    if (get_header_longlong(header, "THEAP", &theap, 0) == -1) {
+        goto fail;
+    }
 
     fits_create_memfile(fileptr, buf, bufsize, 0, realloc, &status);
-
     if (status != 0) {
         process_status_err(status);
         goto fail;
