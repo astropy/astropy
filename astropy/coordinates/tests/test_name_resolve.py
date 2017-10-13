@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 """
 This module contains tests for the name resolve convenience module.
 """
@@ -8,12 +7,13 @@ This module contains tests for the name resolve convenience module.
 import time
 import urllib.request
 
+import pytest
 import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
 from ..sky_coordinate import SkyCoord
-from ...tests.helper import remote_data, pytest
+from ...tests.helper import remote_data
 from ... import units as u
 
 _cached_ngc3642 = dict()

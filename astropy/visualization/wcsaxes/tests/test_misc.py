@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 import warnings
 
+import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,7 +11,7 @@ from .... import units as u
 from ....wcs import WCS
 from ....io import fits
 from ....coordinates import SkyCoord
-from ....tests.helper import catch_warnings, pytest
+from ....tests.helper import catch_warnings
 
 from ..core import WCSAxes
 from ..utils import get_coord_meta

@@ -1,19 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
-
 import io
 import os
 import warnings
 from datetime import datetime
 
+import pytest
 import numpy as np
 from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
     assert_array_equal)
 
-from ...tests.helper import raises, catch_warnings, pytest
+from ...tests.helper import raises, catch_warnings
 from ... import wcs
 from .. import _wcs
 from ...utils.data import (

@@ -9,11 +9,12 @@ import pickle
 import decimal
 from fractions import Fraction
 
+import pytest
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from ...tests.helper import raises, pytest
+from ...tests.helper import raises
 from ...utils import isiterable, minversion
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
