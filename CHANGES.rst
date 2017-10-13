@@ -408,6 +408,9 @@ astropy.tests
 
 - Fixed a bug that caused the doctestplus plugin to not work nicely with the hypothesis package. [#6605]
 
+- Fixed a bug that meant that the data.astropy.org mirror could not be used when
+  using --remote-data=astropy. [#6724]
+
 astropy.time
 ^^^^^^^^^^^^
 
@@ -422,6 +425,9 @@ astropy.utils
 
 - Fixed bugs in remote data handling and also in IERS unit test related to path
   URL, and URI normalization on Windows. [#6651]
+
+- Fixed a bug that caused ``get_pkg_data_fileobj`` to not work correctly when
+  used with non-local data from inside packages. [#6724]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
