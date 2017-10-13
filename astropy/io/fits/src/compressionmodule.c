@@ -1105,7 +1105,7 @@ int compression_module_init(PyObject* module) {
        on failure. */
     PyObject* tmp;
     float version_tmp;
-    int ok;
+    int ret;
 
     fits_get_version(&version_tmp);
     cfitsio_version = (double) version_tmp;
@@ -1119,9 +1119,9 @@ int compression_module_init(PyObject* module) {
     if (tmp == NULL) {
         return -1;
     }
-    ok = PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
+    ret = PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
     Py_DECREF(tmp);
-    return ok;
+    return ret;
 }
 
 
