@@ -45,7 +45,7 @@ from astropy.table import Table
 from astropy import log
 
 
-def showtable(filename, **kwargs):
+def showtable(filename, args):
     """
     Read a table and print to the standard output.
 
@@ -55,10 +55,11 @@ def showtable(filename, **kwargs):
         The path to a FITS file.
 
     """
-    # print(kwargs)
+    print(args)
     try:
         table = Table.read(filename)
-        table.pprint(**kwargs)
+        table.pprint(max_lines=args.max_lines, max_width=args.max_width,
+                     show_unit=not args.hide_unit, show_dtype=args.show_dtype)
     except IOError as e:
         log.error(str(e))
 
@@ -66,30 +67,23 @@ def showtable(filename, **kwargs):
 def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=('Print tables from ASCII, FITS, HDF5, VOTABLE file(s).'))
     parser.add_argument('--max-lines', type=int,
                         help='Maximum number of lines in table output.')
     parser.add_argument('--max-width', type=int,
                         help='Maximum character width of output.')
-    parser.add_argument('--show-name', default=True,
-                        help='Include a header row for column names.')
-    parser.add_argument('--show-unit',
-                        help='Include a header row for unit.  Default is to '
-                        'show a row for units only if one or more columns')
-    parser.add_argument('--show-dtype', default=False,
+    parser.add_argument('--hide-unit', action='store_true',
+                        help='Hide the header row for unit (which is shown '
+                        'only if one or more columns has a unit).')
+    parser.add_argument('--show-dtype', action='store_true',
                         help='Include a header row for column dtypes.')
     parser.add_argument('filename', nargs='+',
                         help='Path to one or more FITS files.')
 
-    # TODO: fix bool args
     # TODO: add `read` kwargs (to choose format, hdu, etc.)
-
     args = parser.parse_args(args)
-    args = vars(args)
-    filenames = args.pop('filename')
 
-    for idx, filename in enumerate(filenames):
+    for idx, filename in enumerate(args.filename):
         if idx > 0:
             print()
-        showtable(filename, **args)
+        showtable(filename, args)
