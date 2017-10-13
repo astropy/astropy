@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ``showtable`` is a command-line script based on astropy.io and astropy.table
-for printing ASCII, FITS, HDF5(?) or VOTABLE files(s) to the standard output.
+for printing ASCII, FITS, HDF5(?) or VOTable files(s) to the standard output.
 
 Example usage of ``showtable``:
 
@@ -56,8 +56,10 @@ def showtable(filename, args):
 
     """
     print(args)
+    read_kwargs = {k: v for k, v in vars(args).items()
+                   if k in ('hdu', 'format', 'table_id') and k is not None}
     try:
-        table = Table.read(filename)
+        table = Table.read(filename, **read_kwargs)
         table.pprint(max_lines=args.max_lines, max_width=args.max_width,
                      show_unit=not args.hide_unit, show_dtype=args.show_dtype)
     except IOError as e:
@@ -67,7 +69,9 @@ def showtable(filename, args):
 def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
-        description=('Print tables from ASCII, FITS, HDF5, VOTABLE file(s).'))
+        description=('Print tables from ASCII, FITS, HDF5, VOTable file(s).'))
+
+    # pprint arguments
     parser.add_argument('--max-lines', type=int,
                         help='Maximum number of lines in table output.')
     parser.add_argument('--max-width', type=int,
@@ -77,8 +81,27 @@ def main(args=None):
                         'only if one or more columns has a unit).')
     parser.add_argument('--show-dtype', action='store_true',
                         help='Include a header row for column dtypes.')
+
+    # ASCII-specific arguments
+    # FIXME: add more args ? (delimiter, guess ?)
+    parser.add_argument('--format',
+                        help='Input table format (only for ASCII files).')
+
+    # FITS-specific arguments
+    parser.add_argument('--hdu',
+                        help='Name of the HDU to show (only for FITS files).')
+
+    # HDF5-specific arguments
+    parser.add_argument('--path',
+                        help='The path from which to read the table (only '
+                        'for HDF5 files).')
+
+    # VOTable-specific arguments
+    parser.add_argument('--table_id', help='The table to read in (only '
+                        'for VOTable files).')
+
     parser.add_argument('filename', nargs='+',
-                        help='Path to one or more FITS files.')
+                        help='Path to one or more files.')
 
     # TODO: add `read` kwargs (to choose format, hdu, etc.)
     args = parser.parse_args(args)
