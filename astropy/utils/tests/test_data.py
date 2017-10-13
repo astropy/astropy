@@ -17,7 +17,7 @@ import pytest
 from ..data import (_get_download_cache_locs, CacheMissingWarning,
                     get_pkg_data_filename, get_readable_fileobj)
 
-from ...tests.helper import remote_data, raises, pytest, catch_warnings
+from ...tests.helper import remote_data, raises, catch_warnings
 
 TESTURL = 'http://www.astropy.org'
 

@@ -12,17 +12,17 @@ this package, like ``test_sky_coord.py``, ``test_frames.py``, or
 deviations from the original APE5 plan.
 """
 
+import pytest
+
 import numpy as np
 from numpy.random import randn
 from numpy import testing as npt
-from ...tests.helper import (pytest, quantity_allclose as allclose,
+from ...tests.helper import (quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
-raises = pytest.raises
 
 from ... import units as u
 from ... import time
 from ... import coordinates as coords
-from ..errors import *
 
 try:
     import scipy  # pylint: disable=W0611
@@ -30,6 +30,8 @@ except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
+
+raises = pytest.raises
 
 
 def test_representations_api():

@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pytest
+
 from ... import units as u
 from ...coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
 from .. import Time, TimeDelta
-from ...tests.helper import (pytest, remote_data)
+from ...tests.helper import remote_data
 
 try:
     import jplephem  # pylint: disable=W0611

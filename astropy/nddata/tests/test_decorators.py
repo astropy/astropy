@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import inspect
 
+import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings, pytest
+from ...tests.helper import catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
 
