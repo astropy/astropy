@@ -266,8 +266,8 @@ class TestDiff(FitsTestCase):
         assert diff.diff_keyword_comments == {'C': [('C', 'E')]}
 
     def test_trivial_identical_images(self):
-        ia = np.arange(100).reshape((10, 10))
-        ib = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
         diff = ImageDataDiff(ia, ib)
         assert diff.identical
         assert diff.diff_total == 0
@@ -313,7 +313,7 @@ class TestDiff(FitsTestCase):
         looking for (or ignoring) header differences.
         """
 
-        data = np.arange(100.0).reshape((10, 10))
+        data = np.arange(100.0).reshape(10, 10)
         hdu = fits.CompImageHDU(data=data)
         hdu.writeto(self.temp('test.fits'))
         hdula = fits.open(self.temp('test.fits'))
@@ -322,7 +322,7 @@ class TestDiff(FitsTestCase):
         assert diff.identical
 
     def test_different_dimensions(self):
-        ia = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
         ib = np.arange(100) - 1
 
         # Although ib could be reshaped into the same dimensions, for now the
@@ -339,8 +339,8 @@ class TestDiff(FitsTestCase):
         assert 'No further data comparison performed.'
 
     def test_different_pixels(self):
-        ia = np.arange(100).reshape((10, 10))
-        ib = np.arange(100).reshape((10, 10))
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
         ib[0, 0] = 10
         ib[5, 5] = 20
         diff = ImageDataDiff(ia, ib)
@@ -567,7 +567,7 @@ class TestDiff(FitsTestCase):
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = PrimaryHDU(data=a)
         hdu.writeto(self.temp('testa.fits'))
         hdu.writeto(self.temp('testb.fits'))
@@ -593,7 +593,7 @@ class TestDiff(FitsTestCase):
         count.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         phdu = PrimaryHDU(data=a)
         ehdu = ImageHDU(data=a)
         hdula = HDUList([phdu, ehdu])
@@ -616,7 +616,7 @@ class TestDiff(FitsTestCase):
         Test files that have some identical HDUs but one different HDU.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         phdu = PrimaryHDU(data=a)
         ehdu = ImageHDU(data=a)
         ehdu2 = ImageHDU(data=(a + 1))

@@ -1908,7 +1908,7 @@ class TestHeaderFunctions(FitsTestCase):
         by several blank cards.
         """
 
-        data = np.arange(100).reshape((10, 10))
+        data = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=data)
         hdu.header['TESTKW'] = ('Test val', 'This is the END')
         # Add a couple blanks after the END string
