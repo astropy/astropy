@@ -454,15 +454,6 @@ def test_conversion_qtable_table():
         assert_table_name_col_equal(qt2, name, qt[name])
 
 
-@pytest.mark.xfail
-def test_column_rename():
-    qt = QTable(MIXIN_COLS)
-    names = qt.colnames
-    for name in names:
-        qt.rename_column(name, name + '2')
-    assert qt.colnames == [name + '2' for name in names]
-
-
 def test_setitem_as_column_name():
     """
     Test for mixin-related regression described in #3321.
