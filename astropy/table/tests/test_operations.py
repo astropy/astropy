@@ -629,7 +629,6 @@ class TestVStack():
                                                     '0.0 foo',
                                                     '1.0  --']
 
-    @pytest.mark.xfail(reason="https://github.com/astropy/astropy/issues/6291")
     def test_col_meta_merge_inner(self, operation_table_type):
         self._setup(operation_table_type)
         t1 = self.t1
