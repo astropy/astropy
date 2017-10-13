@@ -165,7 +165,7 @@ class FitnessFunc(object):
     ``fitness(self, **kwargs)``:
       Compute the fitness given a set of named arguments.
       Arguments accepted by fitness must be among ``[T_k, N_k, a_k, b_k, c_k]``
-      (See Scargle2012_ for details on the meaning of these parameters).
+      (See [1]_ for details on the meaning of these parameters).
 
     Additionally, other methods may be overloaded as well:
 
@@ -183,14 +183,14 @@ class FitnessFunc(object):
 
     ``p0_prior(self, N)``:
       Specify the form of the prior given the false-alarm probability ``p0``
-      (See Scargle2012_ for details).
+      (See [1]_ for details).
 
     For examples of implemented fitness functions, see :class:`Events`,
     :class:`RegularEvents`, and :class:`PointMeasures`.
 
     References
     ----------
-    .. [Scargle2012] Scargle, J et al. (2012)
+    .. [1] Scargle, J et al. (2012)
        http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
