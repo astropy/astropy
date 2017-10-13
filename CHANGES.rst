@@ -39,6 +39,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix writing the result of ``fitsdiff`` to file with ``--output-file``. [#6621]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
