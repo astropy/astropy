@@ -15,7 +15,7 @@ Example usage of ``showtable``:
     NGC1002  12.3
     NGC1003  15.2
 
-3. ASCII::
+2. ASCII::
 
     $ showtable astropy/io/ascii/tests/t/simple_csv.csv
 
@@ -26,15 +26,16 @@ Example usage of ``showtable``:
 
 3. XML::
 
-    $ showtable astropy/io/votable/tests/data/names.xml
-               col1             col2     col3    col4     col5   ... col13 col14 col15 col16 col17
-               ---              deg      deg     deg      deg    ...  mag   mag   mag   mag   ---
-    ------------------------- -------- ------- -------- -------- ... ----- ----- ----- ----- -----
-    SSTGLMC G000.0000+00.1611   0.0000  0.1611 266.2480 -28.8521 ...  9.13  8.17    --    --    AA
+    $ showtable astropy/io/votable/tests/data/names.xml --max-width 70
+
+               col1             col2     col3  ... col15 col16 col17
+               ---              deg      deg   ...  mag   mag   ---
+    ------------------------- -------- ------- ... ----- ----- -----
+    SSTGLMC G000.0000+00.1611   0.0000  0.1611 ...    --    --    AA
 
 
 
-2. Print a summary of HDUs of all the FITS files in the current directory::
+4. Print a summary of HDUs of all the FITS files in the current directory::
 
     $ showtable *.fits
 
@@ -57,7 +58,7 @@ def showtable(filename, args):
     """
     print(args)
     read_kwargs = {k: v for k, v in vars(args).items()
-                   if k in ('hdu', 'format', 'table_id') and k is not None}
+                   if k in ('hdu', 'format', 'table_id') and v is not None}
     try:
         table = Table.read(filename, **read_kwargs)
         table.pprint(max_lines=args.max_lines, max_width=args.max_width,
