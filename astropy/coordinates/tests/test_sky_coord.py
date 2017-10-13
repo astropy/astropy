@@ -11,11 +11,12 @@ from __future__ import (absolute_import, division, print_function,
 
 import copy
 
+import pytest
 import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data, catch_warnings,
+from ...tests.helper import (remote_data, catch_warnings,
                              quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...extern.six.moves import zip

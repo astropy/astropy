@@ -9,11 +9,11 @@ from __future__ import (absolute_import, division, print_function,
 """Test replacements for ERFA functions atciqz and aticq."""
 
 from itertools import product
-from ...tests.helper import (pytest,
-                             assert_quantity_allclose as assert_allclose)
 
+import pytest
+
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 from ...time import Time
-
 from ... import _erfa as erfa
 from .utils import randomly_sample_sphere
 from ..builtin_frames.utils import get_jd12, atciqz, aticq

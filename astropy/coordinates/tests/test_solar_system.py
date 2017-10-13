@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from ...time import Time
@@ -13,7 +14,7 @@ from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates,
                             get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
-from ...tests.helper import (pytest, remote_data, assert_quantity_allclose,
+from ...tests.helper import (remote_data, assert_quantity_allclose,
                              quantity_allclose)
 
 try:

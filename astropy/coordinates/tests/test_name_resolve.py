@@ -11,13 +11,14 @@ from __future__ import (absolute_import, division, print_function,
 
 import time
 
+import pytest
 import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
 from ..sky_coordinate import SkyCoord
 from ...extern.six.moves import urllib
-from ...tests.helper import remote_data, pytest
+from ...tests.helper import remote_data
 from ... import units as u
 
 _cached_ngc3642 = dict()

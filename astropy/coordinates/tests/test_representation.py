@@ -7,29 +7,27 @@ from __future__ import (absolute_import, division, print_function,
 from copy import deepcopy
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from ... import units as u
-from ...tests.helper import (pytest, assert_quantity_allclose as
+from ...tests.helper import (assert_quantity_allclose as
                              assert_allclose_quantity)
-from ...utils import isiterable, IncompatibleShapeError, check_broadcast
-from ...utils.compat.numpy import broadcast_to
+from ...utils import isiterable
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
                               DIFFERENTIAL_CLASSES,
-                              BaseRepresentation, BaseDifferential,
+                              BaseRepresentation,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
                               SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation,
                               CartesianDifferential,
                               SphericalDifferential,
-                              CylindricalDifferential,
                               _combine_xyz)
 
 

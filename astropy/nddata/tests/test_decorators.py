@@ -5,10 +5,11 @@ from __future__ import (absolute_import, division, print_function,
 
 import inspect
 
+import pytest
 import numpy as np
 
 from ...extern import six
-from ...tests.helper import catch_warnings, pytest
+from ...tests.helper import catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
 

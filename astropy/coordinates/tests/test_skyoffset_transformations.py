@@ -4,6 +4,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import pytest
 import numpy as np
 
 from ... import units as u
@@ -11,8 +12,7 @@ from ..distances import Distance
 from ..builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
 from .. import SkyCoord, EarthLocation
 from ...time import Time
-from ...tests.helper import (pytest, quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
+from ...tests.helper import assert_quantity_allclose as assert_allclose
 
 from ...extern.six.moves import range
 
