@@ -488,14 +488,22 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     char tmp[72];
     float version;
 
-    unsigned int idx;
+    int idx;
 
     Fptr = fileptr->Fptr;
     tfields = Fptr->tfield;
     columns = Fptr->tableptr;
 
+    int tmp_retval;
+
     // Get the ZBITPIX header value; if this is missing we're in trouble
-    if (0 != get_header_int(header, "ZBITPIX", &(Fptr->zbitpix), 0)) {
+    switch (get_header_int(header, "ZBITPIX", &(Fptr->zbitpix), 0)) {
+      case 1:
+        /* Keyword not found, need to set an Error here.*/
+        PyErr_SetString(PyExc_KeyError, "Missing keyword 'ZBITPIX'");
+        return;  /* Could also simply fall through into next case ... */
+      case -1:
+        /* Error while looking the key up, exception is set. */
         return;
     }
 
@@ -530,29 +538,45 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     Fptr->zblank = 0;
     if (Fptr->cn_zblank < 1) {
         // No ZBLANK column--check the ZBLANK and BLANK heard keywords
-        if(0 != get_header_int(header, "ZBLANK", &(Fptr->zblank), 0)) {
+        switch (get_header_int(header, "ZBLANK", &(Fptr->zblank), 0)) {
+          case -1:  /* Exception happened */
+            return;
+          case 1:  /* Not found */
             // ZBLANK keyword not found
-            get_header_int(header, "BLANK", &(Fptr->zblank), 0);
+            if (get_header_int(header, "BLANK", &(Fptr->zblank), 0) == -1) {
+              return;
+            }
+            break;
         }
     }
 
     Fptr->zscale = 1.0;
     if (Fptr->cn_zscale < 1) {
-        if (0 != get_header_double(header, "ZSCALE", &(Fptr->zscale), 1.0)) {
+        switch (get_header_double(header, "ZSCALE", &(Fptr->zscale), 1.0)) {
+          case -1:  /* Exception happened */
+            return;
+          case 1:  /* Not found */
             Fptr->cn_zscale = 0;
+            break;
         }
     }
     Fptr->cn_bscale = Fptr->zscale;
 
     Fptr->zzero = 0.0;
     if (Fptr->cn_zzero < 1) {
-        if (0 != get_header_double(header, "ZZERO", &(Fptr->zzero), 0.0)) {
+        switch (get_header_double(header, "ZZERO", &(Fptr->zzero), 0.0)) {
+          case -1:  /* Exception happened */
+            return;
+          case 1:  /* Not found */
             Fptr->cn_zzero = 0;
+            break;
         }
     }
     Fptr->cn_bzero = Fptr->zzero;
 
-    get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE);
+    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE) == -1) {
+        return;
+    }
     strncpy(Fptr->zcmptype, tmp, 11);
     Fptr->zcmptype[strlen(tmp)] = '\0';
 
@@ -561,7 +585,9 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         return;
     }
 
-    get_header_int(header, "ZNAXIS", &znaxis, 0);
+    if (get_header_int(header, "ZNAXIS", &znaxis, 0) == -1) {
+        return;
+    }
     Fptr->zndim = znaxis;
 
     if (znaxis > MAX_COMPRESS_DIM) {
@@ -574,9 +600,13 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     Fptr->maxtilelen = 1;
     for (idx = 1; idx <= znaxis; idx++) {
         snprintf(keyword, 9, "ZNAXIS%u", idx);
-        get_header_long(header, keyword, Fptr->znaxis + idx - 1, 0);
+        if (get_header_long(header, keyword, Fptr->znaxis + idx - 1, 0) == -1) {
+            return;
+        }
         snprintf(keyword, 9, "ZTILE%u", idx);
-        get_header_long(header, keyword, Fptr->tilesize + idx - 1, 0);
+        if (get_header_long(header, keyword, Fptr->tilesize + idx - 1, 0) == -1) {
+            return;
+        }
         Fptr->maxtilelen *= Fptr->tilesize[idx - 1];
     }
 
@@ -594,30 +624,44 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         // Assumes there are no gaps in the ZNAMEn keywords; this same
         // assumption was made in the Python code.  This could be done slightly
         // more flexibly by using a wildcard slice of the header
-        if (0 != get_header_string(header, keyword, zname, "")) {
+        tmp_retval = get_header_string(header, keyword, zname, "");
+        if (tmp_retval == -1) {
+            return;
+        } else if (tmp_retval == 1) {
             break;
         }
+
         snprintf(keyword, 9, "ZVAL%u", idx);
         if (Fptr->compress_type == RICE_1) {
             if (0 == strcmp(zname, "BLOCKSIZE")) {
-                get_header_int(header, keyword, &(Fptr->rice_blocksize),
-                               DEFAULT_BLOCK_SIZE);
+                if (get_header_int(header, keyword, &(Fptr->rice_blocksize),
+                                   DEFAULT_BLOCK_SIZE) == -1) {
+                    return;
+                }
             } else if (0 == strcmp(zname, "BYTEPIX")) {
-                get_header_int(header, keyword, &(Fptr->rice_bytepix),
-                               DEFAULT_BYTE_PIX);
+                if (get_header_int(header, keyword, &(Fptr->rice_bytepix),
+                                   DEFAULT_BYTE_PIX) == -1) {
+                    return;
+                }
             }
         } else if (Fptr->compress_type == HCOMPRESS_1) {
             if (0 == strcmp(zname, "SMOOTH")) {
-                get_header_int(header, keyword, &(Fptr->hcomp_smooth),
-                               DEFAULT_HCOMP_SMOOTH);
+                if (get_header_int(header, keyword, &(Fptr->hcomp_smooth),
+                                   DEFAULT_HCOMP_SMOOTH) == -1) {
+                    return;
+                }
             } else if (0 == strcmp(zname, "SCALE")) {
-                get_header_float(header, keyword, &(Fptr->hcomp_scale),
-                                 DEFAULT_HCOMP_SCALE);
+                if (get_header_float(header, keyword, &(Fptr->hcomp_scale),
+                                     DEFAULT_HCOMP_SCALE) == -1) {
+                    return;
+                }
             }
         }
         if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
-             get_header_float(header, keyword, &(Fptr->quantize_level),
-                              DEFAULT_QUANTIZE_LEVEL);
+             if (get_header_float(header, keyword, &(Fptr->quantize_level),
+                                  DEFAULT_QUANTIZE_LEVEL) == -1) {
+                 return;
+             }
              if (Fptr->quantize_level == 0.0) {
                  /* NOISEBIT == 0 is equivalent to no quantize */
                  Fptr->quantize_level = NO_QUANTIZE;
@@ -629,7 +673,10 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 
     /* The ZQUANTIZ keyword determines the quantization algorithm; NO_QUANTIZE
        implies lossless compression */
-    if (0 == get_header_string(header, "ZQUANTIZ", tmp, "")) {
+    tmp_retval = get_header_string(header, "ZQUANTIZ", tmp, "");
+    if (tmp_retval == -1) {
+        return;
+    } else if (tmp_retval == 0) {
         /* Ugh; the fact that cfitsio defines its version as a float makes
            preprocessor comparison impossible */
         fits_get_version(&version);
@@ -651,10 +698,13 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     }
 
     if (Fptr->quantize_method != NO_DITHER) {
-        if (0 != get_header_int(header, "ZDITHER0", &(Fptr->dither_seed), 0)) {
-            // ZDITHER0 keyword not found
+        switch (get_header_int(header, "ZDITHER0", &(Fptr->dither_seed), 0)) {
+          case -1:
+            return;
+          case 1: // ZDITHER0 keyword not found
             Fptr->dither_seed = 0;
             Fptr->request_dither_seed = 0;
+            break;
         }
     }
 #else
@@ -667,11 +717,13 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     }
 
     if (Fptr->quantize_dither != NO_DITHER) {
-        if (0 != get_header_int(header, "ZDITHER0", &(Fptr->dither_offset),
-                                0)) {
-            // ZDITHER0 keyword no found
+        switch (get_header_int(header, "ZDITHER0", &(Fptr->dither_offset), 0)) {
+          case -1:
+            return;
+          case 1: // ZDITHER0 keyword no found
             Fptr->dither_offset = 0;
             Fptr->request_dither_offset = 0;
+            break;
         }
     }
 #endif
