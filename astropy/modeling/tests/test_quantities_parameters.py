@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import numpy as np
+import pytest
 
 from ..core import Model, Fittable1DModel, InputParameterError
 from ..parameters import Parameter, ParameterDefinitionError
@@ -15,7 +16,7 @@ from ..models import (Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial,
                       Rotation2D)
 from ... import units as u
 from ...units import UnitsError
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 from ... import coordinates as coord
 
 

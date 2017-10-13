@@ -8,11 +8,12 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import numpy as np
+import pytest
 
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError
-from ...tests.helper import pytest, assert_quantity_allclose
+from ...tests.helper import assert_quantity_allclose
 from ...utils import NumpyRNGContext
 from .. import fitting
 
