@@ -321,7 +321,7 @@ def _write_with_fallback(s, write, fileobj):
     return write
 
 
-def color_print(*args, **kwargs):
+def color_print(*args, end='\n', **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -353,8 +353,6 @@ def color_print(*args, **kwargs):
     """
 
     file = kwargs.get('file', _get_stdout())
-
-    end = kwargs.get('end', '\n')
 
     write = file.write
     if isatty(file) and conf.use_color:

@@ -489,7 +489,7 @@ class WCSAxes(Axes):
         else:
             return self.get_window_extent(renderer)
 
-    def grid(self, b=None, axis='both', **kwargs):
+    def grid(self, b=None, axis='both', *, which='major', **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -507,7 +507,6 @@ class WCSAxes(Axes):
         if not hasattr(self, 'coords'):
             return
 
-        which = kwargs.pop('which', 'major')
         if which != 'major':
             raise NotImplementedError('Plotting the grid for the minor ticks is '
                                       'not supported.')

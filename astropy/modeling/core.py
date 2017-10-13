@@ -22,6 +22,7 @@ import functools
 import operator
 import sys
 import types
+import warnings
 
 from collections import defaultdict, OrderedDict
 from contextlib import suppress
@@ -38,6 +39,7 @@ from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
+from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
@@ -665,13 +667,11 @@ class Model(metaclass=_ModelMeta):
     # inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
-        meta = kwargs.pop('meta', None)
         if meta is not None:
             self.meta = meta
-
-        self._name = kwargs.pop('name', None)
+        self._name = name
 
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
@@ -1397,7 +1397,8 @@ class Model(metaclass=_ModelMeta):
     def return_units(self, return_units):
         self._return_units = return_units
 
-    def prepare_inputs(self, *inputs, **kwargs):
+    def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
+                       **kwargs):
         """
         This method is used in `~astropy.modeling.Model.__call__` to ensure
         that all the inputs to the model can be broadcast into compatible
@@ -1408,9 +1409,8 @@ class Model(metaclass=_ModelMeta):
         """
 
         # When we instantiate the model class, we make sure that __call__ can
-        # take the following two keyword arguments.
-        model_set_axis = kwargs.pop('model_set_axis', None)
-        equivalencies = kwargs.pop('equivalencies', None)
+        # take the following two keyword arguments: model_set_axis and
+        # equivalencies.
 
         if model_set_axis is None:
             # By default the model_set_axis for the input is assumed to be the
@@ -2854,7 +2854,7 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         return new_model
 
 
-def custom_model(*args, **kwargs):
+def custom_model(*args, fit_deriv=None, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -2923,7 +2923,12 @@ def custom_model(*args, **kwargs):
         0.3333333333333333
     """
 
-    fit_deriv = kwargs.get('fit_deriv', None)
+    if kwargs:
+        warnings.warn(
+            "Function received unexpected arguments ({}) these "
+            "are ignored but will raise an Exception in the "
+            "future.".format(list(kwargs)),
+            AstropyDeprecationWarning)
 
     if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
