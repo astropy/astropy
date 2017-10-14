@@ -1768,11 +1768,11 @@ class TestCompressedImage(FitsTestCase):
         a = np.arange(100, 200, dtype=np.uint16)
         comp_hdu = fits.CompImageHDU(a)
         comp_hdu._header.pop('ZNAXIS')
-        with pytest.raises(TypeError):
+        with pytest.raises(KeyError):
             comp_hdu.compressed_data
         comp_hdu = fits.CompImageHDU(a)
         comp_hdu._header.pop('ZBITPIX')
-        with pytest.raises(TypeError):
+        with pytest.raises(KeyError):
             comp_hdu.compressed_data
 
     @pytest.mark.parametrize(
