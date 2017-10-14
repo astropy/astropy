@@ -48,20 +48,20 @@ arrays the model is computed element-wise using all elements in the arrays::
 
     >>> g = Gaussian1D(amplitude=[[1, 2], [3, 4]], mean=[[0, 1], [1, 0]],
     ...                stddev=[[0.1, 0.2], [0.3, 0.4]])
-    >>> g
-    <Gaussian1D(amplitude=[[ 1., 2.], [ 3., 4.]], mean=[[ 0., 1.], [ 1., 0.]],
-    stddev=[[ 0.1, 0.2], [ 0.3, 0.4]])>
-    >>> g(0)
-    array([[  1.00000000e+00,   7.45330634e-06],
-           [  1.15977604e-02,   4.00000000e+00]])
+    >>> g  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=[[1., 2.], [3., 4.]], mean=[[0., 1.], [1., 0.]],
+    stddev=[[0.1, 0.2], [0.3, 0.4]])>
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([[1.00000000e+00, 7.45330634e-06],
+           [1.15977604e-02, 4.00000000e+00]])
 
 Or it may even use a mix of scalar values and arrays of different sizes and
 dimensions so long as they are compatible::
 
     >>> g = Gaussian1D(amplitude=[[1, 2], [3, 4]], mean=0.1, stddev=[0.1, 0.2])
-    >>> g(0)
-    array([[ 0.60653066,  1.76499381],
-           [ 1.81959198,  3.52998761]])
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([[0.60653066, 1.76499381],
+           [1.81959198, 3.52998761]])
 
 In this case, four values are computed--one using each element of the amplitude
 array.  Each model uses a mean of 0.1, and a standard deviation of 0.1 is
@@ -89,8 +89,8 @@ when instantiating the model::
 
     >>> g = Gaussian1D(amplitude=[1, 2], mean=[0, 0], stddev=[0.1, 0.2],
     ...                n_models=2)
-    >>> g
-    <Gaussian1D(amplitude=[ 1., 2.], mean=[ 0., 0.], stddev=[ 0.1, 0.2],
+    >>> g  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=[1., 2.], mean=[0., 0.], stddev=[0.1, 0.2],
     n_models=2)>
 
 When specifying some ``n_models=N`` this requires that the parameter values be
@@ -136,9 +136,9 @@ standard deviation of each model in the set.
 When evaluating this model on a single input we get a different result from the
 single-model case::
 
-    >>> g(0)
-    array([[ 0.60653066,  1.21306132],
-           [ 2.64749071,  3.52998761]])
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([[0.60653066, 1.21306132],
+           [2.64749071, 3.52998761]])
 
 Each row in this output is the output for each model in the set.  The first is
 the value of the Gaussian with ``amplitude=[1, 2], mean=0.1, stddev=0.1``, and
@@ -148,18 +148,18 @@ stddev=0.2``.
 We can also pass a different input to each model in a model set by passing in
 an array input::
 
-    >>> g([0, 1])
-    array([[  6.06530660e-01,   1.21306132e+00],
-           [  1.20195892e-04,   1.60261190e-04]])
+    >>> g([0, 1])  # doctest: +FLOAT_CMP
+    array([[6.06530660e-01, 1.21306132e+00],
+           [1.20195892e-04, 1.60261190e-04]])
 
 By default this uses the same concept of a ``model_set_axis``.  The first
 dimension of the input array is used to map inputs to corresponding models in
 the model set.  We can use this, for example, to evaluate the model on 1-D
 array inputs with a different input to each model set::
 
-    >>> g([[0, 1], [2, 3]])
-    array([[  6.06530660e-01,   5.15351422e-18],
-           [  7.57849134e-20,   8.84815213e-46]])
+    >>> g([[0, 1], [2, 3]])  # doctest: +FLOAT_CMP
+    array([[6.06530660e-01, 5.15351422e-18],
+           [7.57849134e-20, 8.84815213e-46]])
 
 In this case the first model is evaluated on ``[0, 1]``, and the second model
 is evaluated on ``[2, 3]``.  If the input has length greater than the number of
@@ -176,16 +176,16 @@ with the array dimensions of the parameter values.  However, what if we wanted
 to evaluate all models in the set on the input ``[0, 1]``?  We could do this
 by simply repeating::
 
-    >>> g([[0, 1], [0, 1]])
-    array([[  6.06530660e-01,   5.15351422e-18],
-           [  2.64749071e+00,   1.60261190e-04]])
+    >>> g([[0, 1], [0, 1]])  # doctest: +FLOAT_CMP
+    array([[6.06530660e-01, 5.15351422e-18],
+           [2.64749071e+00, 1.60261190e-04]])
 
 But there is a workaround for this use case that does not necessitate
 duplication.  This is to include the argument ``model_set_axis=False``::
 
-    >>> g([0, 1], model_set_axis=False)
-    array([[  6.06530660e-01,   5.15351422e-18],
-           [  2.64749071e+00,   1.60261190e-04]])
+    >>> g([0, 1], model_set_axis=False)  # doctest: +FLOAT_CMP
+    array([[6.06530660e-01, 5.15351422e-18],
+           [2.64749071e+00, 1.60261190e-04]])
 
 What ``model_set_axis=False`` implies is that an array-like input should not be
 treated as though any of its dimensions map to models in a model set.  And
@@ -240,7 +240,7 @@ inverse::
       File "astropy\modeling\core.py", line 796, in inverse
         raise NotImplementedError("An analytical inverse transform has not "
     NotImplementedError: An analytical inverse transform has not been
-    implemented for this model. 
+    implemented for this model.
 
 One may certainly compute an inverse and assign it to a polynomial model
 though.
@@ -359,11 +359,11 @@ The examples here assume this import statement was executed::
 
       >>> x = np.arange(30).reshape(5, 6)
       >>> y = p1(x)
-      >>> y
-      array([[   0.,    0.,    0.,    0.,    0.,    0.],
-             [   6.,    7.,    8.,    9.,   10.,   11.],
-             [  24.,   26.,   28.,   30.,   32.,   34.],
-             [  54.,   57.,   60.,   63.,   66.,   69.],
-             [  96.,  100.,  104.,  108.,  112.,  116.]])
+      >>> y  # doctest: +FLOAT_CMP
+      array([[  0.,   0.,   0.,   0.,   0.,   0.],
+             [  6.,   7.,   8.,   9.,  10.,  11.],
+             [ 24.,  26.,  28.,  30.,  32.,  34.],
+             [ 54.,  57.,  60.,  63.,  66.,  69.],
+             [ 96., 100., 104., 108., 112., 116.]])
       >>> y.shape
       (5, 6)
