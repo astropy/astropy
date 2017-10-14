@@ -114,6 +114,9 @@ astropy.utils
   ``astropy.utils.compat.numpy`` module have been deprecated. Use the
   NumPy functions directly. [#6691]
 
+- Adding backup url to fall back to if the main IERS_A link is unavailable.
+  [#5195]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

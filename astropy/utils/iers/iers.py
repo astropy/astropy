@@ -10,11 +10,7 @@ celestial-to-terrestrial coordinate transformations
 """
 
 from warnings import warn
-
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 import numpy as np
 
@@ -36,7 +32,7 @@ __all__ = ['Conf', 'conf',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
+IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all,https://datacenter.iers.org/eop/-/somos/5Rgv/latest/7'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
 # IERS-B default file name, URL, and ReadMe with content description
@@ -97,6 +93,7 @@ class Conf(_config.ConfigNamespace):
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
         'URL for auto-downloading IERS file data.')
+
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
