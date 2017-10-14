@@ -173,8 +173,8 @@ an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 :meth:`~ImageHDU.scale` call::
 
     >>> hdu = fits.PrimaryHDU(np.array([0., 1, 2, 3]))
-    >>> print(hdu.data)
-    [ 0.  1.  2.  3.]
+    >>> print(hdu.data)  # doctest: +FLOAT_CMP
+    [0. 1. 2. 3.]
     >>> hdu.scale('int16', bzero=32768)
     >>> print(hdu.data)  # now the data has storage values
     [-32768 -32767 -32766 -32765]
