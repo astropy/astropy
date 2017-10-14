@@ -112,19 +112,19 @@ Parameter examples
       ...               for idx, name in enumerate(ch2.param_names))
       >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, n_models=2,
       ...                          **coeffs)
-      >>> ch2.param_sets
-      array([[  0.,  10.],
-             [  1.,  11.],
-             [  2.,  12.],
-             [  3.,  13.],
-             [  4.,  14.],
-             [  5.,  15.],
-             [  6.,  16.],
-             [  7.,  17.],
-             [  8.,  18.],
-             [  9.,  19.],
-             [ 10.,  20.],
-             [ 11.,  21.]])
+      >>> ch2.param_sets  # doctest: +FLOAT_CMP
+      array([[ 0., 10.],
+             [ 1., 11.],
+             [ 2., 12.],
+             [ 3., 13.],
+             [ 4., 14.],
+             [ 5., 15.],
+             [ 6., 16.],
+             [ 7., 17.],
+             [ 8., 18.],
+             [ 9., 19.],
+             [10., 20.],
+             [11., 21.]])
 
 - Or directly, using keyword arguments::
 
@@ -140,10 +140,10 @@ Parameter examples
 
       >>> p3 = models.Polynomial1D(degree=2, c0=1.0, c1=[2.0, 3.0],
       ...                          c2=[[4.0, 5.0], [6.0, 7.0], [8.0, 9.0]])
-      >>> p3(2.0)
-      array([[ 21.,  27.],
-             [ 29.,  35.],
-             [ 37.,  43.]])
+      >>> p3(2.0)  # doctest: +FLOAT_CMP
+      array([[21., 27.],
+             [29., 35.],
+             [37., 43.]])
 
   This is equivalent to evaluating the Numpy expression::
 
@@ -152,10 +152,10 @@ Parameter examples
       ...                [6.0, 7.0],
       ...                [8.0, 9.0]])
       >>> c1 = np.array([2.0, 3.0])
-      >>> c2 * 2.0**2 + c1 * 2.0 + 1.0
-      array([[ 21.,  27.],
-             [ 29.,  35.],
-             [ 37.,  43.]])
+      >>> c2 * 2.0**2 + c1 * 2.0 + 1.0  # doctest: +FLOAT_CMP
+      array([[21., 27.],
+             [29., 35.],
+             [37., 43.]])
 
   Note that in most cases, when using array-valued parameters, the parameters
   must obey the standard broadcasting rules for Numpy arrays with respect to
