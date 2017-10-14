@@ -38,10 +38,10 @@ a `numpy.ndarray`::
 
     >>> ndd1.multiply(np.arange(4, 8))
     NDDataRef([ 4, 10, 18, 28])
-    >>> ndd1.divide(np.arange(1,13).reshape(3,4))  # a 3 x 4 numpy array
-    NDDataRef([[ 1.        ,  1.        ,  1.        ,  1.        ],
-               [ 0.2       ,  0.33333333,  0.42857143,  0.5       ],
-               [ 0.11111111,  0.2       ,  0.27272727,  0.33333333]])
+    >>> ndd1.divide(np.arange(1,13).reshape(3,4))  # a 3 x 4 numpy array  # doctest: +FLOAT_CMP
+    NDDataRef([[1.        , 1.        , 1.        , 1.        ],
+               [0.2       , 0.33333333, 0.42857143, 0.5       ],
+               [0.11111111, 0.2       , 0.27272727, 0.33333333]])
 
 here broadcasting takes care of the different dimensions. Also several other
 classes are possible.
@@ -58,15 +58,15 @@ or to wrap the result of an arithmetic operation between two Quantities::
 
     >>> import astropy.units as u
     >>> ndd = NDDataRef.multiply([1,2] * u.m, [10, 20] * u.cm)
-    >>> ndd
-    NDDataRef([ 10.,  40.])
+    >>> ndd  # doctest: +FLOAT_CMP
+    NDDataRef([10., 40.])
     >>> ndd.unit
     Unit("cm m")
 
 or taking the inverse of a `~astropy.nddata.NDDataRef` object::
 
-    >>> NDDataRef.divide(1, ndd1)
-    NDDataRef([ 1.        ,  0.5       ,  0.33333333,  0.25      ])
+    >>> NDDataRef.divide(1, ndd1)  # doctest: +FLOAT_CMP
+    NDDataRef([1.        , 0.5       , 0.33333333, 0.25      ])
 
 
 Possible operands
@@ -101,8 +101,8 @@ Adding two NDData objects with the same unit works::
     >>> ndd2 = NDDataRef([100,150,200,50,500], unit='m')
 
     >>> ndd = ndd1.add(ndd2)
-    >>> ndd.data
-    array([ 101.,  152.,  203.,   54.,  505.])
+    >>> ndd.data  # doctest: +FLOAT_CMP
+    array([101., 152., 203.,  54., 505.])
     >>> ndd.unit
     Unit("m")
 
@@ -114,7 +114,7 @@ Adding two NDData objects with compatible units also works::
     INFO: overwriting NDData's current unit with specified unit. [astropy.nddata.nddata]
 
     >>> ndd = ndd1.subtract(ndd2)
-    >>> ndd.data
+    >>> ndd.data  # doctest: +FLOAT_CMP
     array([ -29.66013938,  -43.99020907,  -58.32027876,  -11.33006969,
            -148.30069689])
     >>> ndd.unit
@@ -124,8 +124,8 @@ this will keep by default the unit of the first operand. However units will
 not be decomposed during division::
 
     >>> ndd = ndd2.divide(ndd1)
-    >>> ndd.data
-    array([ 100.        ,   75.        ,   66.66666667,   12.5       ,  100.        ])
+    >>> ndd.data  # doctest: +FLOAT_CMP
+    array([100.        ,  75.        ,  66.66666667,  12.5       , 100.        ])
     >>> ndd.unit
     Unit("lyr / pc")
 
@@ -332,8 +332,8 @@ of uncertainties on or off.
 
       >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
       >>> ndd2 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-      >>> ndd1.add(ndd2, propagate_uncertainties=True).uncertainty
-      StdDevUncertainty([ 14.14213562])
+      >>> ndd1.add(ndd2, propagate_uncertainties=True).uncertainty  # doctest: +FLOAT_CMP
+      StdDevUncertainty([14.14213562])
 
 uncertainty with correlation
 ----------------------------
@@ -351,16 +351,16 @@ For example without correlation subtracting a `~astropy.nddata.NDDataRef`
 instance from itself results in a non-zero uncertainty::
 
     >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
-    >>> ndd1.subtract(ndd1, propagate_uncertainties=True).uncertainty
-    StdDevUncertainty([ 14.14213562])
+    >>> ndd1.subtract(ndd1, propagate_uncertainties=True).uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([14.14213562])
 
 Given a correlation of ``1`` because they clearly correlate gives the
 correct uncertainty of ``0``::
 
     >>> ndd1 = NDDataRef(1, uncertainty=StdDevUncertainty([10]))
     >>> ndd1.subtract(ndd1, propagate_uncertainties=True,
-    ...               uncertainty_correlation=1).uncertainty
-    StdDevUncertainty([ 0.])
+    ...               uncertainty_correlation=1).uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([0.])
 
 which would be consistent with the equivalent operation ``ndd1 * 0``::
 
@@ -377,8 +377,8 @@ You can also give element-wise correlations::
 
     >>> ndd1 = NDDataRef([1,1,1,1], uncertainty=StdDevUncertainty([1,1,1,1]))
     >>> ndd2 = NDDataRef([2,2,2,2], uncertainty=StdDevUncertainty([2,2,2,2]))
-    >>> ndd1.add(ndd2,uncertainty_correlation=np.array([1,0.5,0,-1])).uncertainty
-    StdDevUncertainty([ 3.        ,  2.64575131,  2.23606798,  1.        ])
+    >>> ndd1.add(ndd2,uncertainty_correlation=np.array([1,0.5,0,-1])).uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([3.        , 2.64575131, 2.23606798, 1.        ])
 
 The correlation ``np.array([1, 0.5, 0, -1])`` would indicate that the first
 element is fully correlated, the second element partially correlates while
@@ -392,7 +392,7 @@ if the unit of the data differs from the unit of the uncertainty::
 
     >>> ndd1 = NDDataRef([10], unit='m', uncertainty=StdDevUncertainty([10], unit='cm'))
     >>> ndd2 = NDDataRef([20], unit='m', uncertainty=StdDevUncertainty([10]))
-    >>> ndd1.subtract(ndd2, propagate_uncertainties=True).uncertainty
-    StdDevUncertainty([ 10.00049999])
+    >>> ndd1.subtract(ndd2, propagate_uncertainties=True).uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([10.00049999])
 
 but it needs to be convertible to the unit for the data.
