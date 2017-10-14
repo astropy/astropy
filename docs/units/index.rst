@@ -30,11 +30,11 @@ units.  It works with scalars, sequences and Numpy arrays::
     >>> from astropy import units as u
     >>> 42.0 * u.meter  # doctest: +FLOAT_CMP
     <Quantity  42. m>
-    >>> [1., 2., 3.] * u.m
-    <Quantity [ 1., 2., 3.] m>
+    >>> [1., 2., 3.] * u.m  # doctest: +FLOAT_CMP
+    <Quantity [1., 2., 3.] m>
     >>> import numpy as np
-    >>> np.array([1., 2., 3.]) * u.m
-    <Quantity [ 1., 2., 3.] m>
+    >>> np.array([1., 2., 3.]) * u.m  # doctest: +FLOAT_CMP
+    <Quantity [1., 2., 3.] m>
 
 You can get the unit and value from a |quantity| using the unit and
 value members::
