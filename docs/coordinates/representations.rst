@@ -62,14 +62,14 @@ methods with the same names as those for `~numpy.ndarray`, such as ``reshape``,
   >>> car_array = CartesianRepresentation(x, y, z)
   >>> car_array  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [[(1., 0.,  0.), (0., 2.,  0.), (0.,  0.,   3.)],
-       [(3., 4.,  0.), (5., 0., 12.), (3., -4., -12.)]]>
+      [[(1.,  0.,   0.), (0.,  2.,   0.), (0.,  0.,   3.)],
+       [(3.,  4.,   0.), (5.,  0.,  12.), (3., -4., -12.)]]>
   >>> car_array.shape
   (2, 3)
   >>> car_array.ravel()  # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in m
-      [(1.,  0.,  0.), (0.,  2.,   0.), (0.,  0.,   3.), (3.,  4.,   0.),
-       (5.,  0., 12.), (3., -4., -12.)]>
+      [(1.,  0.,   0.), (0.,  2.,   0.), (0.,  0.,   3.), (3.,  4.,   0.),
+       (5.,  0.,  12.), (3., -4., -12.)]>
 
 Representations can be converted to other representations using the
 ``represent_as`` method::
@@ -409,8 +409,8 @@ However, by passing just the desired representation class, only the
 re-represent both the ``Representation`` and any ``Differential`` s, you must
 specify target classes for the ``Differential`` as well::
 
-  >>> rep2 = rep.represent_as(r.SphericalRepresentation, r.SphericalDifferential) # doctest: +FLOAT_CMP
-  >>> rep2
+  >>> rep2 = rep.represent_as(r.SphericalRepresentation, r.SphericalDifferential)
+  >>> rep2  # doctest: +FLOAT_CMP
   <SphericalRepresentation (lon, lat, distance) in (rad, rad, AU)
     [(1.57079633, 1.10714872,  8.94427191),
      (1.37340077, 1.05532979, 10.34408043),

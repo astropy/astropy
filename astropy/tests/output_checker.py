@@ -46,7 +46,11 @@ class AstropyOutputChecker(doctest.OutputChecker):
 
         exp = r'(?:e[+-]?\d+)'
 
-        got_floats = r'([+-]?\d+\.\d*{}?|[+-]?\.\d+{}?|[+-]?\d+{})'.format(exp, exp, exp)
+        got_floats = (r'\s*([+-]?\d+\.\d*{0}?|'
+                      r'[+-]?\.\d+{0}?|'
+                      r'[+-]?\d+{0}|'
+                      r'nan|'
+                      r'[+-]?inf)').format(exp)
 
         # floats in the 'want' string may contain ellipses
         want_floats = got_floats + r'(\.{3})?'
@@ -108,11 +112,14 @@ class AstropyOutputChecker(doctest.OutputChecker):
                 else:
                     nw_.append(nw)
 
-                if not np.allclose(float(ng), float(nw)):
+                if not np.allclose(float(ng), float(nw), equal_nan=True):
                     return False
 
-            got = self.num_got_rgx.sub(r'{}', got)
-            got = got.format(*tuple(nw_))
+            # replace all floats in the "got" string by those from "wanted".
+            # TODO: can this be done more elegantly? Used to replace all with
+            # '{}' and then format, but this is problematic if the string
+            # contains other curly braces (e.g., from a dict).
+            got = self.num_got_rgx.sub(lambda x: nw_.pop(0), got)
 
         # <BLANKLINE> can be used as a special sequence to signify a
         # blank line, unless the DONT_ACCEPT_BLANKLINE flag is used.
