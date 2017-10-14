@@ -82,9 +82,9 @@ Models can be evaluated by calling them as functions::
 
     >>> g(0.1)
     0.22242984036255528
-    >>> g(np.linspace(0.5, 1.5, 7))
-    array([ 0.58091923,  0.71746405,  0.7929204 ,  0.78415894,  0.69394278,
-            0.54952605,  0.3894018 ])
+    >>> g(np.linspace(0.5, 1.5, 7))  # doctest: +FLOAT_CMP
+    array([0.58091923, 0.71746405, 0.7929204 , 0.78415894, 0.69394278,
+           0.54952605, 0.3894018 ])
 
 As the above example demonstrates, in general most models evaluate array-like
 inputs according to the standard `Numpy broadcasting rules`_ for arrays.
@@ -236,14 +236,14 @@ Single models have a length of 1, and are not considered a model set as such.
 When evaluating a model set, by default the input must be the same length as
 the number of models, with one input per model::
 
-    >>> g([0, 0.1])
-    array([ 1.        ,  1.76499381])
+    >>> g([0, 0.1])  # doctest: +FLOAT_CMP
+    array([1.        , 1.76499381])
 
 The result is an array with one result per model in the set.  It is also
 possible to broadcast a single value to all models in the set::
 
-    >>> g(0)
-    array([ 1.,  2.])
+    >>> g(0)  # doctest: +FLOAT_CMP
+    array([1., 2.])
 
 Model sets are used primarily for fitting, allowing a large number of models of
 the same type to be fitted simultaneously (and independently from each other)
