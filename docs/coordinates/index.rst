@@ -36,9 +36,9 @@ are all equivalent to the above::
     >>> c = SkyCoord('00h42.5m', '+41d12m')
     >>> c = SkyCoord('00 42 30 +41 12 00', unit=(u.hourangle, u.deg))
     >>> c = SkyCoord('00:42.5 +41:12', unit=(u.hourangle, u.deg))
-    >>> c
+    >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 10.625,  41.2)>
+        (10.625, 41.2)>
 
 The examples above illustrate a few simple rules to follow when creating a
 coordinate object:
@@ -62,16 +62,16 @@ because it will be *much* faster than applying the operation to each
 that contain the data, |skycoord| objects can be sliced, reshaped, etc.::
 
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
-    >>> c
+    >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        [( 10.,  41.), ( 11.,  -5.), ( 12.,  42.), ( 13.,   0.)]>
-    >>> c[1]
+        [(10., 41.), (11., -5.), (12., 42.), (13.,  0.)]>
+    >>> c[1]  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 11.,  -5.)>
-    >>> c.reshape(2, 2)
+        (11., -5.)>
+    >>> c.reshape(2, 2)  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        [[( 10., 41.), ( 11., -5.)],
-         [( 12., 42.), ( 13.,  0.)]]>
+        [[(10., 41.), (11., -5.)],
+         [(12., 42.), (13.,  0.)]]>
 
 Coordinate access
 -----------------
@@ -121,7 +121,7 @@ the `~astropy.coordinates.Galactic` frame use::
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b) in deg
-        ( 121.17424181, -21.57288557)>
+        (121.17424181, -21.57288557)>
 
 For more control, you can use the `~astropy.coordinates.SkyCoord.transform_to`
 method, which accepts a frame name, frame class, or frame instance::
@@ -129,12 +129,12 @@ method, which accepts a frame name, frame class, or frame instance::
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
-        ( 10.68459154,  41.26917146)>
+        (10.68459154, 41.26917146)>
 
     >>> from astropy.coordinates import FK5
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J1975.000): (ra, dec) in deg
-        ( 10.34209135,  41.13232112)>
+        (10.34209135, 41.13232112)>
 
 This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 straightforward to convert from celestial coordinates to
@@ -159,16 +159,16 @@ the ``representation`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
-    >>> c
+    >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (x, y, z) in kpc
-        ( 1.,  2.,  3.)>
+        (1., 2., 3.)>
     >>> c.x, c.y, c.z  # doctest: +FLOAT_CMP
-    (<Quantity  1. kpc>, <Quantity  2. kpc>, <Quantity  3. kpc>)
+    (<Quantity 1. kpc>, <Quantity 2. kpc>, <Quantity 3. kpc>)
 
     >>> c.representation = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
-        ( 2.23606798,  63.43494882,  3.)>
+        (2.23606798, 63.43494882, 3.)>
 
 For all the details see :ref:`astropy-skycoord-representations`.
 
@@ -183,11 +183,11 @@ which also allows converting the coordinates to a Cartesian representation::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, distance=770*u.kpc)
     >>> c.cartesian.x  # doctest: +FLOAT_CMP
-    <Quantity 568.7128654235232 kpc>
+    <Quantity 568.71286542 kpc>
     >>> c.cartesian.y  # doctest: +FLOAT_CMP
-    <Quantity 107.3008974042025 kpc>
+    <Quantity 107.3008974 kpc>
     >>> c.cartesian.z  # doctest: +FLOAT_CMP
-    <Quantity 507.88994291875713 kpc>
+    <Quantity 507.88994292 kpc>
 
 With distances assigned, |skycoord| convenience methods are more powerful, as
 they can make use of the 3D information. For example, to compute the physical,
@@ -196,7 +196,7 @@ they can make use of the 3D information. For example, to compute the physical,
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
     >>> c1.separation_3d(c2)  # doctest: +FLOAT_CMP
-    <Distance 1.5228602415117989 pc>
+    <Distance 1.52286024 pc>
 
 Convenience methods
 -------------------
@@ -207,7 +207,7 @@ computing on-sky (i.e. angular) and 3D separations between two coordinates::
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
     >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
-    <Angle 1.4045335865905868 deg>
+    <Angle 1.40453359 deg>
 
 cross-matching catalog coordinates (detailed in
 :ref:`astropy-coordinates-matching`)::
@@ -225,7 +225,7 @@ for a particular named object::
 
     >>> SkyCoord.from_name("PSR J1012+5307")  # doctest: +REMOTE_DATA +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        ( 153.1393271,  53.117343)>
+        (153.1393271, 53.117343)>
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation`::
@@ -245,10 +245,10 @@ Google maps, this works with fully specified addresses, location names, city
 names, and etc.::
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-26727.24739672, -4997012.16094607,  3950268.27273576) m>
+    <EarthLocation (-26726.98216371, -4997009.8604809, 3950271.16507911) m>
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
     ...                          get_height=True)  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <EarthLocation (-26727.8902439, -4997132.34972276,  3950363.92542983) m>
+    <EarthLocation (-26727.6272786, -4997130.47437768, 3950367.15622108) m>
     >>> EarthLocation.of_address('Danbury, CT')  # doctest: +REMOTE_DATA +FLOAT_CMP
     <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
@@ -276,7 +276,7 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
     >>> target = SkyCoord.from_name('M31')  # doctest: +REMOTE_DATA
     >>> keck = EarthLocation.of_site('Keck')  # doctest: +REMOTE_DATA
     >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <Quantity -22.363056056262263 km / s>
+    <Quantity -22.363056056 km / s>
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------

@@ -14,9 +14,9 @@ modifiying the values of the representation data as follows::
     >>> from astropy.coordinates import SkyCoord
     >>> c = SkyCoord([1,2],[3,4], unit='deg')
     >>> c.data.lon[()] = [10, 20] * u.deg
-    >>> c
+    >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        [( 10.,  3.), ( 20.,  4.)]>
+        [(10., 3.), (20., 4.)]>
 
 
 This changes the longitude values of the frame. Unfortunately, doing just this
@@ -41,4 +41,3 @@ at the following dictionary.::
 
     >>> c.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
-

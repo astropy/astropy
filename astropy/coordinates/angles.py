@@ -18,8 +18,6 @@ from ..utils import isiterable
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
-TWOPI = math.pi * 2.0  # no need to calculate this all the time
-
 # these are used by the `hms` and `dms` attributes
 hms_tuple = namedtuple('hms_tuple', ('h', 'm', 's'))
 dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
@@ -41,7 +39,7 @@ class Angle(u.SpecificTypeQuantity):
       Angle('1:2:30.43 degrees')
       Angle('1 2 0 hours')
       Angle(np.arange(1, 8), unit=u.deg)
-      Angle(u'1°2′3″')
+      Angle('1°2′3″')
       Angle('1d2m3.4s')
       Angle('-1h2m3s')
       Angle('-1h2.5m')
@@ -355,12 +353,12 @@ class Angle(u.SpecificTypeQuantity):
           >>> import astropy.units as u
           >>> a = Angle([-20.0, 150.0, 350.0] * u.deg)
 
-          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees
-          array([ 340.,  150.,  350.])
+          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees  # doctest: +FLOAT_CMP
+          array([340., 150., 350.])
 
-          >>> a.wrap_at('180d', inplace=True)  # Wrap into range -180 to 180 degrees
-          >>> a.degree
-          array([ -20.,  150.,  -10.])
+          >>> a.wrap_at('180d', inplace=True)  # Wrap into range -180 to 180 degrees  # doctest: +FLOAT_CMP
+          >>> a.degree  # doctest: +FLOAT_CMP
+          array([-20., 150., -10.])
 
         Parameters
         ----------
