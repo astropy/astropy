@@ -319,9 +319,12 @@ Other Changes and Additions
 
 - ``analytic_functions`` sub-package is removed.
   Use ``astropy.modeling.blackbody``. [#6541]
+
 - ``astropy.vo`` sub-package is removed. Use ``astropy.samp`` for SAMP and
   ``astroquery`` for VO cone search. [#6540]
 
+- The guide to setting up Emacs for code development was simplified, and
+  updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
 2.0.3 (unreleased)
 ==================
