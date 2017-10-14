@@ -38,29 +38,29 @@ term. For example, the proper motion components for the ``ICRS`` frame are
     >>> from astropy.coordinates import ICRS
     >>> import astropy.units as u
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
-    ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)
+    ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        ( 8.67,  53.09)
+        (8.67, 53.09)
      (pm_ra_cosdec, pm_dec) in mas / yr
-        ( 4.8, -15.16)>
+        (4.8, -15.16)>
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...      radial_velocity=23.42*u.km/u.s)
+    ...      radial_velocity=23.42*u.km/u.s)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
-        ( 8.67,  53.09)
+        (8.67, 53.09)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-        ( 4.8, -15.16,  23.42)>
+        (4.8, -15.16, 23.42)>
 
 For proper motion components in the ``Galactic`` frame, the names track the
 longitude and latitude names::
 
     >>> from astropy.coordinates import Galactic
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
-    ...          pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr)
+    ...          pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 11.23,  58.13)
+        (11.23, 58.13)
      (pm_l_cosb, pm_b) in mas / yr
-        ( 21.34, -55.89)>
+        (21.34, -55.89)>
 
 Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
@@ -74,11 +74,11 @@ changed by specifying the `~astropy.coordinates.SphericalDifferential` class
     >>> from astropy.coordinates import SphericalDifferential
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
     ...          pm_l=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
-    ...          differential_cls=SphericalDifferential)
+    ...          differential_cls=SphericalDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 11.23,  58.13)
+        (11.23, 58.13)
      (pm_l, pm_b) in mas / yr
-        ( 21.34, -55.89)>
+        (21.34, -55.89)>
 
 This works in parallel to specifying the expected representation class, as long
 as the differential class is compatible with the representation. For example, to
@@ -89,11 +89,11 @@ specify all coordinate and velocity components in Cartesian::
     >>> Galactic(u=103*u.pc, v=-11*u.pc, w=93.*u.pc,
     ...          U=31*u.km/u.s, V=-10*u.km/u.s, W=75*u.km/u.s,
     ...          representation=CartesianRepresentation,
-    ...          differential_cls=CartesianDifferential)
+    ...          differential_cls=CartesianDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (u, v, w) in pc
-        ( 103., -11.,  93.)
+        (103., -11., 93.)
      (U, V, W) in km / s
-        ( 31., -10.,  75.)>
+        (31., -10., 75.)>
 
 Note that the ``Galactic`` frame has special, standard names for Cartesian
 position and velocity components. For other frames, these are just ``x,y,z`` and
@@ -102,11 +102,11 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
     >>> ICRS(x=103*u.pc, y=-11*u.pc, z=93.*u.pc,
     ...      v_x=31*u.km/u.s, v_y=-10*u.km/u.s, v_z=75*u.km/u.s,
     ...      representation=CartesianRepresentation,
-    ...      differential_cls=CartesianDifferential)
+    ...      differential_cls=CartesianDifferential)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in pc
-        ( 103., -11.,  93.)
+        (103., -11., 93.)
      (v_x, v_y, v_z) in km / s
-        ( 31., -10.,  75.)>
+        (31., -10., 75.)>
 
 .. _astropy-coordinate-transform-with-velocities:
 
@@ -119,12 +119,12 @@ is done  exactly the same way transforming position-only frame instances::
 
     >>> from astropy.coordinates import Galactic
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
-    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)
+    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
     >>> icrs.transform_to(Galactic) # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 120.38084191, -9.69872044)
+        (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b) in mas / yr
-        ( 3.78957965, -15.44359693)>
+        (3.78957965, -15.44359693)>
 
 However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
@@ -153,12 +153,12 @@ on proper-motion-only data or full-space, 3D velocities::
 
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...             radial_velocity=23.42*u.km/u.s) # doctest: +FLOAT_CMP
-    >>> icrs.transform_to(Galactic) # doctest: +FLOAT_CMP
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.transform_to(Galactic)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
-        ( 120.38084191, -9.69872044)
+        (120.38084191, -9.69872044)
      (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
-        ( 3.78957965, -15.44359693,  23.42)>
+        (3.78957965, -15.44359693, 23.42)>
 
 The same rotation matrix is applied to both the position vector and the velocity
 vector. Any transformation that involves a velocity offset requires all 3D
@@ -169,12 +169,12 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
     >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...             distance=117*u.pc,
     ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
-    ...             radial_velocity=23.42*u.km/u.s) # doctest: +FLOAT_CMP
-    >>> icrs.transform_to(LSR) # doctest: +FLOAT_CMP
-    <LSR Coordinate (v_bary=( 11.1,  12.24,  7.25) km / s): (ra, dec, distance) in (deg, deg, pc)
-        ( 8.67,  53.09,  117.)
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.transform_to(LSR)  # doctest: +FLOAT_CMP
+    <LSR Coordinate (v_bary=(11.1, 12.24, 7.25) km / s): (ra, dec, distance) in (deg, deg, pc)
+        (8.67, 53.09, 117.)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-        (-24.51315607, -2.67935501,  27.07339176)>
+        (-24.51315607, -2.67935501, 27.07339176)>
 
 Finite Difference Transformations
 ---------------------------------
@@ -312,10 +312,10 @@ radial velocity to determine the final heliocentric radial velocity::
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
     >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
     >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.07369348639167 km / s>
+    <Quantity 20.07369368 km / s>
     >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
     >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.071122815002827 km / s>
+    <Quantity 20.071123 km / s>
 
 Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc).  See the
