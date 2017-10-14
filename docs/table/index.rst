@@ -102,10 +102,10 @@ A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object (but see :ref:`quantity_and_qtable` for
 a way to natively use `~astropy.units.Quantity` objects in tables)::
 
-  >>> t['b'].quantity
-  <Quantity [ 2. , 5. , 8.2] s>
+  >>> t['b'].quantity  # doctest: +FLOAT_CMP
+  <Quantity [2. , 5. , 8.2] s>
   >>> t['b'].to('min')  # doctest: +FLOAT_CMP
-  <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
+  <Quantity [0.03333333, 0.08333333, 0.13666667] min>
 
 From within the IPython notebook, the table is displayed as a formatted HTML
 table (details of how it appears can be changed by altering the
@@ -265,7 +265,7 @@ and the native object type (see :ref:`mixin_columns`).  For example::
   2000:002:00:00:00.000 10.0,-45.0
   2002:345:00:00:00.000  20.0,40.0
 
-The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` in 
+The `~astropy.table.QTable` class is a variant of `~astropy.table.Table` in
 which `~astropy.units.Quantity` are used natively, instead of being
 converted to `~astropy.table.Column`. This means their units get taken into
 account in numerical operations, etc. In this class `~astropy.table.Column`
@@ -281,19 +281,19 @@ for details)::
   >>> t
   <QTable length=2>
     dist  velocity  flag
-     m     m / s        
+     m     m / s
   float64 float64   bool
   ------- -------- -----
       1.0      3.0  True
       2.0      4.0 False
   >>> t.info()
   <QTable length=2>
-    name    dtype   unit  class  
+    name    dtype   unit  class
   -------- ------- ----- --------
       dist float64     m Quantity
   velocity float64 m / s Quantity
       flag    bool         Column
- 
+
 .. Note::
 
    The **only** difference between `~astropy.table.QTable` and

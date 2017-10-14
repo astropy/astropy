@@ -588,10 +588,10 @@ explicitly to a `~astropy.units.Quantity` object via the
   >>> t = Table(data, names=('a', 'b'))
   >>> t['a'].unit = u.m
   >>> t['b'].unit = 'km/s'
-  >>> t['a'].quantity
-  <Quantity [ 1., 2., 3.] m>
+  >>> t['a'].quantity  # doctest: +FLOAT_CMP
+  <Quantity [1., 2., 3.] m>
   >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
-  <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
+  <Quantity [40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
 Note that the :attr:`~astropy.table.Column.quantity` property is actually
 a *view* of the data in the column, not a copy.  Hence, you can set the
@@ -615,11 +615,11 @@ Even without explicit conversion, columns with units can be treated like
 like an Astropy `~astropy.units.Quantity` in *some* arithmetic
 expressions (see the warning below for caveats to this)::
 
-  >>> t['a'] + .005*u.km
-  <Quantity [ 6., 7., 8.] m>
+  >>> t['a'] + .005*u.km  # doctest: +FLOAT_CMP
+  <Quantity [6., 7., 8.] m>
   >>> from astropy.constants import c
   >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
-  <Quantity [ 0.15010384, 0.16678205, 0.20013846]>
+  <Quantity [0.15010384, 0.16678205, 0.20013846]>
 
 .. warning::
 
@@ -647,7 +647,7 @@ expressions (see the warning below for caveats to this)::
   `~astropy.units.Quantity`::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
-    <Quantity [ 0.5, 1. ]>
+    <Quantity [0.5, 1. ]>
 
 .. _bytestring-columns-python-3:
 
