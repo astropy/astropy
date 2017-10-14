@@ -46,7 +46,7 @@ is saved, use::
 
   ;; Automatically remove trailing whitespace when file is saved.
   (add-hook 'python-mode-hook
-    (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+  (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
 
 If you want to use this for every type of file, you can use
 ``(add-hook 'before-save-hook 'delete-trailing-whitespace)``.
@@ -61,6 +61,7 @@ default, flycheck_ will check if flake8_ is installed and, if so, use that for
 its syntax checking. To ensure flycheck_ starts upon opening python files, add:
 
 .. code-block:: scheme
+
   (add-hook 'python-mode-hook 'flycheck-mode)
 
 Alternatively, you can just use ``(global-flycheck-mode)`` to run flycheck
