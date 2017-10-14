@@ -49,8 +49,8 @@ Because Numpy arrays don't accept most format specifiers, using specifiers like
 Use :func:`numpy.array_str` instead. For example::
 
     >>> q = np.linspace(0,1,10) * u.m
-    >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)
-    '[ 0.   0.1  0.2  0.3  0.4  0.6  0.7  0.8  0.9  1. ] m'
+    >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)  # doctest: +FLOAT_CMP
+    '[0.  0.1 0.2 0.3 0.4 0.6 0.7 0.8 0.9 1. ] m'
 
 Examine the numpy documentation for more examples with :func:`numpy.array_str`.
 

@@ -755,17 +755,21 @@ class TestQuantityDisplay:
         q3 = u.Quantity(1, unit='m-1', dtype=int)
         if NUMPY_LT_1_14:
             assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
+            assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
         else:
-            assert repr(self.scalarintq * q2) == "<Quantity  1.>"
+            assert repr(self.scalarintq * q2) == "<Quantity 1.>"
+            assert repr(self.arrq * q2) == "<Quantity [1. , 2.3, 8.9]>"
         assert repr(self.scalarintq * q3) == "<Quantity 1>"
-        assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
 
     def test_dimensionless_quantity_str(self):
         q2 = u.Quantity(1., unit='m-1')
         q3 = u.Quantity(1, unit='m-1', dtype=int)
         assert str(self.scalarintq * q2) == "1.0"
         assert str(self.scalarintq * q3) == "1"
-        assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
+        if NUMPY_LT_1_14:
+            assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
+        else:
+            assert str(self.arrq * q2) == "[1.  2.3 8.9]"
 
     def test_dimensionless_quantity_format(self):
         q1 = u.Quantity(3.14)
@@ -777,16 +781,19 @@ class TestQuantityDisplay:
 
     def test_scalar_quantity_repr(self):
         assert repr(self.scalarintq) == "<Quantity 1 m>"
-        if NUMPY_LT_1_14:
-            assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
-        else:
-            assert repr(self.scalarfloatq) == "<Quantity  1.3 m>"
+        assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
 
     def test_array_quantity_str(self):
-        assert str(self.arrq) == "[ 1.   2.3  8.9] m"
+        if NUMPY_LT_1_14:
+            assert str(self.arrq) == "[ 1.   2.3  8.9] m"
+        else:
+            assert str(self.arrq) == "[1.  2.3 8.9] m"
 
     def test_array_quantity_repr(self):
-        assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
+        if NUMPY_LT_1_14:
+            assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
+        else:
+            assert repr(self.arrq) == "<Quantity [1. , 2.3, 8.9] m>"
 
     def test_scalar_quantity_format(self):
         assert format(self.scalarintq, '02d') == "01 m"
@@ -1309,8 +1316,8 @@ def test_repr_array_of_quantity():
         assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
         assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
     else:
-        assert repr(a) == 'array([<Quantity  1. m>, <Quantity  2. s>], dtype=object)'
-        assert str(a) == '[<Quantity  1. m> <Quantity  2. s>]'
+        assert repr(a) == 'array([<Quantity 1. m>, <Quantity 2. s>], dtype=object)'
+        assert str(a) == '[<Quantity 1. m> <Quantity 2. s>]'
 
 
 class TestSpecificTypeQuantity:
