@@ -1009,6 +1009,9 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     }
 
     indata = (PyArrayObject*) PyObject_GetAttrString(hdu, "data");
+    if (indata == NULL) {
+        goto fail;
+    }
 
     fits_write_img(fileptr, datatype, 1, PyArray_SIZE(indata),
                    PyArray_DATA(indata), &status);
@@ -1032,19 +1035,41 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     znaxis = (npy_intp) (Fptr->heapstart + heapsize);
 
     if (znaxis < outbufsize) {
+        void* tmp_outbuf = NULL;
         // Go ahead and truncate to the size in znaxis to free the
         // redundant allocation
-        // TODO: Add error handling
-        outbuf = realloc(outbuf, (size_t) znaxis);
+        if (znaxis == 0) {
+            /* This really shouldn't happen, but if it did, we would have a
+               problem because realloc would deallocate outbuf AND return NULL.
+               */
+            PyErr_SetString(PyExc_ValueError,
+                            "Calculated array size is zero. This shouldn't happen!");
+            goto fail;
+        }
+        tmp_outbuf = realloc(outbuf, (size_t) znaxis);
+        if (tmp_outbuf == NULL) {
+            goto fail;
+        }
+        outbuf = tmp_outbuf;
     }
 
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
-
+    if (tmp == NULL) {
+        /* Really not sure if it's always safe to free outbuf when
+           PyArray_SimpleNewFromData failed (which is unlikely but could happen)
+           but it seems like if it fails then the outbuf NEEDS to be freed... */
+        goto fail;
+    }
     PyArray_ENABLEFLAGS(tmp, NPY_ARRAY_OWNDATA);
+    /* From this point on outbuf MUST NOT BE FREED! */
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
+    if (retval == NULL) {
+        Py_DECREF(tmp);
+        goto cleanup;
+    }
 
     goto cleanup;
 
@@ -1056,10 +1081,13 @@ fail:
     }
 cleanup:
     if (columns != NULL) {
-        PyMem_Free(columns);
-	if (Fptr != NULL) {
-	    Fptr->tableptr = NULL;
-	}
+        free(columns);
+        /* See https://github.com/astropy/astropy/pull/4489
+           We can only set the tableptr to NULL if Fptr is actually not NULL.
+           */
+        if (Fptr != NULL) {
+            Fptr->tableptr = NULL;
+        }
     }
 
     if (fileptr != NULL) {
@@ -1092,13 +1120,15 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     int datatype;
     int npdatatype;
     npy_intp zndim;
-    npy_intp* znaxis;
+    npy_intp* znaxis = NULL;
     long arrsize;
-    unsigned int idx;
+    int idx;
 
     fitsfile* fileptr = NULL;
     int anynul = 0;
     int status = 0;
+
+    int free_columns_manually = 1;
 
     if (!PyArg_ParseTuple(args, "O:compression.decompress_hdu", &hdu)) {
         return NULL;
@@ -1112,22 +1142,25 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     } else if (inbufsize == 0) {
         // The compressed data buffer is empty (probably zero rows, for an
         // empty "compressed" image.  Just return None in this case.
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, &columns, READONLY);
     if (PyErr_Occurred()) {
-        return NULL;
+        goto fail;
     }
 
     bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
-        return NULL;
+        goto fail;
     }
 
     zndim = (npy_intp)fileptr->Fptr->zndim;
-    znaxis = (npy_intp*) PyMem_Malloc(sizeof(npy_intp) * zndim);
+    znaxis = PyMem_Malloc(sizeof(npy_intp) * zndim);
+    if (znaxis == NULL) {
+        goto fail;
+    }
+
     arrsize = 1;
     for (idx = 0; idx < zndim; idx++) {
         znaxis[zndim - idx - 1] = fileptr->Fptr->znaxis[idx];
@@ -1136,11 +1169,18 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
 
     /* Create and allocate a new array for the decompressed data */
     outdata = (PyArrayObject*) PyArray_SimpleNew(zndim, znaxis, npdatatype);
+    if (outdata == NULL) {
+        goto fail;
+    }
 
     fits_read_img(fileptr, datatype, 1, arrsize, NULL, PyArray_DATA(outdata),
                   &anynul, &status);
+    /* At this point we need to let CFITSIO clean up the tableptr and the
+       compressed tile cache. */
+    free_columns_manually = 0;
     if (status != 0) {
         process_status_err(status);
+        Py_DECREF(outdata);
         outdata = NULL;
         goto fail;
     }
@@ -1151,10 +1191,16 @@ fail:
     // cleans up the compressed tile cache
     /*
     if (columns != NULL) {
-        PyMem_Free(columns);
+        free(columns);
         fileptr->Fptr->tableptr = NULL;
     }
     */
+    if (free_columns_manually && columns != NULL) {
+        free(columns);
+        if (fileptr != NULL && fileptr->Fptr != NULL) {
+            fileptr->Fptr->tableptr = NULL;
+        }
+    }
 
     if (fileptr != NULL) {
         status = 1;// Disable header-related errors
@@ -1165,7 +1211,9 @@ fail:
         }
     }
 
-    PyMem_Free(znaxis);
+    if (znaxis != NULL) {
+        PyMem_Free(znaxis);
+    }
 
     // Clear any messages remaining in CFITSIO's error stack
     fits_clear_errmsg();

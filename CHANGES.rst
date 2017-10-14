@@ -259,6 +259,8 @@ astropy.io.fits
 - Fix the ``fitscheck`` script for updating invalid checksums, or removing
   checksums. [#6571]
 
+- Fixed potential problems with the compression module [#6732]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
