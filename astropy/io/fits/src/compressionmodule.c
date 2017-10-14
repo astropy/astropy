@@ -759,34 +759,58 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     header = PyObject_GetAttrString(hdu, "_header");
     if (header == NULL) {
+        return;
+    }
+
+    switch (get_header_int(header, "ZNAXIS", &znaxis, 0)) {
+      case 1:
+        PyErr_SetString(PyExc_TypeError,
+                        "ZNAXIS keyword not present in header.");
+        goto fail;  /* could also fall through... */
+      case -1:
         goto fail;
     }
 
-    if (0 != get_header_int(header, "ZNAXIS", &znaxis, 0)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "ZNAXIS keyword not present in header.");
+    if (znaxis > 999) {
+        PyErr_SetString(PyExc_ValueError, "ZNAXIS is greater than 999.");
         goto fail;
     }
 
     for (idx = 1; idx <= znaxis; idx++) {
         snprintf(keyword, 9, "ZTILE%u", idx);
-        get_header_long(header, keyword, &tilelen, 1);
+        if (get_header_long(header, keyword, &tilelen, 1) == -1) {
+            goto fail;
+        }
         maxtilelen *= tilelen;
     }
 
-    get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE);
+    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE) == -1) {
+        goto fail;
+    }
     compress_type = compress_type_from_string(tmp);
+    if (PyErr_Occurred()) {
+        goto fail;
+    }
     if (compress_type == RICE_1) {
-        get_header_int(header, "ZVAL1", &rice_blocksize, 0);
+        if (get_header_int(header, "ZVAL1", &rice_blocksize, 0) == -1) {
+            goto fail;
+        }
     }
 
-    get_header_longlong(header, "NAXIS1", &rowlen, 0);
-    get_header_longlong(header, "NAXIS2", &nrows, 0);
+    if (get_header_longlong(header, "NAXIS1", &rowlen, 0) == -1) {
+        goto fail;
+    }
+    if (get_header_longlong(header, "NAXIS2", &nrows, 0) == -1) {
+        goto fail;
+    }
 
     // Get the ZBITPIX header value; if this is missing we're in trouble
-    if (0 != get_header_int(header, "ZBITPIX", &zbitpix, 0)) {
+    switch (get_header_int(header, "ZBITPIX", &zbitpix, 0)) {
+      case 1:
         PyErr_SetString(PyExc_TypeError,
                         "ZBITPIX keyword not present in header.");
+        goto fail;  /* could also fall through... */
+      case -1:
         goto fail;
     }
 
@@ -814,7 +838,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     }
 
 fail:
-    Py_XDECREF(header);
+    Py_DECREF(header);
     return;
 }
 
