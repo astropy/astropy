@@ -59,3 +59,6 @@ htmlcov
 
 # PyCharm
 .idea
+
+# Pytest
+v
