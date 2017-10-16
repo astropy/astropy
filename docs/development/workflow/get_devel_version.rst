@@ -326,4 +326,4 @@ but it should not have ``'dev'`` in it.
 
 .. include:: links.inc
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
-.. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git#set-up-git
+.. _Set Up Git at GitHub: https://help.github.com/articles/set-up-git/#set-up-git

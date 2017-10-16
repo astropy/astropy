@@ -70,5 +70,5 @@ also an Astropy-specific `~astropy.utils.exceptions.AstropyDeprecationWarning`
 which can be used to disable deprecation warnings from Astropy only.
 
 See `the CPython documentation
-<http://docs.python.org/3/using/cmdline.html#cmdoption-W>`__ for more
+<https://docs.python.org/3/using/cmdline.html#cmdoption-W>`__ for more
 information on the -W argument.
