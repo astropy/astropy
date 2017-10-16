@@ -40,7 +40,7 @@ Astropy also depends on other packages for optional features:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
@@ -87,7 +87,7 @@ To install Astropy with `pip <https://pip.pypa.io//en/latest/>`_, simply run::
     installation.  In this case you may consider using the ``--user`` option
     to install the package into your home directory.  You can read more
     about how to do this in the `pip documentation
-    <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+    <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
@@ -338,7 +338,7 @@ If upon running the ``setup.py`` script you get a message like
     (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
 
 this is because you have a very outdated version of the `setuptools
-<https://pythonhosted.org/setuptools/>`_ package which is used to install
+<https://setuptools.readthedocs.io>`_ package which is used to install
 Python packages.  Normally Astropy will bootstrap newer version of
 setuptools via the network, but setuptools suggests that you first
 *uninstall* the old version (the ``easy_install -U setuptools`` command).

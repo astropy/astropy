@@ -27,7 +27,7 @@
 .. _git casts: https://training.github.com/
 .. _Fernando's git page: http://www.fperez.org/py4science/git.html
 .. _git magic: http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html
-.. _git concepts: http://www.eecs.harvard.edu/~cduan/technical/git/
+.. _git concepts: https://www.sbf5.com/~cduan/technical/git/
 .. _git clone: http://schacon.github.com/git/git-clone.html
 .. _git checkout: http://schacon.github.com/git/git-checkout.html
 .. _git commit: http://schacon.github.com/git/git-commit.html
