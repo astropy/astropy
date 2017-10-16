@@ -61,9 +61,9 @@ within a kernel of any NaN value, which is often not the desired result.
     img_zerod = img.copy()
     img_zerod[np.isnan(img)] = 0
 
-    # We smooth with a Gaussian kernel with stddev=1
+    # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
     # It is a 9x9 array
-    kernel = Gaussian2DKernel(stddev=1)
+    kernel = Gaussian2DKernel(x_stddev=1)
 
     # Convolution: scipy's direct convolution mode spreads out NaNs (see
     # panel 2 below)
@@ -278,9 +278,9 @@ flagged-out pixels:
    # pixels to NaN to simulate a "saturated" data set
    img[img > 2e1] = np.nan
 
-   # We smooth with a Gaussian kernel with stddev=1
+   # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
-   kernel = Gaussian2DKernel(stddev=1)
+   kernel = Gaussian2DKernel(x_stddev=1)
 
    # create a "fixed" image with NaNs replaced by interpolated values
    fixed_image = interpolate_replace_nans(img, kernel)
@@ -338,9 +338,9 @@ eye).
    new_img = np.tile(np.nan, img.shape)
    new_img.flat[indices] = sampled_data
 
-   # We smooth with a Gaussian kernel with stddev=1
+   # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
-   kernel = Gaussian2DKernel(stddev=1)
+   kernel = Gaussian2DKernel(x_stddev=1)
 
    # create a "reconstructed" image with NaNs replaced by interpolated values
    reconstructed_image = interpolate_replace_nans(new_img, kernel)
