@@ -180,7 +180,7 @@ See Also
   <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
 
 - `A table of astronomical unit equivalencies
-  <http://astro.wku.edu/strolger/UNITS.txt>`_
+  <http://www.stsci.edu/~strolger/docs/UNITS.txt>`_
 
 Reference/API
 =============

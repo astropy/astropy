@@ -272,7 +272,7 @@ to serialize your table to the FITS format for distribution.  At some point
 this FAQ might provide an example of how to do this.
 
 .. _HDF5: http://www.hdfgroup.org/HDF5/
-.. _PyTables: http://www.pytables.org/moin
+.. _PyTables: http://www.pytables.org/
 
 
 How do I create a multi-extension FITS file from scratch?
