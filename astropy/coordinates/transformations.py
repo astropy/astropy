@@ -357,7 +357,7 @@ class TransformGraph:
             The alias to look up.
         raises : Bool (default value is False)
             False : doesn't raise exception if 'name' isn't found. (returns None)
-            True : raises exception if 'name' isn't found. 
+            True : raises exception if 'name' isn't found.
         Returns
         -------
         coordcls
