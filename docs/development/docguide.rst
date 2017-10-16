@@ -112,7 +112,7 @@ edit_on_github Extension
 numpydoc Extension
 ------------------
 This extension (and some related extensions) are a port of the
-`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extension
+`numpydoc <https://pypi.python.org/pypi/numpydoc/0.3.1>`_ extension
 written by the NumPy_ and SciPy_, projects, with some tweaks for
 Astropy.  Its main purposes is to reprocess docstrings from code into
 a form sphinx understands. Generally, there's no need to interact with
@@ -129,10 +129,10 @@ workarounds for undesired behavior.  Their APIs are not included here
 because we may change them in the future.
 
 
-.. _NumPy: http://numpy.scipy.org/
-.. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
-.. _Matplotlib: http://matplotlib.sourceforge.net/
-.. _SciPy: http://www.scipy.org
+.. _NumPy: http://www.numpy.org/
+.. _numpydoc: https://pypi.python.org/pypi/numpydoc/0.3.1
+.. _Matplotlib: http://matplotlib.org/
+.. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://sphinx.pocoo.org
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers
 .. _sphinx-automodapi: https://github.com/astropy/sphinx-automodapi

@@ -590,7 +590,7 @@ full table as one of the inputs.
 Join
 --------------
 
-The |Table| class supports the `database join <http://en.wikipedia.org/wiki/Join_(SQL)>`_
+The |Table| class supports the `database join <https://en.wikipedia.org/wiki/Join_(SQL)>`_
 operation.  This provides a flexible and powerful way to combine tables based on the
 values in one or more key columns.
 
@@ -745,7 +745,7 @@ values.  For example the following tables have multiple rows for the key column 
     4  R4
 
 Doing an outer join on these tables shows that what is really happening is a `Cartesian
-product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every
+product <https://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every
 combination of the left and right tables is represented.  When there is no match in either
 the left or right table, the corresponding column values are designated as missing.
 

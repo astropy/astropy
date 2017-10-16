@@ -469,7 +469,7 @@ To subclass |quantity|, one generally proceeds as one would when subclassing
 (rather than ``__init__``) and uses the ``numpy.ndarray.__array_finalize__``
 method to update attributes.  For details, see the `numpy documentation on
 subclassing
-<http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
+<https://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
 examples, one can look at |quantity| itself, where, e.g., the
 ``astropy.units.Quantity.__array_finalize__`` method is used to pass on the
 ``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed

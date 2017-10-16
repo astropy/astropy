@@ -2335,7 +2335,7 @@ The following bugs were fixed:
   an ImageHDU header with a PCOUNT card that is missing or has a value other
   than 0.
 
-.. _[1]: http://fits.gsfc.nasa.gov/registry/tilecompression.html
+.. _[1]: https://fits.gsfc.nasa.gov/registry/tilecompression.html
 
 
 1.4.1 (2008-11-04)
@@ -3239,4 +3239,4 @@ Things not yet supported but are part of future development:
 - Support for tables with TNULL values. This awaits an enhancement to numarray
   to support mask arrays (planned).  (At least a couple of months off).
 
-.. _PyFITS: http://www.stsci.edu/resources/software_hardware/pyfits
+.. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits

@@ -78,7 +78,7 @@ rules such as `Scott's rule
 `Freedman & Diaconis
 <https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule>`_'s rule, and
 Bayesian models such as `Knuth's rule
-<http://arxiv.org/abs/physics/0605197>`_ and `Bayesian Blocks
+<https://arxiv.org/abs/physics/0605197>`_ and `Bayesian Blocks
 <http://adsabs.harvard.edu/abs/2012arXiv1207.5578S>`_:
 
 .. plot::
@@ -323,4 +323,4 @@ Full change log
 To see a detailed list of all changes in version v1.1, including changes in
 API, please see the :ref:`changelog`.
 
-.. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
+.. _DataFrame: http://pandas-docs.github.io/pandas-docs-travis/

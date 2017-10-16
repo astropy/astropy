@@ -79,7 +79,7 @@ Check by typing, in a terminal::
     $ git --version
     # if git is installed, will get something like: git version 1.8.4
 
-If `git`_ is not installed, `get it <http://git-scm.com/downloads>`_.
+If `git`_ is not installed, `get it <https://git-scm.com/downloads>`_.
 
 **Basic git configuration:**
 
@@ -268,7 +268,7 @@ reproducible results. Before you try out a new feature or think you have found
 a bug make sure the tests run properly on your system.
 
 If the test *don't* complete successfully, that is itself a bug--please
-`report it <http://github.com/astropy/astropy/issues>`_.
+`report it <https://github.com//astropy/astropy/issues>`_.
 
 To run the tests, navigate back to the directory your copy of astropy is in on
 your computer, then, at the shell prompt, type::
@@ -282,7 +282,7 @@ this::
     4741 passed, 85 skipped, 11 xfailed
 
 Skips and xfails are fine, but if there are errors or failures please
-`report them <http://github.com/astropy/astropy/issues>`_.
+`report them <https://github.com//astropy/astropy/issues>`_.
 
 .. _try_devel:
 
@@ -325,5 +325,5 @@ but it should not have ``'dev'`` in it.
 
 
 .. include:: links.inc
-.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git#set-up-git

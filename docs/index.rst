@@ -125,7 +125,7 @@ as a whole, see :doc:`development/vision`.
 
 There are additional tools of use for developers in the
 `astropy/astropy-tools repository
-<http://github.com/astropy/astropy-tools>`__.
+<https://github.com/astropy/astropy-tools>`__.
 
 .. toctree::
    :maxdepth: 1

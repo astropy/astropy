@@ -7,7 +7,7 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 3.5 or 3.6
+- `Python <https://www.python.org/>`_ 3.5 or 3.6
 
 - `Numpy`_ |minimum_numpy_version| or later
 
@@ -15,10 +15,10 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://h5py.org/>`_: To read/write
+- `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.
 
-- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
+- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
@@ -60,7 +60,7 @@ Installing Astropy
 Using pip
 ---------
 
-To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
+To install Astropy with `pip <https://pip.pypa.io//en/latest/>`_, simply run::
 
     pip install --no-deps astropy
 
@@ -138,7 +138,7 @@ correctly is to use the :ref:`astropy.test()` function::
     astropy.test()
 
 The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
 .. note::
 
@@ -204,7 +204,7 @@ like brew, macports or fink.
 
 
 The `instructions for building Numpy from source
-<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+<https://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
 .. note::
@@ -248,9 +248,9 @@ Building and Installing
 -----------------------
 
 Astropy uses the Python `distutils framework
-<http://docs.python.org/install/index.html>`_ for building and
+<https://docs.python.org/3/install/index.html>`_ for building and
 installing and requires the
-`distribute <http://pypi.python.org/pypi/distribute>`_ extension--the later is
+`distribute <https://pypi.python.org/pypi/distribute>`_ extension--the later is
 automatically downloaded when running ``python setup.py`` if it is not already
 provided by your system.
 
@@ -315,7 +315,7 @@ The C libraries currently bundled with Astropy include:
 - `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
 
-- `cfitsio <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
+- `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
   ``cextern/cfitsio/changes.txt`` for the bundled version.
 
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the

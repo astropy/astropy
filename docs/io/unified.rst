@@ -157,7 +157,7 @@ column delimiter and the output format for the ``colc`` column use::
 FITS
 ----
 
-Reading and writing tables in `FITS <http://fits.gsfc.nasa.gov/>`_ format is
+Reading and writing tables in `FITS <https://fits.gsfc.nasa.gov/>`_ format is
 supported with ``format='fits'``. In most cases, existing FITS files should be
 automatically identified as such based on the header of the file, but if not,
 or if writing to disk, then the format should be explicitly specified.

@@ -37,9 +37,9 @@ package (version 3.1 or later) installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
-<http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
+<https://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
 options require the `pytest-pep8 plugin
-<http://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
+<https://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
 separately.
 
 setup.py test
@@ -157,13 +157,13 @@ To use it from Python, do::
 Test coverage reports
 ---------------------
 
-Astropy can use `coverage.py <http://nedbatchelder.com/code/coverage/>`_ to
+Astropy can use `coverage.py <http://coverage.readthedocs.io/en/latest/>`_ to
 generate test coverage reports.  To generate a test coverage report, use::
 
     python setup.py test --coverage
 
 There is a `coveragerc
-<http://nedbatchelder.com/code/coverage/config.html>`_ file that
+<http://coverage.readthedocs.io/en/latest/config.html>`_ file that
 defines files to omit as well as lines to exclude.  It is installed
 along with astropy so that the ``astropy`` testing framework can use
 it.  In the source tree, it is at ``astropy/tests/coveragerc``.
@@ -366,7 +366,7 @@ permissions so tests which create files should always do so in
 temporary directories. This can be done with the `pytest tmpdir
 function argument <https://pytest.org/en/latest/tmpdir.html>`_ or with
 Python's built-in `tempfile module
-<http://docs.python.org/library/tempfile.html#module-tempfile>`_.
+<https://docs.python.org/3/library/tempfile.html#module-tempfile>`_.
 
 Setting up/Tearing down tests
 =============================

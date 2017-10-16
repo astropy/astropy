@@ -28,7 +28,7 @@ that the |Time| object maintains sub-nanosecond precision over times spanning
 the age of the universe.
 
 .. [#] `Shewchuk, 1997, Discrete & Computational Geometry 18(3):305-363
-        <http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf>`_
+        <https://people.eecs.berkeley.edu/~jrs/papers/robustr.pdf>`_
 
 Getting Started
 ===============
@@ -258,7 +258,7 @@ Time Scale
 ^^^^^^^^^^
 
 The time scale (or `time standard
-<http://en.wikipedia.org/wiki/Time_standard>`_) is "a specification for
+<https://en.wikipedia.org/wiki/Time_standard>`_) is "a specification for
 measuring time: either the rate at which time passes; or points in time; or
 both" [#]_. See also [#]_ and [#]_.
 ::
@@ -278,7 +278,7 @@ ut1    Universal Time              (UT1)
 utc    Coordinated Universal Time  (UTC)
 ====== =================================
 
-.. [#] Wikipedia `time standard <http://en.wikipedia.org/wiki/Time_standard>`_ article
+.. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
@@ -504,7 +504,7 @@ The ``in_subfmt`` argument provides a mechanism to select one or more
 `subformat`_ values from the available subformats for string input.  Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
-<http://docs.python.org/library/fnmatch.html>`_ module.
+<https://docs.python.org/3/library/fnmatch.html>`_ module.
 
 The default value for ``in_subfmt`` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
