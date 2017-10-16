@@ -887,7 +887,7 @@ details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
 The 32-bit tests on CircleCI use a pre-defined Docker image defined
-`https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit Python
+`here <https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit Python
 environment. If you want to run tests for Astropy affiliated packages in the
 same way, you can use the same set-up on CircleCI as the core package, but just
 be sure to install Astropy first using::
