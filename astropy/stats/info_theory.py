@@ -278,7 +278,7 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     ----------
     .. [1] Cavanaugh, J. E.  Model Selection Lecture II: The Akaike
        Information Criterion.
-       <http://myweb.uiowa.edu/cavaaugh/ms_lec_2_ho.pdf>
+       <http://machinelearning102.pbworks.com/w/file/fetch/47699383/ms_lec_2_ho.pdf>
     .. [2] Mazerolle, M. J. Making sense out of Akaike's Information
        Criterion (AIC): its use and interpretation in model selection and
        inference from ecological data.
