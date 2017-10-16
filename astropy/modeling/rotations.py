@@ -19,7 +19,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-
 import math
 
 import numpy as np
@@ -39,6 +38,8 @@ class _EulerRotation:
     """
     Base class which does the actual computation.
     """
+
+    _separable = False
 
     def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
@@ -342,6 +343,7 @@ class Rotation2D(Model):
 
     inputs = ('x', 'y')
     outputs = ('x', 'y')
+    _separable = False
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 

@@ -277,6 +277,12 @@ def tabular_model(dim, name=None):
     table = np.zeros([2] * dim)
     inputs = tuple('x{0}'.format(idx) for idx in range(table.ndim))
     members = {'lookup_table': table, 'inputs': inputs}
+
+    if dim == 1:
+        members['_separable'] = True
+    else:
+        members['_separable'] = False
+
     if name is None:
         model_id = _Tabular._id
         _Tabular._id += 1
