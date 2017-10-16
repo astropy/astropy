@@ -128,7 +128,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
                     raise ValueError('Column name {0!r} does not meet strict name requirements'
                                      .format(name))
         # When guessing require at least two columns
-        if self.guessing and len(names) <= 1:
+        if self.guessing and len(names) <= 1 and not self.engine.is_pandas():
             raise ValueError('Strict name guessing requires at least two columns')
 
     def write(self, table, output):
