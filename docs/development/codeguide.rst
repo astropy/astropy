@@ -23,7 +23,7 @@ Interface and Dependencies
 
 * The core package and affiliated packages should be importable with no
   dependencies other than components already in the Astropy core, the
-  `Python Standard Library <https://docs.python.org/library/index.html>`_,
+  `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
   and NumPy_ |minimum_numpy_version| or later.
 
 * The package should be importable from the source tree at build time. This
@@ -126,7 +126,7 @@ errors should follow these rules:
   ``log.info(message)`` and ``log.debug(message)``.
 
 The logging system uses the built-in Python `logging
-<http://docs.python.org/library/logging.html>`_ module. The logger can
+<https://docs.python.org/3/library/logging.html>`_ module. The logger can
 be imported using::
 
     from astropy import log
@@ -135,7 +135,7 @@ Coding Style/Conventions
 ========================
 
 * The code will follow the standard `PEP8 Style Guide for Python Code
-  <http://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
+  <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
 
 * *Follow the existing coding style* within a subpackage and avoid making
@@ -182,7 +182,7 @@ Coding Style/Conventions
   Multiple inheritance is complicated to implement well, which is why many
   object-oriented languages, like Java, do not allow it at all.  Python does
   enable multiple inheritance through use of the
-  `C3 Linearization <http://www.python.org/download/releases/2.3/mro/>`_
+  `C3 Linearization <https://www.python.org/download/releases/2.3/mro/>`_
   algorithm, which provides a consistent method resolution ordering.
   Non-trivial multiple-inheritance schemes should not be attempted without
   good justification, or without understanding how C3 is used to determine
@@ -297,7 +297,7 @@ Including C Code
   library in place of the library included in Astropy.
 
 * In cases where C extensions are needed but Cython_ cannot be used, the `PEP 7
-  Style Guide for C Code <http://www.python.org/dev/peps/pep-0007/>`_ is
+  Style Guide for C Code <https://www.python.org/dev/peps/pep-0007/>`_ is
   recommended.
 
 * C extensions (Cython_ or otherwise) should provide the necessary information
@@ -327,7 +327,7 @@ Requirements Specific to Affiliated Packages
   of the template package included in the core package source distribution.
 
 * Affiliated packages must be registered on the `Python Package Index
-  <http://pypi.python.org/pypi>`_, with proper metadata for downloading and
+  <https://pypi.python.org/pypi>`_, with proper metadata for downloading and
   installing the source package.
 
 * The ``astropy`` root package name should not be used by affiliated
@@ -486,7 +486,7 @@ hierarchy it must use ``super()`` in order to cooperate with other classes in
 the hierarchy.
 
 .. note:: For more information on the the benefits of :func:`super`, see
-          http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
+          https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
 
 .. _import-star-example:
 
@@ -544,8 +544,8 @@ Further tips and hints relating to the coding guidelines are included below.
 
     codeguide_emacs
 
-.. _Numpy: http://numpy.scipy.org/
-.. _Scipy: http://www.scipy.org/
-.. _matplotlib: http://matplotlib.sourceforge.net/
+.. _Numpy: http://www.numpy.org/
+.. _Scipy: https://www.scipy.org/
+.. _matplotlib: http://matplotlib.org/
 .. _Cython: http://cython.org/
-.. _PyPI: http://pypi.python.org/pypi
+.. _PyPI: https://pypi.python.org/pypi

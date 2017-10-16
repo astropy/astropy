@@ -8,8 +8,8 @@ Introduction
 
 This page only deals with peculiarities applying to
 `~astropy.nddata.NDData`-like classes. For a tutorial about slicing/indexing see the
-`python documentation <https://docs.python.org/tutorial/introduction.html#lists>`_
-and `numpy documentation <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+`python documentation <https://docs.python.org/3/tutorial/introduction.html#lists>`_
+and `numpy documentation <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
 
 .. warning::
     `~astropy.nddata.NDData` and `~astropy.nddata.NDDataRef` enforce almost no

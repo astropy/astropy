@@ -297,7 +297,7 @@ directly to it (for Astropy, that means being an Astropy maintainer):
   option to determine the precise usage.
 
 * You can use the ``hub`` command-line utility provided `here
-  <https://github.com/defunkt/hub>`_ by GitHub. Once installed, you can
+  <https://github.com/github/hub>`_ by GitHub. Once installed, you can
   attach a branch to a pull request by doing::
 
           hub pull-request -i <ID> -b astropy:master -h <USER>:<BRANCH>

@@ -395,7 +395,7 @@ when evaluated, is equivalent to evaluating :math:`g \circ f = g(f(x))`.
     This is in part because there is no operator symbol supported in Python
     that corresponds well to this.  The ``|`` operator should instead be read
     like the `pipe operator
-    <http://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
+    <https://en.wikipedia.org/wiki/Pipeline_%28Unix%29>`_ of UNIX shell syntax:
     It chains together models by piping the output of the left-hand operand to
     the input of the right-hand operand, forming a "pipeline" of models, or
     transformations.

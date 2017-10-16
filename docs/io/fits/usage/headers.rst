@@ -287,7 +287,7 @@ name and 80 characters to contain the keyword, the value, and the comment is
 restrictive for certain applications. To allow long string values for keywords,
 a proposal was made in:
 
-    http://legacy.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
+    https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
 
 by using the CONTINUE keyword after the regular 80-column containing the
 keyword. Astropy does support this convention, even though it is not a FITS
