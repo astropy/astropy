@@ -87,7 +87,3 @@ def get_package_data():
                                    't/cds/description/table.dat',
                                    ]
     }
-
-
-def requires_2to3():
-    return False

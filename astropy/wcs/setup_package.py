@@ -344,7 +344,3 @@ def get_package_data():
 
 def get_external_libraries():
     return ['wcslib']
-
-
-def requires_2to3():
-    return False
