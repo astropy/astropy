@@ -466,7 +466,7 @@ class CompImageHDU(BinTableHDU):
                grid of rectangular tiles, and each tile of pixels is
                individually compressed.  The details of this FITS compression
                convention are described at the `FITS Support Office web site
-               <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
+               <https://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
                variable length array column in a FITS binary table.  The
                astropy.io.fits recognizes that this binary table extension

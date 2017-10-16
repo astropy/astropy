@@ -58,7 +58,7 @@ def jackknife_resampling(data):
 def jackknife_stats(data, statistic, conf_lvl=0.95):
     """ Performs jackknife estimation on the basis of jackknife resamples.
 
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed.
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
 
     Parameters
     ----------

@@ -338,8 +338,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
     * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
-      `pyFFTW <http://pypi.python.org/pypi/pyFFTW>`_ or
-      `pyFFTW3 <http://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
+      `pyFFTW <https://pypi.python.org/pypi/pyFFTW>`_ or
+      `pyFFTW3 <https://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
       performance improvements, depending on your system configuration.  pyFFTW3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
