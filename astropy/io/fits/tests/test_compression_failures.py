@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import sys
-import warnings
-
 import pytest
 import numpy as np
 
@@ -50,6 +47,19 @@ class TestCompressionFunction(FitsTestCase):
             compress_hdu(hdu)
         assert '_header' in str(exc)
 
+    def test_invalid_tform(self):
+        hdu = fits.CompImageHDU(np.ones((10, 10)))
+        hdu._header['TFORM1'] = 'TX'
+        with pytest.raises(RuntimeError) as exc:
+            compress_hdu(hdu)
+        assert 'TX' in str(exc) and 'TFORM' in str(exc)
+
+    def test_invalid_zdither(self):
+        hdu = fits.CompImageHDU(np.ones((10, 10)), quantize_method=1)
+        hdu._header['ZDITHER0'] = 'a'
+        with pytest.raises(TypeError):
+            compress_hdu(hdu)
+
     @pytest.mark.parametrize('kw', ['ZNAXIS', 'ZBITPIX'])
     def test_header_missing_keyword(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
@@ -58,14 +68,14 @@ class TestCompressionFunction(FitsTestCase):
             compress_hdu(hdu)
         assert kw in str(exc)
 
-    @pytest.mark.parametrize('kw', ['ZNAXIS', 'ZVAL1'])
+    @pytest.mark.parametrize('kw', ['ZNAXIS', 'ZVAL1', 'ZVAL2', 'ZBLANK', 'BLANK'])
     def test_header_value_int_overflow(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header[kw] = MAX_INT + 1
         with pytest.raises(OverflowError):
             compress_hdu(hdu)
 
-    @pytest.mark.parametrize('kw', ['ZTILE1'])
+    @pytest.mark.parametrize('kw', ['ZTILE1', 'ZNAXIS1'])
     def test_header_value_long_overflow(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header[kw] = MAX_LONG + 1
@@ -76,6 +86,13 @@ class TestCompressionFunction(FitsTestCase):
     def test_header_value_longlong_overflow(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header[kw] = MAX_LONGLONG + 1
+        with pytest.raises(OverflowError):
+            compress_hdu(hdu)
+
+    @pytest.mark.parametrize('kw', ['ZVAL3'])
+    def test_header_value_float_overflow(self, kw):
+        hdu = fits.CompImageHDU(np.ones((10, 10)))
+        hdu._header[kw] = 1e300
         with pytest.raises(OverflowError):
             compress_hdu(hdu)
 
@@ -98,7 +115,8 @@ class TestCompressionFunction(FitsTestCase):
             compress_hdu(hdu)
         assert kw in str(exc)
 
-    @pytest.mark.parametrize('kw', ['TTYPE1', 'TFORM1', 'ZCMPTYPE'])
+    @pytest.mark.parametrize('kw', ['TTYPE1', 'TFORM1', 'ZCMPTYPE', 'ZNAME1',
+                                    'ZQUANTIZ'])
     def test_header_value_no_string(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu._header[kw] = 1
@@ -108,6 +126,13 @@ class TestCompressionFunction(FitsTestCase):
     @pytest.mark.parametrize('kw', ['TZERO1', 'TSCAL1'])
     def test_header_value_no_double(self, kw):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
+        hdu._header[kw] = '1'
+        with pytest.raises(TypeError):
+            compress_hdu(hdu)
+
+    @pytest.mark.parametrize('kw', ['ZSCALE', 'ZZERO'])
+    def test_header_value_no_double_int_image(self, kw):
+        hdu = fits.CompImageHDU(np.ones((10, 10), dtype=np.int32))
         hdu._header[kw] = '1'
         with pytest.raises(TypeError):
             compress_hdu(hdu)

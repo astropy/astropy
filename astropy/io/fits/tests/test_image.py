@@ -1144,12 +1144,13 @@ class TestCompressedImage(FitsTestCase):
             assert np.all(hdul[1].data == np.arange(100, dtype=np.int32))
 
     @pytest.mark.parametrize(
-        ('data', 'compression_type', 'quantize_level', 'byte_order'),
-        sum([[(np.zeros((2, 10, 10), dtype=np.float32), 'RICE_1', 16, bo),
-              (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_1', -0.01, bo),
-              (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_2', -0.01, bo),
-              (np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16, bo)]
-             for bo in ('<', '>')], []))
+        ('data', 'compression_type', 'quantize_level'),
+        [(np.zeros((2, 10, 10), dtype=np.float32), 'RICE_1', 16),
+         (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_1', -0.01),
+         (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_2', -0.01),
+         (np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16),
+         (np.zeros((10, 10)), 'PLIO_1', 16)])
+    @pytest.mark.parametrize('byte_order', ['<', '>'])
     def test_comp_image(self, data, compression_type, quantize_level,
                         byte_order):
         data = data.newbyteorder(byte_order)
