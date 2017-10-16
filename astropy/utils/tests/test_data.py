@@ -426,14 +426,14 @@ def test_invalid_location_download_noconnect():
 
     # This should invoke socket's monkeypatched failure
     with pytest.raises(IOError):
-        download_file('http://www.astropy.org//nonexistentfile')
+        download_file('http://astropy.org/nonexistentfile')
 
 
 @remote_data('astropy')
 def test_is_url_in_cache():
     from ..data import download_file, is_url_in_cache
 
-    assert not is_url_in_cache('http://www.astropy.org//nonexistentfile')
+    assert not is_url_in_cache('http://astropy.org/nonexistentfile')
 
     download_file(TESTURL, cache=True, show_progress=False)
     assert is_url_in_cache(TESTURL)
