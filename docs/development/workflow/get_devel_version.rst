@@ -268,7 +268,7 @@ reproducible results. Before you try out a new feature or think you have found
 a bug make sure the tests run properly on your system.
 
 If the test *don't* complete successfully, that is itself a bug--please
-`report it <https://github.com//astropy/astropy/issues>`_.
+`report it <https://github.com/astropy/astropy/issues>`_.
 
 To run the tests, navigate back to the directory your copy of astropy is in on
 your computer, then, at the shell prompt, type::
@@ -282,7 +282,7 @@ this::
     4741 passed, 85 skipped, 11 xfailed
 
 Skips and xfails are fine, but if there are errors or failures please
-`report them <https://github.com//astropy/astropy/issues>`_.
+`report them <https://github.com/astropy/astropy/issues>`_.
 
 .. _try_devel:
 

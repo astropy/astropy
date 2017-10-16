@@ -60,7 +60,7 @@ Installing Astropy
 Using pip
 ---------
 
-To install Astropy with `pip <https://pip.pypa.io//en/latest/>`_, simply run::
+To install Astropy with `pip <https://pip.pypa.io/en/latest/>`_, simply run::
 
     pip install --no-deps astropy
 
