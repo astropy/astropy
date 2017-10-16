@@ -44,6 +44,7 @@ QUANTIZE_METHOD_NAMES = {
 DITHER_SEED_CLOCK = 0
 DITHER_SEED_CHECKSUM = -1
 
+COMPRESSION_TYPES = ('RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1', 'HCOMPRESS_1')
 
 # Default compression parameter values
 DEFAULT_COMPRESSION_TYPE = 'RICE_1'
@@ -800,11 +801,13 @@ class CompImageHDU(BinTableHDU):
 
         # Set the compression type in the table header.
         if compression_type:
-            if compression_type not in ['RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1',
-                                        'HCOMPRESS_1']:
-                warnings.warn('Unknown compression type provided.  Default '
-                              '({}) compression used.'.format(
-                        DEFAULT_COMPRESSION_TYPE), AstropyUserWarning)
+            if compression_type not in COMPRESSION_TYPES:
+                warnings.warn(
+                    'Unknown compression type provided (supported are {}). '
+                    'Default ({}) compression will be used.'
+                    .format(', '.join(map(repr, COMPRESSION_TYPES)),
+                            DEFAULT_COMPRESSION_TYPE),
+                    AstropyUserWarning)
                 compression_type = DEFAULT_COMPRESSION_TYPE
 
             self._header.set('ZCMPTYPE', compression_type,
