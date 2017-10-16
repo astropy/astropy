@@ -129,7 +129,8 @@ class FastBasic(metaclass=core.MetaBaseReader):
                                      .format(name))
         # When guessing require at least two columns
         if self.guessing and len(names) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(names))
 
     def write(self, table, output):
         """

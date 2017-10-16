@@ -657,7 +657,8 @@ class BaseHeader:
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
