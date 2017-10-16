@@ -114,7 +114,7 @@ environment.
     + Omit the option ``--system-site-packages`` to create an environment
       without the python packages installed in your normal python environment.
     + Environments created with `virtualenvwrapper`_ always include `pip`_
-      and `setuptools <https://pythonhosted.org/setuptools/>`_ so that you
+      and `setuptools <https://setuptools.readthedocs.io>`_ so that you
       can install packages within the virtual environment.
     + More details and examples are in the
       `virtualenvwrapper command documentation`_.

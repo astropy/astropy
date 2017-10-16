@@ -3,7 +3,7 @@ Building Astropy and its Subpackages
 ************************************
 
 The build process currently uses the `setuptools
-<https://bitbucket.org/pypa/setuptools>`_ package to build and install the
+<https://setuptools.readthedocs.io>`_ package to build and install the
 astropy core (and any affiliated packages that use the template).  The user
 doesn't necessarily need to have `setuptools`_ installed, as it will
 automatically bootstrap itself using the ``ez_setup.py`` file in the source

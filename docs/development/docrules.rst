@@ -513,10 +513,6 @@ Other points to keep in mind
   and are not often necessary. One situation in which a warning can
   be useful is for marking a known bug that is not yet fixed.
 
-* Questions and Answers : For general questions on how to write docstrings
-  that are not answered in this document, refer to
-  `<http://docs-old.scipy.org/numpy/Questions+Answers/>`_.
-
 * ``array-like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
