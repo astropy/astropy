@@ -283,7 +283,7 @@ NumPy structured array
 The structured array is the standard mechanism in `numpy` for storing
 heterogeneous table data.  Most scientific I/O packages that read table
 files (e.g.  `PyFITS
-<http://www.stsci.edu/resources/software_hardware/pyfits>`_, `vo.table
+<http://www.stsci.edu/institute/software_hardware/pyfits>`_, `vo.table
 <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_, `asciitable
 <http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
 object that is based on the structured array.  A structured array can be
@@ -688,7 +688,7 @@ The column data values, shape, and data type are specified in one of two ways:
 
   The ``dtype`` argument can be any value which is an acceptable
   fixed-size data-type initializer for the numpy.dtype() method.  See
-  `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+  `<https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
   Examples include:
 
   - Python non-string type (float, int, bool)
@@ -724,7 +724,7 @@ Format specifier
 The format specifier controls the output of column values when a table or column
 is printed or written to an ASCII table.  In the simplest case, it is a string
 that can be passed to python's built-in `format
-<https://docs.python.org/library/functions.html#format>`_ function.  For more
+<https://docs.python.org/3/library/functions.html#format>`_ function.  For more
 complicated formatting, one can also give "old-style" or "new-style"
 format strings, or even a function:
 
@@ -732,7 +732,7 @@ format strings, or even a function:
 
 This type of string specifies directly how the value should be formatted,
 using a `format specification mini-language
-<https://docs.python.org/library/string.html#formatspec>`_ that is
+<https://docs.python.org/3/library/string.html#formatspec>`_ that is
 quite similar to C.
 
    ``".4f"`` will give four digits after the decimal in float format, or
@@ -752,7 +752,7 @@ This corresponds to syntax like ``"%.4f" % value`` as documented in
 
 This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
-<http://docs.python.org/library/string.html#format-string-syntax>`_.
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_.
 
    ``"{:.4f}"`` to print four digits after the decimal in float format, or
 

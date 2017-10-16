@@ -438,10 +438,10 @@ See Also
 ========
 
 * Hogg, "Distance measures in cosmology",
-  http://arxiv.org/abs/astroph/9905116
-* Linder, "Exploring the Expansion History of the Universe", http://arxiv.org/abs/astro-ph/0208512
+  https://arxiv.org/abs/astro-ph/9905116
+* Linder, "Exploring the Expansion History of the Universe", https://arxiv.org/abs/astro-ph/0208512
 * NASA's Legacy Archive for Microwave Background Data Analysis,
-  http://lambda.gsfc.nasa.gov/
+  https://lambda.gsfc.nasa.gov/
 
 Range of validity and reliability
 =================================

@@ -16,7 +16,7 @@ computer, to communicate with each other, by exchanging short messages that may
 reference external data files. The protocol has been developed within the IVOA
 (International Virtual Observatory Alliance)  and is understood by many desktop
 astronomy tools, including `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
-`SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
+`SAO Ds9 <http://ds9.si.edu/>`_, and `Aladin
 <http://aladin.u-strasbg.fr>`_.
 
 So by using the classes in `astropy.samp`, Python code can interact with
