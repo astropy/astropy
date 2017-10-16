@@ -7,7 +7,7 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 3.5 or 3.6
+- `Python <https://www.python.org/>`_ 3.5 or 3.6
 
 - `Numpy`_ |minimum_numpy_version| or later
 
@@ -15,10 +15,10 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://h5py.org/>`_: To read/write
+- `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.
 
-- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
+- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
@@ -40,7 +40,7 @@ Astropy also depends on other packages for optional features:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
@@ -60,7 +60,7 @@ Installing Astropy
 Using pip
 ---------
 
-To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
+To install Astropy with `pip <https://pip.pypa.io/en/latest/>`_, simply run::
 
     pip install --no-deps astropy
 
@@ -87,7 +87,7 @@ To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply
     installation.  In this case you may consider using the ``--user`` option
     to install the package into your home directory.  You can read more
     about how to do this in the `pip documentation
-    <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+    <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
@@ -138,7 +138,7 @@ correctly is to use the :ref:`astropy.test()` function::
     astropy.test()
 
 The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
 .. note::
 
@@ -204,7 +204,7 @@ like brew, macports or fink.
 
 
 The `instructions for building Numpy from source
-<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+<https://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
 .. note::
@@ -248,9 +248,9 @@ Building and Installing
 -----------------------
 
 Astropy uses the Python `distutils framework
-<http://docs.python.org/install/index.html>`_ for building and
+<https://docs.python.org/3/install/index.html>`_ for building and
 installing and requires the
-`distribute <http://pypi.python.org/pypi/distribute>`_ extension--the later is
+`distribute <https://pypi.python.org/pypi/distribute>`_ extension--the later is
 automatically downloaded when running ``python setup.py`` if it is not already
 provided by your system.
 
@@ -315,7 +315,7 @@ The C libraries currently bundled with Astropy include:
 - `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
 
-- `cfitsio <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
+- `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
   ``cextern/cfitsio/changes.txt`` for the bundled version.
 
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
@@ -338,7 +338,7 @@ If upon running the ``setup.py`` script you get a message like
     (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
 
 this is because you have a very outdated version of the `setuptools
-<https://pythonhosted.org/setuptools/>`_ package which is used to install
+<https://setuptools.readthedocs.io>`_ package which is used to install
 Python packages.  Normally Astropy will bootstrap newer version of
 setuptools via the network, but setuptools suggests that you first
 *uninstall* the old version (the ``easy_install -U setuptools`` command).

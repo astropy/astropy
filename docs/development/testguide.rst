@@ -37,9 +37,9 @@ package (version 3.1 or later) installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
-<http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
+<https://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
 options require the `pytest-pep8 plugin
-<http://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
+<https://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
 separately.
 
 setup.py test
@@ -58,10 +58,10 @@ through with the ``--args`` argument::
     > python setup.py test --args "-x"
 
 `pytest`_ will look for files that `look like tests
-<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
 in the current directory and all recursive directories then run all the code that
 `looks like tests
-<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
 within those files.
 
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
@@ -157,13 +157,13 @@ To use it from Python, do::
 Test coverage reports
 ---------------------
 
-Astropy can use `coverage.py <http://nedbatchelder.com/code/coverage/>`_ to
+Astropy can use `coverage.py <http://coverage.readthedocs.io/en/latest/>`_ to
 generate test coverage reports.  To generate a test coverage report, use::
 
     python setup.py test --coverage
 
 There is a `coveragerc
-<http://nedbatchelder.com/code/coverage/config.html>`_ file that
+<http://coverage.readthedocs.io/en/latest/config.html>`_ file that
 defines files to omit as well as lines to exclude.  It is installed
 along with astropy so that the ``astropy`` testing framework can use
 it.  In the source tree, it is at ``astropy/tests/coveragerc``.
@@ -200,7 +200,7 @@ Writing tests
  * ``test_`` prefixed functions and methods
 
 Consult the `test discovery rules
-<https://pytest.org/en/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+<https://pytest.org/en/latest/goodpractices.html#conventions-for-python-test-discovery>`_
 for detailed information on how to name files and tests so that they are
 automatically discovered by `pytest`_.
 
@@ -366,7 +366,7 @@ permissions so tests which create files should always do so in
 temporary directories. This can be done with the `pytest tmpdir
 function argument <https://pytest.org/en/latest/tmpdir.html>`_ or with
 Python's built-in `tempfile module
-<http://docs.python.org/library/tempfile.html#module-tempfile>`_.
+<https://docs.python.org/3/library/tempfile.html#module-tempfile>`_.
 
 Setting up/Tearing down tests
 =============================
@@ -633,7 +633,7 @@ To run the Astropy tests with the image comparison, use::
 
     python setup.py test -a "--mpl" --remote-data
 
-The `README.md <https://github.com/astrofrog/pytest-mpl/blob/master/README.md>`__
+The `README.rst <https://github.com/astrofrog/pytest-mpl/blob/master/README.rst>`__
 for the plugin contains information on writing tests with this plugin. The only
 key addition compared to those instructions is that you should set
 ``baseline_dir``::
@@ -886,11 +886,11 @@ environment variables in ``.travis.yml`` and ``appveyor.yml``. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
-The 32-bit tests on CircleCI use a pre-defined Docker image defined `here
-<https://github.com/astropy/astropy-docker/tree/master/32bit>`_ which includes
-a 32-bit Python environment. If you want to run tests for Astropy affiliated
-packages in the same way, you can use the same set-up on CircleCI as the core
-package, but just be sure to install Astropy first using::
+The 32-bit tests on CircleCI use a pre-defined Docker image defined
+`here <https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit Python
+environment. If you want to run tests for Astropy affiliated packages in the
+same way, you can use the same set-up on CircleCI as the core package, but just
+be sure to install Astropy first using::
 
     easy_install pip
     pip install astropy

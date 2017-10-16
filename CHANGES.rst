@@ -447,6 +447,8 @@ Other Changes and Additions
 - No longer require LaTeX to build the documentation locally and
   use mathjax instead. [#6701]
 
+- Fixed broken links in the documentation. [#6745]
+
 2.0.2 (2017-09-08)
 ==================
 

@@ -380,7 +380,7 @@ coordinate systems implemented here include:
     The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
-* `IERS Conventions (2010) <http://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_
+* `IERS Conventions (2010) <https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_
     An exhaustive reference covering the ITRS, the IAU2000 celestial coordinates
     framework, and other related details of modern coordinate conventions.
 * Meeus, J. "Astronomical Algorithms"

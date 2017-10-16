@@ -732,7 +732,7 @@ class SkyCoord(ShapedLikeNDArray):
         The separation is calculated using the Vincenty formula, which
         is stable at all locations, including poles and antipodes [1]_.
 
-        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
         from . import Angle
@@ -881,7 +881,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         See Also
@@ -946,7 +946,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         See Also
@@ -1009,7 +1009,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -1067,7 +1067,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in

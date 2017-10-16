@@ -125,7 +125,7 @@ but by passing an equivalency list, in this case ``spectral()``, it does:
 
 Quantities and units can be :ref:`printed nicely to strings
 <astropy-units-format>` using the `Format String Syntax
-<http://docs.python.org/library/string.html#format-string-syntax>`_, the
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_, the
 preferred string formatting syntax in recent versions of python.  Format
 specifiers (like ``0.03f``) in new-style format strings will used to format the
 quantity value::
@@ -163,7 +163,7 @@ Using `astropy.units`
 See Also
 ========
 
-- `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_ for
+- `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_ for
   units in FITS.
 
 - The `Units in the VO 1.0 Standard
@@ -171,16 +171,16 @@ See Also
   the VO.
 
 - OGIP Units: A standard for storing units in `OGIP FITS files
-  <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
+  <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 - `Standards for astronomical catalogues units
   <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
-  <http://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+  <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
 
 - `A table of astronomical unit equivalencies
-  <http://astro.wku.edu/strolger/UNITS.txt>`_
+  <http://www.stsci.edu/~strolger/docs/UNITS.txt>`_
 
 Reference/API
 =============

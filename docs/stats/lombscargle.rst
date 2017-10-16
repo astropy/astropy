@@ -15,7 +15,7 @@ The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatsp
 For a detailed practical discussion of the lomb-scargle periodogram, with code
 examples based on astropy, see *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at https://github.com/jakevdp/PracticalLombScargle/.
 
-.. _gatspy: http://astroml.org/gatspy
+.. _gatspy: http://www.astroml.org/gatspy/
 .. _astroml: http://astroml.org/
 
 
@@ -826,7 +826,7 @@ Literature References
 .. [5]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
 	Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
 .. [6] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
-       in Python* (2015) http://dx.doi.org/10.5281/zenodo.14833
+       in Python* (2015) https://zenodo.org/record/14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
        Time Series*. ApJ 812.1:18 (2015)
 .. [8] Baluev, R.V. *Assessing Statistical Significance of Periodogram Peaks*

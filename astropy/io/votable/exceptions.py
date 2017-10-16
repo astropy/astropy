@@ -349,7 +349,7 @@ class W03(VOTableChangeWarning):
 class W04(VOTableSpecWarning):
     """
     The ``content-type`` attribute must use MIME content-type syntax as
-    defined in `RFC 2046 <http://tools.ietf.org/html/rfc2046>`__.
+    defined in `RFC 2046 <https://tools.ietf.org/html/rfc2046>`__.
 
     The current check for validity is somewhat over-permissive.
 

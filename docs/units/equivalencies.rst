@@ -209,7 +209,7 @@ for details.
 The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
 the beam area and frequency as arguments.  Recalling that the area of a 2D
 gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
-<http://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
+<https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
 here is an example::
 
     >>> import numpy as np
@@ -258,7 +258,7 @@ Molar Mass AMU Equivalency
 This equivalency allows conversion
 between the atomic mass unit and the equivalent g/mol.
 For reference to why this was added,
-refer to `NIST Mole Reference <http://physics.nist.gov/cuu/Units/mole.html>`_
+refer to `NIST Mole Reference <https://physics.nist.gov/cuu/Units/mole.html>`_
 The following is an example of it's usage:
 
     >>> import astropy.units as u
