@@ -834,7 +834,7 @@ def set_locale(name):
     Note that one cannot nest multiple set_locale() context manager
     statements as this causes a threading lock.
 
-    This code taken from http://stackoverflow.com/questions/18593661/.
+    This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
     ==========

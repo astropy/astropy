@@ -106,9 +106,9 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     .. [3] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [4] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
 
     return n_params*np.log(n_samples) - 2.0*log_likelihood
@@ -280,7 +280,7 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     ----------
     .. [1] Cavanaugh, J. E.  Model Selection Lecture II: The Akaike
        Information Criterion.
-       <http://myweb.uiowa.edu/cavaaugh/ms_lec_2_ho.pdf>
+       <http://machinelearning102.pbworks.com/w/file/fetch/47699383/ms_lec_2_ho.pdf>
     .. [2] Mazerolle, M. J. Making sense out of Akaike's Information
        Criterion (AIC): its use and interpretation in model selection and
        inference from ecological data.
@@ -290,9 +290,9 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     .. [4] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [5] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [6] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
     # Correction in case of small number of observations
     if n_samples/float(n_params) >= 40.0:

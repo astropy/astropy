@@ -1061,7 +1061,7 @@ class Table(object):
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
             Default is "display compact", and other possible values can be
-            found in http://www.datatables.net/manual/styling/classes
+            found in https://www.datatables.net/manual/styling/classes
         css : string
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.

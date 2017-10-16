@@ -330,7 +330,7 @@ by adding the following to your ``sitecustomize.py`` file::
     sys.setdefaultencoding('utf-8')
 
 Note that in general, `this is not recommended
-<http://ziade.org/2008/01/08/syssetdefaultencoding-is-evil/>`_,
+<https://ziade.org/2008/01/08/syssetdefaultencoding-is-evil/>`_,
 because it can hide other Unicode encoding bugs in your application.
 However, in general if your application does not deal with text
 processing and you just want docstrings to work, this may be

@@ -21,10 +21,10 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://h5py.org/>`_: To read/write
+- `h5py <http://www.h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files.
 
-- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
+- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files.
 
 - `PyYAML <http://pyyaml.org>`_: To read/write
@@ -46,7 +46,7 @@ Astropy also depends on other packages for optional features:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
 - `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
   Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
@@ -66,7 +66,7 @@ Installing Astropy
 Using pip
 -------------
 
-To install Astropy with `pip <https://pip.pypa.io>`__, simply run::
+To install Astropy with `pip <https://pip.pypa.io/en/latest/>`_, simply run::
 
     pip install astropy --no-deps
 
@@ -93,7 +93,7 @@ To install Astropy with `pip <https://pip.pypa.io>`__, simply run::
     installation.  In this case you may consider using the ``--user`` option
     to install the package into your home directory.  You can read more
     about how to do this in the `pip documentation
-    <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+    <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
@@ -136,7 +136,7 @@ correctly is to use the :ref:`astropy.test()` function::
     astropy.test()
 
 The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 
 .. note::
 
@@ -195,7 +195,7 @@ Note that you do **not** need to install the full XCode distribution (assuming
 you are using MacOS X 10.9 or later).
 
 The `instructions for building Numpy from source
-<https://docs.scipy.org/doc/numpy/user/building.html>`_ are a good
+<https://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
 Obtaining the source packages
@@ -224,11 +224,12 @@ using this command::
 Building and Installing
 -----------------------
 
-Astropy uses the Python built-in `distutils framework
-<http://docs.python.org/install/index.html>`_ for building and
-installing and requires the `setuptools`_ package -- the later is automatically
-downloaded when running ``python setup.py`` if it is not already provided by
-your system.
+Astropy uses the Python `distutils framework
+<https://docs.python.org/3/install/index.html>`_ for building and
+installing and requires the
+`distribute <https://pypi.python.org/pypi/distribute>`_ extension--the later is
+automatically downloaded when running ``python setup.py`` if it is not already
+provided by your system.
 
 If Numpy is not already installed in your Python environment, the
 astropy setup process will try to download and install it before
@@ -291,7 +292,7 @@ The C libraries currently bundled with Astropy include:
 - `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
   ``cextern/wcslib/README`` for the bundled version.
 
-- `cfitsio <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
+- `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
   ``cextern/cfitsio/changes.txt`` for the bundled version.
 
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the

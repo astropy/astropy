@@ -64,7 +64,7 @@ def read_table_hdf5(input, path=None):
     """
     Read a Table object from an HDF5 file
 
-    This requires `h5py <http://h5py.org/>`_ to be installed. If more than one
+    This requires `h5py <http://www.h5py.org/>`_ to be installed. If more than one
     table is present in the HDF5 file or group, the first table is read in and
     a warning is displayed.
 
@@ -168,7 +168,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     """
     Write a Table object to an HDF5 file
 
-    This requires `h5py <http://h5py.org/>`_ to be installed.
+    This requires `h5py <http://www.h5py.org/>`_ to be installed.
 
     Parameters
     ----------

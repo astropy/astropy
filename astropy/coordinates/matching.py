@@ -60,7 +60,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -132,7 +132,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed
+    This function requires `SciPy <https://www.scipy.org/>`_ to be installed
     or it will fail.
     """
     if catalogcoord.isscalar or len(catalogcoord) < 1:
@@ -212,7 +212,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     If you are using this function to search in a catalog for matches around
@@ -318,7 +318,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
     to be installed or it will fail.
 
     In the current implementation, the return values are always sorted in the

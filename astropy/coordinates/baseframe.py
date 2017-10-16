@@ -1291,7 +1291,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         The separation is calculated using the Vincenty formula, which
         is stable at all locations, including poles and antipodes [1]_.
 
-        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
         from .angle_utilities import angular_separation

@@ -21,7 +21,7 @@ interface relative to the older :mod:`optparse`.  :mod:`argparse` is only
 available in python >=2.7 and >=3.2, however, so it should be imported as ``from
 astropy.utils.compat import argparse`` .
 
-.. _"entry points": https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
+.. _"entry points": https://setuptools.readthedocs.iosetuptools.html#automatic-script-creation
 
 Example
 =======

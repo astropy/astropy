@@ -651,7 +651,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
     some alternatives, but is stable at at all distances, including the
     poles and antipodes.
 
-    .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+    .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
     """
 
     sdlon = np.sin(lon2 - lon1)

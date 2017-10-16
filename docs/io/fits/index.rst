@@ -381,7 +381,7 @@ personal computers.
 If at this point you want to preserve all the changes you made and write it to
 a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
-.. _Numpy documentation: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+.. _Numpy documentation: https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
 
 .. topic:: Examples:
 

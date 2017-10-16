@@ -493,7 +493,7 @@ files manually`_ section since this explains what many of the files do.
 #. You're now ready to start doing actual work on your package.  You
    will probably want to read over the developer guidelines of the Astropy
    documentation, and if you are hosting your code in GitHub, you might also
-   want to read the `Github help <http://help.github.com/>`_ to ensure you know
+   want to read the `Github help <https://help.github.com/>`_ to ensure you know
    how to push your code to GitHub and some recommended workflows that work for
    the core Astropy Project.
 
@@ -592,7 +592,7 @@ by ``CHANGES.md`` in the instructions.
    it can sometimes be useful to catch subtle bugs that might come from you
    using a customized developer environment.  For more on setting up virtual
    environments, see :ref:`virtual_envs`, but for the sake of example we will
-   assume you're using `Anaconda <http://conda.pydata.org/docs/>`_. Do::
+   assume you're using `Anaconda <https://conda.io/docs/>`_. Do::
 
        conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
        source activate myaffilpkg_rel_test
@@ -652,8 +652,8 @@ Modifications for a beta/release candidate release
      tells PyPI that this is a "pre-release".
 
 
-.. _git: http://git-scm.com/
-.. _github: http://github.com
+.. _git: https://git-scm.com/
+.. _github: https://github.com/
 .. _Cython: http://cython.org/
 .. _package-template: https://github.com/astropy/package-template
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers

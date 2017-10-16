@@ -35,7 +35,7 @@ function.
 References
 ----------
 .. [1] http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
-.. [2] http://astroML.org/ http://github.com/astroML/astroML/
+.. [2] http://astroML.org/ https://github.com//astroML/astroML/
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -277,7 +277,7 @@ class FitnessFunc(object):
 
         Note that there was an error in this equation in the original Scargle
         paper (the "log" was missing). The following corrected form is taken
-        from http://arxiv.org/abs/1304.2818
+        from https://arxiv.org/abs/1304.2818
         """
         return 4 - np.log(73.53 * self.p0 * (N ** -0.478))
 
