@@ -104,9 +104,9 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     .. [3] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [4] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
 
     return n_params*np.log(n_samples) - 2.0*log_likelihood
@@ -288,9 +288,9 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     .. [4] Origin Lab. Comparing Two Fitting Functions.
        <http://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [5] Liddle, A. R. Information Criteria for Astrophysical Model
-       Selection. 2008. <http://arxiv.org/pdf/astro-ph/0701113v2.pdf>
+       Selection. 2008. <https://arxiv.org/pdf/astro-ph/0701113v2.pdf>
     .. [6] Liddle, A. R. How many cosmological parameters? 2008.
-       <http://arxiv.org/pdf/astro-ph/0401198v3.pdf>
+       <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
     # Correction in case of small number of observations
     if n_samples/float(n_params) >= 40.0:

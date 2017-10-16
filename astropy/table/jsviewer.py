@@ -109,7 +109,7 @@ class JSViewer:
     """Provides an interactive HTML export of a Table.
 
     This class provides an interface to the `DataTables
-    <http://datatables.net/>`_ library, which allow to visualize interactively
+    <https://datatables.net/>`_ library, which allow to visualize interactively
     an HTML table. It is used by the `~astropy.table.Table.show_in_browser`
     method.
 

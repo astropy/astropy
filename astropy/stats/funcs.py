@@ -819,7 +819,7 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
-    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
+    <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
 
     The standard deviation estimator is given by:
 

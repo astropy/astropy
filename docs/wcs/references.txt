@@ -2,4 +2,4 @@
 .. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 .. _ds9: http://ds9.si.edu/
-.. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
+.. _FITS WCS standard: https://fits.gsfc.nasa.gov/fits_wcs.html

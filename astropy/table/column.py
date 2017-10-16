@@ -792,7 +792,7 @@ class Column(BaseColumn):
 
       The ``dtype`` argument can be any value which is an acceptable
       fixed-size data-type initializer for the numpy.dtype() method.  See
-      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      `<https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
       Examples include:
 
       - Python non-string type (float, int, bool)
@@ -1049,7 +1049,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
       The ``dtype`` argument can be any value which is an acceptable
       fixed-size data-type initializer for the numpy.dtype() method.  See
-      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      `<https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
       Examples include:
 
       - Python non-string type (float, int, bool)
