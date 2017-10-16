@@ -128,8 +128,7 @@ void process_status_err(int status)
    err_msg[0] = '\0';
    def_err_msg[0] = '\0';
 
-   switch (status)
-   {
+   switch (status) {
       case MEMORY_ALLOCATION:
          except_type = PyExc_MemoryError;
          break;
@@ -158,6 +157,7 @@ void process_status_err(int status)
          break;
       default:
          except_type = PyExc_RuntimeError;
+         break;
    }
 
    if (fits_read_errmsg(err_msg)) {
@@ -203,6 +203,7 @@ void bitpix_to_datatypes(int bitpix, int* datatype, int* npdatatype) {
         default:
             PyErr_Format(PyExc_ValueError, "Invalid value for BITPIX: %d",
                          bitpix);
+            break;
    }
 
    return;
@@ -267,6 +268,9 @@ get_header_value(PyObject* header, const char* key, HeaderGetFlags flags) {
    and the default was applied and -1 (with an exception set) if an Exception
    happened (like a MemoryError or Overflow).
 */
+#define GET_HEADER_SUCCESS 0
+#define GET_HEADER_DEFAULT_USED 1
+#define GET_HEADER_FAILED -1
 int get_header_string(PyObject* header, const char* keyword, char* val,
                       const char* def, HeaderGetFlags flags) {
     /* nonnegative doesn't make sense for strings*/
@@ -275,7 +279,7 @@ int get_header_string(PyObject* header, const char* keyword, char* val,
 
     if (keyval == NULL) {
         strncpy(val, def, 72);
-        return PyErr_Occurred() ? -1 : 1;
+        return PyErr_Occurred() ? GET_HEADER_FAILED : GET_HEADER_DEFAULT_USED;
     }
     PyObject* tmp = PyUnicode_AsLatin1String(keyval);
     // FITS header values should always be ASCII, but Latin1 is on the
@@ -283,11 +287,11 @@ int get_header_string(PyObject* header, const char* keyword, char* val,
     Py_DECREF(keyval);
     if (tmp == NULL) {
         /* could always fail to allocate the memory or such like. */
-        return -1;
+        return GET_HEADER_FAILED;
     }
     strncpy(val, PyBytes_AsString(tmp), 72);
     Py_DECREF(tmp);
-    return 0;
+    return GET_HEADER_SUCCESS;
 }
 
 
@@ -297,19 +301,19 @@ int get_header_long(PyObject* header, const char* keyword, long* val, long def,
 
     if (keyval == NULL) {
         *val = def;
-        return PyErr_Occurred() ? -1 : 1;
+        return PyErr_Occurred() ? GET_HEADER_FAILED : GET_HEADER_DEFAULT_USED;
     }
     long tmp = PyLong_AsLong(keyval);
     Py_DECREF(keyval);
     if (PyErr_Occurred()) {
-        return -1;
+        return GET_HEADER_FAILED;
     }
     if ((flags & HDR_FAIL_VAL_NEGATIVE) && (tmp < 0)) {
         PyErr_Format(PyExc_ValueError, "%s should not be negative.", keyword);
-        return -1;
+        return GET_HEADER_FAILED;
     }
     *val = tmp;
-    return 0;
+    return GET_HEADER_SUCCESS;
 }
 
 
@@ -317,12 +321,12 @@ int get_header_int(PyObject* header, const char* keyword, int* val, int def,
                    HeaderGetFlags flags) {
     long tmp;
     int ret = get_header_long(header, keyword, &tmp, def, flags);
-    if (ret == 0) {
+    if (ret == GET_HEADER_SUCCESS) {
         if (tmp >= INT_MIN && tmp <= INT_MAX) {
             *val = (int) tmp;
         } else {
             PyErr_Format(PyExc_OverflowError, "Cannot convert %ld to C 'int'", tmp);
-            ret = -1;
+            ret = GET_HEADER_FAILED;
         }
     }
     return ret;
@@ -331,21 +335,22 @@ int get_header_int(PyObject* header, const char* keyword, int* val, int def,
 
 int get_header_double(PyObject* header, const char* keyword, double* val,
                       double def, HeaderGetFlags flags) {
-    /* nonnegative doesn't make sense for strings*/
+    /* nonnegative isn't currently used for doubles/floats. But if needed one
+       could simply remove the assert again and implement the negative check. */
     assert(!(flags & HDR_FAIL_VAL_NEGATIVE));
     PyObject* keyval = get_header_value(header, keyword, flags);
 
     if (keyval == NULL) {
         *val = def;
-        return PyErr_Occurred() ? -1 : 1;
+        return PyErr_Occurred() ? GET_HEADER_FAILED : GET_HEADER_DEFAULT_USED;
     }
     double tmp = PyFloat_AsDouble(keyval);
     Py_DECREF(keyval);
     if (PyErr_Occurred()) {
-        return -1;
+        return GET_HEADER_FAILED;
     }
     *val = tmp;
-    return 0;
+    return GET_HEADER_SUCCESS;
 }
 
 
@@ -353,13 +358,13 @@ int get_header_float(PyObject* header, const char* keyword, float* val,
                      float def, HeaderGetFlags flags) {
     double tmp;
     int ret = get_header_double(header, keyword, &tmp, def, flags);
-    if (ret == 0) {
-        if (tmp >= FLT_MIN || tmp <= FLT_MAX) { /* don't care about infs! */
+    if (ret == GET_HEADER_SUCCESS) {
+        if (tmp == 0.0 || (fabs(tmp) >= FLT_MIN && fabs(tmp) <= FLT_MAX)) {
             *val = (float) tmp;
         } else {
-            PyErr_Format(PyExc_OverflowError,
-                         "Cannot convert %f to 'float'", tmp);
-            ret = -1;
+            PyErr_SetString(PyExc_OverflowError,
+                            "Cannot convert 'double' to 'float'");
+            ret = GET_HEADER_FAILED;
         }
     }
     return ret;
@@ -372,19 +377,19 @@ int get_header_longlong(PyObject* header, const char* keyword, long long* val,
 
     if (keyval == NULL) {
         *val = def;
-        return PyErr_Occurred() ? -1 : 1;
+        return PyErr_Occurred() ? GET_HEADER_FAILED : GET_HEADER_DEFAULT_USED;
     }
     long long tmp = PyLong_AsLongLong(keyval);
     Py_DECREF(keyval);
     if (PyErr_Occurred()) {
-        return -1;
+        return GET_HEADER_FAILED;
     }
-    if (flags & HDR_FAIL_VAL_NEGATIVE && tmp < 0) {
+    if ((flags & HDR_FAIL_VAL_NEGATIVE) && (tmp < 0)) {
         PyErr_Format(PyExc_ValueError, "%s should not be negative.", keyword);
-        return -1;
+        return GET_HEADER_FAILED;
     }
     *val = tmp;
-    return 0;
+    return GET_HEADER_SUCCESS;
 }
 
 
@@ -396,7 +401,6 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
 
     tcolumn* column;
     char tkw[9];
-    int idx;
 
     int tfields;
     char ttype[72];
@@ -406,8 +410,9 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
     long twidth;
     long long totalwidth;
     int status = 0;
+    int idx;
 
-    if (get_header_int(header, "TFIELDS", &tfields, 0, HDR_FAIL_VAL_NEGATIVE) == -1) {
+    if (get_header_int(header, "TFIELDS", &tfields, 0, HDR_FAIL_VAL_NEGATIVE) == GET_HEADER_FAILED) {
         return;
     }
     /* To avoid issues in the loop we need to limit the number of TFIELDs to
@@ -441,14 +446,14 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
         column->twidth = 0;
 
         snprintf(tkw, 9, "TTYPE%u", idx);
-        if (get_header_string(header, tkw, ttype, "", HDR_NOFLAG) == -1) {
+        if (get_header_string(header, tkw, ttype, "", HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
         strncpy(column->ttype, ttype, 69);
         column->ttype[69] = '\0';
 
         snprintf(tkw, 9, "TFORM%u", idx);
-        if (get_header_string(header, tkw, tform, "", HDR_NOFLAG) == -1) {
+        if (get_header_string(header, tkw, tform, "", HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
         strncpy(column->tform, tform, 9);
@@ -464,17 +469,17 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
         column->twidth = twidth;
 
         snprintf(tkw, 9, "TSCAL%u", idx);
-        if (get_header_double(header, tkw, &(column->tscale), 1.0, HDR_NOFLAG) == -1) {
+        if (get_header_double(header, tkw, &(column->tscale), 1.0, HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
 
         snprintf(tkw, 9, "TZERO%u", idx);
-        if (get_header_double(header, tkw, &(column->tzero), 0.0, HDR_NOFLAG) == -1) {
+        if (get_header_double(header, tkw, &(column->tzero), 0.0, HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
 
         snprintf(tkw, 9, "TNULL%u", idx);
-        if (get_header_longlong(header, tkw, &(column->tnull), NULL_UNDEFINED, HDR_NOFLAG) == -1) {
+        if (get_header_longlong(header, tkw, &(column->tnull), NULL_UNDEFINED, HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
     }
@@ -518,7 +523,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     int tmp_retval;
 
     // Get the ZBITPIX header value; if this is missing we're in trouble
-    if (get_header_int(header, "ZBITPIX", &(Fptr->zbitpix), 0, HDR_FAIL_KEY_MISSING) != 0) {
+    if (get_header_int(header, "ZBITPIX", &(Fptr->zbitpix), 0, HDR_FAIL_KEY_MISSING) != GET_HEADER_SUCCESS) {
         return;
     }
 
@@ -554,13 +559,15 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     if (Fptr->cn_zblank < 1) {
         // No ZBLANK column--check the ZBLANK and BLANK heard keywords
         switch (get_header_int(header, "ZBLANK", &(Fptr->zblank), 0, HDR_NOFLAG)) {
-          case -1:  /* Exception happened */
+          case GET_HEADER_FAILED:
             return;
-          case 1:  /* Not found */
+          case GET_HEADER_DEFAULT_USED:
             // ZBLANK keyword not found
-            if (get_header_int(header, "BLANK", &(Fptr->zblank), 0, HDR_NOFLAG) == -1) {
+            if (get_header_int(header, "BLANK", &(Fptr->zblank), 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
               return;
             }
+            break;
+          default:
             break;
         }
     }
@@ -568,10 +575,12 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     Fptr->zscale = 1.0;
     if (Fptr->cn_zscale < 1) {
         switch (get_header_double(header, "ZSCALE", &(Fptr->zscale), 1.0, HDR_NOFLAG)) {
-          case -1:  /* Exception happened */
+          case GET_HEADER_FAILED:
             return;
-          case 1:  /* Not found */
+          case GET_HEADER_DEFAULT_USED:
             Fptr->cn_zscale = 0;
+            break;
+          default:
             break;
         }
     }
@@ -580,16 +589,18 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     Fptr->zzero = 0.0;
     if (Fptr->cn_zzero < 1) {
         switch (get_header_double(header, "ZZERO", &(Fptr->zzero), 0.0, HDR_NOFLAG)) {
-          case -1:  /* Exception happened */
+          case GET_HEADER_FAILED:
             return;
-          case 1:  /* Not found */
+          case GET_HEADER_DEFAULT_USED:
             Fptr->cn_zzero = 0;
+            break;
+          default:
             break;
         }
     }
     Fptr->cn_bzero = Fptr->zzero;
 
-    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE, HDR_NOFLAG) == -1) {
+    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE, HDR_NOFLAG) == GET_HEADER_FAILED) {
         return;
     }
     strncpy(Fptr->zcmptype, tmp, 11);
@@ -600,7 +611,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         return;
     }
 
-    if (get_header_int(header, "ZNAXIS", &znaxis, 0, HDR_NOFLAG) == -1) {
+    if (get_header_int(header, "ZNAXIS", &znaxis, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
         return;
     }
     Fptr->zndim = znaxis;
@@ -615,11 +626,11 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     Fptr->maxtilelen = 1;
     for (idx = 1; idx <= znaxis; idx++) {
         snprintf(keyword, 9, "ZNAXIS%u", idx);
-        if (get_header_long(header, keyword, Fptr->znaxis + idx - 1, 0, HDR_NOFLAG) == -1) {
+        if (get_header_long(header, keyword, Fptr->znaxis + idx - 1, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
         snprintf(keyword, 9, "ZTILE%u", idx);
-        if (get_header_long(header, keyword, Fptr->tilesize + idx - 1, 0, HDR_NOFLAG) == -1) {
+        if (get_header_long(header, keyword, Fptr->tilesize + idx - 1, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
             return;
         }
         Fptr->maxtilelen *= Fptr->tilesize[idx - 1];
@@ -640,7 +651,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         // assumption was made in the Python code.  This could be done slightly
         // more flexibly by using a wildcard slice of the header
         tmp_retval = get_header_string(header, keyword, zname, "", HDR_NOFLAG);
-        if (tmp_retval == -1) {
+        if (tmp_retval == GET_HEADER_FAILED) {
             return;
         } else if (tmp_retval == 1) {
             break;
@@ -650,31 +661,31 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         if (Fptr->compress_type == RICE_1) {
             if (0 == strcmp(zname, "BLOCKSIZE")) {
                 if (get_header_int(header, keyword, &(Fptr->rice_blocksize),
-                                   DEFAULT_BLOCK_SIZE, HDR_NOFLAG) == -1) {
+                                   DEFAULT_BLOCK_SIZE, HDR_NOFLAG) == GET_HEADER_FAILED) {
                     return;
                 }
             } else if (0 == strcmp(zname, "BYTEPIX")) {
                 if (get_header_int(header, keyword, &(Fptr->rice_bytepix),
-                                   DEFAULT_BYTE_PIX, HDR_NOFLAG) == -1) {
+                                   DEFAULT_BYTE_PIX, HDR_NOFLAG) == GET_HEADER_FAILED) {
                     return;
                 }
             }
         } else if (Fptr->compress_type == HCOMPRESS_1) {
             if (0 == strcmp(zname, "SMOOTH")) {
                 if (get_header_int(header, keyword, &(Fptr->hcomp_smooth),
-                                   DEFAULT_HCOMP_SMOOTH, HDR_NOFLAG) == -1) {
+                                   DEFAULT_HCOMP_SMOOTH, HDR_NOFLAG) == GET_HEADER_FAILED) {
                     return;
                 }
             } else if (0 == strcmp(zname, "SCALE")) {
                 if (get_header_float(header, keyword, &(Fptr->hcomp_scale),
-                                     DEFAULT_HCOMP_SCALE, HDR_NOFLAG) == -1) {
+                                     DEFAULT_HCOMP_SCALE, HDR_NOFLAG) == GET_HEADER_FAILED) {
                     return;
                 }
             }
         }
         if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
             if (get_header_float(header, keyword, &(Fptr->quantize_level),
-                                 DEFAULT_QUANTIZE_LEVEL, HDR_NOFLAG) == -1) {
+                                 DEFAULT_QUANTIZE_LEVEL, HDR_NOFLAG) == GET_HEADER_FAILED) {
                 return;
             }
             if (Fptr->quantize_level == 0.0) {
@@ -689,9 +700,9 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     /* The ZQUANTIZ keyword determines the quantization algorithm; NO_QUANTIZE
        implies lossless compression */
     tmp_retval = get_header_string(header, "ZQUANTIZ", tmp, "", HDR_NOFLAG);
-    if (tmp_retval == -1) {
+    if (tmp_retval == GET_HEADER_FAILED) {
         return;
-    } else if (tmp_retval == 0) {
+    } else if (tmp_retval == GET_HEADER_SUCCESS) {
         /* Ugh; the fact that cfitsio defines its version as a float makes
            preprocessor comparison impossible */
         fits_get_version(&version);
@@ -714,11 +725,13 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 
     if (Fptr->quantize_method != NO_DITHER) {
         switch (get_header_int(header, "ZDITHER0", &(Fptr->dither_seed), 0, HDR_NOFLAG)) {
-          case -1:
+          case GET_HEADER_FAILED:
             return;
-          case 1: // ZDITHER0 keyword not found
+          case GET_HEADER_DEFAULT_USED: // ZDITHER0 keyword not found
             Fptr->dither_seed = 0;
             Fptr->request_dither_seed = 0;
+            break;
+          default:
             break;
         }
     }
@@ -733,11 +746,14 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 
     if (Fptr->quantize_dither != NO_DITHER) {
         switch (get_header_int(header, "ZDITHER0", &(Fptr->dither_offset), 0, HDR_NOFLAG)) {
-          case -1:
+          case GET_HEADER_FAILED:
             return;
-          case 1: // ZDITHER0 keyword no found
+          case GET_HEADER_DEFAULT_USED: // ZDITHER0 keyword no found
+            /* TODO: Find out if that's actually working and not invalid... */
             Fptr->dither_offset = 0;
             Fptr->request_dither_offset = 0;
+            break;
+          default:
             break;
         }
     }
@@ -762,7 +778,6 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     char keyword[9];
     char tmp[72];
     int znaxis;
-    int idx;
     int compress_type;
     int zbitpix;
     int rice_blocksize = 0;
@@ -771,6 +786,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     long maxelem;
     long tilelen;
     unsigned long maxtilelen = 1;
+    int idx;
 
     header = PyObject_GetAttrString(hdu, "_header");
     if (header == NULL) {
@@ -778,7 +794,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     }
 
     if (get_header_int(header, "ZNAXIS", &znaxis, 0,
-                       HDR_FAIL_KEY_MISSING | HDR_FAIL_VAL_NEGATIVE) != 0) {
+                       HDR_FAIL_KEY_MISSING | HDR_FAIL_VAL_NEGATIVE) != GET_HEADER_SUCCESS) {
         goto fail;
     }
 
@@ -789,13 +805,13 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     for (idx = 1; idx <= znaxis; idx++) {
         snprintf(keyword, 9, "ZTILE%u", idx);
-        if (get_header_long(header, keyword, &tilelen, 1, HDR_NOFLAG) == -1) {
+        if (get_header_long(header, keyword, &tilelen, 1, HDR_NOFLAG) == GET_HEADER_FAILED) {
             goto fail;
         }
         maxtilelen *= tilelen;
     }
 
-    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE, HDR_NOFLAG) == -1) {
+    if (get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE, HDR_NOFLAG) == GET_HEADER_FAILED) {
         goto fail;
     }
     compress_type = compress_type_from_string(tmp);
@@ -803,7 +819,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
         goto fail;
     }
     if (compress_type == RICE_1) {
-        if (get_header_int(header, "ZVAL1", &rice_blocksize, 0, HDR_NOFLAG) == -1) {
+        if (get_header_int(header, "ZVAL1", &rice_blocksize, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
             goto fail;
         }
     }
@@ -811,15 +827,15 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     /* Because we calculate the size of the buffer based on these values they
        must not be negative. Otherwise it would wrap around during the casting
        to size_t and give huge values. */
-    if (get_header_longlong(header, "NAXIS1", &rowlen, 0, HDR_FAIL_VAL_NEGATIVE) == -1) {
+    if (get_header_longlong(header, "NAXIS1", &rowlen, 0, HDR_FAIL_VAL_NEGATIVE) == GET_HEADER_FAILED) {
         goto fail;
     }
-    if (get_header_longlong(header, "NAXIS2", &nrows, 0, HDR_FAIL_VAL_NEGATIVE) == -1) {
+    if (get_header_longlong(header, "NAXIS2", &nrows, 0, HDR_FAIL_VAL_NEGATIVE) == GET_HEADER_FAILED) {
         goto fail;
     }
 
     // Get the ZBITPIX header value; if this is missing we're in trouble
-    if (get_header_int(header, "ZBITPIX", &zbitpix, 0, HDR_FAIL_KEY_MISSING) != 0) {
+    if (get_header_int(header, "ZBITPIX", &zbitpix, 0, HDR_FAIL_KEY_MISSING) != GET_HEADER_SUCCESS) {
         goto fail;
     }
 
@@ -909,22 +925,22 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
         goto fail;
     }
 
-    if (get_header_longlong(header, "NAXIS1", &rowlen, 0, HDR_NOFLAG) == -1) {
+    if (get_header_longlong(header, "NAXIS1", &rowlen, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
         goto fail;
     }
-    if (get_header_longlong(header, "NAXIS2", &nrows, 0, HDR_NOFLAG) == -1) {
+    if (get_header_longlong(header, "NAXIS2", &nrows, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
         goto fail;
     }
 
     // The PCOUNT keyword contains the number of bytes in the table heap
-    if (get_header_longlong(header, "PCOUNT", &heapsize, 0, HDR_FAIL_VAL_NEGATIVE) == -1) {
+    if (get_header_longlong(header, "PCOUNT", &heapsize, 0, HDR_FAIL_VAL_NEGATIVE) == GET_HEADER_FAILED) {
         goto fail;
     }
 
     // The THEAP keyword gives the offset of the heap from the beginning of
     // the HDU data portion; normally this offset is 0 but it can be set
     // to something else with THEAP
-    if (get_header_longlong(header, "THEAP", &theap, 0, HDR_NOFLAG) == -1) {
+    if (get_header_longlong(header, "THEAP", &theap, 0, HDR_NOFLAG) == GET_HEADER_FAILED) {
         goto fail;
     }
 
@@ -1107,8 +1123,8 @@ cleanup:
         /* See https://github.com/astropy/astropy/pull/4489
            We can only set the tableptr to NULL if Fptr is actually not NULL.
            */
-        if (Fptr != NULL) {
-            Fptr->tableptr = NULL;
+        if (fileptr != NULL && fileptr->Fptr != NULL) {
+            fileptr->Fptr->tableptr = NULL;
         }
     }
 
@@ -1145,11 +1161,11 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     npy_intp zndim;
     npy_intp* znaxis = NULL;
     long arrsize;
-    int idx;
 
     fitsfile* fileptr = NULL;
     int anynul = 0;
     int status = 0;
+    int idx;
 
     int free_columns_manually = 1;
 
