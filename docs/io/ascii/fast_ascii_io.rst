@@ -169,7 +169,7 @@ IPython doesn't work well with ``multiprocessing``, there is a
 `script <https://github.com/mdmueller/ascii-profiling/blob/master/parallel.py>`__
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
-<http://amras1.github.io/ascii-profiling/>`__. This profile uses the
+<http://mdmueller.github.io/ascii-profiling/>`__. This profile uses the
 fast converter for both the serial and parallel Astropy
 readers.
 
@@ -178,4 +178,3 @@ if a filename is supplied as input. If you want to avoid this for whatever
 reason, supply an open file object instead. However, this will generally
 be less efficient from both a time and a memory perspective, as the entire
 file input will have to be read at once.
-
