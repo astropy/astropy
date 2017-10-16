@@ -742,7 +742,7 @@ quite similar to C.
 **Old-style format string**
 
 This corresponds to syntax like ``"%.4f" % value`` as documented in
-`String formatting operations <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
+`String formatting operations <https://docs.python.org/3/library/stdtypes.html#string-formatting-operations>`_.
 
    ``"%.4f"`` to print four digits after the decimal in float format, or
 
