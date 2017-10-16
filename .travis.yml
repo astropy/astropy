@@ -72,11 +72,12 @@ matrix:
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
-        # dependencies.
+        # dependencies. Using a more stringent locale than UTF-8.
         - os: linux
           env: SETUP_CMD='build_docs -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                PIP_DEPENDENCIES='sphinx-gallery>=0.1.12 pillow --no-deps jplephem'
+               LC_CTYPE=C LC_ALL=C LANG=C
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
