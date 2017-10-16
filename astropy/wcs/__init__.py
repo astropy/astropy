@@ -3,7 +3,7 @@
 .. _wcslib: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
 .. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
-.. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
+.. _FITS WCS standard: https://fits.gsfc.nasa.gov/fits_wcs.html
 
 `astropy.wcs` contains utilities for managing World Coordinate System
 (WCS) transformations in FITS files.  These transformations map the
