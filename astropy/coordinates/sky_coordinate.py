@@ -888,7 +888,9 @@ class SkyCoord(ShapedLikeNDArray):
         dist3d : `~astropy.units.Quantity`
             The 3D distance between the closest match for each element
             in this object in ``catalogcoord``. Shape matches this
-            object.
+            object. Unless both this and ``catalogcoord`` have associated
+            distances, this quantity assumes that all sources are at a
+            distance of 1 (dimensionless).
 
         Notes
         -----

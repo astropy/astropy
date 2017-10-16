@@ -156,6 +156,11 @@ of other coordinates. For example, assuming ``ra1``/``dec1`` and
     >>> catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  # doctest: +SKIP
     >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)  # doctest: +SKIP
 
+The 3-dimensional distances returned ``d3d`` are 3-dimensional distances.
+Unless both source (``c``) and catalog (``catalog``) coordinates have
+associated distances, this quantity assumes that all sources are at a distance
+of 1 (dimensionless).
+
 You can also find the nearest 3d matches, different from the on-sky
 separation shown above only when the coordinates were initialized with
 a ``distance``::
