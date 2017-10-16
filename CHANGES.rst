@@ -136,10 +136,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- The parameter names of ``Gaussian2DKernel`` are now same as that of
-  ``Gaussian2DModel``. The ``__init__`` method of Gaussian2DKernel gives a
-  deprecation warning if ``stddev`` is used instead of ``x_stddev`` and
-  ``y_stddev``. [#3605]
+- ``Gaussian2DKernel`` now accepts ``x_stddev`` in place of ``stddev`` with
+  an option for ``y_stddev``, if different. It also accepts ``theta`` like
+  ``Gaussian2D`` model. [#3605, #6748]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
