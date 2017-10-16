@@ -5,7 +5,7 @@ This subpackage contains classes and functions for defining and converting
 between different physical units.
 
 This code is adapted from the `pynbody
-<http://code.google.com/p/pynbody/>`_ units module written by Andrew
+<https://github.com/pynbody/pynbody>`_ units module written by Andrew
 Pontzen, who has granted the Astropy project permission to use the
 code under a BSD license.
 """

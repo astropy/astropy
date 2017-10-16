@@ -51,4 +51,4 @@ Reference/API
 .. automodapi:: astropy.utils.compat.numpy
     :no-inheritance-diagram:
 
-.. _Numpy: http://numpy.scipy.org/
+.. _Numpy: http://www.numpy.org/

@@ -12,7 +12,7 @@ Converting units to string representations
 
 You can control the way that |quantity| and |unit| objects are rendered as
 strings using the new `Format String Syntax
-<http://docs.python.org/library/string.html#format-string-syntax>`__.
+<https://docs.python.org/3/library/string.html#format-string-syntax>`__.
 New-style format strings use the ``"{}".format()`` syntax.  Most of
 the format specifiers are similar to the old ``%``-style formatting,
 so things like ``0.003f`` still work, just in the form
@@ -118,7 +118,7 @@ Built-in formats
 formats:
 
   - ``"fits"``: This is the format defined in the Units section of the
-    `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`__.
+    `FITS Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`__.
     Unlike the "generic" string format, this will only accept or
     generate units defined in the FITS standard.
 
@@ -135,14 +135,14 @@ formats:
 
   - ``"ogip"``: A standard for storing units as recommended by the
     `Office of Guest Investigator Programs (OGIP)
-    <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
+    <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 `astropy.units` is also able to write, but not read, units in the
 following formats:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <http://www.iau.org/static/publications/stylemanual1989.pdf>`__
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`__
     recommendations for unit presentation.  This format is
     automatically used when printing a unit in the IPython notebook::
 
@@ -154,10 +154,10 @@ following formats:
 
   - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <http://www.iau.org/static/publications/stylemanual1989.pdf>`__
+    <https://www.iau.org/static/publications/stylemanual1989.pdf>`__
     recommendations for unit presentation, using negative powers instead of
     fractions, as required by some journals (e.g., `Apj and AJ
-    <http://aas.org/authors/manuscript-preparation-aj-apj-author-instructions#_Toc2.2>`_.)
+    <http://journals.aas.org/authors/manuscript.html#_Toc2.2>`_.)
     Best suited for unit representation inline with text::
 
       >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP

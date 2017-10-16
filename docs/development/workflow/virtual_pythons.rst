@@ -114,7 +114,7 @@ environment.
     + Omit the option ``--system-site-packages`` to create an environment
       without the python packages installed in your normal python environment.
     + Environments created with `virtualenvwrapper`_ always include `pip`_
-      and `setuptools <https://pythonhosted.org/setuptools/>`_ so that you
+      and `setuptools <https://setuptools.readthedocs.io>`_ so that you
       can install packages within the virtual environment.
     + More details and examples are in the
       `virtualenvwrapper command documentation`_.
@@ -184,6 +184,6 @@ which the ``ENV`` is located; both also provide commands to make that a bit easi
 
 .. _documentation for virtualenvwrapper: http://virtualenvwrapper.readthedocs.io/en/latest/install.html
 .. _virtualenvwrapper command documentation: http://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
-.. _documentation for the conda command: http://docs.continuum.io/conda/examples/create.html
-.. _blog post announcing anaconda environments: http://www.continuum.io/blog/conda
+.. _documentation for the conda command: https://conda.io/docs/using/index.html
+.. _blog post announcing anaconda environments: https://www.anaconda.com/blog/developer-blog/conda-data-science/
 

@@ -111,7 +111,7 @@ def test_cds_grammar_fail(string):
 
 
 # These examples are taken from the EXAMPLES section of
-# http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
+# https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize('strings, unit', [
     (["count /s", "count/s", "count s**(-1)", "count / s", "count /s "],
      u.count / u.s),

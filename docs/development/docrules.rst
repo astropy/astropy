@@ -8,7 +8,7 @@ Astropy Docstring Rules
 The original source for these docstring standards is the NumPy_ project, and
 the associated numpydoc_ tools. The most up-to-date version of these standards
 can be found at `numpy's github site
-<http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
+<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
 guidelines below have been adapted to the Astropy package.
 
 
@@ -17,19 +17,19 @@ Overview
 
 In general, we follow the standard Python style conventions as described here:
 
- * `Style Guide for C Code <http://www.python.org/peps/pep-0007.html>`_
- * `Style Guide for Python Code <http://www.python.org/peps/pep-0008.html>`_
- * `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
+ * `Style Guide for C Code <https://www.python.org/dev/peps/pep-0007/>`_
+ * `Style Guide for Python Code <https://www.python.org/dev/peps/pep-0008/>`_
+ * `Docstring Conventions <https://www.python.org/dev/peps/pep-0257/>`_
 
 Additional PEPs of interest regarding documentation of code:
 
- * `Docstring Processing Framework <http://www.python.org/peps/pep-0256.html>`_
- * `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
+ * `Docstring Processing Framework <https://www.python.org/dev/peps/pep-0256/>`_
+ * `Docutils Design Specification <https://www.python.org/dev/peps/pep-0258/>`_
 
 Use a code checker:
 
- * `pylint <http://www.logilab.org/857>`_
- * `pyflakes <http://pypi.python.org/pypi/pyflakes>`_
+ * `pylint <https://www.logilab.org/857>`_
+ * `pyflakes <https://pypi.python.org/pypi/pyflakes>`_
  * `pycodestyle <https://github.com/PyCQA/pycodestyle>`_
 
 The following import conventions are used throughout the Astropy source
@@ -338,7 +338,7 @@ The sections of the docstring are:
 11. **Examples**
 
    An optional section for examples, using the `doctest
-   <http://docs.python.org/library/doctest.html>`_ format. This section
+   <https://docs.python.org/3/library/doctest.html>`_ format. This section
    is meant to illustrate usage, not to provide a testing framework -- for
    that, use the ``tests/`` directory. While optional, this section is very
    strongly encouraged.
@@ -513,10 +513,6 @@ Other points to keep in mind
   and are not often necessary. One situation in which a warning can
   be useful is for marking a known bug that is not yet fixed.
 
-* Questions and Answers : For general questions on how to write docstrings
-  that are not answered in this document, refer to
-  `<http://docs-old.scipy.org/numpy/Questions+Answers/>`_.
-
 * ``array-like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
@@ -542,15 +538,15 @@ Line spacing and indentation are significant and should be carefully followed.
 Conclusion
 ==========
 
-`An example <http://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
+`An example <https://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
 format shown here is available.  Refer to `How to Build API/Reference
 Documentation
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.rst.txt>`_
 on how to use Sphinx_ to build the manual.
 
 
-.. _NumPy: http://numpy.scipy.org/
-.. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
+.. _NumPy: http://www.numpy.org/
+.. _numpydoc: https://pypi.python.org/pypi/numpydoc/0.3.1
 .. _Matplotlib: http://matplotlib.sourceforge.net/
-.. _SciPy: http://www.scipy.org
+.. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://sphinx.pocoo.org

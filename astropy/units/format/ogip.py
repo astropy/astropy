@@ -8,7 +8,7 @@
 """
 Handles units in `Office of Guest Investigator Programs (OGIP)
 FITS files
-<http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
+<https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
 
@@ -27,7 +27,7 @@ class OGIP(generic.Generic):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
-    <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
+    <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
     """
 
     _tokens = (
@@ -170,7 +170,7 @@ class OGIP(generic.Generic):
         """
         The grammar here is based on the description in the
         `Specification of Physical Units within OGIP FITS files
-        <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__,
+        <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__,
         which is not terribly precise.  The exact grammar is here is
         based on the YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.

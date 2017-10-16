@@ -98,7 +98,7 @@ The fast engine supports the same functionality as the ordinary writing engine
 and is generally about 2 to 4 times faster than the ordinary engine. An IPython
 notebook testing the relative performance of the fast writer against the
 ordinary writing system and the data analysis library `Pandas
-<http://pandas.pydata.org/>`__ is available `here <http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
+<http://pandas.pydata.org/>`__ is available `here <http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_write_bench.ipynb>`__.
 The speed advantage of the faster engine is greatest for integer data and least
 for floating-point data; the fast engine is around 3.6 times faster for a
 sample file including a mixture of floating-point, integer, and text data.
@@ -111,7 +111,7 @@ Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
 representable values, or 0.5 `ULP
-<http://en.wikipedia.org/wiki/Unit_in_the_last_place>`__. The ordinary readers,
+<https://en.wikipedia.org/wiki/Unit_in_the_last_place>`__. The ordinary readers,
 as well as the default fast reader, are guaranteed to convert floating-point
 values within 0.5 ULP, but there is also a faster and less accurate
 conversion method accessible via ``use_fast_converter``. If the input
@@ -120,7 +120,7 @@ unimportant, this converter might be the best option in
 performance-critical scenarios.
 
 `Here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/conversion_profile.ipynb>`__
 is an IPython notebook analyzing the error of the fast converter, both in
 decimal values and in ULP. For values with a reasonably small number of
 significant figures, the fast converter is guaranteed to produce an optimal
@@ -130,7 +130,7 @@ longer guaranteed to be within 0.5 ULP, but about 60% of values end up
 within 0.5 ULP and about 90% within 1.0 ULP. Another notebook analyzing
 the fast converter's behavior with extreme values (such as subnormals
 and values out of the range of floats) is available `here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/test_converter.ipynb>`__.
 
 Speed gains
 ===========
@@ -139,7 +139,7 @@ used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by
 default) to the Pandas ``read_csv`` method.
 `Here
-<http://nbviewer.ipython.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
+<http://nbviewer.jupyter.org/github/astropy/astropy-notebooks/blob/master/io/ascii/ascii_read_bench.ipynb>`__
 is an IPython notebook comparing the performance of the ordinary
 :mod:`astropy.io.ascii` reader, the fast reader, the fast reader with the
 fast converter enabled, numpy's ``genfromtxt``, and Pandas' ``read_csv``
@@ -166,10 +166,10 @@ about 100,000 rows or greater), and particularly if the data doesn't
 contain primarily integer data or repeated string values, specifying
 ``parallel`` as ``True`` can yield further performance gains. Although
 IPython doesn't work well with ``multiprocessing``, there is a
-`script <https://github.com/amras1/ascii-profiling/blob/master/parallel.py>`__
+`script <https://github.com/mdmueller/ascii-profiling/blob/master/parallel.py>`__
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
-<http://amras1.github.io/ascii-profiling/>`__. This profile uses the
+<http://mdmueller.github.io/ascii-profiling/>`__. This profile uses the
 fast converter for both the serial and parallel Astropy
 readers.
 
@@ -178,4 +178,3 @@ if a filename is supplied as input. If you want to avoid this for whatever
 reason, supply an open file object instead. However, this will generally
 be less efficient from both a time and a memory perspective, as the entire
 file input will have to be read at once.
-

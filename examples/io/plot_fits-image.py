@@ -29,11 +29,10 @@ plt.style.use(astropy_mpl_style)
 ##############################################################################
 # Download the example FITS files used by this example:
 
-from astropy.utils.data import download_file
+from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 
-image_file = download_file('http://data.astropy.org/tutorials/FITS-images/HorseHead.fits',
-                           cache=True)
+image_file = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
 
 ##############################################################################
 # Use `astropy.io.fits.info()` to display the structure of the file:

@@ -22,9 +22,9 @@ from astropy.io import fits
 ##############################################################################
 # Download a FITS file:
 
-from astropy.utils.data import download_file
-fits_file = download_file('http://data.astropy.org/tutorials/FITS-Header/input_file.fits',
-                          cache=True)
+from astropy.utils.data import get_pkg_data_filename
+
+fits_file = get_pkg_data_filename('tutorials/FITS-Header/input_file.fits')
 
 ##############################################################################
 # Look at contents of the FITS file

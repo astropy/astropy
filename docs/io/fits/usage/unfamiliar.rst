@@ -406,7 +406,7 @@ For more details, reference "A FITS Image Compression Proposal" from:
 
 and "Registered FITS Convention, Tiled Image Compression Convention":
 
-    http://fits.gsfc.nasa.gov/registry/tilecompression.html
+    https://fits.gsfc.nasa.gov/registry/tilecompression.html
 
 Compressed image data is accessed, in Astropy, using the optional
 "astropy.io.fits.compression" module contained in a C shared library
