@@ -18,7 +18,3 @@ def get_extensions():
     ]
 
     return exts
-
-
-def requires_2to3():
-    return False
