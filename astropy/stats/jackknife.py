@@ -38,9 +38,7 @@ def jackknife_resampling(data):
         Resampling Plans". Technical Report No. 63, Division of Biostatistics,
         Stanford University, December, 1980.
 
-    .. [3] Cowles, Kate. "Computing in Statistics: The Jackknife, Lecture 11".
-        <http://homepage.stat.uiowa.edu/~kcowles/s166_2009/lect11.pdf>.
-        September, 2009.
+    .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
 
     n = data.shape[0]
