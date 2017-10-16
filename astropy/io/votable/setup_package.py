@@ -22,7 +22,3 @@ def get_package_data():
             'data/*.txt'],
         'astropy.io.votable.validator': [
             'urls/*.dat.gz']}
-
-
-def requires_2to3():
-    return False
