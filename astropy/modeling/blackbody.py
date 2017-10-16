@@ -88,8 +88,6 @@ See Also
 Rybicki, G. B., & Lightman, A. P. 1979, Radiative Processes in Astrophysics (New York, NY: Wiley)
 
 """
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import warnings
 from collections import OrderedDict
@@ -135,7 +133,7 @@ class BlackBody1D(Fittable1DModel):
 
     Model formula:
 
-        .. math:: f(x) = \\pi B_{\\nu} f_{\\textnormal{bolometric}} / (\\sigma  T^{4})
+        .. math:: f(x) = \\pi B_{\\nu} f_{\\text{bolometric}} / (\\sigma  T^{4})
 
     Examples
     --------

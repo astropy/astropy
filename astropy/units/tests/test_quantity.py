@@ -4,27 +4,20 @@
     Test the Quantity class and related.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
-
-import sys
 import copy
+import pickle
 import decimal
 from fractions import Fraction
 
+import pytest
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from ...tests.helper import raises, pytest
+from ...tests.helper import raises
 from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_10
-from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
-from ...extern.six.moves import range
-from ...extern.six.moves import cPickle as pickle
-from ...extern import six
 
 try:
     import matplotlib
@@ -40,7 +33,7 @@ except ImportError:
 """ The Quantity class will represent a number + unit + uncertainty """
 
 
-class TestQuantityCreation(object):
+class TestQuantityCreation:
 
     def test_1(self):
         # create objects through operations with Unit objects:
@@ -266,7 +259,7 @@ class TestQuantityCreation(object):
             u.Quantity(mylookalike)
 
 
-class TestQuantityOperations(object):
+class TestQuantityOperations:
     q1 = u.Quantity(11.42, u.meter)
     q2 = u.Quantity(8.0, u.centimeter)
 
@@ -364,11 +357,7 @@ class TestQuantityOperations(object):
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
-    @pytest.mark.skipif(sys.version_info[:2] < (3, 5),
-                        reason="__matmul__ only introduced in Python 3.5")
     def test_matrix_multiplication(self):
-        # We cannot write @ as an operator since class gets parsed also on
-        # Python <3.5, so we use eval instead.
         a = np.eye(3)
         q = a * u.m
         result1 = eval("q @ a")
@@ -388,7 +377,7 @@ class TestQuantityOperations(object):
                         [1., 0., 0.],
                         [0., 1., 0.]]]) / u.s
         result4 = eval("q @ q2")
-        assert np.all(result4 == matmul(a, q2.value) * q.unit * q2.unit)
+        assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
 
@@ -536,11 +525,6 @@ class TestQuantityOperations(object):
             int(q1)
         assert exc.value.args[0] == converter_err_msg
 
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q1)
-            assert exc.value.args[0] == converter_err_msg
-
         # We used to test `q1 * ['a', 'b', 'c'] here, but that that worked
         # at all was a really odd confluence of bugs.  Since it doesn't work
         # in numpy >=1.10 any more, just go directly for `__index__` (which
@@ -555,9 +539,6 @@ class TestQuantityOperations(object):
         assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
         assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
 
-        if six.PY2:
-            assert long(q2) == long(q2.to_value(u.dimensionless_unscaled))
-
         with pytest.raises(TypeError) as exc:
             q2.__index__()
         assert exc.value.args[0] == index_err_msg
@@ -567,8 +548,6 @@ class TestQuantityOperations(object):
 
         assert float(q3) == 1.23
         assert int(q3) == 1
-        if six.PY2:
-            assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
             q3.__index__()
@@ -579,8 +558,6 @@ class TestQuantityOperations(object):
 
         assert float(q4) == 2.
         assert int(q4) == 2
-        if six.PY2:
-            assert long(q4) == 2
 
         assert q4.__index__() == 2
 
@@ -594,19 +571,13 @@ class TestQuantityOperations(object):
             int(q5)
         assert exc.value.args[0] == converter_err_msg
 
-        if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q5)
-            assert exc.value.args[0] == converter_err_msg
-
         with pytest.raises(TypeError) as exc:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # Fails for numpy >=1.10; see https://github.com/numpy/numpy/issues/5074
+    # See https://github.com/numpy/numpy/issues/5074
     # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(not NUMPY_LT_1_10,
-                       reason="list multiplication only works for numpy <=1.10")
+    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
     def test_numeric_converter_to_index_in_practice(self):
         """Test that use of __index__ actually works."""
         q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
@@ -738,7 +709,7 @@ def test_cgs():
     assert q.cgs.unit == u.barye
 
 
-class TestQuantityComparison(object):
+class TestQuantityComparison:
 
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
@@ -773,7 +744,7 @@ class TestQuantityComparison(object):
         assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
 
 
-class TestQuantityDisplay(object):
+class TestQuantityDisplay:
     scalarintq = u.Quantity(1, unit='m', dtype=int)
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
@@ -837,6 +808,16 @@ class TestQuantityDisplay(object):
         pops = np.get_printoptions()
         oldlat = conf.latex_array_threshold
         try:
+            # check precision behavior
+            q = u.Quantity(987654321.123456789, 'm/s')
+            qa = np.array([7.89123, 123456789.987654321, 0]) * u.cm
+            np.set_printoptions(precision=8)
+            assert q._repr_latex_() == r'$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
+            assert qa._repr_latex_() == r'$[7.89123,~1.2345679 \times 10^{8},~0] \; \mathrm{cm}$'
+            np.set_printoptions(precision=2)
+            assert q._repr_latex_() == r'$9.9 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
+            assert qa._repr_latex_() == r'$[7.9,~1.2 \times 10^{8},~0] \; \mathrm{cm}$'
+
             # check thresholding behavior
             conf.latex_array_threshold = 100  # should be default
             lsmed = qmed._repr_latex_()
@@ -924,12 +905,10 @@ def test_arrays():
         qseclen0array[0]
     assert isinstance(qseclen0array.value, int)
 
-    # but with multiple dtypes, single elements are OK; need to use str()
-    # since numpy under python2 cannot handle unicode literals
     a = np.array([(1., 2., 3.), (4., 5., 6.), (7., 8., 9.)],
-                 dtype=[(str('x'), np.float),
-                        (str('y'), np.float),
-                        (str('z'), np.float)])
+                 dtype=[('x', float),
+                        ('y', float),
+                        ('z', float)])
     qkpc = u.Quantity(a, u.kpc)
     assert not qkpc.isscalar
     qkpc0 = qkpc[0]
@@ -976,9 +955,6 @@ def test_arrays():
         float(qsec)
     with pytest.raises(TypeError):
         int(qsec)
-    if six.PY2:
-        with pytest.raises(TypeError):
-            long(qsec)
 
 
 def test_array_indexing_slicing():
@@ -1091,7 +1067,7 @@ def test_quantity_iterability():
     q1 = [15.0, 17.0] * u.m
     assert isiterable(q1)
 
-    q2 = six.next(iter(q1))
+    q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)
@@ -1326,7 +1302,7 @@ def test_repr_array_of_quantity():
     assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
 
 
-class TestSpecificTypeQuantity(object):
+class TestSpecificTypeQuantity:
     def setup(self):
         class Length(u.SpecificTypeQuantity):
             _equivalent_unit = u.m
@@ -1387,7 +1363,7 @@ class TestSpecificTypeQuantity(object):
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
 @pytest.mark.xfail('MATPLOTLIB_LT_15')
-class TestQuantityMatplotlib(object):
+class TestQuantityMatplotlib:
     """Test if passing matplotlib quantities works.
 
     TODO: create PNG output and check against reference image

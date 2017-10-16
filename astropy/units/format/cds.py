@@ -10,15 +10,11 @@
 Handles the CDS string format for units
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import operator
 import os
 import re
 
-from ...extern import six
-from ...extern.six.moves import zip
 
 from .base import Base
 from . import core, utils
@@ -124,8 +120,7 @@ class CDS(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        lexer = lex.lex(optimize=True, lextab=str('cds_lextab'),
+        lexer = lex.lex(optimize=True, lextab='cds_lextab',
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
 
@@ -258,8 +253,7 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
-        # PY2: need str() to ensure we do not pass on a unicode object.
-        parser = yacc.yacc(debug=False, tabmodule=str('cds_parsetab'),
+        parser = yacc.yacc(debug=False, tabmodule='cds_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
@@ -272,7 +266,7 @@ class CDS(Base):
         except ValueError as e:
             raise ValueError(
                 "At col {0}, {1}".format(
-                    t.lexpos, six.text_type(e)))
+                    t.lexpos, str(e)))
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
@@ -293,7 +287,7 @@ class CDS(Base):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
 
-        if not isinstance(s, six.text_type):
+        if not isinstance(s, str):
             s = s.decode('ascii')
 
         # This is a short circuit for the case where the string
@@ -304,8 +298,8 @@ class CDS(Base):
             try:
                 return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
-                if six.text_type(e):
-                    raise ValueError(six.text_type(e))
+                if str(e):
+                    raise ValueError(str(e))
                 else:
                     raise ValueError("Syntax error")
 

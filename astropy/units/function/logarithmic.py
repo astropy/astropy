@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals,
-                        division, print_function)
 import numpy as np
 
 from .. import CompositeUnit, UnitsError, dimensionless_unscaled
@@ -122,7 +120,7 @@ class MagUnit(LogUnit):
     def __init__(self, *args, **kwargs):
         # Ensure we recognize magnitude zero points here.
         with mag0.enable():
-            super(MagUnit, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
     @property
     def _default_function_unit(self):

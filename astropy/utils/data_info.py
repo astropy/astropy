@@ -14,21 +14,20 @@ table column attributes such as name, format, dtype, meta, and description.
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
-from __future__ import absolute_import, division, print_function
 
 import os
+import re
 import sys
 import weakref
-from copy import deepcopy
-import numpy as np
-from functools import partial
 import warnings
-import re
+from io import StringIO
+from copy import deepcopy
+from functools import partial
 from collections import OrderedDict
 from contextlib import contextmanager
 
-from ..extern import six
-from ..extern.six.moves import zip, cStringIO as StringIO
+import numpy as np
+
 from . import metadata
 
 
@@ -78,8 +77,7 @@ def dtype_info_name(dtype):
     type that matches the dtype::
 
       Numpy          S<N>      U<N>
-      Python 2      str<N>  unicode<N>
-      Python 3    bytes<N>   str<N>
+      Python      bytes<N>   str<N>
 
     Parameters
     ----------
@@ -94,7 +92,7 @@ def dtype_info_name(dtype):
     dtype = np.dtype(dtype)
     if dtype.kind in ('S', 'U'):
         length = re.search(r'(\d+)', dtype.str).group(1)
-        type_name = STRING_TYPE_NAMES[(not six.PY2, dtype.kind)]
+        type_name = STRING_TYPE_NAMES[(True, dtype.kind)]
         out = type_name + length
     else:
         out = dtype.name
@@ -137,7 +135,7 @@ def data_info_factory(names, funcs):
         outs = []
         for name, func in zip(names, funcs):
             try:
-                if isinstance(func, six.string_types):
+                if isinstance(func, str):
                     out = getattr(dat, func)()
                 else:
                     out = func(dat)
@@ -163,10 +161,6 @@ def _get_obj_attrs_map(obj, attrs):
         val = getattr(obj, attr, None)
 
         if val is not None:
-            if six.PY2:
-                attr = str(attr)
-                if isinstance(val, six.text_type):
-                    val = str(val)
             out[attr] = val
     return out
 
@@ -189,7 +183,7 @@ def _get_data_attribute(dat, attr=None):
     return str(val)
 
 
-class DataInfo(object):
+class DataInfo:
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be
@@ -253,7 +247,7 @@ class DataInfo(object):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super(DataInfo, self).__getattribute__(attr)
+            return super().__getattribute__(attr)
 
         if attr in self.attrs_from_parent:
             return getattr(self._parent, attr)
@@ -261,7 +255,7 @@ class DataInfo(object):
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(DataInfo, self).__getattribute__(attr)  # Generate AttributeError
+            super().__getattribute__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -292,7 +286,7 @@ class DataInfo(object):
 
         # Private attr names get directly set
         if attr.startswith('_'):
-            super(DataInfo, self).__setattr__(attr, value)
+            super().__setattr__(attr, value)
             return
 
         # Finally this must be an actual data attribute that this class is handling.
@@ -387,7 +381,7 @@ class DataInfo(object):
 
         options = option if isinstance(option, (list, tuple)) else [option]
         for option in options:
-            if isinstance(option, six.string_types):
+            if isinstance(option, str):
                 if hasattr(self, 'info_summary_' + option):
                     option = getattr(self, 'info_summary_' + option)
                 else:
@@ -422,7 +416,7 @@ class DataInfo(object):
 
     def __repr__(self):
         if self._parent is None:
-            return super(DataInfo, self).__repr__()
+            return super().__repr__()
 
         out = StringIO()
         self.__call__(out=out)
@@ -450,6 +444,14 @@ class BaseColumnInfo(DataInfo):
     # SkyCoord will have different default serialization representations
     # depending on context.
     _serialize_context = None
+
+    def __init__(self, bound=False):
+        super().__init__(bound=bound)
+
+        # If bound to a data object instance then add a _format_funcs dict
+        # for caching functions for print formatting.
+        if bound:
+            self._format_funcs = {}
 
     def iter_str_vals(self):
         """
@@ -611,7 +613,7 @@ class MixinInfo(BaseColumnInfo):
             new_name = fix_column_name(value)  # Ensure col name is numpy compatible
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        super(MixinInfo, self).__setattr__(attr, value)
+        super().__setattr__(attr, value)
 
 
 class ParentDtypeInfo(MixinInfo):

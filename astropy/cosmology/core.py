@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import map
 
 import sys
 from math import sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
+from inspect import signature
 
 import numpy as np
 
@@ -16,7 +13,6 @@ from . import scalar_inv_efuncs
 from .. import constants as const
 from .. import units as u
 from ..utils import isiterable
-from ..utils.compat.funcsigs import signature
 from ..utils.state import ScienceState
 
 from . import parameters
@@ -29,8 +25,8 @@ from . import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
-           "WMAP9", "Planck13", "Planck15", "default_cosmology"]
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
+           "default_cosmology"] + parameters.available
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -87,13 +83,12 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology(object):
+class Cosmology:
     """ Placeholder for when a more general Cosmology class is
     implemented. """
 
 
-@six.add_metaclass(ABCMeta)
-class FLRW(Cosmology):
+class FLRW(Cosmology, metaclass=ABCMeta):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -174,12 +169,12 @@ class FLRW(Cosmology):
         self.name = name
 
         # Tcmb may have units
-        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K, dtype=np.float)
+        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K)
         if not self._Tcmb0.isscalar:
             raise ValueError("Tcmb0 is a non-scalar quantity")
 
         # Hubble parameter at z=0, km/s/Mpc
-        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc, dtype=np.float)
+        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc)
         if not self._H0.isscalar:
             raise ValueError("H0 is a non-scalar quantity")
 
@@ -375,16 +370,14 @@ class FLRW(Cosmology):
             return None
         if not self._massivenu:
             # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), u.eV,
-                              dtype=np.float)
+            return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
         if self._nmasslessnu == 0:
             # Only massive
-            return u.Quantity(self._massivenu_mass, u.eV,
-                              dtype=np.float)
+            return u.Quantity(self._massivenu_mass, u.eV)
         # A mix -- the most complicated case
         numass = np.append(np.zeros(self._nmasslessnu),
                            self._massivenu_mass.value)
-        return u.Quantity(numass, u.eV, dtype=np.float)
+        return u.Quantity(numass, u.eV)
 
     @property
     def h(self):
@@ -603,7 +596,7 @@ class FLRW(Cosmology):
             z = np.asarray(z)
             # Common enough case to be worth checking explicitly
             if self._Ok0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Ok0 == 0:
                 return 0.0
@@ -629,7 +622,7 @@ class FLRW(Cosmology):
             z = np.asarray(z)
             # Common case worth checking
             if self._Ode0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Ode0 == 0:
                 return 0.0
@@ -676,7 +669,7 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
             if self._Onu0 == 0:
-                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+                return np.zeros(np.asanyarray(z).shape)
         else:
             if self._Onu0 == 0:
                 return 0.0
@@ -775,8 +768,7 @@ class FLRW(Cosmology):
             if np.isscalar(z):
                 return prefac * self._Neff
             else:
-                return prefac * self._Neff *\
-                    np.ones(np.asanyarray(z).shape, dtype=np.float)
+                return prefac * self._Neff * np.ones(np.asanyarray(z).shape)
 
         # These are purely fitting constants -- see the Komatsu paper
         p = 1.83
@@ -1597,7 +1589,7 @@ class LambdaCDM(FLRW):
         if np.isscalar(z):
             return -1.0
         else:
-            return -1.0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return -1.0 * np.ones(np.asanyarray(z).shape)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -1621,7 +1613,7 @@ class LambdaCDM(FLRW):
         if np.isscalar(z):
             return 1.
         else:
-            return np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return np.ones(np.asanyarray(z).shape)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1943,7 +1935,7 @@ class wCDM(FLRW):
         if np.isscalar(z):
             return self._w0
         else:
-            return self._w0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
+            return self._w0 * np.ones(np.asanyarray(z).shape)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -2896,7 +2888,7 @@ class default_cosmology(ScienceState):
     def validate(cls, value):
         if value is None:
             value = 'Planck15'
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return cls.get_cosmology_from_string(value)
         elif isinstance(value, Cosmology):
             return value

@@ -91,8 +91,8 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
-In some situations, this equivalency may behave differently than 
-anticipated.  For instance, it might at first seem reasonable to use it 
+In some situations, this equivalency may behave differently than
+anticipated.  For instance, it might at first seem reasonable to use it
 for converting from an angular velocity :math:`\omega` in radians per
 second to the corresponding frequency :math:`f` in hertz (i.e., to
 implement :math:`f=\omega/2\pi`). However, attempting this yields:
@@ -106,7 +106,7 @@ Here, we might have expected ~0.159 Hz in the first example and 1 Hz in
 the second. However, :func:`~astropy.units.equivalencies.dimensionless_angles`
 converts to radians per second and then drops radians as a unit. The
 implicit mistake made in these examples is that the unit Hz is taken to be
-equivalent to cycles per second, which it is not (it is just "per second"). 
+equivalent to cycles per second, which it is not (it is just "per second").
 This realization also leads to the solution: to use an explicit equivalency
 between cycles per second and hertz:
 
@@ -382,7 +382,7 @@ all kinds of things that ``Hz`` can be converted to::
     Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
     cm           | 0.01 m                 | centimeter            ,
     eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
-    earthRad     | 6.3568e+06 m           | R_earth, Rearth       ,
+    earthRad     | 6.3781e+06 m           | R_earth, Rearth       ,
     erg          | 1e-07 kg m2 / s2       |                       ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser        ,

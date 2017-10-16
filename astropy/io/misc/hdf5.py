@@ -5,21 +5,23 @@ not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`table_io` for more details.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 import warnings
 
 import numpy as np
-from ...utils.exceptions import AstropyUserWarning
-from ...extern import six
-from ...table import meta
+
+# NOTE: Do not import anything from astropy.table here.
+# https://github.com/astropy/astropy/issues/6604
+from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
+
+
+def meta_path(path):
+    return path + '.' + META_KEY
 
 
 def _find_all_structured_arrays(handle):
@@ -80,11 +82,17 @@ def read_table_hdf5(input, path=None):
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
 
+    # This function is iterative, and only gets to writing the file when
+    # the input is an hdf5 Group. Moreover, the input variable is changed in
+    # place.
+    # Here, we save its value to be used at the end when the conditions are
+    # right.
+    input_save = input
     if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
 
         # If a path was specified, follow the path
 
-        if path:
+        if path is not None:
             try:
                 input = input[path]
             except (KeyError, ValueError):
@@ -136,13 +144,24 @@ def read_table_hdf5(input, path=None):
     # convert to a Table.
 
     # Create a Table object
-    from ...table import Table
+    from ...table import Table, meta
+
     table = Table(np.array(input))
 
-    # Read the meta-data from the file
-    if META_KEY in input.attrs:
-        header = meta.get_header_from_yaml(
-            h.decode('utf-8') for h in input.attrs[META_KEY])
+    # Read the meta-data from the file. For back-compatibility, we can read
+    # the old file format where the serialized metadata were saved in the
+    # attributes of the HDF5 dataset.
+    # In the new format, instead, metadata are stored in a new dataset in the
+    # same file. This is introduced in Astropy 3.0
+    old_version_meta = META_KEY in input.attrs
+    new_version_meta = path is not None and meta_path(path) in input_save
+    if old_version_meta or new_version_meta:
+        if new_version_meta:
+            header = meta.get_header_from_yaml(
+                h.decode('utf-8') for h in input_save[meta_path(path)])
+        elif old_version_meta:
+            header = meta.get_header_from_yaml(
+                h.decode('utf-8') for h in input.attrs[META_KEY])
         if 'meta' in list(header.keys()):
             table.meta = header['meta']
 
@@ -159,7 +178,8 @@ def read_table_hdf5(input, path=None):
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False, serialize_meta=False):
+                     append=False, overwrite=False, serialize_meta=False,
+                     compatibility_mode=False):
     """
     Write a Table object to an HDF5 file
 
@@ -188,6 +208,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
+    from ...table import meta
 
     try:
         import h5py
@@ -221,7 +242,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             output_group = output
 
-    elif isinstance(output, six.string_types):
+    elif isinstance(output, str):
 
         if os.path.exists(output) and not append:
             if overwrite and not append:
@@ -237,7 +258,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
             return write_table_hdf5(table, f, path=path,
                                     compression=compression, append=append,
                                     overwrite=overwrite,
-                                    serialize_meta=serialize_meta)
+                                    serialize_meta=serialize_meta,
+                                    compatibility_mode=compatibility_mode)
         finally:
             f.close()
 
@@ -266,11 +288,20 @@ def write_table_hdf5(table, output, path=None, compression=False,
     if serialize_meta:
         header_yaml = meta.get_yaml_from_table(table)
 
-        try:
-            dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
-        except Exception as e:
-            warnings.warn("Attributes could not be written to the output HDF5 "
-                          "file: {0}".format(e))
+        header_encoded = [h.encode('utf-8') for h in header_yaml]
+        if compatibility_mode:
+            warnings.warn("compatibility mode for writing is deprecated",
+                          AstropyDeprecationWarning)
+            try:
+                dset.attrs[META_KEY] = header_encoded
+            except Exception as e:
+                warnings.warn(
+                "Attributes could not be written to the output HDF5 "
+                "file: {0}".format(e))
+
+        else:
+            output_group.create_dataset(meta_path(name),
+                                        data=header_encoded)
 
     else:
         # Write the meta-data to the file
@@ -283,3 +314,15 @@ def write_table_hdf5(table, output, path=None, compression=False,
                               "HDF5 files - skipping. (Consider specifying "
                               "serialize_meta=True to write all meta data)".format(key, type(val)),
                               AstropyUserWarning)
+
+
+def register_hdf5():
+    """
+    Register HDF5 with Unified I/O.
+    """
+    from .. import registry as io_registry
+    from ...table import Table
+
+    io_registry.register_reader('hdf5', Table, read_table_hdf5)
+    io_registry.register_writer('hdf5', Table, write_table_hdf5)
+    io_registry.register_identifier('hdf5', Table, is_hdf5)

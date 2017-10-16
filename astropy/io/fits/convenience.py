@@ -72,8 +72,6 @@ from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from ...units import Unit
 from ...units.format.fits import UnitScaleError
 from ...units import Quantity
-from ...extern import six
-from ...extern.six import string_types
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.decorators import deprecated_renamed_argument
 
@@ -117,7 +115,8 @@ def getheader(filename, *args, **kwargs):
     return header
 
 
-def getdata(filename, *args, **kwargs):
+def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
+            **kwargs):
     """
     Get the data from an extension of a FITS file (and optionally the
     header).
@@ -189,10 +188,6 @@ def getdata(filename, *args, **kwargs):
     """
 
     mode, closed = _get_file_mode(filename)
-    header = kwargs.pop('header', None)
-    lower = kwargs.pop('lower', None)
-    upper = kwargs.pop('upper', None)
-    view = kwargs.pop('view', None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
@@ -273,7 +268,8 @@ def getval(filename, keyword, *args, **kwargs):
     return hdr[keyword]
 
 
-def setval(filename, keyword, *args, **kwargs):
+def setval(filename, keyword, *args, value=None, comment=None, before=None,
+           after=None, savecomment=False, **kwargs):
     """
     Set a keyword's value from a header in a FITS file.
 
@@ -331,12 +327,6 @@ def setval(filename, keyword, *args, **kwargs):
 
     if 'do_not_scale_image_data' not in kwargs:
         kwargs['do_not_scale_image_data'] = True
-
-    value = kwargs.pop('value', None)
-    comment = kwargs.pop('comment', None)
-    before = kwargs.pop('before', None)
-    after = kwargs.pop('after', None)
-    savecomment = kwargs.pop('savecomment', False)
 
     closed = fileobj_closed(filename)
     hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
@@ -415,8 +405,8 @@ def writeto(filename, data, header=None, output_verify='exception',
 
     overwrite : bool, optional
         If ``True``, overwrite the output file if it exists. Raises an
-        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-        output file exists. Default is ``False``.
+        ``OSError`` if ``False`` and the output file exists. Default is
+        ``False``.
 
         .. versionchanged:: 1.3
            ``overwrite`` replaces the deprecated ``clobber`` argument.
@@ -451,28 +441,40 @@ def table_to_hdu(table):
     # Avoid circular imports
     from .connect import is_column_keyword, REMOVE_KEYWORDS
 
+    # Header to store Time related metadata
+    hdr = None
+
     # Not all tables with mixin columns are supported
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn
+        from ...table.column import BaseColumn, Column
+        from ...time import Time
+        from .fitstime import time_to_fits
 
-        # Only those columns which are instances of BaseColumn or Quantity can be written
-        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity))
+        # Only those columns which are instances of BaseColumn, Quantity or Time can
+        # be written
+        unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
             raise ValueError('cannot write table with mixin column(s) {0}'
                          .format(unsupported_names))
 
+        time_cols = table.columns.isinstance(Time)
+        if time_cols:
+            table, hdr = time_to_fits(table)
+
     # Create a new HDU object
     if table.masked:
         # float column's default mask value needs to be Nan
-        for column in six.itervalues(table.columns):
+        for column in table.columns.values():
             fill_value = column.get_fill_value()
             if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        # TODO: it might be better to construct the FITS table directly from
+        # the Table columns, rather than go via a structured array.
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -489,7 +491,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()))
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr)
 
     # Set units for output HDU
     for col in table_hdu.columns:
@@ -511,6 +513,15 @@ def table_to_hdu(table):
 
             # Try creating a Unit to issue a warning if the unit is not FITS compliant
             Unit(col.unit, format='fits', parse_strict='warn')
+
+    # Column-specific override keywords for coordinate columns
+    coord_meta = table.meta.pop('__coordinate_columns__', {})
+    for col_name, col_info in coord_meta.items():
+        col = table_hdu.columns[col_name]
+        # Set the column coordinate attributes from data saved earlier.
+        # Note: have to set all three, even if we have no data.
+        for attr in 'coord_type', 'coord_unit', 'time_ref_pos':
+            setattr(col, attr, col_info.get(attr, None))
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
@@ -775,7 +786,7 @@ def printdiff(inputa, inputb, *args, **kwargs):
                  if key in kwargs}
     has_extensions = args or extension
 
-    if isinstance(inputa, string_types) and has_extensions:
+    if isinstance(inputa, str) and has_extensions:
         # Use handy _getext to interpret any ext keywords, but
         # will need to close a if  fails
         modea, closeda = _get_file_mode(inputa)
@@ -850,8 +861,8 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     overwrite : bool, optional
         If ``True``, overwrite the output file if it exists. Raises an
-        ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-        output file exists. Default is ``False``.
+        ``OSError`` if ``False`` and the output file exists. Default is
+        ``False``.
 
         .. versionchanged:: 1.3
            ``overwrite`` replaces the deprecated ``clobber`` argument.
@@ -886,7 +897,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
             f.close()
 
 
-if isinstance(tabledump.__doc__, string_types):
+if isinstance(tabledump.__doc__, str):
     tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
@@ -925,21 +936,18 @@ def tableload(datafile, cdfile, hfile=None):
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
 
 
-if isinstance(tableload.__doc__, string_types):
+if isinstance(tableload.__doc__, str):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
-def _getext(filename, mode, *args, **kwargs):
+def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
+            **kwargs):
     """
     Open the input file, return the `HDUList` and the extension.
 
     This supports several different styles of extension selection.  See the
     :func:`getdata()` documentation for the different possibilities.
     """
-
-    ext = kwargs.pop('ext', None)
-    extname = kwargs.pop('extname', None)
-    extver = kwargs.pop('extver', None)
 
     err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
             {'args': args, 'ext': ext, 'extname': extname,
@@ -955,7 +963,7 @@ def _getext(filename, mode, *args, **kwargs):
             if ext is not None or extname is not None or extver is not None:
                 raise TypeError(err_msg)
             ext = args[0]
-        elif isinstance(args[0], string_types):
+        elif isinstance(args[0], str):
             # The first arg is an extension name; it could still be valid
             # to provide an extver kwarg
             if ext is not None or extname is not None:
@@ -977,11 +985,11 @@ def _getext(filename, mode, *args, **kwargs):
     if (ext is not None and
             not (_is_int(ext) or
                  (isinstance(ext, tuple) and len(ext) == 2 and
-                  isinstance(ext[0], string_types) and _is_int(ext[1])))):
+                  isinstance(ext[0], str) and _is_int(ext[1])))):
         raise ValueError(
             'The ext keyword must be either an extension number '
             '(zero-indexed) or a (extname, extver) tuple.')
-    if extname is not None and not isinstance(extname, string_types):
+    if extname is not None and not isinstance(extname, str):
         raise ValueError('The extname argument must be a string.')
     if extver is not None and not _is_int(extver):
         raise ValueError('The extver argument must be an integer.')

@@ -6,7 +6,6 @@ The three images must be aligned and have the same pixel scale and size.
 
 For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from . import ZScaleInterval
@@ -47,7 +46,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     return np.asarray(intensity, dtype=image_r.dtype)
 
 
-class Mapping(object):
+class Mapping:
     """
     Baseclass to map red, blue, green intensities into uint8 values.
 

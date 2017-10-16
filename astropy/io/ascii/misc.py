@@ -6,13 +6,11 @@ misc.py:
 :Author: Hannes Breytenbach (hannes@saao.ac.za)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 import itertools
 import operator
 
-from ...extern.six.moves import zip, map, filter
 
 
 def first_true_index(iterable, pred=None, default=None):

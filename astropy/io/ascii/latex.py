@@ -8,12 +8,9 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 
-from ...extern import six
-from ...extern.six.moves import zip
 from . import core
 
 latexdicts = {'AA': {'tabletype': 'table',
@@ -47,7 +44,7 @@ def add_dictval_to_list(adict, key, alist):
         List where value should be added
     '''
     if key in adict:
-        if isinstance(adict[key], six.string_types):
+        if isinstance(adict[key], str):
             alist.append(adict[key])
         else:
             alist.extend(adict[key])
@@ -88,7 +85,7 @@ class LatexSplitter(core.BaseSplitter):
         if not last_line.endswith(r'\\'):
             lines[-1] = last_line + r'\\'
 
-        return super(LatexSplitter, self).__call__(lines)
+        return super().__call__(lines)
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
@@ -306,7 +303,7 @@ class Latex(core.BaseReader):
     def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline'],
                  latexdict={}, caption='', col_align=None):
 
-        super(Latex, self).__init__()
+        super().__init__()
 
         self.latex = {}
         # The latex dict drives the format of the table and needs to be shared

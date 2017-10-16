@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import math
 import numpy as np
+import pytest
+
 from ..convolve import convolve, convolve_fft, convolve_models
 from ...modeling import models, fitting
-from ...tests.helper import pytest
 from ...utils.misc import NumpyRNGContext
 from numpy.testing import assert_allclose, assert_almost_equal
 
@@ -18,7 +17,7 @@ else:
     HAS_SCIPY = True
 
 
-class TestConvolve1DModels(object):
+class TestConvolve1DModels:
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_is_consistency_with_astropy_convolution(self, mode):

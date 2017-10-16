@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
@@ -34,7 +32,7 @@ KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
 
 
-NUMS = [1, 1., np.float(1.), np.float32(1.), np.float64(1.)]
+NUMS = [1, 1., np.float32(1.), np.float64(1.)]
 
 
 # Test data
@@ -48,7 +46,7 @@ random_data_1D = np.random.rand(61)
 random_data_2D = np.random.rand(61, 61)
 
 
-class TestKernels(object):
+class TestKernels:
     """
     Test class for the built-in convolution kernels.
     """

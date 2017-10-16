@@ -6,6 +6,7 @@ import math
 import re
 import time
 import warnings
+from contextlib import suppress
 
 import numpy as np
 
@@ -20,10 +21,7 @@ from ..header import Header
 from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _get_array_mmap)
 
-from ....extern.six import string_types, iteritems
-from ....extern.six.moves import range
 from ....utils import lazyproperty
-from ....utils.compat import suppress
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
                                   AstropyUserWarning)
 
@@ -46,6 +44,7 @@ QUANTIZE_METHOD_NAMES = {
 DITHER_SEED_CLOCK = 0
 DITHER_SEED_CHECKSUM = -1
 
+COMPRESSION_TYPES = ('RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1', 'HCOMPRESS_1')
 
 # Default compression parameter values
 DEFAULT_COMPRESSION_TYPE = 'RICE_1'
@@ -138,7 +137,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(keyword):
             return
 
-        super(CompImageHeader, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
         if index is not None:
             remapped_keyword = self._remap_keyword(keyword)
@@ -150,7 +149,7 @@ class CompImageHeader(Header):
             # If given a slice pass that on to the superclass and bail out
             # early; we only want to make updates to _table_header when given
             # a key specifying a single keyword
-            return super(CompImageHeader, self).__delitem__(key)
+            return super().__delitem__(key)
 
         if isinstance(key, int):
             keyword, index = self._keyword_from_index(key)
@@ -162,7 +161,7 @@ class CompImageHeader(Header):
         if key not in self:
             raise KeyError("Keyword {!r} not found.".format(key))
 
-        super(CompImageHeader, self).__delitem__(key)
+        super().__delitem__(key)
 
         remapped_keyword = self._remap_keyword(keyword)
 
@@ -175,7 +174,7 @@ class CompImageHeader(Header):
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         # This logic unfortunately needs to be duplicated from the base class
         # in order to determine the keyword
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -189,8 +188,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(card.keyword):
             return
 
-        super(CompImageHeader, self).append(card=card, useblanks=useblanks,
-                                            bottom=bottom, end=end)
+        super().append(card=card, useblanks=useblanks, bottom=bottom, end=end)
 
         remapped_keyword = self._remap_keyword(card.keyword)
         card = Card(remapped_keyword, card.value, card.comment)
@@ -216,7 +214,7 @@ class CompImageHeader(Header):
                 self.append(card, end=True)
                 return
 
-        if isinstance(card, string_types):
+        if isinstance(card, str):
             card = Card(card)
         elif isinstance(card, tuple):
             card = Card(*card)
@@ -238,8 +236,7 @@ class CompImageHeader(Header):
         remapped_index = self._remap_index(key)
         remapped_keyword = self._remap_keyword(card.keyword)
 
-        super(CompImageHeader, self).insert(key, card, useblanks=useblanks,
-                                            after=after)
+        super().insert(key, card, useblanks=useblanks, after=after)
 
         card = Card(remapped_keyword, card.value, card.comment)
 
@@ -257,7 +254,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(keyword):
             return
 
-        super(CompImageHeader, self)._update(card)
+        super()._update(card)
 
         if keyword in Card._commentary_keywords:
             # Otherwise this will result in a duplicate insertion
@@ -288,9 +285,8 @@ class CompImageHeader(Header):
                 remapped_before = self._remap_keyword(before)
             remapped_after = None
 
-        super(CompImageHeader, self)._relativeinsert(card, before=before,
-                                                     after=after,
-                                                     replace=replace)
+        super()._relativeinsert(card, before=before, after=after,
+                                replace=replace)
 
         remapped_keyword = self._remap_keyword(keyword)
 
@@ -635,11 +631,11 @@ class CompImageHDU(BinTableHDU):
 
         if data is DELAYED:
             # Reading the HDU from a file
-            super(CompImageHDU, self).__init__(data=data, header=header)
+            super().__init__(data=data, header=header)
         else:
             # Create at least a skeleton HDU that matches the input
             # header and data (if any were input)
-            super(CompImageHDU, self).__init__(data=None, header=header)
+            super().__init__(data=None, header=header)
 
             # Store the input image data
             self.data = data
@@ -681,7 +677,7 @@ class CompImageHDU(BinTableHDU):
             return False
 
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
 
         if xtension not in ('BINTABLE', 'A3DTABLE'):
@@ -734,9 +730,9 @@ class CompImageHDU(BinTableHDU):
             input image header then the default name 'COMPRESSED_IMAGE' is used
 
         compression_type : str, optional
-            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'HCOMPRESS_1';
-            if this value is `None`, use value already in the header; if no
-            value already in the header, use 'RICE_1'
+            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'GZIP_2',
+            'HCOMPRESS_1'; if this value is `None`, use value already in the
+            header; if no value already in the header, use 'RICE_1'
 
         tile_size : sequence of int, optional
             compression tile sizes as a list; if this value is `None`, use
@@ -805,11 +801,13 @@ class CompImageHDU(BinTableHDU):
 
         # Set the compression type in the table header.
         if compression_type:
-            if compression_type not in ['RICE_1', 'GZIP_1', 'PLIO_1',
-                                        'HCOMPRESS_1']:
-                warnings.warn('Unknown compression type provided.  Default '
-                              '({}) compression used.'.format(
-                        DEFAULT_COMPRESSION_TYPE), AstropyUserWarning)
+            if compression_type not in COMPRESSION_TYPES:
+                warnings.warn(
+                    'Unknown compression type provided (supported are {}). '
+                    'Default ({}) compression will be used.'
+                    .format(', '.join(map(repr, COMPRESSION_TYPES)),
+                            DEFAULT_COMPRESSION_TYPE),
+                    AstropyUserWarning)
                 compression_type = DEFAULT_COMPRESSION_TYPE
 
             self._header.set('ZCMPTYPE', compression_type,
@@ -1247,8 +1245,8 @@ class CompImageHDU(BinTableHDU):
                 # is set to
                 quantize_method = self._header.get('ZQUANTIZ', NO_DITHER)
 
-                if isinstance(quantize_method, string_types):
-                    for k, v in iteritems(QUANTIZE_METHOD_NAMES):
+                if isinstance(quantize_method, str):
+                    for k, v in QUANTIZE_METHOD_NAMES.items():
                         if v.upper() == quantize_method:
                             quantize_method = k
                             break
@@ -1833,8 +1831,7 @@ class CompImageHDU(BinTableHDU):
             # handles it properly
             self.__dict__['data'] = self.compressed_data
 
-        return super(CompImageHDU, self)._prewriteto(checksum=checksum,
-                                                     inplace=inplace)
+        return super()._prewriteto(checksum=checksum, inplace=inplace)
 
     def _writeheader(self, fileobj):
         """
@@ -1852,7 +1849,7 @@ class CompImageHDU(BinTableHDU):
         """
 
         try:
-            return super(CompImageHDU, self)._writedata(fileobj)
+            return super()._writedata(fileobj)
         finally:
             # Restore the .data attribute to its rightful value (if any)
             if hasattr(self, '_imagedata'):
@@ -1862,7 +1859,7 @@ class CompImageHDU(BinTableHDU):
                 del self.data
 
     def _close(self, closed=True):
-        super(CompImageHDU, self)._close(closed=closed)
+        super()._close(closed=closed)
 
         # Also make sure to close access to the compressed data mmaps
         if (closed and self._data_loaded and

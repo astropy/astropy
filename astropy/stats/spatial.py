@@ -3,14 +3,12 @@
 This module implements functions and classes for spatial statistics.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 import math
 
 
-class RipleysKEstimator(object):
+class RipleysKEstimator:
     """
     Estimators for Ripley's K function for two-dimensional spatial data.
     See [1]_, [2]_, [3]_, [4]_, [5]_ for detailed mathematical and
@@ -286,7 +284,7 @@ class RipleysKEstimator(object):
                         if i != j:
                             diff = abs(data[i] - data[j])
                             dist = math.sqrt((diff * diff).sum())
-                            if dist < radii[r] and lt_dist[i] > radii[r]:
+                            if dist < radii[r] < lt_dist[i]:
                                 ripley[r] = ripley[r] + 1
                 lt_dist_sum = (lt_dist > radii[r]).sum()
                 if not lt_dist_sum == 0:

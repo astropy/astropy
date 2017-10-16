@@ -10,14 +10,10 @@ To enable them, do::
     >>> magnitude_zero_points.enable()  # doctest: +SKIP
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as _numpy
 from ..core import UnitBase, def_unit
 
-# One cannot import L_bol0 directly, or the order of imports of units and
-# constants starts to matter on python2. [#5121]
 from ...constants import si as _si
 from .. import si, astrophys
 

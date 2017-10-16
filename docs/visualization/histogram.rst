@@ -72,6 +72,7 @@ The following figure shows the results of these two rules on the above dataset:
    :align: center
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import hist
 
     # generate some complicated data
@@ -126,6 +127,7 @@ the results of these procedures for the above dataset:
 
     import warnings
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.visualization import hist
 
     # generate some complicated data

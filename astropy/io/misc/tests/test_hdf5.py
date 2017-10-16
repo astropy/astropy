@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function
 
 import pytest
 import numpy as np
@@ -24,11 +23,11 @@ else:
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
-              np.bool, '|S3']
+              np.bool_, '|S3']
 
 
 def _default_values(dtype):
-    if dtype == np.bool:
+    if dtype == np.bool_:
         return [0, 1, 1]
     elif dtype == '|S3':
         return [b'abc', b'def', b'ghi']
@@ -263,7 +262,7 @@ def test_read_filobj_group_path(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_wrong_fileobj():
 
-    class FakeFile(object):
+    class FakeFile:
         def read(self):
             pass
 
@@ -401,19 +400,102 @@ def test_preserve_serialized(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
-def test_metadata_too_large(tmpdir):
+def test_preserve_serialized_compatibility_mode(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1['a'] = Column(data=[1, 2, 3])
-    t1.meta["meta"] = "0" * (2**16 + 1)
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
+    t1['a'].format = '7.3f'
+    t1['a'].description = 'A column'
+    t1.meta['b'] = 1
+    t1.meta['c'] = {"c0": [0, 1]}
 
     with catch_warnings() as w:
-        t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
-    assert len(w) == 1
+        t1.write(test_file, path='the_table', serialize_meta=True,
+                 overwrite=True, compatibility_mode=True)
+
     assert str(w[0].message).startswith(
+        "compatibility mode for writing is deprecated")
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1['a'].unit == t2['a'].unit
+    assert t1['a'].format == t2['a'].format
+    assert t1['a'].description == t2['a'].description
+    assert t1['a'].meta == t2['a'].meta
+    assert t1.meta == t2.meta
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_preserve_serialized_in_complicated_path(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
+    t1['a'].format = '7.3f'
+    t1['a'].description = 'A column'
+    t1.meta['b'] = 1
+    t1.meta['c'] = {"c0": [0, 1]}
+
+    t1.write(test_file, path='the_table/complicated/path', serialize_meta=True,
+             overwrite=True)
+
+    t2 = Table.read(test_file, path='the_table/complicated/path')
+
+    assert t1['a'].format == t2['a'].format
+    assert t1['a'].unit == t2['a'].unit
+    assert t1['a'].description == t2['a'].description
+    assert t1['a'].meta == t2['a'].meta
+    assert t1.meta == t2.meta
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_metadata_very_large(tmpdir):
+    """Test that very large datasets work, now!"""
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
+    t1['a'].format = '7.3f'
+    t1['a'].description = 'A column'
+    t1.meta['b'] = 1
+    t1.meta['c'] = {"c0": [0, 1]}
+    t1.meta["meta_big"] = "0" * (2 ** 16 + 1)
+    t1.meta["meta_biggerstill"] = "0" * (2 ** 18)
+
+    t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1['a'].unit == t2['a'].unit
+    assert t1['a'].format == t2['a'].format
+    assert t1['a'].description == t2['a'].description
+    assert t1['a'].meta == t2['a'].meta
+    assert t1.meta == t2.meta
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_metadata_very_large_fails_compatibility_mode(tmpdir):
+    """Test that very large metadata do not work in compatibility mode."""
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3])
+    t1.meta["meta"] = "0" * (2 ** 16 + 1)
+    with catch_warnings() as w:
+        t1.write(test_file, path='the_table', serialize_meta=True,
+                 overwrite=True, compatibility_mode=True)
+    assert len(w) == 2
+
+    # Error message slightly changed in h5py 2.7.1, thus the 2part assert
+    assert str(w[1].message).startswith(
         "Attributes could not be written to the output HDF5 "
-        "file: Unable to create attribute (Object header message is too large)")
+        "file: Unable to create attribute ")
+    assert "bject header message is too large" in str(w[1].message)
 
 
 @pytest.mark.skipif('not HAS_H5PY')

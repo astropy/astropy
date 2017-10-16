@@ -1,10 +1,7 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import contextlib
 import socket
-
-from ..extern.six.moves import urllib
+import urllib.request
 
 # save original socket method for restoration
 # These are global so that re-calling the turn_off_internet function doesn't
@@ -55,7 +52,7 @@ def check_internet_off(original_function, allow_astropy_data=False):
             valid_hosts = ('localhost', '127.0.0.1')
 
         if allow_astropy_data:
-            for valid_host in ('data.astropy.org', 'astropy.stsci.edu'):
+            for valid_host in ('data.astropy.org', 'astropy.stsci.edu', 'www.astropy.org'):
                 valid_host_ip = socket.gethostbyname(valid_host)
                 valid_hosts += (valid_host, valid_host_ip)
 

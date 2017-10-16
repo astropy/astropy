@@ -1,14 +1,9 @@
-from __future__ import division
 
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 
 from ..utils import extirpolate, bitceil, trig_sum
-
-
-requires_numpy1_8 = pytest.mark.skipif(not hasattr(np.ufunc, 'at'),
-                                       reason="requires numpy 1.8 or newer")
 
 
 @pytest.mark.parametrize('N', 2 ** np.arange(1, 12))
@@ -27,7 +22,6 @@ def extirpolate_data():
     return x, y, f
 
 
-@requires_numpy1_8
 @pytest.mark.parametrize('N', [100, None])
 @pytest.mark.parametrize('M', [5])
 def test_extirpolate(N, M, extirpolate_data):
@@ -37,7 +31,6 @@ def test_extirpolate(N, M, extirpolate_data):
     assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat))
 
 
-@requires_numpy1_8
 @pytest.fixture
 def extirpolate_int_data():
     rng = np.random.RandomState(0)
@@ -48,7 +41,6 @@ def extirpolate_int_data():
     return x, y, f
 
 
-@requires_numpy1_8
 @pytest.mark.parametrize('N', [100, None])
 @pytest.mark.parametrize('M', [5])
 def test_extirpolate_with_integers(N, M, extirpolate_int_data):
@@ -66,7 +58,6 @@ def trig_sum_data():
     return t, h
 
 
-@requires_numpy1_8
 @pytest.mark.parametrize('f0', [0, 1])
 @pytest.mark.parametrize('adjust_t', [True, False])
 @pytest.mark.parametrize('freq_factor', [1, 2])

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division
 
 import gzip
 import itertools
@@ -10,14 +9,13 @@ import operator
 import os
 import platform
 import signal
-import string
 import sys
 import tempfile
 import textwrap
 import threading
 import warnings
 import weakref
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from ...utils import data
 
 from distutils.version import LooseVersion
@@ -28,27 +26,18 @@ try:
     from StringIO import StringIO
 except ImportError:
     # Use for isinstance test only
-    class StringIO(object):
+    class StringIO:
         pass
 
-
-from ...extern import six
-from ...extern.six import (string_types, integer_types, text_type,
-                           binary_type, next)
-from ...extern.six.moves import zip, range
 from ...utils import wraps
-from ...utils.compat import suppress
 from ...utils.exceptions import AstropyUserWarning
 
-if six.PY2:
-    cmp = cmp
-else:
-    cmp = lambda a, b: (a > b) - (a < b)
+cmp = lambda a, b: (a > b) - (a < b)
 
-all_integer_types = integer_types + (np.integer,)
+all_integer_types = (int, np.integer)
 
 
-class NotifierMixin(object):
+class NotifierMixin:
     """
     Mixin class that provides services by which objects can register
     listeners to changes on that object.
@@ -81,7 +70,7 @@ class NotifierMixin(object):
     ...         self.state += 1
     ...         self._notify('widget_state_changed', self)
     ...
-    >>> class WidgetListener(object):
+    >>> class WidgetListener:
     ...     def _update_widget_state_changed(self, widget):
     ...         print('Widget {0} changed state to {1}'.format(
     ...             widget.name, widget.state))
@@ -156,7 +145,7 @@ class NotifierMixin(object):
         # objects it will be necessary when HDU objects' states are restored to
         # re-register themselves as listeners on their new column instances.
         try:
-            state = super(NotifierMixin, self).__getstate__()
+            state = super().__getstate__()
         except AttributeError:
             # Chances are the super object doesn't have a getstate
             state = self.__dict__.copy()
@@ -181,11 +170,9 @@ def first(iterable):
 
 def itersubclasses(cls, _seen=None):
     """
-    itersubclasses(cls)
-
     Generator over all subclasses of a given class, in depth first order.
 
-    >>> class A(object): pass
+    >>> class A: pass
     >>> class B(A): pass
     >>> class C(A): pass
     >>> class D(B,C): pass
@@ -197,16 +184,13 @@ def itersubclasses(cls, _seen=None):
     D
     E
     C
-    >>> # get ALL (new-style) classes currently defined
+    >>> # get ALL classes currently defined
     >>> [cls.__name__ for cls in itersubclasses(object)]
     [...'tuple', ...'type', ...]
 
     From http://code.activestate.com/recipes/576949/
     """
 
-    if not isinstance(cls, type):
-        raise TypeError('itersubclasses must be called with '
-                        'new-style classes, not {:.100r}'.format(cls))
     if _seen is None:
         _seen = set()
     try:
@@ -235,7 +219,7 @@ def ignore_sigint(func):
         single_thread = (threading.activeCount() == 1 and
                          curr_thread.getName() == 'MainThread')
 
-        class SigintHandler(object):
+        class SigintHandler:
             def __init__(self):
                 self.sigint_received = False
 
@@ -282,22 +266,53 @@ def pairwise(iterable):
 
 
 def encode_ascii(s):
-    """
-    In Python 2 this is a no-op.  Strings are left alone.  In Python 3 this
-    will be replaced with a function that actually encodes unicode strings to
-    ASCII bytes.
-    """
-
+    if isinstance(s, str):
+        return s.encode('ascii')
+    elif (isinstance(s, np.ndarray) and
+          issubclass(s.dtype.type, np.str_)):
+        ns = np.char.encode(s, 'ascii').view(type(s))
+        if ns.dtype.itemsize != s.dtype.itemsize / 4:
+            ns = ns.astype((np.bytes_, s.dtype.itemsize / 4))
+        return ns
+    elif (isinstance(s, np.ndarray) and
+          not issubclass(s.dtype.type, np.bytes_)):
+        raise TypeError('string operation on non-string array')
     return s
 
 
 def decode_ascii(s):
-    """
-    In Python 2 this is a no-op.  Strings are left alone.  In Python 3 this
-    will be replaced with a function that actually decodes ascii bytes to
-    unicode.
-    """
-
+    if isinstance(s, bytes):
+        try:
+            return s.decode('ascii')
+        except UnicodeDecodeError:
+            warnings.warn('non-ASCII characters are present in the FITS '
+                          'file header and have been replaced by "?" '
+                          'characters', AstropyUserWarning)
+            s = s.decode('ascii', errors='replace')
+            return s.replace(u'\ufffd', '?')
+    elif (isinstance(s, np.ndarray) and
+          issubclass(s.dtype.type, np.bytes_)):
+        # np.char.encode/decode annoyingly don't preserve the type of the
+        # array, hence the view() call
+        # It also doesn't necessarily preserve widths of the strings,
+        # hence the astype()
+        if s.size == 0:
+            # Numpy apparently also has a bug that if a string array is
+            # empty calling np.char.decode on it returns an empty float64
+            # array wth
+            dt = s.dtype.str.replace('S', 'U')
+            ns = np.array([], dtype=dt).view(type(s))
+        else:
+            ns = np.char.decode(s, 'ascii').view(type(s))
+        if ns.dtype.itemsize / 4 != s.dtype.itemsize:
+            ns = ns.astype((np.str_, s.dtype.itemsize))
+        return ns
+    elif (isinstance(s, np.ndarray) and
+          not issubclass(s.dtype.type, np.str_)):
+        # Don't silently pass through on non-string arrays; we don't want
+        # to hide errors where things that are not stringy are attempting
+        # to be decoded
+        raise TypeError('string operation on non-string array')
     return s
 
 
@@ -307,7 +322,7 @@ def isreadable(f):
     sense approximation of io.IOBase.readable.
     """
 
-    if not six.PY2 and hasattr(f, 'readable'):
+    if hasattr(f, 'readable'):
         return f.readable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -331,7 +346,7 @@ def iswritable(f):
     sense approximation of io.IOBase.writable.
     """
 
-    if not six.PY2 and hasattr(f, 'writable'):
+    if hasattr(f, 'writable'):
         return f.writable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -349,64 +364,35 @@ def iswritable(f):
     return True
 
 
-if six.PY2:
-    def isfile(f):
-        """
-        Returns True if the given object represents an OS-level file (that is,
-        ``isinstance(f, file)``).
+def isfile(f):
+    """
+    Returns True if the given object represents an OS-level file (that is,
+    ``isinstance(f, file)``).
 
-        On Python 3 this also returns True if the given object is higher level
-        wrapper on top of a FileIO object, such as a TextIOWrapper.
-        """
+    On Python 3 this also returns True if the given object is higher level
+    wrapper on top of a FileIO object, such as a TextIOWrapper.
+    """
 
-        return isinstance(f, file)
-else:
-    def isfile(f):
-        """
-        Returns True if the given object represents an OS-level file (that is,
-        ``isinstance(f, file)``).
-
-        On Python 3 this also returns True if the given object is higher level
-        wrapper on top of a FileIO object, such as a TextIOWrapper.
-        """
-
-        if isinstance(f, io.FileIO):
-            return True
-        elif hasattr(f, 'buffer'):
-            return isfile(f.buffer)
-        elif hasattr(f, 'raw'):
-            return isfile(f.raw)
-        return False
+    if isinstance(f, io.FileIO):
+        return True
+    elif hasattr(f, 'buffer'):
+        return isfile(f.buffer)
+    elif hasattr(f, 'raw'):
+        return isfile(f.raw)
+    return False
 
 
-if six.PY2:
-    def fileobj_open(filename, mode):
-        """
-        A wrapper around the `open()` builtin.
+def fileobj_open(filename, mode):
+    """
+    A wrapper around the `open()` builtin.
 
-        This exists because in Python 3, `open()` returns an
-        `io.BufferedReader` by default.  This is bad, because
-        `io.BufferedReader` doesn't support random access, which we need in
-        some cases.  In the Python 3 case (implemented in the py3compat module)
-        we must call open with buffering=0 to get a raw random-access file
-        reader.
-        """
+    This exists because `open()` returns an `io.BufferedReader` by default.
+    This is bad, because `io.BufferedReader` doesn't support random access,
+    which we need in some cases.  We must call open with buffering=0 to get
+    a raw random-access file reader.
+    """
 
-        return open(filename, mode)
-else:
-    def fileobj_open(filename, mode):
-        """
-        A wrapper around the `open()` builtin.
-
-        This exists because in Python 3, `open()` returns an
-        `io.BufferedReader` by default.  This is bad, because
-        `io.BufferedReader` doesn't support random access, which we need in
-        some cases.  In the Python 3 case (implemented in the py3compat module)
-        we must call open with buffering=0 to get a raw random-access file
-        reader.
-        """
-
-        return open(filename, mode, buffering=0)
+    return open(filename, mode, buffering=0)
 
 
 def fileobj_name(f):
@@ -416,7 +402,7 @@ def fileobj_name(f):
     string f itself is returned.
     """
 
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         return f
     elif isinstance(f, gzip.GzipFile):
         # The .name attribute on GzipFiles does not always represent the name
@@ -446,7 +432,7 @@ def fileobj_closed(f):
     they are file-like objects with no sense of a 'closed' state.
     """
 
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         return True
 
     if hasattr(f, 'closed'):
@@ -538,36 +524,18 @@ def fileobj_is_binary(f):
         return True
 
 
-if six.PY2:
-    maketrans = string.maketrans
-
-    def translate(s, table, deletechars):
-        """
-        This is a version of string/unicode.translate() that can handle string
-        or unicode strings the same way using a translation table made with
-        `string.maketrans`.
-        """
-
-        if isinstance(s, str):
-            return s.translate(table, deletechars)
-        elif isinstance(s, text_type):
-            table = dict((x, ord(table[x])) for x in range(256)
-                         if ord(table[x]) != x)
-            for c in deletechars:
-                table[ord(c)] = None
-            return s.translate(table)
-else:
-    maketrans = str.maketrans
-
-    def translate(s, table, deletechars):
-        if deletechars:
-            table = table.copy()
-            for c in deletechars:
-                table[ord(c)] = None
-        return s.translate(table)
+maketrans = str.maketrans
 
 
-def fill(text, width, *args, **kwargs):
+def translate(s, table, deletechars):
+    if deletechars:
+        table = table.copy()
+        for c in deletechars:
+            table[ord(c)] = None
+    return s.translate(table)
+
+
+def fill(text, width, **kwargs):
     """
     Like :func:`textwrap.wrap` but preserves existing paragraphs which
     :func:`textwrap.wrap` does not otherwise handle well.  Also handles section
@@ -580,7 +548,7 @@ def fill(text, width, *args, **kwargs):
         if all(len(l) < width for l in t.splitlines()):
             return t
         else:
-            return textwrap.fill(t, width, *args, **kwargs)
+            return textwrap.fill(t, width, **kwargs)
 
     return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
@@ -735,9 +703,9 @@ def _write_string(f, s):
     # binary
     binmode = fileobj_is_binary(f)
 
-    if binmode and isinstance(s, text_type):
+    if binmode and isinstance(s, str):
         s = encode_ascii(s)
-    elif not binmode and not isinstance(f, text_type):
+    elif not binmode and not isinstance(f, str):
         s = decode_ascii(s)
     elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
         # Workaround for StringIO/ndarray incompatibility
@@ -805,7 +773,7 @@ def _words_group(input, strlen):
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(binary_type, 1))
+    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]
@@ -897,3 +865,24 @@ def _extract_number(value, default):
         return int(_str_to_num(value))
     except (TypeError, ValueError):
         return default
+
+
+def get_testdata_filepath(filename):
+    """
+    Return a string representing the path to the file requested from the
+    io.fits test data set.
+
+    .. versionadded:: 2.0.3
+
+    Parameters
+    ----------
+    filename : str
+        The filename of the test data file.
+
+    Returns
+    -------
+    filepath : str
+        The path to the requested file.
+    """
+    return data.get_pkg_data_filename(
+        'io/fits/tests/data/{}'.format(filename), 'astropy')

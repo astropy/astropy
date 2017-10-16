@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 import numpy as np
 
 from ... import units as u
-from ...extern import six
 from ...tests.helper import (catch_warnings,
                              pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
@@ -31,8 +28,7 @@ def test_frame_attribute_descriptor():
     """ Unit tests of the Attribute descriptor """
     from ..attributes import Attribute
 
-    @six.add_metaclass(OrderedDescriptorContainer)
-    class TestAttributes(object):
+    class TestAttributes(metaclass=OrderedDescriptorContainer):
         attr_none = Attribute()
         attr_2 = Attribute(default=2)
         attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')
@@ -297,6 +293,12 @@ def test_realizing():
     assert f2.equinox == f.equinox
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
+    # Check that a nicer error message is returned:
+    with pytest.raises(TypeError) as excinfo:
+        f.realize_frame(f.representation)
+
+    assert ('Class passed as data instead of a representation' in
+            excinfo.value.args[0])
 
 def test_replicating():
     from ..builtin_frames import ICRS, AltAz

@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. currentmodule:: astropy.io.fits
 
 FITS Headers
@@ -24,12 +22,13 @@ an existing HDU's header and the data value from  a numpy array. If the
 defaults (None) are used, the new HDU will have the minimal required keywords
 for an HDU of that type::
 
+    >>> from astropy.io import fits
     >>> hdu = fits.PrimaryHDU()
     >>> hdu.header  # show the all of the header cards
-    SIMPLE = T / conforms to FITS standard
-    BITPIX = 8 / array data type
-    NAXIS  = 0 / number of array dimensions
-    EXTEND = T
+    SIMPLE  =                    T / conforms to FITS standard
+    BITPIX  =                    8 / array data type
+    NAXIS   =                    0 / number of array dimensions
+    EXTEND  =                    T
 
 A user can use any header and any data to construct a new HDU. Astropy will
 strip any keywords that describe the data structure leaving only your
@@ -51,31 +50,33 @@ be accessed via keyword name or index of an HDU's header attribute. You can
 also use the wildcard character ``*`` to get the keyword value pairs that match
 your search string. Here is a quick summary::
 
-    >>> hdulist = fits.open('input.fits')  # open a FITS file
-    >>> prihdr = hdulist[0].header  # the primary HDU header
-    >>> print(prihdr[3])            # get the 4th keyword's value
-    10
-    >>> prihdr[3] = 20  # change its value
-    >>> prihdr['DARKCORR']  # get the value of the keyword 'darkcorr'
+    >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+    >>> hdul = fits.open(fits_image_filename)  # open a FITS file
+    >>> hdr = hdul[0].header  # the primary HDU header
+    >>> print(hdr[34])  # get the 2nd keyword's value
+    96
+    >>> hdr[34] = 20  # change its value
+    >>> hdr['DARKCORR']  # get the value of the keyword 'darkcorr'
     'OMIT'
-    >>> prihdr['DARKCOR*']  # get keyword values using wildcard matching
-    DARKCORR= 'OMIT    '           / Subtract dark image
-    >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value    
+    >>> hdr['DARKCOR*']  # get keyword values using wildcard matching
+    DARKCORR= 'OMIT              ' / Do dark correction: PERFORM, OMIT, COMPLETE
+    >>> hdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
 
 Keyword names are case-insensitive except in a few special cases (see the
-sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
-``prihdr['ABC']``, or ``prihdr['aBc']`` are all equivalent.
+sections on HIERARCH card and record-valued cards). Thus, ``hdr['abc']``,
+``hdr['ABC']``, or ``hdr['aBc']`` are all equivalent.
 
 Like with Python's :class:`dict` type, new keywords can also be added to the
 header using assignment syntax::
 
-    >>> 'DARKCORR' in header  # Check for existence
+    >>> hdr = hdul[1].header
+    >>> 'DARKCORR' in hdr  # Check for existence
     False
-    >>> header['DARKCORR'] = 'OMIT'  # Add a new DARKCORR keyword
+    >>> hdr['DARKCORR'] = 'OMIT'  # Add a new DARKCORR keyword
 
 You can also add a new value *and* comment by assigning them as a tuple::
 
-    >>> header['DARKCORR'] = ('OMIT', 'Dark Image Subtraction')
+    >>> hdr['DARKCORR'] = ('OMIT', 'Dark Image Subtraction')
 
 .. note::
 
@@ -91,15 +92,14 @@ You can also add a new value *and* comment by assigning them as a tuple::
 
     * Use the :meth:`Header.append` method with the ``end=True`` argument:
 
-        >>> header.append(('DARKCORR', 'OMIT', 'Dark Image Subtraction'),
-                          end=True)
+        >>> hdr.append(('DARKCORR', 'OMIT', 'Dark Image Subtraction'), end=True)
 
       This forces the new keyword to be added at the actual end of the header.
 
     * The :meth:`Header.insert` method will always insert a new keyword exactly
       where you ask for it:
 
-        >>> header.insert(20, ('DARKCORR', 'OMIT', 'Dark Image Subtraction'))
+        >>> hdr.insert(20, ('DARKCORR', 'OMIT', 'Dark Image Subtraction'))
 
       This inserts the DARKCORR keyword before the 20th keyword in the header
       no matter what it is.
@@ -107,17 +107,17 @@ You can also add a new value *and* comment by assigning them as a tuple::
 A keyword (and its corresponding card) can be deleted using the same index/name
 syntax::
 
-    >>> del prihdr[3]      # delete the 2nd keyword
-    >>> del prihdr['abc']  # get the value of the keyword 'abc'
+    >>> del hdr[3]  # delete the 2nd keyword
+    >>> del hdr['DARKCORR']  # delete the value of the keyword 'DARKCORR'
 
 Note that, like a regular Python list, the indexing updates after each delete,
-so if ``del prihdr[3]`` is done two times in a row, the 4th and 5th keywords
-are removed from the original header.  Likewise, ``del prihdr[-1]`` will delete
+so if ``del hdr[3]`` is done two times in a row, the 4th and 5th keywords
+are removed from the original header.  Likewise, ``del hdr[-1]`` will delete
 the last card in the header.
 
 It is also possible to delete an entire range of cards using the slice syntax::
 
-    >>> del prihdr[3:5]
+    >>> del hdr[3:5]
 
 The method :meth:`Header.set` is another way to update they value or comment
 associated with an existing keyword, or to create a new keyword.  Most of its
@@ -126,25 +126,26 @@ some cases it might be more clear.  It also has the advantage of allowing one
 to either move cards within the header, or specify the location of a new card
 relative to existing cards::
 
-    >>> prihdr.set('target', 'NGC1234', 'target name')
+    >>> hdr.set('target', 'NGC1234', 'target name')
     >>> # place the next new keyword before the 'TARGET' keyword
-    >>> prihdr.set('newkey', 666, before='TARGET')  # comment is optional
+    >>> hdr.set('newkey', 666, before='TARGET')  # comment is optional
     >>> # place the next new keyword after the 21st keyword
-    >>> prihdr.set('newkey2', 42.0, 'another new key', after=20)
+    >>> hdr.set('newkey2', 42.0, 'another new key', after=20)
 
 In FITS headers, each keyword may also have a comment associated with it
 explaining its purpose.  The comments associated with each keyword are accessed
 through the :attr:`~Header.comments` attribute::
 
-    >>> header['NAXIS']
+    >>> hdr['NAXIS']
     2
-    >>> header.comments['NAXIS']
-    the number of image axes
-    >>> header.comments['NAXIS'] = 'The number of image axes'  # Update
+    >>> hdr.comments['NAXIS']
+    'number of data axes'
+    >>> hdr.comments['NAXIS'] = 'The number of image axes'  # Update
+    >>> hdul.close()  # close the HDUList again
 
 Comments can be accessed in all the same ways that values are accessed, whether
 by keyword name or card index.  Slices are also possible.  The only difference
-is that you go through ``header.comments`` instead of just ``header`` by
+is that you go through ``hdr.comments`` instead of just ``hdr`` by
 itself.
 
 
@@ -160,13 +161,16 @@ to as commentary cards), which commonly appear in FITS headers more than once.
 They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Unlike other
 keywords, when accessing these keywords they are returned as a list::
 
-    >>> prihdr['HISTORY']
+    >>> filename = fits.util.get_testdata_filepath('history_header.fits')
+    >>> with fits.open(filename) as hdul:  # open a FITS file
+    ...     hdr = hdul[0].header
+
+    >>> hdr['HISTORY']
     I updated this file on 02/03/2011
     I updated this file on 02/04/2011
-    ....
 
 These lists can be sliced like any other list.  For example, to display just the
-last HISTORY entry, use ``prihdr['history'][-1]``.  Existing commentary cards
+last HISTORY entry, use ``hdr['history'][-1]``.  Existing commentary cards
 can also be updated by using the appropriate index number for that card.
 
 New commentary cards can be added like any other card by using the dict-like
@@ -236,11 +240,11 @@ A new Card object is created with the :class:`Card` constructor:
     >>> c5 = fits.Card('OBSERVER', 'Hubble', 'string value')
 
     >>> print(c1); print(c2); print(c3); print(c4); print(c5)  # show the cards
-    TEMP = 80.0 / temperature, floating value
-    DETECTOR= 1 /
-    MIR_REVR= T / mirror reversed? Boolean value
-    ABC = (2.0, 3.0) / complex value
-    OBSERVER= 'Hubble ' / string value
+    TEMP    =                 80.0 / temperature, floating value
+    DETECTOR=                    1
+    MIR_REVR=                    T / mirror reversed? Boolean value
+    ABC     =           (2.0, 3.0) / complex value
+    OBSERVER= 'Hubble  '           / string value
 
 Cards have the attributes ``.keyword``, ``.value``, and ``.comment``. Both
 ``.value`` and ``.comment`` can be changed but not the ``.keyword`` attribute.
@@ -262,9 +266,9 @@ Astropy will be discussed in a later chapter.
     >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
     >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
     >>> print(c1); print(c2)
-    ABC = 3.456D023
+    ABC     =            3.456D023
     P.I. ='Hubble'
-    >>> c2.verify()
+    >>> c2.verify()  # doctest: +SKIP
     Output verification result:
     Unfixable error: Illegal keyword name 'P.I.'
 
@@ -290,21 +294,21 @@ keyword. Astropy does support this convention, even though it is not a FITS
 standard. The examples below show the use of CONTINUE is automatic for long
 string values::
 
-    >>> header = fits.Header()
-    >>> header['abc'] = 'abcdefg' * 20
-    >>> header
-    ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
-    CONTINUE 'efgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga&'
-    CONTINUE 'bcdefg&'
-    >>> header['abc']
+    >>> hdr = fits.Header()
+    >>> hdr['abc'] = 'abcdefg' * 20
+    >>> hdr
+    ABC     = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
+    CONTINUE  'efgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga&'
+    CONTINUE  'bcdefg'
+    >>> hdr['abc']
     'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg'
     >>> # both value and comments are long
-    >>> header['abc'] = ('abcdefg' * 10, 'abcdefg' * 10)
-    >>> header
-    ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
-    CONTINUE 'efg&'
-    CONTINUE '&' / abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga
-    CONTINUE '&' / bcdefg
+    >>> hdr['abc'] = ('abcdefg' * 10, 'abcdefg' * 10)
+    >>> hdr
+    ABC     = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
+    CONTINUE  'efg&'
+    CONTINUE  '&' / abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga
+    CONTINUE  '' / bcdefg
 
 Note that when a CONTINUE card is used, at the end of each 80-characters card
 image, an ampersand is present. The ampersand is not part of the string value.
@@ -328,39 +332,32 @@ If a keyword contains more than 8 characters Astropy will automatically use a
 HIERARCH card, but will also issue a warning in case this is in error.
 However, one may explicitly request a HIERARCH card by prepending the keyword
 with 'HIERARCH ' (just as it would appear in the header).  For example,
-``header['HIERARCH abcdefghi']`` will create the keyword ``abcdefghi`` without
+``hdr['HIERARCH abcdefghi']`` will create the keyword ``abcdefghi`` without
 displaying a warning.  Once created, HIERARCH keywords can be accessed like any
-other: ``header['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
-HIEARARCH keywords also differ from normal FITS keywords in that they are
-case-sensitive.
+other: ``hdr['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
 
 Examples follow::
 
+    >>> # this will print a Warning because a HIERARCH card is implicitly created
     >>> c = fits.Card('abcdefghi', 10)
-    Keyword name 'abcdefghi' is greater than 8 characters; a HIERARCH card will
-    be created.
     >>> print(c)
     HIERARCH abcdefghi = 10
     >>> c = fits.Card('hierarch abcdefghi', 10)
     >>> print(c)
     HIERARCH abcdefghi = 10
-    >>> h = fits.PrimaryHDU()
-    >>> h.header['hierarch abcdefghi'] =  99
-    >>> h.header['abcdefghi']
+    >>> hdu = fits.PrimaryHDU()
+    >>> hdu.header['hierarch abcdefghi'] =  99
+    >>> hdu.header['abcdefghi']
     99
-    >>> h.header['abcdefghi'] = 10
-    >>> h.header['abcdefghi']
+    >>> hdu.header['abcdefghi'] = 10
+    >>> hdu.header['abcdefghi']
     10
-    >>> h.header['ABCDEFGHI']
-    Traceback (most recent call last):
-    ...
-    KeyError: "Keyword 'ABCDEFGI.' not found."
-    >>> h.header
-    SIMPLE = T / conforms to FITS standard
-    BITPIX = 8 / array data type
-    NAXIS = 0 / number of array dimensions
-    EXTEND = T
-    HIERARCH abcdefghi = 1000
+    >>> hdu.header
+    SIMPLE  =                    T / conforms to FITS standard
+    BITPIX  =                    8 / array data type
+    NAXIS   =                    0 / number of array dimensions
+    EXTEND  =                    T
+    HIERARCH abcdefghi = 10
 
 .. note::
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import warnings
 
@@ -208,7 +206,7 @@ class Galactocentric(BaseCoordinateFrame):
             galcen_kw['dec'] = kwargs.pop('galcen_dec', self.galcen_coord.dec)
             kwargs['galcen_coord'] = ICRS(**galcen_kw)
 
-        super(Galactocentric, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def galcen_ra(self):

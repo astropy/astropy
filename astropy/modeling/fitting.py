@@ -21,23 +21,19 @@ function.  `~astropy.modeling.fitting.LevMarLSQFitter` uses
 implementation.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import inspect
 import operator
 import warnings
 
-from functools import reduce
+from functools import reduce, wraps
 
 import numpy as np
 
 from .utils import poly_map_domain, _combine_equivalency_dict
 from ..units import Quantity
 from ..utils.exceptions import AstropyUserWarning
-from ..extern import six
-from ..extern.six.moves import range
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 
@@ -84,7 +80,7 @@ class _FitterMeta(abc.ABCMeta):
     registry = set()
 
     def __new__(mcls, name, bases, members):
-        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -99,8 +95,9 @@ def fitter_unit_support(func):
     quantities itself. This is done by temporarily removing units from all
     parameters then adding them back once the fitting has completed.
     """
-
-    def wrapper(self, model, x, y, z=None, equivalencies=None, **kwargs):
+    @wraps(func)
+    def wrapper(self, model, x, y, z=None, **kwargs):
+        equivalencies = kwargs.pop('equivalencies', None)
 
         data_has_units = (isinstance(x, Quantity) or
                           isinstance(y, Quantity) or
@@ -115,9 +112,9 @@ def fitter_unit_support(func):
                 # We now combine any instance-level input equivalencies with user
                 # specified ones at call-time.
 
-                input_units_equivalencies = _combine_equivalency_dict(model.inputs,
-                                                                      equivalencies,
-                                                                      model.input_units_equivalencies)
+
+                input_units_equivalencies = _combine_equivalency_dict(
+                    model.inputs, equivalencies, model.input_units_equivalencies)
 
                 # If input_units is defined, we transform the input data into those
                 # expected by the model. We hard-code the input names 'x', and 'y'
@@ -183,8 +180,7 @@ def fitter_unit_support(func):
     return wrapper
 
 
-@six.add_metaclass(_FitterMeta)
-class Fitter(object):
+class Fitter(metaclass=_FitterMeta):
     """
     Base class for all fitters.
 
@@ -254,8 +250,7 @@ class Fitter(object):
 # TODO: I have ongoing branch elsewhere that's refactoring this module so that
 # all the fitter classes in here are Fitter subclasses.  In the meantime we
 # need to specify that _FitterMeta is its metaclass.
-@six.add_metaclass(_FitterMeta)
-class LinearLSQFitter(object):
+class LinearLSQFitter(metaclass=_FitterMeta):
     """
     A class performing a linear least square fitting.
 
@@ -332,6 +327,9 @@ class LinearLSQFitter(object):
             Cut-off ratio for small singular values of ``a``.
             Singular values are set to zero if they are smaller than ``rcond``
             times the largest singular value of ``a``.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -362,15 +360,15 @@ class LinearLSQFitter(object):
         if has_fixed:
 
             # The list of fixed params is the complement of those being fitted:
-            fixparam_indices = [idx for idx in\
-                                range(len(model_copy.param_names))\
+            fixparam_indices = [idx for idx in
+                                range(len(model_copy.param_names))
                                 if idx not in fitparam_indices]
 
             # Construct matrix of user-fixed parameters that can be dotted with
             # the corresponding fit_deriv() terms, to evaluate corrections to
             # the dependent variable in order to fit only the remaining terms:
             fixparams = np.asarray([getattr(model_copy,
-                                            model_copy.param_names[idx]).value\
+                                            model_copy.param_names[idx]).value
                                     for idx in fixparam_indices])
 
         if len(farg) == 2:
@@ -446,7 +444,7 @@ class LinearLSQFitter(object):
             rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
-            weights = np.asarray(weights, dtype=np.float)
+            weights = np.asarray(weights, dtype=float)
             if len(x) != len(weights):
                 raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
@@ -481,7 +479,7 @@ class LinearLSQFitter(object):
         return model_copy
 
 
-class FittingWithOutlierRemoval(object):
+class FittingWithOutlierRemoval:
     """
     This class combines an outlier removal technique with a fitting procedure.
     Basically, given a number of iterations ``niter``, outliers are removed
@@ -509,8 +507,8 @@ class FittingWithOutlierRemoval(object):
     def __str__(self):
         return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
                 ("\nOutlier func. args.: {3}"))\
-                .format(self.fitter__class__.__name__,\
-                        self.outlier_func.__name__, self.niter,\
+                .format(self.fitter__class__.__name__,
+                        self.outlier_func.__name__, self.niter,
                         self.outlier_kwargs)
 
     def __repr__(self):
@@ -573,8 +571,7 @@ class FittingWithOutlierRemoval(object):
         return filtered_data, fitted_model
 
 
-@six.add_metaclass(_FitterMeta)
-class LevMarLSQFitter(object):
+class LevMarLSQFitter(metaclass=_FitterMeta):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
 
@@ -616,7 +613,7 @@ class LevMarLSQFitter(object):
                          'param_jac': None,
                          'param_cov': None}
 
-        super(LevMarLSQFitter, self).__init__()
+        super().__init__()
 
     def objective_function(self, fps, *args):
         """
@@ -672,6 +669,9 @@ class LevMarLSQFitter(object):
             If False (default) and if the model has a fit_deriv method,
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -775,7 +775,7 @@ class SLSQPLSQFitter(Fitter):
     supported_constraints = SLSQP.supported_constraints
 
     def __init__(self):
-        super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
+        super().__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support
@@ -808,6 +808,9 @@ class SLSQPLSQFitter(Fitter):
             the step size for finite-difference derivative estimates
         acc : float
             Requested accuracy
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -841,8 +844,7 @@ class SimplexLSQFitter(Fitter):
     supported_constraints = Simplex.supported_constraints
 
     def __init__(self):
-        super(SimplexLSQFitter, self).__init__(optimizer=Simplex,
-                                               statistic=leastsquare)
+        super().__init__(optimizer=Simplex, statistic=leastsquare)
         self.fit_info = {}
 
     @fitter_unit_support
@@ -869,6 +871,9 @@ class SimplexLSQFitter(Fitter):
             maximum number of iterations
         acc : float
             Relative error in approximate solution
+        equivalencies : list or None, optional and keyword-only argument
+            List of *additional* equivalencies that are should be applied in
+            case x, y and/or z have units. Default is None.
 
         Returns
         -------
@@ -889,8 +894,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
-@six.add_metaclass(_FitterMeta)
-class JointFitter(object):
+class JointFitter(metaclass=_FitterMeta):
     """
     Fit models which share a parameter.
 
@@ -1042,11 +1046,11 @@ class JointFitter(object):
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
 
-    x = np.asarray(x, dtype=np.float)
-    y = np.asarray(y, dtype=np.float)
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
 
     if z is not None:
-        z = np.asarray(z, dtype=np.float)
+        z = np.asarray(z, dtype=float)
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
@@ -1172,16 +1176,16 @@ def _validate_constraints(supported_constraints, model):
 
     message = 'Optimizer cannot handle {0} constraints.'
 
-    if (any(six.itervalues(model.fixed)) and
+    if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('fixed parameter'))
 
-    if any(six.itervalues(model.tied)) and 'tied' not in supported_constraints:
+    if any(model.tied.values()) and 'tied' not in supported_constraints:
         raise UnsupportedConstraintError(
                 message.format('tied parameter'))
 
-    if (any(tuple(b) != (None, None) for b in six.itervalues(model.bounds)) and
+    if (any(tuple(b) != (None, None) for b in model.bounds.values()) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
                 message.format('bound parameter'))

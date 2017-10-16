@@ -7,12 +7,10 @@ Built on daophot.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 
 from . import core
-from ...extern.six.moves import range
 
 
 class SExtractorHeader(core.BaseHeader):
@@ -141,7 +139,7 @@ class SExtractor(core.BaseReader):
         Read input data (file-like object, filename, list of strings, or
         single string) into a Table and return the result.
         """
-        out = super(SExtractor, self).read(table)
+        out = super().read(table)
         # remove the comments
         if 'comments' in out.meta:
             del out.meta['comments']

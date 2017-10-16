@@ -8,7 +8,6 @@ import re
 from collections import OrderedDict
 import contextlib
 
-from ...extern import six
 
 from . import core, basic
 from ...table import meta, serialize
@@ -144,7 +143,7 @@ class EcsvHeader(basic.BasicHeader):
 
         # Read the first non-commented line of table and split to get the CSV
         # header column names.  This is essentially what the Basic reader does.
-        header_line = next(super(EcsvHeader, self).process_lines(raw_lines))
+        header_line = next(super().process_lines(raw_lines))
         header_names = next(self.splitter([header_line]))
 
         # Check for consistency of the ECSV vs. CSV header column names
@@ -165,7 +164,7 @@ class EcsvHeader(basic.BasicHeader):
                     setattr(col, attr, header_cols[col.name][attr])
             col.dtype = header_cols[col.name]['datatype']
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
-            if not six.PY2 and col.dtype == 'string':
+            if col.dtype == 'string':
                 col.dtype = 'str'
             if col.dtype.startswith('complex'):
                 raise TypeError('ecsv reader does not support complex number types')
@@ -182,7 +181,7 @@ class EcsvOutputter(core.TableOutputter):
 
     def __call__(self, cols, meta):
         # Convert to a Table with all plain Column subclass columns
-        out = super(EcsvOutputter, self).__call__(cols, meta)
+        out = super().__call__(cols, meta)
 
         # If mixin columns exist (based on the special '__mixin_columns__'
         # key in the table ``meta``), then use that information to construct
@@ -225,6 +224,7 @@ class Ecsv(basic.Basic):
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'
+    _io_registry_suffix = '.ecsv'
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter

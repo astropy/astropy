@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the Arithmetic mixin to the NDData class.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 
@@ -100,7 +98,7 @@ _arit_doc = """
     """
 
 
-class NDArithmeticMixin(object):
+class NDArithmeticMixin:
     """
     Mixin class to add arithmetic to an NDData object.
 
@@ -131,12 +129,10 @@ class NDArithmeticMixin(object):
     uncertainty. This behaviour is also explained in the docstring for the
     different arithmetic operations.
 
-    Notes
-    -----
-    1. It is not tried to decompose the units, mainly due to the internal
-       mechanics of `~astropy.units.Quantity`, so the resulting data might have
-       units like ``km/m`` if you divided for example 100km by 5m. So this
-       Mixin has adopted this behaviour.
+    Decomposing the units is not attempted, mainly due to the internal mechanics
+    of `~astropy.units.Quantity`, so the resulting data might have units like
+    ``km/m`` if you divided for example 100km by 5m. So this Mixin has adopted
+    this behaviour.
 
     Examples
     --------

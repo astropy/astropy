@@ -3,7 +3,6 @@ Normalization class for Matplotlib that can be used to produce
 colorbars.
 """
 
-from __future__ import division, print_function
 
 import numpy as np
 from numpy import ma
@@ -22,7 +21,7 @@ try:
         class Normalize(Normalize, object):
             pass
 except ImportError:
-    class Normalize(object):
+    class Normalize:
         def __init__(self, *args, **kwargs):
             raise ImportError('matplotlib is required in order to use this '
                               'class.')
@@ -65,7 +64,7 @@ class ImageNormalize(Normalize):
     def __init__(self, data=None, interval=None, vmin=None, vmax=None,
                  stretch=LinearStretch(), clip=False):
         # this super call checks for matplotlib
-        super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
+        super().__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin
         self.vmax = vmax

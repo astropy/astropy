@@ -33,7 +33,7 @@ Running Tests
 There are currently three different ways to invoke Astropy tests. Each
 method invokes `pytest`_ to run the tests but offers different options when
 calling. To run the tests, you will need to make sure you have the `pytest`_
-package (version 2.8 or later) installed.
+package (version 3.1 or later) installed.
 
 In addition to running the Astropy tests, these methods can also be called
 so that they check Python source code for `PEP8 compliance
@@ -109,44 +109,6 @@ Astropy Test Function
 ---------------------
 
 .. autofunction:: astropy.test
-
-Tox
----
-
-`Tox <http://tox.readthedocs.io>`_ is a sort of meta-test runner for Python.
-It installs a project into one or more virtualenvs (usually one for each Python
-version supported), build and installs the project into each virtualenv, and
-runs the projects tests (or any other build processes one might want to test).
-This is a good way to run the tests against multiple installed Python versions
-locally without pushing to a continuous integration system.
-
-Tox works by detecting the presence of a file called ``tox.ini`` in the root of
-a Python project and using that to configure the desired virtualenvs and start
-the tests.  So to run the Astropy tests on multiple Python versions using tox,
-simply install Tox::
-
-    $ pip install tox
-
-and then from the root of an Astropy repository clone run::
-
-    $ tox
-
-The Astropy tox configuration currently tests against Python versions 2.6, 2.7,
-3.2, and 3.3.  Tox will automatically skip any Python versions you do not have
-installed, but best results are achieved if you first install all supported
-Python versions and make sure they are on your ``$PATH``.
-
-.. note::
-
-    Tox creates its virtualenvs in the root of your project under a ``.tox``
-    directory (which is automatically ignored by ``.gitignore``).  It's worth
-    making note of this, however, as it is common practice to sometimes clean
-    up a git repository and delete any untracked files by running the ``git
-    clean -dfx`` command.  As it can take a long time to rebuild the tox
-    virtualenvs you may want to exclude the ``.tox`` directory from any
-    cleanup.  This can be achieved by running ``git clean -dfx -e .tox``,
-    though it is probably worth defining a `git alias
-    <https://git.wiki.kernel.org/index.php/Aliases>`_ to do this.
 
 Test-running options
 ====================
@@ -263,8 +225,8 @@ If we place this in a ``test.py`` file and then run::
 The result is::
 
     ============================= test session starts ==============================
-    python: platform darwin -- Python 2.7.2 -- pytest-1.1.1
-    test object 1: /Users/tom/tmp/test.py
+    python: platform darwin -- Python 3.6.0 -- pytest-3.2.0
+    test object 1: /Users/username/tmp/test.py
 
     test.py F
 
@@ -647,22 +609,6 @@ For example::
         with conf.set_temp('max_lines', 6):
             # ...
 
-Testing with Unicode literals
-=============================
-
-Python 2 can run code in two modes: by default, string literals are
-8-bit `bytes` objects.  However, when ``from __future__ import
-unicode_literals`` is used, string literals are `unicode` objects.  In
-order to ensure that astropy supports user code written in both
-styles, the testing framework has a special feature to run a module
-containing tests in both modes.  Simply add the comment::
-
-    # TEST_UNICODE_LITERALS
-
-anywhere in the file, and all tests in that file will be tested twice:
-once in the default mode where string literals are `bytes`, and again
-where string literals are `unicode`.
-
 Marking blocks of code to exclude from coverage
 ===============================================
 
@@ -672,23 +618,6 @@ block::
 
     if this_rarely_happens:  # pragma: no cover
         this_call_is_ignored()
-
-Blocks of code that are intended to run only in Python 2.x or 3.x may
-also be marked so that they will be ignored when appropriate by
-``coverage.py``::
-
-    if sys.version_info[0] >= 3:  # pragma: py3
-        do_it_the_python3_way()
-    else:  # pragma: py2
-        do_it_the_python2_way()
-
-Using ``six.PY3`` and ``six.PY2`` will also automatically exclude
-blocks from coverage, without requiring the pragma comment::
-
-    if six.PY3:
-        do_it_the_python3_way()
-    elif six.PY2:
-        do_it_the_python2_way()
 
 .. _image-tests:
 
@@ -906,10 +835,6 @@ without the test checking that it is exactly right.  For example::
     >>> print('Hello world')  # doctest: +IGNORE_OUTPUT
     We don't really care what the output is as long as there were no errors...
 
-Similarly the ``IGNORE_OUTPUT_2`` and ``IGNORE_OUTPUT_3`` flags can be used
-to ignore output only on Python 2 or only on Python 3 respectively.
-
-
 Handling float output
 =====================
 
@@ -1005,8 +930,8 @@ are in your local git repository::
     astropy_helpers  ez_setup.py           setup.cfg
     cextern          licenses              setup.py
     CHANGES.rst      MANIFEST.in           static
-    circle.yml       pip-requirements      tox.ini
-    CITATION         pip-requirements-dev
+    circle.yml       pip-requirements      CITATION
+    pip-requirements-dev
 
 You can then run the tests with::
 

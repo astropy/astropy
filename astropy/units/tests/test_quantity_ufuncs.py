@@ -9,11 +9,10 @@ from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import raises
-from ...extern.six.moves import zip
 from ...utils.compat import NUMPY_LT_1_13
 
 
-class TestUfuncCoverage(object):
+class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
     def test_coverage(self):
@@ -29,7 +28,7 @@ class TestUfuncCoverage(object):
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
 
-class TestQuantityTrigonometricFuncs(object):
+class TestQuantityTrigonometricFuncs:
     """
     Test trigonometric functions
     """
@@ -211,7 +210,7 @@ class TestQuantityTrigonometricFuncs(object):
             np.degrees(3. * u.m)
 
 
-class TestQuantityMathFuncs(object):
+class TestQuantityMathFuncs:
     """
     Test other mathematical functions
     """
@@ -291,7 +290,6 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
-    # cbrt only introduced in numpy 1.10
     # heaviside only introduced in numpy 1.13
     @pytest.mark.skipif("not hasattr(np, 'heaviside')")
     def test_heaviside_scalar(self):
@@ -308,11 +306,9 @@ class TestQuantityMathFuncs(object):
                                    halfway * u.dimensionless_unscaled) ==
                       [0, 0.25, 0.75, +1.] * u.dimensionless_unscaled)
 
-    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_scalar(self):
         assert np.cbrt(8. * u.m**3) == 2. * u.m
 
-    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
     def test_cbrt_array(self):
         # Calculate cbrt on both sides since on Windows the cube root of 64
         # does not exactly equal 4.  See 4388.
@@ -489,7 +485,7 @@ class TestQuantityMathFuncs(object):
                                      .format(function.__name__))
 
 
-class TestInvariantUfuncs(object):
+class TestInvariantUfuncs:
 
     # np.positive was only added in numpy 1.13.
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
@@ -564,7 +560,7 @@ class TestInvariantUfuncs(object):
         assert "compatible dimensions" in exc.value.args[0]
 
 
-class TestComparisonUfuncs(object):
+class TestComparisonUfuncs:
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,
@@ -574,11 +570,11 @@ class TestComparisonUfuncs(object):
         q_i2 = np.array([10., -5., 1.e6]) * u.g / u.Ms
         q_o = ufunc(q_i1, q_i2)
         assert not isinstance(q_o, u.Quantity)
-        assert q_o.dtype == np.bool
+        assert q_o.dtype == bool
         assert np.all(q_o == ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
         q_o2 = ufunc(q_i1 / q_i2, 2.)
         assert not isinstance(q_o2, u.Quantity)
-        assert q_o2.dtype == np.bool
+        assert q_o2.dtype == bool
         assert np.all(q_o2 == ufunc((q_i1 / q_i2)
                                     .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities
@@ -599,7 +595,7 @@ class TestComparisonUfuncs(object):
         assert "compatible dimensions" in exc.value.args[0]
 
 
-class TestInplaceUfuncs(object):
+class TestInplaceUfuncs:
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
@@ -771,7 +767,7 @@ class TestInplaceUfuncs(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncAt(object):
+class TestUfuncAt:
     """Test that 'at' method for ufuncs (calculates in-place at given indices)
 
     For Quantities, since calculations are in-place, it makes sense only
@@ -860,7 +856,7 @@ class TestUfuncAt(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncReduceReduceatAccumulate(object):
+class TestUfuncReduceReduceatAccumulate:
     """Test 'reduce', 'reduceat' and 'accumulate' methods for ufuncs
 
     For Quantities, it makes sense only if the unit does not have to change
@@ -935,7 +931,7 @@ class TestUfuncReduceReduceatAccumulate(object):
 
 
 @pytest.mark.xfail("NUMPY_LT_1_13")
-class TestUfuncOuter(object):
+class TestUfuncOuter:
     """Test 'outer' methods for ufuncs
 
     Just a few spot checks, since it uses the same code as the regular

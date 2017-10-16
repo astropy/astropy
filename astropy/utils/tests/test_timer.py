@@ -7,10 +7,7 @@
     performance is machine-dependent.
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-from ...extern import six
 
 # STDLIB
 import time
@@ -57,8 +54,8 @@ def test_timer():
     assert p._funcname == 'func_to_time'
     assert p._cache_bad == ['a']
 
-    k = list(six.iterkeys(p.results))
-    v = list(six.itervalues(p.results))
+    k = list(p.results.keys())
+    v = list(p.results.values())
     np.testing.assert_array_equal(k, [2.02, 2.04, 2.1, 2.3, 2.2])
     np.testing.assert_allclose(v, [0.1, 0.2, 0.5, 1.5, 1.0])
 

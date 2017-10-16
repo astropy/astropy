@@ -5,6 +5,7 @@ import operator
 import warnings
 import weakref
 
+from contextlib import suppress
 from functools import reduce
 
 import numpy as np
@@ -15,13 +16,10 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
-from ...extern.six import string_types, PY2
-from ...extern.six.moves import range, zip
 from ...utils import lazyproperty
-from ...utils.compat import suppress
 
 
-class FITS_record(object):
+class FITS_record:
     """
     FITS record class.
 
@@ -63,7 +61,7 @@ class FITS_record(object):
         self.base = base
 
     def __getitem__(self, key):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -80,7 +78,7 @@ class FITS_record(object):
         return self.array.field(indx)[self.row]
 
     def __setitem__(self, key, value):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -179,7 +177,7 @@ class FITS_rec(np.recarray):
         column_state = state[-2]
         state = state[:-2]
 
-        super(FITS_rec, self).__setstate__(state)
+        super().__setstate__(state)
 
         self._col_weakrefs = weakref.WeakSet()
 
@@ -193,8 +191,7 @@ class FITS_rec(np.recarray):
         values that get used in __setstate__.
         """
 
-        reconst_func, reconst_func_args, state = \
-            super(FITS_rec, self).__reduce__()
+        reconst_func, reconst_func_args, state = super().__reduce__()
 
         # Define FITS_rec-specific attrs that get added to state
         column_state = []
@@ -453,7 +450,7 @@ class FITS_rec(np.recarray):
                 if outarr.ndim > 1:
                     # The normal case where the first dimension is the rows
                     inarr_rowsize = inarr[0].size
-                    inarr = inarr.reshape((n, inarr_rowsize))
+                    inarr = inarr.reshape(n, inarr_rowsize)
                     outarr[:, :inarr_rowsize] = inarr
                 else:
                     # Special case for strings where the out array only has one
@@ -479,9 +476,9 @@ class FITS_rec(np.recarray):
 
     def __getitem__(self, key):
         if self._coldefs is None:
-            return super(FITS_rec, self).__getitem__(key)
+            return super().__getitem__(key)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
             # Have to view as a recarray then back as a FITS_rec, otherwise the
@@ -520,9 +517,9 @@ class FITS_rec(np.recarray):
 
     def __setitem__(self, key, value):
         if self._coldefs is None:
-            return super(FITS_rec, self).__setitem__(key, value)
+            return super().__setitem__(key, value)
 
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             self[key][:] = value
             return
 
@@ -550,14 +547,6 @@ class FITS_rec(np.recarray):
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
 
-    if PY2:
-        # avoid falling back through to ndarray.__getslice__
-        def __getslice__(self, start, end):
-            return self.__getitem__(slice(start, end))
-
-        def __setslice__(self, start, end, value):
-            self.__setitem__(slice(start, end), value)
-
     def copy(self, order='C'):
         """
         The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
@@ -569,7 +558,7 @@ class FITS_rec(np.recarray):
         any data.
         """
 
-        new = super(FITS_rec, self).copy(order=order)
+        new = super().copy(order=order)
 
         new.__dict__ = copy.deepcopy(self.__dict__)
         return new
@@ -1162,24 +1151,19 @@ class FITS_rec(np.recarray):
     def _scale_back_strings(self, col_idx, input_field, output_field):
         # There are a few possibilities this has to be able to handle properly
         # The input_field, which comes from the _converted column is of dtype
-        # 'Sn' (where n in string length) on Python 2--this is maintain the
-        # existing user expectation of not being returned Python 2-style
-        # unicode strings.  One Python 3 the array in _converted is of dtype
-        # 'Un' so that elements read out of the array are normal Python 3 str
+        # 'Un' so that elements read out of the array are normal str
         # objects (i.e. unicode strings)
         #
         # At the other end the *output_field* may also be of type 'S' or of
-        # type 'U'.  It will *usually* be of type 'S' (regardless of Python
-        # version) because when reading an existing FITS table the raw data is
-        # just ASCII strings, and represented in Numpy as an S array.
-        # However, when a user creates a new table from scratch, they *might*
-        # pass in a column containing unicode strings (dtype 'U'), especially
-        # on Python 3 where this will be the default.  Therefore the
-        # output_field of the raw array is actually a unicode array.  But we
-        # still want to make sure the data is encodable as ASCII.  Later when
-        # we write out the array we use, in the dtype 'U' case, a different
-        # write routine that writes row by row and encodes any 'U' columns to
-        # ASCII.
+        # type 'U'.  It will *usually* be of type 'S' because when reading
+        # an existing FITS table the raw data is just ASCII strings, and
+        # represented in Numpy as an S array.  However, when a user creates
+        # a new table from scratch, they *might* pass in a column containing
+        # unicode strings (dtype 'U').  Therefore the output_field of the
+        # raw array is actually a unicode array.  But we still want to make
+        # sure the data is encodable as ASCII.  Later when we write out the
+        # array we use, in the dtype 'U' case, a different write routine
+        # that writes row by row and encodes any 'U' columns to ASCII.
 
         # If the output_field is non-ASCII we will worry about ASCII encoding
         # later when writing; otherwise we can do it right here
@@ -1221,7 +1205,7 @@ class FITS_rec(np.recarray):
 
         # The the index of the "end" column of the record, beyond
         # which we can't write
-        end = super(FITS_rec, self).field(-1).itemsize
+        end = super().field(-1).itemsize
         starts.append(end + starts[-1])
 
         if col_idx > 0:
@@ -1312,8 +1296,7 @@ def _rstrip_inplace(array, chars=None):
 
 class _UnicodeArrayEncodeError(UnicodeEncodeError):
     def __init__(self, encoding, object_, start, end, reason, index):
-        super(_UnicodeArrayEncodeError, self).__init__(encoding, object_,
-                start, end, reason)
+        super().__init__(encoding, object_, start, end, reason)
         self.index = index
 
 

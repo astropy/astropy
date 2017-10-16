@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
+import urllib.request
 
 import pytest
 import numpy as np
@@ -12,7 +11,6 @@ from .. import iers
 from .... import units as u
 from ....table import QTable
 from ....time import Time
-from ....extern.six.moves import urllib
 
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
@@ -164,8 +162,8 @@ class TestIERS_Auto():
     def test_simple(self):
         iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
         iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')
-        iers_a_url_1 = 'file://' + os.path.abspath(iers_a_file_1)
-        iers_a_url_2 = 'file://' + os.path.abspath(iers_a_file_2)
+        iers_a_url_1 = os.path.normpath('file://' + os.path.abspath(iers_a_file_1))
+        iers_a_url_2 = os.path.normpath('file://' + os.path.abspath(iers_a_file_2))
 
         with iers.conf.set_temp('iers_auto_url', iers_a_url_1):
 

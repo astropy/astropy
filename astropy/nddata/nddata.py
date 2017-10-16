@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDData class.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 from copy import deepcopy
@@ -121,7 +119,7 @@ class NDData(NDDataBase):
         # but before the NDDataBase did call the uncertainty
         # setter. But if anyone wants to alter this behaviour again the call
         # to the superclass NDDataBase should be in here.
-        super(NDData, self).__init__()
+        super().__init__()
 
         # Check if data is any type from which to collect some implicitly
         # passed parameters.

@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import glob
 import os
 import sys
+import glob
 
 import ah_bootstrap
 from setuptools import setup
 
 from astropy_helpers.setup_helpers import (
     register_commands, get_package_info, get_debug_option)
-try:
-    from astropy_helpers.distutils_helpers import is_distutils_display_option
-except:
-    # For astropy-helpers v0.4.x
-    from astropy_helpers.setup_helpers import is_distutils_display_option
+from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
@@ -62,9 +58,14 @@ entry_points['console_scripts'] = [
     'wcslint = astropy.wcs.wcslint:main',
 ]
 
-setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__,
-                  'cython>=0.21', 'jinja2>=2.7']
-install_requires = ['pytest>=2.8', 'numpy>=' + astropy.__minimum_numpy_version__]
+setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+
+# Make sure to have the packages needed for building astropy, but do not require them
+# when installing from an sdist as the c files are included there.
+if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
+    setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
+
+install_requires = ['pytest>=3.1', 'numpy>=' + astropy.__minimum_numpy_version__]
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -84,7 +85,7 @@ setup(name=NAME,
       url='http://astropy.org',
       long_description=astropy.__doc__,
       keywords=['astronomy', 'astrophysics', 'cosmology', 'space', 'science',
-                'units', 'table', 'wcs', 'vo', 'samp', 'coordinate', 'fits',
+                'units', 'table', 'wcs', 'samp', 'coordinate', 'fits',
                 'modeling', 'models', 'fitting', 'ascii'],
       classifiers=[
           'Intended Audience :: Science/Research',
@@ -92,7 +93,6 @@ setup(name=NAME,
           'Operating System :: OS Independent',
           'Programming Language :: C',
           'Programming Language :: Cython',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering :: Astronomy',
@@ -100,8 +100,7 @@ setup(name=NAME,
       ],
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=False,
       entry_points=entry_points,
-      python_requires='>=2.7',
+      python_requires='>=' + astropy.__minimum_python_version__,
       **package_info
 )

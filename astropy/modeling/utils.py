@@ -4,18 +4,14 @@
 This module provides utility functions for the models package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 from collections import deque, MutableMapping
+from inspect import signature
 
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import range, zip
 
 from ..utils import isiterable, check_broadcast
-from ..utils.compat.funcsigs import signature
 
 from .. import units as u
 
@@ -23,7 +19,7 @@ __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb', 'ellipse_extent']
 
 
-class ExpressionTree(object):
+class ExpressionTree:
     __slots__ = ['left', 'right', 'value']
 
     def __init__(self, value, left=None, right=None):
@@ -326,7 +322,7 @@ class AliasDict(MutableMapping):
         present in the parent), followed by any keys in the local store.
         """
 
-        for key, alias in six.iteritems(self._aliases):
+        for key, alias in self._aliases.items():
             if alias in self._parent:
                 yield key
 
@@ -342,7 +338,7 @@ class AliasDict(MutableMapping):
     def __repr__(self):
         # repr() just like any other dict--this should look transparent
         store_copy = self._store_type()
-        for key, alias in six.iteritems(self._aliases):
+        for key, alias in self._aliases.items():
             if alias in self._parent:
                 store_copy[key] = self._parent[alias]
 
@@ -367,7 +363,7 @@ class _BoundingBox(tuple):
     _model = None
 
     def __new__(cls, input_, _model=None):
-        self = super(_BoundingBox, cls).__new__(cls, input_)
+        self = super().__new__(cls, input_)
         if _model is not None:
             # Bind this _BoundingBox (most likely a subclass) to a Model
             # instance so that its __call__ can access the model

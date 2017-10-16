@@ -1,35 +1,30 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from copy import deepcopy
 from collections import OrderedDict
 
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from ... import units as u
-from ...tests.helper import (pytest, assert_quantity_allclose as
+from ...tests.helper import (assert_quantity_allclose as
                              assert_allclose_quantity)
-from ...utils import isiterable, IncompatibleShapeError, check_broadcast
-from ...utils.compat.numpy import broadcast_to
+from ...utils import isiterable
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
                               DIFFERENTIAL_CLASSES,
-                              BaseRepresentation, BaseDifferential,
+                              BaseRepresentation,
                               SphericalRepresentation,
                               UnitSphericalRepresentation,
                               SphericalCosLatDifferential,
-                              UnitSphericalCosLatDifferential,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation,
                               CartesianDifferential,
                               SphericalDifferential,
-                              CylindricalDifferential,
                               _combine_xyz)
 
 
@@ -44,7 +39,7 @@ def teardown_function(func):
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
 
 
-class TestSphericalRepresentation(object):
+class TestSphericalRepresentation:
 
     def test_name(self):
         assert SphericalRepresentation.get_name() == 'spherical'
@@ -198,7 +193,7 @@ class TestSphericalRepresentation(object):
         assert not isiterable(s)
 
 
-class TestUnitSphericalRepresentation(object):
+class TestUnitSphericalRepresentation:
 
     def test_name(self):
         assert UnitSphericalRepresentation.get_name() == 'unitspherical'
@@ -306,7 +301,7 @@ class TestUnitSphericalRepresentation(object):
             s_slc = s[0]
 
 
-class TestPhysicsSphericalRepresentation(object):
+class TestPhysicsSphericalRepresentation:
 
     def test_name(self):
         assert PhysicsSphericalRepresentation.get_name() == 'physicsspherical'
@@ -436,7 +431,7 @@ class TestPhysicsSphericalRepresentation(object):
             s_slc = s[0]
 
 
-class TestCartesianRepresentation(object):
+class TestCartesianRepresentation:
 
     def test_name(self):
         assert CartesianRepresentation.get_name() == 'cartesian'
@@ -667,7 +662,7 @@ class TestCartesianRepresentation(object):
         assert s2.z.unit is u.kpc
 
 
-class TestCylindricalRepresentation(object):
+class TestCylindricalRepresentation:
 
     def test_name(self):
         assert CylindricalRepresentation.get_name() == 'cylindrical'
@@ -974,8 +969,8 @@ def test_subclass_representation():
 
     class Longitude180(Longitude):
         def __new__(cls, angle, unit=None, wrap_angle=180 * u.deg, **kwargs):
-            self = super(Longitude180, cls).__new__(cls, angle, unit=unit,
-                                                    wrap_angle=wrap_angle, **kwargs)
+            self = super().__new__(cls, angle, unit=unit, wrap_angle=wrap_angle,
+                                   **kwargs)
             return self
 
     class SphericalWrap180Representation(SphericalRepresentation):
@@ -1082,7 +1077,7 @@ def test_combine_xyz():
     assert np.all(xyz[..., 2] == z)
 
 
-class TestCartesianRepresentationWithDifferential(object):
+class TestCartesianRepresentationWithDifferential:
 
     def test_init_differential(self):
 

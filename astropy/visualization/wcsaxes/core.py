@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
@@ -10,7 +9,6 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 from ...coordinates import SkyCoord, BaseCoordinateFrame
 from ...wcs import WCS
 from ...wcs.utils import wcs_to_celestial_frame
-from ...extern import six
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
@@ -80,7 +78,7 @@ class WCSAxes(Axes):
                  transData=None, slices=None, frame_class=RectangularFrame,
                  **kwargs):
 
-        super(WCSAxes, self).__init__(fig, rect, **kwargs)
+        super().__init__(fig, rect, **kwargs)
         self._bboxes = []
 
         self.frame_class = frame_class
@@ -173,7 +171,7 @@ class WCSAxes(Axes):
                 X = X.transpose(FLIP_TOP_BOTTOM)
                 kwargs['origin'] = 'lower'
 
-        return super(WCSAxes, self).imshow(X, *args, **kwargs)
+        return super().imshow(X, *args, **kwargs)
 
     def plot_coord(self, *args, **kwargs):
         """
@@ -226,7 +224,7 @@ class WCSAxes(Axes):
 
             args = tuple(plot_data) + args[1:]
 
-        super(WCSAxes, self).plot(*args, **kwargs)
+        super().plot(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
@@ -324,7 +322,7 @@ class WCSAxes(Axes):
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
-        super(WCSAxes, self).draw(renderer, inframe)
+        super().draw(renderer, inframe)
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
@@ -337,8 +335,13 @@ class WCSAxes(Axes):
 
             coords.frame.update()
             for coord in coords:
-                coord._draw(renderer, bboxes=self._bboxes,
-                            ticklabels_bbox=self._ticklabels_bbox)
+                coord._draw_grid(renderer)
+
+        for coords in self._all_coords:
+
+            for coord in coords:
+                coord._draw_ticks(renderer, bboxes=self._bboxes,
+                                  ticklabels_bbox=self._ticklabels_bbox)
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
@@ -486,7 +489,7 @@ class WCSAxes(Axes):
         else:
             return self.get_window_extent(renderer)
 
-    def grid(self, b=None, axis='both', **kwargs):
+    def grid(self, b=None, axis='both', *, which='major', **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -504,7 +507,6 @@ class WCSAxes(Axes):
         if not hasattr(self, 'coords'):
             return
 
-        which = kwargs.pop('which', 'major')
         if which != 'major':
             raise NotImplementedError('Plotting the grid for the minor ticks is '
                                       'not supported.')

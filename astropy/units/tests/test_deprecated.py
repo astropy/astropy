@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 """Regression tests for deprecated units or those that are "soft" deprecated
 because they are required for VOUnit support but are not in common use."""
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import pytest
 

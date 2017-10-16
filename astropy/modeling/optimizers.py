@@ -4,12 +4,9 @@
 Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 import warnings
 import abc
 import numpy as np
-from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ["Optimization", "SLSQP", "Simplex"]
@@ -26,8 +23,7 @@ DEFAULT_ACC = 1e-07
 DEFAULT_BOUNDS = (-10 ** 12, 10 ** 12)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Optimization(object):
+class Optimization(metaclass=abc.ABCMeta):
     """
     Base class for optimizers.
 
@@ -111,7 +107,7 @@ class SLSQP(Optimization):
 
     def __init__(self):
         from scipy.optimize import fmin_slsqp
-        super(SLSQP, self).__init__(fmin_slsqp)
+        super().__init__(fmin_slsqp)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,
@@ -155,7 +151,7 @@ class SLSQP(Optimization):
             if i[1] is None:
                 i[1] = DEFAULT_BOUNDS[1]
         # older versions of scipy require this array to be float
-        bounds = np.asarray(bounds, dtype=np.float)
+        bounds = np.asarray(bounds, dtype=float)
         eqcons = np.array(model.eqcons)
         ineqcons = np.array(model.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = self.opt_method(
@@ -193,7 +189,7 @@ class Simplex(Optimization):
 
     def __init__(self):
         from scipy.optimize import fmin as simplex
-        super(Simplex, self).__init__(simplex)
+        super().__init__(simplex)
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,

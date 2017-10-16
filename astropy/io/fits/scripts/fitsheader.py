@@ -42,13 +42,11 @@ header that describes the compression.
 With Astropy installed, please run ``fitsheader --help`` to see the full usage
 documentation.
 """
-from __future__ import absolute_import, division, print_function
 
 import sys
 
 from ... import fits
 from .... import log
-from ....extern.six.moves import range
 
 
 class ExtensionNotFoundException(Exception):
@@ -56,7 +54,7 @@ class ExtensionNotFoundException(Exception):
     pass
 
 
-class HeaderFormatter(object):
+class HeaderFormatter:
     """Class to format the header(s) of a FITS file for display by the
     `fitsheader` tool; essentially a wrapper around a `HDUList` object.
 

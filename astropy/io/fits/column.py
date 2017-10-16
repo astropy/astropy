@@ -6,9 +6,11 @@ import re
 import sys
 import warnings
 import weakref
+import numbers
 
 from functools import reduce
 from collections import OrderedDict
+from contextlib import suppress
 
 import numpy as np
 from numpy import char as chararray
@@ -19,10 +21,7 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
                    NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
-from ...extern.six import string_types, iteritems, PY2
-from ...extern.six.moves import range, zip
 from ...utils import lazyproperty, isiterable, indent
-from ...utils.compat import suppress
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -42,8 +41,8 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
               'D': 'f8', 'C': 'c8', 'M': 'c16', 'A': 'a'}
 
 # the inverse dictionary of the above
-NUMPY2FITS = {val: key for key, val in iteritems(FITS2NUMPY)}
-# Normally booleans are represented as ints in pyfits, but if passed in a numpy
+NUMPY2FITS = {val: key for key, val in FITS2NUMPY.items()}
+# Normally booleans are represented as ints in Astropy, but if passed in a numpy
 # boolean array, that should be supported
 NUMPY2FITS['b1'] = 'L'
 # Add unsigned types, which will be stored as signed ints with a TZERO card.
@@ -85,9 +84,12 @@ ASCII_DEFAULT_WIDTHS = {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
 # Use lists, instead of dictionaries so the names can be displayed in a
 # preferred order.
 KEYWORD_NAMES = ('TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
-                 'TDISP', 'TBCOL', 'TDIM')
+                 'TDISP', 'TBCOL', 'TDIM', 'TCTYP', 'TCUNI', 'TCRPX',
+                 'TCRVL', 'TCDLT', 'TRPOS')
 KEYWORD_ATTRIBUTES = ('name', 'format', 'unit', 'null', 'bscale', 'bzero',
-                      'disp', 'start', 'dim')
+                      'disp', 'start', 'dim', 'coord_type', 'coord_unit',
+                      'coord_ref_point', 'coord_ref_value', 'coord_inc',
+                      'time_ref_pos')
 """This is a list of the attributes that can be set on `Column` objects."""
 
 
@@ -131,7 +133,7 @@ ASCIITNULL = 0
 DEFAULT_ASCII_TNULL = '---'
 
 
-class Delayed(object):
+class Delayed:
     """Delayed file-reading data."""
 
     def __init__(self, hdu=None, field=None):
@@ -200,7 +202,7 @@ class _ColumnFormat(_BaseColumnFormat):
     """
 
     def __new__(cls, format):
-        self = super(_ColumnFormat, cls).__new__(cls, format)
+        self = super().__new__(cls, format)
         self.repeat, self.format, self.option = _parse_tformat(format)
         self.format = self.format.upper()
         if self.format in ('P', 'Q'):
@@ -264,7 +266,7 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     """
 
     def __new__(cls, format, strict=False):
-        self = super(_AsciiColumnFormat, cls).__new__(cls, format)
+        self = super().__new__(cls, format)
         self.format, self.width, self.precision = \
             _parse_ascii_tformat(format, strict)
 
@@ -316,7 +318,7 @@ class _FormatX(str):
     def __new__(cls, repeat=1):
         nbytes = ((repeat - 1) // 8) + 1
         # use an array, even if it is only ONE u1 (i.e. use tuple always)
-        obj = super(_FormatX, cls).__new__(cls, repr((nbytes,)) + 'u1')
+        obj = super().__new__(cls, repr((nbytes,)) + 'u1')
         obj.repeat = repeat
         return obj
 
@@ -343,7 +345,7 @@ class _FormatP(str):
     _descriptor_format = '2i4'
 
     def __new__(cls, dtype, repeat=None, max=None):
-        obj = super(_FormatP, cls).__new__(cls, cls._descriptor_format)
+        obj = super().__new__(cls, cls._descriptor_format)
         obj.format = NUMPY2FITS[dtype]
         obj.dtype = dtype
         obj.repeat = repeat
@@ -384,7 +386,7 @@ class _FormatQ(_FormatP):
     _descriptor_format = '2i8'
 
 
-class ColumnAttribute(object):
+class ColumnAttribute:
     """
     Descriptor for attributes of `Column` that are associated with keywords
     in the FITS header and describe properties of the column as specified in
@@ -464,7 +466,9 @@ class Column(NotifierMixin):
 
     def __init__(self, name=None, format=None, unit=None, null=None,
                  bscale=None, bzero=None, disp=None, start=None, dim=None,
-                 array=None, ascii=None):
+                 array=None, ascii=None, coord_type=None, coord_unit=None,
+                 coord_ref_point=None, coord_ref_value=None, coord_inc=None,
+                 time_ref_pos=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
         except ``format`` can be optional; see :ref:`column_creation` and
@@ -514,6 +518,28 @@ class Column(NotifierMixin):
         ascii : bool, optional
             set `True` if this describes a column for an ASCII table; this
             may be required to disambiguate the column format
+
+        coord_type : str, optional
+            coordinate/axis type corresponding to ``TCTYP`` keyword
+
+        coord_unit : str, optional
+            coordinate/axis unit corresponding to ``TCUNI`` keyword
+
+        coord_ref_point : int-like, optional
+            pixel coordinate of the reference point corresponding to ``TCRPX``
+            keyword
+
+        coord_ref_value : int-like, optional
+            coordinate value at reference point corresponding to ``TCRVL``
+            keyword
+
+        coord_inc : int-like, optional
+            coordinate increment at reference point corresponding to ``TCDLT``
+            keyword
+
+        time_ref_pos : str, optional
+            reference position for a time coordinate column corresponding to
+            ``TRPOS`` keyword
         """
 
         if format is None:
@@ -543,7 +569,7 @@ class Column(NotifierMixin):
         for attr in KEYWORD_ATTRIBUTES:
             setattr(self, attr, valid_kwargs.get(attr))
 
-        # TODO: For PyFITS 3.3 try to eliminate the following two special cases
+        # TODO: Try to eliminate the following two special cases
         # for recformat and dim:
         # This is not actually stored as an attribute on columns for some
         # reason
@@ -636,7 +662,7 @@ class Column(NotifierMixin):
 
         # Ideally the .array attribute never would have existed in the first
         # place, or would have been internal-only.  This is a legacy of the
-        # older design from PyFITS that needs to have continued support, for
+        # older design from Astropy that needs to have continued support, for
         # now.
 
         # One of the main problems with this design was that it created a
@@ -747,7 +773,7 @@ class Column(NotifierMixin):
 
         # Check that the name meets the recommended standard--other column
         # names are *allowed*, but will be discouraged
-        if isinstance(name, string_types) and not TTYPE_RE.match(name):
+        if isinstance(name, str) and not TTYPE_RE.match(name):
             warnings.warn(
                 'It is strongly recommended that column names contain only '
                 'upper and lower-case ASCII letters, digits, or underscores '
@@ -756,13 +782,61 @@ class Column(NotifierMixin):
 
         # This ensures that the new name can fit into a single FITS card
         # without any special extension like CONTINUE cards or the like.
-        if (not isinstance(name, string_types)
+        if (not isinstance(name, str)
                 or len(str(Card('TTYPE', name))) != CARD_LENGTH):
             raise AssertionError(
                 'Column name must be a string able to fit in a single '
                 'FITS card--typically this means a maximum of 68 '
                 'characters, though it may be fewer if the string '
                 'contains special characters like quotes.')
+
+    @ColumnAttribute('TCTYP')
+    def coord_type(col, coord_type):
+        if coord_type is None:
+            return
+
+        if (not isinstance(coord_type, str)
+                or len(coord_type) > 8):
+            raise AssertionError(
+                'Coordinate/axis type must be a string of atmost 8 '
+                'characters.')
+
+    @ColumnAttribute('TCUNI')
+    def coord_unit(col, coord_unit):
+        if (coord_unit is not None
+                and not isinstance(coord_unit, str)):
+            raise AssertionError(
+                'Coordinate/axis unit must be a string.')
+
+    @ColumnAttribute('TCRPX')
+    def coord_ref_point(col, coord_ref_point):
+        if (coord_ref_point is not None
+                and not isinstance(coord_ref_point, numbers.Real)):
+            raise AssertionError(
+                'Pixel coordinate of the reference point must be '
+                'real floating type.')
+
+    @ColumnAttribute('TCRVL')
+    def coord_ref_value(col, coord_ref_value):
+        if (coord_ref_value is not None
+                and not isinstance(coord_ref_value, numbers.Real)):
+            raise AssertionError(
+                'Coordinate value at reference point must be real '
+                'floating type.')
+
+    @ColumnAttribute('TCDLT')
+    def coord_inc(col, coord_inc):
+        if (coord_inc is not None
+                and not isinstance(coord_inc, numbers.Real)):
+            raise AssertionError(
+                'Coordinate increment must be real floating type.')
+
+    @ColumnAttribute('TRPOS')
+    def time_ref_pos(col, time_ref_pos):
+        if (time_ref_pos is not None
+                and not isinstance(time_ref_pos, str)):
+            raise AssertionError(
+                'Time reference position must be a string.')
 
     format = ColumnAttribute('TFORM')
     unit = ColumnAttribute('TUNIT')
@@ -775,7 +849,7 @@ class Column(NotifierMixin):
 
     @lazyproperty
     def ascii(self):
-        """Whether this `Column` represents an column in an ASCII table."""
+        """Whether this `Column` represents a column in an ASCII table."""
 
         return isinstance(self.format, _AsciiColumnFormat)
 
@@ -823,7 +897,9 @@ class Column(NotifierMixin):
     @classmethod
     def _verify_keywords(cls, name=None, format=None, unit=None, null=None,
                          bscale=None, bzero=None, disp=None, start=None,
-                         dim=None, ascii=None):
+                         dim=None, ascii=None, coord_type=None, coord_unit=None,
+                         coord_ref_point=None, coord_ref_value=None,
+                         coord_inc=None, time_ref_pos=None):
         """
         Given the keyword arguments used to initialize a Column, specifically
         those that typically read from a FITS header (so excluding array),
@@ -861,6 +937,8 @@ class Column(NotifierMixin):
                         "the column's character width and will be truncated "
                         "(got {!r}).".format(null))
             else:
+                tnull_formats = ('B', 'I', 'J', 'K')
+
                 if not _is_int(null):
                     # Make this an exception instead of a warning, since any
                     # non-int value is meaningless
@@ -870,11 +948,9 @@ class Column(NotifierMixin):
                         'will be ignored for the purpose of formatting '
                         'the data in this column.'.format(null))
 
-                tnull_formats = ('B', 'I', 'J', 'K')
-
-                if not (format.format in tnull_formats or
-                        (format.format in ('P', 'Q') and
-                         format.p_format in tnull_formats)):
+                elif not (format.format in tnull_formats or
+                          (format.format in ('P', 'Q') and
+                           format.p_format in tnull_formats)):
                     # TODO: We should also check that TNULLn's integer value
                     # is in the range allowed by the column's format
                     msg = (
@@ -892,13 +968,13 @@ class Column(NotifierMixin):
         # TODO: Add full parsing and validation of TDISPn keywords
         if disp is not None and disp != '':
             msg = None
-            if not isinstance(disp, string_types):
+            if not isinstance(disp, str):
                 msg = (
                     'Column disp option (TDISPn) must be a string (got {!r}).'
                     'The invalid value will be ignored for the purpose of '
                     'formatting the data in this column.'.format(disp))
 
-            if (isinstance(format, _AsciiColumnFormat) and
+            elif (isinstance(format, _AsciiColumnFormat) and
                     disp[0].upper() == 'L'):
                 # disp is at least one character long and has the 'L' format
                 # which is not recognized for ASCII tables
@@ -923,16 +999,17 @@ class Column(NotifierMixin):
                     'table columns (got {!r}).  The invalid keyword will be '
                     'ignored for the purpose of formatting the data in this '
                     'column.'.format(start))
-            try:
-                start = int(start)
-            except (TypeError, ValueError):
-                pass
+            else:
+                try:
+                    start = int(start)
+                except (TypeError, ValueError):
+                    pass
 
-            if not _is_int(start) and start < 1:
-                msg = (
-                    'Column start option (TBCOLn) must be a positive integer '
-                    '(got {!r}).  The invalid value will be ignored for the '
-                    'purpose of formatting the data in this column.'.format(start))
+                if not _is_int(start) or start < 1:
+                    msg = (
+                        'Column start option (TBCOLn) must be a positive integer '
+                        '(got {!r}).  The invalid value will be ignored for the '
+                        'purpose of formatting the data in this column.'.format(start))
 
             if msg is None:
                 valid['start'] = start
@@ -955,7 +1032,7 @@ class Column(NotifierMixin):
                     'columns (got {!r}).  The invalid keyword will be ignored '
                     'for the purpose of formatting this column.'.format(dim))
 
-            elif isinstance(dim, string_types):
+            elif isinstance(dim, str):
                 dims_tuple = _parse_tdim(dim)
             elif isinstance(dim, tuple):
                 dims_tuple = dim
@@ -981,6 +1058,67 @@ class Column(NotifierMixin):
             else:
                 invalid['dim'] = (dim, msg)
 
+        if coord_type is not None and coord_type != '':
+            msg = None
+            if not isinstance(coord_type, str):
+                msg = (
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_type))
+            elif len(coord_type) > 8:
+                msg = (
+                    "Coordinate/axis type option (TCTYPn) must be a string "
+                    "of atmost 8 characters (got {!r}). The invalid keyword "
+                    "will be ignored for the purpose of formatting this "
+                    "column.".format(coord_type))
+
+            if msg is None:
+                valid['coord_type'] = coord_type
+            else:
+                invalid['coord_type'] = (coord_type, msg)
+
+        if coord_unit is not None and coord_unit != '':
+            msg = None
+            if not isinstance(coord_unit, str):
+                msg = (
+                    "Coordinate/axis unit option (TCUNIn) must be a string "
+                    "(got {!r}). The invalid keyword will be ignored for the "
+                    "purpose of formatting this column.".format(coord_unit))
+
+            if msg is None:
+                valid['coord_unit'] = coord_unit
+            else:
+                invalid['coord_unit'] = (coord_unit, msg)
+
+        for k, v in [('coord_ref_point', coord_ref_point),
+                     ('coord_ref_value', coord_ref_value),
+                     ('coord_inc', coord_inc)]:
+            if v is not None and v != '':
+                msg = None
+                if not isinstance(v, numbers.Real):
+                    msg = (
+                        "Column {} option ({}n) must be a real floating type (got {!r}). "
+                        "The invalid value will be ignored for the purpose of formatting "
+                        "the data in this column.".format(k, ATTRIBUTE_TO_KEYWORD[k], v))
+
+                if msg is None:
+                    valid[k] = v
+                else:
+                    invalid[k] = (v, msg)
+
+        if time_ref_pos is not None and time_ref_pos != '':
+            msg=None
+            if not isinstance(time_ref_pos, str):
+                msg = (
+                    "Time coordinate reference position option (TRPOSn) must be "
+                    "a string (got {!r}). The invalid keyword will be ignored for "
+                    "the purpose of formatting this column.".format(time_ref_pos))
+
+            if msg is None:
+                valid['time_ref_pos'] = time_ref_pos
+            else:
+                invalid['time_ref_pos'] = (time_ref_pos, msg)
+
         return valid, invalid
 
     @classmethod
@@ -997,7 +1135,7 @@ class Column(NotifierMixin):
         """
 
         # If the given format string is unambiguously a Numpy dtype or one of
-        # the Numpy record format type specifiers supported by PyFITS then that
+        # the Numpy record format type specifiers supported by Astropy then that
         # should take priority--otherwise assume it is a FITS format
         if isinstance(format, np.dtype):
             format, _, _ = _dtype_to_recformat(format)
@@ -1045,7 +1183,7 @@ class Column(NotifierMixin):
                 format = _AsciiColumnFormat(format, strict=True)
 
             # A safe guess which reflects the existing behavior of previous
-            # PyFITS versions
+            # Astropy versions
             guess_format = _ColumnFormat
 
         try:
@@ -1256,7 +1394,7 @@ class ColDefs(NotifierMixin):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
         col_keywords = [{} for i in range(nfields)]
-        for keyword, value in iteritems(hdr):
+        for keyword, value in hdr.items():
             key = TDEF_RE.match(keyword)
             try:
                 keyword = key.group('label')
@@ -1264,7 +1402,7 @@ class ColDefs(NotifierMixin):
                 continue  # skip if there is no match
             if keyword in KEYWORD_NAMES:
                 col = int(key.group('num'))
-                if col <= nfields and col > 0:
+                if 0 < col <= nfields:
                     attr = KEYWORD_TO_ATTRIBUTE[keyword]
                     if attr == 'format':
                         # Go ahead and convert the format value to the
@@ -1396,12 +1534,6 @@ class ColDefs(NotifierMixin):
                 else:
                     dt = np.dtype((dt.base, dim))
 
-            # On Python 2, force the `name` to `str`
-            # because Numpy structured arrays can't handle unicode `name`
-            # See https://github.com/astropy/astropy/issues/5204
-            if PY2:  # pragma: py2
-                name = str(name)
-
             fields.append((name, dt))
 
         return nh.realign_dtype(np.dtype(fields), offsets)
@@ -1429,7 +1561,7 @@ class ColDefs(NotifierMixin):
         return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
-        if isinstance(key, string_types):
+        if isinstance(key, str):
             key = _get_index(self.names, key)
 
         x = self.columns[key]
@@ -1669,7 +1801,7 @@ class _AsciiColDefs(ColDefs):
     _col_format_cls = _AsciiColumnFormat
 
     def __init__(self, input, ascii=True):
-        super(_AsciiColDefs, self).__init__(input)
+        super().__init__(input)
 
         # if the format of an ASCII column has no width, add one
         if not isinstance(input, _AsciiColDefs):
@@ -1711,11 +1843,11 @@ class _AsciiColDefs(ColDefs):
         return ['a' + str(w) for w in widths]
 
     def add_col(self, column):
-        super(_AsciiColDefs, self).add_col(column)
+        super().add_col(column)
         self._update_field_metrics()
 
     def del_col(self, col_name):
-        super(_AsciiColDefs, self).del_col(col_name)
+        super().del_col(col_name)
         self._update_field_metrics()
 
     def _update_field_metrics(self):
@@ -1764,9 +1896,9 @@ class _VLF(np.ndarray):
                 raise ValueError(
                     'Inconsistent input data array: {0}'.format(input))
 
-        a = np.array(input, dtype=np.object)
+        a = np.array(input, dtype=object)
         self = np.ndarray.__new__(cls, shape=(len(input),), buffer=a,
-                                  dtype=np.object)
+                                  dtype=object)
         self.max = 0
         self.element_dtype = dtype
         return self
@@ -1820,7 +1952,7 @@ def _get_index(names, key):
 
     if _is_int(key):
         indx = int(key)
-    elif isinstance(key, string_types):
+    elif isinstance(key, str):
         # try to find exact match first
         try:
             indx = names.index(key.rstrip())
@@ -2187,10 +2319,10 @@ def _dtype_to_recformat(dtype):
     """
     Utility function for converting a dtype object or string that instantiates
     a dtype (e.g. 'float32') into one of the two character Numpy format codes
-    that have been traditionally used by PyFITS.
+    that have been traditionally used by Astropy.
 
     In particular, use of 'a' to refer to character data is long since
-    deprecated in Numpy, but PyFITS remains heavily invested in its use
+    deprecated in Numpy, but Astropy remains heavily invested in its use
     (something to try to get away from sooner rather than later).
     """
 

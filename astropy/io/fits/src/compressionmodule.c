@@ -90,6 +90,8 @@
 
 /* Include the Python C API */
 
+#include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <string.h>
 
@@ -98,17 +100,6 @@
 #include <numpy/arrayobject.h>
 #include <fitsio2.h>
 #include "compressionmodule.h"
-
-/* Some defines for Python3 support--bytes objects should be used where */
-/* strings were previously used                                         */
-#if PY_MAJOR_VERSION >= 3
-#define IS_PY3K
-#endif
-
-#ifdef IS_PY3K
-#define PyString_FromString PyUnicode_FromString
-#define PyInt_AsLong PyLong_AsLong
-#endif
 
 
 /* These defaults mirror the defaults in astropy.io.fits.hdu.compressed */
@@ -222,6 +213,8 @@ int compress_type_from_string(char* zcmptype) {
         return RICE_1;
     } else if (0 == strcmp(zcmptype, "GZIP_1")) {
         return GZIP_1;
+    } else if (0 == strcmp(zcmptype, "GZIP_2")) {
+        return GZIP_2;
     } else if (0 == strcmp(zcmptype, "PLIO_1")) {
         return PLIO_1;
     } else if (0 == strcmp(zcmptype, "HCOMPRESS_1")) {
@@ -242,165 +235,135 @@ int compress_type_from_string(char* zcmptype) {
 }
 
 
+PyObject *
+get_header_value(PyObject* header, const char* key) {
+    PyObject* hdrkey;
+    PyObject* hdrval;
+    hdrkey = PyUnicode_FromString(key);
+    if (hdrkey == NULL) {
+        return NULL;
+    }
+    hdrval = PyObject_GetItem(header, hdrkey);
+    Py_DECREF(hdrkey);
+    PyErr_Clear();
+    return hdrval;
+}
+
+
 // TODO: It might be possible to simplify these further by making the
 // conversion function (eg. PyString_AsString) an argument to a macro or
 // something, but I'm not sure yet how easy it is to generalize the error
 // handling
-int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
-    PyObject* keystr;
-    PyObject* keyval;
-#ifdef IS_PY3K
-    PyObject* tmp;  // Temp pointer to decoded bytes object
-#endif
-    int retval;
+/* The get_header_* functions resemble "Header.get" where "def" is the default
+   value, "keyword" is a string representing the header-key and the result is
+   stored in "val".
+   The function returns 0 on success, 1 if the header didn't have the keyword
+   and the default was applied and -1 (with an exception set) if an Exception
+   happened (like a MemoryError or Overflow).
+*/
+int get_header_string(PyObject* header, const char* keyword, char* val,
+                      const char* def) {
+    PyObject* keyval = get_header_value(header, keyword);
 
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-#ifdef IS_PY3K
-        // FITS header values should always be ASCII, but Latin1 is on the
-        // safe side
-        tmp = PyUnicode_AsLatin1String(keyval);
-        strncpy(val, PyBytes_AsString(tmp), 72);
-        Py_DECREF(tmp);
-#else
-        strncpy(val, PyString_AsString(keyval), 72);
-#endif
-        retval = 0;
-    }
-    else {
-        PyErr_Clear();
+    if (keyval == NULL) {
         strncpy(val, def, 72);
-        retval = 1;
+        return PyErr_Occurred() ? -1 : 1;
     }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
+    PyObject* tmp = PyUnicode_AsLatin1String(keyval);
+    // FITS header values should always be ASCII, but Latin1 is on the
+    // safe side
+    Py_DECREF(keyval);
+    if (tmp == NULL) {
+        /* could always fail to allocate the memory or such like. */
+        return -1;
+    }
+    strncpy(val, PyBytes_AsString(tmp), 72);
+    Py_DECREF(tmp);
+    return 0;
 }
 
 
-int get_header_int(PyObject* header, char* keyword, int* val, int def) {
-    PyObject* keystr;
-    PyObject* keyval;
-    int retval;
+int get_header_long(PyObject* header, const char* keyword, long* val, long def) {
+    PyObject* keyval = get_header_value(header, keyword);
 
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-        *val = (int) PyInt_AsLong(keyval);
-        retval = 0;
-    }
-    else {
-        PyErr_Clear();
+    if (keyval == NULL) {
         *val = def;
-        retval = 1;
+        return PyErr_Occurred() ? -1 : 1;
     }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
+    long tmp = PyLong_AsLong(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
-int get_header_long(PyObject* header, char* keyword, long* val, long def) {
-    PyObject* keystr;
-    PyObject* keyval;
-    int retval;
-
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-        *val = PyLong_AsLong(keyval);
-        retval = 0;
+int get_header_int(PyObject* header, const char* keyword, int* val, int def) {
+    long tmp;
+    int ret = get_header_long(header, keyword, &tmp, def);
+    if (ret == 0) {
+        if (tmp >= INT_MIN && tmp <= INT_MAX) {
+            *val = (int) tmp;
+        } else {
+            PyErr_Format(PyExc_OverflowError, "Cannot convert %ld to C 'int'", tmp);
+            ret = -1;
+        }
     }
-    else {
-        PyErr_Clear();
-        *val = def;
-        retval = 1;
-    }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
+    return ret;
 }
 
 
-int get_header_float(PyObject* header, char* keyword, float* val,
-                     float def) {
-    PyObject* keystr;
-    PyObject* keyval;
-    int retval;
-
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-        *val = (float) PyFloat_AsDouble(keyval);
-        retval = 0;
-    }
-    else {
-        PyErr_Clear();
-        *val = def;
-        retval = 1;
-    }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
-}
-
-
-int get_header_double(PyObject* header, char* keyword, double* val,
+int get_header_double(PyObject* header, const char* keyword, double* val,
                       double def) {
-    PyObject* keystr;
-    PyObject* keyval;
-    int retval;
+    PyObject* keyval = get_header_value(header, keyword);
 
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-        *val = PyFloat_AsDouble(keyval);
-        retval = 0;
-    }
-    else {
-        PyErr_Clear();
+    if (keyval == NULL) {
         *val = def;
-        retval = 1;
+        return PyErr_Occurred() ? -1 : 1;
     }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
+    double tmp = PyFloat_AsDouble(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
-int get_header_longlong(PyObject* header, char* keyword, long long* val,
+int get_header_float(PyObject* header, const char* keyword, float* val,
+                     float def) {
+    double tmp;
+    int ret = get_header_double(header, keyword, &tmp, def);
+    if (ret == 0) {
+        if (tmp >= FLT_MIN || tmp <= FLT_MAX) { /* don't care about infs! */
+            *val = (float) tmp;
+        } else {
+            PyErr_Format(PyExc_OverflowError, "Cannot convert %f to 'float'", tmp);
+            ret = -1;
+        }
+    }
+    return ret;
+}
+
+
+int get_header_longlong(PyObject* header, const char* keyword, long long* val,
                         long long def) {
-    PyObject* keystr;
-    PyObject* keyval;
-    int retval;
+    PyObject* keyval = get_header_value(header, keyword);
 
-    keystr = PyString_FromString(keyword);
-    keyval = PyObject_GetItem(header, keystr);
-
-    if (keyval != NULL) {
-        *val = PyLong_AsLongLong(keyval);
-        retval = 0;
-    }
-    else {
-        PyErr_Clear();
+    if (keyval == NULL) {
         *val = def;
-        retval = 1;
+        return PyErr_Occurred() ? -1 : 1;
     }
-
-    Py_DECREF(keystr);
-    Py_XDECREF(keyval);
-    return retval;
+    long long tmp = PyLong_AsLongLong(keyval);
+    Py_DECREF(keyval);
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    *val = tmp;
+    return 0;
 }
 
 
@@ -1114,11 +1077,13 @@ fail:
 static double cfitsio_version;
 
 
-void compression_module_init(PyObject* module) {
-    /* Python version-indendependent initialization routine for the
-       compression module */
+int compression_module_init(PyObject* module) {
+    /* Python version-independent initialization routine for the
+       compression module. Returns 0 on success and -1 (with exception set)
+       on failure. */
     PyObject* tmp;
     float version_tmp;
+    int ret;
 
     fits_get_version(&version_tmp);
     cfitsio_version = (double) version_tmp;
@@ -1129,10 +1094,12 @@ void compression_module_init(PyObject* module) {
     cfitsio_version = floor((1000 * version_tmp + 0.5)) / 1000;
 
     tmp = PyFloat_FromDouble(cfitsio_version);
-    PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
-    Py_XDECREF(tmp);
-
-    return;
+    if (tmp == NULL) {
+        return -1;
+    }
+    ret = PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
+    Py_DECREF(tmp);
+    return ret;
 }
 
 
@@ -1144,7 +1111,6 @@ static PyMethodDef compression_methods[] =
    {NULL, NULL}
 };
 
-#ifdef IS_PY3K
 static struct PyModuleDef compressionmodule = {
     PyModuleDef_HEAD_INIT,
     "compression",
@@ -1157,7 +1123,13 @@ PyObject *
 PyInit_compression(void)
 {
     PyObject* module = PyModule_Create(&compressionmodule);
-    compression_module_init(module);
+    if (module == NULL) {
+        return NULL;
+    }
+    if (compression_module_init(module)) {
+        Py_DECREF(module);
+        return NULL;
+    }
 
     /* Needed to use Numpy routines */
     /* Note -- import_array() is a macro that behaves differently in Python2.x
@@ -1167,13 +1139,3 @@ PyInit_compression(void)
     import_array();
     return module;
 }
-#else
-PyMODINIT_FUNC initcompression(void)
-{
-   PyObject* module = Py_InitModule4("compression", compression_methods,
-                                     "astropy.io.fits.compression module",
-                                     NULL, PYTHON_API_VERSION);
-   compression_module_init(module);
-   import_array();
-}
-#endif

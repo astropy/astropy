@@ -22,8 +22,6 @@ from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
     FastRdb, FastNoHeader
 from .common import assert_equal, assert_almost_equal, assert_true
-from ....extern import six
-from ....extern.six.moves import range
 
 TRAVIS = os.environ.get('TRAVIS', False)
 
@@ -39,9 +37,9 @@ def assert_table_equal(t1, t2, check_meta=False):
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
-                    if not isinstance(el, six.string_types) and np.isnan(el):
-                        assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
-                    elif isinstance(el, six.string_types):
+                    if not isinstance(el, str) and np.isnan(el):
+                        assert_true(not isinstance(t2[name][i], str) and np.isnan(t2[name][i]))
+                    elif isinstance(el, str):
                         assert_equal(el, t2[name][i])
                     else:
                         assert_almost_equal(el, t2[name][i])
@@ -964,7 +962,7 @@ def test_read_big_table(tmpdir):
 @pytest.mark.parametrize('reader', [0, 1, 2])
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [False,
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True)])
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows"))])
 def test_data_out_of_range(parallel, reader):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
@@ -1017,15 +1015,15 @@ def test_data_out_of_range(parallel, reader):
 
 # catch Windows environment since we cannot use _read() with custom fast_reader
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_int_out_of_range(parallel):
     """
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(np.int).min+1
-    imax = np.iinfo(np.int).max-1
+    imin = np.iinfo(int).min+1
+    imax = np.iinfo(int).max-1
     huge = '{:d}'.format(imax+2)
 
     text = 'P M S\n {:d} {:d} {:s}'.format(imax, imin, huge)
@@ -1056,7 +1054,7 @@ def test_int_out_of_range(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_reader(parallel):
     """
@@ -1099,7 +1097,7 @@ def test_fortran_reader(parallel):
 
 
 @pytest.mark.parametrize("parallel", [
-    pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")(True),
+    pytest.param(True, marks=pytest.mark.xfail(os.name == 'nt', reason="Multiprocessing is currently unsupported on Windows")),
     False])
 def test_fortran_invalid_exp(parallel):
     """

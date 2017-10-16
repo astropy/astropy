@@ -30,13 +30,9 @@ Notes
     array.view(Column) -> no indices
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 from copy import deepcopy
 import numpy as np
 
-from ..extern import six
-from ..extern.six.moves import range
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
 from ..time import Time
@@ -49,7 +45,7 @@ class QueryError(ValueError):
     pass
 
 
-class Index(object):
+class Index:
     '''
     The Index class makes it possible to maintain indices
     on columns of a Table, so that column values can be queried
@@ -69,7 +65,7 @@ class Index(object):
         Whether the values of the index must be unique
     '''
     def __new__(cls, *args, **kwargs):
-        self = super(Index, cls).__new__(cls)
+        self = super().__new__(cls)
 
         # If (and only if) unpickling for protocol >= 2, then args and kwargs
         # are both empty.  The class __init__ requires at least the `columns`
@@ -412,7 +408,7 @@ class Index(object):
         return index
 
 
-class SlicedIndex(object):
+class SlicedIndex:
     '''
     This class provides a wrapper around an actual Index object
     to make index slicing function correctly. Since numpy expects
@@ -633,7 +629,7 @@ def get_index(table, table_copy):
     return None
 
 
-class _IndexModeContext(object):
+class _IndexModeContext:
     '''
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
@@ -740,7 +736,7 @@ class TableIndices(list):
     '''
 
     def __init__(self, lst):
-        super(TableIndices, self).__init__(lst)
+        super().__init__(lst)
 
     def __getitem__(self, item):
         '''
@@ -751,7 +747,7 @@ class TableIndices(list):
         item : int, str, tuple, or list
             Position in list or name(s) of indexed column(s)
         '''
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             item = [item]
         if isinstance(item, (list, tuple)):
             item = list(item)
@@ -766,10 +762,10 @@ class TableIndices(list):
             # index search failed
             raise IndexError("No index found for {0}".format(item))
 
-        return super(TableIndices, self).__getitem__(item)
+        return super().__getitem__(item)
 
 
-class TableLoc(object):
+class TableLoc:
     '''
     A pseudo-list of Table rows allowing for retrieval
     of rows by indexed column values.
@@ -841,7 +837,7 @@ class TableILoc(TableLoc):
     '''
 
     def __init__(self, table):
-        super(TableILoc, self).__init__(table)
+        super().__init__(table)
 
     def __getitem__(self, item):
         if isinstance(item, tuple):

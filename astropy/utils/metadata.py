@@ -2,9 +2,7 @@
 """
 This module contains helper functions and classes for handling metadata.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
+
 from ..utils import wraps
 
 import warnings
@@ -15,6 +13,7 @@ from copy import deepcopy
 
 import numpy as np
 from ..utils.exceptions import AstropyWarning
+from ..utils.misc import dtype_bytes_or_chars
 
 
 __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
@@ -38,12 +37,17 @@ def common_dtype(arrs):
     Use numpy to find the common dtype for a list of ndarrays.
 
     Only allow arrays within the following fundamental numpy data types:
-    ``np.bool``, ``np.object``, ``np.number``, ``np.character``, ``np.void``
+    ``np.bool_``, ``np.object_``, ``np.number``, ``np.character``, ``np.void``
 
     Parameters
     ----------
     arrs : list of ndarray objects
         Arrays for which to find the common dtype
+
+    Returns
+    -------
+    dtype_str : str
+        String representation of dytpe (dtype ``str`` attribute)
     """
     def dtype(arr):
         return getattr(arr, 'dtype', np.dtype('O'))
@@ -65,7 +69,8 @@ def common_dtype(arrs):
     # values or the final arr_common = .. step is unpredictable.
     for i, arr in enumerate(arrs):
         if arr.dtype.kind in ('S', 'U'):
-            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') * arr.itemsize]
+            arrs[i] = [(u'0' if arr.dtype.kind == 'U' else b'0') *
+                       dtype_bytes_or_chars(arr.dtype)]
 
     arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
@@ -78,7 +83,7 @@ class MergeStrategyMeta(type):
     """
 
     def __new__(mcls, name, bases, members):
-        cls = super(MergeStrategyMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         # Wrap ``merge`` classmethod to catch any exception and re-raise as
         # MergeConflictError.
@@ -105,8 +110,7 @@ class MergeStrategyMeta(type):
         return cls
 
 
-@six.add_metaclass(MergeStrategyMeta)
-class MergeStrategy(object):
+class MergeStrategy(metaclass=MergeStrategyMeta):
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.
@@ -208,7 +212,7 @@ def _not_equal(left, right):
         return True
 
 
-class _EnableMergeStrategies(object):
+class _EnableMergeStrategies:
     def __init__(self, *merge_strategies):
         self.merge_strategies = merge_strategies
         self.orig_enabled = {}
@@ -311,7 +315,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
 
     out = deepcopy(left)
 
-    for key, val in six.iteritems(right):
+    for key, val in right.items():
         # If no conflict then insert val into out dict and continue
         if key not in out:
             out[key] = deepcopy(val)
@@ -366,7 +370,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
     return out
 
 
-class MetaData(object):
+class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function
 
 import os
 import re
@@ -9,13 +8,13 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...extern.six import string_types
 from ...table import Table
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from .column import KEYWORD_NAMES
+from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
-from .convenience import table_to_hdu
 
 
 # FITS file signature as per RFC 4047
@@ -25,26 +24,14 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
-                   'PCOUNT', 'GCOUNT', 'TFIELDS']
+                   'PCOUNT', 'GCOUNT', 'TFIELDS', 'THEAP']
 
-# Column-specific keywords
-COLUMN_KEYWORDS = ['TFORM[0-9]+',
-                   'TBCOL[0-9]+',
-                   'TSCAL[0-9]+',
-                   'TZERO[0-9]+',
-                   'TNULL[0-9]+',
-                   'TTYPE[0-9]+',
-                   'TUNIT[0-9]+',
-                   'TDISP[0-9]+',
-                   'TDIM[0-9]+',
-                   'THEAP']
+# Column-specific keywords regex
+COLUMN_KEYWORD_REGEXP = '(' + '|'.join(KEYWORD_NAMES) + ')[0-9]+'
 
 
 def is_column_keyword(keyword):
-    for c in COLUMN_KEYWORDS:
-        if re.match(c, keyword) is not None:
-            return True
-    return False
+    return re.match(COLUMN_KEYWORD_REGEXP, keyword) is not None
 
 
 def is_fits(origin, filepath, fileobj, *args, **kwargs):
@@ -76,9 +63,16 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None):
+def read_table_fits(input, hdu=None, astropy_native=False):
     """
     Read a Table object from an FITS file
+
+    If the ``astropy_native`` argument is ``True``, then input FITS columns
+    which are representations of an astropy core object will be converted to
+    that class and stored in the ``Table`` as "mixin columns".  Currently this
+    is limited to FITS columns which adhere to the FITS Time standard, in which
+    case they will be converted to a `~astropy.time.Time` column in the output
+    table.
 
     Parameters
     ----------
@@ -92,6 +86,9 @@ def read_table_fits(input, hdu=None):
         - :class:`~astropy.io.fits.hdu.hdulist.HDUList`
     hdu : int or str, optional
         The HDU to read the table from.
+    astropy_native : bool, optional
+        Read in FITS columns as native astropy objects where possible instead
+        of standard Table Column objects. Default is False.
     """
 
     if isinstance(input, HDUList):
@@ -133,18 +130,17 @@ def read_table_fits(input, hdu=None):
         hdulist = fits_open(input)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu)
+            return read_table_fits(hdulist, hdu=hdu,
+                                   astropy_native=astropy_native)
         finally:
             hdulist.close()
 
     # Check if table is masked
-    masked = False
-    for col in table.columns:
-        if col.null is not None:
-            masked = True
-            break
+    masked = any(col.null is not None for col in table.columns)
 
     # Convert to an astropy.table.Table object
+    # Note: in future, it may make more sense to do this column-by-column,
+    # rather than via the structured array.
     t = Table(table.data, masked=masked)
 
     # Copy over null values if needed
@@ -162,7 +158,13 @@ def read_table_fits(input, hdu=None):
 
     # TODO: deal properly with unsigned integers
 
-    for key, value, comment in table.header.cards:
+    hdr = table.header
+    if astropy_native:
+        # Avoid circular imports, and also only import if necessary.
+        from .fitstime import fits_to_time
+        hdr = fits_to_time(hdr, t)
+
+    for key, value, comment in hdr.cards:
 
         if key in ['COMMENT', 'HISTORY']:
             # Convert to io.ascii format
@@ -181,8 +183,7 @@ def read_table_fits(input, hdu=None):
             else:
                 t.meta[key] = [t.meta[key], value]
 
-        elif (is_column_keyword(key.upper()) or
-              key.upper() in REMOVE_KEYWORDS):
+        elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
 
             pass
 
@@ -212,7 +213,7 @@ def write_table_fits(input, output, overwrite=False):
     table_hdu = table_to_hdu(input)
 
     # Check if output file already exists
-    if isinstance(output, string_types) and os.path.exists(output):
+    if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:

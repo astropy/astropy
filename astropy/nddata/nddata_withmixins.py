@@ -4,8 +4,6 @@
 This module implements a class based on NDData with all Mixins.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from .nddata import NDData
 
@@ -43,7 +41,7 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
         >>> from astropy.nddata import NDDataRef, StdDevUncertainty
         >>> import numpy as np
 
-        >>> data = np.ones((3,3), dtype=np.float)
+        >>> data = np.ones((3,3), dtype=float)
         >>> ndd1 = NDDataRef(data, uncertainty=StdDevUncertainty(data))
         >>> ndd2 = NDDataRef(data, uncertainty=StdDevUncertainty(data))
 

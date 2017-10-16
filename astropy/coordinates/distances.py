@@ -4,8 +4,6 @@
 This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -141,7 +139,7 @@ class Distance(u.SpecificTypeQuantity):
                                  'given to Distance constructor')
 
         # now we have arguments like for a Quantity, so let it do the work
-        distance = super(Distance, cls).__new__(
+        distance = super().__new__(
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 

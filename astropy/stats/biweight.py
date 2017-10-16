@@ -4,8 +4,6 @@ This module contains functions for computing robust statistics using
 Tukey's biweight function.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -271,7 +269,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     Parameters
     ----------
-    dat : array-like
+    data : array-like
         Input array or object that can be converted to an array.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).

@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from io import StringIO
 
@@ -617,7 +615,7 @@ def test_ogamma():
     assert allclose(cosmo.comoving_distance(z), targvals, rtol=1e-5)
 
     # And integers for z
-    assert allclose(cosmo.comoving_distance(z.astype(np.int)),
+    assert allclose(cosmo.comoving_distance(z.astype(int)),
                     targvals, rtol=1e-5)
 
     # Try Tcmb0 = 4
@@ -1473,7 +1471,7 @@ def test_massivenu_density():
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
     # Integer redshifts
-    ztest = ztest.astype(np.int)
+    ztest = ztest.astype(int)
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
                     rtol=5e-3)
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
@@ -1549,9 +1547,9 @@ def test_z_at_value_roundtrip():
     # Test distance functions between two redshifts
     z2 = 2.0
     func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
-                 lambda z1: \
+                 lambda z1:
                  core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
-                 lambda z1: \
+                 lambda z1:
                  core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
     for func in func_z1z2:
         fval = func(z)

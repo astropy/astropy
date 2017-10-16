@@ -10,8 +10,6 @@ from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
 
-from ....extern.six import string_types
-from ....extern.six.moves import range, zip
 from ....utils import isiterable, lazyproperty
 
 
@@ -42,7 +40,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         from .groups import GroupsHDU
 
-        super(_ImageBaseHDU, self).__init__(data=data, header=header)
+        super().__init__(data=data, header=header)
 
         if header is not None:
             if not isinstance(header, Header):
@@ -135,6 +133,8 @@ class _ImageBaseHDU(_ValidHDU):
         # well)
         if 'name' in kwargs and kwargs['name']:
             self.name = kwargs['name']
+        if 'ver' in kwargs and kwargs['ver']:
+            self.ver = kwargs['ver']
 
         # Set to True if the data or header is replaced, indicating that
         # update_header should be called
@@ -170,7 +170,7 @@ class _ImageBaseHDU(_ValidHDU):
         # but there should be a BSCALE/BZERO now that the data has been set.
         if not bzero_in_header:
             self._orig_bzero = self._bzero
-        if bscale_in_header:
+        if not bscale_in_header:
             self._orig_bscale = self._bscale
 
     @classmethod
@@ -197,7 +197,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         Sections are mostly obsoleted by memmap support, but should still be
         used to deal with very large scaled images.  See the
-        :ref:`data-sections` section of the PyFITS documentation for more
+        :ref:`data-sections` section of the Astropy documentation for more
         details.
         """
 
@@ -427,7 +427,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._bitpix = self._header['BITPIX']
         self._blank = self._header.pop('BLANK', None)
 
-    def scale(self, type=None, option='old', bscale=1, bzero=0):
+    def scale(self, type=None, option='old', bscale=None, bzero=None):
         """
         Scale image data by using ``BSCALE``/``BZERO``.
 
@@ -443,12 +443,12 @@ class _ImageBaseHDU(_ValidHDU):
             dtype name, (e.g. ``'uint8'``, ``'int16'``, ``'float32'``
             etc.).  If is `None`, use the current data type.
 
-        option : str
-            How to scale the data: if ``"old"``, use the original
-            ``BSCALE`` and ``BZERO`` values when the data was
-            read/created. If ``"minmax"``, use the minimum and maximum
-            of the data to scale.  The option will be overwritten by
-            any user specified ``bscale``/``bzero`` values.
+        option : str, optional
+            How to scale the data: ``"old"`` uses the original ``BSCALE`` and
+            ``BZERO`` values from when the data was read/created (defaulting to
+            1 and 0 if they don't exist). For integer data only, ``"minmax"``
+            uses the minimum and maximum of the data to scale. User-specified
+            ``bscale``/``bzero`` values always take precedence.
 
         bscale, bzero : int, optional
             User-specified ``BSCALE`` and ``BZERO`` values
@@ -458,7 +458,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._scale_internal(type=type, option=option, bscale=bscale,
                              bzero=bzero, blank=None)
 
-    def _scale_internal(self, type=None, option='old', bscale=1, bzero=0,
+    def _scale_internal(self, type=None, option='old', bscale=None, bzero=None,
                         blank=0):
         """
         This is an internal implementation of the `scale` method, which
@@ -485,31 +485,35 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Determine how to scale the data
         # bscale and bzero takes priority
-        if (bscale != 1 or bzero != 0):
+        if bscale is not None and bzero is not None:
             _scale = bscale
             _zero = bzero
+        elif bscale is not None:
+            _scale = bscale
+            _zero = 0
+        elif bzero is not None:
+            _scale = 1
+            _zero = bzero
+        elif (option == 'old' and self._orig_bscale is not None and
+                self._orig_bzero is not None):
+            _scale = self._orig_bscale
+            _zero = self._orig_bzero
+        elif option == 'minmax' and not issubclass(_type, np.floating):
+            min = np.minimum.reduce(self.data.flat)
+            max = np.maximum.reduce(self.data.flat)
+
+            if _type == np.uint8:  # uint8 case
+                _zero = min
+                _scale = (max - min) / (2.0 ** 8 - 1)
+            else:
+                _zero = (max + min) / 2.0
+
+                # throw away -2^N
+                nbytes = 8 * _type().itemsize
+                _scale = (max - min) / (2.0 ** nbytes - 2)
         else:
-            if option == 'old':
-                _scale = self._orig_bscale
-                _zero = self._orig_bzero
-            elif option == 'minmax':
-                if issubclass(_type, np.floating):
-                    _scale = 1
-                    _zero = 0
-                else:
-
-                    min = np.minimum.reduce(self.data.flat)
-                    max = np.maximum.reduce(self.data.flat)
-
-                    if _type == np.uint8:  # uint8 case
-                        _zero = min
-                        _scale = (max - min) / (2.0 ** 8 - 1)
-                    else:
-                        _zero = (max + min) / 2.0
-
-                        # throw away -2^N
-                        nbytes = 8 * _type().itemsize
-                        _scale = (max - min) / (2.0 ** nbytes - 2)
+            _scale = 1
+            _zero = 0
 
         # Do the scaling
         if _zero != 0:
@@ -565,7 +569,7 @@ class _ImageBaseHDU(_ValidHDU):
         self.update_header()
         self._verify_blank()
 
-        return super(_ImageBaseHDU, self)._verify(option)
+        return super()._verify(option)
 
     def _verify_blank(self):
         # Probably not the best place for this (it should probably happen
@@ -604,7 +608,7 @@ class _ImageBaseHDU(_ValidHDU):
             # with the correct post-rescaling headers
             _ = self.data
 
-        return super(_ImageBaseHDU, self)._prewriteto(checksum, inplace)
+        return super()._prewriteto(checksum, inplace)
 
     def _writedata_internal(self, fileobj):
         size = 0
@@ -799,7 +803,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         return (self.name, self.ver, class_name, len(self._header), shape, format, '')
 
-    def _calculate_datasum(self, blocking):
+    def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
@@ -831,8 +835,7 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 byteswapped = False
 
-            cs = self._compute_checksum(d.flatten().view(np.uint8),
-                                        blocking=blocking)
+            cs = self._compute_checksum(d.flatten().view(np.uint8))
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
@@ -846,11 +849,10 @@ class _ImageBaseHDU(_ValidHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(_ImageBaseHDU, self)._calculate_datasum(
-                blocking=blocking)
+            return super()._calculate_datasum()
 
 
-class Section(object):
+class Section:
     """
     Image section.
 
@@ -860,7 +862,7 @@ class Section(object):
     Section slices cannot be assigned to, and modifications to a section are
     not saved back to the underlying file.
 
-    See the :ref:`data-sections` section of the PyFITS documentation for more
+    See the :ref:`data-sections` section of the Astropy documentation for more
     details.
     """
 
@@ -992,7 +994,7 @@ class PrimaryHDU(_ImageBaseHDU):
             (default: None)
         """
 
-        super(PrimaryHDU, self).__init__(
+        super().__init__(
             data=data, header=header,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
             ignore_blank=ignore_blank,
@@ -1015,7 +1017,7 @@ class PrimaryHDU(_ImageBaseHDU):
                 card.value)
 
     def update_header(self):
-        super(PrimaryHDU, self).update_header()
+        super().update_header()
 
         # Update the position of the EXTEND keyword if it already exists
         if 'EXTEND' in self._header:
@@ -1026,7 +1028,7 @@ class PrimaryHDU(_ImageBaseHDU):
             self._header.set('EXTEND', after=after)
 
     def _verify(self, option='warn'):
-        errs = super(PrimaryHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
 
         # Verify location and value of mandatory keywords.
         # The EXTEND keyword is only mandatory if the HDU has extensions; this
@@ -1047,7 +1049,8 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     _extension = 'IMAGE'
 
     def __init__(self, data=None, header=None, name=None,
-                 do_not_scale_image_data=False, uint=True, scale_back=None):
+                 do_not_scale_image_data=False, uint=True, scale_back=None,
+                 ver=None):
         """
         Construct an image HDU.
 
@@ -1083,21 +1086,27 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             operations on the data.  Pseudo-unsigned integers are automatically
             rescaled unless scale_back is explicitly set to `False`.
             (default: None)
+
+        ver : int > 0 or None, optional
+            The ver of the HDU, will be the value of the keyword ``EXTVER``.
+            If not given or None, it defaults to the value of the ``EXTVER``
+            card of the ``header`` or 1.
+            (default: None)
         """
 
         # This __init__ currently does nothing differently from the base class,
         # and is only explicitly defined for the docstring.
 
-        super(ImageHDU, self).__init__(
+        super().__init__(
             data=data, header=header, name=name,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
-            scale_back=scale_back)
+            scale_back=scale_back, ver=ver)
 
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return card.keyword == 'XTENSION' and xtension == cls._extension
 
@@ -1106,7 +1115,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         ImageHDU verify method.
         """
 
-        errs = super(ImageHDU, self)._verify(option=option)
+        errs = super()._verify(option=option)
         naxis = self._header.get('NAXIS', 0)
         # PCOUNT must == 0, GCOUNT must == 1; the former is verified in
         # ExtensionHDU._verify, however ExtensionHDU._verify allows PCOUNT
@@ -1116,7 +1125,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         return errs
 
 
-class _IndexInfo(object):
+class _IndexInfo:
     def __init__(self, indx, naxis):
         if _is_int(indx):
             if 0 <= indx < naxis:

@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 import numpy as np
@@ -33,7 +31,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestConvolve1D(object):
+class TestConvolve1D:
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -210,7 +208,7 @@ class TestConvolve1D(object):
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
 
-class TestConvolve2D(object):
+class TestConvolve2D:
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -456,7 +454,7 @@ class TestConvolve2D(object):
             raise ValueError("Invalid boundary specification")
 
 
-class TestConvolve3D(object):
+class TestConvolve3D:
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists

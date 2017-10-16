@@ -12,22 +12,6 @@ import tempfile
 
 from setuptools import Command
 
-from ..extern import six
-
-
-def _fix_user_options(options):
-    """
-    This is for Python 2.x and 3.x compatibility.  distutils expects Command
-    options to all be byte strings on Python 2 and Unicode strings on Python 3.
-    """
-
-    def to_str_or_none(x):
-        if x is None:
-            return None
-        return str(x)
-
-    return [tuple(to_str_or_none(x) for x in y) for y in options]
-
 
 class FixRemoteDataOption(type):
     """
@@ -56,8 +40,7 @@ class FixRemoteDataOption(type):
         return super(FixRemoteDataOption, cls).__init__(name, bases, dct)
 
 
-@six.add_metaclass(FixRemoteDataOption)
-class AstropyTest(Command, object):
+class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = 'Run the tests for this package'
 
     user_options = [
@@ -108,8 +91,6 @@ class AstropyTest(Command, object):
          'in the documentation for tempfile.mkstemp.')
     ]
 
-    user_options = _fix_user_options(user_options)
-
     package_name = ''
 
     def initialize_options(self):
@@ -148,10 +129,7 @@ class AstropyTest(Command, object):
             cmd_pre += pre
             cmd_post += post
 
-        if six.PY2:
-            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
-        else:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
 
         cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
                '{1.package_name}.test('
@@ -209,22 +187,16 @@ class AstropyTest(Command, object):
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
 
-            # On Python 3.x prior to 3.3, the creation of .pyc files
-            # is not atomic.  py.test jumps through some hoops to make
-            # this work by parsing import statements and carefully
-            # importing files atomically.  However, it can't detect
-            # when __import__ is used, so its carefulness still fails.
-            # The solution here (admittedly a bit of a hack), is to
-            # turn off the generation of .pyc files altogether by
-            # passing the `-B` switch to `python`.  This does mean
-            # that each core will have to compile .py file to bytecode
-            # itself, rather than getting lucky and borrowing the work
-            # already done by another core.  Compilation is an
-            # insignificant fraction of total testing time, though, so
-            # it's probably not worth worrying about.
-            retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
-                                      cwd=self.testing_path, close_fds=False)
-
+            testproc = subprocess.Popen(
+                [sys.executable, '-c', cmd],
+                cwd=self.testing_path, close_fds=False)
+            retcode = testproc.wait()
+        except KeyboardInterrupt:
+            import signal
+            # If a keyboard interrupt is handled, pass it to the test
+            # subprocess to prompt pytest to initiate its teardown
+            testproc.send_signal(signal.SIGINT)
+            retcode = testproc.wait()
         finally:
             # Remove temporary directory
             shutil.rmtree(self.tmp_dir)
@@ -285,18 +257,11 @@ class AstropyTest(Command, object):
         coveragerc = os.path.join(
             self.testing_path, self.package_name, 'tests', 'coveragerc')
 
-        # We create a coveragerc that is specific to the version
-        # of Python we're running, so that we can mark branches
-        # as being specifically for Python 2 or Python 3
         with open(coveragerc, 'r') as fd:
             coveragerc_content = fd.read()
-        if not six.PY2:
-            ignore_python_version = '2'
-        else:
-            ignore_python_version = '3'
+
         coveragerc_content = coveragerc_content.replace(
-            "{ignore_python_version}", ignore_python_version).replace(
-                "{packagename}", self.package_name)
+            "{packagename}", self.package_name)
         tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
         with open(tmp_coveragerc, 'wb') as tmp:
             tmp.write(coveragerc_content.encode('utf-8'))

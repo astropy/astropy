@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ...extern import six
 
 import copy
 
@@ -107,7 +103,7 @@ def test_unit():
 
     from .. import astropyconst13 as const
 
-    for key, val in six.iteritems(vars(const)):
+    for key, val in vars(const).items():
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have

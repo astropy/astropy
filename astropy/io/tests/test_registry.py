@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import os
 from copy import copy
+from io import StringIO
 
 import pytest
 import numpy as np
@@ -14,15 +12,13 @@ import numpy as np
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
-from ...extern.six.moves import zip, range
-from ...extern.six import StringIO
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
 _IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
 
-class TestData(object):
+class TestData:
     read = classmethod(io_registry.read)
     write = io_registry.write
 

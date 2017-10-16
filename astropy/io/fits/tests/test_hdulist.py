@@ -10,8 +10,6 @@ import pytest
 import numpy as np
 
 from ..verify import VerifyError
-from ....extern.six.moves import range
-from ....extern import six
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -534,7 +532,7 @@ class TestHDUListFunctions(FitsTestCase):
         Open files with nulls for header block padding instead of spaces.
         """
 
-        a = np.arange(100).reshape((10, 10))
+        a = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=a)
         hdu.writeto(self.temp('temp.fits'))
 
@@ -658,7 +656,7 @@ class TestHDUListFunctions(FitsTestCase):
         entire multi-extension FITS file at once.
         """
 
-        # Tests HDUList.fromstring for all of PyFITS' built in test files
+        # Tests HDUList.fromstring for all of Astropy's built in test files
         def test_fromstring(filename):
             with fits.open(filename) as hdul:
                 orig_info = hdul.info(output=False)
@@ -694,8 +692,13 @@ class TestHDUListFunctions(FitsTestCase):
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
-                # versions of Numpy on Windows.  See PyFITS ticket
+                # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
+                continue
+            elif filename.endswith('variable_length_table.fits'):
+                # Comparing variable length arrays is non-trivial and thus
+                # skipped at this point.
+                # TODO: That's probably possible, so one could make it work.
                 continue
             test_fromstring(filename)
 
@@ -913,8 +916,6 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(IOError):
             fits.open(filename)
 
-    @pytest.mark.skipif(six.PY2,
-                        reason='ResourceWarning is not created in Python 2')
     def test_no_resource_warning_raised_on_non_fits_file(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/6168

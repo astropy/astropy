@@ -10,7 +10,6 @@ from .. import HDUList, PrimaryHDU, BinTableHDU
 from ... import fits
 
 from .... import units as u
-from ....extern.six.moves import range, zip
 from ....table import Table, QTable
 from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
@@ -32,7 +31,7 @@ def equal_data(a, b):
     return True
 
 
-class TestSingleTable(object):
+class TestSingleTable:
 
     def setup_class(self):
         self.data = np.array(list(zip([1, 2, 3, 4],
@@ -156,7 +155,7 @@ class TestSingleTable(object):
         assert equal_data(t, self.data)
 
 
-class TestMultipleHDU(object):
+class TestMultipleHDU:
 
     def setup_class(self):
         self.data1 = np.array(list(zip([1, 2, 3, 4],

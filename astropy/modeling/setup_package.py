@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import
 
 import os
 from os.path import join
@@ -7,7 +6,6 @@ from os.path import join
 from distutils.core import Extension
 from distutils import log
 
-from astropy.extern import six
 from astropy_helpers import setup_helpers, utils
 from astropy_helpers.version_helpers import get_pkg_version_module
 
@@ -155,6 +153,6 @@ def get_extensions():
     cfg['sources'].extend(join(MODELING_SRC, x) for x in astropy_files)
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
-    cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
+    cfg = dict((str(key), val) for key, val in cfg.items())
 
     return [Extension(str('astropy.modeling._projections'), **cfg)]

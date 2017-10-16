@@ -9,7 +9,6 @@ from .hdulist import HDUList
 from ..header import Header, _pad_length
 from ..util import fileobj_name
 
-from ....extern.six import string_types
 from ....utils import lazyproperty
 
 
@@ -114,7 +113,7 @@ class FitsHDU(NonstandardExtHDU):
         if card.keyword != 'XTENSION':
             return False
         xtension = card.value
-        if isinstance(xtension, string_types):
+        if isinstance(xtension, str):
             xtension = xtension.rstrip()
         return xtension == cls._extension
 

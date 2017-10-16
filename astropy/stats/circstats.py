@@ -10,11 +10,8 @@ are based on reference [1]_, which is also the basis for the R package
 'CircStats' [2]_.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 from astropy.units import Quantity
-from astropy.utils.compat.numpy import broadcast_to
 
 __all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
            'vtest', 'vonmisesmle']
@@ -27,7 +24,7 @@ def _components(data, p=1, phi=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
@@ -386,7 +383,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     if weights is None:
         weights = np.ones((1,))
     try:
-        weights = broadcast_to(weights, data.shape)
+        weights = np.broadcast_to(weights, data.shape)
     except ValueError:
         raise ValueError('Weights and data have inconsistent shape.')
 
@@ -404,7 +401,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
-    if(x >= 0 and x < 0.53):
+    if 0 <= x < 0.53:
         return 2.0*x + x*x*x + (5.0*x**5)/6.0
     elif x < 0.85:
         return -0.4 + 1.39*x + 0.43/(1.0 - x)

@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 
@@ -40,7 +38,7 @@ options = list(itertools.product(BOUNDARY_OPTIONS,
                                  ))
 
 
-class TestConvolve1D(object):
+class TestConvolve1D:
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1_none(self, boundary, nan_treatment, normalize_kernel):
@@ -342,7 +340,7 @@ class TestConvolve1D(object):
                 assert_allclose(result, array * kernel, atol=1e-14)
 
 
-class TestConvolve2D(object):
+class TestConvolve2D:
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1x1_none(self, boundary, nan_treatment, normalize_kernel):
@@ -548,9 +546,9 @@ class TestConvolve2D(object):
 
         with pytest.raises((ValueError, MemoryError)):
             # while a good idea, this approach did not work; it actually writes to disk
-            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=np.complex)
+            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=complex)
             # this just allocates the memory but never touches it; it's better:
-            arr = np.empty([512, 512, 512], dtype=np.complex)
+            arr = np.empty([512, 512, 512], dtype=complex)
             # note 512**3 * 16 bytes = 2.0 GB
             convolve_fft(arr, arr)
 

@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 import numpy as np
@@ -14,7 +12,6 @@ from ..utils import (extract_array, add_array, subpixel_indices,
 from ...wcs import WCS
 from ...coordinates import SkyCoord
 from ... import units as u
-from ...extern.six.moves import zip
 
 try:
     import skimage  # pylint: disable=W0611
@@ -222,7 +219,7 @@ def test_subpixel_indices(position, subpixel_index):
 
 
 @pytest.mark.skipif('not HAS_SKIMAGE')
-class TestBlockReduce(object):
+class TestBlockReduce:
     def test_1d(self):
         """Test 1D array."""
         data = np.arange(4)
@@ -281,7 +278,7 @@ class TestBlockReduce(object):
 
 
 @pytest.mark.skipif('not HAS_SKIMAGE')
-class TestBlockReplicate(object):
+class TestBlockReplicate:
     def test_1d(self):
         """Test 1D array."""
         data = np.arange(2)
@@ -326,7 +323,7 @@ class TestBlockReplicate(object):
             block_replicate(data, (2, 2))
 
 
-class TestCutout2D(object):
+class TestCutout2D:
     def setup_class(self):
         self.data = np.arange(20.).reshape(5, 4)
         self.position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')

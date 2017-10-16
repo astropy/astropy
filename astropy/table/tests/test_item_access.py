@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
@@ -27,7 +26,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc['a'].name == 'a'
         assert self.tc['a'][1] == 2
         assert self.tc['a'].description == 'da'
-        assert self.tc['a'].format == 'fa'
+        assert self.tc['a'].format == '%i'
         assert self.tc['a'].meta == {'ma': 1}
         assert self.tc['a'].unit == 'ua'
         assert self.tc['a'].attrs_equal(table_data.COLS[0])
@@ -45,7 +44,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].name == 'b'
         assert np.all(self.tc[1].data == table_data.COLS[1].data)
         assert self.tc[1].description == 'db'
-        assert self.tc[1].format == 'fb'
+        assert self.tc[1].format == '%d'
         assert self.tc[1].meta == {'mb': 1}
         assert self.tc[1].unit == 'ub'
         assert self.tc[1].attrs_equal(table_data.COLS[1])

@@ -14,8 +14,6 @@ celestial/spatial coordinate frames, generally focused around matrix-style
 transformations that are typically how the algorithms are defined.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import heapq
 import inspect
@@ -24,15 +22,13 @@ from warnings import warn
 
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, OrderedDict
+from contextlib import suppress
+from inspect import signature
 
 import numpy as np
 
 from .. import units as u
-from ..utils.compat import suppress
-from ..utils.compat.funcsigs import signature
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import range
 
 from .representation import REPRESENTATION_CLASSES
 
@@ -42,7 +38,7 @@ __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'FunctionTransformWithFiniteDifference', 'CompositeTransform']
 
 
-class TransformGraph(object):
+class TransformGraph:
     """
     A graph representing the paths between coordinate frames.
     """
@@ -128,7 +124,7 @@ class TransformGraph(object):
             raise TypeError('fromsys must be a class')
         if not inspect.isclass(tosys):
             raise TypeError('tosys must be a class')
-        if not six.callable(transform):
+        if not callable(transform):
             raise TypeError('transform must be callable')
 
         self._graph[fromsys][tosys] = transform
@@ -379,7 +375,7 @@ class TransformGraph(object):
         nms : list
             The aliases for coordinate systems.
         """
-        return list(six.iterkeys(self._cached_names))
+        return list(self._cached_names.keys())
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None, color_edges=True):
@@ -432,7 +428,7 @@ class TransformGraph(object):
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._cached_names)])
+        invclsaliases = dict([(v, k) for k, v in self._cached_names.items()])
         for n in nodes:
             if n in invclsaliases:
                 nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))
@@ -595,8 +591,7 @@ class TransformGraph(object):
 
 # <-------------------Define the builtin transform classes-------------------->
 
-@six.add_metaclass(ABCMeta)
-class CoordinateTransform(object):
+class CoordinateTransform(metaclass=ABCMeta):
     """
     An object that transforms a coordinate from one system to another.
     Subclasses must implement `__call__` with the provided signature.
@@ -730,7 +725,7 @@ class FunctionTransform(CoordinateTransform):
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
-        if not six.callable(func):
+        if not callable(func):
             raise TypeError('func must be callable')
 
         with suppress(TypeError):
@@ -742,8 +737,8 @@ class FunctionTransform(CoordinateTransform):
 
         self.func = func
 
-        super(FunctionTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         res = self.func(fromcoord, toframe)
@@ -802,8 +797,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                  finite_difference_frameattr_name='obstime',
                  finite_difference_dt=1*u.second,
                  symmetric_finite_difference=True):
-        super(FunctionTransformWithFiniteDifference, self).__init__(func,
-              fromsys, tosys, priority, register_graph)
+        super().__init__(func, fromsys, tosys, priority, register_graph)
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
         self.finite_difference_dt = finite_difference_dt
         self.symmetric_finite_difference = symmetric_finite_difference
@@ -1117,12 +1111,12 @@ class AffineTransform(BaseAffineTransform):
     def __init__(self, transform_func, fromsys, tosys, priority=1,
                  register_graph=None):
 
-        if not six.callable(transform_func):
+        if not callable(transform_func):
             raise TypeError('transform_func is not callable')
         self.transform_func = transform_func
 
-        super(AffineTransform, self).__init__(fromsys, tosys, priority=priority,
-                                              register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
 
@@ -1166,16 +1160,15 @@ class StaticMatrixTransform(BaseAffineTransform):
     """
 
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
-        if six.callable(matrix):
+        if callable(matrix):
             matrix = matrix()
         self.matrix = np.array(matrix)
 
         if self.matrix.shape != (3, 3):
             raise ValueError('Provided matrix is not 3 x 3')
 
-        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
-                                                    priority=priority,
-                                                    register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         newrep = self._apply_transform(fromcoord, self.matrix, None)
@@ -1216,16 +1209,15 @@ class DynamicMatrixTransform(BaseAffineTransform):
 
     def __init__(self, matrix_func, fromsys, tosys, priority=1,
                  register_graph=None):
-        if not six.callable(matrix_func):
+        if not callable(matrix_func):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 
         def _transform_func(fromcoord, toframe):
             return self.matrix_func(fromcoord, toframe), None
 
-        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-                                                     priority=priority,
-                                                     register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
     def __call__(self, fromcoord, toframe):
         M = self.matrix_func(fromcoord, toframe)
@@ -1265,9 +1257,8 @@ class CompositeTransform(CoordinateTransform):
 
     def __init__(self, transforms, fromsys, tosys, priority=1,
                  register_graph=None, collapse_static_mats=True):
-        super(CompositeTransform, self).__init__(fromsys, tosys,
-                                                 priority=priority,
-                                                 register_graph=register_graph)
+        super().__init__(fromsys, tosys, priority=priority,
+                         register_graph=register_graph)
 
         if collapse_static_mats:
             transforms = self._combine_statics(transforms)

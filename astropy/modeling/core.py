@@ -13,25 +13,25 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 import copy
+import copyreg
 import inspect
 import functools
 import operator
 import sys
 import types
+import warnings
 
 from collections import defaultdict, OrderedDict
+from contextlib import suppress
+from inspect import signature
 from itertools import chain, islice
 
 import numpy as np
 
 from ..utils import indent, isinstancemethod, metadata
-from ..extern import six
-from ..extern.six.moves import copyreg, zip
 from ..table import Table
 from ..units import Quantity, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray
@@ -39,8 +39,7 @@ from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat import suppress
-from ..utils.compat.funcsigs import signature
+from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
@@ -84,11 +83,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     Parameter descriptors declared at the class-level of Model subclasses.
     """
 
-    registry = set()
-    """
-    A registry of all known concrete (non-abstract) Model subclasses.
-    """
-
     _is_dynamic = False
     """
     This flag signifies whether this class was created in the "normal" way,
@@ -111,12 +105,12 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
 
-        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+        return super().__new__(mcls, name, bases, members)
 
     def __init__(cls, name, bases, members):
         # Make sure OrderedDescriptorContainer gets to run before doing
         # anything else
-        super(_ModelMeta, cls).__init__(name, bases, members)
+        super().__init__(name, bases, members)
 
         if cls._parameters_:
             if hasattr(cls, '_param_names'):
@@ -130,9 +124,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
-
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            cls.registry.add(cls)
 
     def __repr__(cls):
         """
@@ -221,12 +212,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             True
         """
 
-        if six.PY2 and isinstance(name, six.text_type):
-            # Unicode names are not allowed in Python 2, so just convert to
-            # ASCII.  As such, for cross-compatibility all model names should
-            # just be ASCII for now.
-            name = name.encode('ascii')
-
         mod = find_current_module(2)
         if mod:
             modname = mod.__name__
@@ -234,8 +219,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             modname = '__main__'
 
         new_cls = type(name, (cls,), {})
-        # On Python 2 __module__ must be a str, not unicode
-        new_cls.__module__ = str(modname)
+        new_cls.__module__ = modname
 
         if hasattr(cls, '__qualname__'):
             if new_cls.__module__ == '__main__':
@@ -300,9 +284,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             if len(sig.parameters) > 1:
                 bounding_box = \
                         cls._create_bounding_box_subclass(bounding_box, sig)
-
-        if six.PY2 and isinstance(bounding_box, types.MethodType):
-            bounding_box = bounding_box.__func__
 
         # See the Model.bounding_box getter definition for how this attribute
         # is used
@@ -410,7 +391,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional arguments
-            if all(p.default is not None for p in six.itervalues(cls._parameters_)):
+            if all(p.default is not None for p in cls._parameters_.values()):
                 args = ('self',)
                 kwargs = []
                 for param_name in cls.param_names:
@@ -442,11 +423,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
 
-    if six.PY2:
-        # The classic __div__ operator need only be implemented for Python 2
-        # without from __future__ import division
-        __div__ = _model_oper('/')
-
     # *** Other utilities ***
 
     def _format_cls_repr(cls, keywords=[]):
@@ -460,7 +436,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
 
         # For the sake of familiarity start the output with the standard class
         # __repr__
-        parts = [super(_ModelMeta, cls).__repr__()]
+        parts = [super().__repr__()]
 
         if not cls._is_concrete:
             return parts[0]
@@ -501,8 +477,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             return parts[0]
 
 
-@six.add_metaclass(_ModelMeta)
-class Model(object):
+class Model(metaclass=_ModelMeta):
     """
     Base class for all models.
 
@@ -692,13 +667,11 @@ class Model(object):
     # inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
-    def __init__(self, *args, **kwargs):
-        super(Model, self).__init__()
-        meta = kwargs.pop('meta', None)
+    def __init__(self, *args, meta=None, name=None, **kwargs):
+        super().__init__()
         if meta is not None:
             self.meta = meta
-
-        self._name = kwargs.pop('name', None)
+        self._name = name
 
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
@@ -745,10 +718,10 @@ class Model(object):
                     bbox = [bbox]
                 # indices where input is outside the bbox
                 # have a value of 1 in ``nan_ind``
-                nan_ind = np.zeros(inputs[0].shape, dtype=np.bool)
+                nan_ind = np.zeros(inputs[0].shape, dtype=bool)
                 for ind, inp in enumerate(inputs):
                     # Pass an ``out`` array so that ``axis_ind`` is array for scalars as well.
-                    axis_ind = np.zeros(inp.shape, dtype=np.bool)
+                    axis_ind = np.zeros(inp.shape, dtype=bool)
                     axis_ind = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1], out=axis_ind)
                     nan_ind[axis_ind] = 1
                 # get an array with indices of valid inputs
@@ -813,9 +786,6 @@ class Model(object):
     __pow__ = _model_oper('**')
     __or__ = _model_oper('|')
     __and__ = _model_oper('&')
-
-    if six.PY2:
-        __div__ = _model_oper('/')
 
     # *** Properties ***
     @property
@@ -1427,7 +1397,8 @@ class Model(object):
     def return_units(self, return_units):
         self._return_units = return_units
 
-    def prepare_inputs(self, *inputs, **kwargs):
+    def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
+                       **kwargs):
         """
         This method is used in `~astropy.modeling.Model.__call__` to ensure
         that all the inputs to the model can be broadcast into compatible
@@ -1438,9 +1409,8 @@ class Model(object):
         """
 
         # When we instantiate the model class, we make sure that __call__ can
-        # take the following two keyword arguments.
-        model_set_axis = kwargs.pop('model_set_axis', None)
-        equivalencies = kwargs.pop('equivalencies', None)
+        # take the following two keyword arguments: model_set_axis and
+        # equivalencies.
 
         if model_set_axis is None:
             # By default the model_set_axis for the input is assumed to be the
@@ -1551,6 +1521,14 @@ class Model(object):
 
         return copy.deepcopy(self)
 
+    def deepcopy(self):
+        """
+        Return a deep copy of this model.
+
+        """
+
+        return copy.deepcopy(self)
+
     @sharedmethod
     def rename(self, name):
         """
@@ -1607,7 +1585,7 @@ class Model(object):
         self._parameters = existing._parameters
 
         self._param_metrics = defaultdict(dict)
-        for param_a, param_b in six.iteritems(aliases):
+        for param_a, param_b in aliases.items():
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
@@ -1709,7 +1687,7 @@ class Model(object):
             # We use quantity_asanyarray here instead of np.asanyarray because
             # if any of the arguments are quantities, we need to return a
             # Quantity object not a plain Numpy array.
-            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=np.float)
+            params[self.param_names[idx]] = quantity_asanyarray(arg, dtype=float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -1725,7 +1703,7 @@ class Model(object):
                 # We use quantity_asanyarray here instead of np.asanyarray because
                 # if any of the arguments are quantities, we need to return a
                 # Quantity object not a plain Numpy array.
-                params[param_name] = quantity_asanyarray(value, dtype=np.float)
+                params[param_name] = quantity_asanyarray(value, dtype=float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1749,7 +1727,7 @@ class Model(object):
             else:
                 min_ndim = model_set_axis + 1
 
-            for name, value in six.iteritems(params):
+            for name, value in params.items():
                 param_ndim = np.ndim(value)
                 if param_ndim < min_ndim:
                     raise InputParameterError(
@@ -1788,6 +1766,7 @@ class Model(object):
         total_size = 0
 
         for name in self.param_names:
+            unit = None
             param_descr = getattr(self, name)
 
             if params.get(name) is None:
@@ -1844,7 +1823,9 @@ class Model(object):
         # out of Parameter and into Model (renaming them
         # _get/set_parameter_value)
         for name, value in params.items():
+            # value here may be a Quantity object.
             param_descr = getattr(self, name)
+            unit = param_descr.unit
             value = np.array(value)
             orig_unit = param_metrics[name]['orig_unit']
             if param_descr._setter is not None:
@@ -2236,11 +2217,7 @@ class _CompoundModelMeta(_ModelMeta):
         all of its parameters.
         """
 
-        try:
-            # Annoyingly, this will only work for Python 3.3+
-            basedir = super(_CompoundModelMeta, cls).__dir__()
-        except AttributeError:
-            basedir = list(set((dir(type(cls)) + list(cls.__dict__))))
+        basedir = super().__dir__()
 
         if cls._tree is not None:
             for name in cls.param_names:
@@ -2251,7 +2228,7 @@ class _CompoundModelMeta(_ModelMeta):
         return basedir
 
     def __reduce__(cls):
-        rv = super(_CompoundModelMeta, cls).__reduce__()
+        rv = super().__reduce__()
 
         if isinstance(rv, tuple):
             # Delete _evaluate from the members dict
@@ -2302,10 +2279,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._evaluate is None:
             func = cls._tree.evaluate(BINARY_OPERATORS,
                                       getter=cls._model_evaluate_getter)[0]
-            # Making this a staticmethod isn't strictly necessary for Python 3,
-            # but it is necessary on Python 2 since looking up cls._evaluate
-            # will return an unbound method otherwise
-            cls._evaluate = staticmethod(func)
+            cls._evaluate = func
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -2664,7 +2638,7 @@ class _CompoundModelMeta(_ModelMeta):
 
             return index
 
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             return get_index_from_name(index)
         elif isinstance(index, slice):
             if index.step not in (1, None):
@@ -2680,9 +2654,9 @@ class _CompoundModelMeta(_ModelMeta):
                 start = check_for_negative_index(start)
             if isinstance(stop, (int, np.integer)):
                 stop = check_for_negative_index(stop)
-            if isinstance(start, six.string_types):
+            if isinstance(start, str):
                 start = get_index_from_name(start)
-            if isinstance(stop, six.string_types):
+            if isinstance(stop, str):
                 stop = get_index_from_name(stop) + 1
             length = stop - start
 
@@ -2758,8 +2732,7 @@ class _CompoundModelMeta(_ModelMeta):
         return (f, n_inputs, n_outputs)
 
 
-@six.add_metaclass(_CompoundModelMeta)
-class _CompoundModel(Model):
+class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     fit_deriv = None
     col_fit_deriv = False
 
@@ -2772,7 +2745,7 @@ class _CompoundModel(Model):
             ('Expression', expression),
             ('Components', '\n' + indent(components))
         ]
-        return super(_CompoundModel, self)._format_str(keywords=keywords)
+        return super()._format_str(keywords=keywords)
 
     def __getattr__(self, attr):
         # This __getattr__ is necessary, because _CompoundModelMeta creates
@@ -2802,23 +2775,6 @@ class _CompoundModel(Model):
                                 for name in model.param_names)
 
         return model._from_existing(self, param_names)
-
-    if sys.version_info[:3] < (2, 7, 3):
-        def __reduce__(self):
-            # _CompoundModel classes have a generated evaluate() that is cached
-            # off in the _evaluate attribute.  This can't be pickled, and so
-            # should be regenerated after unpickling (alas)
-            if find_current_module(2) is not copy:
-                # The copy module also uses __reduce__, but there's no problem
-                # there.
-                raise RuntimeError(
-                    "Pickling of compound models is not possible using Python "
-                    "versions less than 2.7.3 due to a bug in Python.  See "
-                    "http://docs.astropy.org/en/v1.0.4/known_issues.html#"
-                    "pickling-error-on-compound-models for more information ("
-                    "tried to pickle {0!r}).".format(self))
-            else:
-                return super(_CompoundModel, self).__reduce__()
 
     @property
     def submodel_names(self):
@@ -2889,8 +2845,16 @@ class _CompoundModel(Model):
                 units_for_data[param] = units_for_data_sub[param_sub]
         return units_for_data
 
+    def deepcopy(self):
+        """
+        Return a deep copy of a compound model.
+        """
+        new_model = self.copy()
+        new_model._submodels = [model.deepcopy() for model in self._submodels]
+        return new_model
 
-def custom_model(*args, **kwargs):
+
+def custom_model(*args, fit_deriv=None, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -2959,9 +2923,14 @@ def custom_model(*args, **kwargs):
         0.3333333333333333
     """
 
-    fit_deriv = kwargs.get('fit_deriv', None)
+    if kwargs:
+        warnings.warn(
+            "Function received unexpected arguments ({}) these "
+            "are ignored but will raise an Exception in the "
+            "future.".format(list(kwargs)),
+            AstropyDeprecationWarning)
 
-    if len(args) == 1 and six.callable(args[0]):
+    if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
     elif not args:
         return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
@@ -2984,12 +2953,12 @@ def _custom_model_wrapper(func, fit_deriv=None):
     function is returned by `custom_model`.
     """
 
-    if not six.callable(func):
+    if not callable(func):
         raise ModelDefinitionError(
             "func is not callable; it must be a function or other callable "
             "object")
 
-    if fit_deriv is not None and not six.callable(fit_deriv):
+    if fit_deriv is not None and not callable(fit_deriv):
         raise ModelDefinitionError(
             "fit_deriv not callable; it must be a function or other "
             "callable object")
@@ -2999,7 +2968,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     inputs, params = get_inputs_and_params(func)
 
     if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != len(params)):
+            len(fit_deriv.__defaults__) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 

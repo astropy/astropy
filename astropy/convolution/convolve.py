@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import warnings
 
@@ -17,7 +15,6 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
-from ..extern.six.moves import range, zip
 
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -135,7 +132,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # kernel_internal.  However -- we do want to keep track of what type
     # the input array was so we can cast the result to that at the end
     # if it's a floating point type.  Don't bother with this for lists --
-    # just always push those as np.float.
+    # just always push those as float.
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
@@ -163,18 +160,13 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Check that the arguments are lists or Numpy arrays
 
     if isinstance(array, list):
-        array_internal = np.array(array, dtype=np.float)
+        array_internal = np.array(array, dtype=float)
         array_dtype = array_internal.dtype
     elif isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
-        # because none of what follows modifies array_internal.  However,
-        # only numpy > 1.7 has support for no-copy astype, so we use
-        # a try/except because astropy supports 1.5 and 1.6
+        # because none of what follows modifies array_internal.
         array_dtype = array.dtype
-        try:
-            array_internal = array.astype(float, copy=False)
-        except TypeError:
-            array_internal = array.astype(float)
+        array_internal = array.astype(float, copy=False)
     else:
         raise TypeError("array should be a list or a Numpy array")
 
@@ -329,7 +321,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  fft_pad=None, psf_pad=None, quiet=False,
                  min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=np.complex):
+                 complex_dtype=complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -520,8 +512,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # Convert array dtype to complex
     # and ensure that list inputs become arrays
-    array = np.asarray(array, dtype=np.complex)
-    kernel = np.asarray(kernel, dtype=np.complex)
+    array = np.asarray(array, dtype=complex)
+    kernel = np.asarray(kernel, dtype=complex)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:

@@ -496,7 +496,7 @@ files manually`_ section since this explains what many of the files do.
    documentation, and if you are hosting your code in GitHub, you might also
    want to read the `Github help <http://help.github.com/>`_ to ensure you know
    how to push your code to GitHub and some recommended workflows that work for
-   the core Astropy project.
+   the core Astropy Project.
 
 #. Once you have started work on the affiliated package, you should register
    your package with the Astropy affiliated package registry. Instructions for
@@ -613,13 +613,12 @@ by ``CHANGES.md`` in the instructions.
    all pass, you can proceed on.
 
 #. If you did the previous step, do ``git clean -fxd`` again to remove anything
-   you made there. Then either release with::
+   you made there. Then you can upload to PyPI via ``twine``::
 
-        python setup.py register build sdist --format=gztar upload
+        twine upload dist/*
 
-   or, if you are concerned about security, you can also use ``twine`` as described
-   in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
-   instructions. Either way, check that the entry on PyPI is correct, and that
+   as described in `these <https://packaging.python.org/tutorials/distributing-packages/#uploading-your-project-to-pypi>`_
+   instructions. Check that the entry on PyPI is correct, and that
    the tarfile is present.
 
 #. Go back to the master branch and push your changes to github::

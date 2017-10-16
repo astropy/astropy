@@ -7,8 +7,6 @@ doubles, using the procedure of Shewchuk, 1997, Discrete & Computational
 Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import numpy as np
 
 

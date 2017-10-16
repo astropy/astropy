@@ -5,8 +5,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 import abc
@@ -21,19 +19,21 @@ import traceback
 import unicodedata
 import locale
 import threading
+import re
+import urllib.request
 
+from itertools import zip_longest
 from contextlib import contextmanager
 from collections import defaultdict, OrderedDict
 
-from ..extern import six
-from ..extern.six.moves import urllib, range, zip_longest
 
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
            'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
-           'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError']
+           'ShapedLikeNDArray', 'check_broadcast', 'IncompatibleShapeError',
+           'dtype_bytes_or_chars']
 
 
 def isiterable(obj):
@@ -57,7 +57,7 @@ def indent(s, shift=1, width=4):
     return indented
 
 
-class _DummyFile(object):
+class _DummyFile:
     """A noop writeable object."""
 
     def write(self, s):
@@ -95,9 +95,8 @@ def format_exception(msg, *args, **kwargs):
 
     .. note::
         This uses `sys.exc_info` to gather up the information needed to fill
-        in the formatting arguments. Python 2.x and 3.x have slightly
-        different behavior regarding `sys.exc_info` (the latter will not
-        carry it outside a handled exception), so it's not wise to use this
+        in the formatting arguments. Since `sys.exc_info` is not carried
+        outside a handled exception, it's not wise to use this
         outside of an ``except`` clause - if it is, this will substitute
         '<unkown>' for the 4 formatting arguments.
     """
@@ -112,7 +111,7 @@ def format_exception(msg, *args, **kwargs):
                       text=text, **kwargs)
 
 
-class NumpyRNGContext(object):
+class NumpyRNGContext:
     """
     A context manager (for use with the ``with`` statement) that will seed the
     numpy random number generator (RNG) to a specific value, and then restore
@@ -203,7 +202,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     from zlib import decompress
 
-    if (not isinstance(obj, six.string_types) and
+    if (not isinstance(obj, str) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
@@ -289,7 +288,7 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    signal_to_name_map = dict((k, v) for v, k in six.iteritems(signal.__dict__)
+    signal_to_name_map = dict((k, v) for v, k in signal.__dict__.items()
                               if v.startswith('SIG'))
 
     return signal_to_name_map.get(signum, 'UNKNOWN')
@@ -370,7 +369,9 @@ class JsonCustomEncoder(json.JSONEncoder):
         * Numpy array or number
         * Complex number
         * Set
-        * Bytes (Python 3)
+        * Bytes
+        * astropy.UnitBase
+        * astropy.Quantity
 
     Examples
     --------
@@ -383,15 +384,24 @@ class JsonCustomEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
+        from .. import units as u
         import numpy as np
-        if isinstance(obj, (np.ndarray, np.number)):
+        if isinstance(obj, u.Quantity):
+            return dict(value=obj.value, unit=obj.unit.to_string())
+        if isinstance(obj, (np.number, np.ndarray)):
             return obj.tolist()
-        elif isinstance(obj, (complex, np.complex)):
+        elif isinstance(obj, complex):
             return [obj.real, obj.imag]
         elif isinstance(obj, set):
             return list(obj)
         elif isinstance(obj, bytes):  # pragma: py3
             return obj.decode()
+        elif isinstance(obj, (u.UnitBase, u.FunctionUnitBase)):
+            if obj == u.dimensionless_unscaled:
+                obj = 'dimensionless_unit'
+            else:
+                return obj.to_string()
+
         return json.JSONEncoder.default(self, obj)
 
 
@@ -438,7 +448,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         s = strip_accents(s)
     s_lower = s.lower()
 
@@ -499,9 +509,7 @@ class InheritDocstrings(type):
     For example::
 
         >>> from astropy.utils.misc import InheritDocstrings
-        >>> from astropy.extern import six
-        >>> @six.add_metaclass(InheritDocstrings)
-        ... class A(object):
+        >>> class A(metaclass=InheritDocstrings):
         ...     def wiggle(self):
         ...         "Wiggle the thingamajig"
         ...         pass
@@ -519,7 +527,7 @@ class InheritDocstrings(type):
                  and len(key) > 4) or
                 not key.startswith('_'))
 
-        for key, val in six.iteritems(dct):
+        for key, val in dct.items():
             if (inspect.isfunction(val) and
                 is_public_member(key) and
                 val.__doc__ is None):
@@ -529,11 +537,10 @@ class InheritDocstrings(type):
                         val.__doc__ = super_method.__doc__
                         break
 
-        super(InheritDocstrings, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class OrderedDescriptor(object):
+class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
     preserved.  Intended for use in concert with the
@@ -571,15 +578,17 @@ class OrderedDescriptor(object):
     # thread-safe though.
     _nextid = 1
 
-    _class_attribute_ = abc.abstractproperty()
-    """
-    Subclasses should define this attribute to the name of an attribute on
-    classes containing this subclass.  That attribute will contain the mapping
-    of all instances of that `OrderedDescriptor` subclass defined in the class
-    body.  If the same descriptor needs to be used with different classes,
-    each with different names of this attribute, multiple subclasses will be
-    needed.
-    """
+    @property
+    @abc.abstractmethod
+    def _class_attribute_(self):
+        """
+        Subclasses should define this attribute to the name of an attribute on
+        classes containing this subclass.  That attribute will contain the mapping
+        of all instances of that `OrderedDescriptor` subclass defined in the class
+        body.  If the same descriptor needs to be used with different classes,
+        each with different names of this attribute, multiple subclasses will be
+        needed.
+        """
 
     _name_attribute_ = None
     """
@@ -594,7 +603,7 @@ class OrderedDescriptor(object):
         # between themselves
         self.__order = OrderedDescriptor._nextid
         OrderedDescriptor._nextid += 1
-        super(OrderedDescriptor, self).__init__()
+        super().__init__()
 
     def __lt__(self, other):
         """
@@ -646,7 +655,6 @@ class OrderedDescriptorContainer(type):
     Examples
     --------
 
-    >>> from astropy.extern import six
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"
@@ -662,7 +670,7 @@ class OrderedDescriptorContainer(type):
     ...
     ...     def __init__(self, type):
     ...         # Make sure not to forget to call the super __init__
-    ...         super(TypedAttribute, self).__init__()
+    ...         super().__init__()
     ...         self.type = type
     ...
     ...     def __get__(self, obj, objtype=None):
@@ -697,8 +705,7 @@ class OrderedDescriptorContainer(type):
 
     Now let's create an example class that uses this ``TypedAttribute``::
 
-        >>> @six.add_metaclass(OrderedDescriptorContainer)
-        ... class Point2D(object):
+        >>> class Point2D(metaclass=OrderedDescriptorContainer):
         ...     x = TypedAttribute((float, int))
         ...     y = TypedAttribute((float, int))
         ...
@@ -813,8 +820,7 @@ class OrderedDescriptorContainer(type):
             instances = OrderedDict((key, value) for value, key in instances)
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
-        super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
-                                                        members)
+        super().__init__(cls_name, bases, members)
 
 
 LOCALE_LOCK = threading.Lock()
@@ -854,8 +860,7 @@ def set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ShapedLikeNDArray(object):
+class ShapedLikeNDArray(metaclass=abc.ABCMeta):
     """Mixin class to provide shape-changing methods.
 
     The class proper is assumed to have some underlying data, which are arrays
@@ -882,7 +887,8 @@ class ShapedLikeNDArray(object):
     # copies rather than views of data (see the special-case treatment of
     # 'flatten' in Time).
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def shape(self):
         """The shape of the instance and underlying arrays."""
 
@@ -930,11 +936,7 @@ class ShapedLikeNDArray(object):
                             .format(self.__class__.__name__))
         return self.shape[0]
 
-    def __bool__(self):  # Python 3
-        """Any instance should evaluate to True, except when it is empty."""
-        return self.size > 0
-
-    def __nonzero__(self):  # Python 2
+    def __bool__(self):
         """Any instance should evaluate to True, except when it is empty."""
         return self.size > 0
 
@@ -1054,8 +1056,7 @@ class ShapedLikeNDArray(object):
 
 class IncompatibleShapeError(ValueError):
     def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
-        super(IncompatibleShapeError, self).__init__(
-                shape_a, shape_a_idx, shape_b, shape_b_idx)
+        super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
 def check_broadcast(*shapes):
@@ -1104,3 +1105,25 @@ def check_broadcast(*shapes):
         full_shape.append(max_dim)
 
     return tuple(full_shape[::-1])
+
+
+def dtype_bytes_or_chars(dtype):
+    """
+    Parse the number out of a dtype.str value like '<U5' or '<f8'.
+
+    See #5819 for discussion on the need for this function for getting
+    the number of characters corresponding to a string dtype.
+
+    Parameters
+    ----------
+    dtype : numpy dtype object
+        Input dtype
+
+    Returns
+    -------
+    bytes_or_chars : int or None
+        Bits (for numeric types) or characters (for string types)
+    """
+    match = re.search(r'(\d+)$', dtype.str)
+    out = int(match.group(1)) if match else None
+    return out

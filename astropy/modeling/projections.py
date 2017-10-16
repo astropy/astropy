@@ -13,8 +13,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 import abc
 
@@ -108,7 +106,8 @@ class Projection(Model):
     # This sets the circumference to 360 deg so that arc length is measured in deg.
     r0 = 180 * u.deg / np.pi
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def inverse(self):
         """
         Inverse projection--all projection models must provide an inverse.
@@ -206,7 +205,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_ZenithalPerspective, self).__init__(mu, gamma, **kwargs)
+        super().__init__(mu, gamma, **kwargs)
 
     @mu.validator
     def mu(self, value):
@@ -1984,7 +1983,7 @@ class AffineTransformation2D(Model):
 
     @staticmethod
     def _create_augmented_matrix(matrix, translation):
-        augmented_matrix = np.empty((3, 3), dtype=np.float)
+        augmented_matrix = np.empty((3, 3), dtype=float)
         augmented_matrix[0:2, 0:2] = matrix
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]

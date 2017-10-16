@@ -7,15 +7,11 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.7, 3.3, 3.4, 3.5 or 3.6
-
-  - Prior to Astropy v1.0, Python 3.1 and 3.2 were also supported
-
-  - Prior to Astropy v1.2, Python 2.6 was supported
+- `Python <http://www.python.org/>`_ 3.5 or 3.6
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `pytest`_ 2.8 or later
+- `pytest`_ 3.1 or later
 
 Astropy also depends on other packages for optional features:
 
@@ -46,8 +42,12 @@ Astropy also depends on other packages for optional features:
 
 - `setuptools <https://pythonhosted.org/setuptools/>`_: Used for discovery of entry points which are used to insert fitters into modeling.fitting
 
-- `mock <https://github.com/testing-cabal/mock>`_ (python <= 3.2) or `unittest.mock <https://docs.python.org/dev/library/unittest.mock.html>`_ (python > 3.3):
-  Used for testing the entry point discovery functionality in `astropy.modeling.fitting`
+- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
+  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
+
+- `bintrees <https://pypi.python.org/pypi/bintrees>`_ for faster ``FastRBT`` and
+  ``FastBST`` indexing engines with ``Table``, although these will still be
+  slower in most cases than the default indexing engine.
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
@@ -58,7 +58,7 @@ Installing Astropy
 ==================
 
 Using pip
--------------
+---------
 
 To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
 
@@ -122,7 +122,7 @@ run::
 Binary installers
 -----------------
 
-Binary installers are available on Windows for Python 2.7, and >= 3.3
+Binary installers are available on Windows for Python >= 3.5
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 .. _testing_installed_astropy:
@@ -370,9 +370,9 @@ Python installation.
 In short: If you encounter this problem it's because you need the appropriate
 entries in the Windows registry for Python. You can download `this script`__
 and execute it with the same Python as the one you want to install Astropy
-into.  For example to add the missing registry entries to your Python 2.7::
+into.  For example to add the missing registry entries to your Python 3.6::
 
-    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
+    C:\>C:\Python36\python.exe C:\Path\To\Downloads\win_register_python.py
 
 __ https://gist.github.com/embray/6042780#file-win_register_python-py
 
@@ -435,22 +435,6 @@ packages:
     - `Pillow <http://python-pillow.org/>`_
 
     - (optional) `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`_
-
-.. note::
-
-    Sphinx also requires a reasonably modern LaTeX installation to render
-    equations.  Per the `Sphinx documentation
-    <http://sphinx-doc.org/builders.html?highlight=latex#sphinx.builders.latex.LaTeXBuilder>`_,
-    for the TexLive distribution the following packages are required to be
-    installed:
-
-    * latex-recommended
-    * latex-extra
-    * fonts-recommended
-
-    For other LaTeX distributions your mileage may vary. To build the PDF
-    documentation using LaTeX, the ``fonts-extra`` TexLive package or the
-    ``inconsolata`` CTAN package are also required.
 
 .. note::
 

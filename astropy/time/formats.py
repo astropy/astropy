@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import fnmatch
 import time
@@ -13,8 +11,6 @@ import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
-from ..extern import six
-from ..extern.six.moves import zip
 from .utils import day_frac, two_sum
 
 
@@ -81,7 +77,7 @@ class TimeFormatMeta(type):
     _registry = TIME_FORMATS
 
     def __new__(mcls, name, bases, members):
-        cls = super(TimeFormatMeta, mcls).__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members)
 
         # Register time formats that have a name, but leave out astropy_time since
         # it is not a user-accessible format and is only used for initialization into
@@ -95,8 +91,7 @@ class TimeFormatMeta(type):
         return cls
 
 
-@six.add_metaclass(TimeFormatMeta)
-class TimeFormat(object):
+class TimeFormat(metaclass=TimeFormatMeta):
     """
     Base class for time representations.
 
@@ -274,12 +269,12 @@ class TimeDecimalYear(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
 
         sum12, err12 = two_sum(val1, val2)
-        iy_start = np.trunc(sum12).astype(np.int)
+        iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
 
         val = (val1 + val2).astype(np.double)
-        iy_start = np.trunc(val).astype(np.int)
+        iy_start = np.trunc(val).astype(int)
 
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
@@ -343,8 +338,8 @@ class TimeFromEpoch(TimeFormat):
         self.epoch = epoch
 
         # Now create the TimeFormat object as normal
-        super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
-                                            in_subfmt, out_subfmt, from_jd)
+        super().__init__(val1, val2, scale, precision, in_subfmt, out_subfmt,
+                         from_jd)
 
     def set_jds(self, val1, val2):
         """
@@ -559,7 +554,7 @@ class TimeDatetime(TimeUnique):
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              flags=['refs_ok'],
-                             op_dtypes=[np.object] + 5*[np.intc] + [np.double])
+                             op_dtypes=[object] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
 
@@ -609,7 +604,7 @@ class TimeDatetime(TimeUnique):
         ifracs = ihmsfs[..., 3]
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
-                             op_dtypes=7*[iys.dtype] + [np.object])
+                             op_dtypes=7*[iys.dtype] + [object])
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
@@ -711,7 +706,7 @@ class TimeString(TimeUnique):
             fracsec = float(fracsec)
 
         for _, strptime_fmt_or_regex, _ in subfmts:
-            if isinstance(strptime_fmt_or_regex, six.string_types):
+            if isinstance(strptime_fmt_or_regex, str):
                 try:
                     tm = time.strptime(timestr, strptime_fmt_or_regex)
                 except ValueError:
@@ -852,7 +847,7 @@ class TimeISO(TimeString):
                 raise ValueError("Time input terminating in 'Z' must have "
                                  "scale='UTC'")
             timestr = timestr[:-1]
-        return super(TimeISO, self).parse_string(timestr, subfmts)
+        return super().parse_string(timestr, subfmts)
 
 
 class TimeISOT(TimeISO):
@@ -992,7 +987,7 @@ class TimeFITS(TimeString):
 
     def format_string(self, str_fmt, **kwargs):
         """Format time-string: append the scale to the normal ISOT format."""
-        time_str = super(TimeFITS, self).format_string(str_fmt, **kwargs)
+        time_str = super().format_string(str_fmt, **kwargs)
         if self._fits_scale and self._fits_realization:
             return '{0}({1}({2}))'.format(time_str, self._fits_scale,
                                           self._fits_realization)
@@ -1008,7 +1003,7 @@ class TimeFITS(TimeString):
             jd = self.jd1 + self.jd2
             if jd.min() < 1721425.5 or jd.max() >= 5373484.5:
                 self.out_subfmt = 'long' + self.out_subfmt
-        return super(TimeFITS, self).value
+        return super().value
 
 
 class TimeEpochDate(TimeFormat):
@@ -1041,7 +1036,7 @@ class TimeBesselianEpoch(TimeEpochDate):
                              "as the interpretation would be ambiguous. "
                              "Use float with Besselian year instead. ")
 
-        return super(TimeBesselianEpoch, self)._check_val_type(val1, val2)
+        return super()._check_val_type(val1, val2)
 
 
 class TimeJulianEpoch(TimeEpochDate):
@@ -1108,8 +1103,7 @@ class TimeDeltaFormatMeta(TimeFormatMeta):
     _registry = TIME_DELTA_FORMATS
 
 
-@six.add_metaclass(TimeDeltaFormatMeta)
-class TimeDeltaFormat(TimeFormat):
+class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
     """Base class for time delta representations"""
 
     def _check_scale(self, scale):

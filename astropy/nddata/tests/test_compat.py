@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module contains tests of a class equivalent to pre-1.0 NDData.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import pytest
 import numpy as np
@@ -84,7 +82,7 @@ def test_convert_unit_to():
     # workaround because zeros_like does not support dtype arg until v1.6
     # and NDData accepts only bool ndarray as mask
     tmp = np.zeros_like(d.data)
-    d.mask = np.array(tmp, dtype=np.bool)
+    d.mask = np.array(tmp, dtype=bool)
     d1 = d.convert_unit_to('m')
     assert np.all(d1.data == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
@@ -104,7 +102,7 @@ class SubNDData(NDDataArray):
     NDData.convert_unit_to
     """
     def __init__(self, *arg, **kwd):
-        super(SubNDData, self).__init__(*arg, **kwd)
+        super().__init__(*arg, **kwd)
         if self.unit is None:
             raise ValueError("Unit for subclass must be specified")
         if self.wcs is None:

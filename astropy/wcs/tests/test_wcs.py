@@ -1,32 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from ...extern import six
-
 import io
 import os
 import warnings
 from datetime import datetime
 
+import pytest
 import numpy as np
 from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
     assert_array_equal)
 
-from ...tests.helper import raises, catch_warnings, pytest
+from ...tests.helper import raises, catch_warnings
 from ... import wcs
 from .. import _wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
-from ...extern.six.moves import range
 
 
-class TestMaps(object):
+class TestMaps:
     def setup(self):
         # get the list of the hdr files that we want to test
         self._file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
@@ -59,7 +53,7 @@ class TestMaps(object):
             assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
 
-class TestSpectra(object):
+class TestSpectra:
     def setup(self):
         self._file_list = list(get_pkg_data_filenames("spectra",
                                                       pattern="*.hdr"))
@@ -411,7 +405,7 @@ def test_validate_with_2_wcses():
     # From Issue #2053
     results = wcs.validate(get_pkg_data_filename("data/2wcses.hdr"))
 
-    assert "WCS key 'A':" in six.text_type(results)
+    assert "WCS key 'A':" in str(results)
 
 
 def test_all_world2pix(fname=None, ext=0,
@@ -439,8 +433,8 @@ def test_all_world2pix(fname=None, ext=0,
     # Assume that CRPIX is at the center of the image and that the image has
     # a power-of-2 number of pixels along each axis. Only use the central
     # 1/64 for this testing purpose:
-    naxesi_l = list((7. / 16 * crpix).astype(np.int))
-    naxesi_u = list((9. / 16 * crpix).astype(np.int))
+    naxesi_l = list((7. / 16 * crpix).astype(int))
+    naxesi_u = list((9. / 16 * crpix).astype(int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
@@ -700,7 +694,7 @@ def test_printwcs():
 
 
 def test_invalid_spherical():
-    header = six.text_type("""
+    header = """
 SIMPLE  =                    T / conforms to FITS standard
 BITPIX  =                    8 / array data type
 WCSAXES =                    2 / no comment
@@ -721,7 +715,7 @@ CD2_1   =     0.00250608809647 / no comment
 CD2_2   =    -0.00912247310646 / no comment
 IMAGEW  =                 4256 / Image width,  in pixels.
 IMAGEH  =                 2832 / Image height, in pixels.
-""")
+    """
 
     f = io.StringIO(header)
     header = fits.Header.fromtextfile(f)
@@ -1044,3 +1038,17 @@ def test_to_fits_1():
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
     assert isinstance(wfits[1], fits.ImageHDU)
+
+def test_keyedsip():
+    """
+    Test sip reading with extra key.
+    """
+    hdr_name = get_pkg_data_filename('data/sip-broken.hdr')
+    header = fits.Header.fromfile(hdr_name)
+    del header[str("CRPIX1")]
+    del header[str("CRPIX2")]
+
+    w=wcs.WCS(header=header,key="A")
+    assert isinstance( w.sip, wcs.Sip )
+    assert w.sip.crpix[0] == 2048
+    assert w.sip.crpix[1] == 1026

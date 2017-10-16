@@ -79,9 +79,11 @@ def test_all_methods(data, method, center_data, fit_mean,
     if not with_errors:
         dy = None
 
-    kwds = dict(normalization=normalization)
-    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean)
-    P_expected = ls.power(frequency, **kwds)
+    kwds = {}
+
+    ls = LombScargle(t, y, dy, center_data=center_data, fit_mean=fit_mean,
+                     normalization=normalization)
+    P_expected = ls.power(frequency)
 
     # don't use the fft approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
@@ -127,14 +129,11 @@ def test_integer_inputs(data, method, center_data, fit_mean, with_errors,
         dy_int = None
 
     kwds = dict(center_data=center_data,
-                fit_mean=fit_mean)
-    P_float = LombScargle(t, y, dy, **kwds).power(frequency,
-                                                  method=method,
-                                                  normalization=normalization)
+                fit_mean=fit_mean,
+                normalization=normalization)
+    P_float = LombScargle(t, y, dy, **kwds).power(frequency,method=method)
     P_int = LombScargle(t_int, y_int, dy_int,
-                        **kwds).power(frequency,
-                                      method=method,
-                                      normalization=normalization)
+                        **kwds).power(frequency, method=method)
     assert_allclose(P_float, P_int)
 
 
@@ -152,18 +151,18 @@ def test_nterms_methods(method, center_data, fit_mean, with_errors,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_mean=fit_mean, nterms=nterms)
-
-    kwds = dict(normalization=normalization)
+                     fit_mean=fit_mean, nterms=nterms,
+                     normalization=normalization)
 
     if nterms == 0 and not fit_mean:
         with pytest.raises(ValueError) as err:
-            ls.power(frequency, method=method, **kwds)
+            ls.power(frequency, method=method)
         assert 'nterms' in str(err.value) and 'bias' in str(err.value)
     else:
-        P_expected = ls.power(frequency, **kwds)
+        P_expected = ls.power(frequency)
 
         # don't use fast fft approximations here
+        kwds = {}
         if 'fast' in method:
             kwds['method_kwds'] = dict(use_fft=False)
         P_method = ls.power(frequency, method=method, **kwds)
@@ -184,10 +183,11 @@ def test_fast_approximations(method, center_data, fit_mean,
         dy = None
 
     ls = LombScargle(t, y, dy, center_data=center_data,
-                     fit_mean=fit_mean, nterms=nterms)
+                     fit_mean=fit_mean, nterms=nterms,
+                     normalization='standard')
 
     # use only standard normalization because we compare via absolute tolerance
-    kwds = dict(method=method, normalization='standard')
+    kwds = dict(method=method)
 
     if method == 'fast' and nterms != 1:
         with pytest.raises(ValueError) as err:
@@ -357,141 +357,3 @@ def test_autopower(data):
 
     assert_allclose(freq1, freq2)
     assert_allclose(power1, power2)
-
-
-@pytest.fixture
-def null_data(N=1000, dy=1, rseed=0):
-    """Generate null hypothesis data"""
-    rng = np.random.RandomState(rseed)
-    t = 100 * rng.rand(N)
-    dy = 0.5 * dy * (1 + rng.rand(N))
-    y = dy * rng.randn(N)
-    return t, y, dy
-
-
-@pytest.mark.parametrize('normalization', NORMALIZATIONS)
-def test_distribution(null_data, normalization):
-    t, y, dy = null_data
-    N = len(t)
-    ls = LombScargle(t, y, dy)
-    freq, power = ls.autopower(normalization=normalization,
-                               maximum_frequency=40)
-    z = np.linspace(0, power.max(), 1000)
-
-    # Test that pdf and cdf are consistent
-    dz = z[1] - z[0]
-    z_mid = z[:-1] + 0.5 * dz
-    pdf = _lombscargle_pdf(z_mid, N, normalization=normalization)
-    cdf = _lombscargle_cdf(z, N, normalization=normalization)
-    assert_allclose(pdf, np.diff(cdf) / dz, rtol=1E-5, atol=1E-8)
-
-    # Test that observed power is distributed according to the theoretical pdf
-    hist, bins = np.histogram(power, 30, normed=True)
-    midpoints = 0.5 * (bins[1:] + bins[:-1])
-    pdf = _lombscargle_pdf(midpoints, N, normalization=normalization)
-    assert_allclose(hist, pdf, rtol=0.05, atol=0.05 * pdf[0])
-
-
-# The following are convenience functions used to compute statistics of the
-# periodogram under various normalizations; they are used in the preceding
-# test.
-
-
-def _lombscargle_pdf(z, N, normalization, dH=1, dK=3):
-    """Probability density function for Lomb-Scargle periodogram
-
-    Compute the expected probability density function of the periodogram
-    for the null hypothesis - i.e. data consisting of Gaussian noise.
-
-    Parameters
-    ----------
-    z : array-like
-        the periodogram value
-    N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
-
-    Returns
-    -------
-    pdf : np.ndarray
-        The expected probability density function
-
-    Notes
-    -----
-    For normalization='psd', the distribution can only be computed for
-    periodograms constructed with errors specified.
-    All expressions used here are adapted from Table 1 of Baluev 2008 [1]_.
-
-    References
-    ----------
-    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
-    """
-    if dK - dH != 2:
-        raise NotImplementedError("Degrees of freedom != 2")
-    Nk = N - dK
-
-    if normalization == 'psd':
-        return np.exp(-z)
-    elif normalization == 'standard':
-        return 0.5 * Nk * (1 + z) ** (-0.5 * Nk - 1)
-    elif normalization == 'model':
-        return 0.5 * Nk * (1 - z) ** (0.5 * Nk - 1)
-    elif normalization == 'log':
-        return 0.5 * Nk * np.exp(-0.5 * Nk * z)
-    else:
-        raise ValueError("normalization='{0}' is not recognized"
-                         "".format(normalization))
-
-
-def _lombscargle_cdf(z, N, normalization, dH=1, dK=3):
-    """Cumulative distribution for the Lomb-Scargle periodogram
-
-    Compute the expected cumulative distribution of the periodogram
-    for the null hypothesis - i.e. data consisting of Gaussian noise.
-
-    Parameters
-    ----------
-    z : array-like
-        the periodogram value
-    N : int
-        the number of data points from which the periodogram was computed
-    normalization : string
-        The periodogram normalization. Must be one of
-        ['standard', 'model', 'log', 'psd']
-    dH, dK : integers (optional)
-        The number of parameters in the null hypothesis and the model
-
-    Returns
-    -------
-    cdf : np.ndarray
-        The expected cumulative distribution function
-
-    Notes
-    -----
-    For normalization='psd', the distribution can only be computed for
-    periodograms constructed with errors specified.
-    All expressions used here are adapted from Table 1 of Baluev 2008 [1]_.
-
-    References
-    ----------
-    .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
-    """
-    if dK - dH != 2:
-        raise NotImplementedError("Degrees of freedom != 2")
-    Nk = N - dK
-
-    if normalization == 'psd':
-        return 1 - np.exp(-z)
-    elif normalization == 'standard':
-        return 1 - (1 + z) ** (-0.5 * Nk)
-    elif normalization == 'model':
-        return 1 - (1 - z) ** (0.5 * Nk)
-    elif normalization == 'log':
-        return 1 - np.exp(-0.5 * Nk * z)
-    else:
-        raise ValueError("normalization='{0}' is not recognized"
-                         "".format(normalization))

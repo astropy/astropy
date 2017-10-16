@@ -6,11 +6,11 @@ Regression tests for coordinates-related bugs that don't have an obvious other
 place to live
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
+import io
 import pytest
 import numpy as np
+
 
 from ... import units as u
 from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
@@ -21,9 +21,16 @@ from .. import (AltAz, EarthLocation, SkyCoord, get_sun, ICRS, CIRS, ITRS,
 from ..sites import get_builtin_sites
 from ...time import Time
 from ...utils import iers
+from ...table import Table
 
 from ...tests.helper import assert_quantity_allclose, catch_warnings, quantity_allclose
 from .test_matching import HAS_SCIPY, OLDER_SCIPY
+
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 
 def test_regression_5085():
@@ -467,3 +474,106 @@ def test_regression_6347_3d():
 
     assert len(d2d_1) == 0
     assert type(d2d_1) is type(d2d_10)
+
+def test_regression_6300():
+    """Check that importing old frame attribute names from astropy.coordinates
+    still works. See comments at end of #6300
+    """
+    from ...utils.exceptions import AstropyDeprecationWarning
+    from .. import CartesianRepresentation
+    from .. import (TimeFrameAttribute, QuantityFrameAttribute,
+                    CartesianRepresentationFrameAttribute)
+
+    with catch_warnings() as found_warnings:
+        attr = TimeFrameAttribute(default=Time("J2000"))
+
+        for w in found_warnings:
+            if issubclass(w.category, AstropyDeprecationWarning):
+                break
+        else:
+            assert False, "Deprecation warning not raised"
+
+    with catch_warnings() as found_warnings:
+        attr = QuantityFrameAttribute(default=5*u.km)
+
+        for w in found_warnings:
+            if issubclass(w.category, AstropyDeprecationWarning):
+                break
+        else:
+            assert False, "Deprecation warning not raised"
+
+    with catch_warnings() as found_warnings:
+        attr = CartesianRepresentationFrameAttribute(
+            default=CartesianRepresentation([5,6,7]*u.kpc))
+
+        for w in found_warnings:
+            if issubclass(w.category, AstropyDeprecationWarning):
+                break
+        else:
+            assert False, "Deprecation warning not raised"
+
+
+def test_gcrs_itrs_cartesian_repr():
+    # issue 6436: transformation failed if coordinate representation was
+    # Cartesian
+    gcrs = GCRS(CartesianRepresentation((859.07256, -4137.20368,  5295.56871),
+                                        unit='km'), representation='cartesian')
+    gcrs.transform_to(ITRS)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_regression_6446():
+    # this succeeds even before 6446:
+    sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
+    t1 = Table([sc1])
+    sio1 = io.StringIO()
+    t1.write(sio1, format='ascii.ecsv')
+
+    # but this fails due to the 6446 bug
+    c1 = SkyCoord(1, 3, unit='deg')
+    c2 = SkyCoord(2, 4, unit='deg')
+    sc2 = SkyCoord([c1, c2])
+    t2 = Table([sc2])
+    sio2 = io.StringIO()
+    t2.write(sio2, format='ascii.ecsv')
+
+    assert sio1.getvalue() == sio2.getvalue()
+
+
+def test_regression_6448():
+    """
+    This tests the more narrow problem reported in 6446 that 6448 is meant to
+    fix. `test_regression_6446` also covers this, but this test is provided
+    so that this is still tested even if YAML isn't installed.
+    """
+    sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
+    # this should always succeed even prior to 6448
+    assert sc1.galcen_v_sun is None
+
+    c1 = SkyCoord(1, 3, unit='deg')
+    c2 = SkyCoord(2, 4, unit='deg')
+    sc2 = SkyCoord([c1, c2])
+    # without 6448 this fails
+    assert sc2.galcen_v_sun is None
+
+
+def test_regression_6597():
+    frame_name = 'galactic'
+    c1 = SkyCoord(1, 3, unit='deg', frame=frame_name)
+    c2 = SkyCoord(2, 4, unit='deg', frame=frame_name)
+    sc1 = SkyCoord([c1, c2])
+
+    assert sc1.frame.name == frame_name
+
+
+def test_regression_6597_2():
+    """
+    This tests the more subtle flaw that #6597 indirectly uncovered: that even
+    in the case that the frames are ra/dec, they still might be the wrong *kind*
+    """
+    frame = FK4(equinox='J1949')
+    c1 = SkyCoord(1, 3, unit='deg', frame=frame)
+    c2 = SkyCoord(2, 4, unit='deg', frame=frame)
+    sc1 = SkyCoord([c1, c2])
+
+    assert sc1.frame.name == frame.name

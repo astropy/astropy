@@ -8,9 +8,6 @@ configuration files for Astropy and affiliated packages.
     `ConfigParser`. More information and documentation for configobj can be
     found at http://www.voidspace.org.uk/python/configobj.html.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from ..extern import six
 
 from contextlib import contextmanager
 import hashlib
@@ -72,13 +69,12 @@ class _ConfigNamespaceMeta(type):
         if cls.__bases__[0] is object:
             return
 
-        for key, val in six.iteritems(dict):
+        for key, val in dict.items():
             if isinstance(val, ConfigItem):
                 val.name = key
 
 
-@six.add_metaclass(_ConfigNamespaceMeta)
-class ConfigNamespace(object):
+class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
     """
     A namespace of configuration items.  Each subpackage with
     configuration items should define a subclass of this class,
@@ -135,7 +131,7 @@ class ConfigNamespace(object):
                 return self.__class__.__dict__[attr].reload()
             raise AttributeError("No configuration parameter '{0}'".format(attr))
 
-        for item in six.itervalues(self.__class__.__dict__):
+        for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
                 item.reload()
 
@@ -156,13 +152,12 @@ class ConfigNamespace(object):
                 return
             raise AttributeError("No configuration parameter '{0}'".format(attr))
 
-        for item in six.itervalues(self.__class__.__dict__):
+        for item in self.__class__.__dict__.values():
             if isinstance(item, ConfigItem):
                 item.set(item.defaultvalue)
 
 
-@six.add_metaclass(InheritDocstrings)
-class ConfigItem(object):
+class ConfigItem(metaclass=InheritDocstrings):
     """
     A setting and associated value stored in a configuration file.
 
@@ -242,9 +237,9 @@ class ConfigItem(object):
         # now determine cfgtype if it is not given
         if cfgtype is None:
             if (isiterable(defaultvalue) and not
-                    isinstance(defaultvalue, six.string_types)):
+                    isinstance(defaultvalue, str)):
                 # it is an options list
-                dvstr = [six.text_type(v) for v in defaultvalue]
+                dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
             elif isinstance(defaultvalue, bool):
@@ -253,9 +248,9 @@ class ConfigItem(object):
                 cfgtype = 'integer'
             elif isinstance(defaultvalue, float):
                 cfgtype = 'float'
-            elif isinstance(defaultvalue, six.string_types):
+            elif isinstance(defaultvalue, str):
                 cfgtype = 'string'
-                defaultvalue = six.text_type(defaultvalue)
+                defaultvalue = str(defaultvalue)
 
         self.cfgtype = cfgtype
 
@@ -264,7 +259,7 @@ class ConfigItem(object):
 
         if aliases is None:
             self.aliases = []
-        elif isinstance(aliases, six.string_types):
+        elif isinstance(aliases, str):
             self.aliases = [aliases]
         else:
             self.aliases = aliases
@@ -604,7 +599,7 @@ def is_unedited_config_file(content, template_content=None):
     buffer = io.BytesIO(content)
     buffer.seek(0)
     raw_cfg = configobj.ConfigObj(buffer, interpolation=True)
-    for v in six.itervalues(raw_cfg):
+    for v in raw_cfg.values():
         if len(v):
             break
     else:

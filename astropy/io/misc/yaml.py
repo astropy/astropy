@@ -22,8 +22,7 @@ classes to define custom YAML tags for the following astropy classes:
 
 .. Note ::
 
-   This module requires PyYaml version 3.12 or later, which in turn requires
-   Python 2.7 or Python 3.4 or later.
+   This module requires PyYaml version 3.12 or later.
 
 Example
 =======
@@ -67,7 +66,6 @@ Example
   <EarthLocation ( 1000.,  2000.,  3000.) km>
 """
 
-from __future__ import absolute_import, division
 
 import base64
 import numpy as np
@@ -76,7 +74,6 @@ from ...time import Time, TimeDelta
 from ... import units as u
 from ... import coordinates as coords
 from ...utils import minversion
-from ...extern import six
 from ...table import SerializedColumn
 
 
@@ -247,7 +244,7 @@ class AstropyDumper(yaml.SafeDumper):
                 return True
             if isinstance(data, tuple) and data == ():
                 return True
-            if isinstance(data, six.string_types + (bool, int, float)):
+            if isinstance(data, (str, bool, int, float)):
                 return True
 
 
@@ -264,15 +261,15 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_,
                               yaml.representer.SafeRepresenter.represent_bool)
-for np_type in [np.int_, np.int, np.intc, np.intp, np.int8, np.int16, np.int32,
+for np_type in [np.int_, np.intc, np.intp, np.int8, np.int16, np.int32,
                 np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
     AstropyDumper.add_representer(np_type,
                                  yaml.representer.SafeRepresenter.represent_int)
-for np_type in [np.float_, np.float, np.float16, np.float32, np.float64,
+for np_type in [np.float_, np.float16, np.float32, np.float64,
                 np.longdouble]:
     AstropyDumper.add_representer(np_type,
                                  yaml.representer.SafeRepresenter.represent_float)
-for np_type in [np.complex_, np.complex, np.complex64, np.complex128]:
+for np_type in [np.complex_, complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type,
                                  _complex_representer)
 

@@ -1,19 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 
 from warnings import warn
 import collections
 import socket
 import json
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import numpy as np
 from .. import units as u
 from ..units.quantity import QuantityInfoBase
-from ..extern import six
-from ..extern.six.moves import urllib
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_to
 from .angles import Longitude, Latitude
 from .representation import CartesianRepresentation
 from .errors import UnknownSiteException
@@ -245,7 +244,7 @@ class EarthLocation(u.Quantity):
         x, y, z = np.broadcast_arrays(x, y, z)
         struc = np.empty(x.shape, cls._location_dtype)
         struc['x'], struc['y'], struc['z'] = x, y, z
-        return super(EarthLocation, cls).__new__(cls, struc, unit, copy=False)
+        return super().__new__(cls, struc, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0., ellipsoid=None):
@@ -472,11 +471,11 @@ class EarthLocation(u.Quantity):
             reg = getattr(cls, '_site_registry', None)
             if force_download or not reg:
                 try:
-                    if isinstance(force_download, six.string_types):
+                    if isinstance(force_download, str):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()
-                except six.moves.urllib.error.URLError:
+                except IOError:
                     if force_download:
                         raise
                     msg = ('Could not access the online site list. Falling '
@@ -593,7 +592,7 @@ class EarthLocation(u.Quantity):
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
         if obstime and self.size == 1 and obstime.size > 1:
-            self = broadcast_to(self, obstime.shape, subok=True)
+            self = np.broadcast_to(self, obstime.shape, subok=True)
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
@@ -649,14 +648,14 @@ class EarthLocation(u.Quantity):
         return self['z']
 
     def __getitem__(self, item):
-        result = super(EarthLocation, self).__getitem__(item)
+        result = super().__getitem__(item)
         if result.dtype is self.dtype:
             return result.view(self.__class__)
         else:
             return result.view(u.Quantity)
 
     def __array_finalize__(self, obj):
-        super(EarthLocation, self).__array_finalize__(obj)
+        super().__array_finalize__(obj)
         if hasattr(obj, '_ellipsoid'):
             self._ellipsoid = obj._ellipsoid
 
@@ -664,7 +663,7 @@ class EarthLocation(u.Quantity):
         if self.shape == ():
             raise IndexError('0-d EarthLocation arrays cannot be indexed')
         else:
-            return super(EarthLocation, self).__len__()
+            return super().__len__()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""

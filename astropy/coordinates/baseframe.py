@@ -5,8 +5,6 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
 
 # Standard library
 import abc
@@ -22,8 +20,6 @@ import numpy as np
 from ..utils.compat.misc import override__dir__
 from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
-from ..extern import six
-from ..extern.six.moves import zip
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
@@ -135,7 +131,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
 
         # somewhat hacky, but this is the best way to get the MRO according to
         # https://mail.python.org/pipermail/python-list/2002-December/167861.html
-        tmp_cls = super(FrameMeta, mcls).__new__(mcls, name, bases, members)
+        tmp_cls = super().__new__(mcls, name, bases, members)
 
         # now look through the whole MRO for the class attributes, raw for
         # frame_attr_names, and leading underscore for others
@@ -176,7 +172,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if 'name' not in members:
             members['name'] = name.lower()
 
-        return super(FrameMeta, mcls).__new__(mcls, name, bases, members)
+        return super().__new__(mcls, name, bases, members)
 
     @staticmethod
     def readonly_prop_factory(members, attr, value):
@@ -207,13 +203,10 @@ class RepresentationMapping(_RepresentationMappingBase):
 
     def __new__(cls, reprname, framename, defaultunit='recommended'):
         # this trick just provides some defaults
-        return super(RepresentationMapping, cls).__new__(cls, reprname,
-                                                         framename,
-                                                         defaultunit)
+        return super().__new__(cls, reprname, framename, defaultunit)
 
 
-@six.add_metaclass(FrameMeta)
-class BaseCoordinateFrame(ShapedLikeNDArray):
+class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     """
     The base class for coordinate frames.
 
@@ -272,14 +265,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     frame_attributes = OrderedDict()
     # Default empty frame_attributes dict
 
-    def __init__(self, *args, **kwargs):
-        copy = kwargs.pop('copy', True)
+    def __init__(self, *args, copy=True, representation=None,
+                 differential_cls=None,**kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
-        # class or string.
-        representation = kwargs.pop('representation', None)
-        differential_cls = kwargs.pop('differential_cls', None)
+        # class or string for representation and differential_cls.
 
         if representation is not None or differential_cls is not None:
 
@@ -496,10 +487,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __len__(self):
         return len(self.data)
 
-    def __nonzero__(self):  # Py 2.x
-        return self.has_data and self.size > 0
-
-    def __bool__(self):  # Py 3.x
+    def __bool__(self):
         return self.has_data and self.size > 0
 
     @property
@@ -579,7 +567,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
 
-            if isinstance(repr_diff_cls, six.string_types):
+            if isinstance(repr_diff_cls, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
                 repr_diff_cls = _get_repr_cls(repr_diff_cls)
@@ -597,7 +585,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                     # need the isinstance because otherwise if it's a unit it
                     # will try to compare to the unit string representation
-                    if not (isinstance(mapp.defaultunit, six.string_types) and
+                    if not (isinstance(mapp.defaultunit, str) and
                             mapp.defaultunit == 'recommended'):
                         uns[i] = mapp.defaultunit
                         # else we just leave it as recommended_units says above
@@ -1139,6 +1127,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             data = self.data if self.has_data else None
 
+        # This is to provide a slightly nicer error message if the user tries to
+        # use frame_obj.representation instead of frame_obj.data to get the
+        # underlying representation object [e.g., #2890]
+        if inspect.isclass(data):
+            raise TypeError('Class passed as data instead of a representation '
+                            'instance. If you called frame.representation, this'
+                            ' returns the representation class. frame.data '
+                            'returns the instantiated object - you may want to '
+                            ' use this instead.')
+
         # TODO: expose this trickery in docstring?
         representation_cls = kwargs.pop('representation_cls',
                                         self.representation)
@@ -1250,7 +1248,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             raise AttributeError(
                 'Cannot set any frame attribute {0}'.format(attr))
         else:
-            super(BaseCoordinateFrame, self).__setattr__(attr, value)
+            super().__setattr__(attr, value)
 
     def separation(self, other):
         """
@@ -1382,7 +1380,7 @@ class GenericFrame(BaseCoordinateFrame):
             self.frame_attributes[name] = Attribute(default)
             setattr(self, '_' + name, default)
 
-        super(GenericFrame, self).__init__(None)
+        super().__init__(None)
 
     def __getattr__(self, name):
         if '_' + name in self.__dict__:
@@ -1394,4 +1392,4 @@ class GenericFrame(BaseCoordinateFrame):
         if name in self.get_frame_attr_names():
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
-            super(GenericFrame, self).__setattr__(name, value)
+            super().__setattr__(name, value)

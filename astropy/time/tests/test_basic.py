@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# TEST_UNICODE_LITERALS
 
 import copy
 import functools
@@ -12,8 +11,6 @@ import numpy as np
 
 from ...tests.helper import catch_warnings
 from ...tests.disable_internet import INTERNET_OFF
-from ...extern import six
-from ...extern.six.moves import zip
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -728,7 +725,7 @@ class TestSofaErrors():
         with catch_warnings() as w:
             djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
-        assert 'bad day    (JD computed)' in six.text_type(w[0].message)
+        assert 'bad day    (JD computed)' in str(w[0].message)
 
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])

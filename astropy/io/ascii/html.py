@@ -8,13 +8,10 @@ html.py:
 must be installed to read HTML tables.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import warnings
 import numpy
 
-from ...extern import six
-from ...extern.six.moves import zip, range
 
 from . import core
 from ...table import Column
@@ -60,7 +57,7 @@ def identify_table(soup, htmldict, numtable):
         return numtable == 1
     table_id = htmldict['table_id']
 
-    if isinstance(table_id, six.string_types):
+    if isinstance(table_id, str):
         return 'id' in soup.attrs and soup['id'] == table_id
     elif isinstance(table_id, int):
         return table_id == numtable
@@ -175,7 +172,7 @@ class HTMLOutputter(core.TableOutputter):
                 new_cols.append(col)
                 col_num += 1
 
-        return super(HTMLOutputter, self).__call__(new_cols, meta)
+        return super().__call__(new_cols, meta)
 
 
 class HTMLHeader(core.BaseHeader):
@@ -328,7 +325,7 @@ class HTML(core.BaseReader):
         """
         Initialize classes for HTML reading and writing.
         """
-        super(HTML, self).__init__()
+        super().__init__()
         self.html = deepcopy(htmldict)
         if 'multicol' not in htmldict:
             self.html['multicol'] = True
@@ -342,13 +339,13 @@ class HTML(core.BaseReader):
         """
 
         self.outputter = HTMLOutputter()
-        return super(HTML, self).read(table)
+        return super().read(table)
 
     def write(self, table):
         """
         Return data in ``table`` converted to HTML as a list of strings.
         """
-        cols = list(six.itervalues(table.columns))
+        cols = list(table.columns.values())
 
         self.data.header.cols = cols
 
@@ -361,7 +358,7 @@ class HTML(core.BaseReader):
 
         # Set HTML escaping to False for any column in the raw_html_cols input
         raw_html_cols = self.html.get('raw_html_cols', [])
-        if isinstance(raw_html_cols, six.string_types):
+        if isinstance(raw_html_cols, str):
             raw_html_cols = [raw_html_cols]  # Allow for a single string as input
         cols_escaped = [col.info.name not in raw_html_cols for col in cols]
 
@@ -395,7 +392,7 @@ class HTML(core.BaseReader):
                     with w.xml_cleaning_method('none'):
                         with w.tag('script'):
                             w.data(self.html['js'])
-                if isinstance(self.html['table_id'], six.string_types):
+                if isinstance(self.html['table_id'], str):
                     html_table_id = self.html['table_id']
                 else:
                     html_table_id = None

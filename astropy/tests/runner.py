@@ -1,6 +1,4 @@
 """Implements the Astropy TestRunner which is a thin wrapper around py.test."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import inspect
 import os
@@ -12,14 +10,13 @@ import warnings
 from collections import OrderedDict
 
 from ..config.paths import set_temp_config, set_temp_cache
-from ..extern import six
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-class keyword(object):
+class keyword:
     """
     A decorator to mark a method as keyword argument for the ``TestRunner``.
 
@@ -49,7 +46,7 @@ class keyword(object):
         return keyword
 
 
-class TestRunnerBase(object):
+class TestRunnerBase:
     """
     The base class for the TestRunner.
 
@@ -97,10 +94,7 @@ class TestRunnerBase(object):
         # method decorated with ``@keyword`` and with the ``self, name, kwargs``
         # signature.
         # Get all 'function' members as the wrapped methods are functions
-        if six.PY2:
-            functions = inspect.getmembers(cls, predicate=inspect.ismethod)
-        else:
-            functions = inspect.getmembers(cls, predicate=inspect.isfunction)
+        functions = inspect.getmembers(cls, predicate=inspect.isfunction)
 
         # Filter out anything that's not got the name 'keyword'
         keywords = filter(lambda func: func[1].__name__ == 'keyword', functions)
@@ -132,10 +126,7 @@ class TestRunnerBase(object):
                 doc_keywords += func.__doc__.strip()
                 doc_keywords += '\n\n'
 
-        if six.PY2:
-            cls.run_tests.__func__.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
-        else:
-            cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
+        cls.run_tests.__doc__ = cls.RUN_TESTS_DOCSTRING.format(keywords=doc_keywords)
 
         return super(TestRunnerBase, cls).__new__(cls)
 
@@ -159,9 +150,6 @@ class TestRunnerBase(object):
                 raise TypeError("{} keyword method must return a list".format(keyword))
 
             args += result
-
-        if six.PY2:
-            args = [x.encode('utf-8') for x in args]
 
         return args
 
@@ -463,7 +451,13 @@ class TestRunner(TestRunnerBase):
             the cores on the machine.  Requires the ``pytest-xdist`` plugin.
         """
         if parallel != 0:
-            return ['-n', six.text_type(parallel)]
+            try:
+                from xdist import plugin # noqa
+            except ImportError:
+                raise SystemError(
+                    "running tests in parallel requires the pytest-xdist package")
+
+            return ['-n', str(parallel)]
 
         return []
 

@@ -8,8 +8,6 @@ framework, but it is useful for some users who are used to more functional
 interfaces.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
@@ -206,7 +204,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     Parameters
     ----------
-    coords : coordinate object
+    coord : coordinate object
         The object to determine the constellation of.
     short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated

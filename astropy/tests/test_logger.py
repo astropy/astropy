@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
-import imp
+import importlib
 import sys
 import warnings
 
@@ -31,8 +29,8 @@ except NameError:
 def setup_function(function):
 
     # Reset modules to default
-    imp.reload(warnings)
-    imp.reload(sys)
+    importlib.reload(warnings)
+    importlib.reload(sys)
 
     # Reset internal original hooks
     log._showwarning_orig = None
@@ -159,7 +157,7 @@ def test_import_error_in_warning_logging():
     this problem.
     """
 
-    class FakeModule(object):
+    class FakeModule:
         def __getattr__(self, attr):
             raise ImportError('_showwarning should ignore any exceptions '
                               'here')
@@ -265,8 +263,7 @@ def test_exception_logging_origin():
     assert log_list[0].origin == 'astropy.utils.collections'
 
 
-@pytest.mark.skipif("sys.version_info[:2] >= (3, 5)",
-                    reason="Infinite recursion on Python 3.5")
+@pytest.mark.xfail(True, reason="Infinite recursion on Python 3.5+, probably a real issue")
 @pytest.mark.xfail(str("ip is not None"))
 def test_exception_logging_argless_exception():
     """

@@ -156,6 +156,7 @@ image, with the center of the cutout at ``position``::
 
 .. plot::
 
+    import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     from astropy.nddata import CCDData
@@ -186,6 +187,7 @@ This cutout can also plot itself on the original image::
 
 .. plot::
 
+    import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     from astropy.nddata import CCDData, Cutout2D
@@ -242,6 +244,7 @@ the mask, metadata, etc are discarded:
 
 .. plot::
 
+    import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     from astropy.nddata import block_reduce, block_replicate

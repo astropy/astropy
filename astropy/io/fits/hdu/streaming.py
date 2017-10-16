@@ -11,10 +11,9 @@ from ..file import _File
 from ..header import _pad_length
 from ..util import fileobj_name
 
-from ....extern.six.moves import range
 
 
-class StreamingHDU(object):
+class StreamingHDU:
     """
     A class that provides the capability to stream data to a FITS file
     instead of requiring data to all be written at once.

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import print_function, division, absolute_import
 
 # Note: This file incldues code dervived from pywcsgrid2
 #
@@ -17,15 +16,13 @@ from matplotlib.transforms import Transform
 from ... import units as u
 from ...wcs import WCS
 from ...wcs.utils import wcs_to_celestial_frame
-from ...extern import six
 from ...coordinates import (SkyCoord, frame_transform_graph,
                             SphericalRepresentation,
                             UnitSphericalRepresentation,
                             BaseCoordinateFrame)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class CurvedTransform(Transform):
+class CurvedTransform(Transform, metaclass=abc.ABCMeta):
     """
     Abstract base class for non-affine curved transforms
     """
@@ -67,7 +64,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
     """
 
     def __init__(self, wcs, slice=None):
-        super(WCSWorld2PixelTransform, self).__init__()
+        super().__init__()
         self.wcs = wcs
         if self.wcs.wcs.naxis > 2:
             if slice is None:
@@ -122,7 +119,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
     """
 
     def __init__(self, wcs, slice=None):
-        super(WCSPixel2WorldTransform, self).__init__()
+        super().__init__()
         self.wcs = wcs
         self.slice = slice
         if self.slice is not None:
@@ -193,13 +190,13 @@ class WCSPixel2WorldTransform(CurvedTransform):
 class CoordinateTransform(CurvedTransform):
 
     def __init__(self, input_system, output_system):
-        super(CoordinateTransform, self).__init__()
+        super().__init__()
         self._input_system_name = input_system
         self._output_system_name = output_system
 
         if isinstance(self._input_system_name, WCS):
             self.input_system = wcs_to_celestial_frame(self._input_system_name)
-        elif isinstance(self._input_system_name, six.string_types):
+        elif isinstance(self._input_system_name, str):
             self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
             if self.input_system is None:
                 raise ValueError("Frame {0} not found".format(self._input_system_name))
@@ -210,7 +207,7 @@ class CoordinateTransform(CurvedTransform):
 
         if isinstance(self._output_system_name, WCS):
             self.output_system = wcs_to_celestial_frame(self._output_system_name)
-        elif isinstance(self._output_system_name, six.string_types):
+        elif isinstance(self._output_system_name, str):
             self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
             if self.output_system is None:
                 raise ValueError("Frame {0} not found".format(self._output_system_name))

@@ -4,13 +4,10 @@
 Handles the "LaTeX" unit format.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import numpy as np
 
 from . import base, core, utils
-from ...extern.six.moves import zip
 
 
 class Latex(base.Base):
@@ -88,7 +85,7 @@ class Latex(base.Base):
         return r'$\mathrm{{{0}}}$'.format(s)
 
     @classmethod
-    def format_exponential_notation(cls, val):
+    def format_exponential_notation(cls, val, format_spec=".8g"):
         """
         Formats a value in exponential notation for LaTeX.
 
@@ -97,13 +94,16 @@ class Latex(base.Base):
         val : number
             The value to be formatted
 
+        format_spec : str, optional
+            Format used to split up mantissa and exponent
+
         Returns
         -------
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
         """
         if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val)
+            m, ex = utils.split_mantissa_exponent(val, format_spec)
 
             parts = []
             if m:

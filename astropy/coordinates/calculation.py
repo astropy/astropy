@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 # Standard library
-from datetime import datetime
-from xml.dom.minidom import parse
 import re
 import textwrap
+from datetime import datetime
+from xml.dom.minidom import parse
+from urllib.request import urlopen
 
 # Third-party
 from .. import time as atime
 from ..utils.console import color_print, _color_text
-from ..extern.six.moves.urllib.request import urlopen
 from . import get_sun
 
 __all__ = []
@@ -106,7 +104,7 @@ def horoscope(birthday, corrected=True):
                              'corrected=False.'.format(zodiac_sign.title()))
     else:
         zodiac_sign = get_sign(birthday.to_datetime())
-    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.asp?sign={sign}&id=45"
+    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.php?sign={sign}&id=45"
 
     f = urlopen(url.format(sign=zodiac_sign.capitalize()))
     try:  # urlopen in py2 is not a decorator

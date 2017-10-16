@@ -13,8 +13,6 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import itertools
 

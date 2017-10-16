@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division, with_statement
 
 import math
 import os
@@ -13,7 +12,6 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-from ....extern.six.moves import range
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
 from ....utils.compat import NUMPY_LT_1_12
@@ -53,6 +51,36 @@ class TestImageFunctions(FitsTestCase):
         hdu = fits.ImageHDU(header=hdr, name='FOO')
         assert hdu.name == 'FOO'
         assert hdu.header['EXTNAME'] == 'FOO'
+
+    def test_constructor_ver_arg(self):
+        def assert_ver_is(hdu, reference_ver):
+            assert hdu.ver == reference_ver
+            assert hdu.header['EXTVER'] == reference_ver
+
+        hdu = fits.ImageHDU()
+        assert hdu.ver == 1  # defaults to 1
+        assert 'EXTVER' not in hdu.header
+
+        hdu.ver = 1
+        assert_ver_is(hdu, 1)
+
+        # Passing name to constructor
+        hdu = fits.ImageHDU(ver=2)
+        assert_ver_is(hdu, 2)
+
+        # And overriding a header with a different extver
+        hdr = fits.Header()
+        hdr['EXTVER'] = 3
+        hdu = fits.ImageHDU(header=hdr, ver=4)
+        assert_ver_is(hdu, 4)
+
+        # The header card is not overridden if ver is None or not passed in
+        hdr = fits.Header()
+        hdr['EXTVER'] = 5
+        hdu = fits.ImageHDU(header=hdr, ver=None)
+        assert_ver_is(hdu, 5)
+        hdu = fits.ImageHDU(header=hdr)
+        assert_ver_is(hdu, 5)
 
     def test_constructor_copies_header(self):
         """
@@ -411,7 +439,7 @@ class TestImageFunctions(FitsTestCase):
         assert np.array_equal(sec[0, ...], dat[0, ...])
 
     def test_section_data_square(self):
-        a = np.arange(4).reshape((2, 2))
+        a = np.arange(4).reshape(2, 2)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -433,7 +461,7 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[0:2, 0:2] == dat[0:2, 0:2]).all()
 
     def test_section_data_cube(self):
-        a = np.arange(18).reshape((2, 3, 3))
+        a = np.arange(18).reshape(2, 3, 3)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -562,7 +590,7 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[1:2, 1:3, 2:3] == dat[1:2, 1:3, 2:3]).all()
 
     def test_section_data_four(self):
-        a = np.arange(256).reshape((4, 4, 4, 4))
+        a = np.arange(256).reshape(4, 4, 4, 4)
         hdu = fits.PrimaryHDU(a)
         hdu.writeto(self.temp('test_new.fits'))
 
@@ -641,6 +669,16 @@ class TestImageFunctions(FitsTestCase):
         f = fits.open(self.temp('test_new.fits'), uint=True)
         assert f[1].data.dtype == 'uint16'
 
+    def test_scale_with_explicit_bzero_bscale(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/6399
+        """
+        hdu1 = fits.PrimaryHDU()
+        hdu2 = fits.ImageHDU(np.random.rand(100,100))
+        # The line below raised an exception in astropy 2.0, so if it does not
+        # raise an error here, that is progress.
+        hdu2.scale(type='uint8', bscale=1, bzero=0)
+
     def test_uint_header_consistency(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/2305
@@ -654,7 +692,6 @@ class TestImageFunctions(FitsTestCase):
             # signed int array of the same bit width
             max_uint = (2 ** int_size) - 1
             if int_size == 64:
-                # Otherwise may get an overflow error, at least on Python 2
                 max_uint = np.uint64(int_size)
 
             dtype = 'uint{}'.format(int_size)
@@ -1110,6 +1147,7 @@ class TestCompressedImage(FitsTestCase):
         ('data', 'compression_type', 'quantize_level', 'byte_order'),
         sum([[(np.zeros((2, 10, 10), dtype=np.float32), 'RICE_1', 16, bo),
               (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_1', -0.01, bo),
+              (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_2', -0.01, bo),
               (np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16, bo)]
              for bo in ('<', '>')], []))
     def test_comp_image(self, data, compression_type, quantize_level,
@@ -1182,7 +1220,7 @@ class TestCompressedImage(FitsTestCase):
         be flattened to two dimensions.
         """
 
-        cube = np.arange(300, dtype=np.float32).reshape((3, 10, 10))
+        cube = np.arange(300, dtype=np.float32).reshape(3, 10, 10)
         hdu = fits.CompImageHDU(data=cube, name='SCI',
                                 compressionType='HCOMPRESS_1',
                                 quantizeLevel=16, tileSize=[5, 5, 1])
@@ -1736,6 +1774,37 @@ class TestCompressedImage(FitsTestCase):
         comp_hdu._header.pop('ZBITPIX')
         with pytest.raises(TypeError):
             comp_hdu.compressed_data
+
+    @pytest.mark.parametrize(
+        ('keyword', 'dtype', 'expected'),
+        [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
+         ('BSCALE', np.int32, np.float64), ('BZERO', np.uint8, np.float32),
+         ('BZERO', np.int16, np.float32), ('BZERO', np.int32, np.float64)])
+    def test_compressed_scaled_float(self, keyword, dtype, expected):
+        """
+        If BSCALE,BZERO is set to floating point values, the image
+        should be floating-point.
+
+        https://github.com/astropy/astropy/pull/6492
+
+        Parameters
+        ----------
+        keyword : `str`
+            Keyword to set to a floating-point value to trigger
+            floating-point pixels.
+        dtype : `numpy.dtype`
+            Type of original array.
+        expected : `numpy.dtype`
+            Expected type of uncompressed array.
+        """
+        value = 1.23345  # A floating-point value
+        hdu = fits.CompImageHDU(np.arange(0, 10, dtype=dtype))
+        hdu.header[keyword] = value
+        hdu.writeto(self.temp('test.fits'))
+        del hdu
+        with fits.open(self.temp('test.fits')) as hdu:
+            assert hdu[1].header[keyword] == value
+            assert hdu[1].data.dtype == expected
 
 
 def test_comphdu_bscale(tmpdir):

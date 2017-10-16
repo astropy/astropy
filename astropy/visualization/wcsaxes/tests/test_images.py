@@ -21,7 +21,7 @@ from ....tests.image_tests import IMAGE_REFERENCE_DIR
 from ..frame import EllipticalFrame
 
 
-class BaseImageTests(object):
+class BaseImageTests:
 
     @classmethod
     def setup_class(cls):

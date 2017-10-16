@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement, print_function
 
 import contextlib
 import copy
 import gc
+import pickle
 import re
 
 import pytest
@@ -16,9 +16,6 @@ try:
 except ImportError:
     HAVE_OBJGRAPH = False
 
-from ....extern import six
-from ....extern.six.moves import range, zip
-from ....extern.six.moves import cPickle as pickle
 from ....io import fits
 from ....tests.helper import catch_warnings, ignore_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
@@ -229,7 +226,13 @@ class TestTableFunctions(FitsTestCase):
                 'bzero': ['', '', 0.4, ''],
                 'disp': ['I11', 'A3', 'G15.7', 'L6'],
                 'start': ['', '', '', ''],
-                'dim': ['', '', '', '']}
+                'dim': ['', '', '', ''],
+                'coord_inc': ['', '', '', ''],
+                'coord_type': ['', '', '', ''],
+                'coord_unit': ['', '', '', ''],
+                'coord_ref_point': ['', '', '', ''],
+                'coord_ref_value': ['', '', '', ''],
+                'time_ref_pos': ['', '', '', '']}
 
         assert t[1].columns.info(output=False) == info
 
@@ -316,7 +319,7 @@ class TestTableFunctions(FitsTestCase):
     def test_column_endianness(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/77
-        (PyFITS doesn't preserve byte order of non-native order column arrays)
+        (Astropy doesn't preserve byte order of non-native order column arrays)
         """
 
         a = [1., 2., 3., 4.]
@@ -1521,6 +1524,28 @@ class TestTableFunctions(FitsTestCase):
             assert hdu.name == 'FOO'
             assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_constructor_ver_arg(self):
+        for hducls in [fits.BinTableHDU, fits.TableHDU]:
+            # First test some default assumptions
+            hdu = hducls()
+            assert hdu.ver == 1
+            assert 'EXTVER' not in hdu.header
+            hdu.ver = 2
+            assert hdu.ver == 2
+            assert hdu.header['EXTVER'] == 2
+
+            # Passing name to constructor
+            hdu = hducls(ver=3)
+            assert hdu.ver == 3
+            assert hdu.header['EXTVER'] == 3
+
+            # And overriding a header with a different extver
+            hdr = fits.Header()
+            hdr['EXTVER'] = 4
+            hdu = hducls(header=hdr, ver=5)
+            assert hdu.ver == 5
+            assert hdu.header['EXTVER'] == 5
+
     def test_unicode_colname(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5204
@@ -1538,16 +1563,16 @@ class TestTableFunctions(FitsTestCase):
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
 
         assert (tbhdu1.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu1.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
         tbhdu = fits.BinTableHDU.from_columns(tbhdu1.data)
 
         assert (tbhdu.data.field('flag')[0] ==
-                np.array([True, False], dtype=np.bool)).all()
+                np.array([True, False], dtype=bool)).all()
         assert (tbhdu.data.field('flag')[1] ==
-                np.array([False, True], dtype=np.bool)).all()
+                np.array([False, True], dtype=bool)).all()
 
     def test_fits_rec_column_access(self):
         t = fits.open(self.data('table.fits'))
@@ -1731,10 +1756,7 @@ class TestTableFunctions(FitsTestCase):
 
         def test_dims_and_roundtrip(tbhdu):
             assert tbhdu.data['S'].shape == (5, 3, 2)
-            if six.PY2:
-                assert tbhdu.data['S'].dtype.str.endswith('S4')
-            else:
-                assert tbhdu.data['S'].dtype.str.endswith('U4')
+            assert tbhdu.data['S'].dtype.str.endswith('U4')
 
             tbhdu.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1742,10 +1764,7 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu2 = hdul[1]
                 assert tbhdu2.header['TDIM1'] == '(4,2,3)'
                 assert tbhdu2.data['S'].shape == (5, 3, 2)
-                if six.PY2:
-                    assert tbhdu.data['S'].dtype.str.endswith('S4')
-                else:
-                    assert tbhdu.data['S'].dtype.str.endswith('U4')
+                assert tbhdu.data['S'].dtype.str.endswith('U4')
                 assert np.all(tbhdu2.data['S'] == tbhdu.data['S'])
 
         test_dims_and_roundtrip(tbhdu1)
@@ -1785,7 +1804,7 @@ class TestTableFunctions(FitsTestCase):
             raw_bytes = f.read()
 
         # Artificially truncate TDIM in the header; this seems to be the
-        # easiest way to do this while getting around pyfits' insistence on the
+        # easiest way to do this while getting around Astropy's insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them
         with open(self.temp('test.fits'), 'wb') as f:
@@ -2020,7 +2039,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         # Create a table containing a variety of data types.
-        a0 = np.array([False, True, False], dtype=np.bool)
+        a0 = np.array([False, True, False], dtype=bool)
         c0 = fits.Column(name='c0', format='L', array=a0)
 
         # Format X currently not supported by the format
@@ -2451,7 +2470,7 @@ class TestTableFunctions(FitsTestCase):
             readfile(self.data('memtest.fits'))
 
     @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
-    def test_reference_leak(self, tmpdir):
+    def test_reference_leak2(self, tmpdir):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539
 
@@ -2970,6 +2989,47 @@ class TestColumnFunctions(FitsTestCase):
         assert np.all(c4.array[0] == c3.array[0])
         assert np.all(c4.array[1] == c3.array[1])
 
+    def test_column_verify_keywords(self):
+        """
+        Test that the keyword arguments used to initialize a Column, specifically
+        those that typically read from a FITS header (so excluding array),
+        are verified to have a valid value.
+        """
+
+        with pytest.raises(AssertionError) as err:
+            c = fits.Column(1, format='I', array=[1, 2, 3, 4, 5])
+        assert 'Column name must be a string able to fit' in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('col', format='I', null='Nan', disp=1, coord_type=1,
+                            coord_unit=2, coord_ref_point='1', coord_ref_value='1',
+                            coord_inc='1', time_ref_pos=1)
+        err_msgs = ['keyword arguments to Column were invalid', 'TNULL', 'TDISP',
+                    'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS']
+        for msg in err_msgs:
+            assert msg in str(err.value)
+
+    def test_column_verify_start(self):
+        """
+        Regression test for https://github.com/astropy/astropy/pull/6359
+
+        Test the validation of the column start position option (ASCII table only),
+        corresponding to ``TBCOL`` keyword.
+        Test whether the VerifyError message generated is the one with highest priority,
+        i.e. the order of error messages to be displayed is maintained.
+        """
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='B', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) is not allowed for binary table columns" in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='a', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got 'a')." in str(err.value)
+
+        with pytest.raises(VerifyError) as err:
+            c = fits.Column('a', format='I', start='-56', array=[1, 2, 3])
+        assert "start option (TBCOLn) must be a positive integer (got -56)." in str(err.value)
 
 def test_regression_5383():
 

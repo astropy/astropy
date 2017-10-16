@@ -3,7 +3,7 @@
 from ..core import IrreducibleUnit, Unit
 
 
-class FunctionMixin(object):
+class FunctionMixin:
     """Mixin class that makes UnitBase subclasses callable.
 
     Provides a __call__ method that passes on arguments to a FunctionUnit.

@@ -883,9 +883,9 @@ are contained in a numpy object-dtype column named ``params``::
   ...    """
   ...    def __getitem__(self, item):
   ...        if item not in self.colnames:
-  ...            return super(ParamsRow, self).__getitem__('params')[item]
+  ...            return super().__getitem__('params')[item]
   ...        else:
-  ...            return super(ParamsRow, self).__getitem__(item)
+  ...            return super().__getitem__(item)
   ...
   ...    def keys(self):
   ...        out = [name for name in self.colnames if name != 'params']

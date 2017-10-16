@@ -6,19 +6,16 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import copy
 
+import pytest
 import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data, catch_warnings,
+from ...tests.helper import (remote_data, catch_warnings,
                              quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
-from ...extern.six.moves import zip
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,

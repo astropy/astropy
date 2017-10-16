@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 import copy
 import time
@@ -107,7 +105,7 @@ def hub_script(timeout=0):
         if options.logout != "":
             context = log.log_to_file(options.logout)
         else:
-            class dummy_context(object):
+            class dummy_context:
 
                 def __enter__(self):
                     pass
