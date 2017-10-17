@@ -4,7 +4,3 @@
 def get_package_data():
     return {'astropy.coordinates.tests.accuracy': ['*.csv'],
             'astropy.coordinates': ['data/*.dat', 'data/sites.json']}
-
-
-def requires_2to3():
-    return False

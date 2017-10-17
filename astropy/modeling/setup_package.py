@@ -125,10 +125,6 @@ def get_package_data():
     }
 
 
-def requires_2to3():
-    return False
-
-
 def get_extensions():
     wcslib_files = [  # List of wcslib files to compile
         'prj.c',
