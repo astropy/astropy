@@ -420,6 +420,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- LaTeX output for Quantity objects is now wrapped by double dollar signs
+  ``$$`` [#6502]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
