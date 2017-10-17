@@ -360,20 +360,21 @@ def read(table, guess=None, **kwargs):
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
-        if fast_reader['enable'] and format is not None and 'fast_{0}'.format(format) \
-                                                        in core.FAST_CLASSES:
+        if fast_reader['enable'] and 'fast_{0}'.format(format) in core.FAST_CLASSES:
             fast_kwargs = copy.deepcopy(new_kwargs)
             fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader_rdr.read(table)
                 _read_trace.append({'kwargs': fast_kwargs,
-                                    'Reader': fast_reader.__class__,
+                                    'Reader': fast_reader_rdr.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
-            except (core.ParameterError, cparser.CParserError) as e:
+            except (core.ParameterError, cparser.CParserError) as err:
                 # special testing value to avoid falling back on the slow reader
                 if fast_reader['enable'] == 'force':
-                    raise e
+                    raise core.InconsistentTableError(
+                        'fast reader {} exception: {}'
+                        .format(fast_reader_rdr.__class__, err))
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
                 _read_trace.append({'kwargs': new_kwargs,

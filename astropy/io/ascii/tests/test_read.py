@@ -120,7 +120,7 @@ def test_read_with_names_arg(fast_reader):
     """
     Test that a bad value of `names` raises an exception.
     """
-    with pytest.raises((ValueError, cparser.CParserError)):
+    with pytest.raises(ValueError):
         ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
@@ -248,19 +248,19 @@ def test_empty_table_no_header(fast_reader):
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_wrong_quote(fast_reader):
-    with pytest.raises((ascii.InconsistentTableError, cparser.CParserError)):
+    with pytest.raises(ascii.InconsistentTableError):
         ascii.read('t/simple.txt', guess=False, fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_extra_data_col(fast_reader):
-    with pytest.raises((ascii.InconsistentTableError, cparser.CParserError)):
+    with pytest.raises(ascii.InconsistentTableError):
         ascii.read('t/bad.txt', fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_extra_data_col2(fast_reader):
-    with pytest.raises((ascii.InconsistentTableError, cparser.CParserError)):
+    with pytest.raises(ascii.InconsistentTableError):
         ascii.read('t/simple5.txt', delimiter='|', fast_reader=fast_reader)
 
 
