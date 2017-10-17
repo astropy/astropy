@@ -328,9 +328,6 @@ Other Changes and Additions
 - The guide to setting up Emacs for code development was simplified, and
   updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
-- LaTeX output for Quantity objects is now wrapped by
-  double dollar signs $$ [#6502]
-
 2.0.3 (unreleased)
 ==================
 
@@ -424,6 +421,9 @@ astropy.time
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- LaTeX output for Quantity objects is now wrapped by double dollar signs
+  ``$$`` [#6502]
 
 astropy.utils
 ^^^^^^^^^^^^^
