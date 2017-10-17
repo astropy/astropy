@@ -111,7 +111,3 @@ def get_extensions():
 
 def get_external_libraries():
     return ['erfa']
-
-
-def requires_2to3():
-    return False
