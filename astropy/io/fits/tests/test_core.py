@@ -5,6 +5,7 @@ import bz2
 import io
 import mmap
 import os
+import pathlib
 import warnings
 import zipfile
 
@@ -28,14 +29,6 @@ from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ....tests.helper import remote_data
 from ....utils.data import conf, get_pkg_data_filename
 from ....utils import data
-
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 class TestCore(FitsTestCase):
@@ -77,7 +70,6 @@ class TestCore(FitsTestCase):
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
 
-    @pytest.mark.skipif('not HAS_PATHLIB')
     def test_fits_file_path_object(self):
         """
         Testing when fits file is passed as pathlib.Path object #4412.
