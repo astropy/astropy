@@ -2,6 +2,7 @@
 
 import ctypes
 import gc
+import itertools
 import math
 import re
 import time
@@ -968,12 +969,10 @@ class CompImageHDU(BinTableHDU):
         # Strip the table header of all the ZNAZISn and ZTILEn keywords
         # that may be left over from the previous data
 
-        idx = 1
-        while True:
+        for idx in itertools.count(1):
             try:
                 del self._header['ZNAXIS' + str(idx)]
                 del self._header['ZTILE' + str(idx)]
-                idx += 1
             except KeyError:
                 break
 
@@ -1133,9 +1132,7 @@ class CompImageHDU(BinTableHDU):
         # in case none were passed in.  This will be either the value
         # already in the table header for that parameter or the default
         # value.
-        idx = 1
-
-        while True:
+        for idx in itertools.count(1):
             zname = 'ZNAME' + str(idx)
             if zname not in self._header:
                 break
@@ -1149,7 +1146,6 @@ class CompImageHDU(BinTableHDU):
             if self._header[zname] == 'SMOOTH  ':
                 if hcomp_smooth is None:
                     hcomp_smooth = self._header[zval]
-            idx += 1
 
         if quantize_level is None:
             quantize_level = DEFAULT_QUANTIZE_LEVEL
@@ -1162,17 +1158,13 @@ class CompImageHDU(BinTableHDU):
 
         # Next, strip the table header of all the ZNAMEn and ZVALn keywords
         # that may be left over from the previous data
-
-        idx = 1
-
-        while True:
+        for idx in itertools.count(1):
             zname = 'ZNAME' + str(idx)
             if zname not in self._header:
                 break
             zval = 'ZVAL' + str(idx)
             del self._header[zname]
             del self._header[zval]
-            idx += 1
 
         # Finally, put the appropriate keywords back based on the
         # compression type.
