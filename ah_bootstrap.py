@@ -287,6 +287,10 @@ class _Bootstrapper(object):
             config['offline'] = True
             argv.remove('--offline')
 
+        if '--use-system-astropy-helpers' in argv:
+            config['auto_use'] = False
+            argv.remove('--use-system-astropy-helpers')
+
         return config
 
     def run(self):
