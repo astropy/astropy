@@ -3,6 +3,7 @@
 
 import bz2
 import gzip
+import itertools
 import os
 import shutil
 import sys
@@ -250,13 +251,11 @@ class HDUList(list, _Verify):
         #     yield self[idx]
         # the more complicated structure is here to prevent the use of len(),
         # which would break the lazy loading
-        idx = 0
-        while True:
+        for idx in itertools.count():
             try:
                 yield self[idx]
             except IndexError:
                 break
-            idx += 1
 
     def __getitem__(self, key):
         """
