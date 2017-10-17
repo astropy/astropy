@@ -795,11 +795,11 @@ class TestQuantityDisplay:
         from ...units.quantity import conf
 
         q2scalar = u.Quantity(1.5e14, 'm/s')
-        assert self.scalarintq._repr_latex_() == r'$1 \; \mathrm{m}$'
-        assert self.scalarfloatq._repr_latex_() == r'$1.3 \; \mathrm{m}$'
+        assert self.scalarintq._repr_latex_() == r'$$1 \; \mathrm{m}$$'
+        assert self.scalarfloatq._repr_latex_() == r'$$1.3 \; \mathrm{m}$$'
         assert (q2scalar._repr_latex_() ==
-                r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$')
-        assert self.arrq._repr_latex_() == r'$[1,~2.3,~8.9] \; \mathrm{m}$'
+                r'$$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$$')
+        assert self.arrq._repr_latex_() == r'$$[1,~2.3,~8.9] \; \mathrm{m}$$'
 
         qmed = np.arange(100)*u.m
         qbig = np.arange(1000)*u.m
@@ -812,11 +812,11 @@ class TestQuantityDisplay:
             q = u.Quantity(987654321.123456789, 'm/s')
             qa = np.array([7.89123, 123456789.987654321, 0]) * u.cm
             np.set_printoptions(precision=8)
-            assert q._repr_latex_() == r'$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
-            assert qa._repr_latex_() == r'$[7.89123,~1.2345679 \times 10^{8},~0] \; \mathrm{cm}$'
+            assert q._repr_latex_() == r'$$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$$'
+            assert qa._repr_latex_() == r'$$[7.89123,~1.2345679 \times 10^{8},~0] \; \mathrm{cm}$$'
             np.set_printoptions(precision=2)
-            assert q._repr_latex_() == r'$9.9 \times 10^{8} \; \mathrm{\frac{m}{s}}$'
-            assert qa._repr_latex_() == r'$[7.9,~1.2 \times 10^{8},~0] \; \mathrm{cm}$'
+            assert q._repr_latex_() == r'$$9.9 \times 10^{8} \; \mathrm{\frac{m}{s}}$$'
+            assert qa._repr_latex_() == r'$$[7.9,~1.2 \times 10^{8},~0] \; \mathrm{cm}$$'
 
             # check thresholding behavior
             conf.latex_array_threshold = 100  # should be default
@@ -849,7 +849,7 @@ class TestQuantityDisplay:
             conf.latex_array_threshold = oldlat
 
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
-        assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
+        assert qinfnan._repr_latex_() == r'$$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$$'
 
 
 def test_decompose():
