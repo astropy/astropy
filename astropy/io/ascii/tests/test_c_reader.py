@@ -1,14 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-try:
-    from cStringIO import StringIO
-except ImportError:  # cStringIO doesn't exist in Python 3
-    from io import BytesIO
-    StringIO = lambda x: BytesIO(x.encode('ascii'))
-
 import os
 import functools
 
+from io import BytesIO
 from textwrap import dedent
 
 import pytest
@@ -19,10 +14,12 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
-    FastRdb, FastNoHeader
+from ..fastbasic import (
+    FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from .common import assert_equal, assert_almost_equal, assert_true
 
+
+StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
