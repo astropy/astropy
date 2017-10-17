@@ -98,11 +98,12 @@ class Gaussian2DKernel(Kernel2D):
     Parameters
     ----------
     x_stddev : float
-        Standard deviation of the Gaussian in x.
+        Standard deviation of the Gaussian in x before rotating by theta.
     y_stddev : float
-        Standard deviation of the Gaussian in y.
+        Standard deviation of the Gaussian in y before rotating by theta.
     theta : float
-        Rotation angle in radians. Note: increases clockwise.
+        Rotation angle in radians. The rotation angle increases
+        counterclockwise.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * stddev.
     y_size : odd int, optional
