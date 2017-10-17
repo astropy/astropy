@@ -586,7 +586,10 @@ limited in size.  There are two possible ways to do this:
 
 The chunk reading functionality is most useful for very large tables, so this is
 available only for the :ref:`fast_ascii_io` readers.  The following formats are
-supported: ``tab``, ``csv``, ``no_header``, ``rdb``, and ``basic``.
+supported: ``tab``, ``csv``, ``no_header``, ``rdb``, and ``basic``.  The
+``commented_header`` format is not directly supported, but as a workaround one
+can read using the ``no_header`` format and explicitly supply the column names
+using the ``names`` argument.
 
 In order to read a table in chunks one must provide the ``fast_reader`` keyword
 argument with a ``dict`` that includes the ``chunk_size`` key with the value
