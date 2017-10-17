@@ -368,10 +368,10 @@ class TransformGraph:
             The coordinate class corresponding to the ``name`` or raises Exception
             if no such class exists.
         """
-        if (raises == False):
+        if not raises:
             return self._cached_names.get(name, None)
         else:
-            if self._cached_names.get(name, None) == None:
+            if self._cached_names.get(name, None) is None:
                 raise Exception("name not found")
             else:
                 return self._cached_names.get(name, None)
