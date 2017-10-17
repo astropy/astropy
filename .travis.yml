@@ -67,6 +67,11 @@ matrix:
           stage: Initial tests
           env: PIP_DEPENDENCIES='https://github.com/astropy/astropy-helpers/archive/master.zip' SETUP_CMD='test --use-system-astropy-helpers'
 
+        # Testing for now - try using developer version of astropy-helpers
+        - os: linux
+          stage: Initial tests
+          env: SETUP_CMD='test --use-system-astropy-helpers'
+
     allow_failures:
       - os: linux
         env: NUMPY_VERSION=dev SETUP_CMD='test --remote-data'
