@@ -251,10 +251,10 @@ class _File(object):
         if size and shape:
             actualsize = np.prod(shape) * dtype.itemsize
 
-            if actualsize < size:
+            if actualsize > size:
                 raise ValueError('size {} is too few bytes for a {} array of '
                                  '{}'.format(size, shape, dtype))
-            if actualsize < size:
+            elif actualsize < size:
                 raise ValueError('size {} is too many bytes for a {} array of '
                                  '{}'.format(size, shape, dtype))
 
