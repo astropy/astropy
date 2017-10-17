@@ -6,6 +6,7 @@ import gzip
 import http.client
 import mmap
 import operator
+import pathlib
 import io
 import os
 import sys
@@ -71,13 +72,6 @@ GZIP_MAGIC = b'\x1f\x8b\x08'
 PKZIP_MAGIC = b'\x50\x4b\x03\x04'
 BZIP2_MAGIC = b'\x42\x5a'
 
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-
 def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
@@ -116,7 +110,7 @@ class _File:
         else:
             self.simulateonly = False
             # If fileobj is of type pathlib.Path
-            if HAS_PATHLIB and isinstance(fileobj, pathlib.Path):
+            if isinstance(fileobj, pathlib.Path):
                 fileobj = str(fileobj)
 
         # Holds mmap instance for files that use mmap
