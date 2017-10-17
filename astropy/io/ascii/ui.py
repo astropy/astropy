@@ -699,7 +699,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
 
         while True:
             chunk = fh.read(chunk_size)
-            # Got fewer chars than requested, must be end of fie
+            # Got fewer chars than requested, must be end of file
             final_chunk = len(chunk) < chunk_size
 
             # If this is the last chunk and there is only whitespace then break
