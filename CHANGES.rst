@@ -5604,7 +5604,7 @@ astropy.units
 
 - Support for the unit format `Office of Guest Investigator Programs (OGIP)
   FITS files
-  <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
+  <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
   has been added. [#377]
 
 - The ``spectral`` equivalency can now handle angular wave number. [#1306 and
@@ -6101,7 +6101,7 @@ Other Changes and Additions
   doing ``import astropy; astropy.test()``, so the ``coverage``
   keyword to ``astropy.test`` has been removed.  Coverage testing now
   depends only on `coverage.py
-  <http://nedbatchelder.com/code/coverage/>`__, not
+  <http://coverage.readthedocs.io/en/latest/>`__, not
   ``pytest-cov``. [#2112]
 
 - The included version of py.test has been upgraded to 2.5.1. [#1970]
