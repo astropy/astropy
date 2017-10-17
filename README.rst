@@ -8,7 +8,7 @@ Astropy
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :target: https://gitter.im/astropy/astropy
 
-Astropy (http://astropy.org/) is a package intended to contain much of
+Astropy (http://www.astropy.org) is a package intended to contain much of
 the core functionality and some common tools needed for performing
 astronomy and astrophysics with Python.
 
