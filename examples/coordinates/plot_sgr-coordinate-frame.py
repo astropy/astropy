@@ -25,9 +25,9 @@ See Also
 
 * Majewski et al. 2003, "A Two Micron All Sky Survey View of the Sagittarius
   Dwarf Galaxy. I. Morphology of the Sagittarius Core and Tidal Arms",
-  http://arxiv.org/abs/astro-ph/0304198
+  https://arxiv.org/abs/astro-ph/0304198
 * Law & Majewski 2010, "The Sagittarius Dwarf Galaxy: A Model for Evolution in a
-  Triaxial Milky Way Halo", http://arxiv.org/abs/1003.1132
+  Triaxial Milky Way Halo", https://arxiv.org/abs/1003.1132
 * David Law's Sgr info page http://www.stsci.edu/~dlaw/Sgr/
 
 -------------------
