@@ -240,7 +240,7 @@ PyPI.
 Customizing the documentation CSS
 =================================
 
-As described in the documentation configuration file (`teplate/docs/conf.py
+As described in the documentation configuration file (`template/docs/conf.py
 <https://github.com/astropy/package-template/blob/master/docs/conf.py#L95>`_),
 the documentation uses a custom theme based on `bootstrap
 <http://getbootstrap.com/css/>`_. You can swap out this theme by editing the
