@@ -50,20 +50,20 @@ Examples
 Smooth a 1D array with a custom kernel and no boundary treatment::
 
     >>> import numpy as np
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
+    array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
 As above, but using the 'extend' algorithm for boundaries::
 
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
+    array([1.6, 3.6, 5. , 5.6, 5.6, 6.8, 7.8])
 
 If a NaN value is present in the original array, it will be
 interpolated using the kernel::
 
     >>> import numpy as np
-    >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6 ,  3.6 ,  5.  ,  5.75,  6.5 ,  7.25,  7.8 ])
+    >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
+    array([1.6 , 3.6 , 5.  , 5.75, 6.5 , 7.25, 7.8 ])
 
 Kernels and arrays can be specified either as lists or as Numpy
 arrays. The following examples show how to construct a 1-d array as a

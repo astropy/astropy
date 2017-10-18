@@ -526,8 +526,8 @@ def test_voigt_model():
 
 
 def test_model_instance_repr():
-    m = models.Gaussian1D(1, 2, 3)
-    assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'
+    m = models.Gaussian1D(1.5, 2.5, 3.5)
+    assert repr(m) == '<Gaussian1D(amplitude=1.5, mean=2.5, stddev=3.5)>'
 
 
 @pytest.mark.skipif("not HAS_SCIPY_14")

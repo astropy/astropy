@@ -287,7 +287,7 @@ the already known parameter values.  We can see this by checking the type of
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
     Expression: [0] + [1]
     Components:
-        [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
+        [0]: <Gaussian1D(amplitude=1., mean=0., stddev=0.2)>
     <BLANKLINE>
         [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
 
@@ -296,7 +296,7 @@ combination of classes *and* instances in the same expression::
 
     >>> from astropy.modeling.models import Linear1D, Sine1D
     >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1, phase=0)
-    >>> MyModel
+    >>> MyModel  # doctest: +FLOAT_CMP
     <class '__main__.CompoundModel...'>
     Name: CompoundModel...
     Inputs: ('x',)
@@ -310,7 +310,7 @@ combination of classes *and* instances in the same expression::
         Outputs: ('y',)
         Fittable parameters: ('slope', 'intercept')
     <BLANKLINE>
-        [1]: <Sine1D(amplitude=1.0, frequency=1.0, phase=0.0)>
+        [1]: <Sine1D(amplitude=1., frequency=1., phase=0.)>
 
 In this case the result is always a class.  However (and this is not
 immediately obvious by the representation) the difference is that the
@@ -714,8 +714,8 @@ The new compound model for the subexpression can be instantiated and evaluated
 like any other::
 
     >>> m = M[1:](2, 3)
-    >>> m
-    <CompoundModel...(amplitude_1=2.0, amplitude_2=3.0)>
+    >>> m  # doctest: +FLOAT_CMP
+    <CompoundModel...(amplitude_1=2., amplitude_2=3.)>
     >>> m(0)
     6.0
 

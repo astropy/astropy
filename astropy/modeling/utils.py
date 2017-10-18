@@ -12,6 +12,7 @@ import numpy as np
 
 
 from ..utils import isiterable, check_broadcast
+from ..utils.compat import NUMPY_LT_1_14
 
 from .. import units as u
 
@@ -489,8 +490,8 @@ def array_repr_oneline(array):
     """
     Represents a multi-dimensional Numpy array flattened onto a single line.
     """
-
-    r = np.array2string(array, separator=',', suppress_small=True)
+    sep = ',' if NUMPY_LT_1_14 else ', '
+    r = np.array2string(array, separator=sep, suppress_small=True)
     return ' '.join(l.strip() for l in r.splitlines())
 
 

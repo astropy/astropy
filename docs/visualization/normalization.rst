@@ -53,8 +53,8 @@ takes the array of values::
 The ``interval`` instance can also be called like a function to
 actually normalize values to the range::
 
-    >>> interval([1, 3, 4, 5, 6])
-    array([ 0. ,  0.4,  0.6,  0.8,  1. ])
+    >>> interval([1, 3, 4, 5, 6])  # doctest: +FLOAT_CMP
+    array([0. , 0.4, 0.6, 0.8, 1. ])
 
 Other interval classes include
 :class:`~astropy.visualization.ManualInterval`,
@@ -69,9 +69,9 @@ normalization when values fall outside the limits::
     >>> interval = PercentileInterval(50.)
     >>> interval.get_limits([1, 3, 4, 5, 6])
     (3.0, 5.0)
-    >>> interval([1, 3, 4, 5, 6])  # default is clip=True
-    array([ 0. ,  0. ,  0.5,  1. ,  1. ])
-    >>> interval([1, 3, 4, 5, 6], clip=False)
+    >>> interval([1, 3, 4, 5, 6])  # default is clip=True  # doctest: +FLOAT_CMP
+    array([0. , 0. , 0.5, 1. , 1. ])
+    >>> interval([1, 3, 4, 5, 6], clip=False)  # doctest: +FLOAT_CMP
     array([-1. ,  0. ,  0.5,  1. ,  1.5])
 
 
@@ -86,20 +86,20 @@ class::
 
     >>> from astropy.visualization import SqrtStretch
     >>> stretch = SqrtStretch()
-    >>> stretch([0., 0.25, 0.5, 0.75, 1.])
-    array([ 0.        ,  0.5       ,  0.70710678,  0.8660254 ,  1.        ])
+    >>> stretch([0., 0.25, 0.5, 0.75, 1.])  # doctest: +FLOAT_CMP
+    array([0.        , 0.5       , 0.70710678, 0.8660254 , 1.        ])
 
 As for the intervals, values outside the [0:1] range can be treated
 differently depending on the ``clip`` argument. By default, output
 values are clipped to the [0:1] range::
 
-    >>> stretch([-1., 0., 0.5, 1., 1.5])
-    array([ 0.       ,  0.        ,  0.70710678,  1.        ,  1.        ])
+    >>> stretch([-1., 0., 0.5, 1., 1.5])  # doctest: +FLOAT_CMP
+    array([0.       , 0.        , 0.70710678, 1.        , 1.        ])
 
 but this can be disabled::
 
-    >>> stretch([-1., 0., 0.5, 1., 1.5], clip=False)
-    array([        nan,  0.        ,  0.70710678,  1.        ,  1.22474487])
+    >>> stretch([-1., 0., 0.5, 1., 1.5], clip=False)  # doctest: +FLOAT_CMP
+    array([       nan, 0.        , 0.70710678, 1.        , 1.22474487])
 
 .. note::
     The stretch functions are similar but not always strictly
@@ -123,8 +123,8 @@ object. For example, to apply normalization based on a percentile
 value, followed by a square root stretch, you can do::
 
     >>> transform = SqrtStretch() + PercentileInterval(90.)
-    >>> transform([1, 3, 4, 5, 6])
-    array([ 0.        ,  0.60302269,  0.76870611,  0.90453403,  1.        ])
+    >>> transform([1, 3, 4, 5, 6])  # doctest: +FLOAT_CMP
+    array([0.        , 0.60302269, 0.76870611, 0.90453403, 1.        ])
 
 As before, the combined transformation can also accept a ``clip``
 argument (which is `True` by default).

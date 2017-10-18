@@ -63,10 +63,10 @@ When the format of the input can be unambiguously determined then the
 Now let's get the representation of these times in the JD and MJD
 formats by requesting the corresponding |Time| attributes::
 
-  >>> t.jd
-  array([ 2451179.50000143,  2455197.5       ])
-  >>> t.mjd
-  array([ 51179.00000143,  55197.        ])
+  >>> t.jd  # doctest: +FLOAT_CMP
+  array([2451179.50000143, 2455197.5       ])
+  >>> t.mjd  # doctest: +FLOAT_CMP
+  array([51179.00000143, 55197.        ])
 
 The default representation can be changed by setting the `format` attribute::
 
@@ -83,8 +83,8 @@ TT.  This uses the same attribute mechanism as above but now returns a new
   >>> t2 = t.tt
   >>> t2
   <Time object: scale='tt' format='isot' value=['1999-01-01T00:01:04.307' '2010-01-01T00:01:06.184']>
-  >>> t2.jd
-  array([ 2451179.5007443 ,  2455197.50076602])
+  >>> t2.jd  # doctest: +FLOAT_CMP
+  array([2451179.5007443 , 2455197.50076602])
 
 Note that both the ISO (ISOT) and JD representations of ``t2`` are different
 than for ``t`` because they are expressed relative to the TT time scale.  Of
@@ -113,8 +113,8 @@ can only have scales in which one day is always equal to 86400 seconds.
    '2007-01-01T04:21:49.579' '2008-01-01T10:54:33.386'
    '2008-12-31T17:27:17.193' '2010-01-01T00:00:00.000']>
 
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude [ 6.68050179, 6.70281947] hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude [6.68050179, 6.70281947] hourangle>
 
 Using `astropy.time`
 =====================
@@ -303,20 +303,20 @@ appropriate::
   >>> t.jd
   2400100.5
   >>> t = Time([100.0, 200.0, 300.], format='mjd')
-  >>> t.jd
-  array([ 2400100.5,  2400200.5,  2400300.5])
-  >>> t[:2]
-  <Time object: scale='utc' format='mjd' value=[ 100.  200.]>
+  >>> t.jd  # doctest: +FLOAT_CMP
+  array([2400100.5, 2400200.5, 2400300.5])
+  >>> t[:2]  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[100. 200.]>
   >>> t[2]
   <Time object: scale='utc' format='mjd' value=300.0>
   >>> t = Time(np.arange(50000., 50003.)[:, np.newaxis],
   ...          np.arange(0., 1., 0.5), format='mjd')
-  >>> t
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5]
-   [ 50001.   50001.5]
-   [ 50002.   50002.5]]>
-  >>> t[0]
-  <Time object: scale='utc' format='mjd' value=[ 50000.   50000.5]>
+  >>> t  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50000.5]
+   [50001.  50001.5]
+   [50002.  50002.5]]>
+  >>> t[0]  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[50000.  50000.5]>
 
 
 .. _astropy-time-shape-methods:
@@ -333,12 +333,12 @@ that work on `~numpy.ndarray` instances can be used.  E.g., one can reshape
 :meth:`~astropy.time.Time.swapaxes`, :meth:`~astropy.time.Time.diagonal`,
 :meth:`~astropy.time.Time.squeeze`, :meth:`~astropy.time.Time.take`::
 
-  >>> t.reshape(2, 3)
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5  50001. ]
-   [ 50001.5  50002.   50002.5]]>
-  >>> t.T
-  <Time object: scale='utc' format='mjd' value=[[ 50000.   50001.   50002. ]
-   [ 50000.5  50001.5  50002.5]]>
+  >>> t.reshape(2, 3)  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50000.5 50001. ]
+   [50001.5 50002.  50002.5]]>
+  >>> t.T  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=[[50000.  50001.  50002. ]
+   [50000.5 50001.5 50002.5]]>
 
 Note that similarly to the `~numpy.ndarray` methods, all but
 :meth:`~astropy.time.Time.flatten` try to use new views of the data,
@@ -353,8 +353,8 @@ E.g.::
 
   >> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >> t.ptp(axis=0)
-  <TimeDelta object: scale='tai' format='jd' value=[ 2.  2.]>
+  >> t.ptp(axis=0)  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
 
 .. _astropy-time-inferring-input:
 
@@ -447,8 +447,8 @@ objects.  In this case the format and scale will be inferred from the
 first object unless explicitly specified.
 ::
 
-  >>> Time([t1, t2])
-  <Time object: scale='tt' format='mjd' value=[ 50100.  55197.00076602]>
+  >>> Time([t1, t2])  # doctest: +FLOAT_CMP
+  <Time object: scale='tt' format='mjd' value=[50100. 55197.00076602]>
 
 val2
 ^^^^
@@ -554,9 +554,9 @@ no explicit longitude is given.
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))
   >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
-  <Longitude 12.00000000000001 hourangle>
+  <Longitude 12. hourangle>
   >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
-  <Longitude 20.00000000000001 hourangle>
+  <Longitude 20. hourangle>
 
 .. note:: In future versions, we hope to add the possibility to add observatory
           objects and/or names.
@@ -571,8 +571,6 @@ The current time can be determined as a |Time| object using the
   >>> ut = Time(datetime.utcnow(), scale='utc')
 
 The two should be very close to each other.
-
-
 
 
 Using Time objects
@@ -767,15 +765,15 @@ calculations following different IAU resolutions.  Sample usage::
 
   >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
   >>> t.sidereal_time('mean')  # doctest: +FLOAT_CMP
-  <Longitude 13.089521870640212 hourangle>
+  <Longitude 13.08952187 hourangle>
   >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
-  <Longitude 13.089503675087027 hourangle>
+  <Longitude 13.08950368 hourangle>
   >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
-  <Longitude 5.089503675087027 hourangle>
+  <Longitude 5.08950368 hourangle>
   >>> t.sidereal_time('apparent', '-90d')  # doctest: +FLOAT_CMP
-  <Longitude 23.08950367508703 hourangle>
+  <Longitude 23.08950368 hourangle>
   >>> t.sidereal_time('apparent', '-90d', 'IAU1994')  # doctest: +FLOAT_CMP
-  <Longitude 23.08950365423405 hourangle>
+  <Longitude 23.08950365 hourangle>
 
 Time Deltas
 -----------
@@ -945,7 +943,7 @@ dynamical models). An example using the JPL ephemerides is:
     >>> ltt_bary_jpl # doctest: +REMOTE_DATA +FLOAT_CMP
     <TimeDelta object: scale='tdb' format='jd' value=[-0.0037715  -0.00377286]>
     >>> (ltt_bary_jpl - ltt_bary).to(u.ms) # doctest: +REMOTE_DATA +FLOAT_CMP
-    <Quantity [ 0.00058527, 0.00058518] ms>
+    <Quantity [0.00058527, 0.00058518] ms>
 
 The difference between the builtin ephemerides and the JPL ephemerides is normally
 of the order of 1/100th of a millisecond, so the builtin ephemerides should be suitable
@@ -981,19 +979,19 @@ of time.  Usage is most easily illustrated by examples::
   <TimeDelta object: scale='None' format='jd' value=3652.5>
 
   >>> dt = TimeDelta([10., 20., 30.], format='jd')
-  >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity
-  <Quantity [ 240., 480., 720.] h>
+  >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity  # doctest: +FLOAT_CMP
+  <Quantity [240., 480., 720.] h>
   >>> dt > 400. * u.hr               # and compare to quantities with units of time
   array([False,  True,  True], dtype=bool)
-  >>> dt + 1.*u.hr                   # can also add/subtract such quantities
-  <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
+  >>> dt + 1.*u.hr                   # can also add/subtract such quantities  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='None' format='jd' value=[10.04166667 20.04166667 30.04166667]>
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP
   <Time object: scale='utc' format='mjd' value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
-  ...                                # Quantity, TimeDelta is converted
-  <Quantity [ 100., 200., 300.] d km / s>
-  >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
-  <TimeDelta object: scale='None' format='jd' value=[ 100.  200.  300.]>
+  ...                                # Quantity, TimeDelta is converted  # doctest: +FLOAT_CMP
+  <Quantity [100., 200., 300.] d km / s>
+  >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='None' format='jd' value=[100. 200. 300.]>
 
 Writing a Custom Format
 -----------------------

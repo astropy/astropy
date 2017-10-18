@@ -86,8 +86,8 @@ parameter::
     >>> import astropy.units as u
     >>> quantity = np.ones(3) * u.cm  # this will create a Quantity
     >>> ndd3 = NDData(quantity)
-    >>> ndd3.data
-    array([ 1.,  1.,  1.])
+    >>> ndd3.data  # doctest: +FLOAT_CMP
+    array([1., 1., 1.])
     >>> ndd3.unit
     Unit("cm")
 
@@ -104,8 +104,8 @@ or even a masked Quantity::
 
     >>> masked_quantity = np.ma.array([1,2,3,4]*u.kg, mask=[True, False, True, False])
     >>> ndd5 = NDData(masked_quantity)
-    >>> ndd5.data
-    array([ 1.,  2.,  3.,  4.])
+    >>> ndd5.data  # doctest: +FLOAT_CMP
+    array([1., 2., 3., 4.])
     >>> ndd5.mask
     array([ True, False,  True, False], dtype=bool)
     >>> ndd5.unit
@@ -117,8 +117,8 @@ explicit parameter will be used and an info-message will be issued::
     >>> quantity = np.ones(3) * u.cm
     >>> ndd6 = NDData(quantity, unit='m')
     INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
-    >>> ndd6.data
-    array([ 1.,  1.,  1.])
+    >>> ndd6.data  # doctest: +FLOAT_CMP
+    array([1., 1., 1.])
     >>> ndd6.unit
     Unit("m")
 
@@ -206,8 +206,8 @@ initialization::
     >>> array = np.array([10, 7, 12, 22])
     >>> uncert = StdDevUncertainty(np.sqrt(array))
     >>> ndd = NDData(array, uncertainty=uncert)
-    >>> ndd.uncertainty
-    StdDevUncertainty([ 3.16227766,  2.64575131,  3.46410162,  4.69041576])
+    >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([3.16227766, 2.64575131, 3.46410162, 4.69041576])
 
 or on the instance directly::
 
@@ -342,8 +342,8 @@ Converting the ``data``  and ``mask`` to a MaskedArray::
 Converting the ``data``  and ``unit`` to a Quantity::
 
     >>> quantity = u.Quantity(ndd.data, unit=ndd.unit)
-    >>> quantity
-    <Quantity [ 1., 2., 3., 4.] m>
+    >>> quantity  # doctest: +FLOAT_CMP
+    <Quantity [1., 2., 3., 4.] m>
 
 masked Quantity
 ---------------
@@ -351,11 +351,12 @@ masked Quantity
 Converting the ``data``, ``mask``  and ``unit`` to a masked Quantity requires
 NumPy version 1.9 or newer::
 
-    >>> ma_quantity = np.ma.array(u.Quantity(ndd.data, unit=ndd.unit), mask=ndd.mask)  # doctest: +SKIP
-    >>> ma_quantity  # doctest: +SKIP
+    >>> ma_quantity = np.ma.array(u.Quantity(ndd.data, unit=ndd.unit), mask=ndd.mask)
+    >>> ma_quantity
     masked_Quantity(data = [-- 2.0 3.0 --] m,
                     mask = [ True False False  True],
               fill_value = 1e+20)
 
-.. todo::
-    Remove doctest skip as soon as NumPy 1.9 isn't supported anymore.
+.. note::
+    Masked quantities are not properly supported: many operations on
+    them fail.

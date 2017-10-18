@@ -185,9 +185,9 @@ that are smaller than the requested ``size``::
 
     >>> data2 = np.arange(20.).reshape(5, 4)
     >>> cutout1 = Cutout2D(data2, (0, 0), (3, 3), mode='trim')
-    >>> print(cutout1.data)
-    [[ 0.  1.]
-     [ 4.  5.]]
+    >>> print(cutout1.data)  # doctest: +FLOAT_CMP
+    [[0. 1.]
+     [4. 5.]]
     >>> print(cutout1.shape)
     (2, 2)
     >>> print((cutout1.position_original, cutout1.position_cutout))
@@ -198,10 +198,10 @@ will be filled with ``fill_value`` (the default is ``numpy.nan``) if
 the cutout is not fully contained in the data array::
 
     >>> cutout2 = Cutout2D(data2, (0, 0), (3, 3), mode='partial')
-    >>> print(cutout2.data)
-    [[ nan  nan  nan]
-     [ nan   0.   1.]
-     [ nan   4.   5.]]
+    >>> print(cutout2.data)  # doctest: +FLOAT_CMP
+    [[nan nan nan]
+     [nan  0.  1.]
+     [nan  4.  5.]]
 
 Note that for the ``'partial'`` mode, the positions (and several other
 attributes) are calculated for on the *valid* (non-filled) cutout
