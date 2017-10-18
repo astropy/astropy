@@ -12,12 +12,6 @@ import zipfile
 import pytest
 import numpy as np
 
-try:
-    import StringIO
-    HAVE_STRINGIO = True
-except ImportError:
-    HAVE_STRINGIO = False
-
 from . import FitsTestCase
 
 from ..convenience import _getext
@@ -1054,20 +1048,7 @@ class TestFileFunctions(FitsTestCase):
                         if hdu1.data is not None and hdu2.data is not None:
                             assert np.all(hdu1.data == hdu2.data)
 
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/2463
-
-        Only test against `StringIO.StringIO` on Python versions that have it.
-        Note: `io.StringIO` is not supported for this purpose as it does not
-        accept a bytes stream.
-        """
-
-        self._test_write_string_bytes_io(StringIO.StringIO())
-
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio_discontiguous(self):
+    def test_write_bytesio_discontiguous(self):
         """
         Regression test related to
         https://github.com/astropy/astropy/issues/2794#issuecomment-55441539
@@ -1078,7 +1059,7 @@ class TestFileFunctions(FitsTestCase):
 
         data = np.arange(100)[::3]
         hdu = fits.PrimaryHDU(data=data)
-        fileobj = StringIO.StringIO()
+        fileobj = io.BytesIO()
         hdu.writeto(fileobj)
 
         fileobj.seek(0)
