@@ -1254,6 +1254,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         Computes on-sky separation between this coordinate and another.
 
+        .. note::
+
+            If the ``other`` coordinate object is in a different frame, it is
+            first transformed to the frame of this object - this can lead to
+            unexpected behavior.
+
         Parameters
         ----------
         other : `~astropy.coordinates.BaseCoordinateFrame`
