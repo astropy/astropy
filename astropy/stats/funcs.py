@@ -966,9 +966,9 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     >>> with NumpyRNGContext(1):
     ...     bootresult = bootstrap(bootarr, 2)
     ...
-    >>> bootresult
-    array([[ 6.,  9.,  0.,  6.,  1.,  1.,  2.,  8.,  7.,  0.],
-           [ 3.,  5.,  6.,  3.,  5.,  3.,  5.,  8.,  8.,  0.]])
+    >>> bootresult  # doctest: +FLOAT_CMP
+    array([[6., 9., 0., 6., 1., 1., 2., 8., 7., 0.],
+           [3., 5., 6., 3., 5., 3., 5., 8., 8., 0.]])
     >>> bootresult.shape
     (2, 10)
 
@@ -977,18 +977,18 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     >>> with NumpyRNGContext(1):
     ...     bootresult = bootstrap(bootarr, 2, bootfunc=np.mean)
     ...
-    >>> bootresult
-    array([ 4. ,  4.6])
+    >>> bootresult  # doctest: +FLOAT_CMP
+    array([4. , 4.6])
 
     Obtain a statistic with two outputs on the array
 
     >>> test_statistic = lambda x: (np.sum(x), np.mean(x))
     >>> with NumpyRNGContext(1):
     ...     bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic)
-    >>> bootresult
-    array([[ 40. ,   4. ],
-           [ 46. ,   4.6],
-           [ 35. ,   3.5]])
+    >>> bootresult  # doctest: +FLOAT_CMP
+    array([[40. ,  4. ],
+           [46. ,  4.6],
+           [35. ,  3.5]])
     >>> bootresult.shape
     (3, 2)
 
@@ -999,8 +999,8 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     >>> with NumpyRNGContext(1):
     ...     bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc)
     ...
-    >>> bootresult
-    array([ 40.,  46.,  35.])
+    >>> bootresult  # doctest: +FLOAT_CMP
+    array([40., 46., 35.])
     >>> bootresult.shape
     (3,)
 

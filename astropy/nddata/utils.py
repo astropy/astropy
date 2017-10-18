@@ -282,12 +282,12 @@ def add_array(array_large, array_small, position):
     >>> from astropy.nddata.utils import add_array
     >>> large_array = np.zeros((5, 5))
     >>> small_array = np.ones((3, 3))
-    >>> add_array(large_array, small_array, (1, 2))
-    array([[ 0.,  1.,  1.,  1.,  0.],
-           [ 0.,  1.,  1.,  1.,  0.],
-           [ 0.,  1.,  1.,  1.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.]])
+    >>> add_array(large_array, small_array, (1, 2))  # doctest: +FLOAT_CMP
+    array([[0., 1., 1., 1., 0.],
+           [0., 1., 1., 1., 0.],
+           [0., 1., 1., 1., 0.],
+           [0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0.]])
     """
     # Check if large array is really larger
     if all(large_shape > small_shape for (large_shape, small_shape)
@@ -327,16 +327,16 @@ def subpixel_indices(position, subsampling):
     If no subsampling is used, then the subpixel indices returned are always 0:
 
     >>> from astropy.nddata.utils import subpixel_indices
-    >>> subpixel_indices([1.2, 3.4, 5.6],1)
-    array([ 0.,  0.,  0.])
+    >>> subpixel_indices([1.2, 3.4, 5.6], 1)  # doctest: +FLOAT_CMP
+    array([0., 0., 0.])
 
     If instead we use a subsampling of 2, we see that for the two first values
     (1.1 and 3.4) the subpixel position is 1, while for 5.6 it is 0. This is
     because the values of 1, 3, and 6 lie in the center of pixels, and 1.1 and
     3.4 lie in the left part of the pixels and 5.6 lies in the right part.
 
-    >>> subpixel_indices([1.2, 3.4, 5.5],2)
-    array([ 1.,  1.,  0.])
+    >>> subpixel_indices([1.2, 3.4, 5.5], 2)  # doctest: +FLOAT_CMP
+    array([1., 1., 0.])
     """
     # Get decimal points
     fractions = np.modf(np.asanyarray(position) + 0.5)[0]
@@ -443,17 +443,17 @@ def block_replicate(data, block_size, conserve_sum=True):
     >>> import numpy as np
     >>> from astropy.nddata.utils import block_replicate
     >>> data = np.array([[0., 1.], [2., 3.]])
-    >>> block_replicate(data, 2)
-    array([[ 0.  ,  0.  ,  0.25,  0.25],
-           [ 0.  ,  0.  ,  0.25,  0.25],
-           [ 0.5 ,  0.5 ,  0.75,  0.75],
-           [ 0.5 ,  0.5 ,  0.75,  0.75]])
+    >>> block_replicate(data, 2)  # doctest: +FLOAT_CMP
+    array([[0.  , 0.  , 0.25, 0.25],
+           [0.  , 0.  , 0.25, 0.25],
+           [0.5 , 0.5 , 0.75, 0.75],
+           [0.5 , 0.5 , 0.75, 0.75]])
 
-    >>> block_replicate(data, 2, conserve_sum=False)
-    array([[ 0.,  0.,  1.,  1.],
-           [ 0.,  0.,  1.,  1.],
-           [ 2.,  2.,  3.,  3.],
-           [ 2.,  2.,  3.,  3.]])
+    >>> block_replicate(data, 2, conserve_sum=False)  # doctest: +FLOAT_CMP
+    array([[0., 0., 1., 1.],
+           [0., 0., 1., 1.],
+           [2., 2., 3., 3.],
+           [2., 2., 3., 3.]])
     """
 
     data = np.asanyarray(data)
@@ -618,10 +618,10 @@ class Cutout2D(object):
     >>> from astropy import units as u
     >>> data = np.arange(20.).reshape(5, 4)
     >>> cutout1 = Cutout2D(data, (2, 2), (3, 3))
-    >>> print(cutout1.data)
-    [[  5.   6.   7.]
-        [  9.  10.  11.]
-        [ 13.  14.  15.]]
+    >>> print(cutout1.data)  # doctest: +FLOAT_CMP
+    [[ 5.  6.  7.]
+     [ 9. 10. 11.]
+     [13. 14. 15.]]
 
     >>> print(cutout1.center_original)
     (2.0, 2.0)
@@ -631,27 +631,27 @@ class Cutout2D(object):
     (1, 1)
 
     >>> cutout2 = Cutout2D(data, (2, 2), 3)
-    >>> print(cutout2.data)
-    [[  5.   6.   7.]
-        [  9.  10.  11.]
-        [ 13.  14.  15.]]
+    >>> print(cutout2.data)  # doctest: +FLOAT_CMP
+    [[ 5.  6.  7.]
+     [ 9. 10. 11.]
+     [13. 14. 15.]]
 
     >>> size = u.Quantity([3, 3], u.pixel)
     >>> cutout3 = Cutout2D(data, (0, 0), size)
-    >>> print(cutout3.data)
-    [[ 0.  1.]
-        [ 4.  5.]]
+    >>> print(cutout3.data)  # doctest: +FLOAT_CMP
+    [[0. 1.]
+     [4. 5.]]
 
     >>> cutout4 = Cutout2D(data, (0, 0), (3 * u.pixel, 3))
-    >>> print(cutout4.data)
-    [[ 0.  1.]
-        [ 4.  5.]]
+    >>> print(cutout4.data)  # doctest: +FLOAT_CMP
+    [[0. 1.]
+     [4. 5.]]
 
     >>> cutout5 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
-    >>> print(cutout5.data)
-    [[ nan  nan  nan]
-        [ nan   0.   1.]
-        [ nan   4.   5.]]
+    >>> print(cutout5.data)  # doctest: +FLOAT_CMP
+    [[nan nan nan]
+     [nan  0.  1.]
+     [nan  4.  5.]]
     """
 
     def __init__(self, data, position, size, wcs=None, mode='trim',

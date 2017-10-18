@@ -29,8 +29,8 @@ class NonFittableModel(Model):
 
 
 def test_Model_instance_repr_and_str():
-    m = NonFittableModel(42)
-    assert repr(m) == "<NonFittableModel(a=42.0)>"
+    m = NonFittableModel(42.5)
+    assert repr(m) == "<NonFittableModel(a=42.5)>"
     assert (str(m) ==
         "Model: NonFittableModel\n"
         "Inputs: ()\n"
@@ -39,7 +39,7 @@ def test_Model_instance_repr_and_str():
         "Parameters:\n"
         "     a  \n"
         "    ----\n"
-        "    42.0")
+        "    42.5")
 
     assert len(m) == 1
 

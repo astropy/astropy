@@ -63,8 +63,8 @@ Example
   >>> ty
   <Time object: scale='utc' format='mjd' value=2457389.0>
 
-  >>> ty.location
-  <EarthLocation ( 1000.,  2000.,  3000.) km>
+  >>> ty.location  # doctest: +FLOAT_CMP
+  <EarthLocation (1000., 2000., 3000.) km>
 """
 
 from __future__ import absolute_import, division

@@ -386,14 +386,14 @@ class StdDevUncertainty(NDUncertainty):
         >>> from astropy.nddata import NDData, StdDevUncertainty
         >>> ndd = NDData([1,2,3],
         ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.1,  0.1,  0.1])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.1, 0.1, 0.1])
 
     or by setting it manually on the `NDData` instance::
 
         >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
-        >>> ndd.uncertainty
-        StdDevUncertainty([ 0.2])
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.2])
 
     the uncertainty ``array`` can also be set directly::
 

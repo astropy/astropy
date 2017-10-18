@@ -767,14 +767,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         >>> from astropy import units as u
         >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
-        >>> coord.represent_as(CartesianRepresentation)
+        >>> coord.represent_as(CartesianRepresentation)  # doctest: +FLOAT_CMP
         <CartesianRepresentation (x, y, z) [dimensionless]
-                ( 1.,  0.,  0.)>
+                (1., 0., 0.)>
 
         >>> coord.representation = CartesianRepresentation
-        >>> coord
+        >>> coord  # doctest: +FLOAT_CMP
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
-            ( 1.,  0.,  0.)>
+            (1., 0., 0.)>
         """
 
         # For backwards compatibility (because in_frame_units used to be the

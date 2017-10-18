@@ -20,9 +20,11 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import ShapedLikeNDArray, classproperty
+
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 from ..utils.compat.numpy import broadcast_arrays, broadcast_to
+
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -45,6 +47,7 @@ DIFFERENTIAL_CLASSES = {}
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
+    kwargs = {'separator': ', ', 'prefix': prefix}
     if NUMPY_LT_1_12:  # pragma: no cover
         # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
         from numpy.core.arrayprint import FloatFormat
@@ -60,13 +63,15 @@ def _array2string(values, prefix=''):
                                            zip(x, format_functions)))
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
-        formatter = {'numpystr': fmt}
-    else:
-        fmt = repr
-        formatter = {}
+        kwargs['formatter'] = {'numpystr': fmt}
+        kwargs['style'] = fmt
 
-    return np.array2string(values, formatter=formatter, style=fmt,
-                           separator=', ', prefix=prefix)
+    else:
+        kwargs['formatter'] = {}
+        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+            kwargs['style'] = repr
+
+    return np.array2string(values, **kwargs)
 
 
 def _combine_xyz(x, y, z, xyz_axis=0):

@@ -157,8 +157,8 @@ is much more efficient for larger kernels.
 For example, to convolve a 1-d dataset with a user-specified kernel, you can do::
 
     >>> from astropy.convolution import convolve
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
+    array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
 Notice that the end points are set to zero - by default, points that are too
 close to the boundary to have a convolved value calculated are set to zero.
@@ -169,8 +169,8 @@ computed, assuming the original data is simply extended using a constant
 extrapolation beyond the boundary::
 
     >>> from astropy.convolution import convolve
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
+    array([1.6, 3.6, 5. , 5.6, 5.6, 6.8, 7.8])
 
 The values at the end are computed assuming that any value below the first
 point is ``1``, and any value above the last point is ``8``. For a more
@@ -186,13 +186,13 @@ To use a kernel, first create a specific instance of the kernel::
 
 ``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
 
-    >>> gauss.array
-    array([  6.69151129e-05,   4.36341348e-04,   2.21592421e-03,
-             8.76415025e-03,   2.69954833e-02,   6.47587978e-02,
-             1.20985362e-01,   1.76032663e-01,   1.99471140e-01,
-             1.76032663e-01,   1.20985362e-01,   6.47587978e-02,
-             2.69954833e-02,   8.76415025e-03,   2.21592421e-03,
-             4.36341348e-04,   6.69151129e-05])
+    >>> gauss.array  # doctest: +FLOAT_CMP
+    array([6.69151129e-05, 4.36341348e-04, 2.21592421e-03,
+           8.76415025e-03, 2.69954833e-02, 6.47587978e-02,
+           1.20985362e-01, 1.76032663e-01, 1.99471140e-01,
+           1.76032663e-01, 1.20985362e-01, 6.47587978e-02,
+           2.69954833e-02, 8.76415025e-03, 2.21592421e-03,
+           4.36341348e-04, 6.69151129e-05])
 
 The kernel can then be used directly when calling
 :func:`~astropy.convolution.convolve`:

@@ -13,6 +13,7 @@ from ...tests.helper import (catch_warnings,
                              pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
+from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyWarning
 from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
@@ -187,18 +188,27 @@ def test_frame_repr():
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    ( 1.,  2.)>')
+                        '    ({})>').format(' 1.,  2.' if NUMPY_LT_1_14
+                                             else '1., 2.')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    ( 1.,  2.,  3.)>')
+                        '    ({})>').format(' 1.,  2.,  3.' if NUMPY_LT_1_14
+                                            else '1., 2., 3.')
 
     # try with arrays
     i2 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[2.1, 3.1]*u.deg)
     i3 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[-15.6, 17.1]*u.deg, distance=[11., 21.]*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
-    assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+                        '    [{}]>').format('( 1.1,  2.1), ( 2.1,  3.1)'
+                                            if NUMPY_LT_1_14 else
+                                            '(1.1, 2.1), (2.1, 3.1)')
+
+    if NUMPY_LT_1_14:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+    else:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [(1.1, -15.6, 11.), (2.1,  17.1, 21.)]>')
 
 
 def test_frame_repr_vels():
@@ -210,9 +220,10 @@ def test_frame_repr_vels():
     # unit comes out as mas/yr because of the preferred units defined in the
     # frame RepresentationMapping
     assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                       '    ( 1.,  2.)\n'
+                       '    ({0})\n'
                        ' (pm_ra_cosdec, pm_dec) in mas / yr\n'
-                       '    ( 1.,  2.)>')
+                       '    ({0})>').format(' 1.,  2.' if NUMPY_LT_1_14 else
+                                            '1., 2.')
 
 
 def test_converting_units():
@@ -770,7 +781,8 @@ def test_representation_subclass():
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
     assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
-                           "    ( 32.,  20.)>")
+                           "    ({})>").format(' 32.,  20.' if NUMPY_LT_1_14
+                                               else '32., 20.')
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and

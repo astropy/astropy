@@ -99,8 +99,8 @@ class NDData(NDDataBase):
         >>> q = np.array([1,2,3,4]) * u.m
         >>> nd2 = NDData(q, unit=u.cm)
         INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
-        >>> nd2.data
-        array([ 1.,  2.,  3.,  4.])
+        >>> nd2.data  # doctest: +FLOAT_CMP
+        array([1., 2., 3., 4.])
         >>> nd2.unit
         Unit("cm")
 

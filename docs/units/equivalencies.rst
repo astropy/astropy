@@ -84,8 +84,8 @@ But when passing the proper conversion function,
   ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +FLOAT_CMP
-  <Quantity (0.7071067811865476+0.7071067811865475j)>
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +SKIP
+  <Quantity  0.70710678+0.70710678j>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
@@ -97,8 +97,8 @@ for converting from an angular velocity :math:`\omega` in radians per
 second to the corresponding frequency :math:`f` in hertz (i.e., to
 implement :math:`f=\omega/2\pi`). However, attempting this yields:
 
-  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())
-  <Quantity 1.0 Hz>
+  >>> (1*u.rad/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  <Quantity 1. Hz>
   >>> (1*u.cycle/u.s).to(u.Hz, equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 6.283185307179586 Hz>
 
@@ -112,8 +112,8 @@ between cycles per second and hertz:
 
   >>> (1*u.rad/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
   <Quantity 0.15915494309189535 Hz>
-  >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])
-  <Quantity 1.0 Hz>
+  >>> (1*u.cy/u.s).to(u.Hz, equivalencies=[(u.cy/u.s, u.Hz)])  # doctest: +FLOAT_CMP
+  <Quantity 1. Hz>
 
 Spectral Units
 --------------
@@ -128,10 +128,10 @@ equivalencies (in this case, the result of
 :meth:`~astropy.units.core.UnitBase.to` method and wavelength, frequency and
 energy can be converted.
 
-  >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
-  <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
+  >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  <Quantity [2.99792458e+14, 1.49896229e+14] Hz>
   >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
-  <Quantity [ 1.23984193, 0.61992096] eV>
+  <Quantity [1.23984193, 0.61992096] eV>
 
 These equivalencies even work with non-base units::
 

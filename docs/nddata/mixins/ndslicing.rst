@@ -74,11 +74,11 @@ be sliced too::
     >>> ndd_sliced.mask
     array([False,  True], dtype=bool)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.41421356,  1.73205081])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.41421356, 1.73205081])
 
-    >>> ndd_sliced.wcs
-    array([ 1.,  1.])
+    >>> ndd_sliced.wcs  # doctest: +FLOAT_CMP
+    array([1., 1.])
 
 but ``unit`` and ``meta`` will be unaffected.
 
@@ -121,8 +121,8 @@ So we are able to get all valid data points by slicing with the mask::
     >>> ndd_sliced.mask
     array([False, False, False, False], dtype=bool)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.        ,  1.73205081,  2.64575131,  2.82842712])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.        , 1.73205081, 2.64575131, 2.82842712])
 
 or all invalid points::
 
@@ -133,8 +133,8 @@ or all invalid points::
     >>> ndd_sliced.mask
     array([ True,  True,  True,  True,  True], dtype=bool)
 
-    >>> ndd_sliced.uncertainty
-    StdDevUncertainty([ 1.41421356,  2.        ,  2.23606798,  2.44948974,  3.        ])
+    >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.41421356, 2.        , 2.23606798, 2.44948974, 3.        ])
 
 .. note::
     The result of this kind of indexing (boolean indexing) will always be

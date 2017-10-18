@@ -48,14 +48,14 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
         >>> ndd2 = NDDataRef(data, uncertainty=StdDevUncertainty(data))
 
         >>> ndd3 = ndd1.add(ndd2)
-        >>> ndd3.data
-        array([[ 2.,  2.,  2.],
-               [ 2.,  2.,  2.],
-               [ 2.,  2.,  2.]])
-        >>> ndd3.uncertainty.array
-        array([[ 1.41421356,  1.41421356,  1.41421356],
-               [ 1.41421356,  1.41421356,  1.41421356],
-               [ 1.41421356,  1.41421356,  1.41421356]])
+        >>> ndd3.data  # doctest: +FLOAT_CMP
+        array([[2., 2., 2.],
+               [2., 2., 2.],
+               [2., 2., 2.]])
+        >>> ndd3.uncertainty.array  # doctest: +FLOAT_CMP
+        array([[1.41421356, 1.41421356, 1.41421356],
+               [1.41421356, 1.41421356, 1.41421356],
+               [1.41421356, 1.41421356, 1.41421356]])
 
     see `NDArithmeticMixin` for a complete list of all supported arithmetic
     operations.
@@ -63,10 +63,10 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     But also slicing (indexing) is possible::
 
         >>> ndd4 = ndd3[1,:]
-        >>> ndd4.data
-        array([ 2.,  2.,  2.])
-        >>> ndd4.uncertainty.array
-        array([ 1.41421356,  1.41421356,  1.41421356])
+        >>> ndd4.data  # doctest: +FLOAT_CMP
+        array([2., 2., 2.])
+        >>> ndd4.uncertainty.array  # doctest: +FLOAT_CMP
+        array([1.41421356, 1.41421356, 1.41421356])
 
     See `NDSlicingMixin` for a description how slicing works (which attributes)
     are sliced.
