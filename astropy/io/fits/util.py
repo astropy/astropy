@@ -22,13 +22,6 @@ from distutils.version import LooseVersion
 
 import numpy as np
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    # Use for isinstance test only
-    class StringIO:
-        pass
-
 from ...utils import wraps
 from ...utils.exceptions import AstropyUserWarning
 
@@ -332,7 +325,7 @@ def isreadable(f):
     if not hasattr(f, 'read'):
         return False
 
-    if hasattr(f, 'mode') and not any((c in f.mode for c in 'r+')):
+    if hasattr(f, 'mode') and not any(c in f.mode for c in 'r+'):
         return False
 
     # Not closed, has a 'read()' method, and either has no known mode or a
@@ -356,7 +349,7 @@ def iswritable(f):
     if not hasattr(f, 'write'):
         return False
 
-    if hasattr(f, 'mode') and not any((c in f.mode for c in 'wa+')):
+    if hasattr(f, 'mode') and not any(c in f.mode for c in 'wa+'):
         return False
 
     # Note closed, has a 'write()' method, and either has no known mode or a
@@ -707,9 +700,6 @@ def _write_string(f, s):
         s = encode_ascii(s)
     elif not binmode and not isinstance(f, str):
         s = decode_ascii(s)
-    elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
-        # Workaround for StringIO/ndarray incompatibility
-        s = s.data
 
     f.write(s)
 
