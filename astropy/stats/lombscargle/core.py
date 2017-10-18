@@ -63,14 +63,14 @@ class LombScargle:
     frequency grid & find the frequency of max power:
 
     >>> frequency, power = LombScargle(t, y).autopower()
-    >>> frequency[np.argmax(power)]
+    >>> frequency[np.argmax(power)]  # doctest: +FLOAT_CMP
     1.0016662310392956
 
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
     >>> freq = np.arange(0.8, 1.3, 0.1)
-    >>> LombScargle(t, y).power(freq)
-    array([ 0.0204304 ,  0.01393845,  0.35552682,  0.01358029,  0.03083737])
+    >>> LombScargle(t, y).power(freq)  # doctest: +FLOAT_CMP
+    array([0.0204304 , 0.01393845, 0.35552682, 0.01358029, 0.03083737])
 
     If the inputs are astropy Quantities with units, the units will be
     validated and the outputs will also be Quantities with appropriate units:
