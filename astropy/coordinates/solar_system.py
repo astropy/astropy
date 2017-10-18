@@ -466,7 +466,8 @@ get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 def get_moon(time, location=None, ephemeris=None):
     """
     Get a `~astropy.coordinates.SkyCoord` for the Earth's Moon as observed
-    from a location on Earth.
+    from a location on Earth in the `~astropy.coordinates.GCRS` reference
+    system.
 
     Parameters
     ----------
@@ -483,7 +484,8 @@ def get_moon(time, location=None, ephemeris=None):
     Returns
     -------
     skycoord : `~astropy.coordinates.SkyCoord`
-        Coordinate for the Moon
+        Coordinate for the Moon in the `~astropy.coordinates.GCRS` reference
+        system.
 
     Notes
     -----
