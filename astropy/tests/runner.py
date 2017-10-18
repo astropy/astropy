@@ -8,12 +8,24 @@ import sys
 import tempfile
 import warnings
 from collections import OrderedDict
+from importlib.util import find_spec
 
 from ..config.paths import set_temp_config, set_temp_cache
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
+
+
+def _has_test_dependencies():
+    # Using the test runner will not work without these dependencies, but
+    # pytest-openfiles is optional, so it's not listed here.
+    required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
+    for module in required:
+        if find_spec(module) is None:
+            return False
+
+    return True
 
 
 class keyword:
@@ -166,6 +178,10 @@ class TestRunnerBase:
         """
 
     def run_tests(self, **kwargs):
+        if not _has_test_dependencies():
+            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+            raise RuntimeError(msg)
+
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.
 
