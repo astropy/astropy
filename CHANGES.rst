@@ -437,6 +437,14 @@ astropy.utils
 - Fixed a bug that caused ``get_pkg_data_fileobj`` to not work correctly when
   used with non-local data from inside packages. [#6724]
 
+- Fixed ``HomogeneousList`` when setting one item or a slice. [#6773]
+
+- Also check the type when creating a new instance of
+  ``HomogeneousList``. [#6773]
+
+- Make ``HomogeneousList`` work with iterators and generators when creating the
+  instance, extending it or using when setting a slice. [#6773]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
