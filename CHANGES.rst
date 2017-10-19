@@ -448,6 +448,13 @@ astropy.utils
 
 - Fix the ``finddiff`` option in ``find_current_module`` to properly deal
   with submodules. [#6767]
+- Fixed ``HomogeneousList`` when setting one item or a slice. [#6773]
+
+- Also check the type when creating a new instance of
+  ``HomogeneousList``. [#6773]
+
+- Make ``HomogeneousList`` work with iterators and generators when creating the
+  instance, extending it or using when setting a slice. [#6773]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
