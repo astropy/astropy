@@ -17,7 +17,7 @@ from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-def _has_test_dependencies():
+def _has_test_dependencies(): # pragma: no cover
     # Using the test runner will not work without these dependencies, but
     # pytest-openfiles is optional, so it's not listed here.
     required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
@@ -178,7 +178,7 @@ class TestRunnerBase:
         """
 
     def run_tests(self, **kwargs):
-        if not _has_test_dependencies():
+        if not _has_test_dependencies(): # pragma: no cover
             msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
             raise RuntimeError(msg)
 
