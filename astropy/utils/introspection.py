@@ -6,7 +6,7 @@
 import inspect
 import re
 import types
-
+import importlib
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
@@ -255,7 +255,7 @@ def find_current_module(depth=1, finddiff=False):
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, str):
-                    diffmods.append(__import__(fd))
+                    diffmods.append(importlib.import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
