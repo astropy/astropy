@@ -1,8 +1,6 @@
 # Load the WCS information from a fits header, and use it
 # to convert pixel coordinates to world coordinates.
 
-from __future__ import division, print_function
-
 import numpy as np
 from astropy import wcs
 from astropy.io import fits
