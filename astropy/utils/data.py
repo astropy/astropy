@@ -454,11 +454,13 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
                     fileobj.read(1)
                     fileobj.seek(0)
                     yield fileobj
-            except urllib.error.URLError as e:
+                    break
+            except urllib.error.URLError:
                 pass
-        urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
-        raise urllib.error.URLError("Failed to download {0} from the following "
-                                    "repositories:\n\n{1}".format(data_name, urls))
+        else:
+            urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
+            raise urllib.error.URLError("Failed to download {0} from the following "
+                                        "repositories:\n\n{1}".format(data_name, urls))
 
 
 def get_pkg_data_filename(data_name, package=None, show_progress=True,
@@ -832,8 +834,7 @@ def _find_pkg_data_path(data_name, package=None):
     """
 
     if package is None:
-        module = find_current_module(1, True)
-
+        module = find_current_module(1, finddiff=['astropy.utils.data', 'contextlib'])
         if module is None:
             # not called from inside an astropy package.  So just pass name
             # through
