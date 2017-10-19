@@ -437,6 +437,9 @@ astropy.utils
 - Fixed a bug that caused ``get_pkg_data_fileobj`` to not work correctly when
   used with non-local data from inside packages. [#6724]
 
+- Make sure ``get_pkg_data_fileobj`` fails if the URL can not be read, and
+  correctly falls back on the mirror if necessary. [#6767]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -453,6 +456,8 @@ Other Changes and Additions
   use mathjax instead. [#6701]
 
 - Fixed broken links in the documentation. [#6745]
+
+- Make sure that all tests use the Astropy data mirror if needed. [#6767]
 
 2.0.2 (2017-09-08)
 ==================
