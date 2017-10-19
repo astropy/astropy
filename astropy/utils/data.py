@@ -446,8 +446,13 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         all_urls = (conf.dataurl, conf.dataurl_mirror)
         for url in all_urls:
             try:
-                return get_readable_fileobj(url + data_name, encoding=encoding,
-                                            cache=cache)
+                fileobj = get_readable_fileobj(url + data_name, encoding=encoding,
+                                               cache=cache)
+                # We need to try and read a byte of the file here to make sure
+                # that the URL does work, otherwise it will be too late later
+                # to fall back on a mirror.
+                fileobj.read(1)
+                fileobj.seek(0)
             except urllib.error.URLError as e:
                 pass
         urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
