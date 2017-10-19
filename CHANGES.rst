@@ -440,6 +440,9 @@ astropy.utils
 - Make sure ``get_pkg_data_fileobj`` fails if the URL can not be read, and
   correctly falls back on the mirror if necessary. [#6767]
 
+- Fix the ``finddiff`` option in ``find_current_module`` to properly deal
+  with submodules. [#6767]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
