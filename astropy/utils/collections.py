@@ -21,7 +21,8 @@ class HomogeneousList(list):
             An initial set of values.
         """
         self._types = types
-        list.__init__(self, values)
+        list.__init__(self)
+        self.extend(values)
 
     def _assert(self, x):
         if not isinstance(x, self._types):
@@ -30,13 +31,17 @@ class HomogeneousList(list):
                 "type '{}'".format(self._types))
 
     def __iadd__(self, other):
-        for x in other:
-            self._assert(x)
-        return list.__iadd__(self, other)
+        self.extend(other)
+        return self
 
-    def __setitem__(self, x):
-        self._assert(x)
-        return list.__setitem__(self, x)
+    def __setitem__(self, idx, value):
+        if isinstance(idx, slice):
+            value = list(value)
+            for item in value:
+                self._assert(item)
+        else:
+            self._assert(value)
+        return list.__setitem__(self, idx, value)
 
     def append(self, x):
         self._assert(x)
@@ -49,4 +54,4 @@ class HomogeneousList(list):
     def extend(self, x):
         for item in x:
             self._assert(item)
-        return list.extend(self, x)
+            list.append(self, item)
