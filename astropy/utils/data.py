@@ -296,11 +296,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         fileobj = io.BufferedReader(fileobj)
         fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
 
-        # We need to try and read a byte of the file here to make sure
-        # that the URL does work, otherwise it will be too late later
-        # to fall back on a mirror.
-        fileobj.read(1)
-
         # Ensure that file is at the start - io.FileIO will for
         # example not always be at the start:
         # >>> import io
@@ -311,8 +306,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # >>> fileobj = io.FileIO(f.fileno())
         # >>> fileobj.tell()
         # 4096L
-        # and since we now read(1) above, we definitely need to go back to
-        # the start
 
         fileobj.seek(0)
 
@@ -341,6 +334,7 @@ def get_file_contents(*args, **kwargs):
         return f.read()
 
 
+@contextlib.contextmanager
 def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations for the package and
@@ -448,13 +442,18 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         raise IOError("Tried to access a data file that's actually "
                       "a package data directory")
     elif os.path.isfile(datafn):  # local file
-        return get_readable_fileobj(datafn, encoding=encoding)
+        with get_readable_fileobj(datafn, encoding=encoding) as fileobj:
+            yield fileobj
     else:  # remote file
         all_urls = (conf.dataurl, conf.dataurl_mirror)
         for url in all_urls:
             try:
-                return get_readable_fileobj(url + data_name, encoding=encoding,
-                                            cache=cache)
+                with get_readable_fileobj(url + data_name, encoding=encoding,
+                                          cache=cache) as fileobj:
+                    # We read a byte to trigger any URLErrors
+                    fileobj.read(1)
+                    fileobj.seek(0)
+                    yield fileobj
             except urllib.error.URLError as e:
                 pass
         urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
