@@ -103,6 +103,16 @@ def test_guess_with_format_arg():
     assert dat.colnames == ['a', 'b']
 
 
+def test_reading_mixed_delimiter_tabs_spaces():
+    # Regression test for https://github.com/astropy/astropy/issues/6770
+    dat = ascii.read('1 2\t3\n1 2\t3', format='no_header', names=list('abc'))
+    assert len(dat) == 2
+
+    Table.read(['1 2\t3', '1 2\t3'], format='ascii.no_header',
+               names=['a', 'b', 'c'])
+    assert len(dat) == 2
+
+
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_with_names_arg(fast_reader):
     """
