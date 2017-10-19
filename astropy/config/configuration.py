@@ -472,7 +472,7 @@ def get_config_filename(packageormod=None, rootname=None):
     Get the filename of the config file associated with the given
     package or module.
     """
-    cfg = get_config(packageormod, rootname=None)
+    cfg = get_config(packageormod, rootname=rootname)
     while cfg.parent is not cfg:
         cfg = cfg.parent
     return cfg.filename
