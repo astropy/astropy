@@ -296,6 +296,11 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         fileobj = io.BufferedReader(fileobj)
         fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
 
+        # We need to try and read a byte of the file here to make sure
+        # that the URL does work, otherwise it will be too late later
+        # to fall back on a mirror.
+        fileobj.read(1)
+
         # Ensure that file is at the start - io.FileIO will for
         # example not always be at the start:
         # >>> import io
@@ -306,6 +311,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # >>> fileobj = io.FileIO(f.fileno())
         # >>> fileobj.tell()
         # 4096L
+        # and since we now read(1) above, we definitely need to go back to
+        # the start
 
         fileobj.seek(0)
 
@@ -446,13 +453,8 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         all_urls = (conf.dataurl, conf.dataurl_mirror)
         for url in all_urls:
             try:
-                fileobj = get_readable_fileobj(url + data_name, encoding=encoding,
-                                               cache=cache)
-                # We need to try and read a byte of the file here to make sure
-                # that the URL does work, otherwise it will be too late later
-                # to fall back on a mirror.
-                fileobj.read(1)
-                fileobj.seek(0)
+                return get_readable_fileobj(url + data_name, encoding=encoding,
+                                            cache=cache)
             except urllib.error.URLError as e:
                 pass
         urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
