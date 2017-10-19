@@ -422,11 +422,10 @@ class DefaultSplitter(BaseSplitter):
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
 
-        if self.delimiter == r'\s':
-            self.delimiter = ' '
+        delimiter = ' ' if self.delimiter == r'\s' else self.delimiter
 
         csv_reader = csv.reader(lines,
-                                delimiter=self.delimiter,
+                                delimiter=delimiter,
                                 doublequote=self.doublequote,
                                 escapechar=self.escapechar,
                                 quotechar=self.quotechar,
