@@ -695,16 +695,8 @@ class TimeString(TimeUnique):
         # with the default values.
         components = ('year', 'mon', 'mday', 'hour', 'min', 'sec')
         defaults = (None, 1, 1, 0, 0, 0)
-        # Assume that anything following "." on the right side is a
-        # floating fraction of a second.
-        try:
-            idot = timestr.rindex('.')
-        except Exception:
-            fracsec = 0.0
-        else:
-            timestr, fracsec = timestr[:idot], timestr[idot:]
-            fracsec = float(fracsec)
-
+        fracsec = 0.0
+        fracday = 0.0
         for _, strptime_fmt_or_regex, _ in subfmts:
             if isinstance(strptime_fmt_or_regex, str):
                 try:
@@ -720,11 +712,33 @@ class TimeString(TimeUnique):
                 if tm is None:
                     continue
                 tm = tm.groupdict()
+                if '.' in tm.get('sec', ''):
+                    tm['sec'], fracsec = tm['sec'].split('.', maxsplit=1)
+                    fracsec = float('.' + fracsec) if fracsec else 0.0
+                if '.' in tm.get('mday', ''):
+                    tm['mday'], fracday = tm['mday'].split('.', maxsplit=1)
+                    fracday = float('.' + fracday) if fracday else 0.0
+                if 'yday' in tm:
+                    if '.' in tm['yday']:
+                        tm['yday'], fracday = tm['yday'].split('.', maxsplit=1)
+                        fracday = float('.' + fracday) if fracday else 0.0
+                    temp = '{}:{}'.format(tm['year'], tm['yday'])
+                    temp = time.strptime(temp, '%Y:%j')
+                    tm['mon'] = temp.tm_mon
+                    tm['mday'] = temp.tm_mday
                 vals = [int(tm.get(component, default)) for component, default
                         in zip(components, defaults)]
 
             # Add fractional seconds
             vals[-1] = vals[-1] + fracsec
+            if fracday != 0.0:
+                scale = self.scale.upper().encode('ascii')
+                jd, _ = erfa.dtf2d(self.scale.upper().encode('ascii'), *vals)
+                iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
+                                                   jd, fracday)
+                vals[3] = ihmsfs[0]
+                vals[4] = ihmsfs[1]
+                vals[5] = ihmsfs[2] + ihmsfs[3] / 1e6
             return vals
         else:
             raise ValueError('Time {0} does not match {1} format'
@@ -830,7 +844,9 @@ class TimeISO(TimeString):
 
     name = 'iso'
     subfmts = (('date_hms',
-                '%Y-%m-%d %H:%M:%S',
+                (r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2}) '
+                 r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2}(\.\d*)?)'),
+                #'%Y-%m-%d %H:%M:%S',
                 # XXX To Do - use strftime for output ??
                 '{year:d}-{mon:02d}-{day:02d} {hour:02d}:{min:02d}:{sec:02d}'),
                ('date_hm',
@@ -838,7 +854,10 @@ class TimeISO(TimeString):
                 '{year:d}-{mon:02d}-{day:02d} {hour:02d}:{min:02d}'),
                ('date',
                 '%Y-%m-%d',
-                '{year:d}-{mon:02d}-{day:02d}'))
+                '{year:d}-{mon:02d}-{day:02d}'),
+               ('fracdate',
+                r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2}(\.\d*))',
+                '{year:d}-{mon:02d}-{day:f}'))
 
     def parse_string(self, timestr, subfmts):
         # Handle trailing 'Z' for UTC time
@@ -866,7 +885,9 @@ class TimeISOT(TimeISO):
 
     name = 'isot'
     subfmts = (('date_hms',
-                '%Y-%m-%dT%H:%M:%S',
+                (r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})T'
+                 r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2}(\.\d*)?)'),
+                #'%Y-%m-%dT%H:%M:%S',
                 '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
                ('date_hm',
                 '%Y-%m-%dT%H:%M',
@@ -891,14 +912,20 @@ class TimeYearDayTime(TimeISO):
 
     name = 'yday'
     subfmts = (('date_hms',
-                '%Y:%j:%H:%M:%S',
+                (r'(?P<year>\d{4}):(?P<yday>\d{1,3}):'
+                 r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):'
+                 r'(?P<sec>\d{1,2}(\.\d+)?)'),
+                #'%Y:%j:%H:%M:%S',
                 '{year:d}:{yday:03d}:{hour:02d}:{min:02d}:{sec:02d}'),
                ('date_hm',
                 '%Y:%j:%H:%M',
                 '{year:d}:{yday:03d}:{hour:02d}:{min:02d}'),
                ('date',
                 '%Y:%j',
-                '{year:d}:{yday:03d}'))
+                '{year:d}:{yday:03d}'),
+               ('fracdate',
+                r'(?P<year>\d{4}):(?P<yday>\d{1,3}(\.\d*))',
+                '{year:d}:{yday:f}'))
 
 
 class TimeFITS(TimeString):
