@@ -59,10 +59,11 @@ class AxisLabels(Text):
 
         for axis in self.get_visible_axes():
 
-            # Flatten the bboxes for all coords for this axis.
+            # Flatten the bboxes for all coords and all axes
             ticklabels_bbox_list = []
-            for bbox_coord in ticklabels_bbox.values():
-                ticklabels_bbox_list += bbox_coord[axis]
+            for bbcoord in ticklabels_bbox.values():
+                for bbaxis in bbcoord.values():
+                    ticklabels_bbox_list += bbaxis
 
             if self.get_visibility_rule() == 'ticks':
                 if not ticks_locs[axis]:
