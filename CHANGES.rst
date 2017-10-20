@@ -467,6 +467,10 @@ astropy.visualization
   ``WCSPixel2WorldTransform`` classes by setting ``has_inverse`` to ``True``.
   In order to implement a unit test, also implement the equality comparison
   operator for both classes. [#6531]
+- Added automatic hiding of axes labels when no tick labels are drawn on that
+  axis. This parameter can be configured with
+  ``WCSAxes.coords[].set_visibility_rule`` so that labels are auto hidden when no
+  ticks are drawn or always shown. [#6774]
 
 astropy.wcs
 ^^^^^^^^^^^
