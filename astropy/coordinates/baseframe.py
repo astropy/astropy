@@ -1257,8 +1257,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         .. note::
 
             If the ``other`` coordinate object is in a different frame, it is
-            first transformed to the frame of this object - this can lead to
-            unexpected behavior.
+            first transformed to the frame of this object. This can lead to
+            unintutive behavior if not accounted for. Particularly of note is
+            that ``self.separation(other)`` and ``other.separation(self)`` may
+            not give the same answer in this case.
 
         Parameters
         ----------
