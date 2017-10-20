@@ -345,8 +345,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     filename as a first argument, you can do for example::
 
         >>> def my_identifier(*args, **kwargs):
-        ...     return (isinstance(args[0], basestring) and
-        ...             args[0].endswith('.tbl'))
+        ...     return isinstance(args[0], str) and args[0].endswith('.tbl')
         >>> register_identifier('ipac', Table, my_identifier)
     """
 
