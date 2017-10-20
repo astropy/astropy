@@ -5,6 +5,7 @@ import os
 
 from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
 
+from astropy.io.asdf.tags.fits import FitsType
 from astropy.io.asdf.tags.time import TimeType
 from astropy.io.asdf.tags.unit import UnitType, QuantityType
 from astropy.io.asdf.tags.table import TableType, ColumnType
@@ -17,7 +18,14 @@ SCHEMA_PATH = os.path.abspath(
 class AstropyExtension(object):
     @property
     def types(self):
-        return [TimeType, UnitType, QuantityType, TableType, ColumnType]
+        return [
+            FitsType,
+            TimeType,
+            UnitType,
+            QuantityType,
+            TableType,
+            ColumnType
+        ]
 
     @property
     def tag_mapping(self):
