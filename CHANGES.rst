@@ -460,7 +460,7 @@ Other Changes and Additions
 
 - Fixed broken links in the documentation. [#6745]
 
-- Make sure that all tests use the Astropy data mirror if needed. [#6767]
+- Ensured that all tests use the Astropy data mirror if needed. [#6767]
 
 2.0.2 (2017-09-08)
 ==================
