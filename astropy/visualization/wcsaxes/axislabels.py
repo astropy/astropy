@@ -44,12 +44,13 @@ class AxisLabels(Text):
         if value not in allowed:
             raise ValueError("Axis label visiblility rule must be one of{}".format(' / '.join(allowed)))
 
-        self._visibility_rule = value
+        self._visiblility_rule = value
 
     def get_visibility_rule(self):
         return self._visiblility_rule
 
-    def draw(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
+    def draw(self, renderer, bboxes, ticklabels_bbox,
+             coord_ticklabels_bbox, ticks_locs, visible_ticks):
 
         if not self.get_visible():
             return
@@ -58,14 +59,17 @@ class AxisLabels(Text):
 
         for axis in self.get_visible_axes():
 
-            ticklabels_bbox_list = ticklabels_bbox[axis]
+            # Flatten the bboxes for all coords for this axis.
+            ticklabels_bbox_list = []
+            for bbox_coord in ticklabels_bbox.values():
+                ticklabels_bbox_list += bbox_coord[axis]
 
             if self.get_visibility_rule() == 'ticks':
                 if not ticks_locs[axis]:
                     continue
 
             elif self.get_visibility_rule() == 'labels':
-                if not ticklabels_bbox_list:
+                if not coord_ticklabels_bbox:
                     continue
 
             padding = text_size * self.get_minpad(axis)
