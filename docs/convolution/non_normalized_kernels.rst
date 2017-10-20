@@ -69,14 +69,14 @@ before applying the peak-finding kernel.
    yinds, xinds = np.indices(img.shape)
    img[np.random.choice(yinds.flat, 50), np.random.choice(xinds.flat, 50)] = np.nan
 
-   # We smooth with a Gaussian kernel with stddev=1
+   # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
-   kernel = Gaussian2DKernel(stddev=1)
- 
+   kernel = Gaussian2DKernel(x_stddev=1)
+
    # interpolate away the NaNs
    reconstructed_image = interpolate_replace_nans(img, kernel)
- 
- 
+
+
    # apply peak-finding
    kernel = CustomKernel([[-1,-1,-1], [-1, 8, -1], [-1,-1,-1]])
 
