@@ -22,11 +22,13 @@ def test_homogeneous_list2():
 def test_homogeneous_list3():
     l = collections.HomogeneousList(int)
     l.append(5)
+    assert l == [5]
 
 
 def test_homogeneous_list4():
     l = collections.HomogeneousList(int)
     l.extend([5])
+    assert l == [5]
 
 
 @raises(TypeError)
@@ -38,11 +40,19 @@ def test_homogeneous_list5():
 def test_homogeneous_list_setitem_works():
     l = collections.HomogeneousList(int, [1, 2, 3])
     l[1] = 5
+    assert l == [1, 5, 3]
 
 
 def test_homogeneous_list_setitem_works_with_slice():
     l = collections.HomogeneousList(int, [1, 2, 3])
     l[0:1] = [10, 20, 30]
+    assert l == [10, 20, 30, 2, 3]
+
+    l[:] = [5, 4, 3]
+    assert l == [5, 4, 3]
+
+    l[::2] = [2, 1]
+    assert l == [2, 4, 1]
 
 
 def test_homogeneous_list_init_got_invalid_type():

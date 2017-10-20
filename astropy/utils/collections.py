@@ -21,7 +21,7 @@ class HomogeneousList(list):
             An initial set of values.
         """
         self._types = types
-        list.__init__(self)
+        super().__init__()
         self.extend(values)
 
     def _assert(self, x):
@@ -41,17 +41,17 @@ class HomogeneousList(list):
                 self._assert(item)
         else:
             self._assert(value)
-        return list.__setitem__(self, idx, value)
+        return super().__setitem__(idx, value)
 
     def append(self, x):
         self._assert(x)
-        return list.append(self, x)
+        return super().append(x)
 
     def insert(self, i, x):
         self._assert(x)
-        return list.insert(self, i, x)
+        return super().insert(i, x)
 
     def extend(self, x):
         for item in x:
             self._assert(item)
-            list.append(self, item)
+            super().append(item)
