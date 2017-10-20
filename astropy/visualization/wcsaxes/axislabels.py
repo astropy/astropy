@@ -19,7 +19,7 @@ class AxisLabels(Text):
         self.set_ha('center')
         self.set_va('center')
         self._minpad = minpad
-        self._visiblility_rule = 'labels'
+        self._visibility_rule = 'labels'
 
     def get_minpad(self, axis):
         try:
@@ -42,12 +42,12 @@ class AxisLabels(Text):
     def set_visibility_rule(self, value):
         allowed = ['always', 'labels', 'ticks']
         if value not in allowed:
-            raise ValueError("Axis label visiblility rule must be one of{}".format(' / '.join(allowed)))
+            raise ValueError("Axis label visibility rule must be one of{}".format(' / '.join(allowed)))
 
-        self._visiblility_rule = value
+        self._visibility_rule = value
 
     def get_visibility_rule(self):
-        return self._visiblility_rule
+        return self._visibility_rule
 
     def draw(self, renderer, bboxes, ticklabels_bbox,
              coord_ticklabels_bbox, ticks_locs, visible_ticks):
