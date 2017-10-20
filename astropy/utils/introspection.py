@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import re
 import types
+import importlib
 
 from ..extern import six
 from ..extern.six.moves import range, zip
@@ -263,7 +264,7 @@ def find_current_module(depth=1, finddiff=False):
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, six.string_types):
-                    diffmods.append(__import__(fd))
+                    diffmods.append(importlib.import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
