@@ -128,7 +128,7 @@ class Ticks(Line2D):
 
     _tickvert_path = Path([[0., 0.], [1., 0.]])
 
-    def draw(self, renderer):
+    def draw(self, renderer, ticks_locs):
         """
         Draw the ticks.
         """
@@ -137,12 +137,12 @@ class Ticks(Line2D):
             return
 
         offset = renderer.points_to_pixels(self.get_ticksize())
-        self._draw_ticks(renderer, self.pixel, self.angle, offset)
+        self._draw_ticks(renderer, self.pixel, self.angle, offset, ticks_locs)
         if self._display_minor_ticks:
             offset = offset * 0.5  # for minor ticksize
-            self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset)
+            self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset, ticks_locs)
 
-    def _draw_ticks(self, renderer, pixel_array, angle_array, offset):
+    def _draw_ticks(self, renderer, pixel_array, angle_array, offset, ticks_locs):
         """
         Draw the minor ticks.
         """
@@ -176,5 +176,7 @@ class Ticks(Line2D):
 
                 # Reset the tick rotation before moving to the next tick
                 marker_rotation.clear()
+
+                ticks_locs[axis].append(locs)
 
         gc.restore()
