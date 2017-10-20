@@ -490,6 +490,7 @@ class CoordinateHelper:
 
         self.axislabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox=ticklabels_bbox,
+                             coord_ticklabels_bbox=ticklabels_bbox[self],
                              ticks_locs=ticks_locs,
                              visible_ticks=visible_ticks)
 

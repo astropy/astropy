@@ -354,7 +354,7 @@ class WCSAxes(Axes):
 
             for coord in coords:
                 coord._draw_axislabels(renderer, bboxes=self._bboxes,
-                                       ticklabels_bbox=ticklabels_bbox[coord],
+                                       ticklabels_bbox=ticklabels_bbox,
                                        ticks_locs=ticks_locs[coord],
                                        visible_ticks=visible_ticks)
 
