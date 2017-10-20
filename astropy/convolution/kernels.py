@@ -8,7 +8,7 @@ from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
 from ..modeling import models
 from ..modeling.core import Fittable1DModel, Fittable2DModel
-
+from ..utils.decorators import deprecated_renamed_argument
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -97,8 +97,13 @@ class Gaussian2DKernel(Kernel2D):
 
     Parameters
     ----------
-    stddev : number
-        Standard deviation of the Gaussian kernel.
+    x_stddev : float
+        Standard deviation of the Gaussian in x before rotating by theta.
+    y_stddev : float
+        Standard deviation of the Gaussian in y before rotating by theta.
+    theta : float
+        Rotation angle in radians. The rotation angle increases
+        counterclockwise.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * stddev.
     y_size : odd int, optional
@@ -146,10 +151,15 @@ class Gaussian2DKernel(Kernel2D):
     _separable = True
     _is_bool = False
 
-    def __init__(self, stddev, **kwargs):
-        self._model = models.Gaussian2D(1. / (2 * np.pi * stddev ** 2), 0,
-                                        0, stddev, stddev)
-        self._default_size = _round_up_to_odd_integer(8 * stddev)
+    @deprecated_renamed_argument('stddev', 'x_stddev', '3.0')
+    def __init__(self, x_stddev, y_stddev=None, theta=0.0, **kwargs):
+        if y_stddev is None:
+            y_stddev = x_stddev
+        self._model = models.Gaussian2D(1. / (2 * np.pi * x_stddev * y_stddev),
+                                        0, 0, x_stddev=x_stddev,
+                                        y_stddev=y_stddev, theta=theta)
+        self._default_size = _round_up_to_odd_integer(
+            8 * np.max([x_stddev, y_stddev]))
         super().__init__(**kwargs)
         self._truncation = np.abs(1. - self._array.sum())
 

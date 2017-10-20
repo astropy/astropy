@@ -136,6 +136,10 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- ``Gaussian2DKernel`` now accepts ``x_stddev`` in place of ``stddev`` with
+  an option for ``y_stddev``, if different. It also accepts ``theta`` like
+  ``Gaussian2D`` model. [#3605, #6748]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
