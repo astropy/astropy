@@ -718,6 +718,14 @@ class SkyCoord(ShapedLikeNDArray):
         """
         Computes on-sky separation between this coordinate and another.
 
+        .. note::
+
+            If the ``other`` coordinate object is in a different frame, it is
+            first transformed to the frame of this object. This can lead to
+            unintutive behavior if not accounted for. Particularly of note is
+            that ``self.separation(other)`` and ``other.separation(self)`` may
+            not give the same answer in this case.
+
         For more on how to use this (and related) functionality, see the
         examples in :doc:`/coordinates/matchsep`.
 
