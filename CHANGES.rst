@@ -306,6 +306,14 @@ astropy.utils
   original. This is needed so that the Python 3 ``super`` without arguments
   works for decorated classes. [#6615]
 
+- Fixed ``HomogeneousList`` when setting one item or a slice. [#6773]
+
+- Also check the type when creating a new instance of
+  ``HomogeneousList``. [#6773]
+
+- Make ``HomogeneousList`` work with iterators and generators when creating the
+  instance, extending it, or using when setting a slice. [#6773]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
