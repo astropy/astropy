@@ -434,5 +434,5 @@ def test_function_transform_with_differentials():
 
 def test_lookup_name():
     g = t.TransformGraph()
-    with pytest.raises(NameError):
+    with pytest.raises(KeyError):
         g.lookup_name('banana', suppress_error=True)
