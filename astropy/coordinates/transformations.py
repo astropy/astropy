@@ -371,10 +371,10 @@ class TransformGraph:
         if not raise_exception:
             return self._cached_names.get(name, None)
         else:
-           if name in self._cached_names:
-                      return self._cached_names[name]
-           else:
-                      raise NameError("name not found")
+            if name in self._cached_names:
+                return self._cached_names[name]
+            else:
+                raise NameError("name not found")
 
     def get_names(self):
         """
