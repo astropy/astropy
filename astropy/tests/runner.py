@@ -203,7 +203,6 @@ class TestRunnerBase:
         # Make plugins available to test runner without registering them
         self.keywords['plugins'].extend([
             'astropy.tests.plugins.display',
-            'astropy.tests.plugins.repeat',
             'astropy.tests.plugins.config'
         ])
 
