@@ -431,7 +431,7 @@ def test_function_transform_with_differentials():
         assert len(w) == 1
         assert 'they have been dropped' in str(w[0].message)
 
- 
+
 def test_lookup_name():
     g = t.TransformGraph()
     with pytest.raises(NameError):
