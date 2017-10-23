@@ -359,7 +359,7 @@ class TransformGraph:
             If True (the default) then it returns None if the name isn't
             found otherwise it will raise an Exception.
 
-            ..versionadded:: 3.0
+            .. versionadded:: 3.0
 
         Returns
         -------
