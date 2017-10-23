@@ -1417,7 +1417,7 @@ class CompImageHDU(BinTableHDU):
     def compressed_data(self):
         # First we will get the table data (the compressed
         # data) from the file, if there is any.
-        compressed_data = super(BinTableHDU, self).data
+        compressed_data = super().data
         if isinstance(compressed_data, np.rec.recarray):
             # Make sure not to use 'del self.data' so we don't accidentally
             # go through the self.data.fdel and close the mmap underlying

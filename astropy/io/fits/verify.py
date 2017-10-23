@@ -127,7 +127,7 @@ class _ErrList(list):
     """
 
     def __new__(cls, val=None, unit='Element'):
-        return super(cls, cls).__new__(cls, val)
+        return super().__new__(cls, val)
 
     def __init__(self, val=None, unit='Element'):
         self.unit = unit
