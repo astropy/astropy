@@ -3,17 +3,9 @@
 
 import os
 
-from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
+from astropy.io.asdf.types import _astropy_asdf_types
 
-from astropy.io.asdf.tags.fits import FitsType
-from astropy.io.asdf.tags.time import TimeType
-from astropy.io.asdf.tags.unit import UnitType, QuantityType
-from astropy.io.asdf.tags.table import TableType, ColumnType
-from astropy.io.asdf.tags.transform import (
-    TransformType, IdentityType, ConstantType, DomainType, CompoundType,
-    RemapAxesType, ShiftType, ScaleType, PolynomialType, AffineType,
-    Rotate2DType, Rotate3DType, TabularType)
-from astropy.io.asdf.tags.transform.projections import _projection_types
+from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
 
 
 SCHEMA_PATH = os.path.abspath(
@@ -23,30 +15,7 @@ SCHEMA_PATH = os.path.abspath(
 class AstropyExtension(object):
     @property
     def types(self):
-        # TODO: This could be simplified by an AstropyType that inherits from
-        # asdf.asdftypes.CustomType and automatically adds each subclass to
-        # a list (much like AsdfType does internally).
-        return [
-            FitsType,
-            TimeType,
-            UnitType,
-            QuantityType,
-            TableType,
-            ColumnType,
-            TransformType,
-            IdentityType,
-            ConstantType,
-            DomainType,
-            CompoundType,
-            RemapAxesType,
-            ShiftType,
-            ScaleType,
-            PolynomialType,
-            AffineType,
-            Rotate2DType,
-            Rotate3DType,
-            TabularType
-        ] + _projection_types
+        return _astropy_asdf_types
 
     @property
     def tag_mapping(self):

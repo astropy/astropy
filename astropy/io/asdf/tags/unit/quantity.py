@@ -5,15 +5,13 @@ from numpy import isscalar
 from astropy.units import Quantity
 
 from asdf.yamlutil import custom_tree_to_tagged_tree
-from asdf.asdftypes import CustomType
 from asdf.tags.core import NDArrayType
 
+from astropy.io.asdf.types import AstropyAsdfType
 from . import UnitType
 
 
-class QuantityType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class QuantityType(AstropyAsdfType):
     name = 'unit/quantity'
     types = ['astropy.units.Quantity']
     requires = ['astropy']

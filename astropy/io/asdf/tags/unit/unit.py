@@ -4,13 +4,10 @@
 import six
 
 from astropy.units import Unit, UnitBase
+from astropy.io.asdf.types import AstropyAsdfType
 
-from asdf.asdftypes import CustomType
 
-
-class UnitType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class UnitType(AstropyAsdfType):
     name = 'unit/unit'
     types = ['astropy.units.UnitBase']
     requires = ['astropy']

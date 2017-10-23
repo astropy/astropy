@@ -3,17 +3,15 @@
 
 from astropy.modeling import mappings
 from astropy.utils import minversion
+from astropy.io.asdf.types import AstropyAsdfType
 
-from asdf.asdftypes import CustomType
 from asdf import tagged, yamlutil
 
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType', 'DomainType']
 
 
-class TransformType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class TransformType(AstropyAsdfType):
     version = '1.1.0'
     requires = ['astropy']
 
@@ -132,10 +130,8 @@ class ConstantType(TransformType):
         }
 
 
-class DomainType(CustomType):
+class DomainType(AstropyAsdfType):
     # TODO: Is this used anywhere? Can it be removed?
-    organization = 'stsci.edu'
-    standard = 'asdf'
     name = "transform/domain"
     version = '1.0.0'
 

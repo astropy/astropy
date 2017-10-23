@@ -3,15 +3,13 @@
 import numpy as np
 
 from astropy import table
+from astropy.io.asdf.types import AstropyAsdfType
 
 from asdf import yamlutil
-from asdf.asdftypes import CustomType
 from asdf.tags.core.ndarray import NDArrayType
 
 
-class TableType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class TableType(AstropyAsdfType):
     name = 'core/table'
     types = ['astropy.table.Table']
     requires = ['astropy']
@@ -46,9 +44,7 @@ class TableType(CustomType):
         NDArrayType.assert_equal(np.array(old), np.array(new))
 
 
-class ColumnType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class ColumnType(AstropyAsdfType):
     name = 'core/column'
     types = ['astropy.table.Column', 'astropy.table.MaskedColumn']
     requires = ['astropy']

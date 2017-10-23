@@ -4,14 +4,12 @@
 import numpy as np
 
 from astropy.io import fits
+from astropy.io.asdf.types import AstropyAsdfType
 
-from asdf.asdftypes import CustomType
 from asdf import yamlutil
 
 
-class FitsType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class FitsType(AstropyAsdfType):
     name = 'fits/fits'
     types = ['astropy.io.fits.HDUList']
     requires = ['astropy']
