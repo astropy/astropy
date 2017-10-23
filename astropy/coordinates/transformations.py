@@ -355,19 +355,16 @@ class TransformGraph:
         ----------
         name : str
             The alias to look up.
-        suppress_error : bool (default value is False)
-            True : doesn't raise exception if 'name' isn't found. (returns None)
-            False : raises exception if 'name' isn't found.
+        suppress_error : bool (..versionadded:: 3.0)
+            If True (the default) then it returns None if the name isn't
+            found otherwise it will raise an Exception.
 
         Returns
         -------
         coordcls
-        if suppress_error == True:
-            The coordinate class corresponding to the ``name`` or `None` if
-            no such class exists.
-        if suppress_error == False:
-            The coordinate class corresponding to the ``name`` or raises KeyError
-            if no such class exists.
+            The coordinate class corresponding to the name. If no such class
+            exists it returns None if suppress_error is true, otherwise
+            it raises an exception.
 
         Raises
         -------
