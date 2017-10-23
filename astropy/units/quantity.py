@@ -21,6 +21,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
@@ -1173,6 +1174,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """Quantities should always be treated as non-False; there is too much
         potential for ambiguity otherwise.
         """
+        warnings.warn('The truth value of a Quantity is ambiguous. '
+                      'In the future this will raise a ValueError.',
+                      AstropyDeprecationWarning)
         return True
 
     def __len__(self):
