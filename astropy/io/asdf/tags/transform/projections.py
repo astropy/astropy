@@ -202,22 +202,18 @@ _generic_projections = {
 
 
 def make_projection_types():
-    global _projection_types
     for tag_name, (name, params) in _generic_projections.items():
         class_name = '{0}Type'.format(name)
         types = ['astropy.modeling.projections.Pix2Sky_{0}'.format(name),
                  'astropy.modeling.projections.Sky2Pix_{0}'.format(name)]
 
-        new_class = type(
+        globals()[class_name] = type(
             str(class_name),
             (GenericProjectionType,),
             {'name': 'transform/{0}'.format(tag_name),
              'types': types,
              'params': params})
-        globals()[class_name] = new_class
 
-        _projection_types.append(new_class)
         __all__.append(class_name)
 
-_projection_types = []
 make_projection_types()

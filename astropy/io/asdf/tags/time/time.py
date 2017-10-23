@@ -5,14 +5,13 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
-from asdf.asdftypes import CustomType
 from asdf.versioning import AsdfSpec
 
 from astropy import time
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.coordinates import EarthLocation
-
+from astropy.io.asdf.types import AstropyAsdfType
 
 
 _guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])
@@ -40,9 +39,7 @@ def _assert_earthlocation_equal(a, b):
         assert_array_equal(a.lon, b.lon)
 
 
-class TimeType(CustomType):
-    organization = 'stsci.edu'
-    standard = 'asdf'
+class TimeType(AstropyAsdfType):
     name = 'time/time'
     version = '1.1.0'
     supported_versions = ['1.0.0', AsdfSpec('>=1.1.0')]
