@@ -94,9 +94,16 @@ matrix:
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
         # Numpy 1.11 is tested below in the image tests, 1.12 in the Initial stage test.
+        # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
-               SETUP_CMD='test --open-files'
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - echo "$INSTALL_CMD"
+            - $INSTALL_CMD
+            - echo "$TEST_CMD"
+            - $TEST_CMD
 
         # Now try with all optional dependencies.
         # We also test the two latest matplotlib versions for the image tests.
