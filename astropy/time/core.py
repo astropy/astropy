@@ -278,8 +278,8 @@ class Time(ShapedLikeNDArray):
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
 
-        if self.location and (self.location.size > 1 and
-                              self.location.shape != self.shape):
+        if self.location is not None and (self.location.size > 1 and
+                                          self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
                 self.location = np.broadcast_to(self.location, self.shape,
