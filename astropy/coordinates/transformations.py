@@ -355,9 +355,11 @@ class TransformGraph:
         ----------
         name : str
             The alias to look up.
-        suppress_error : bool (..versionadded:: 3.0)
+        suppress_error : bool
             If True (the default) then it returns None if the name isn't
             found otherwise it will raise an Exception.
+
+            ..versionadded:: 3.0
 
         Returns
         -------
