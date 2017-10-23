@@ -1996,7 +1996,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         for name in base.components:
             comp = getattr(base, name)
             d_comp = getattr(self, 'd_{0}'.format(name), None)
-            if d_comp:
+            if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
                 # Get the si unit without a scale by going via Quantity;
                 # `.si` causes the scale to be included in the value.

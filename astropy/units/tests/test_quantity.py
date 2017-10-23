@@ -14,9 +14,10 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-from ...tests.helper import raises
+from ...tests.helper import catch_warnings, raises
 from ...utils import isiterable, minversion
 from ...utils.compat import NUMPY_LT_1_14
+from ...utils.exceptions import AstropyDeprecationWarning
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 
@@ -504,6 +505,15 @@ class TestQuantityOperations:
         # mismatched types should never work
         assert not 1. * u.cm == 1.
         assert 1. * u.cm != 1.
+
+        # comparison with zero should raise a deprecation warning
+        for quantity in (1. * u.cm, 1. * u.dimensionless_unscaled):
+            with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+                bool(quantity)
+                assert warning_lines[0].category == AstropyDeprecationWarning
+                assert (str(warning_lines[0].message) == 'The truth value of '
+                        'a Quantity is ambiguous. In the future this will '
+                        'raise a ValueError.')
 
     def test_numeric_converters(self):
         # float, int, long, and __index__ should only work for single
