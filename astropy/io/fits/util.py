@@ -585,7 +585,7 @@ def _array_from_file(infile, dtype, count, sep):
         # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
-        return np.fromstring(s, dtype=dtype, count=count, sep=sep)
+        return np.frombuffer(s, dtype=dtype, count=count)
 
 
 _OSX_WRITE_LIMIT = (2 ** 32) - 1
