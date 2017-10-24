@@ -966,8 +966,8 @@ class TableOutputter(BaseOutputter):
     Output the table as an astropy.table.Table object.
     """
 
-    default_converters = [convert_numpy(numpy.int),
-                          convert_numpy(numpy.float),
+    default_converters = [convert_numpy(numpy.int64),
+                          convert_numpy(numpy.float64),
                           convert_numpy(numpy.str)]
 
     def __call__(self, cols, meta):

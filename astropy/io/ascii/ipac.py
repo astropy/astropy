@@ -13,6 +13,7 @@ import re
 from collections import defaultdict, OrderedDict
 from textwrap import wrap
 from warnings import warn
+import numpy as np
 
 
 from . import core

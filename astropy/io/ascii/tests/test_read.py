@@ -986,9 +986,9 @@ def test_ipac_abbrev():
              '  1    2    3       4     5   6    7     8    9   10  11  12 ']
     dat = ascii.read(lines, format='ipac')
     for name in dat.columns[0:8]:
-        assert dat[name].dtype.kind == 'f'
+        assert dat[name].dtype.type is np.float64
     for name in dat.columns[8:10]:
-        assert dat[name].dtype.kind == 'i'
+        assert dat[name].dtype.type is np.int64
     for name in dat.columns[10:12]:
         assert dat[name].dtype.kind in ('U', 'S')
 

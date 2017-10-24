@@ -80,7 +80,7 @@ void resize_col(tokenizer_t *self, int index)
 {
     // Temporarily store the position in output_cols[index] to
     // which col_ptrs[index] points
-    long diff = self->col_ptrs[index] - self->output_cols[index];
+    long long diff = self->col_ptrs[index] - self->output_cols[index];
 
     // Double the size of the column string
     self->output_cols[index] = (char *) realloc(self->output_cols[index], 2 *
@@ -591,10 +591,10 @@ static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
 }
 
 
-long str_to_long(tokenizer_t *self, char *str)
+long long str_to_long(tokenizer_t *self, char *str)
 {
     char *tmp;
-    long ret;
+    long long ret;
     errno = 0;
     ret = strtol(str, &tmp, 10);
 
