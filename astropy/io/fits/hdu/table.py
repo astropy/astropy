@@ -766,7 +766,7 @@ class TableHDU(_TableBaseHDU):
             # We need to pad the data to a block length before calculating
             # the datasum.
             bytes_array = self.data.view(type=np.ndarray, dtype=np.ubyte)
-            padding = np.fromstring(_pad_length(self.size) * b' ',
+            padding = np.frombuffer(_pad_length(self.size) * b' ',
                                     dtype=np.ubyte)
 
             d = np.append(bytes_array, padding)
