@@ -1,7 +1,2 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
-from . import fits
-from . import table
-from . import time
-from . import transform
-from . import unit
