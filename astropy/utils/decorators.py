@@ -340,7 +340,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         >>> test(sig=2)
         2
 
-    To deprecate an argument catched inside the ``**kwargs`` the
+    To deprecate an argument caught inside the ``**kwargs`` the
     ``arg_in_kwargs`` has to be set::
 
         >>> @deprecated_renamed_argument('sig', 'sigma', '1.0',
@@ -430,7 +430,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                     '{1!r}.'.format(new_name[i], param.kind))
 
             # In case the argument is not found in the list of arguments
-            # the only remaining possibility is that it should be catched
+            # the only remaining possibility is that it should be caught
             # by some kind of **kwargs argument.
             # This case has to be explicitly specified, otherwise throw
             # an exception!
@@ -1110,11 +1110,11 @@ def prepend_docstring(doc, sections=None):
     Parameters
     ----------
     doc : str
-        Docstring to pretend.
+        Docstring to prepend.
 
     sections : list or None
         Name of sections to remove from ``doc`` and replace with the
-        decorated doctring one. Default is None to remove no sections.
+        decorated docstring one. Default is None to remove no sections.
     """
     def decor(func):
         func.__doc__ = ("\n".join(_remove_sections(doc, sections)) +
@@ -1125,17 +1125,17 @@ def prepend_docstring(doc, sections=None):
 
 def append_docstring(doc, sections=None):
     """
-    Decorator to append the given docstring to the function's docstr after
-    stripping out the list of sections provided.
+    Decorator to append the given docstring to the decorated function's
+    after stripping out the list of sections provided.
 
     Parameters
     ----------
     doc : str
-        Docstring to pretend.
+        Docstring to append.
 
     sections : list or None
         Name of sections to remove from ``doc`` and replace with the
-        decorated doctring one. Default is None to remove no sections.
+        decorated docstring one. Default is None to remove no sections.
     """
     def decor(func):
         func.__doc__ = (textwrap.dedent(func.__doc__) +
@@ -1155,8 +1155,8 @@ def _remove_sections(doc, sections):
         Docstring to remove sections from.
 
     sections : list or None
-        Name of sections to remove from ``doc`` and replace with the
-        decorated doctring one. Default is None to remove no sections.
+        Name of sections to remove from ``doc``. Default is None to
+        remove no sections.
 
     Returns
     -------
