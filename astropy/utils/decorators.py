@@ -3,7 +3,6 @@
 """Sundry function and class decorators."""
 
 
-
 import functools
 import inspect
 import textwrap
@@ -16,9 +15,9 @@ from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
 
 
-__all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
-           'deprecated_renamed_argument', 'format_doc',
-           'lazyproperty', 'sharedmethod', 'wraps']
+__all__ = ['append_docstring', 'classproperty', 'deprecated',
+           'deprecated_attribute', 'deprecated_renamed_argument', 'format_doc',
+           'lazyproperty', 'prepend_docstring', 'sharedmethod', 'wraps']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -1101,3 +1100,87 @@ def format_doc(docstring, *args, **kwargs):
         obj.__doc__ = doc.format(*args, **kwargs)
         return obj
     return set_docstring
+
+
+def prepend_docstring(doc, sections=None):
+    """
+    Decorator to prepend the given docstring to the decorated function's
+    after stripping out the list of sections provided.
+
+    Parameters
+    ----------
+    doc : str
+        Docstring to pretend.
+
+    sections : list or None
+        Name of sections to remove from ``doc`` and replace with the
+        decorated doctring one. Default is None to remove no sections.
+    """
+    def decor(func):
+        func.__doc__ = ("\n".join(_remove_sections(doc, sections)) +
+                        textwrap.dedent(func.__doc__))
+        return func
+    return decor
+
+
+def append_docstring(doc, sections=None):
+    """
+    Decorator to append the given docstring to the function's docstr after
+    stripping out the list of sections provided.
+
+    Parameters
+    ----------
+    doc : str
+        Docstring to pretend.
+
+    sections : list or None
+        Name of sections to remove from ``doc`` and replace with the
+        decorated doctring one. Default is None to remove no sections.
+    """
+    def decor(func):
+        func.__doc__ = (textwrap.dedent(func.__doc__) +
+                        "\n".join(_remove_sections(doc, sections)))
+        return func
+    return decor
+
+
+def _remove_sections(doc, sections):
+    """
+    Given a numpydoc-formatted docstring, remove the section blocks provided in
+    ``sections`` and dedent the whole thing.
+
+    Parameters
+    ----------
+    doc : str
+        Docstring to remove sections from.
+
+    sections : list or None
+        Name of sections to remove from ``doc`` and replace with the
+        decorated doctring one. Default is None to remove no sections.
+
+    Returns
+    -------
+    List of lines
+    """
+
+    lines = textwrap.dedent(doc).split('\n')
+
+    if sections is not None:
+        outlines = []
+        rblock = False
+        for line in lines:
+            lstrip = line.rstrip()
+            if lstrip in sections:
+                rblock = True
+                continue
+            elif rblock:
+                if lstrip == '':
+                    rblock = False
+                    continue
+                else:
+                    continue
+            else:
+                outlines.append(lstrip)
+    else:
+        outlines = lines
+    return outlines
