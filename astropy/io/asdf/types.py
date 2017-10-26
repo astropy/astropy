@@ -31,8 +31,8 @@ class AstropyTypeMeta(ExtensionTypeMeta):
 class AstropyAsdfType(CustomType):
     """
     This class represents types that have schemas that are defined in the ASDF
-    standard, but have tags that are implemented within astropy. 
-    
+    standard, but have tags that are implemented within astropy.
+
     IMPORTANT: This parent class should **not** be used for types that also
     have schemas that are defined by astropy.
     """
