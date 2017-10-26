@@ -1403,11 +1403,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         old_checksum = self._header[checksum_keyword]
         self._header[checksum_keyword] = '0' * 16
 
-        # Convert the header to a string.
-        s = str(self._header)
+        # Convert the header to bytes.
+        s = self._header.tostring().encode('utf8')
 
         # Calculate the checksum of the Header and data.
-        cs = self._compute_checksum(np.fromstring(s, dtype='ubyte'), datasum,
+        cs = self._compute_checksum(np.frombuffer(s, dtype='ubyte'), datasum,
                                     blocking=blocking)
 
         # Encode the checksum into a string.
