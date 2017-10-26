@@ -585,7 +585,10 @@ def _array_from_file(infile, dtype, count, sep):
         # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
-        return np.fromstring(s, dtype=dtype, count=count, sep=sep)
+        if sep == '':
+            return np.frombuffer(s, dtype=dtype, count=count)
+        else:
+            return np.fromstring(s, dtype=dtype, count=count, sep=sep)
 
 
 _OSX_WRITE_LIMIT = (2 ** 32) - 1
@@ -755,15 +758,15 @@ def _str_to_num(val):
 def _words_group(input, strlen):
     """
     Split a long string into parts where each part is no longer
-    than `strlen` and no word is cut into two pieces.  But if
-    there is one single word which is longer than `strlen`, then
+    than ``strlen`` and no word is cut into two pieces.  But if
+    there is one single word which is longer than ``strlen``, then
     it will be split in the middle of the word.
     """
 
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
+    arr = np.frombuffer((input + ' ').encode('utf8'), dtype=(bytes, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]
