@@ -507,7 +507,7 @@ def fileobj_is_binary(f):
     if hasattr(f, 'binary'):
         return f.binary
 
-    if io is not None and isinstance(f, io.TextIOBase):
+    if isinstance(f, io.TextIOBase):
         return False
 
     mode = fileobj_mode(f)
