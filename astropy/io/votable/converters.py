@@ -609,10 +609,10 @@ class NumericArray(Array):
         value = np.asarray(value)
         mask = np.asarray(mask)
         return ' '.join(base_output(x, m) for x, m in
-                         zip(value.flat, mask.flat))
+                        zip(value.flat, mask.flat))
 
     def binparse(self, read):
-        result = np.fromstring(read(self._memsize),
+        result = np.frombuffer(read(self._memsize),
                                dtype=self._bigendian_format)[0]
         result_mask = self._base.is_null(result)
         return result, result_mask
@@ -644,7 +644,7 @@ class Numeric(Converter):
             self.is_null = np.isnan
 
     def binparse(self, read):
-        result = np.fromstring(read(self._memsize),
+        result = np.frombuffer(read(self._memsize),
                                dtype=self._bigendian_format)
         return result[0], self.is_null(result[0])
 
