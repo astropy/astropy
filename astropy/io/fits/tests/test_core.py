@@ -34,6 +34,10 @@ class TestCore(FitsTestCase):
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
 
+    def test_filename_is_bytes_object(self):
+        with pytest.raises(TypeError):
+            fits.open(self.data('ascii.fits').encode())
+
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
 
