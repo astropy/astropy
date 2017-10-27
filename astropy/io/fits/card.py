@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, maketrans, translate, _words_group
+from .util import _str_to_num, _is_int, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
@@ -15,8 +15,8 @@ from ...utils.exceptions import AstropyUserWarning
 __all__ = ['Card', 'Undefined']
 
 
-FIX_FP_TABLE = maketrans('de', 'DE')
-FIX_FP_TABLE2 = maketrans('dD', 'eE')
+FIX_FP_TABLE = str.maketrans('de', 'DE')
+FIX_FP_TABLE2 = str.maketrans('dD', 'eE')
 
 
 CARD_LENGTH = 80

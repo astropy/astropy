@@ -517,9 +517,6 @@ def fileobj_is_binary(f):
         return True
 
 
-maketrans = str.maketrans
-
-
 def translate(s, table, deletechars):
     if deletechars:
         table = table.copy()
