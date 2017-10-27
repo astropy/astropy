@@ -333,24 +333,25 @@ def test_invalid_parameters():
     """
     int_converter = ascii.convert_numpy(np.uint)
     converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-    invalid_params = {'delimiter': ',,',  # multi-char delimiter
-                      'comment': '##',  # multi-char comment
-                      'data_start': None,  # data_start=None
-                      'quotechar': '##',  # multi-char quote signifier
-                      'data_start': -1,  # negative data_start
-                      'header_start': -1,  # negative header_start
-                      'converters': converters,  # passing converters
-                      'Inputter': ascii.ContinuationLinesInputter,  # passing Inputter
-                      'header_Splitter': ascii.DefaultSplitter,  # passing Splitter
-                      'data_Splitter': ascii.DefaultSplitter
-                      }
-    for key, val in invalid_params.items():
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using constructor'.format(key, val))
-            table = FastBasic(**{key: val}).read('1 2 3\n4 5 6')
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using ascii.read'.format(key, val))
-            table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
+    invalid_params = {
+        'delimiter': [',,'],  # multi-char delimiter
+        'comment': ['##'],  # multi-char comment
+        'data_start': [None, -1],  # data_start=None and negative
+        'quotechar': ['##'],  # multi-char quote signifier
+        'header_start': [-1],  # negative header_start
+        'converters': [converters],  # passing converters
+        'Inputter': [ascii.ContinuationLinesInputter],  # passing Inputter
+        'header_Splitter': [ascii.DefaultSplitter],  # passing Splitter
+        'data_Splitter': [ascii.DefaultSplitter]
+        }
+    for key, values in invalid_params.items():
+        for val in values:
+            with pytest.raises(ParameterError):
+                print('Trying {0}={1} using constructor'.format(key, val))
+                table = FastBasic(**{key: val}).read('1 2 3\n4 5 6')
+            with pytest.raises(ParameterError):
+                print('Trying {0}={1} using ascii.read'.format(key, val))
+                table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
 
     with pytest.raises(TypeError):
         table = FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
