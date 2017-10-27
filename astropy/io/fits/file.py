@@ -112,6 +112,16 @@ class _File:
             # If fileobj is of type pathlib.Path
             if isinstance(fileobj, pathlib.Path):
                 fileobj = str(fileobj)
+            elif isinstance(fileobj, bytes):
+                # Using bytes as filename is tricky, it's deprecated for Windows
+                # in Python 3.5 (because it could lead to false-positives) but
+                # was fixed and un-deprecated in Python 3.6.
+                # However it requires that the bytes object is encoded with the
+                # file system encoding.
+                # Probably better to error out and ask for a str object instead.
+                # TODO: This could be revised when Python 3.5 support is dropped
+                # See also: https://github.com/astropy/astropy/issues/6789
+                raise TypeError("names should be `str` not `bytes`.")
 
         # Holds mmap instance for files that use mmap
         self._mmap = None
