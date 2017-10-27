@@ -633,11 +633,9 @@ by ``CHANGES.md`` in the instructions.
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
-#. If your affiliated package is available in the `astropy conda channel
-   <https://github.com/astropy/conda-channel-astropy>`_, you should also submit
-   a pull request to update the version number of your affiliated package. See the
-   `conda-channel-astropy README <https://github.com/astropy/conda-channel-astropy/>`_
-   for details.
+#. If your package is available in the ``conda-forge`` conda channel, you
+   should also submit a pull request to update the version number in the
+   feedstock of your package.
 
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
