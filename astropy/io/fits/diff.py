@@ -435,9 +435,9 @@ class HDUDiff(_BaseDiff):
         See `FITSDiff` for explanations of the initialization parameters.
         """
 
-        self.ignore_keywords = set(k.upper() for k in ignore_keywords)
-        self.ignore_comments = set(k.upper() for k in ignore_comments)
-        self.ignore_fields = set(k.upper() for k in ignore_fields)
+        self.ignore_keywords = {k.upper() for k in ignore_keywords}
+        self.ignore_comments = {k.upper() for k in ignore_comments}
+        self.ignore_fields = {k.upper() for k in ignore_fields}
 
         self.rtol = rtol
         self.atol = atol
@@ -574,8 +574,8 @@ class HeaderDiff(_BaseDiff):
         See `FITSDiff` for explanations of the initialization parameters.
         """
 
-        self.ignore_keywords = set(k.upper() for k in ignore_keywords)
-        self.ignore_comments = set(k.upper() for k in ignore_comments)
+        self.ignore_keywords = {k.upper() for k in ignore_keywords}
+        self.ignore_comments = {k.upper() for k in ignore_comments}
 
         self.rtol = rtol
         self.atol = atol
@@ -670,8 +670,8 @@ class HeaderDiff(_BaseDiff):
 
         # Normalize all keyword to upper-case for comparison's sake;
         # TODO: HIERARCH keywords should be handled case-sensitively I think
-        keywordsa = set(k.upper() for k in valuesa)
-        keywordsb = set(k.upper() for k in valuesb)
+        keywordsa = {k.upper() for k in valuesa}
+        keywordsb = {k.upper() for k in valuesb}
 
         self.common_keywords = sorted(keywordsa.intersection(keywordsb))
         if len(cardsa) != len(cardsb):
@@ -1085,8 +1085,8 @@ class TableDataDiff(_BaseDiff):
 
         # Even if the number of columns are unequal, we still do comparison of
         # any common columns
-        colsa = dict((c.name.lower(), c) for c in colsa)
-        colsb = dict((c.name.lower(), c) for c in colsb)
+        colsa = {c.name.lower(): c for c in colsa}
+        colsb = {c.name.lower(): c for c in colsb}
 
         if '*' in self.ignore_fields:
             # If all columns are to be ignored, ignore any further differences
@@ -1095,7 +1095,7 @@ class TableDataDiff(_BaseDiff):
 
         # Keep the user's original ignore_fields list for reporting purposes,
         # but internally use a case-insensitive version
-        ignore_fields = set([f.lower() for f in self.ignore_fields])
+        ignore_fields = {f.lower() for f in self.ignore_fields}
 
         # It might be nice if there were a cleaner way to do this, but for now
         # it'll do
@@ -1111,13 +1111,13 @@ class TableDataDiff(_BaseDiff):
         self.common_columns = sorted(colsa_set.intersection(colsb_set),
                                      key=operator.attrgetter('name'))
 
-        self.common_column_names = set([col.name.lower()
-                                        for col in self.common_columns])
+        self.common_column_names = {col.name.lower()
+                                    for col in self.common_columns}
 
-        left_only_columns = dict((col.name.lower(), col)
-                                 for col in colsa_set.difference(colsb_set))
-        right_only_columns = dict((col.name.lower(), col)
-                                  for col in colsb_set.difference(colsa_set))
+        left_only_columns = {col.name.lower(): col
+                             for col in colsa_set.difference(colsb_set)}
+        right_only_columns = {col.name.lower(): col
+                              for col in colsb_set.difference(colsa_set)}
 
         if left_only_columns or right_only_columns:
             self.diff_columns = (left_only_columns, right_only_columns)
