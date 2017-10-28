@@ -166,7 +166,7 @@ def isatty(file):
         # pyreadline.Console objects if pyreadline is available; this should
         # be considered a TTY.
         try:
-            from pyreadyline.console import Console as PyreadlineConsole
+            from pyreadline.console import Console as PyreadlineConsole
         except ImportError:
             return False
 

@@ -114,6 +114,9 @@ astropy.utils
 - Fix the ``finddiff`` option in ``find_current_module`` to properly deal
   with submodules. [#6767]
 
+- Fixed ``pyreadline`` import in ``utils.console.isatty`` for older IPython
+  versions on Windows. [#6800]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
