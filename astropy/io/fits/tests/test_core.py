@@ -231,6 +231,16 @@ class TestCore(FitsTestCase):
         hdu = fits.ImageHDU()
         hdu.verify('foobarbaz')
 
+    def test_errlist_basic(self):
+        # Just some tests to make sure that _ErrList is setup correctly.
+        # No arguments
+        error_list = fits.verify._ErrList()
+        assert error_list == []
+        # Some contents - this is not actually working, it just makes sure they
+        # are kept.
+        error_list = fits.verify._ErrList([1, 2, 3])
+        assert error_list == [1, 2, 3]
+
     def test_combined_verify_options(self):
         """
         Test verify options like fix+ignore.
