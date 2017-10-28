@@ -126,10 +126,8 @@ class _ErrList(list):
     different class levels.
     """
 
-    def __new__(cls, val=None, unit='Element'):
-        return super().__new__(cls, val)
-
-    def __init__(self, val=None, unit='Element'):
+    def __init__(self, val=(), unit='Element'):
+        super().__init__(val)
         self.unit = unit
 
     def __str__(self):
