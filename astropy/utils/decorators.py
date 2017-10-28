@@ -614,6 +614,7 @@ class classproperty(property):
         # get set properly on instances of property subclasses if
         # the doc argument was used rather than taking the docstring
         # from fget
+        # Related Python issue: https://bugs.python.org/issue24766
         if doc is not None:
             self.__doc__ = doc
 
