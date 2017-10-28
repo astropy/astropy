@@ -73,8 +73,8 @@ if COMPRESSION_SUPPORTED:
         CFITSIO_SUPPORTS_Q_FORMAT = True
 
 
-COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
-                            'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
+COMPRESSION_KEYWORDS = {'ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS', 'ZMASKCMP',
+                        'ZSIMPLE', 'ZTENSION', 'ZEXTEND'}
 
 
 class CompImageHeader(Header):
@@ -100,7 +100,7 @@ class CompImageHeader(Header):
     _zdef_re = re.compile(r'(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?')
     _compression_keywords = set(_keyword_remaps.values()).union(
         ['ZIMAGE', 'ZCMPTYPE', 'ZMASKCMP', 'ZQUANTIZ', 'ZDITHER0'])
-    _indexed_compression_keywords = set(['ZNAXIS', 'ZTILE', 'ZNAME', 'ZVAL'])
+    _indexed_compression_keywords = {'ZNAXIS', 'ZTILE', 'ZNAME', 'ZVAL'}
     # TODO: Once it place it should be possible to manage some of this through
     # the schema system, but it's not quite ready for that yet.  Also it still
     # makes more sense to change CompImageHDU to subclass ImageHDU :/
