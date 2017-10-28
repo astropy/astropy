@@ -470,6 +470,9 @@ astropy.utils
 - Make ``HomogeneousList`` work with iterators and generators when creating the
   instance, extending it or using when setting a slice. [#6773]
 
+- Fixed ``pyreadline`` import in ``utils.console.isatty`` for older IPython
+  versions on Windows. [#6800]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
