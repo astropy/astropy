@@ -15,7 +15,3 @@ def get_package_data():
     schemas = [os.path.join('schemas', s) for s in schemas]
 
     return {'astropy.io.asdf': schemas}
-
-
-def requires_2to3():
-    return False
