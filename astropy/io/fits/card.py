@@ -145,7 +145,7 @@ class Card(_Verify):
     # (ex "'AXIS.1: 1' / a comment")
     _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-    _commentary_keywords = set(['', 'COMMENT', 'HISTORY', 'END'])
+    _commentary_keywords = {'', 'COMMENT', 'HISTORY', 'END'}
 
     # The default value indicator; may be changed if required by a convention
     # (namely HIERARCH cards)

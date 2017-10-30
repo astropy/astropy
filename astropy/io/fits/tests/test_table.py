@@ -812,10 +812,7 @@ class TestTableFunctions(FitsTestCase):
         well to other similar cases.
         """
 
-        NULLS = {}
-        NULLS['a'] = 2
-        NULLS['b'] = 'b'
-        NULLS['c'] = 2.3
+        NULLS = {'a': 2, 'b': 'b', 'c': 2.3}
 
         data = np.array(list(zip([1, 2, 3, 4],
                                  ['a', 'b', 'c', 'd'],

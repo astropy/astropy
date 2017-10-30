@@ -371,8 +371,7 @@ class TestDiff(FitsTestCase):
         diff = TableDataDiff(ta.data, tb.data)
         assert diff.identical
         assert len(diff.common_columns) == 10
-        assert (diff.common_column_names ==
-                set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']))
+        assert diff.common_column_names == set('abcdefghij')
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
@@ -411,7 +410,7 @@ class TestDiff(FitsTestCase):
 
         # The only common column should be c1
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['a'])
+        assert diff.common_column_names == {'a'}
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
 
@@ -427,7 +426,7 @@ class TestDiff(FitsTestCase):
 
         assert not diff.identical
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['a'])
+        assert diff.common_column_names == {'a'}
         assert diff.diff_column_names == (['B'], ['C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
@@ -454,7 +453,7 @@ class TestDiff(FitsTestCase):
         assert not diff.identical
         assert diff.diff_column_count == (1, 3)
         assert len(diff.common_columns) == 1
-        assert diff.common_column_names == set(['b'])
+        assert diff.common_column_names == {'b'}
         assert diff.diff_column_names == ([], ['A', 'C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
