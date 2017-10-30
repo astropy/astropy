@@ -19,23 +19,11 @@ from astropy.io.asdf.tags.unit.quantity import *
 from astropy.io.asdf.tags.unit.unit import *
 from astropy.io.asdf.types import _astropy_asdf_types
 
+from asdf.extension import BuiltinExtension
 from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
 
 
-SCHEMA_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'schemas'))
-
-
-class AstropyExtension(object):
+class AstropyExtension(BuiltinExtension):
     @property
     def types(self):
         return _astropy_asdf_types
-
-    @property
-    def tag_mapping(self):
-        return [('tag:stsci.edu:asdf',
-                 'http://stsci.edu/schemas/asdf{tag_suffix}')]
-
-    @property
-    def url_mapping(self):
-        return DEFAULT_URL_MAPPING
