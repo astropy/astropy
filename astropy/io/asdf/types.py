@@ -15,7 +15,7 @@ _astropy_asdf_types = set()
 class AstropyTypeMeta(ExtensionTypeMeta):
     """
     Keeps track of `AstropyType` subclasses that are created so that they can
-    be stored automatically by AstropyExtension
+    be stored automatically by astropy extensions for ASDF.
     """
     def __new__(mcls, name, bases, attrs):
         cls = super(AstropyTypeMeta, mcls).__new__(mcls, name, bases, attrs)

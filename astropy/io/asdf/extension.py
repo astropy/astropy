@@ -23,7 +23,9 @@ from asdf.extension import BuiltinExtension
 from asdf.resolver import Resolver, DEFAULT_URL_MAPPING
 
 
-class AstropyExtension(BuiltinExtension):
+# This extension is used to register custom tag types that have schemas defined
+# by ASDF, but have tag implementations defined in astropy.
+class AstropyAsdfExtension(BuiltinExtension):
     @property
     def types(self):
         return _astropy_asdf_types
