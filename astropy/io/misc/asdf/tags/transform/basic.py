@@ -3,7 +3,7 @@
 
 from astropy.modeling import mappings
 from astropy.utils import minversion
-from astropy.io.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 from asdf import tagged, yamlutil
 

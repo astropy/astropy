@@ -11,7 +11,7 @@ from astropy import time
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.coordinates import EarthLocation
-from astropy.io.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 
 _guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])

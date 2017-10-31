@@ -6,7 +6,7 @@ from asdf.tests.helpers import assert_tree_match
 
 from astropy import modeling
 from astropy.modeling.models import Identity, Mapping
-from astropy.io.asdf.tags.transform.basic import TransformType, ConstantType
+from astropy.io.misc.asdf.tags.transform.basic import TransformType, ConstantType
 
 
 __all__ = ['CompoundType', 'RemapAxesType']

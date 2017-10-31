@@ -87,7 +87,7 @@ def test_naming_of_compound_model(tmpdir):
 
 
 def test_generic_projections(tmpdir):
-    from astropy.io.asdf.tags.transform import projections
+    from astropy.io.misc.asdf.tags.transform import projections
 
     for tag_name, (name, params) in projections._generic_projections.items():
         tree = {
