@@ -4,7 +4,7 @@
 import numpy as np
 
 from astropy.io import fits
-from astropy.io.asdf.types import AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 from asdf import yamlutil
 

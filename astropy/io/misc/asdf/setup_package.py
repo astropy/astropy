@@ -14,4 +14,4 @@ def get_package_data():
     # In the package directory, install to the subdirectory 'schemas'
     schemas = [os.path.join('schemas', s) for s in schemas]
 
-    return {'astropy.io.asdf': schemas}
+    return {'astropy.io.misc.asdf': schemas}

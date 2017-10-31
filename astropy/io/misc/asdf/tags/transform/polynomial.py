@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 from asdf import yamlutil
 
 from astropy import modeling
-from astropy.io.asdf.tags.transform.basic import TransformType
+from astropy.io.misc.asdf.tags.transform.basic import TransformType
 
 
 __all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
