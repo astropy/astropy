@@ -1963,18 +1963,25 @@ class AffineTransformation2D(Model):
         x, y : array, float
               x and y coordinates
         """
+        if hasattr(x, 'unit') and hasattr(y, 'unit'):
+            y = y.to(x.unit)
+            unit = x.unit
+        else:
+            unit = None
 
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
         shape = x.shape or (1,)
         inarr = np.vstack([x.flatten(), y.flatten(), np.ones(x.size)])
+        if unit:
+            inarr = u.Quantity(inarr.value, unit)
 
         if inarr.shape[0] != 3 or inarr.ndim != 2:
             raise ValueError("Incompatible input shapes")
 
         augmented_matrix = cls._create_augmented_matrix(matrix, translation)
-        result = np.dot(augmented_matrix, inarr)
+        result = augmented_matrix @ inarr
 
         x, y = result[0], result[1]
         x.shape = y.shape = shape
@@ -1983,8 +1990,10 @@ class AffineTransformation2D(Model):
 
     @staticmethod
     def _create_augmented_matrix(matrix, translation):
+        if hasattr(matrix, 'unit') and matrix.unit and hasattr(translation, 'unit') and translation.unit:
+            translation = translation.to(matrix.unit)
         augmented_matrix = np.empty((3, 3), dtype=float)
         augmented_matrix[0:2, 0:2] = matrix
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]
-        return augmented_matrix
+        return augmented_matrix * matrix.unit
