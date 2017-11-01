@@ -11,7 +11,7 @@ are fairly general and include a number of configurable attributes.  Others
 such as :class:`~astropy.io.ascii.Cds` or :class:`~astropy.io.ascii.Daophot` are specialized to read certain
 well-defined but idiosyncratic formats.
 
-* :class:`~astropy.io.ascii.AASTex`: AASTeX `deluxetable <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ used for AAS journals
+* :class:`~astropy.io.ascii.AASTex`: AASTeX `deluxetable <https://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ used for AAS journals
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
 * :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
 * :class:`~astropy.io.ascii.CommentedHeader`: column names given in a line that begins with the comment character

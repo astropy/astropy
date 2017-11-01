@@ -259,7 +259,7 @@ class Gaussian2D(Fittable2DModel):
 
     References
     ----------
-    .. [1] http://en.wikipedia.org/wiki/Gaussian_function
+    .. [1] https://en.wikipedia.org/wiki/Gaussian_function
     """
 
     amplitude = Parameter(default=1)
@@ -2110,7 +2110,7 @@ class AiryDisk2D(Fittable2DModel):
 
     References
     ----------
-    .. [1] http://en.wikipedia.org/wiki/Airy_disk
+    .. [1] https://en.wikipedia.org/wiki/Airy_disk
     """
 
     amplitude = Parameter(default=1)

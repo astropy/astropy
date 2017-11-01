@@ -19,7 +19,7 @@ Command-line options can be parsed however desired, but the :mod:`argparse`
 module is recommended when possible, due to its simpler and more flexible
 interface relative to the older :mod:`optparse`.
 
-.. _"entry points": https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
+.. _"entry points": https://setuptools.readthedocs.iosetuptools.html#automatic-script-creation
 
 Example
 =======

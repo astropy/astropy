@@ -244,3 +244,5 @@ except ImportError:
                  'gallery will not be built.  You will probably see '
                  'additional warnings about undefined references due '
                  'to this.')
+
+linkcheck_anchors = False

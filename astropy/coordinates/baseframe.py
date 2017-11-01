@@ -265,14 +265,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     frame_attributes = OrderedDict()
     # Default empty frame_attributes dict
 
-    def __init__(self, *args, **kwargs):
-        copy = kwargs.pop('copy', True)
+    def __init__(self, *args, copy=True, representation=None,
+                 differential_cls=None,**kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
-        # class or string.
-        representation = kwargs.pop('representation', None)
-        differential_cls = kwargs.pop('differential_cls', None)
+        # class or string for representation and differential_cls.
 
         if representation is not None or differential_cls is not None:
 
@@ -757,14 +755,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         >>> from astropy import units as u
         >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
-        >>> coord.represent_as(CartesianRepresentation)
+        >>> coord.represent_as(CartesianRepresentation)  # doctest: +FLOAT_CMP
         <CartesianRepresentation (x, y, z) [dimensionless]
-                ( 1.,  0.,  0.)>
+                (1., 0., 0.)>
 
         >>> coord.representation = CartesianRepresentation
-        >>> coord
+        >>> coord  # doctest: +FLOAT_CMP
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
-            ( 1.,  0.,  0.)>
+            (1., 0., 0.)>
         """
 
         # For backwards compatibility (because in_frame_units used to be the
@@ -1256,6 +1254,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         Computes on-sky separation between this coordinate and another.
 
+        .. note::
+
+            If the ``other`` coordinate object is in a different frame, it is
+            first transformed to the frame of this object. This can lead to
+            unintutive behavior if not accounted for. Particularly of note is
+            that ``self.separation(other)`` and ``other.separation(self)`` may
+            not give the same answer in this case.
+
         Parameters
         ----------
         other : `~astropy.coordinates.BaseCoordinateFrame`
@@ -1271,7 +1277,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         The separation is calculated using the Vincenty formula, which
         is stable at all locations, including poles and antipodes [1]_.
 
-        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
         from .angle_utilities import angular_separation

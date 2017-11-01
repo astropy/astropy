@@ -345,8 +345,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     filename as a first argument, you can do for example::
 
         >>> def my_identifier(*args, **kwargs):
-        ...     return (isinstance(args[0], basestring) and
-        ...             args[0].endswith('.tbl'))
+        ...     return isinstance(args[0], str) and args[0].endswith('.tbl')
         >>> register_identifier('ipac', Table, my_identifier)
     """
 
@@ -478,14 +477,12 @@ def get_writer(data_format, data_class):
                 data_format, data_class.__name__, format_table_str))
 
 
-def read(cls, *args, **kwargs):
+def read(cls, *args, format=None, **kwargs):
     """
     Read in data.
 
     The arguments passed to this method depend on the format.
     """
-
-    format = kwargs.pop('format', None)
 
     ctx = None
     try:
@@ -539,14 +536,12 @@ def read(cls, *args, **kwargs):
     return data
 
 
-def write(data, *args, **kwargs):
+def write(data, *args, format=None, **kwargs):
     """
     Write out data.
 
     The arguments passed to this method depend on the format.
     """
-
-    format = kwargs.pop('format', None)
 
     if format is None:
         path = None

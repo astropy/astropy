@@ -17,8 +17,9 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..utils import ShapedLikeNDArray, classproperty
+
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12
+from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -41,6 +42,7 @@ DIFFERENTIAL_CLASSES = {}
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
+    kwargs = {'separator': ', ', 'prefix': prefix}
     if NUMPY_LT_1_12:  # pragma: no cover
         # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
         from numpy.core.arrayprint import FloatFormat
@@ -56,13 +58,15 @@ def _array2string(values, prefix=''):
                                            zip(x, format_functions)))
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
-        formatter = {'numpystr': fmt}
-    else:
-        fmt = repr
-        formatter = {}
+        kwargs['formatter'] = {'numpystr': fmt}
+        kwargs['style'] = fmt
 
-    return np.array2string(values, formatter=formatter, style=fmt,
-                           separator=', ', prefix=prefix)
+    else:
+        kwargs['formatter'] = {}
+        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+            kwargs['style'] = repr
+
+    return np.array2string(values, **kwargs)
 
 
 def _combine_xyz(x, y, z, xyz_axis=0):
@@ -471,9 +475,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
     recommended_units = {}  # subclasses can override
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
-        differentials = kwargs.pop('differentials', None)
         super().__init__(*args, **kwargs)
         self._differentials = self._validate_differentials(differentials)
 
@@ -1993,7 +1996,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         for name in base.components:
             comp = getattr(base, name)
             d_comp = getattr(self, 'd_{0}'.format(name), None)
-            if d_comp:
+            if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
                 # Get the si unit without a scale by going via Quantity;
                 # `.si` causes the scale to be included in the value.

@@ -35,7 +35,7 @@ function.
 References
 ----------
 .. [1] http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
-.. [2] http://astroML.org/ http://github.com/astroML/astroML/
+.. [2] http://astroML.org/ https://github.com//astroML/astroML/
 """
 
 import warnings
@@ -162,7 +162,7 @@ class FitnessFunc:
     ``fitness(self, **kwargs)``:
       Compute the fitness given a set of named arguments.
       Arguments accepted by fitness must be among ``[T_k, N_k, a_k, b_k, c_k]``
-      (See Scargle2012_ for details on the meaning of these parameters).
+      (See [1]_ for details on the meaning of these parameters).
 
     Additionally, other methods may be overloaded as well:
 
@@ -180,14 +180,14 @@ class FitnessFunc:
 
     ``p0_prior(self, N)``:
       Specify the form of the prior given the false-alarm probability ``p0``
-      (See Scargle2012_ for details).
+      (See [1]_ for details).
 
     For examples of implemented fitness functions, see :class:`Events`,
     :class:`RegularEvents`, and :class:`PointMeasures`.
 
     References
     ----------
-    .. [Scargle2012] Scargle, J et al. (2012)
+    .. [1] Scargle, J et al. (2012)
        http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
@@ -274,7 +274,7 @@ class FitnessFunc:
 
         Note that there was an error in this equation in the original Scargle
         paper (the "log" was missing). The following corrected form is taken
-        from http://arxiv.org/abs/1304.2818
+        from https://arxiv.org/abs/1304.2818
         """
         return 4 - np.log(73.53 * self.p0 * (N ** -0.478))
 

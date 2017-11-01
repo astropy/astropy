@@ -5,17 +5,12 @@ import bz2
 import io
 import mmap
 import os
+import pathlib
 import warnings
 import zipfile
 
 import pytest
 import numpy as np
-
-try:
-    import StringIO
-    HAVE_STRINGIO = True
-except ImportError:
-    HAVE_STRINGIO = False
 
 from . import FitsTestCase
 
@@ -30,14 +25,6 @@ from ....utils.data import conf, get_pkg_data_filename
 from ....utils import data
 
 
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-
-
 class TestCore(FitsTestCase):
     def test_with_statement(self):
         with fits.open(self.data('ascii.fits')) as f:
@@ -46,6 +33,10 @@ class TestCore(FitsTestCase):
     @raises(IOError)
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
+
+    def test_filename_is_bytes_object(self):
+        with pytest.raises(TypeError):
+            fits.open(self.data('ascii.fits').encode())
 
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
@@ -77,7 +68,6 @@ class TestCore(FitsTestCase):
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0
 
-    @pytest.mark.skipif('not HAS_PATHLIB')
     def test_fits_file_path_object(self):
         """
         Testing when fits file is passed as pathlib.Path object #4412.
@@ -240,6 +230,16 @@ class TestCore(FitsTestCase):
     def test_unrecognized_verify_option(self):
         hdu = fits.ImageHDU()
         hdu.verify('foobarbaz')
+
+    def test_errlist_basic(self):
+        # Just some tests to make sure that _ErrList is setup correctly.
+        # No arguments
+        error_list = fits.verify._ErrList()
+        assert error_list == []
+        # Some contents - this is not actually working, it just makes sure they
+        # are kept.
+        error_list = fits.verify._ErrList([1, 2, 3])
+        assert error_list == [1, 2, 3]
 
     def test_combined_verify_options(self):
         """
@@ -655,17 +655,29 @@ class TestFileFunctions(FitsTestCase):
 
     @remote_data(source='astropy')
     def test_open_from_remote_url(self):
-        import urllib.request
-        remote_url = '{}/{}'.format(conf.dataurl, 'allsky/allsky_rosat.fits')
-        with urllib.request.urlopen(remote_url) as urlobj:
-            with fits.open(urlobj) as fits_handle:
-                pass
 
-        for mode in ('ostream', 'append', 'update'):
-            with pytest.raises(ValueError):
+        import urllib.request
+
+        for dataurl in (conf.dataurl, conf.dataurl_mirror):
+
+            remote_url = '{}/{}'.format(dataurl, 'allsky/allsky_rosat.fits')
+
+            try:
+
                 with urllib.request.urlopen(remote_url) as urlobj:
-                    with fits.open(urlobj, mode=mode) as fits_handle:
-                        pass
+                    with fits.open(urlobj) as fits_handle:
+                        assert len(fits_handle) == 1
+
+                for mode in ('ostream', 'append', 'update'):
+                    with pytest.raises(ValueError):
+                        with urllib.request.urlopen(remote_url) as urlobj:
+                            with fits.open(urlobj, mode=mode) as fits_handle:
+                                assert len(fits_handle) == 1
+
+            except urllib.error.HTTPError:
+                continue
+            else:
+                break
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
@@ -1062,20 +1074,7 @@ class TestFileFunctions(FitsTestCase):
                         if hdu1.data is not None and hdu2.data is not None:
                             assert np.all(hdu1.data == hdu2.data)
 
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/2463
-
-        Only test against `StringIO.StringIO` on Python versions that have it.
-        Note: `io.StringIO` is not supported for this purpose as it does not
-        accept a bytes stream.
-        """
-
-        self._test_write_string_bytes_io(StringIO.StringIO())
-
-    @pytest.mark.skipif('not HAVE_STRINGIO')
-    def test_write_stringio_discontiguous(self):
+    def test_write_bytesio_discontiguous(self):
         """
         Regression test related to
         https://github.com/astropy/astropy/issues/2794#issuecomment-55441539
@@ -1086,7 +1085,7 @@ class TestFileFunctions(FitsTestCase):
 
         data = np.arange(100)[::3]
         hdu = fits.PrimaryHDU(data=data)
-        fileobj = StringIO.StringIO()
+        fileobj = io.BytesIO()
         hdu.writeto(fileobj)
 
         fileobj.seek(0)

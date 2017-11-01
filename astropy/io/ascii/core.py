@@ -422,11 +422,10 @@ class DefaultSplitter(BaseSplitter):
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
 
-        if self.delimiter == r'\s':
-            self.delimiter = ' '
+        delimiter = ' ' if self.delimiter == r'\s' else self.delimiter
 
         csv_reader = csv.reader(lines,
-                                delimiter=self.delimiter,
+                                delimiter=delimiter,
                                 doublequote=self.doublequote,
                                 escapechar=self.escapechar,
                                 quotechar=self.quotechar,
@@ -648,7 +647,8 @@ class BaseHeader:
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
@@ -836,7 +836,7 @@ def convert_numpy(numpy_type):
     ----------
     numpy_type : numpy data-type
         The numpy type required of an array returned by ``converter``. Must be a
-        valid `numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
+        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
         e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
         numpy.float64, numpy.str.
 

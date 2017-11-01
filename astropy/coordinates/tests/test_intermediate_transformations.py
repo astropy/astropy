@@ -3,11 +3,11 @@
 
 """
 
+import pytest
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data,
-                             quantity_allclose as allclose,
+from ...tests.helper import (remote_data, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,

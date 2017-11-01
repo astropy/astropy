@@ -194,13 +194,12 @@ class SkyCoord(ShapedLikeNDArray):
     # info property.
     info = SkyCoordInfo()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, copy=True, **kwargs):
 
         # Parse the args and kwargs to assemble a sanitized and validated
         # kwargs dict for initializing attributes for this object and for
         # creating the internal self._sky_coord_frame object
         args = list(args)  # Make it mutable
-        copy = kwargs.pop('copy', True)
         kwargs = self._parse_inputs(args, kwargs)
 
         frame = kwargs['frame']
@@ -715,6 +714,14 @@ class SkyCoord(ShapedLikeNDArray):
         """
         Computes on-sky separation between this coordinate and another.
 
+        .. note::
+
+            If the ``other`` coordinate object is in a different frame, it is
+            first transformed to the frame of this object. This can lead to
+            unintutive behavior if not accounted for. Particularly of note is
+            that ``self.separation(other)`` and ``other.separation(self)`` may
+            not give the same answer in this case.
+
         For more on how to use this (and related) functionality, see the
         examples in :doc:`/coordinates/matchsep`.
 
@@ -733,7 +740,7 @@ class SkyCoord(ShapedLikeNDArray):
         The separation is calculated using the Vincenty formula, which
         is stable at all locations, including poles and antipodes [1]_.
 
-        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
         from . import Angle
@@ -876,11 +883,13 @@ class SkyCoord(ShapedLikeNDArray):
         dist3d : `~astropy.units.Quantity`
             The 3D distance between the closest match for each element
             in this object in ``catalogcoord``. Shape matches this
-            object.
+            object. Unless both this and ``catalogcoord`` have associated
+            distances, this quantity assumes that all sources are at a
+            distance of 1 (dimensionless).
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         See Also
@@ -945,7 +954,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         See Also
@@ -1008,7 +1017,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -1066,7 +1075,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in

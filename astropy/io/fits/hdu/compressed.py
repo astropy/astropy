@@ -2,6 +2,7 @@
 
 import ctypes
 import gc
+import itertools
 import math
 import re
 import time
@@ -44,6 +45,7 @@ QUANTIZE_METHOD_NAMES = {
 DITHER_SEED_CLOCK = 0
 DITHER_SEED_CHECKSUM = -1
 
+COMPRESSION_TYPES = ('RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1', 'HCOMPRESS_1')
 
 # Default compression parameter values
 DEFAULT_COMPRESSION_TYPE = 'RICE_1'
@@ -71,8 +73,8 @@ if COMPRESSION_SUPPORTED:
         CFITSIO_SUPPORTS_Q_FORMAT = True
 
 
-COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
-                            'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
+COMPRESSION_KEYWORDS = {'ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS', 'ZMASKCMP',
+                        'ZSIMPLE', 'ZTENSION', 'ZEXTEND'}
 
 
 class CompImageHeader(Header):
@@ -98,7 +100,7 @@ class CompImageHeader(Header):
     _zdef_re = re.compile(r'(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?')
     _compression_keywords = set(_keyword_remaps.values()).union(
         ['ZIMAGE', 'ZCMPTYPE', 'ZMASKCMP', 'ZQUANTIZ', 'ZDITHER0'])
-    _indexed_compression_keywords = set(['ZNAXIS', 'ZTILE', 'ZNAME', 'ZVAL'])
+    _indexed_compression_keywords = {'ZNAXIS', 'ZTILE', 'ZNAME', 'ZVAL'}
     # TODO: Once it place it should be possible to manage some of this through
     # the schema system, but it's not quite ready for that yet.  Also it still
     # makes more sense to change CompImageHDU to subclass ImageHDU :/
@@ -465,7 +467,7 @@ class CompImageHDU(BinTableHDU):
                grid of rectangular tiles, and each tile of pixels is
                individually compressed.  The details of this FITS compression
                convention are described at the `FITS Support Office web site
-               <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
+               <https://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
                variable length array column in a FITS binary table.  The
                astropy.io.fits recognizes that this binary table extension
@@ -800,11 +802,13 @@ class CompImageHDU(BinTableHDU):
 
         # Set the compression type in the table header.
         if compression_type:
-            if compression_type not in ['RICE_1', 'GZIP_1', 'GZIP_2', 'PLIO_1',
-                                        'HCOMPRESS_1']:
-                warnings.warn('Unknown compression type provided.  Default '
-                              '({}) compression used.'.format(
-                        DEFAULT_COMPRESSION_TYPE), AstropyUserWarning)
+            if compression_type not in COMPRESSION_TYPES:
+                warnings.warn(
+                    'Unknown compression type provided (supported are {}). '
+                    'Default ({}) compression will be used.'
+                    .format(', '.join(map(repr, COMPRESSION_TYPES)),
+                            DEFAULT_COMPRESSION_TYPE),
+                    AstropyUserWarning)
                 compression_type = DEFAULT_COMPRESSION_TYPE
 
             self._header.set('ZCMPTYPE', compression_type,
@@ -965,12 +969,10 @@ class CompImageHDU(BinTableHDU):
         # Strip the table header of all the ZNAZISn and ZTILEn keywords
         # that may be left over from the previous data
 
-        idx = 1
-        while True:
+        for idx in itertools.count(1):
             try:
                 del self._header['ZNAXIS' + str(idx)]
                 del self._header['ZTILE' + str(idx)]
-                idx += 1
             except KeyError:
                 break
 
@@ -1130,9 +1132,7 @@ class CompImageHDU(BinTableHDU):
         # in case none were passed in.  This will be either the value
         # already in the table header for that parameter or the default
         # value.
-        idx = 1
-
-        while True:
+        for idx in itertools.count(1):
             zname = 'ZNAME' + str(idx)
             if zname not in self._header:
                 break
@@ -1146,7 +1146,6 @@ class CompImageHDU(BinTableHDU):
             if self._header[zname] == 'SMOOTH  ':
                 if hcomp_smooth is None:
                     hcomp_smooth = self._header[zval]
-            idx += 1
 
         if quantize_level is None:
             quantize_level = DEFAULT_QUANTIZE_LEVEL
@@ -1159,17 +1158,13 @@ class CompImageHDU(BinTableHDU):
 
         # Next, strip the table header of all the ZNAMEn and ZVALn keywords
         # that may be left over from the previous data
-
-        idx = 1
-
-        while True:
+        for idx in itertools.count(1):
             zname = 'ZNAME' + str(idx)
             if zname not in self._header:
                 break
             zval = 'ZVAL' + str(idx)
             del self._header[zname]
             del self._header[zval]
-            idx += 1
 
         # Finally, put the appropriate keywords back based on the
         # compression type.
@@ -1422,7 +1417,7 @@ class CompImageHDU(BinTableHDU):
     def compressed_data(self):
         # First we will get the table data (the compressed
         # data) from the file, if there is any.
-        compressed_data = super(BinTableHDU, self).data
+        compressed_data = super().data
         if isinstance(compressed_data, np.rec.recarray):
             # Make sure not to use 'del self.data' so we don't accidentally
             # go through the self.data.fdel and close the mmap underlying

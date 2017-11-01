@@ -19,8 +19,9 @@ import numpy as np
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_13
+from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
@@ -1173,6 +1174,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """Quantities should always be treated as non-False; there is too much
         potential for ambiguity otherwise.
         """
+        warnings.warn('The truth value of a Quantity is ambiguous. '
+                      'In the future this will raise a ValueError.',
+                      AstropyDeprecationWarning)
         return True
 
     def __len__(self):
@@ -1226,7 +1230,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
-        arrstr = np.array2string(self.view(np.ndarray), separator=',',
+        sep = ',' if NUMPY_LT_1_14 else ', '
+        arrstr = np.array2string(self.view(np.ndarray), separator=sep,
                                  prefix=prefixstr)
         return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
@@ -1251,8 +1256,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         pops = np.get_printoptions()
 
         format_spec = '.{}g'.format(pops['precision'])
+
         def float_formatter(value):
-            return Latex.format_exponential_notation(value, format_spec=format_spec)
+            return Latex.format_exponential_notation(value,
+                                                     format_spec=format_spec)
 
         try:
             formatter = {'float_kind': float_formatter}
@@ -1261,10 +1268,17 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                                     formatter=formatter)
 
             # the view is needed for the scalar case - value might be float
-            latex_value = np.array2string(
-                self.view(np.ndarray),
-                style=(float_formatter if self.dtype.kind == 'f' else repr),
-                max_line_width=np.inf, separator=',~')
+            if NUMPY_LT_1_14:   # style deprecated in 1.14
+                latex_value = np.array2string(
+                    self.view(np.ndarray),
+                    style=(float_formatter if self.dtype.kind == 'f'
+                           else repr),
+                    max_line_width=np.inf, separator=',~')
+            else:
+                latex_value = np.array2string(
+                    self.view(np.ndarray),
+                    max_line_width=np.inf, separator=',~')
+
             latex_value = latex_value.replace('...', r'\dots')
         finally:
             np.set_printoptions(**pops)
@@ -1470,7 +1484,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     # the methods do not always allow calling with keyword arguments.
     # For instance, np.array([0.,2.]).clip(a_min=0., a_max=1.) gives
     # TypeError: 'a_max' is an invalid keyword argument for this function.
-    def _wrap_function(self, function, *args, **kwargs):
+    def _wrap_function(self, function, *args, unit=None, out=None, **kwargs):
         """Wrap a numpy function that processes self, returning a Quantity.
 
         Parameters
@@ -1500,8 +1514,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         out : `~astropy.units.Quantity`
             Result of the function call, with the unit set properly.
         """
-        unit = kwargs.pop('unit', self.unit)
-        out = kwargs.pop('out', None)
+        if unit is None:
+            unit = self.unit
         # Ensure we don't loop back by turning any Quantity into array views.
         args = (self.value,) + tuple((arg.value if isinstance(arg, Quantity)
                                       else arg) for arg in args)

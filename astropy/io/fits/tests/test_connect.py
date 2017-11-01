@@ -1,4 +1,5 @@
 import os
+import pathlib
 import warnings
 
 import pytest
@@ -15,13 +16,6 @@ from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
-
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
 
 
 def equal_data(a, b):
@@ -46,7 +40,6 @@ class TestSingleTable:
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    @pytest.mark.skipif('not HAS_PATHLIB')
     def test_simple_pathlib(self, tmpdir):
         filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
         t1 = Table(self.data)

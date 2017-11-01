@@ -34,7 +34,3 @@ def get_package_data():
             'tests/finals2000A-2016-02-30-test',
             'tests/iers_a_excerpt']
     }
-
-
-def requires_2to3():
-    return False

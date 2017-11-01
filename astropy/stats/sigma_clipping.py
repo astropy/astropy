@@ -23,7 +23,7 @@ class SigmaClip:
 
     .. note::
         `scipy.stats.sigmaclip
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this class.
 
     Parameters
@@ -228,7 +228,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
 
     .. note::
         `scipy.stats.sigmaclip
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
         provides a subset of the functionality in this function.
 
     Parameters

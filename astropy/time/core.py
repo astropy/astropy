@@ -278,8 +278,8 @@ class Time(ShapedLikeNDArray):
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
 
-        if self.location and (self.location.size > 1 and
-                              self.location.shape != self.shape):
+        if self.location is not None and (self.location.size > 1 and
+                                          self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
                 self.location = np.broadcast_to(self.location, self.shape,
@@ -827,7 +827,7 @@ class Time(ShapedLikeNDArray):
         """
         return self._apply('copy' if copy else 'replicate', format=format)
 
-    def _apply(self, method, *args, **kwargs):
+    def _apply(self, method, *args, format=None, **kwargs):
         """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
@@ -858,9 +858,7 @@ class Time(ShapedLikeNDArray):
             index or slice : ``_apply('__getitem__', item)``
             broadcast : ``_apply(np.broadcast, shape=new_shape)``
         """
-        new_format = kwargs.pop('format', None)
-        if new_format is None:
-            new_format = self.format
+        new_format = self.format if format is None else format
 
         if callable(method):
             apply_method = lambda array: method(array, *args, **kwargs)

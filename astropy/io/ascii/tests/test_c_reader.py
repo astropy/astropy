@@ -1,14 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-try:
-    from cStringIO import StringIO
-except ImportError:  # cStringIO doesn't exist in Python 3
-    from io import BytesIO
-    StringIO = lambda x: BytesIO(x.encode('ascii'))
-
 import os
 import functools
 
+from io import BytesIO
 from textwrap import dedent
 
 import pytest
@@ -19,10 +14,12 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
-    FastRdb, FastNoHeader
+from ..fastbasic import (
+    FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
 from .common import assert_equal, assert_almost_equal, assert_true
 
+
+StringIO = lambda x: BytesIO(x.encode('ascii'))
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
@@ -330,38 +327,36 @@ a b "   c
     assert_table_equal(table, expected)
 
 
-def test_invalid_parameters():
+@pytest.mark.parametrize("key,val", [
+    ('delimiter', ',,'),  # multi-char delimiter
+    ('comment', '##'),  # multi-char comment
+    ('data_start', None),  # data_start=None
+    ('data_start', -1),  # data_start negative
+    ('quotechar', '##'),  # multi-char quote signifier
+    ('header_start', -1),  # negative header_start
+    ('converters', dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))),  # passing converters
+    ('Inputter', ascii.ContinuationLinesInputter),  # passing Inputter
+    ('header_Splitter', ascii.DefaultSplitter),  # passing Splitter
+    ('data_Splitter', ascii.DefaultSplitter)])
+def test_invalid_parameters(key, val):
     """
     Make sure the C reader raises an error if passed parameters it can't handle.
     """
-    int_converter = ascii.convert_numpy(np.uint)
-    converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-    invalid_params = {'delimiter': ',,',  # multi-char delimiter
-                      'comment': '##',  # multi-char comment
-                      'data_start': None,  # data_start=None
-                      'quotechar': '##',  # multi-char quote signifier
-                      'data_start': -1,  # negative data_start
-                      'header_start': -1,  # negative header_start
-                      'converters': converters,  # passing converters
-                      'Inputter': ascii.ContinuationLinesInputter,  # passing Inputter
-                      'header_Splitter': ascii.DefaultSplitter,  # passing Splitter
-                      'data_Splitter': ascii.DefaultSplitter
-                      }
-    for key, val in invalid_params.items():
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using constructor'.format(key, val))
-            table = FastBasic(**{key: val}).read('1 2 3\n4 5 6')
-        with pytest.raises(ParameterError):
-            print('Trying {0}={1} using ascii.read'.format(key, val))
-            table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
+    with pytest.raises(ParameterError):
+        FastBasic(**{key: val}).read('1 2 3\n4 5 6')
+    with pytest.raises(ParameterError):
+        ascii.read('1 2 3\n4 5 6',
+                   format='fast_basic', guess=False, **{key: val})
 
+
+def test_invalid_parameters_other():
     with pytest.raises(TypeError):
-        table = FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
+        FastBasic(foo=7).read('1 2 3\n4 5 6')  # unexpected argument
     with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
-        table = ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
+        ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
     with pytest.raises(ParameterError):
         # Outputter cannot be specified in constructor
-        table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
+        FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
 
 def test_too_many_cols1():
