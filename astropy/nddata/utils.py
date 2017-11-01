@@ -472,6 +472,75 @@ def block_replicate(data, block_size, conserve_sum=True):
     return data
 
 
+def rebin(data, subsample_factor, wcs=None):
+    """
+    Upsample a data array by block replication.
+
+    Parameters
+    ----------
+    data : array_like
+        The data to be block replicated.
+
+    subsample_factor : int or tuple (int)
+        The subsample factor, if an integer then applied in all N directions, if
+        a tuple then length must match number of dimensions of data and will be applied
+        appropriately.
+
+    wcs : WCS, optional
+        If exists, then will do the sub-sampling with the reproject package.
+
+    Returns
+    -------
+    output : array_like or tuple of array_like and wcs if the input WCS existed
+        The block-replicated data and output WCS if input WCS was included.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.nddata.utils import block_replicate
+    >>> data = np.array([[0., 1.], [2., 3.]])
+    >>> block_replicate(data, 2)
+    array([[ 0.  ,  0.  ,  0.25,  0.25],
+           [ 0.  ,  0.  ,  0.25,  0.25],
+           [ 0.5 ,  0.5 ,  0.75,  0.75],
+           [ 0.5 ,  0.5 ,  0.75,  0.75]])
+
+    >>> block_replicate(data, 2, conserve_sum=False)
+    array([[ 0.,  0.,  1.,  1.],
+           [ 0.,  0.,  1.,  1.],
+           [ 2.,  2.,  3.,  3.],
+           [ 2.,  2.,  3.,  3.]])
+    """
+    import reproject
+    import scipy.ndimage
+    import scipy.interpolate
+    from astropy import wcs as astropywcs
+
+    data = np.asanyarray(data)
+
+    if wcs:
+        w = astropywcs.WCS(naxis=2)
+        w.wcs.crpix = wcs.wcs.crpix[:2] / subsample_factor
+        w.wcs.cdelt = wcs.wcs.cdelt[:2] * subsample_factor
+        w.wcs.crval = wcs.wcs.crval[:2]
+        w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+
+        output_shape = [int(x/subsample_factor) for x in data.shape]
+
+        output_data, output_wcs = reproject.reproject_interp((data, wcs), w, shape_out=output_shape)
+        return output_data, w
+    else:
+        # Used map_coordinates to match what is done in reproject in order to make it similar to what is above.
+        from scipy.ndimage.interpolation import map_coordinates as scipy_map_coordinates
+
+        y = np.linspace(0, data.shape[0], data.shape[0]/subsample_factor)
+        x = np.linspace(0, data.shape[1], data.shape[1]/subsample_factor)
+        xx, yy = np.meshgrid(x, y)
+        coords = np.array([yy.flatten(), xx.flatten()])
+        output_data = scipy_map_coordinates(data, coords).reshape(xx.shape)
+
+        return output_data
+
 class Cutout2D:
     """
     Create a cutout object from a 2D array.
