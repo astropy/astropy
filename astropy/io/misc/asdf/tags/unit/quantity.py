@@ -7,8 +7,8 @@ from astropy.units import Quantity
 from asdf.yamlutil import custom_tree_to_tagged_tree
 from asdf.tags.core import NDArrayType
 
-from astropy.io.misc.asdf.types import AstropyAsdfType
-from astropy.io.misc.asdf.tags.unit.unit import UnitType
+from ...types import AstropyAsdfType
+from .unit import UnitType
 
 
 class QuantityType(AstropyAsdfType):

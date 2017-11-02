@@ -8,7 +8,7 @@ from asdf import yamlutil
 
 from astropy import table
 from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from ...types import AstropyAsdfType
 
 
 class FitsType(AstropyAsdfType):
