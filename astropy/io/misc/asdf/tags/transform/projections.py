@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 from asdf import yamlutil
 
 from astropy import modeling
-from astropy.io.misc.asdf.tags.transform.basic import TransformType
+from .basic import TransformType
 
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']

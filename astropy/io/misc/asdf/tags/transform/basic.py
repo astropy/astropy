@@ -6,7 +6,7 @@ from asdf import tagged, yamlutil
 from astropy.modeling import mappings
 from astropy.utils import minversion
 from astropy.modeling import functional_models
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from ...types import AstropyAsdfType
 
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType', 'DomainType']

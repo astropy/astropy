@@ -4,7 +4,7 @@
 import six
 
 from astropy.units import Unit, UnitBase
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from ...types import AstropyAsdfType
 
 
 class UnitType(AstropyAsdfType):
