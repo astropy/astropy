@@ -25,7 +25,7 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-astropy.io.asdf
+astropy.io.misc
 ~~~~~~~~~~~~~~~
 
 - Add implementations of astropy-specific ASDF tag types. [#6790]
