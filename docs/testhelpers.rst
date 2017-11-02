@@ -19,8 +19,8 @@ functions to test for near-equality of `~astropy.units.Quantity` objects.
 The functionality here is not exhaustive, because much of the useful
 tools are either in the standard library, py.test, or
 `numpy.testing <https://docs.scipy.org/doc/numpy/reference/routines.testing.html>`_.
-This module contains primarily functionality specific to Astropy or
-affiliated packages that follow the package template.
+This module contains primarily functionality specific to astropy or
+packages that follow the Astropy package template.
 
 
 Reference/API
@@ -46,7 +46,7 @@ arguments to pytest. The arguments to pytest are defined in the
 ``run_tests`` and their respective logic are defined in methods of
 `~astropy.tests.runner.TestRunner` decorated with the
 `~astropy.tests.runner.keyword` decorator. For an example of this see
-`~astropy.tests.runner.TestRunnerBase`. This design makes it easy for affiliated
+`~astropy.tests.runner.TestRunnerBase`. This design makes it easy for
 packages to add or remove keyword arguments to their test runners, or define a
 whole new set of arguments by subclassing from
 `~astropy.tests.runner.TestRunnerBase`.

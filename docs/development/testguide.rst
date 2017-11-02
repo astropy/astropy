@@ -14,8 +14,8 @@ packages).
 Testing Framework
 *****************
 
-The testing framework used by Astropy (and affiliated packages using the
-:doc:`package template <affiliated-packages>`) is the `pytest`_ framework,
+The testing framework used by astropy (and packages using the :doc:`Astropy
+package template <astropy-package-template>`) is the `pytest`_ framework,
 accessed through the ``python setup.py test`` command.
 
 .. _pytest: https://pytest.org/en/latest/
@@ -144,7 +144,7 @@ separately.
 setup.py test
 =============
 
-Astropy and the affiliated package template provide a ``test`` setup command,
+astropy and the Astropy package template provide a ``test`` setup command,
 invoked by running ``python setup.py test`` while in the package root
 directory. Run ``python setup.py test --help`` to see the options to the
 test command.
@@ -821,11 +821,10 @@ doctests and execute them as part of a project's automated test suite.  This
 way we can automatically ensure that all doctest-like examples in our
 docstrings are correct.
 
-The Astropy test suite automatically detects and runs any doctests in
-the Astropy source code or documentation, or in affiliated packages
-using the Astropy test running framework. For example doctests and
-detailed documentation on how to write them, see the full
-:mod:`doctest` documentation.
+The Astropy test suite automatically detects and runs any doctests in the
+astropy source code or documentation, or in packages using the Astropy test
+running framework. For example doctests and detailed documentation on how to
+write them, see the full :mod:`doctest` documentation.
 
 .. note::
 
@@ -1014,11 +1013,11 @@ environment variables in ``.travis.yml`` and ``appveyor.yml``. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
-The 32-bit tests on CircleCI use a pre-defined Docker image defined
-`here <https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit Python
-environment. If you want to run tests for Astropy affiliated packages in the
-same way, you can use the same set-up on CircleCI as the core package, but just
-be sure to install Astropy first using::
+The 32-bit tests on CircleCI use a pre-defined Docker image defined `here
+<https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit
+Python environment. If you want to run tests for packages in the same way,
+you can use the same set-up on CircleCI as the core package, but just be
+sure to install Astropy first using::
 
     easy_install pip
     pip install astropy
