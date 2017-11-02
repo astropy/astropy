@@ -120,8 +120,6 @@ class TimeType(AstropyAsdfType):
 
     @classmethod
     def assert_equal(cls, old, new):
-        from astropy.coordinates import EarthLocation
-
         assert old.format == new.format
         assert old.scale == new.scale
         if isinstance(old.location, EarthLocation):

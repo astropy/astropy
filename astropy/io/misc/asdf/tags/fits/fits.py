@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-
-from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyAsdfType
+from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
+
+from astropy import table
+from astropy.io import fits
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 
 class FitsType(AstropyAsdfType):
@@ -39,8 +41,6 @@ class FitsType(AstropyAsdfType):
 
     @classmethod
     def to_tree(cls, hdulist, ctx):
-        from astropy import table
-
         units = []
         for hdu in hdulist:
             header_list = []
@@ -78,8 +78,6 @@ class FitsType(AstropyAsdfType):
 
     @classmethod
     def assert_equal(cls, old, new):
-        from numpy.testing import assert_array_equal
-
         for hdua, hdub in zip(old, new):
             assert_array_equal(hdua.data, hdub.data)
             for carda, cardb in zip(hdua.header.cards, hdub.header.cards):

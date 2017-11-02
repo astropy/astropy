@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from astropy import table
-from astropy.io.misc.asdf.types import AstropyAsdfType
-
 from asdf import yamlutil
 from asdf.tags.core.ndarray import NDArrayType
+
+from astropy import table
+from astropy.io.misc.asdf.types import AstropyAsdfType
 
 
 class TableType(AstropyAsdfType):
