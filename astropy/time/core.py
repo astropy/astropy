@@ -118,14 +118,14 @@ class TimeInfo(MixinInfo):
         return out + self._represent_as_dict_extra_attrs
 
     def __init__(self, bound=False):
-        super(MixinInfo, self).__init__(bound)
+        super().__init__(bound)
 
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values.
         if bound:
             # Specify how to serialize this object depending on context.
             # If ``True`` for a context, then use formatted ``value`` attribute
-            # (e.g. the ISO time string).  If ``False`` then use decimal jd1 and jd2.
+            # (e.g. the ISO time string).  If ``False`` then use float jd1 and jd2.
             self.serialize_method = {'fits': 'jd1_jd2',
                                      'ecsv': 'formatted_value',
                                      'hdf5': 'jd1_jd2',
@@ -862,6 +862,7 @@ class Time(ShapedLikeNDArray):
 
         if callable(method):
             apply_method = lambda array: method(array, *args, **kwargs)
+
         else:
             if method == 'replicate':
                 apply_method = None
@@ -873,7 +874,8 @@ class Time(ShapedLikeNDArray):
             jd1 = apply_method(jd1)
             jd2 = apply_method(jd2)
 
-        tm = super(Time, self.__class__).__new__(self.__class__)
+        # Get a new instance of our class and set its attributes directly.
+        tm = super().__new__(self.__class__)
         tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional ndarray attributes.

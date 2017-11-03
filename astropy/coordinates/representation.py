@@ -2576,8 +2576,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
             return cls(d_lon_coslat, -representation.d_theta)
 
-        return super(UnitSphericalDifferential,
-                     cls).from_representation(representation, base)
+        return super().from_representation(representation, base)
 
 
 class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):

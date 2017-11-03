@@ -531,7 +531,7 @@ class Latitude(Angle):
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
-        obj = super(Angle, self).__array_wrap__(obj, context=context)
+        obj = super().__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):
@@ -655,7 +655,7 @@ class Longitude(Angle):
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
-        obj = super(Angle, self).__array_wrap__(obj, context=context)
+        obj = super().__array_wrap__(obj, context=context)
         return _no_angle_subclass(obj)
 
     def __array_ufunc__(self, *args, **kwargs):

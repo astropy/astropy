@@ -313,8 +313,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         state = state[:-1]
 
-        # Using super(type(self), self).__setstate__() gives an infinite
-        # recursion.  Manually call the right super class to actually set up
+        # Using super().__setstate__(state) gives
+        # "TypeError 'int' object is not iterable", raised in
+        # astropy.table._column_mixins._ColumnGetitemShim.__setstate_cython__()
+        # Previously, it seems to have given an infinite recursion.
+        # Hence, manually call the right super class to actually set up
         # the array object.
         super_class = ma.MaskedArray if isinstance(self, ma.MaskedArray) else np.ndarray
         super_class.__setstate__(self, state)
