@@ -669,8 +669,9 @@ class EarthLocation(u.Quantity):
                      zip(masses, distances)]
         # now Earth's contribution
         distance = CartesianRepresentation(self.geocentric).norm()
-        redshifts.append(-consts.G*consts.M_earth/consts.c/distance)
-        return u.Quantity(redshifts).sum().to(u.m/u.s)
+        gravitational_redshift = (u.Quantity(redshifts).sum()
+                                  - consts.G*consts.M_earth/consts.c/distance)
+        return gravitational_redshift
 
     @property
     def x(self):
