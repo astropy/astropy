@@ -144,7 +144,7 @@ There are certain caveats, however:
 * Table modifications become slower due to automatic index updates
 * Slicing a table becomes slower due to index relabeling
 
-See `here <http://nbviewer.ipython.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_ for an IPython notebook profiling various aspects of table indexing.
+See `here <http://nbviewer.jupyter.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_ for an IPython notebook profiling various aspects of table indexing.
 
 Index modes
 ===========
@@ -222,7 +222,7 @@ specified to use a particular indexing engine. The available engines are
 Note that FastRBT and FastBST depend on the bintrees dependency; without this
 dependency, both classes default to `~astropy.table.BST`. For a comparison of
 engine performance, see `this IPython notebook
-<http://nbviewer.ipython.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
+<http://nbviewer.jupyter.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
 the most important takeaway is that `~astropy.table.SortedArray` (the default
 engine) is usually best, although `~astropy.table.FastRBT` may be more
 appropriate for an index created on an empty column since adding new values is quicker.

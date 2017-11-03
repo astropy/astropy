@@ -93,6 +93,11 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Deprecated conversion of quantities to truth values. Currently, the expression
+  ``bool(0 * u.dimensionless_unscaled)`` evaluates to ``True``. In the future,
+  attempting to convert a ``Quantity`` to a ``bool`` will raise ``ValueError``.
+  [#6580, #6590]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -109,6 +114,10 @@ astropy.utils
 
 - ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
   [#5471]
+
+- The functions ``matmul``, ``broadcast_arrays``, ``broadcast_to`` of the
+  ``astropy.utils.compat.numpy`` module have been deprecated. Use the
+  NumPy functions directly. [#6691]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -131,6 +140,10 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
+
+- ``Gaussian2DKernel`` now accepts ``x_stddev`` in place of ``stddev`` with
+  an option for ``y_stddev``, if different. It also accepts ``theta`` like
+  ``Gaussian2D`` model. [#3605, #6748]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -163,6 +176,9 @@ astropy.io.misc
   dataset instead of the HDF5 dataset attributes. This allows for metadata of
   any dimensions. [#6304]
 
+- Deprecated the ``usecPickle`` kwarg of ``fnunpickle`` and ``fnpickle`` as
+  it was needed only for Python2 usage. [#6655]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -174,6 +190,8 @@ astropy.modeling
 
 - Removed deprecated ``GaussianAbsorption1D`` model.
   Use ``Const1D - Gaussian1D`` instead. [#6542]
+
+- Removed the registry from modeling. [#6706]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -191,6 +209,10 @@ astropy.table
   validated. Previously one could set to any value and it was only checked
   when actually formatting the column. [#6385]
 
+- Deprecated the ``python3_only`` kwarg of the
+  ``convert_bytestring_to_unicode`` and ``convert_unicode_to_bytestring``
+  methods it was needed only for Python2 usage. [#6655]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -202,6 +224,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- ``download_files_in_parallel`` now always uses ``cache=True`` to make the
+  function work on Windows. [#6671]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -242,6 +267,8 @@ astropy.io.fits
 
 - Fix the ``fitscheck`` script for updating invalid checksums, or removing
   checksums. [#6571]
+
+- Fixed potential problems with the compression module [#6732]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -284,6 +311,14 @@ astropy.utils
   original. This is needed so that the Python 3 ``super`` without arguments
   works for decorated classes. [#6615]
 
+- Fixed ``HomogeneousList`` when setting one item or a slice. [#6773]
+
+- Also check the type when creating a new instance of
+  ``HomogeneousList``. [#6773]
+
+- Make ``HomogeneousList`` work with iterators and generators when creating the
+  instance, extending it, or using when setting a slice. [#6773]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -303,9 +338,12 @@ Other Changes and Additions
 
 - ``analytic_functions`` sub-package is removed.
   Use ``astropy.modeling.blackbody``. [#6541]
+
 - ``astropy.vo`` sub-package is removed. Use ``astropy.samp`` for SAMP and
   ``astroquery`` for VO cone search. [#6540]
 
+- The guide to setting up Emacs for code development was simplified, and
+  updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
 2.0.3 (unreleased)
 ==================
@@ -383,12 +421,19 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fixed a problem when printing a table when a column is deleted and
+  garbage-collected, and the format function caching mechanism happens
+  to re-use the same cache key. [#6714]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
 - Fixed a bug that causes tests for rst files to not be run on certain platforms. [#6555]
 
 - Fixed a bug that caused the doctestplus plugin to not work nicely with the hypothesis package. [#6605]
+
+- Fixed a bug that meant that the data.astropy.org mirror could not be used when
+  using --remote-data=astropy. [#6724]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -405,6 +450,18 @@ astropy.utils
 - Fixed bugs in remote data handling and also in IERS unit test related to path
   URL, and URI normalization on Windows. [#6651]
 
+- Fixed a bug that caused ``get_pkg_data_fileobj`` to not work correctly when
+  used with non-local data from inside packages. [#6724]
+
+- Make sure ``get_pkg_data_fileobj`` fails if the URL can not be read, and
+  correctly falls back on the mirror if necessary. [#6767]
+
+- Fix the ``finddiff`` option in ``find_current_module`` to properly deal
+  with submodules. [#6767]
+
+- Fixed ``pyreadline`` import in ``utils.console.isatty`` for older IPython
+  versions on Windows. [#6800]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -414,6 +471,15 @@ astropy.vo
 astropy.wcs
 ^^^^^^^^^^^
 
+Other Changes and Additions
+---------------------------
+
+- No longer require LaTeX to build the documentation locally and
+  use mathjax instead. [#6701]
+
+- Fixed broken links in the documentation. [#6745]
+
+- Ensured that all tests use the Astropy data mirror if needed. [#6767]
 
 2.0.2 (2017-09-08)
 ==================
@@ -5570,7 +5636,7 @@ astropy.units
 
 - Support for the unit format `Office of Guest Investigator Programs (OGIP)
   FITS files
-  <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
+  <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
   has been added. [#377]
 
 - The ``spectral`` equivalency can now handle angular wave number. [#1306 and
@@ -6067,7 +6133,7 @@ Other Changes and Additions
   doing ``import astropy; astropy.test()``, so the ``coverage``
   keyword to ``astropy.test`` has been removed.  Coverage testing now
   depends only on `coverage.py
-  <http://nedbatchelder.com/code/coverage/>`__, not
+  <http://coverage.readthedocs.io/en/latest/>`__, not
   ``pytest-cov``. [#2112]
 
 - The included version of py.test has been upgraded to 2.5.1. [#1970]

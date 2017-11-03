@@ -77,8 +77,7 @@ def dtype_info_name(dtype):
     type that matches the dtype::
 
       Numpy          S<N>      U<N>
-      Python 2      str<N>  unicode<N>
-      Python 3    bytes<N>   str<N>
+      Python      bytes<N>   str<N>
 
     Parameters
     ----------
@@ -445,6 +444,14 @@ class BaseColumnInfo(DataInfo):
     # SkyCoord will have different default serialization representations
     # depending on context.
     _serialize_context = None
+
+    def __init__(self, bound=False):
+        super().__init__(bound=bound)
+
+        # If bound to a data object instance then add a _format_funcs dict
+        # for caching functions for print formatting.
+        if bound:
+            self._format_funcs = {}
 
     def iter_str_vals(self):
         """

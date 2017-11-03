@@ -22,8 +22,7 @@ classes to define custom YAML tags for the following astropy classes:
 
 .. Note ::
 
-   This module requires PyYaml version 3.12 or later, which in turn requires
-   Python 2.7 or Python 3.4 or later.
+   This module requires PyYaml version 3.12 or later.
 
 Example
 =======
@@ -63,8 +62,8 @@ Example
   >>> ty
   <Time object: scale='utc' format='mjd' value=2457389.0>
 
-  >>> ty.location
-  <EarthLocation ( 1000.,  2000.,  3000.) km>
+  >>> ty.location  # doctest: +FLOAT_CMP
+  <EarthLocation (1000., 2000., 3000.) km>
 """
 
 

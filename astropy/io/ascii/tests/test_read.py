@@ -40,12 +40,11 @@ def test_convert_overflow(fast_reader):
     Test reading an extremely large integer, which falls through to
     string due to an overflow error (#2234). The C parsers used to
     return inf (kind 'f') for this.
-    Kind should be 'S' in Python2, 'U' in Python3.
     """
-    expected_kind = ('S', 'U')
+    expected_kind = 'U'
     dat = ascii.read(['a', '1' * 10000], format='basic',
                      fast_reader=fast_reader, guess=False)
-    assert dat['a'].dtype.kind in expected_kind
+    assert dat['a'].dtype.kind == expected_kind
 
 
 def test_guess_with_names_arg():
@@ -102,6 +101,16 @@ def test_guess_with_format_arg():
     dat = Table.read(['1,2', '3,4'], format='ascii.basic', names=('a', 'b'))
     assert len(dat) == 1
     assert dat.colnames == ['a', 'b']
+
+
+def test_reading_mixed_delimiter_tabs_spaces():
+    # Regression test for https://github.com/astropy/astropy/issues/6770
+    dat = ascii.read('1 2\t3\n1 2\t3', format='no_header', names=list('abc'))
+    assert len(dat) == 2
+
+    Table.read(['1 2\t3', '1 2\t3'], format='ascii.no_header',
+               names=['a', 'b', 'c'])
+    assert len(dat) == 2
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])

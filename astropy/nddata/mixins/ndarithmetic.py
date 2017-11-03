@@ -150,9 +150,9 @@ class NDArithmeticMixin:
 
     Using it with two operand on an instance::
 
-        >>> ndd = NDDataWithMath(5)
+        >>> ndd = NDDataWithMath(-4)
         >>> ndd.divide(1, ndd)
-        NDDataWithMath(0.2)
+        NDDataWithMath(-0.25)
 
     Using it as classmethod requires two operands::
 

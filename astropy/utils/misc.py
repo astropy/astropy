@@ -20,7 +20,7 @@ import unicodedata
 import locale
 import threading
 import re
-import urllib
+import urllib.request
 
 from itertools import zip_longest
 from contextlib import contextmanager
@@ -95,9 +95,8 @@ def format_exception(msg, *args, **kwargs):
 
     .. note::
         This uses `sys.exc_info` to gather up the information needed to fill
-        in the formatting arguments. Python 2.x and 3.x have slightly
-        different behavior regarding `sys.exc_info` (the latter will not
-        carry it outside a handled exception), so it's not wise to use this
+        in the formatting arguments. Since `sys.exc_info` is not carried
+        outside a handled exception, it's not wise to use this
         outside of an ``except`` clause - if it is, this will substitute
         '<unkown>' for the 4 formatting arguments.
     """
@@ -370,7 +369,7 @@ class JsonCustomEncoder(json.JSONEncoder):
         * Numpy array or number
         * Complex number
         * Set
-        * Bytes (Python 3)
+        * Bytes
         * astropy.UnitBase
         * astropy.Quantity
 
@@ -839,7 +838,7 @@ def set_locale(name):
     Note that one cannot nest multiple set_locale() context manager
     statements as this causes a threading lock.
 
-    This code taken from http://stackoverflow.com/questions/18593661/.
+    This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
     ==========

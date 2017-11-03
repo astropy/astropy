@@ -17,10 +17,9 @@ import shutil
 import socket
 import sys
 import time
-import urllib
+import urllib.request
 import urllib.error
 import urllib.parse
-import urllib.request
 import shelve
 
 from tempfile import NamedTemporaryFile, gettempdir
@@ -49,7 +48,7 @@ class Conf(_config.ConfigNamespace):
         'http://data.astropy.org/',
         'Primary URL for astropy remote data site.')
     dataurl_mirror = _config.ConfigItem(
-        'http://astropy.org/astropy-data/',
+        'http://www.astropy.org/astropy-data/',
         'Mirror URL for astropy remote data site.')
     remote_timeout = _config.ConfigItem(
         10.,
@@ -138,8 +137,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -217,10 +215,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
-        except (IOError, EOFError):  # invalid gzip file
-            fileobj.seek(0)
-            fileobj_new.close()
-        except struct.error:  # invalid gzip file on Python 3
+        except (IOError, EOFError, struct.error):  # invalid gzip file
             fileobj.seek(0)
             fileobj_new.close()
         else:
@@ -339,6 +334,7 @@ def get_file_contents(*args, **kwargs):
         return f.read()
 
 
+@contextlib.contextmanager
 def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations for the package and
@@ -370,8 +366,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -388,8 +383,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
-        Python 3 is returned).
+        `urllib.request.urlopen` is returned).
 
     Returns
     -------
@@ -448,18 +442,25 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         raise IOError("Tried to access a data file that's actually "
                       "a package data directory")
     elif os.path.isfile(datafn):  # local file
-        return get_readable_fileobj(datafn, encoding=encoding)
+        with get_readable_fileobj(datafn, encoding=encoding) as fileobj:
+            yield fileobj
     else:  # remote file
         all_urls = (conf.dataurl, conf.dataurl_mirror)
         for url in all_urls:
             try:
-                return get_readable_fileobj(url + datafn, encoding=encoding,
-                                            cache=cache)
-            except urllib.error.URLError as e:
+                with get_readable_fileobj(url + data_name, encoding=encoding,
+                                          cache=cache) as fileobj:
+                    # We read a byte to trigger any URLErrors
+                    fileobj.read(1)
+                    fileobj.seek(0)
+                    yield fileobj
+                    break
+            except urllib.error.URLError:
                 pass
-        urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
-        raise urllib.error.URLError("Failed to download {0} from the following "
-                                    "repositories:\n\n{1}".format(datafn, urls))
+        else:
+            urls = '\n'.join('  - {0}'.format(url) for url in all_urls)
+            raise urllib.error.URLError("Failed to download {0} from the following "
+                                        "repositories:\n\n{1}".format(data_name, urls))
 
 
 def get_pkg_data_filename(data_name, package=None, show_progress=True,
@@ -625,8 +626,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -643,8 +643,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
-        Python 3 is returned).
+        `urllib.request.urlopen` is returned).
 
     Returns
     -------
@@ -755,8 +754,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        ``read`` method that on Python 2.x returns `bytes` objects and
-        on Python 3.x returns `str` (``unicode``) objects, using
+        ``read`` method that returns `str` (``unicode``) objects, using
         `locale.getpreferredencoding` as an encoding.  This matches
         the default behavior of the built-in `open` when no ``mode``
         argument is provided.
@@ -836,8 +834,7 @@ def _find_pkg_data_path(data_name, package=None):
     """
 
     if package is None:
-        module = find_current_module(1, True)
-
+        module = find_current_module(1, finddiff=['astropy.utils.data', 'contextlib'])
         if module is None:
             # not called from inside an astropy package.  So just pass name
             # through
@@ -1007,8 +1004,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 if url_key in url2hash:
                     return url2hash[url_key]
 
-        with contextlib.closing(urllib.request.urlopen(
-                remote_url, timeout=timeout)) as remote:
+        with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
             # keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -1119,7 +1115,7 @@ def _do_download_files_in_parallel(args):
     return download_file(*args)
 
 
-def download_files_in_parallel(urls, cache=False, show_progress=True,
+def download_files_in_parallel(urls, cache=True, show_progress=True,
                                timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
@@ -1132,7 +1128,12 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         The URLs to retrieve.
 
     cache : bool, optional
-        Whether to use the cache
+        Whether to use the cache (default is `True`).
+
+        .. versionchanged:: 3.0
+            The default was changed to ``True`` and setting it to ``False`` will
+            print a Warning and set it to ``True`` again, because the function
+            will not work properly without cache.
 
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
@@ -1151,6 +1152,16 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
 
     if timeout is None:
         timeout = conf.remote_timeout
+
+    if not cache:
+        # See issue #6662, on windows won't work because the files are removed
+        # again before they can be used. On *NIX systems it will behave as if
+        # cache was set to True because multiprocessing cannot insert the items
+        # in the list of to-be-removed files.
+        warn("Disabling the cache does not work because of multiprocessing, it "
+             "will be set to ``True``. You may need to manually remove the "
+             "cached files afterwards.", AstropyWarning)
+        cache = True
 
     if show_progress:
         progress = sys.stdout

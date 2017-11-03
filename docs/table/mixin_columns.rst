@@ -38,8 +38,8 @@ The important point here is that the ``time`` column is a bona fide |Time| objec
 
   >>> t['time']
   <Time object: scale='utc' format='isot' value=['2001-01-02T12:34:56.000' '2001-02-03T00:01:02.000']>
-  >>> t['time'].mjd
-  array([ 51911.52425926,  51943.00071759])
+  >>> t['time'].mjd  # doctest: +FLOAT_CMP
+  array([51911.52425926, 51943.00071759])
 
 .. _quantity_and_qtable:
 
@@ -185,16 +185,16 @@ This mode of initializing a table does not work with mixin columns, so both of
 the following will fail::
 
    >>> qt = QTable([{'a': 1 * u.m, 'b': 2},
-   ...              {'a': 2 * u.m, 'b': 3}])
+   ...              {'a': 2 * u.m, 'b': 3}])  # doctest: +SKIP
    Traceback (most recent call last):
     ...
-   ValueError: setting an array element with a sequence.
+   TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
    >>> qt = QTable(rows=[[1 * u.m, 2],
-   ...                   [2 * u.m, 3]])
+   ...                   [2 * u.m, 3]])  # doctest: +SKIP
    Traceback (most recent call last):
     ...
-   ValueError: setting an array element with a sequence.
+   TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
 The problem lies in knowing if and how to assemble the individual elements
 for each column into an appropriate mixin column.  The current code uses

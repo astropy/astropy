@@ -29,7 +29,7 @@ HEADER_END_RE = re.compile(encode_ascii(
 
 # According to the FITS standard the only characters that may appear in a
 # header record are the restricted ASCII chars from 0x20 through 0x7E.
-VALID_HEADER_CHARS = set(chr(x) for x in range(0x20, 0x7F))
+VALID_HEADER_CHARS = set(map(chr, range(0x20, 0x7F)))
 END_CARD = 'END' + ' ' * 77
 
 
@@ -665,8 +665,8 @@ class Header:
 
         overwrite : bool, optional
             If ``True``, overwrite the output file if it exists. Raises an
-            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-            output file exists. Default is ``False``.
+            ``OSError`` if ``False`` and the output file exists. Default is
+            ``False``.
 
             .. versionchanged:: 1.3
                ``overwrite`` replaces the deprecated ``clobber`` argument.
@@ -843,8 +843,7 @@ class Header:
         created in the specified position, or appended to the end of the header
         if no position is specified.
 
-        This method is similar to :meth:`Header.update` prior to PyFITS 3.1
-        / Astropy v0.1.
+        This method is similar to :meth:`Header.update` prior to Astropy v0.1.
 
         .. note::
             It should be noted that ``header.set(keyword, value)`` and
@@ -1013,8 +1012,8 @@ class Header:
 
         .. warning::
             As this method works similarly to `dict.update` it is very
-            different from the ``Header.update()`` method in PyFITS versions
-            prior to 3.1.0 (or Astropy v0.1). Use of the old API was
+            different from the ``Header.update()`` method in Astropy v0.1.
+            Use of the old API was
             **deprecated** for a long time and is now removed. Most uses of the
             old API can be replaced as follows:
 

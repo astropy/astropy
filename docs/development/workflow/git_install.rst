@@ -12,7 +12,7 @@ Get git
 =======
 
 Installers and instructions for all platforms are available at
-http://git-scm.com/downloads
+https://git-scm.com/downloads
 
 .. _essential_config:
 
@@ -56,8 +56,8 @@ Linux, Mac and Windows:
 There is a more extensive list of `git GUIs`_, including non-free options, for
 all platforms.
 
-.. _git GUIs: http://git-scm.com/downloads/guis
-.. _SourceTree: http://www.sourcetreeapp.com/
-.. _Mac: http://mac.github.com/
-.. _Windows: http://windows.github.com/
+.. _git GUIs: https://git-scm.com/downloads/guis
+.. _SourceTree: https://www.sourcetreeapp.com/
+.. _Mac: https://desktop.github.com/
+.. _Windows: https://desktop.github.com/
 .. _git-cola: http://git-cola.github.io/

@@ -61,4 +61,4 @@ The conversions to/from pandas are subject to the following caveats:
 * Tables with mixin columns can currently not be converted, but this may be
   implemented in the future.
 
-.. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
+.. _DataFrame: http://pandas-docs.github.io/pandas-docs-travis/

@@ -42,15 +42,15 @@ If a parameter has been initialized as a Quantity, it should always be set to a
 quantity, but the units don't have to be compatible with the initial ones::
 
     >>> g1.mean = 3 * u.s
-    >>> g1
-    <Gaussian1D(amplitude=3.0 Jy, mean=3.0 s, stddev=2.0 cm)>
+    >>> g1  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=3. Jy, mean=3. s, stddev=2. cm)>
 
 To change the value of a parameter and not the unit, simply set the value
 property::
 
     >>> g1.mean.value = 2
-    >>> g1
-    <Gaussian1D(amplitude=3.0 Jy, mean=2.0 s, stddev=2.0 cm)>
+    >>> g1  # doctest: +FLOAT_CMP
+    <Gaussian1D(amplitude=3. Jy, mean=2. s, stddev=2. cm)>
 
 Setting a parameter which was originally set to a quantity to a scalar doesn't
 work because it's ambiguous whether the user means to change just the value and

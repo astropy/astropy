@@ -14,10 +14,11 @@ from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity, QuantityInfo
 from ..utils import isiterable, ShapedLikeNDArray
-from ..utils.compat.numpy import broadcast_to as np_broadcast_to
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
+from ..utils.exceptions import AstropyDeprecationWarning, NoValue
+
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -207,17 +208,15 @@ class Table:
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data. Default is True.
+        Copy the input data. If the input is a Table the ``meta`` is always
+        copied regardless of the ``copy`` parameter.
+        Default is True.
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
-
-    .. note::
-        If the input is a Table the ``meta`` is always copied regardless of the
-        ``copy`` parameter.
     """
 
     meta = MetaData()
@@ -399,8 +398,8 @@ class Table:
         if dtype is None:
             dtype = [None] * n_cols
 
-        # Numpy does not support Unicode column names on Python 2, or
-        # bytes column names on Python 3, so fix them up now.
+        # Numpy does not support bytes column names on Python 3, so fix them
+        # up now.
         names = [fix_column_name(name) for name in names]
 
         self._check_names_dtype(names, dtype, n_cols)
@@ -1054,7 +1053,7 @@ class Table:
         table_class : str or `None`
             A string with a list of HTML classes used to style the table.
             Default is "display compact", and other possible values can be
-            found in http://www.datatables.net/manual/styling/classes
+            found in https://www.datatables.net/manual/styling/classes
         css : string
             A valid CSS string declaring the formatting for the table. Defaults
             to ``astropy.table.jsviewer.DEFAULT_CSS``.
@@ -1279,10 +1278,10 @@ class Table:
                                        len(value) == 1)):
                     new_shape = (len(self),) + getattr(value, 'shape', ())[1:]
                     if isinstance(value, np.ndarray):
-                        value = np_broadcast_to(value, shape=new_shape,
+                        value = np.broadcast_to(value, shape=new_shape,
                                                 subok=True)
                     elif isinstance(value, ShapedLikeNDArray):
-                        value = value._apply(np_broadcast_to, shape=new_shape,
+                        value = value._apply(np.broadcast_to, shape=new_shape,
                                              subok=True)
 
                 new_column = col_copy(value)
@@ -1981,7 +1980,7 @@ class Table:
         for name in names:
             self.columns.pop(name)
 
-    def _convert_string_dtype(self, in_kind, out_kind, python3_only):
+    def _convert_string_dtype(self, in_kind, out_kind):
         """
         Convert string-like columns to/from bytestring and unicode (internal only).
 
@@ -1991,8 +1990,6 @@ class Table:
             Input dtype.kind
         out_kind : str
             Output dtype.kind
-        python3_only : bool
-            Only do this operation for Python 3
         """
 
         # If there are no `in_kind` columns then do nothing
@@ -2011,48 +2008,36 @@ class Table:
 
         self._init_from_cols(newcols)
 
-    def convert_bytestring_to_unicode(self, python3_only=False):
+    def convert_bytestring_to_unicode(self, python3_only=NoValue):
         """
         Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
         ASCII encoding.
 
-        Internally this changes string columns to represent each character in the string
-        with a 4-byte UCS-4 equivalent, so it is inefficient for memory but allows Python
-        3 scripts to manipulate string arrays with natural syntax.
-
-        The ``python3_only`` parameter is provided as a convenience so that code can
-        be written in a Python 2 / 3 compatible way::
-
-          >>> t = Table.read('my_data.fits')
-          >>> t.convert_bytestring_to_unicode(python3_only=True)
-
-        Parameters
-        ----------
-        python3_only : bool
-            Only do this operation for Python 3
+        Internally this changes string columns to represent each character
+        in the string with a 4-byte UCS-4 equivalent, so it is inefficient
+        for memory but allows scripts to manipulate string arrays with
+        natural syntax.
         """
-        self._convert_string_dtype('S', 'U', python3_only)
+        if python3_only is not NoValue:
+            warnings.warn('The "python3_only" keyword is now deprecated.',
+                          AstropyDeprecationWarning)
 
-    def convert_unicode_to_bytestring(self, python3_only=False):
+        self._convert_string_dtype('S', 'U')
+
+    def convert_unicode_to_bytestring(self, python3_only=NoValue):
         """
         Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
 
-        When exporting a unicode string array to a file in Python 3, it may be desirable
-        to encode unicode columns as bytestrings.  This routine takes advantage of numpy
-        automated conversion which works for strings that are pure ASCII.
-
-        The ``python3_only`` parameter is provided as a convenience so that code can
-        be written in a Python 2 / 3 compatible way::
-
-          >>> t.convert_unicode_to_bytestring(python3_only=True)
-          >>> t.write('my_data.fits')
-
-        Parameters
-        ----------
-        python3_only : bool
-            Only do this operation for Python 3
+        When exporting a unicode string array to a file, it may be desirable
+        to encode unicode columns as bytestrings.  This routine takes
+        advantage of numpy automated conversion which works for strings that
+        are pure ASCII.
         """
-        self._convert_string_dtype('U', 'S', python3_only)
+        if python3_only is not NoValue:
+            warnings.warn('The "python3_only" keyword is now deprecated.',
+                          AstropyDeprecationWarning)
+
+        self._convert_string_dtype('U', 'S')
 
     def keep_columns(self, names):
         '''
@@ -2546,11 +2531,8 @@ class Table:
         ----------
         copy_data : bool
             If `True` (the default), copy the underlying data array.
-            Otherwise, use the same data array
-
-        .. note::
-            The ``meta`` is always deepcopied regardless of the value for
-            ``copy_data``.
+            Otherwise, use the same data array. The ``meta`` is always
+            deepcopied regardless of the value for ``copy_data``.
         '''
         out = self.__class__(self, copy=copy_data)
 

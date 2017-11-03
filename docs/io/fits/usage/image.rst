@@ -55,7 +55,7 @@ Here is a summary of reading and updating image data values::
     >>> data[3] = data[2]    # copy the 3rd row to the 4th row
 
 Here are some more complicated examples by using the concept of the "mask
-array". The first example is to change all negative pixel values in data to
+array". The first example is to change all negative pixel values in ``data`` to
 zero. The second one is to take logarithm of the pixel values which are
 positive::
 
@@ -126,7 +126,7 @@ before and after the data is touched::
 
 .. warning::
 
-    An important caveat to be aware of when dealing with scaled data in PyFITS,
+    An important caveat to be aware of when dealing with scaled data in Astropy,
     is that when accessing the data via the ``.data`` attribute, the data is
     automatically scaled with the BZERO and BSCALE parameters.  If the file was
     opened in "update" mode, it will be saved with the rescaled data.  This
@@ -173,8 +173,8 @@ an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 :meth:`~ImageHDU.scale` call::
 
     >>> hdu = fits.PrimaryHDU(np.array([0., 1, 2, 3]))
-    >>> print(hdu.data)
-    [ 0.  1.  2.  3.]
+    >>> print(hdu.data)  # doctest: +FLOAT_CMP
+    [0. 1. 2. 3.]
     >>> hdu.scale('int16', bzero=32768)
     >>> print(hdu.data)  # now the data has storage values
     [-32768 -32767 -32766 -32765]
@@ -197,7 +197,7 @@ If a user does not need the entire image(s) at the same time, e.g. processing
 images(s) ten rows at a time, the :attr:`~ImageHDU.section` attribute of an
 HDU can be used to alleviate such memory problems.
 
-With PyFITS' improved support for memory-mapping, the sections feature is not
+With Astropy's improved support for memory-mapping, the sections feature is not
 as necessary as it used to be for handling very large images.  However, if the
 image's data is scaled with non-trivial BSCALE/BZERO values, accessing the data
 in sections may still be necessary under the current implementation.  Memmap is
@@ -222,7 +222,7 @@ Here is an example of getting the median image from 3 input images of the size
         output[j:k, :] = np.median([x1, x2, x3], axis=0)
 
 Data in each :attr:`~ImageHDU.section` does not need to be contiguous for
-memory savings to be possible.  PyFITS will do its best to join together
+memory savings to be possible.  Astropy will do its best to join together
 discontiguous sections of the array while reading as little as possible into
 main memory.
 

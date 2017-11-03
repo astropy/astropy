@@ -22,6 +22,7 @@ import functools
 import operator
 import sys
 import types
+import warnings
 
 from collections import defaultdict, OrderedDict
 from contextlib import suppress
@@ -38,6 +39,7 @@ from ..utils import (sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer,
                      check_broadcast, IncompatibleShapeError, isiterable)
 from ..utils.codegen import make_function_with_signature
+from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (combine_labels, make_binary_operator_eval,
                     ExpressionTree, AliasDict, get_inputs_and_params,
                     _BoundingBox, _combine_equivalency_dict)
@@ -81,11 +83,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     Parameter descriptors declared at the class-level of Model subclasses.
     """
 
-    registry = set()
-    """
-    A registry of all known concrete (non-abstract) Model subclasses.
-    """
-
     _is_dynamic = False
     """
     This flag signifies whether this class was created in the "normal" way,
@@ -127,9 +124,6 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         cls._handle_special_methods(members)
-
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            cls.registry.add(cls)
 
     def __repr__(cls):
         """
@@ -225,8 +219,7 @@ class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
             modname = '__main__'
 
         new_cls = type(name, (cls,), {})
-        # On Python 2 __module__ must be a str, not unicode
-        new_cls.__module__ = str(modname)
+        new_cls.__module__ = modname
 
         if hasattr(cls, '__qualname__'):
             if new_cls.__module__ == '__main__':
@@ -674,13 +667,11 @@ class Model(metaclass=_ModelMeta):
     # inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
-        meta = kwargs.pop('meta', None)
         if meta is not None:
             self.meta = meta
-
-        self._name = kwargs.pop('name', None)
+        self._name = name
 
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
@@ -1406,7 +1397,8 @@ class Model(metaclass=_ModelMeta):
     def return_units(self, return_units):
         self._return_units = return_units
 
-    def prepare_inputs(self, *inputs, **kwargs):
+    def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
+                       **kwargs):
         """
         This method is used in `~astropy.modeling.Model.__call__` to ensure
         that all the inputs to the model can be broadcast into compatible
@@ -1417,9 +1409,8 @@ class Model(metaclass=_ModelMeta):
         """
 
         # When we instantiate the model class, we make sure that __call__ can
-        # take the following two keyword arguments.
-        model_set_axis = kwargs.pop('model_set_axis', None)
-        equivalencies = kwargs.pop('equivalencies', None)
+        # take the following two keyword arguments: model_set_axis and
+        # equivalencies.
 
         if model_set_axis is None:
             # By default the model_set_axis for the input is assumed to be the
@@ -2226,11 +2217,7 @@ class _CompoundModelMeta(_ModelMeta):
         all of its parameters.
         """
 
-        try:
-            # Annoyingly, this will only work for Python 3.3+
-            basedir = super().__dir__()
-        except AttributeError:
-            basedir = list(set((dir(type(cls)) + list(cls.__dict__))))
+        basedir = super().__dir__()
 
         if cls._tree is not None:
             for name in cls.param_names:
@@ -2292,10 +2279,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._evaluate is None:
             func = cls._tree.evaluate(BINARY_OPERATORS,
                                       getter=cls._model_evaluate_getter)[0]
-            # Making this a staticmethod isn't strictly necessary for Python 3,
-            # but it is necessary on Python 2 since looking up cls._evaluate
-            # will return an unbound method otherwise
-            cls._evaluate = staticmethod(func)
+            cls._evaluate = func
         inputs = args[:cls.n_inputs]
         params = iter(args[cls.n_inputs:])
         result = cls._evaluate(inputs, params)
@@ -2870,7 +2854,7 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         return new_model
 
 
-def custom_model(*args, **kwargs):
+def custom_model(*args, fit_deriv=None, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -2939,7 +2923,12 @@ def custom_model(*args, **kwargs):
         0.3333333333333333
     """
 
-    fit_deriv = kwargs.get('fit_deriv', None)
+    if kwargs:
+        warnings.warn(
+            "Function received unexpected arguments ({}) these "
+            "are ignored but will raise an Exception in the "
+            "future.".format(list(kwargs)),
+            AstropyDeprecationWarning)
 
     if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)

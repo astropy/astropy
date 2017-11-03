@@ -121,9 +121,15 @@ def get_builtin_sites():
     return SiteRegistry.from_json(jsondb)
 
 
-def get_downloaded_sites(jsonurl='http://data.astropy.org/coordinates/sites.json'):
+def get_downloaded_sites(jsonurl=None):
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
-    jsondb = json.loads(get_file_contents(jsonurl, show_progress=False))
+
+    if jsonurl is None:
+        content = get_pkg_data_contents('coordinates/sites.json')
+    else:
+        content = get_file_contents(jsonurl)
+
+    jsondb = json.loads(content)
     return SiteRegistry.from_json(jsondb)

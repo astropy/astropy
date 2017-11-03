@@ -317,7 +317,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
 
-        # This test used to check if PyFITS rewrote this card to a new format,
+        # This test used to check if Astropy rewrote this card to a new format,
         # something like "HISTO   = '=   (1, 2)".  But since ticket #109 if the
         # format is completely wrong we don't make any assumptions and the card
         # should be left alone
@@ -1767,7 +1767,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         # The example for this test requires creating a FITS file containing a
         # slightly misformatted float value.  I can't actually even find a way
-        # to do that directly through PyFITS--it won't let me.
+        # to do that directly through Astropy--it won't let me.
         hdu = fits.PrimaryHDU()
         hdu.header['TEST'] = 5.0022221e-07
         hdu.writeto(self.temp('test.fits'))
@@ -1796,7 +1796,7 @@ class TestHeaderFunctions(FitsTestCase):
         float values like 0.001 the leading zero was unnecessarily being
         stripped off when rewriting the header.  Though leading zeros should be
         removed from integer values to prevent misinterpretation as octal by
-        python (for now PyFITS will still maintain the leading zeros if now
+        python (for now Astropy will still maintain the leading zeros if now
         changes are made to the value, but will drop them if changes are made).
         """
 
@@ -1908,7 +1908,7 @@ class TestHeaderFunctions(FitsTestCase):
         by several blank cards.
         """
 
-        data = np.arange(100).reshape((10, 10))
+        data = np.arange(100).reshape(10, 10)
         hdu = fits.PrimaryHDU(data=data)
         hdu.header['TESTKW'] = ('Test val', 'This is the END')
         # Add a couple blanks after the END string
@@ -1982,14 +1982,10 @@ class TestHeaderFunctions(FitsTestCase):
         First regression test for
         https://github.com/spacetelescope/PyFITS/issues/37
 
-        Although test_assign_unicode ensures that Python 2 `unicode` objects
-        and Python 3 `str` objects containing non-ASCII characters cannot be
-        assigned to headers, there is a bug that allows Python 2 `str` objects
-        of arbitrary encoding containing non-ASCII characters to be passed
-        through.
+        Although test_assign_unicode ensures that `str` objects containing
+        non-ASCII characters cannot be assigned to headers.
 
-        On Python 3 it should not be possible to assign bytes to a header at
-        all.
+        It should not be possible to assign bytes to a header at all.
         """
 
         h = fits.Header()

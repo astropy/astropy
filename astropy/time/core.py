@@ -22,7 +22,6 @@ from ..utils.decorators import lazyproperty
 from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
-from ..utils.compat.numpy import broadcast_to
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -279,12 +278,12 @@ class Time(ShapedLikeNDArray):
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
 
-        if self.location and (self.location.size > 1 and
-                              self.location.shape != self.shape):
+        if self.location is not None and (self.location.size > 1 and
+                                          self.location.shape != self.shape):
             try:
                 # check the location can be broadcast to self's shape.
-                self.location = broadcast_to(self.location, self.shape,
-                                             subok=True)
+                self.location = np.broadcast_to(self.location, self.shape,
+                                                subok=True)
             except Exception:
                 raise ValueError('The location with shape {0} cannot be '
                                  'broadcast against time with shape {1}. '
@@ -828,7 +827,7 @@ class Time(ShapedLikeNDArray):
         """
         return self._apply('copy' if copy else 'replicate', format=format)
 
-    def _apply(self, method, *args, **kwargs):
+    def _apply(self, method, *args, format=None, **kwargs):
         """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
@@ -859,9 +858,7 @@ class Time(ShapedLikeNDArray):
             index or slice : ``_apply('__getitem__', item)``
             broadcast : ``_apply(np.broadcast, shape=new_shape)``
         """
-        new_format = kwargs.pop('format', None)
-        if new_format is None:
-            new_format = self.format
+        new_format = self.format if format is None else format
 
         if callable(method):
             apply_method = lambda array: method(array, *args, **kwargs)
@@ -1161,7 +1158,7 @@ class Time(ShapedLikeNDArray):
         if val.size > 1 and val.shape != self.shape:
             try:
                 # check the value can be broadcast to the shape of self.
-                val = broadcast_to(val, self.shape, subok=True)
+                val = np.broadcast_to(val, self.shape, subok=True)
             except Exception:
                 raise ValueError('Attribute shape must match or be '
                                  'broadcastable to that of Time object. '

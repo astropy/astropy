@@ -319,7 +319,7 @@ class TestTableFunctions(FitsTestCase):
     def test_column_endianness(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/77
-        (PyFITS doesn't preserve byte order of non-native order column arrays)
+        (Astropy doesn't preserve byte order of non-native order column arrays)
         """
 
         a = [1., 2., 3., 4.]
@@ -812,10 +812,7 @@ class TestTableFunctions(FitsTestCase):
         well to other similar cases.
         """
 
-        NULLS = {}
-        NULLS['a'] = 2
-        NULLS['b'] = 'b'
-        NULLS['c'] = 2.3
+        NULLS = {'a': 2, 'b': 'b', 'c': 2.3}
 
         data = np.array(list(zip([1, 2, 3, 4],
                                  ['a', 'b', 'c', 'd'],
@@ -1804,7 +1801,7 @@ class TestTableFunctions(FitsTestCase):
             raw_bytes = f.read()
 
         # Artificially truncate TDIM in the header; this seems to be the
-        # easiest way to do this while getting around pyfits' insistence on the
+        # easiest way to do this while getting around Astropy's insistence on the
         # data and header matching perfectly; again, we have no interest in
         # making it possible to write files in this format, only read them
         with open(self.temp('test.fits'), 'wb') as f:
@@ -2470,7 +2467,7 @@ class TestTableFunctions(FitsTestCase):
             readfile(self.data('memtest.fits'))
 
     @pytest.mark.skipif(str('not HAVE_OBJGRAPH'))
-    def test_reference_leak(self, tmpdir):
+    def test_reference_leak2(self, tmpdir):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539
 

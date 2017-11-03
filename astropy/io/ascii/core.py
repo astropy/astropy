@@ -422,20 +422,13 @@ class DefaultSplitter(BaseSplitter):
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
 
-        # In Python 2.x the inputs to csv cannot be unicode.  In Python 3 these
-        # lines do nothing.
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
-        delimiter = None if self.delimiter is None else str(self.delimiter)
-
-        if delimiter == r'\s':
-            delimiter = ' '
+        delimiter = ' ' if self.delimiter == r'\s' else self.delimiter
 
         csv_reader = csv.reader(lines,
                                 delimiter=delimiter,
                                 doublequote=self.doublequote,
-                                escapechar=escapechar,
-                                quotechar=quotechar,
+                                escapechar=self.escapechar,
+                                quotechar=self.quotechar,
                                 quoting=self.quoting,
                                 skipinitialspace=self.skipinitialspace
                                 )
@@ -447,16 +440,13 @@ class DefaultSplitter(BaseSplitter):
 
     def join(self, vals):
 
-        # In Python 2.x the inputs to csv cannot be unicode
-        escapechar = None if self.escapechar is None else str(self.escapechar)
-        quotechar = None if self.quotechar is None else str(self.quotechar)
         delimiter = ' ' if self.delimiter is None else str(self.delimiter)
 
         if self.csv_writer is None:
             self.csv_writer = CsvWriter(delimiter=delimiter,
                                         doublequote=self.doublequote,
-                                        escapechar=escapechar,
-                                        quotechar=quotechar,
+                                        escapechar=self.escapechar,
+                                        quotechar=self.quotechar,
                                         quoting=self.quoting,
                                         lineterminator='')
         if self.process_val:
@@ -657,7 +647,8 @@ class BaseHeader:
                                      .format(name))
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
-            raise ValueError('Strict name guessing requires at least two columns')
+            raise ValueError('Table format guessing requires at least two columns, got {}'
+                             .format(list(self.colnames)))
 
         if names is not None and len(names) != len(self.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
@@ -845,7 +836,7 @@ def convert_numpy(numpy_type):
     ----------
     numpy_type : numpy data-type
         The numpy type required of an array returned by ``converter``. Must be a
-        valid `numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
+        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
         e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
         numpy.float64, numpy.str.
 

@@ -99,9 +99,9 @@ in the package.
 **Code Quality**
   * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
     followed?
-  * Is the code compatible with Python 2.7 and >=3.4?
+  * Is the code compatible with Python >=3.5?
   * Are there dependencies other than the Astropy core, the Python Standard
-    Library, and NumPy 1.9.0 or later?
+    Library, and NumPy 1.10.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies  raise an `ImportError`

@@ -6,6 +6,7 @@ import gzip
 import http.client
 import mmap
 import operator
+import pathlib
 import io
 import os
 import sys
@@ -71,13 +72,6 @@ GZIP_MAGIC = b'\x1f\x8b\x08'
 PKZIP_MAGIC = b'\x50\x4b\x03\x04'
 BZIP2_MAGIC = b'\x42\x5a'
 
-try:
-    import pathlib
-except ImportError:
-    HAS_PATHLIB = False
-else:
-    HAS_PATHLIB = True
-
 def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
@@ -116,8 +110,18 @@ class _File:
         else:
             self.simulateonly = False
             # If fileobj is of type pathlib.Path
-            if HAS_PATHLIB and isinstance(fileobj, pathlib.Path):
+            if isinstance(fileobj, pathlib.Path):
                 fileobj = str(fileobj)
+            elif isinstance(fileobj, bytes):
+                # Using bytes as filename is tricky, it's deprecated for Windows
+                # in Python 3.5 (because it could lead to false-positives) but
+                # was fixed and un-deprecated in Python 3.6.
+                # However it requires that the bytes object is encoded with the
+                # file system encoding.
+                # Probably better to error out and ask for a str object instead.
+                # TODO: This could be revised when Python 3.5 support is dropped
+                # See also: https://github.com/astropy/astropy/issues/6789
+                raise TypeError("names should be `str` not `bytes`.")
 
         # Holds mmap instance for files that use mmap
         self._mmap = None
@@ -272,10 +276,10 @@ class _File:
         if size and shape:
             actualsize = np.prod(shape) * dtype.itemsize
 
-            if actualsize < size:
+            if actualsize > size:
                 raise ValueError('size {} is too few bytes for a {} array of '
                                  '{}'.format(size, shape, dtype))
-            if actualsize < size:
+            elif actualsize < size:
                 raise ValueError('size {} is too many bytes for a {} array of '
                                  '{}'.format(size, shape, dtype))
 
@@ -341,26 +345,14 @@ class _File:
             self._file.flush()
 
     def seek(self, offset, whence=0):
-        # In newer Python versions, GzipFiles support the whence argument, but
-        # I don't think it was added until 2.6; instead of assuming it's
-        # present, we implement our own support for it here
         if not hasattr(self._file, 'seek'):
             return
-        if isinstance(self._file, gzip.GzipFile):
-            if whence:
-                if whence == 1:
-                    offset = self._file.offset + offset
-                else:
-                    raise ValueError('Seek from end not supported')
-            self._file.seek(offset)
-        else:
-            self._file.seek(offset, whence)
-
+        self._file.seek(offset, whence)
         pos = self._file.tell()
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
-                          '({}) is smaller than the expected size ({})'.format(
-                    self.size, pos), AstropyUserWarning)
+                          '({}) is smaller than the expected size ({})'
+                          .format(self.size, pos), AstropyUserWarning)
 
     def tell(self):
         if not hasattr(self._file, 'tell'):

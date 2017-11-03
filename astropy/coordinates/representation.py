@@ -17,9 +17,9 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..utils import ShapedLikeNDArray, classproperty
+
 from ..utils.misc import InheritDocstrings
-from ..utils.compat import NUMPY_LT_1_12
-from ..utils.compat.numpy import broadcast_arrays, broadcast_to
+from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",
@@ -42,6 +42,7 @@ DIFFERENTIAL_CLASSES = {}
 def _array2string(values, prefix=''):
     # Mimic numpy >=1.12 array2string, in which structured arrays are
     # typeset taking into account all printoptions.
+    kwargs = {'separator': ', ', 'prefix': prefix}
     if NUMPY_LT_1_12:  # pragma: no cover
         # Mimic StructureFormat from numpy >=1.12 assuming float-only data.
         from numpy.core.arrayprint import FloatFormat
@@ -57,13 +58,15 @@ def _array2string(values, prefix=''):
                                            zip(x, format_functions)))
         # Before 1.12, structures arrays were set as "numpystr",
         # so that is the formmater we need to replace.
-        formatter = {'numpystr': fmt}
-    else:
-        fmt = repr
-        formatter = {}
+        kwargs['formatter'] = {'numpystr': fmt}
+        kwargs['style'] = fmt
 
-    return np.array2string(values, formatter=formatter, style=fmt,
-                           separator=', ', prefix=prefix)
+    else:
+        kwargs['formatter'] = {}
+        if NUMPY_LT_1_14:  # in 1.14, style is no longer used (and deprecated)
+            kwargs['style'] = repr
+
+    return np.array2string(values, **kwargs)
 
 
 def _combine_xyz(x, y, z, xyz_axis=0):
@@ -152,7 +155,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         attrs = [self.attr_classes[component](attr, copy=copy)
                  for component, attr in zip(components, attrs)]
         try:
-            attrs = broadcast_arrays(*attrs, subok=True)
+            attrs = np.broadcast_arrays(*attrs, subok=True)
         except ValueError:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
@@ -472,9 +475,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
 
     recommended_units = {}  # subclasses can override
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
-        differentials = kwargs.pop('differentials', None)
         super().__init__(*args, **kwargs)
         self._differentials = self._validate_differentials(differentials)
 
@@ -1003,15 +1005,15 @@ class CartesianRepresentation(BaseRepresentation):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
     def unit_vectors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
-        o = broadcast_to(0.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
+        o = np.broadcast_to(0.*u.one, self.shape, subok=True)
         return OrderedDict(
             (('x', CartesianRepresentation(l, o, o, copy=False)),
              ('y', CartesianRepresentation(o, l, o, copy=False)),
              ('z', CartesianRepresentation(o, o, l, copy=False))))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('x', l), ('y', l), ('z', l)))
 
     def get_xyz(self, xyz_axis=0):
@@ -1278,7 +1280,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                              coslat, copy=False))))
 
     def scale_factors(self, omit_coslat=False):
-        sf_lat = broadcast_to(1./u.radian, self.shape, subok=True)
+        sf_lat = np.broadcast_to(1./u.radian, self.shape, subok=True)
         sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat)))
@@ -1457,7 +1459,7 @@ class RadialRepresentation(BaseRepresentation):
                                   '{0} instances'.format(self.__class__))
 
     def scale_factors(self):
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('distance', l),))
 
     def to_cartesian(self):
@@ -1576,7 +1578,7 @@ class SphericalRepresentation(BaseRepresentation):
     def scale_factors(self, omit_coslat=False):
         sf_lat = self.distance / u.radian
         sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
-        sf_distance = broadcast_to(1.*u.one, self.shape, subok=True)
+        sf_distance = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('lon', sf_lon),
                             ('lat', sf_lat),
                             ('distance', sf_distance)))
@@ -1735,7 +1737,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def scale_factors(self):
         r = self.r / u.radian
         sintheta = np.sin(self.theta)
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('phi', r * sintheta),
                             ('theta', r),
                             ('r', l)))
@@ -1867,7 +1869,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
-        l = broadcast_to(1., self.shape)
+        l = np.broadcast_to(1., self.shape)
         return OrderedDict(
             (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
              ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
@@ -1875,7 +1877,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def scale_factors(self):
         rho = self.rho / u.radian
-        l = broadcast_to(1.*u.one, self.shape, subok=True)
+        l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         return OrderedDict((('rho', l),
                             ('phi', rho),
                             ('z', l)))
@@ -1994,7 +1996,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         for name in base.components:
             comp = getattr(base, name)
             d_comp = getattr(self, 'd_{0}'.format(name), None)
-            if d_comp:
+            if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
                 # Get the si unit without a scale by going via Quantity;
                 # `.si` causes the scale to be included in the value.

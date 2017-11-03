@@ -51,8 +51,8 @@ and you can use them in conjunction with unit and other non-constant
 
 It is possible to convert most constants to cgs using e.g.::
 
-    >>> const.c.cgs
-    <Quantity 29979245800.0 cm / s>
+    >>> const.c.cgs  # doctest: +FLOAT_CMP
+    <Quantity   2.99792458e+10 cm / s>
 
 However, some constants are defined with different physical dimensions in cgs
 and cannot be directly converted. Because of this ambiguity, such constants

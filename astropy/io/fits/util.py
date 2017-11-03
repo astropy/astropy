@@ -22,13 +22,6 @@ from distutils.version import LooseVersion
 
 import numpy as np
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    # Use for isinstance test only
-    class StringIO:
-        pass
-
 from ...utils import wraps
 from ...utils.exceptions import AstropyUserWarning
 
@@ -332,7 +325,7 @@ def isreadable(f):
     if not hasattr(f, 'read'):
         return False
 
-    if hasattr(f, 'mode') and not any((c in f.mode for c in 'r+')):
+    if hasattr(f, 'mode') and not any(c in f.mode for c in 'r+'):
         return False
 
     # Not closed, has a 'read()' method, and either has no known mode or a
@@ -356,7 +349,7 @@ def iswritable(f):
     if not hasattr(f, 'write'):
         return False
 
-    if hasattr(f, 'mode') and not any((c in f.mode for c in 'wa+')):
+    if hasattr(f, 'mode') and not any(c in f.mode for c in 'wa+'):
         return False
 
     # Note closed, has a 'write()' method, and either has no known mode or a
@@ -514,7 +507,7 @@ def fileobj_is_binary(f):
     if hasattr(f, 'binary'):
         return f.binary
 
-    if io is not None and isinstance(f, io.TextIOBase):
+    if isinstance(f, io.TextIOBase):
         return False
 
     mode = fileobj_mode(f)
@@ -522,9 +515,6 @@ def fileobj_is_binary(f):
         return 'b' in mode
     else:
         return True
-
-
-maketrans = str.maketrans
 
 
 def translate(s, table, deletechars):
@@ -592,7 +582,10 @@ def _array_from_file(infile, dtype, count, sep):
         # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
-        return np.fromstring(s, dtype=dtype, count=count, sep=sep)
+        if sep == '':
+            return np.frombuffer(s, dtype=dtype, count=count)
+        else:
+            return np.fromstring(s, dtype=dtype, count=count, sep=sep)
 
 
 _OSX_WRITE_LIMIT = (2 ** 32) - 1
@@ -707,9 +700,6 @@ def _write_string(f, s):
         s = encode_ascii(s)
     elif not binmode and not isinstance(f, str):
         s = decode_ascii(s)
-    elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
-        # Workaround for StringIO/ndarray incompatibility
-        s = s.data
 
     f.write(s)
 
@@ -765,15 +755,15 @@ def _str_to_num(val):
 def _words_group(input, strlen):
     """
     Split a long string into parts where each part is no longer
-    than `strlen` and no word is cut into two pieces.  But if
-    there is one single word which is longer than `strlen`, then
+    than ``strlen`` and no word is cut into two pieces.  But if
+    there is one single word which is longer than ``strlen``, then
     it will be split in the middle of the word.
     """
 
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
+    arr = np.frombuffer((input + ' ').encode('utf8'), dtype=(bytes, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]

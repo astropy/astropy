@@ -6,14 +6,14 @@ Tests for the SkyCoord class.  Note that there are also SkyCoord tests in
 test_api_ape5.py
 """
 
-
 import copy
 
+import pytest
 import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, remote_data, catch_warnings,
+from ...tests.helper import (remote_data, catch_warnings,
                              quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
 from ..representation import REPRESENTATION_CLASSES
@@ -25,6 +25,7 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
 from ...utils import minversion, isiterable
+from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
@@ -488,16 +489,19 @@ def test_repr():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
     assert repr(sc1) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
-                         '    ( 0.,  1.)>')
+                         '    ({})>').format(' 0.,  1.' if NUMPY_LT_1_14 else
+                                             '0., 1.')
     assert repr(sc2) == ('<SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)\n'
-                         '    ( 1.,  1.,  1.)>')
+                         '    ({})>').format(' 1.,  1.,  1.' if NUMPY_LT_1_14
+                                             else '1., 1., 1.')
 
     sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3).startswith('<SkyCoord (ICRS): (ra, dec) in deg\n')
 
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
-                                '    ( 0.,  1.)>')
+                                '    ({})>').format(' 0.,  1.' if NUMPY_LT_1_14
+                                                    else '0., 1.')
 
 
 def test_repr_altaz():

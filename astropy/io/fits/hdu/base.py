@@ -355,8 +355,8 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
         overwrite : bool, optional
             If ``True``, overwrite the output file if it exists. Raises an
-            ``OSError`` (``IOError`` for Python 2) if ``False`` and the
-            output file exists. Default is ``False``.
+            ``OSError`` if ``False`` and the output file exists. Default is
+            ``False``.
 
             .. versionchanged:: 1.3
                ``overwrite`` replaces the deprecated ``clobber`` argument.
@@ -402,10 +402,9 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 raise TypeError(
                     'The provided object {!r} does not contain an underlying '
                     'memory buffer.  fromstring() requires an object that '
-                    'supports the buffer interface such as bytes, str '
-                    '(in Python 2.x but not in 3.x), buffer, memoryview, '
-                    'ndarray, etc.  This restriction is to ensure that '
-                    'efficient access to the array/table data is possible.'
+                    'supports the buffer interface such as bytes, buffer, '
+                    'memoryview, ndarray, etc.  This restriction is to ensure '
+                    'that efficient access to the array/table data is possible.'
                     .format(data))
 
             if header is None:
@@ -1357,11 +1356,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         old_checksum = self._header[checksum_keyword]
         self._header[checksum_keyword] = '0' * 16
 
-        # Convert the header to a string.
-        s = str(self._header)
+        # Convert the header to bytes.
+        s = self._header.tostring().encode('utf8')
 
         # Calculate the checksum of the Header and data.
-        cs = self._compute_checksum(np.fromstring(s, dtype='ubyte'), datasum)
+        cs = self._compute_checksum(np.frombuffer(s, dtype='ubyte'), datasum)
 
         # Encode the checksum into a string.
         s = self._char_encode(~cs)

@@ -3,13 +3,10 @@
 """Functions related to Python runtime introspection."""
 
 
-
-
 import inspect
 import re
 import types
-
-
+import importlib
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
@@ -57,8 +54,7 @@ def resolve_name(name, *additional_parts):
     if additional_parts:
         name = name + '.' + additional_parts
 
-    # Note: On python 2 these must be str objects and not unicode
-    parts = [str(part) for part in name.split('.')]
+    parts = name.split('.')
 
     if len(parts) == 1:
         # No dots in the name--just a straight up module import
@@ -259,7 +255,7 @@ def find_current_module(depth=1, finddiff=False):
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, str):
-                    diffmods.append(__import__(fd))
+                    diffmods.append(importlib.import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:

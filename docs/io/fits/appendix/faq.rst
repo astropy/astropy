@@ -31,19 +31,19 @@ written in C that's required to read/write compressed image data.  However,
 the rest of PyFITS functions without this extension module.
 
 .. _PyFITS: http://www.stsci.edu/institute/software_hardware/pyfits
-.. _Python: http://www.python.org
-.. _FITS: http://fits.gsfc.nasa.gov/
-.. _Numpy: http://numpy.scipy.org/
+.. _Python: https://www.python.org/
+.. _FITS: https://fits.gsfc.nasa.gov/
+.. _Numpy: http://www.numpy.org/
 
 
 What is the development status of PyFITS?
 -----------------------------------------
 
-PyFITS is written and maintained by the Science Software Branch at the `Space
+PyFITS was written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
 license`_ (see `LICENSE.txt`_ in the PyFITS source code).
 
-It is now primarily developed as primarily as a component of Astropy
+It is now exclusively developed as a component of Astropy
 (`astropy.io.fits`) rather than as a stand-alone module.  There are a few
 reasons for this: The first is simply to reduce development effort; the
 overhead of maintaining both PyFITS *and* `astropy.io.fits` in separate code
@@ -52,27 +52,19 @@ bases is non-trivial.  The second is that there are many features of Astropy
 greatly.  Since PyFITS is already integrated into Astropy, it makes more sense
 to continue development there rather than make Astropy a dependency of PyFITS.
 
-PyFITS' current primary developer and active maintainer is `Erik Bray`_, though
-patch submissions are welcome from anyone.  PyFITS is now primarily developed
-in a Git repository for ease of merging to and from Astropy.  Patches and issue
-reports can be posted to the `GitHub project`_ for PyFITS, or for Astropy.
+PyFITS' past primary developer and active maintainer was Erik Bray.  There
+is a `GitHub project`_ for PyFITS, but PyFITS is not actively developed anymore
+so patches and issue reports should be posted on the Astropy issue tracker.
 There is also a legacy `Trac site`_ with some older issue reports still open,
-but new issues should be submitted via GitHub if possible.  An `SVN mirror`_ of
-the repository is still maintained as well.
+but new issues should be submitted via GitHub if possible.
 
-The current stable release series is 3.3.x.  Each 3.3.x release tries to
-contain only bug fixes, and to not introduce any significant behavioral or API
-changes (though this isn't guaranteed to be perfect).  Patch releases for older
-release series may be released upon request.  Older versions of PyFITS (2.4 and
-earlier) are no longer actively supported.
+The current (and last) stable release is 3.4.0.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
-.. _3-clause BSD license: http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
+.. _3-clause BSD license: https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _LICENSE.txt: https://aeon.stsci.edu/ssb/trac/pyfits/browser/trunk/LICENSE.txt
-.. _Erik Bray: mailto:embray@stsci.edu
 .. _Trac site: https://aeon.stsci.edu/ssb/trac/pyfits/
-.. _SVN mirror: https://aeon.stsci.edu/ssb/svn/pyfits/
 .. _GitHub project: https://github.com/spacetelescope/PyFITS
 
 
@@ -93,7 +85,7 @@ unexpected behavior.
 
 For the most common cases, however, such as reading and updating FITS headers,
 images, and tables, `astropy.io.fits`. is very stable and well-tested.  Before
-every Astropy/PyFITS release it is ensured that all its tests pass on a variety
+every Astropy release it is ensured that all its tests pass on a variety
 of platforms, and those tests cover the majority of use-cases (until new corner
 cases are discovered).
 
@@ -130,7 +122,7 @@ likely that it was caused by a bug in Astropy.  So if you're getting an
 exception and you really don't know why or what to do about it, feel free to
 report it as a bug.
 
-.. _stack trace: http://en.wikipedia.org/wiki/Stack_trace
+.. _stack trace: https://en.wikipedia.org/wiki/Stack_trace
 
 
 Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
@@ -139,14 +131,14 @@ Why does opening a file work in CFITSIO, ds9, etc. but not in Astropy?
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
 support due to a bug.  Sometimes it's even possible for a file to work in an
-older version of Astropy or PyFITS, but not a newer version due to a regression
+older version of Astropy, but not a newer version due to a regression
 that isn't tested for yet.
 
 Another problem with the FITS format is that, as old as it is, there are many
 conventions that appear in files from certain sources that do not meet the FITS
 standard.  And yet they are so common-place that it is necessary to support
 them in any FITS readers.  CONTINUE cards are one such example.  There are
-non-standard conventions supported by Astropy/PyFITS that are not supported by
+non-standard conventions supported by Astropy that are not supported by
 CFITSIO and possibly vice-versa.  You may have hit one of those cases.
 
 If Astropy is having trouble opening a file, a good way to rule out whether not
@@ -160,8 +152,8 @@ If fitsverify confirms no problems with a file, and Astropy is still having
 trouble opening it (especially if it produces a traceback) then it's possible
 there is a bug in Astropy.
 
-.. _fitsverify: http://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
-.. _online FITS verifier: http://fits.gsfc.nasa.gov/fits_verify.html
+.. _fitsverify: https://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
+.. _online FITS verifier: https://fits.gsfc.nasa.gov/fits_verify.html
 
 
 How do I turn off the warning messages Astropy keeps outputting to my console?
@@ -179,7 +171,7 @@ Any console output generated by Astropy can be assumed to be from the warnings
 subsystem.  See Astropy's documentation on the :ref:`python-warnings` for more
 information on how to control and quiet warnings.
 
-.. _warnings: http://docs.python.org/library/warnings.html
+.. _warnings: https://docs.python.org/3/library/warnings.html
 
 
 What convention does Astropy use for indexing, such as of image coordinates?
@@ -256,7 +248,7 @@ space, such as on 32-bit systems.  Support for scaled image data is flakey with
 sections too, though that will be fixed.  See the documentation on :ref:`image
 sections <data-sections>` for more details on using this interface.
 
-.. _mmap: http://en.wikipedia.org/wiki/Mmap
+.. _mmap: https://en.wikipedia.org/wiki/Mmap
 
 
 How can I create a very large FITS file from scratch?
@@ -280,7 +272,7 @@ to serialize your table to the FITS format for distribution.  At some point
 this FAQ might provide an example of how to do this.
 
 .. _HDF5: http://www.hdfgroup.org/HDF5/
-.. _PyTables: http://www.pytables.org/moin
+.. _PyTables: http://www.pytables.org/
 
 
 How do I create a multi-extension FITS file from scratch?
@@ -374,7 +366,7 @@ can be stored in a 64-bit float with full precision.  So FITS also supports a
 "free" format in which the ASCII representation can be stored anywhere, using
 the full 70 bytes of the card (after the keyword).
 
-Currently Astropy/PyFITS only supports writing fixed format (it can read both
+Currently Astropy only supports writing fixed format (it can read both
 formats), so all floating point values assigned to a header are stored in the
 fixed format.  There are plans to add support for more flexible formatting.
 
@@ -497,7 +489,7 @@ The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
 reader in that all the code for parsing the FITS file format is in Python,
 though Numpy is used to provide access to the FITS data via the
 `~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
-`CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
+`CFITSIO <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
 FITS Tile Compression convention, but this feature is optional.  It does not
 use CFITSIO outside of reading compressed images.
 
@@ -573,11 +565,11 @@ of thousands of FITS files in succession (in either case the difference is
 not even an order of magnitude).
 
 Where data is concerned the situation is a little more complicated, and
-requires some understanding of how PyFITS is implemented versus CFITSIO and
-``fitsio``.  First it's important to understand how they differ in terms of
-memory management.
+requires some understanding of how `astropy.io.fits` is implemented versus
+CFITSIO and ``fitsio``.  First it's important to understand how they differ in
+terms of memory management.
 
-`astropy.io.fits`/PyFITS uses mmap, by default, to provide access to the raw
+`astropy.io.fits` uses mmap, by default, to provide access to the raw
 binary data in FITS files.  Mmap is a system call (or in most cases these days
 a wrapper in your libc for a lower-level system call) which allows user-space
 applications to essentially do the same thing your OS is doing when it uses a
@@ -654,7 +646,7 @@ Astropy the test is written:
 
 .. code:: python
 
-    def read_test_pyfits(filename):
+    def read_test_astropy(filename):
         with fits.open(filename, memmap=True) as hdul:
             data = hdul[0].data
             c = data.copy()
@@ -667,7 +659,7 @@ using:
 
     for filename in filenames:
         print(filename)
-        %timeit read_test_pyfits(filename)
+        %timeit read_test_astropy(filename)
 
 where ``filenames`` is just a list of the aforementioned generated sample
 files.  The results were::
@@ -742,7 +734,7 @@ common example is how FITS represents boolean values in binary tables.
 Another, significantly more complicated example, is variable length arrays.
 
 As explained in "`Why is reading rows out of a FITS table so slow?`_",
-`astropy.io.fits`/PyFITS does not currently handle some of these cases as
+`astropy.io.fits` does not currently handle some of these cases as
 efficiently as it could, in particular in cases where a user only wishes to
 read a few rows out of a table.  Fitsio, on the other hand, has a better
 interface for copying one row at a time out of a table and performing the
@@ -754,7 +746,7 @@ table operations.
 Fitsio also exposes a microlanguage (implemented in CFITSIO) for making
 efficient SQL-like queries of tables (single tables only though--no joins or
 anything like that).  This format, described in the `CFITSIO documentation
-<http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
+<https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
 in some cases perform more efficient selections of rows than might be possible
 with Numpy alone, which requires creating an intermediate mask array in order
 to perform row selection.

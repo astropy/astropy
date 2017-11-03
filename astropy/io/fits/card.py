@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, maketrans, translate, _words_group
+from .util import _str_to_num, _is_int, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
@@ -15,8 +15,8 @@ from ...utils.exceptions import AstropyUserWarning
 __all__ = ['Card', 'Undefined']
 
 
-FIX_FP_TABLE = maketrans('de', 'DE')
-FIX_FP_TABLE2 = maketrans('dD', 'eE')
+FIX_FP_TABLE = str.maketrans('de', 'DE')
+FIX_FP_TABLE2 = str.maketrans('dD', 'eE')
 
 
 CARD_LENGTH = 80
@@ -145,7 +145,7 @@ class Card(_Verify):
     # (ex "'AXIS.1: 1' / a comment")
     _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-    _commentary_keywords = set(['', 'COMMENT', 'HISTORY', 'END'])
+    _commentary_keywords = {'', 'COMMENT', 'HISTORY', 'END'}
 
     # The default value indicator; may be changed if required by a convention
     # (namely HIERARCH cards)
@@ -241,12 +241,14 @@ class Card(_Verify):
                     raise ValueError("Keyword 'END' not allowed.")
                 keyword = keyword_upper
             elif self._keywd_hierarch_RE.match(keyword):
-                # In prior versions of PyFITS HIERARCH cards would only be
+                # In prior versions of PyFITS (*) HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
                 # 'HIERARCH '.  Now we will create them automatically for long
                 # keywords, but we still want to support the old behavior too;
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
+                # (*) This has never affected Astropy, because it was changed
+                # before PyFITS was merged into Astropy!
                 self._hierarch = True
                 self._value_indicator = HIERARCH_VALUE_INDICATOR
 

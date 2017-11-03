@@ -249,9 +249,9 @@ def tabular_model(dim, name=None):
 
     Examples
     --------
-    >>> table = np.array([[ 3.,  0.,  0.],
-    ...                   [ 0.,  2.,  0.],
-    ...                   [ 0.,  0.,  0.]])
+    >>> table = np.array([[3., 0., 0.],
+    ...                   [0., 2., 0.],
+    ...                   [0., 0., 0.]])
 
     >>> tab = tabular_model(2, name='Tabular2D')
     >>> print(tab)
@@ -267,8 +267,8 @@ def tabular_model(dim, name=None):
     ...         bounds_error=False, fill_value=None, method='nearest')
 
     >>> xinterp = [0, 1, 1.5, 2.72, 3.14]
-    >>> m(xinterp, xinterp)
-    array([ 3., 3., 3., 0., 0.])
+    >>> m(xinterp, xinterp)  # doctest: +FLOAT_CMP
+    array([3., 3., 3., 0., 0.])
 
     """
     if dim < 1:
