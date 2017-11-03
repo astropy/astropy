@@ -398,9 +398,8 @@ class Index:
         ----------
         memo : dict
         '''
-        num_cols = self.data.num_cols if self.engine == SortedArray else None
-        # create an actual Index, not a SlicedIndex
-        index = super(Index, Index).__new__(Index)
+        # Bypass Index.__new__ to create an actual Index, not a SlicedIndex.
+        index = super().__new__(self.__class__)
         index.__init__(None, engine=self.engine)
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:]  # new list, same columns
