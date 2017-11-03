@@ -1370,13 +1370,19 @@ class SkyCoord(ShapedLikeNDArray):
             icrs_cart = self.cartesian
             targcart = (icrs_cart - obs_icrs_cart).represent_as(UnitSphericalRepresentation).to_cartesian()
 
-        beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
-        gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
-        gr = location.gravitational_redshift(obstime)
-        # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
-        # neglectic Shapiro delay and effects of the star's own motion
-        zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
-        return zb * speed_of_light
+        if kind == 'barycentric':
+            beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
+            gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
+            gr = location.gravitational_redshift(obstime)
+            # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
+            # neglectic Shapiro delay and effects of the star's own motion
+            zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
+            return zb * speed_of_light
+        else:
+            # do a simpler correction ignoring time dilation and gravitational redshift
+            # this is adequate since Heliocentric corrections shouldn't be used if
+            # cm/s precision is required.
+            return targcart.dot(v_origin_to_earth + gcrs_v)
 
     # Table interactions
     @classmethod
