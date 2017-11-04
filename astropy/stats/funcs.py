@@ -1273,7 +1273,12 @@ def kuiper_false_positive_probability(D, N):
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
 
     """
-    from scipy.misc import factorial, comb
+    try:
+        from scipy.special import factorial, comb
+    except ImportError:
+        # Retained for backwards compatibility with older versions of scipy
+        # (factorial appears to have moved here in 0.14)
+        from scipy.misc import factorial, comb
 
     if D < 0. or D > 2.:
         raise ValueError("Must have 0<=D<=2 by definition of the Kuiper test")
