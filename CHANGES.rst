@@ -391,6 +391,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Initialization of Time instances now is consistent for all formats to
+  ensure that ``-0.5 <= jd2 < 0.5``. [#6653]
+
 astropy.units
 ^^^^^^^^^^^^^
 
