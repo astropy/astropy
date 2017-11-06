@@ -474,6 +474,14 @@ And the documentation will be generated in the same location, but using the
 Testing a source code build of Astropy
 --------------------------------------
 
+Before running tests, it is necessary to make sure that Astropy's test
+dependencies are installed. This can be done with the following command::
+
+    pip install pytest-astropy
+
+More information on what the ``pytest-astropy`` package provides can be found
+in :ref:`testing-dependencies`.
+
 The easiest way to test that your Astropy built correctly (without
 installing astropy) is to run this from the root of the source tree::
 
