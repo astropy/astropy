@@ -22,22 +22,6 @@ tools are either in the standard library, py.test, or
 This module contains primarily functionality specific to Astropy or
 affiliated packages that follow the package template.
 
-Note that this module also includes the ``remote_data`` marker, which
-is used to indicate a test accesses data from the internet while running.
-It is intended to be used as::
-
-    from astropy.tests.helper import remote_data
-
-    @remote_data
-    def test_something():
-        """
-        This test downloads something from the internet
-        """
-        # test code here ...
-
-This test will now only run if the test suite is invoked as
-``python setup.py test --remote-data``.
-
 
 Reference/API
 -------------
