@@ -41,8 +41,8 @@ Example
   !astropy.time.Time
   format: mjd
   in_subfmt: '*'
-  jd1: 4857389.5
-  jd2: 0.0
+  jd1: 4857390.0
+  jd2: -0.5
   location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity

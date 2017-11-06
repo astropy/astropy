@@ -397,10 +397,10 @@ and ``jd2`` attributes::
 
   >>> t = Time('2010-01-01 00:00:00', scale='utc')
   >>> t.jd1, t.jd2
-  (2455197.5, 0.0)
+  (2455198.0, -0.5)
   >>> t2 = t.tai
   >>> t2.jd1, t2.jd2  # doctest: +FLOAT_CMP
-  (2455197.5, 0.0003935185185185185)
+  (2455198., -0.49960648148148146)
 
 Creating a Time object
 ----------------------
@@ -464,7 +464,7 @@ the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
   >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
-  (2400100.500001, 2400100.5, 1e-06)
+  (2400100.500001, 2400101.0, -0.499999)
 
 format
 ^^^^^^
