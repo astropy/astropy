@@ -422,7 +422,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         try:
             # test whether it formats without error exemplarily
             self.pformat(max_lines=1)
-        except TypeError as err:
+        except Exception as err:
             # revert to restore previous format if there was one
             self._format = prev_format
             raise ValueError(

@@ -423,6 +423,9 @@ astropy.table
   garbage-collected, and the format function caching mechanism happens
   to re-use the same cache key. [#6714]
 
+- Fixed a problem when setting a column format to an invalid value.  This
+  was supposed to revert to the previous (valid) value but was not. [#6812]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
