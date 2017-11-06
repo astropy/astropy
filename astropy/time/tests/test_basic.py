@@ -51,16 +51,17 @@ class TestBasic():
         t = Time(times, format='iso', scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([1.4288980208333335e-06,
-                                             0.00000000e+00]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+1.4288980208333335e-06,
+                                             -0.50000000e+00]))
 
         # Set scale to TAI
         t = t.tai
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
                 "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
-        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([0.00037179926839122024, 0.00039351851851851852]))
+        assert allclose_jd(t.jd1, np.array([2451180., 2455198.]))
+        assert allclose_jd2(t.jd2, np.array([-0.5+0.00037179926839122024,
+                                             -0.5+0.00039351851851851852]))
 
         # Get a new ``Time`` object which is referenced to the TT scale
         # (internal JD1 and JD1 are now with respect to TT scale)"""
@@ -753,7 +754,7 @@ class TestCopyReplicate():
 
     def test_replicate(self):
         """Test replicate method"""
-        t = Time('2000:001', format='yday', scale='tai',
+        t = Time(['2000:001'], format='yday', scale='tai',
                  location=('45d', '45d'))
         t_yday = t.yday
         t_loc_x = t.location.x.copy()
@@ -1119,3 +1120,30 @@ def test_cache():
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
     assert 'cache' in t.__dict__
+
+
+def test_epoch_date_jd_is_day_fraction():
+    """
+    Ensure that jd1 and jd2 of an epoch Time are respect the (day, fraction) convention
+    (see #6638)
+    """
+    t0 = Time("J2000", scale="tdb")
+
+    assert t0.jd1 == 2451545.0
+    assert t0.jd2 == 0.0
+
+    t1 = Time(datetime.datetime(2000, 1, 1, 12, 0, 0), scale="tdb")
+
+    assert t1.jd1 == 2451545.0
+    assert t1.jd2 == 0.0
+
+
+def test_sum_is_equivalent():
+    """
+    Ensure that two equal dates defined in different ways behave equally (#6638)
+    """
+    t0 = Time("J2000", scale="tdb")
+    t1 = Time("2000-01-01 12:00:00", scale="tdb")
+
+    assert t0 == t1
+    assert (t0 + 1 * u.second) == (t1 + 1 * u.second)
