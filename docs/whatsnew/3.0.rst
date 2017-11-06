@@ -38,3 +38,52 @@ Full change log
 
 To see a detailed list of all changes in version v3.0, including changes in
 API, please see the :ref:`changelog`.
+
+
+Renamed/removed functionality
+=============================
+
+pytest plugins
+**************
+
+The following pytest plugins were previously provided as part of the Astropy
+core package but have now been moved to separate packages:
+
+* `pytest-remotedata <https://github.com/astropy/pytest-remotedata>`__
+* `pytest-doctestplus <https://github.com/astropy/pytest-doctestplus>`__
+* `pytest-openfiles <https://github.com/astropy/pytest-openfiles>`__
+
+Affiliated packages that make use of one or more of these plugins may install
+them individually using ``pip``, or they may install the Astropy testing
+package ``pytest-astropy``, which includes all of these plugins as
+dependencies. Packages that use Astropy's test runner will also need to install
+``pytest-astropy``. See :ref:`testing-dependencies` for more details.
+
+The ``config`` and ``display`` plugins are still provided as part of the
+Astropy core package, but they have moved from ``astropy.tests.pytest_plugins``
+to ``astropy.tests.plugins.config`` and ``astropy.tests.plugins.display``,
+respectively.
+
+Affiliated packages that currently access plugin decorators and other variables
+from ``astropy.tests.pytest_plugins`` will need to make updates, although
+backwards compatibility will be maintained in the meantime.
+
+Below is an outline of the required changes:
+
+* It is no longer necessary to import ``remote_data`` from ``astropy.tests.helper``
+  since it is provided by ``pytest-remotedata`` (no import required).
+* Packages should no longer import ``disable_internet`` from ``astropy.tests``.
+  It is available using ``from pytest_remotedata import disable_internet`` if
+  required, but developers should consider whether they can avoid importing it
+  directly by instead using the ``@remote_data`` and ``@internet_off``
+  decorators provided by ``pytest-remotedata``. Use of
+  ``disable_internet.INTERNET_OFF`` is not recommended and should be replaced
+  by use of ``@remote_data`` and ``@internet_off``.
+* Packages that access the display configuration variables
+  ``PYTEST_HEADER_MODULES`` and ``TESTED_VERSIONS`` should no longer import
+  them from ``astropy.tests.pytest_plugins``. They should instead be imported
+  from ``astropy.tests.plugins.display``. We hope that eventually these will be
+  configurable using ``setup.cfg`` instead.
+* The function ``enable_deprecations_as_exceptions`` should not be imported
+  from ``astropy.tests.pytest_plugins``. It should be imported from
+  ``astropy.tests.helper`` instead.
