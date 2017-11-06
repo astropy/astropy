@@ -14,6 +14,7 @@ scikit-image
 matplotlib
 
 # below here are used only for tests
+pytest-astropy
 coverage
 skyfield
 mpmath
