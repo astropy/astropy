@@ -25,6 +25,8 @@ accessed through the ``python setup.py test`` command.
     The ``pytest`` project was formerly called ``py.test``, and you may
     see the two spellings used interchangeably in the documentation.
 
+.. _testing-dependencies:
+
 Testing Dependencies
 ********************
 
