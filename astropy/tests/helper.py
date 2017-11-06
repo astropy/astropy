@@ -35,6 +35,7 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
            'pickle_protocol', 'generic_recursive_equality_test']
 
 # pytest marker to mark tests which get data from the web
+# This is being maintained for backwards compatibility
 remote_data = pytest.mark.remote_data
 
 
