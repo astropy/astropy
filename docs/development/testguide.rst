@@ -55,29 +55,29 @@ The `pytest-remotedata`_ plugin allows developers to control whether to run
 tests that access data from the internet. The plugin provides two decorators
 that can be used to mark individual test functions or entire test classes:
 
-* ``@remote_data`` for tests that require data from the internet
-* ``@internet_off`` for tests that should run only when there is no internet
-  access. This is useful for testing local data caches or fallbacks for when no
-  network access is available.
+* ``@pytest.mark.remote_data`` for tests that require data from the internet
+* ``@pytest.mark.internet_off`` for tests that should run only when there is no
+  internet access. This is useful for testing local data caches or fallbacks
+  for when no network access is available.
 
 The plugin also adds the ``--remote-data`` option to the ``pytest`` command
 (which is also made available through the Astropy test runner).
 
-The default behavior is to skip tests that are marked with ``@remote_data``. If
+The default behavior is to skip tests that are marked with ``remote_data``. If
 the ``--remote-data`` option is not provided when running the test suite, or if
 ``--remote-data=none`` is provided, all tests that are marked with
-``@remote_data`` will be skipped. All tests that are marked with
-``@internet_off`` will be executed. Any test that attempts to access the
-internet but is not marked with ``@remote_data`` will result in a failure.
+``remote_data`` will be skipped. All tests that are marked with
+``internet_off`` will be executed. Any test that attempts to access the
+internet but is not marked with ``remote_data`` will result in a failure.
 
 Providing either the ``--remote-data`` option, or ``--remote-data=any``, will
-cause all tests marked with ``@remote_data`` to be executed. Any tests that are
-marked with ``@internet_off`` will be skipped.
+cause all tests marked with ``remote_data`` to be executed. Any tests that are
+marked with ``internet_off`` will be skipped.
 
 Running the tests with ``--remote-data=astropy`` will cause only tests that
 receive remote data from Astropy data sources to be run. Tests with any other
 data sources will be skipped. This is indicated in the test code by marking
-test functions with ``@remote_data(source='astropy')``.
+test functions with ``@pytest.mark.remote_data(source='astropy')``.
 
 Also see :ref:`data-files`.
 
@@ -398,26 +398,24 @@ data server by using the `~astropy.utils.data.compute_hash` function on a
 local copy of the file.
 
 Tests that may retrieve remote data should be marked with the
-``@remote_data`` decorator, or, if a doctest, flagged with the
-``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default
-by ``astropy.test()`` to prevent test runs from taking too long. These tests can be run by
-``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on the remote
-data tests at the command line with ``python setup.py test --remote-data=any``.
+``@pytest.mark.remote_data`` decorator, or, if a doctest, flagged with the
+``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default by
+``astropy.test()`` to prevent test runs from taking too long. These tests can
+be run by ``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on
+the remote data tests at the command line with ``python setup.py test
+--remote-data=any``.
 
-It is possible to mark tests using ``@remote_data(source='astropy')``, which can
-be used to indicate that the only required data is from the
-http://data.astropy.org server. To enable just these tests, you can run the
+It is possible to mark tests using
+``@pytest.mark.remote_data(source='astropy')``, which can be used to indicate
+that the only required data is from the http://data.astropy.org server. To
+enable just these tests, you can run the
 tests with ``python setup.py test --remote-data=astropy``.
 
 Examples
 --------
-.. code-block:: none
+.. code-block:: python
 
     from ...config import get_data_filename
-    # Note, this is retained for backwards compatibility but the remote_data
-    # decorator is now provided by the pytest-remotedata plugin, and does not
-    # need to be imported from astropy.
-    from ...tests.helper import remote_data
 
     def test_1():
         """Test version using a local file."""
@@ -425,7 +423,7 @@ Examples
         datafile = get_data_filename('filename.fits')
         # do the test
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_2():
         """Test version using a remote file."""
         #this is the hash for a particular version of a file stored on the

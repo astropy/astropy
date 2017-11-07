@@ -70,15 +70,19 @@ backwards compatibility will be maintained in the meantime.
 
 Below is an outline of the required changes:
 
-* It is no longer necessary to import ``remote_data`` from ``astropy.tests.helper``
-  since it is provided by ``pytest-remotedata`` (no import required).
+* Affiliated packages that use the ``remote_data`` decorator to mark tests that
+  require remote data access should now mark them with
+  ``@pytest.mark.remote_data``. This requires installing either
+  ``pytest-remotedata`` or ``pytest-astropy``. Importing ``remote_data`` from
+  ``astropy.tests.helper`` is maintained for backwards compatibility but will
+  eventually be removed.
 * Packages should no longer import ``disable_internet`` from ``astropy.tests``.
   It is available using ``from pytest_remotedata import disable_internet`` if
   required, but developers should consider whether they can avoid importing it
-  directly by instead using the ``@remote_data`` and ``@internet_off``
-  decorators provided by ``pytest-remotedata``. Use of
+  directly by instead using ``@pytest.mark.remote_data`` and
+  ``@pytest.mark.internet_off`` provided by ``pytest-remotedata``.  Use of
   ``disable_internet.INTERNET_OFF`` is not recommended and should be replaced
-  by use of ``@remote_data`` and ``@internet_off``.
+  by use of ``remote_data`` and ``internet_off``.
 * Packages that access the display configuration variables
   ``PYTEST_HEADER_MODULES`` and ``TESTED_VERSIONS`` should no longer import
   them from ``astropy.tests.pytest_plugins``. They should instead be imported
