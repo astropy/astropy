@@ -20,7 +20,6 @@ from ..file import _File, GZIP_MAGIC
 
 from ....io import fits
 from ....tests.helper import raises, catch_warnings, ignore_warnings
-from ....tests.helper import remote_data
 from ....utils.data import conf, get_pkg_data_filename
 from ....utils import data
 
@@ -653,7 +652,7 @@ class TestFileFunctions(FitsTestCase):
                     with fits.open(urlobj, mode=mode) as fits_handle:
                         pass
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     def test_open_from_remote_url(self):
 
         import urllib.request

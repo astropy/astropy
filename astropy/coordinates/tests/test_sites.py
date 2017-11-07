@@ -1,7 +1,7 @@
 
 import pytest
 
-from ...tests.helper import assert_quantity_allclose, remote_data, quantity_allclose
+from ...tests.helper import assert_quantity_allclose, quantity_allclose
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
@@ -27,7 +27,7 @@ def test_builtin_sites():
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."
 
 
-@remote_data(source='astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_online_sites():
     reg = get_downloaded_sites()
 
@@ -52,7 +52,7 @@ def test_online_sites():
     assert exc.value.args[0] == "Site 'kec' not in database. Use the 'names' attribute to see available sites. Did you mean one of: 'keck'?'"
 
 
-@remote_data(source='astropy')
+@pytest.mark.remote_data(source='astropy')
 # this will *try* the online so we have to make it remote_data, even though it
 # could fall back on the non-remote version
 def test_EarthLocation_basic():
@@ -85,7 +85,7 @@ def test_EarthLocation_state_offline():
     assert oldreg is not newreg
 
 
-@remote_data(source='astropy')
+@pytest.mark.remote_data(source='astropy')
 def test_EarthLocation_state_online():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_download=True)

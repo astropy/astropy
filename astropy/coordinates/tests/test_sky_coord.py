@@ -13,8 +13,7 @@ import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (remote_data, catch_warnings,
-                             quantity_allclose,
+from ...tests.helper import (catch_warnings, quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
@@ -1216,7 +1215,7 @@ def test_constellations():
     npt.assert_equal(scs.get_constellation(short_name=True), ['UMa']*2)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_constellations_with_nameresolve():
     assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
 
