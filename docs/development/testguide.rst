@@ -63,9 +63,8 @@ that can be used to mark individual test functions or entire test classes:
 The plugin also adds the ``--remote-data`` option to the ``pytest`` command
 (which is also made available through the Astropy test runner).
 
-The default behavior is to skip tests that are marked with ``remote_data``. If
-the ``--remote-data`` option is not provided when running the test suite, or if
-``--remote-data=none`` is provided, all tests that are marked with
+If the ``--remote-data`` option is not provided when running the test suite, or
+if ``--remote-data=none`` is provided, all tests that are marked with
 ``remote_data`` will be skipped. All tests that are marked with
 ``internet_off`` will be executed. Any test that attempts to access the
 internet but is not marked with ``remote_data`` will result in a failure.
@@ -77,7 +76,8 @@ marked with ``internet_off`` will be skipped.
 Running the tests with ``--remote-data=astropy`` will cause only tests that
 receive remote data from Astropy data sources to be run. Tests with any other
 data sources will be skipped. This is indicated in the test code by marking
-test functions with ``@pytest.mark.remote_data(source='astropy')``.
+test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
+marked with ``internet_off`` will also be skipped in this case.
 
 Also see :ref:`data-files`.
 
@@ -100,7 +100,7 @@ This plugin provides two command line options: ``--doctest-plus`` for enabling
 the advanced features mentioned above, and ``--doctest-rst`` for including
 ``*.rst`` files in doctest collection.
 
-The astropy test runner enables both of these options by default. When running
+The Astropy test runner enables both of these options by default. When running
 the test suite directly from ``pytest`` (instead of through the Astropy test
 runner), it is necessary to explicitly provide these options when they are
 needed.
@@ -110,15 +110,15 @@ needed.
 pytest-openfiles
 ================
 
-The `pytest-openfiles`_ plugin allows for the detection of open IO resources at
-the end of unit tests. This plugin adds the ``--open-files`` option to the
+The `pytest-openfiles`_ plugin allows for the detection of open I/O resources
+at the end of unit tests. This plugin adds the ``--open-files`` option to the
 ``pytest`` command (which is also exposed through the Astropy test runner).
 
 When running tests with ``--open-files``, if a file is opened during the course
 of a unit test but that file  not closed before the test finishes, the test
 will fail. This is particularly useful for testing code that manipulates file
-handles or other IO resources. It allows developers to ensure that this kind of
-code properly cleans up IO resources when they are no longer needed.
+handles or other I/O resources. It allows developers to ensure that this kind
+of code properly cleans up I/O resources when they are no longer needed.
 
 Also see :ref:`open-files`.
 
@@ -215,6 +215,11 @@ pytest
 The test suite can be run directly from the native ``pytest`` command. In this
 case, it is important for developers to be aware that they must manually
 rebuild any extensions by running ``setup.py build_ext`` before testing.
+
+In contrast to the case of running from ``setup.py``, the ``--doctest-plus``
+and ``--doctest-rst`` options are not enabled by default when running the
+``pytest`` command directly. This flags should be explicitly given if they are
+needed.
 
 Test-running options
 ====================

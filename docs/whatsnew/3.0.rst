@@ -46,8 +46,8 @@ Renamed/removed functionality
 pytest plugins
 **************
 
-The following pytest plugins were previously provided as part of the Astropy
-core package but have now been moved to separate packages:
+The following ``pytest`` plugins were previously provided as part of the
+Astropy core package but have now been moved to separate packages:
 
 * `pytest-remotedata <https://github.com/astropy/pytest-remotedata>`__
 * `pytest-doctestplus <https://github.com/astropy/pytest-doctestplus>`__
