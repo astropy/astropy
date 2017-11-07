@@ -12,8 +12,7 @@ from ..solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
                             _apparent_position_in_true_coordinates,
                             get_body_barycentric, get_body_barycentric_posvel)
 from ..funcs import get_sun
-from ...tests.helper import (remote_data, assert_quantity_allclose,
-                             quantity_allclose)
+from ...tests.helper import assert_quantity_allclose, quantity_allclose
 
 try:
     import jplephem  # pylint: disable=W0611
@@ -37,7 +36,7 @@ skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.skipif(str('not HAS_SKYFIELD'))
 def test_positions_skyfield():
     """
@@ -148,7 +147,7 @@ class TestPositionsGeocentric:
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=dist_tol)
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter', 'sun'))
     def test_de432s_planet(self, body):
@@ -166,7 +165,7 @@ class TestPositionsGeocentric:
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de432s_distance_tolerance)
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de432s_moon(self):
         astropy = get_moon(self.t, ephemeris='de432s')
@@ -231,7 +230,7 @@ class TestPositionKittPeak:
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=dist_tol)
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter'))
     def test_de432s_planet(self, body):
@@ -249,7 +248,7 @@ class TestPositionKittPeak:
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de432s_distance_tolerance)
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     def test_de432s_moon(self):
         astropy = get_moon(self.t, ephemeris='de432s')
@@ -266,7 +265,7 @@ class TestPositionKittPeak:
         assert_quantity_allclose(astropy.distance, horizons.distance,
                                  atol=de432s_distance_tolerance)
 
-    @remote_data
+    @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('bodyname', ('mercury', 'jupiter'))
     def test_custom_kernel_spec_body(self, bodyname):
@@ -282,7 +281,7 @@ class TestPositionKittPeak:
         assert_quantity_allclose(coord_by_name.distance, coord_by_kspec.distance)
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 @pytest.mark.parametrize('time', (Time('1960-01-12 00:00'),
                                   Time('1980-03-25 00:00'),
@@ -341,7 +340,7 @@ def test_earth_barycentric_velocity_multi_d():
                              atol=2.*u.km/u.s)
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 @pytest.mark.parametrize(('body', 'pos_tol', 'vel_tol'),
                          (('mercury', 1000.*u.km, 1.*u.km/u.s),

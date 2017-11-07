@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import (remote_data, quantity_allclose as allclose,
+from ...tests.helper import (quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
@@ -477,7 +477,7 @@ def test_gcrs_self_transform_closeby():
     assert_allclose(delta, 0.0*u.m, atol=1*u.m)
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 def test_ephemerides():
     """

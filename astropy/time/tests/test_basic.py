@@ -9,7 +9,7 @@ from copy import deepcopy
 import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings, remote_data
+from ...tests.helper import catch_warnings
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -906,7 +906,7 @@ def test_TimeFormat_scale():
     assert t.unix == t.utc.unix
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_scale_conversion():
     Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
 
