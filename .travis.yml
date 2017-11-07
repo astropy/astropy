@@ -100,9 +100,7 @@ matrix:
                INSTALL_CMD='python setup.py build_ext --inplace'
                TEST_CMD='pytest --open-files --doctest-rst'
           script:
-            - echo "$INSTALL_CMD"
             - $INSTALL_CMD
-            - echo "$TEST_CMD"
             - $TEST_CMD
 
         # Now try with all optional dependencies.
@@ -171,7 +169,6 @@ install:
     - source ci-helpers/travis/setup_conda.sh
 
 script:
-    - echo "$MAIN_CMD $SETUP_CMD"
     - $MAIN_CMD $SETUP_CMD
 
 after_success:

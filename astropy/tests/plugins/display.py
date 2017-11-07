@@ -13,8 +13,6 @@ import locale
 import math
 from collections import OrderedDict
 
-from ...extern import six
-
 from ..helper import ignore_warnings
 from ...utils.introspection import resolve_name
 
@@ -37,10 +35,7 @@ def pytest_report_header(config):
     except AttributeError:
         stdoutencoding = 'ascii'
 
-    if six.PY2:
-        args = [x.decode('utf-8') for x in config.args]
-    else:
-        args = config.args
+    args = config.args
 
     # TESTED_VERSIONS can contain the affiliated package version, too
     if len(TESTED_VERSIONS) > 1:
@@ -80,16 +75,13 @@ def pytest_report_header(config):
         sys.getdefaultencoding(),
         locale.getpreferredencoding(),
         sys.getfilesystemencoding())
-    if sys.version_info < (3, 3, 0):
-        s += ", unicode bits: {0}".format(
-            int(math.log(sys.maxunicode, 2)))
     s += '\n'
 
     s += "byteorder: {0}\n".format(sys.byteorder)
     s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
         sys.float_info)
 
-    for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
+    for module_display, module_name in PYTEST_HEADER_MODULES.items():
         try:
             with ignore_warnings(DeprecationWarning):
                 module = resolve_name(module_name)
@@ -107,14 +99,11 @@ def pytest_report_header(config):
     for op in special_opts:
         op_value = getattr(config.option, op, None)
         if op_value:
-            if isinstance(op_value, six.string_types):
+            if isinstance(op_value, str):
                 op = ': '.join((op, op_value))
             opts.append(op)
     if opts:
         s += "Using Astropy options: {0}.\n".format(", ".join(opts))
-
-    if six.PY2:
-        s = s.encode(stdoutencoding, 'replace')
 
     return s
 

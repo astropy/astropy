@@ -6,16 +6,15 @@ particular package.
 """
 
 # NOTE: This is retained only for backwards compatibility. Affiliated packages
-# should no longer import `disable_internet` from `astropy.tests`. It is now
-# available from `pytest_remotedata`. However, this is not the recommended
-# mechanism for controlling access to remote data in tests. Instead, packages
-# should make use of decorators provided by the pytest_remotedata plugin:
-# - `@pytest.mark.remote_data` for tests that require remote data access
-# - `@pytest.mark.internet_off` for tests that should only run when remote data
-#       access is disabled.
-# Remote data access for the test suite is controlled by the `--remote-data`
-# command line flag. This is either passed to `pytest` directly or to the
-# `setup.py test` command.
+# should no longer import ``disable_internet`` from ``astropy.tests``. It is
+# now available from ``pytest_remotedata``. However, this is not the
+# recommended mechanism for controlling access to remote data in tests.
+# Instead, packages should make use of decorators provided by the
+# pytest_remotedata plugin: - ``@pytest.mark.remote_data`` for tests that
+# require remote data access - ``@pytest.mark.internet_off`` for tests that
+# should only run when remote data access is disabled.  Remote data access for
+# the test suite is controlled by the ``--remote-data`` command line flag. This
+# is either passed to ``pytest`` directly or to the ``setup.py test`` command.
 #
 # TODO: This import should eventually be removed once backwards compatibility
 # is no longer supported.
