@@ -6,7 +6,7 @@ import urllib.request
 import pytest
 import numpy as np
 
-from ....tests.helper import assert_quantity_allclose, catch_warnings, remote_data
+from ....tests.helper import assert_quantity_allclose, catch_warnings
 from .. import iers
 from .... import units as u
 from ....table import QTable
@@ -152,13 +152,13 @@ class TestIERS_A():
 
 class TestIERS_Auto():
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_no_auto_download(self):
         with iers.conf.set_temp('auto_download', False):
             t = iers.IERS_Auto.open()
         assert type(t) is iers.IERS_B
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_simple(self):
         iers_a_file_1 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-02-30-test')
         iers_a_file_2 = os.path.join(os.path.dirname(__file__), 'finals2000A-2016-04-30-test')

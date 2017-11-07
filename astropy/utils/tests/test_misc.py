@@ -9,7 +9,6 @@ import pytest
 import numpy as np
 
 from .. import data, misc
-from ...tests.helper import remote_data
 
 
 def test_isiterable():
@@ -26,7 +25,7 @@ def test_signal_number_to_name_no_failure():
     misc.signal_number_to_name(0)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_api_lookup():
     strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
     objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
