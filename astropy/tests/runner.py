@@ -8,12 +8,24 @@ import sys
 import tempfile
 import warnings
 from collections import OrderedDict
+from importlib.util import find_spec
 
 from ..config.paths import set_temp_config, set_temp_cache
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
+
+
+def _has_test_dependencies(): # pragma: no cover
+    # Using the test runner will not work without these dependencies, but
+    # pytest-openfiles is optional, so it's not listed here.
+    required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
+    for module in required:
+        if find_spec(module) is None:
+            return False
+
+    return True
 
 
 class keyword:
@@ -141,7 +153,7 @@ class TestRunnerBase:
             func = getattr(self, keyword)
             result = func(keywords[keyword], keywords)
 
-            # Allow disabaling of options in a subclass
+            # Allow disabling of options in a subclass
             if result is NotImplemented:
                 raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
 
@@ -166,6 +178,10 @@ class TestRunnerBase:
         """
 
     def run_tests(self, **kwargs):
+        if not _has_test_dependencies(): # pragma: no cover
+            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+            raise RuntimeError(msg)
+
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.
 
@@ -180,6 +196,15 @@ class TestRunnerBase:
             raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
 
         args = self._generate_args(**kwargs)
+
+        if 'plugins' not in self.keywords or self.keywords['plugins'] is None:
+            self.keywords['plugins'] = []
+
+        # Make plugins available to test runner without registering them
+        self.keywords['plugins'].extend([
+            'astropy.tests.plugins.display',
+            'astropy.tests.plugins.config'
+        ])
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
@@ -296,12 +321,8 @@ class TestRunner(TestRunnerBase):
                 common = os.path.commonprefix((abs_docs_path, abs_test_path))
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
+                    # Turn on the doctest_rst plugin
+                    all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
             if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):

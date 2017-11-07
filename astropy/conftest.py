@@ -1,8 +1,13 @@
-# this contains imports plugins that configure py.test for astropy tests.
-# by importing them here in conftest.py they are discoverable by py.test
-# no matter how it is invoked within the astropy tree.
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This file contains pytest configuration settings that are astropy-specific
+(i.e.  those that would not necessarily be shared by affiliated packages
+making use of astropy's test runner).
+"""
+from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
+from astropy.tests.helper import enable_deprecations_as_exceptions
 
-from .tests.pytest_plugins import *
+enable_deprecations_as_exceptions(include_astropy_deprecations=False)
 
 try:
     import matplotlib
@@ -11,6 +16,6 @@ except ImportError:
 else:
     matplotlib.use('Agg')
 
-enable_deprecations_as_exceptions(include_astropy_deprecations=False)
-
+# This is astropy-specific so should not be included in a generic plugin that
+# could potentially be used by other projects
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
