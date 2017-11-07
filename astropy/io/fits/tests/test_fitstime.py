@@ -91,9 +91,11 @@ class TestFitsTime(FitsTestCase):
                       4237210, 4077985, unit='m'))
         t['b'] = Time([1,2], format='cxcsec', scale='tt')
 
-        ideal_col_hdr = {'OBSGEO-X' : t['a'].location.x.value,
-                         'OBSGEO-Y' : t['a'].location.y.value,
-                         'OBSGEO-Z' : t['a'].location.z.value}
+        ideal_col_hdr = {'OBSGEO-X': t['a'].location.x.value,
+                         'OBSGEO-Y': t['a'].location.y.value,
+                         'OBSGEO-Z': t['a'].location.z.value,
+                         'TCAPF1': t['a'].format.upper(),
+                         'TCAPF2': t['b'].format.upper()} 
 
         table, hdr = time_to_fits(t)
 
