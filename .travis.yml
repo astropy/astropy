@@ -29,7 +29,7 @@ env:
         - MAIN_CMD='python setup.py'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='pytest-astropy'
         - SETUP_XVFB=True
         - EVENT_TYPE='push pull_request'
         - SETUP_CMD='test'
@@ -77,7 +77,7 @@ matrix:
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem' EVENT_TYPE='cron'
+               PIP_DEPENDENCIES='pytest-astropy jplephem' EVENT_TYPE='cron'
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time. The sphinx build also has some additional
@@ -85,7 +85,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='build_docs -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='sphinx-gallery>=0.1.12 pillow --no-deps jplephem'
+               PIP_DEPENDENCIES='pytest-astropy sphinx-gallery>=0.1.12 pillow --no-deps jplephem'
                LC_CTYPE=C LC_ALL=C LANG=C
 
         # Try all python versions and Numpy versions. Since we can assume that
@@ -94,16 +94,21 @@ matrix:
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
         # Numpy 1.11 is tested below in the image tests, 1.12 in the Initial stage test.
+        # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
-               SETUP_CMD='test --open-files'
+               INSTALL_CMD='python setup.py build_ext --inplace'
+               TEST_CMD='pytest --open-files --doctest-rst'
+          script:
+            - $INSTALL_CMD
+            - $TEST_CMD
 
         # Now try with all optional dependencies.
         # We also test the two latest matplotlib versions for the image tests.
         - os: linux
           env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='jplephem pytest-mpl'
+               PIP_DEPENDENCIES='pytest-astropy jplephem pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.11
                MATPLOTLIB_VERSION=1.5
@@ -121,7 +126,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl bintrees'
+               PIP_DEPENDENCIES='pytest-astropy cpp-coveralls objgraph jplephem pytest-mpl bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
@@ -164,7 +169,6 @@ install:
     - source ci-helpers/travis/setup_conda.sh
 
 script:
-    - echo "$MAIN_CMD $SETUP_CMD"
     - $MAIN_CMD $SETUP_CMD
 
 after_success:

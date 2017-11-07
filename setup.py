@@ -58,14 +58,20 @@ entry_points['console_scripts'] = [
     'wcslint = astropy.wcs.wcslint:main',
 ]
 
-setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
+min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
+setup_requires = [min_numpy_version]
 
 # Make sure to have the packages needed for building astropy, but do not require them
 # when installing from an sdist as the c files are included there.
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'PKG-INFO')):
     setup_requires.extend(['cython>=0.21', 'jinja2>=2.7'])
 
-install_requires = ['pytest>=3.1', 'numpy>=' + astropy.__minimum_numpy_version__]
+install_requires = [min_numpy_version]
+
+extras_require = {
+    'test': ['pytest-astropy']
+}
+
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -78,6 +84,7 @@ setup(name=NAME,
       requires=['numpy'],  # scipy not required, but strongly recommended
       setup_requires=setup_requires,
       install_requires=install_requires,
+      extras_require=extras_require,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',

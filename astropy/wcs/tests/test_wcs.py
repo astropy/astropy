@@ -313,16 +313,18 @@ def test_warning_about_defunct_keywords():
         assert 'PCi_ja' in str(item.message)
 
 
-@raises(wcs.FITSFixedWarning)
 def test_warning_about_defunct_keywords_exception():
     def run():
         header = get_pkg_data_contents(
             'data/defunct_keywords.hdr', encoding='binary')
         w = wcs.WCS(header)
 
-    with catch_warnings(wcs.FITSFixedWarning) as w:
+    with pytest.raises(wcs.FITSFixedWarning):
         warnings.simplefilter("error", wcs.FITSFixedWarning)
         run()
+
+    # Restore warnings filter to previous state
+    warnings.simplefilter("default")
 
 
 def test_to_header_string():
