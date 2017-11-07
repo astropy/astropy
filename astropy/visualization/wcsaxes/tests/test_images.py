@@ -10,7 +10,6 @@ from matplotlib import rc_context
 
 from .... import units as u
 from ....io import fits
-from ....tests.helper import remote_data
 from ....wcs import WCS
 from ....coordinates import SkyCoord
 
@@ -46,7 +45,7 @@ class BaseImageTests:
 
 class TestBasic(BaseImageTests):
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='image_plot.png',
                                    tolerance=1.5)
@@ -59,7 +58,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='contour_overlay.png',
                                    tolerance=1.5)
@@ -85,7 +84,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='overlay_features_image.png',
                                    tolerance=1.5)
@@ -124,7 +123,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='curvlinear_grid_patches_image.png',
                                    tolerance=1.5)
@@ -158,7 +157,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='cube_slice_image.png',
                                    tolerance=1.5)
@@ -186,7 +185,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='cube_slice_image_lonlat.png',
                                    tolerance=1.5)
@@ -208,7 +207,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, tolerance=1.5)
     def test_plot_coord(self):
         fig = plt.figure(figsize=(6, 6))
@@ -223,7 +222,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR, tolerance=1.5)
     def test_plot_line(self):
         fig = plt.figure(figsize=(6, 6))
@@ -238,7 +237,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='changed_axis_units.png',
                                    tolerance=1.5)
@@ -258,7 +257,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='minor_ticks_image.png',
                                    tolerance=1.5)
@@ -279,7 +278,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='ticks_labels.png',
                                    tolerance=1.5)
@@ -309,7 +308,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='rcparams.png',
                                    tolerance=1.5)
@@ -333,7 +332,7 @@ class TestBasic(BaseImageTests):
             ax.coords[1].set_ticks(exclude_overlapping=True)
             return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='tick_angles.png',
                                    tolerance=1.5)
@@ -356,7 +355,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='tick_angles_non_square_axes.png',
                                    tolerance=1.5)
@@ -380,7 +379,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='set_coord_type.png',
                                    tolerance=1.5)
@@ -400,7 +399,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticks(exclude_overlapping=True)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='test_ticks_regression_1.png',
                                    tolerance=1.5)
@@ -425,7 +424,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel_position('all')
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='test_axislabels_regression.png',
                                    savefig_kwargs={'bbox_inches': 'tight'},
@@ -443,7 +442,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=1.5)
@@ -480,7 +479,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=1.5)
@@ -525,7 +524,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @remote_data(source='astropy')
+    @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    tolerance=1.5)
     def test_elliptical_frame(self):
