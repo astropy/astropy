@@ -290,6 +290,7 @@ class TestFormat():
         #  Invalid format spec
         with pytest.raises(ValueError):
             t['a'].format = 'fail'
+        assert t['a'].format == '%4.2f {0:}'  # format did not change
 
     def test_column_format_with_threshold(self, table_type):
         from ... import conf
