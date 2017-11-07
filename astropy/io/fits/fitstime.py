@@ -64,6 +64,12 @@ GLOBAL_TIME_INFO = {'TIMESYS': ('UTC', 'Default time scale'),
                     'JDREF': (0.0, 'Time columns are jd = jd1 + jd2'),
                     'TREFPOS': ('TOPOCENTER', 'Time reference position')}
 
+# Astropy-specific keywords
+ASTROPY_TIME_KEYWORDS = {'FORMAT'}
+
+# HIERARCH Keyword Convention for Astropy
+astropy_namespace = 'HIERARCH ASTROPY TIME'
+
 
 def _verify_global_info(global_info):
     """
@@ -251,6 +257,7 @@ def _convert_time_column(col, column_info):
         col = Time(col[..., 0], col[..., 1], format='jd',
                    scale=column_info['scale'],
                    location=column_info['location'])
+        col.format = column_info['FORMAT'].lower()
     else:
         warnings.warn(
             'Time column {} is not in the astropy required (jd1, jd2) format. '
@@ -304,6 +311,16 @@ def fits_to_time(hdr, table):
             base, idx = re.match(r'([A-Z]+)([0-9]+)', key).groups()
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
+
+        elif key.startswith('ASTROPY TIME'):
+
+            sub_keys = re.split('(\d+)', key)
+            if len(sub_keys) > 1 and sub_keys[-1] == '':
+                idx = sub_keys[-2]
+                base = key[13:-len(idx)]
+                if base in ASTROPY_TIME_KEYWORDS:
+                    time_columns[int(idx)][base] = value
+                    hcopy.remove(key)
 
     if len(hcopy) != len(hdr):
         _verify_global_info(global_info)
@@ -376,6 +393,10 @@ def time_to_fits(table):
         # Time column override keywords
         coord_meta[col.info.name]['coord_type'] = col.scale.upper()
         coord_meta[col.info.name]['coord_unit'] = 'd'
+
+        # Astropy specific keyword for storing Time format
+        hdr.append(Card(keyword='{} FORMAT{}'.format(astropy_namespace, n),
+                        value=col.format.upper()))
 
         # Time column reference positions
         if col.location is None:
