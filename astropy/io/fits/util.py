@@ -593,7 +593,7 @@ def fill(text, width, **kwargs):
 CHUNKED_FROMFILE = None
 
 
-def _array_from_file(infile, dtype, count, sep):
+def _array_from_file(infile, dtype, count):
     """Create a numpy array from a file or a file-like object."""
 
     if isfile(infile):
@@ -609,25 +609,22 @@ def _array_from_file(infile, dtype, count, sep):
         if CHUNKED_FROMFILE:
             chunk_size = int(1024 ** 3 / dtype.itemsize)  # 1Gb to be safe
             if count < chunk_size:
-                return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+                return np.fromfile(infile, dtype=dtype, count=count)
             else:
                 array = np.empty(count, dtype=dtype)
                 for beg in range(0, count, chunk_size):
                     end = min(count, beg + chunk_size)
-                    array[beg:end] = np.fromfile(infile, dtype=dtype, count=end - beg, sep=sep)
+                    array[beg:end] = np.fromfile(infile, dtype=dtype, count=end - beg)
                 return array
         else:
-            return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+            return np.fromfile(infile, dtype=dtype, count=count)
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from
         # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
-        if sep == '':
-            return np.frombuffer(s, dtype=dtype, count=count)
-        else:
-            return np.fromstring(s, dtype=dtype, count=count, sep=sep)
+        return np.frombuffer(s, dtype=dtype, count=count)
 
 
 _OSX_WRITE_LIMIT = (2 ** 32) - 1

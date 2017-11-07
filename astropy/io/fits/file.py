@@ -286,7 +286,7 @@ class _File(object):
             else:
                 count = reduce(operator.mul, shape)
                 self._file.seek(offset)
-                data = _array_from_file(self._file, dtype, count, '')
+                data = _array_from_file(self._file, dtype, count)
                 data.shape = shape
                 return data
         finally:
