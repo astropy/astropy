@@ -12,7 +12,7 @@ import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
-from ...tests.helper import quantity_allclose, remote_data
+from ...tests.helper import quantity_allclose
 from ... import units as u
 from ..name_resolve import NameResolveError
 
@@ -284,7 +284,7 @@ def test_repr_latex():
     somelocation2._repr_latex_()
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_of_address():
     # no match
     with pytest.raises(NameResolveError):

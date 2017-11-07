@@ -13,7 +13,6 @@ import numpy as np
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response, sesame_url)
 from ..sky_coordinate import SkyCoord
-from ...tests.helper import remote_data
 from ... import units as u
 
 _cached_ngc3642 = dict()
@@ -103,7 +102,7 @@ _cached_castor["simbad"] = """# castor    #Q22524495
 #====Done (2013-Feb-12,17:00:39z)===="""
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_names():
 
     # First check that sesame is up
@@ -137,7 +136,7 @@ def test_names():
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.parametrize(("name", "db_dict"), [('NGC 3642', _cached_ngc3642),
                                                ('castor', _cached_castor)])
 def test_database_specify(name, db_dict):
