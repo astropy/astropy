@@ -81,7 +81,8 @@ astropy.table
 
 - Added new table operation ``astropy.table.setdiff`` that returns the set
   difference of table rows for two tables. [#6443]
-- Added support for reading time columns in non-astropy written FITS tables
+
+- Added support for reading time columns in FITS compliant binary tables
   as ``astropy.time.Time`` Table columns. [#6442]
 
 astropy.tests
