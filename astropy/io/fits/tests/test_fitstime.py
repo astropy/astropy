@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
 
 import pytest
+import numpy as np
 
 from . import FitsTestCase
 
 from ..fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from ....coordinates import EarthLocation
+from ....io import fits
 from ....table import Table, QTable
-from ....time import Time
+from ....time import Time, TimeDelta
 from ....time.core import BARYCENTRIC_SCALES
 from ....time.formats import FITS_DEPRECATED_SCALES
 from ....tests.helper import catch_warnings
@@ -16,7 +19,7 @@ from ....tests.helper import catch_warnings
 class TestFitsTime(FitsTestCase):
 
     def setup_class(self):
-        self.time = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
+        self.time = np.array(['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00'])
 
     def test_is_time_column_keyword(self):
         # Time column keyword without column number
@@ -207,3 +210,172 @@ class TestFitsTime(FitsTestCase):
         tm['a'].location.x.value == t['a'].location.x.to_value(unit='m')
         tm['a'].location.y.value == t['a'].location.y.to_value(unit='m')
         tm['a'].location.z.value == t['a'].location.z.to_value(unit='m')
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits(self, table_types):
+        """
+        Test that FITS table with time columns (standard compliant)
+        can be read by io.fits as a table with Time columns.
+        This tests the following:
+        1. The special-case where a column has the name 'TIME' and a
+           time unit
+        2. Time from Epoch (Reference time) is appropriately converted.
+        3. Coordinate columns (corresponding to coordinate keywords in the header)
+           other than time, that is, spatial coordinates, are not mistaken
+           to be time.
+        """
+        filename = self.data('chandra_time.fits')
+        tm = table_types.read(filename, astropy_native=True)
+
+        # Test case 1
+        assert isinstance(tm['time'], Time)
+        assert tm['time'].scale == 'tt'
+        assert tm['time'].format == 'mjd'
+
+        non_native = table_types.read(filename)
+
+        # Test case 2
+        ref_time = Time(non_native.meta['MJDREF'], format='mjd',
+                        scale=non_native.meta['TIMESYS'].lower())
+        delta_time = TimeDelta(non_native['time'])
+        assert (ref_time + delta_time == tm['time']).all()
+
+        # Test case 3
+        for colname in ['chipx', 'chipy', 'detx', 'dety', 'x', 'y']:
+            assert not isinstance(tm[colname], Time)
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_datetime(self, table_types):
+        """
+        Test that ISO-8601 Datetime String Columns are read correctly.
+        """
+        # Datetime column
+        c = fits.Column(name='datetime', format='A29', coord_type='TCG',
+                        time_ref_pos='GEOCENTER', array=self.time)
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].scale == 'tcg'
+        assert tm['datetime'].format == 'fits'
+        assert (tm['datetime'] == self.time).all()
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_location(self, table_types):
+        """
+        Test that geocentric/geodetic observatory position is read
+        properly, as and when it is specified.
+        """
+        # Datetime column
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        time_ref_pos='TOPOCENTER', array=self.time)
+
+        # Observatory position in ITRS Cartesian coordinates (geocentric)
+        cards = [('OBSGEO-X', -2446354), ('OBSGEO-Y', 4237210),
+                 ('OBSGEO-Z', 4077985)]
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].location.x.value == -2446354
+        assert tm['datetime'].location.y.value == 4237210
+        assert tm['datetime'].location.z.value == 4077985
+
+        # Observatory position in geodetic coordinates
+        cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
+
+        # Explicitly create a FITS Binary Table
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+
+        assert isinstance(tm['datetime'], Time)
+        assert tm['datetime'].location.lon.value == 0
+        assert tm['datetime'].location.lat.value == 0
+        assert tm['datetime'].location.height.value == 0
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_scale(self, table_types):
+        """
+        Test handling of 'GPS' and 'LOCAL' time scales which are
+        recognized by the FITS standard but are not native to astropy.
+        """
+        # GPS scale column
+        gps_time = np.array([630720013, 630720014])
+        c = fits.Column(name='gps_time', format='D', unit='s', coord_type='GPS',
+                        coord_unit='s', time_ref_pos='TOPOCENTER', array=gps_time)
+
+        cards = [('OBSGEO-L', 0), ('OBSGEO-B', 0), ('OBSGEO-H', 0)]
+
+        bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert 'FITS recognized time scale value "GPS"' in str(w[0].message)
+
+        assert isinstance(tm['gps_time'], Time)
+        assert tm['gps_time'].format == 'gps'
+        assert tm['gps_time'].scale == 'tai'
+        assert (tm['gps_time'].value == gps_time).all()
+
+        # LOCAL scale column
+        local_time = np.array([1, 2])
+        c = fits.Column(name='local_time', format='D', unit='d',
+                        coord_type='LOCAL', coord_unit='d',
+                        time_ref_pos='RELOCATABLE', array=local_time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert 'FITS recognized time scale value "LOCAL"' in str(w[0].message)
+
+        assert isinstance(tm['local_time'], Time)
+        assert tm['local_time'].format == 'mjd'
+        # Default scale is UTC
+        assert tm['local_time'].scale == 'utc'
+        assert (tm['local_time'].value == local_time).all()
+
+    @pytest.mark.parametrize('table_types', (Table, QTable))
+    def test_io_time_read_fits_location_warnings(self, table_types):
+        """
+        Test warnings for time column reference position.
+        """
+        # Time reference position "TOPOCENTER" without corresponding
+        # observatory position.
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        time_ref_pos='TOPOCENTER', array=self.time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+
+        with catch_warnings() as w:
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert ('observatory position is not properly specified' in
+                    str(w[0].message))
+
+        # Default value for time reference position is "TOPOCENTER"
+        c = fits.Column(name='datetime', format='A29', coord_type='TT',
+                        array=self.time)
+
+        bhdu = fits.BinTableHDU.from_columns([c])
+        bhdu.writeto(self.temp('time.fits'), overwrite=True)
+        with catch_warnings() as w:
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
+            assert len(w) == 1
+            assert ('"TRPOSn" is not specified. The default value for '
+                    'it is "TOPOCENTER"' in str(w[0].message))
