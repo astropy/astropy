@@ -152,6 +152,7 @@ class FITS_rec(np.recarray):
     """
 
     _record_type = FITS_record
+    _return_bytes = False
 
     def __new__(subtype, input):
         """
@@ -216,6 +217,9 @@ class FITS_rec(np.recarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
+
+        if isinstance(obj, FITS_rec):
+            self._return_bytes = obj._return_bytes
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
@@ -964,8 +968,9 @@ class FITS_rec(np.recarray):
         elif _bool and field.dtype != bool:
             field = np.equal(field, ord('T'))
         elif _str:
-            with suppress(UnicodeDecodeError):
-                field = decode_ascii(field)
+            if not self._return_bytes:
+                with suppress(UnicodeDecodeError):
+                    field = decode_ascii(field)
 
         if dim:
             # Apply the new field item dimensions
@@ -1226,7 +1231,6 @@ class FITS_rec(np.recarray):
         # TODO: It would be nice if these string column formatting
         # details were left to a specialized class, as is the case
         # with FormatX and FormatP
-        print(format)
         if 'A' in format:
             _pc = '{:'
         else:
