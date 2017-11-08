@@ -398,7 +398,7 @@ def _convert_time_column(col, column_info):
         return ref_time + delta_time
     except Exception as err:
         warnings.warn(
-            'The exception "{}" was encountered while converting the time '
+            'The exception "{}" was encountered while trying to convert the time '
             'column "{}" to Astropy Time.'.format(err, col.info.name),
             AstropyUserWarning)
         return col
