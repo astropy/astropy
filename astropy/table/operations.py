@@ -35,8 +35,8 @@ def _merge_table_meta(out, tables, metadata_conflicts='warn'):
 
 def _get_list_of_tables(tables):
     """
-    Check that tables is a Table or sequence of Tables.  Returns the
-    corresponding list of Tables.
+    Check that tables is a Table or sequence of Tables, Columns and/or rows. Convert each Row and
+    Column in the sequence to the corresponding Table objects and finally return the sequence of Tables.
     """
     from .table import Table, Row, Column
 
@@ -236,7 +236,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table objects
+    tables : Table or list of Table and/or Row objects
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
@@ -303,7 +303,7 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-    tables : List of Table objects
+    tables : Table or list of Table and/or Column objects
         Tables to stack along columns (horizontally) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'

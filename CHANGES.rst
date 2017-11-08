@@ -295,6 +295,8 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Allowed Columns to appear in the parameter 'tables' passed to hstack table operation.[#6791]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
