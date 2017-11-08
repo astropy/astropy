@@ -127,7 +127,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     else:
 
-        hdulist = fits_open(input)
+        hdulist = fits_open(input, return_bytes=True)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,
@@ -141,7 +141,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # Convert to an astropy.table.Table object
     # Note: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(table.data, masked=masked)
+    t = Table(table.data, masked=masked, copy=False)
 
     # Copy over null values if needed
     if masked:
