@@ -612,16 +612,15 @@ class FITS_rec(np.recarray):
             raise AttributeError(exc.args[0])
 
     def __del__(self):
+
         try:
             del self._coldefs
 
             if self.dtype.fields is not None:
                 for col in self._col_weakrefs:
+
                     if col.array is not None:
-                        # We use [:] but not copy() here so that the new
-                        # col.array is a view of the same region in memory
-                        # but a differe Python object.
-                        col.array = col.array[:]
+                        col.array = col.array.copy()
 
         # See issues #4690 and #4912
         except (AttributeError, TypeError):  # pragma: no cover

@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...table import Table
+from ...table import Table, Column
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
@@ -141,20 +141,22 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # Convert to an astropy.table.Table object
     # Note: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(table.data, masked=masked, copy=False)
+    t = Table(masked=masked)
+
+    for col in table.data._coldefs:
+        t.add_column(Column(data=col.array, name=col.name, copy=False))
 
     # Copy over null values if needed
     if masked:
-        for col in table.columns:
+        for col in table.data._coldefs:
             if col.null is not None:
                 t[col.name].set_fill_value(col.null)
                 t[col.name].mask[t[col.name] == col.null] = True
 
     # Copy over units
-    for col in table.columns:
+    for col in table.data._coldefs:
         if col.unit is not None:
-            t[col.name].unit = u.Unit(
-                col.unit, format='fits', parse_strict='silent')
+            t[col.name].unit = u.Unit(col.unit, format='fits', parse_strict='silent')
 
     # TODO: deal properly with unsigned integers
 
