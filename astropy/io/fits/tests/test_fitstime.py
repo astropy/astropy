@@ -320,7 +320,7 @@ class TestFitsTime(FitsTestCase):
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
-            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
             assert len(w) == 1
             assert 'FITS recognized time scale value "GPS"' in str(w[0].message)
 
@@ -331,15 +331,15 @@ class TestFitsTime(FitsTestCase):
 
         # LOCAL scale column
         local_time = np.array([1, 2])
-        c = fits.Column(name='local_time', format='D', unit='s',
-                        coord_type='LOCAL', coord_unit='s',
+        c = fits.Column(name='local_time', format='D', unit='d',
+                        coord_type='LOCAL', coord_unit='d',
                         time_ref_pos='RELOCATABLE', array=local_time)
 
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
-            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
             assert len(w) == 1
             assert 'FITS recognized time scale value "LOCAL"' in str(w[0].message)
 
@@ -347,7 +347,7 @@ class TestFitsTime(FitsTestCase):
         assert tm['local_time'].format == 'mjd'
         # Default scale is UTC
         assert tm['local_time'].scale == 'utc'
-        assert (tm['local_time'].value == local_time/86400.0).all()
+        assert (tm['local_time'].value == local_time).all()
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_io_time_read_fits_location_warnings(self, table_types):
@@ -363,7 +363,7 @@ class TestFitsTime(FitsTestCase):
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
 
         with catch_warnings() as w:
-            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
             assert len(w) == 1
             assert ('observatory position is not properly specified' in
                     str(w[0].message))
@@ -375,7 +375,7 @@ class TestFitsTime(FitsTestCase):
         bhdu = fits.BinTableHDU.from_columns([c])
         bhdu.writeto(self.temp('time.fits'), overwrite=True)
         with catch_warnings() as w:
-            tm = Table.read(self.temp('time.fits'), astropy_native=True)
+            tm = table_types.read(self.temp('time.fits'), astropy_native=True)
             assert len(w) == 1
             assert ('"TRPOSn" is not specified. The default value for '
                     'it is "TOPOCENTER"' in str(w[0].message))
