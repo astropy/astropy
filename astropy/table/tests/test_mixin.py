@@ -140,7 +140,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
-    containing Time mixin columns that can be considerably round-tripped
+    containing Time mixin columns that can be partially round-tripped
     (metadata scale, location).
     """
     t = table_types([[1,2], ['string', 'column']])
