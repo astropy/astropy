@@ -22,6 +22,7 @@ dependencies:
   - beautifulsoup4
   - ipython
   - mpmath
+  - pytest
   - pip:
     - sphinx-gallery>=0.1.12
     - jplephem
