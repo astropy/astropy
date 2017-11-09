@@ -143,9 +143,10 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # rather than via the structured array.
     t = Table(masked=masked)
 
+    columns = []
     for col in table.data._coldefs:
-        column = Column(data=col.array, name=col.name, copy=False)
-        t.add_column(column, copy=False)
+        columns.append(Column(data=col.array, name=col.name, copy=False))
+    t.add_columns(columns, copy=False)
 
     # Copy over null values if needed
     if masked:
