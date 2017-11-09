@@ -1227,7 +1227,7 @@ class Column(NotifierMixin):
                         fsize = dims[-1]
                     else:
                         fsize = np.dtype(format.recformat).itemsize
-                    return chararray.array(array, itemsize=fsize)
+                    return chararray.array(array, itemsize=fsize, copy=False)
                 else:
                     return _convert_array(array, np.dtype(format.recformat))
             elif 'L' in format:
