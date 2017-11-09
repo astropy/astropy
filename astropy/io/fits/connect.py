@@ -144,7 +144,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     t = Table(masked=masked)
 
     for col in table.data._coldefs:
-        t.add_column(Column(data=col.array, name=col.name, copy=False))
+        column = Column(data=col.array, name=col.name, copy=False)
+        t.add_column(column, copy=False)
 
     # Copy over null values if needed
     if masked:
