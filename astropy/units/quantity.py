@@ -1386,17 +1386,19 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         try:
             _value = value.to_value(self.unit)
         except AttributeError:
+            # We're not a Quantity, so let's try a more general conversion.
+            # Plain arrays will be converted to dimensionless in the process,
+            # but anything with a unit attribute will use that.
             try:
-                _value = value.unit.to(self.unit, value.data)
-            except AttributeError:
-                try:
-                    _value = dimensionless_unscaled.to(self.unit, value)
-                #return self.to_own_unit(Quantity(value))
-                except UnitsError as exc:
-                    if can_have_arbitrary_unit(value):
-                        _value = value
-                    else:
-                        raise exc
+                _value = Quantity(value).to_value(self.unit)
+            except UnitsError as exc:
+                # last chance: if this was not something with a unit
+                # and is all 0, inf, or nan, we treat it as arbitrary unit.
+                if (not hasattr(value, 'unit') and
+                        can_have_arbitrary_unit(value)):
+                    _value = value
+                else:
+                    raise exc
 
         if check_precision:
             value_dtype = getattr(value, 'dtype', None)
