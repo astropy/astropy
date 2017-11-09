@@ -38,21 +38,22 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables, Columns and/or rows. Convert each Row and
     Column in the sequence to the corresponding Table objects and finally return the sequence of Tables.
     """
-    from .table import Table, Row, Column
+    from .table import Table, Row, has_info_class, BaseColumn
+    from .column import ColumnInfo
 
     # Make sure we have a list of things
     if not isinstance(tables, collections.Sequence):
         tables = [tables]
 
     # Make sure each thing is a Table or Row or Column
-    if any(not isinstance(x, (Table, Row, Column)) for x in tables) or len(tables) == 0:
+    if any(not isinstance(x, (Table, Row, BaseColumn)) for x in tables) or len(tables) == 0:
         raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows or Column')
 
     # Convert any Rows to Tables
     tables = [(Table(x) if isinstance(x, Row) else x) for x in tables]
 
     # Convert any Columns to Tables
-    tables = [(Table([x]) if isinstance(x, Column) else x) for x in tables]
+    tables = [(Table([x]) if has_info_class(x, ColumnInfo) else x) for x in tables]
 
     return tables
 

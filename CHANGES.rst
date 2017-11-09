@@ -295,7 +295,7 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Allowed Columns to appear in the parameter 'tables' passed to hstack table operation.[#6791]
+- Allowed ``Column`` to be passed as valid input to the ``hstack`` Table operation. [#6818]
 
 astropy.tests
 ^^^^^^^^^^^^^
