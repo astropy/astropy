@@ -1272,6 +1272,31 @@ def test_quantity_from_table():
     assert qbp.unit == u.pc
     assert_array_equal(qbp.value, t['b'])
 
+def test_assign_slice_with_quantity_like():
+    from ... table import Table
+    t = Table()
+    t['x'] = np.arange(10) * u.mm
+    t['y'] = np.ones(10) * u.mm
+    xy = np.vstack([t['x'], t['y']]).T * u.mm
+    ii = [0,2,4]
+
+    assert xy[ii,0].unit == t['x'][ii].unit
+    #following statement should not raise a
+    # u.core.UnitConversionError
+    xy[ii,0] = t['x'][ii]
+
+def test_assign_slice_with_quantity_like2():
+    from ...table import Column, Table
+    from ...units import Quantity
+    
+    t = Table()
+    t['x'] = np.arange(10) * u.mm
+    t['y'] = np.ones(10) * u.mm
+    
+    c = Column(np.arange(10.), unit=u.mm)
+    q = u.Quantity(c)
+    q[:2] = t[:2]
+    # AttributeError -> UnitConversionError
 
 def test_insert():
     """
