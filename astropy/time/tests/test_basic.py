@@ -1152,3 +1152,16 @@ def test_string_valued_columns():
     tutf32 = Time(Column(['B1950']))
     tbytes = Time(Column([b'B1950']))
     assert tutf32 == tbytes
+
+
+def test_bytes_input():
+    tstring = '2011-01-02T03:04:05'
+    tbytes = b'2011-01-02T03:04:05'
+    assert tbytes.decode('ascii') == tstring
+    t0 = Time(tstring)
+    t1 = Time(tbytes)
+    assert t1 == t0
+    tarray = np.array(tbytes)
+    assert tarray.dtype.kind == 'S'
+    t2 = Time(tarray)
+    assert t2 == t0
