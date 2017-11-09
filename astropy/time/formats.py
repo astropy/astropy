@@ -68,14 +68,6 @@ def _regexify_subfmts(subfmts):
     return tuple(new_subfmts)
 
 
-def _string_item(val, encoding='ascii'):
-    """Turn array scalar into a python scalar, decoding it if byte type."""
-    result = val.item()
-    if type(result) is bytes:
-        result = result.decode(encoding)
-    return result
-
-
 class TimeFormatMeta(type):
     """
     Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
@@ -739,6 +731,11 @@ class TimeString(TimeUnique):
             raise ValueError('Time {0} does not match {1} format'
                              .format(timestr, self.name))
 
+    @staticmethod
+    def _decode_if_needed(val):
+        """Decode ``vall`` if it is a bytes instance."""
+        return val.decode('ascii') if type(val) is bytes else val
+
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         # Select subformats based on current self.in_subfmt
@@ -753,7 +750,7 @@ class TimeString(TimeUnique):
 
         for val, iy, im, id, ihr, imin, dsec in iterator:
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
-                self.parse_string(_string_item(val), subfmts))
+                self.parse_string(self._decode_if_needed(val.item()), subfmts))
 
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               *iterator.operands[1:])
@@ -1071,7 +1068,7 @@ class TimeEpochDateString(TimeString):
         epoch_prefix = self.epoch_prefix
         iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
         for val, years in iterator:
-            time_str = _string_item(val)
+            time_str = self._decode_if_needed(val.item())
             try:
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
