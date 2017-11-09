@@ -15,6 +15,7 @@ from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
 from ... import units as u
 from ... import _erfa as erfa
+from ...table import Column
 try:
     import pytz
     HAS_PYTZ = True
@@ -1136,3 +1137,18 @@ def test_sum_is_equivalent():
 
     assert t0 == t1
     assert (t0 + 1 * u.second) == (t1 + 1 * u.second)
+
+
+def test_string_valued_columns():
+    # Columns have a nice shim that translates bytes to string as needed.
+    # Ensure Time can handle these.  Use multi-d array just to be sure.
+    times = [[['{:04d}-{:02d}-{:02d}'.format(y, m, d) for d in range(1, 3)]
+              for m in range(5, 7)] for y in range(2012, 2014)]
+    cutf32 = Column(times)
+    cbytes = cutf32.astype('S')
+    tutf32 = Time(cutf32)
+    tbytes = Time(cbytes)
+    assert np.all(tutf32 == tbytes)
+    tutf32 = Time(Column(['B1950']))
+    tbytes = Time(Column([b'B1950']))
+    assert tutf32 == tbytes

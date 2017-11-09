@@ -736,15 +736,19 @@ class TimeString(TimeUnique):
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
 
-        iterator = np.nditer([val1, None, None, None, None, None, None],
-                             op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
+        # In other formats, we use `nditer` instead of `vectorize`, as this
+        # is somewhat faster, looping over memory in C, rather than indexing
+        # arrays in python.  However, that treats all inputs as regular arrays,
+        # and thus overrides conversion of, e.g., 'S' dtype to string in Column.
+        def convertor(val):
+            return tuple(self.parse_string(val, subfmts))
 
-        for val, iy, im, id, ihr, imin, dsec in iterator:
-            iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
-                self.parse_string(val.item(), subfmts))
+        convert = np.vectorize(convertor, 5*[np.intc] + [np.double],
+                               signature='()->(),(),(),(),(),()')
+        iy, im, id, ihr, imin, dsec = convert(val1)
 
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                              *iterator.operands[1:])
+                              iy, im, id, ihr, imin, dsec)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def str_kwargs(self):
@@ -1056,10 +1060,9 @@ class TimeEpochDateString(TimeString):
     """
 
     def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # validate scale.
         epoch_prefix = self.epoch_prefix
-        iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
-        for val, years in iterator:
-            time_str = val.item()
+        def convertor(time_str):
             try:
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
@@ -1069,11 +1072,12 @@ class TimeEpochDateString(TimeString):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:
-                years[...] = year
+                return year
 
-        self._check_scale(self._scale)  # validate scale.
+        convert = np.vectorize(convertor, [np.double], signature='()->()')
+        year = convert(val1)
         epoch_to_jd = getattr(erfa, self.epoch_to_jd)
-        jd1, jd2 = epoch_to_jd(iterator.operands[-1])
+        jd1, jd2 = epoch_to_jd(year)
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
