@@ -1387,12 +1387,16 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             _value = value.to_value(self.unit)
         except AttributeError:
             try:
-                _value = dimensionless_unscaled.to(self.unit, value)
-            except UnitsError as exc:
-                if can_have_arbitrary_unit(value):
-                    _value = value
-                else:
-                    raise exc
+                _value = value.unit.to(self.unit, value.data)
+            except AttributeError:
+                try:
+                    _value = dimensionless_unscaled.to(self.unit, value)
+                #return self.to_own_unit(Quantity(value))
+                except UnitsError as exc:
+                    if can_have_arbitrary_unit(value):
+                        _value = value
+                    else:
+                        raise exc
 
         if check_precision:
             value_dtype = getattr(value, 'dtype', None)
