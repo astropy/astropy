@@ -731,26 +731,19 @@ class TimeString(TimeUnique):
             raise ValueError('Time {0} does not match {1} format'
                              .format(timestr, self.name))
 
-    @staticmethod
-    def _decode_if_needed(val):
-        """Decode ``vall`` if it is a bytes instance."""
-        return val.decode('ascii') if type(val) is bytes else val
-
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
-
-        # We cannot just use the iterator over val1, since that effectively
-        # treats it as a regular array, thus bypassing the bytes to string
-        # conversion in Column. Hence, we create the index and use that
-        # inside the loop.
+        # Be liberal in what we accept: convert bytes to ascii.
+        to_string = (str if val1.dtype.kind == 'U' else
+                     lambda x: str(x, encoding='ascii'))
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
-
         for val, iy, im, id, ihr, imin, dsec in iterator:
+            val = to_string(val)
             iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
-                self.parse_string(self._decode_if_needed(val.item()), subfmts))
+                self.parse_string(val, subfmts))
 
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               *iterator.operands[1:])
@@ -1066,15 +1059,18 @@ class TimeEpochDateString(TimeString):
 
     def set_jds(self, val1, val2):
         epoch_prefix = self.epoch_prefix
+        # Be liberal in what we accept: convert bytes to ascii.
+        to_string = (str if val1.dtype.kind == 'U' else
+                     lambda x: str(x, encoding='ascii'))
         iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
         for val, years in iterator:
-            time_str = self._decode_if_needed(val.item())
             try:
+                time_str = to_string(val)
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
-            except (IndexError, ValueError):
+            except (IndexError, ValueError, UnicodeEncodeError):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:
