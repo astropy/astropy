@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import types
+from pkgutil import find_loader
 from collections import OrderedDict
 
 import pytest
@@ -29,20 +30,9 @@ from .helper import enable_deprecations_as_exceptions  # pylint: disable=W0611
 from ..utils.argparse import writeable_directory
 from ..utils.introspection import resolve_name
 
-try:
-    import importlib.machinery as importlib_machinery
-except ImportError:  # Python 2.7
-    importlib_machinery = None
-
-pytest_plugins = ('astropy.tests.pytest_doctestplus',
-                  'astropy.tests.pytest_openfiles',
-                  'astropy.tests.pytest_repeat',
-                  'astropy.tests.pytest_remotedata')
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
-
-
 def pytest_addoption(parser):
 
     parser.addoption("--config-dir", nargs='?', type=writeable_directory,
