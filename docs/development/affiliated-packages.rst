@@ -188,7 +188,9 @@ Starting a new package
     git add README.md
 
 #. Finally, if you plan on using Travis for continuous integration, copy over
-   the ``.travis.yml`` file and edit it::
+   the ``.travis.yml`` file and edit it by replacing "packagname" with your
+   package.  (You can do a lot more to customize the travis builds.  More
+   detail on that below.)::
 
     cp ../template/.travis.yml .
     # edit .travis.yml
