@@ -106,12 +106,13 @@ matrix:
         # Pinning conda version temporarily to 4.3.21, as some anaconda
         # packges build with 4.3.27 are faulty and we see this job failing,
         # while locally there are no issues when the same version of
-        # packages are installed from pip.
+        # packages are installed from pip.  Also make sure that series v2.0.x
+        # is compatible with pytest-astropy
         # TODO: remove the pinning once the issue is solved upstream.
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-mpl bintrees'
+               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy pytest-mpl bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0
