@@ -427,6 +427,9 @@ astropy.coordinates
 - Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6699]
 
 - Improved accuracy of radial velocity corrections in ``SkyCoord.radial_velocity_correction```. [#6861]
+- The precision of ecliptic frames is now much better, after removing the
+  nutation from the rotation and fixing the computation of the position of the
+  Sun. [#6508]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
