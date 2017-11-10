@@ -20,6 +20,13 @@ from ..errors import UnitsError
 
 
 def _ecliptic_rotation_matrix(equinox):
+    # This code calls pmat06 from ERFA, which retrieves the precession
+    # matrix (including frame bias) according to the IAU 2006 model, but
+    # leaves out the nutation. This matches what ERFA does in the ecm06
+    # function and also brings the results closer to what other libraries
+    # give (see https://github.com/astropy/astropy/pull/6508). However,
+    # notice that this makes the name "TrueEcliptic" misleading, and might
+    # be changed in the future (discussion in the same pull request)
     jd1, jd2 = get_jd12(equinox, 'tt')
     rbp = erfa.pmat06(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
