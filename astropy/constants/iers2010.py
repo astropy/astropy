@@ -4,9 +4,8 @@ Astronomical and physics constants in SI units.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
 
-import numpy as np
-
 from .constant import Constant
+from .codata2014 import c
 
 
 class IERS2010(Constant):
@@ -14,10 +13,6 @@ class IERS2010(Constant):
     _registry = {}
     _has_incompatible_units = set()
 
-
-# NATURAL DEFINING CONSTANTS
-c = IERS2010('c', "Speed of light in vacuum", 299792458.,
-             'm / (s)', 0.0, system='si')
 
 # AUXILIARY DEFINING CONSTANTS
 k = IERS2010('k', "Gaussian gravitational constant", 1.720209895e-2,
@@ -33,10 +28,10 @@ TDB0 = IERS2010('TDB0', "TDB-TCB at JD 2443144.5 TAI", -6.55e-5,
                 's', 0.0, system='si')
 
 theta0 = IERS2010('theta0', "Earth Rotation Angle (ERA) at J2000.0",
-                  0.7790572732640 * 2 * np.pi, 'rad', 0.0, system='si')
+                  0.7790572732640, 'cycle', 0.0, system='si')
 
-dtheta = IERS2010('dtheta', "Rate of advance of ERA",
-                  1.00273781191135448 * 2 * np.pi, 'rad', 0.0, system='si')
+dtheta = IERS2010('dtheta', "Rate of advance of ERA in revolution / UT1 day",
+                  1.00273781191135448, 'cycle / day', 0.0, system='si')
 
 # NATURAL MEASURABLE CONSTANT
 G = IERS2010('G', "Gravitational constant", 6.67428e-11,
@@ -44,8 +39,8 @@ G = IERS2010('G', "Gravitational constant", 6.67428e-11,
 
 # BODY CONSTANTS
 # Solar mass parameter
-GM_sun = IERS2010('GM_sun', 'Nominal solar mass parameter', 1.32712442099e20,
-                  'm3 / (s2)', 1e10, system='si')
+GM_sun = IERS2010('GM_sun', 'Solar mass parameter (TCB compatible)',
+                  1.32712442099e20, 'm3 / (s2)', 1e10, system='si')
 
 # Solar dynamical form factor
 J2_sun = IERS2010('J2_sun', 'Dynamical form factor of the Sun', 2e-7,
@@ -58,11 +53,11 @@ mu = IERS2010('mu', 'Moon-Earth mass ratio', 0.0123000371,
 # EARTH CONSTANTS
 
 # Earth mass parameter
-GM_earth = IERS2010('GM_earth', 'Nominal Earth mass parameter', 3.986004418e14,
+GM_earth = IERS2010('GM_earth', 'Earth mass parameter', 3.986004418e14,
                     'm3 / (s2)', 8e5, system='si')
 
 # Earth equatorial radius
-R_earth = IERS2010('R_earth', "Nominal Earth equatorial radius", 6378136.6,
+R_earth = IERS2010('R_earth', "Earth equatorial radius", 6378136.6,
                    'm', 0.1, system='si')
 
 # Earth dynamical form factor
@@ -91,13 +86,12 @@ H_earth = IERS2010('H_earth', "Dynamical flattening", 3273795e-9,
 
 # INITIAL VALUE AT J2000.0
 eps0 = IERS2010('eps0', "Obliquity of the ecliptic at J2000.0",
-                np.radians(84381.406 / 3600), 'rad', np.radians(0.001 / 3600),
-                system='si')
+                84381.406, 'arcsec', 0.001, system='si')
 
 # OTHER CONSTANTS
 # Astronomical Unit
 au = IERS2010('au', "Astronomical Unit", 1.49597870700e11, 'm', 3.0,
-        system='si')
+              system='si')
 
 L_C = IERS2010('L_C', "Average value of 1−d(TCG)/d(TCB)", 1.48082686741e-8,
                '', 2e-7, system='si')
