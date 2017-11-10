@@ -208,6 +208,59 @@ or table is copied::
   ...    print(t2.indices)
   []
 
+Updating row using indices
+==========================
+
+Row updation can be accomplished by assigning the table property: `~astropy.table.Table.loc` a complete row or a list of rows::
+
+   >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
+   >>> t.add_index('a')
+   >>> t.loc['x']
+   <Row index=1>
+    a     b
+   str1 int64
+   ---- -----
+      x     1
+   >>> t.loc['x'] = ['a', 12]
+   >>> t
+   <Table length=4>
+    a     b
+   str1 int64
+   ---- -----
+      w    10
+      a    12
+      y     9
+      z     9
+   >>> t.loc[['w', 'y']]
+   <Table length=2>
+    a     b
+   str1 int64
+   ---- -----
+      w    10
+      y     9
+   >>> t.loc[['w', 'z']] = [['b',23], ['c',56]]
+   >>> t
+   <Table length=4>
+    a     b
+   str1 int64
+   ---- -----
+      b    23
+      a    12
+      y     9
+      c    56
+
+Retrieving the location of rows using indices
+=============================================
+
+Retrieval of the location of rows can be accomplished using a table property: `~astropy.table.Table.loc_indices`.
+The `~astropy.table.Table.loc_indices` property can be indexed either by column value, range of
+column values (*including* the bounds), or a list or ndarray of column values::
+
+   >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
+   >>> t.add_index('a')
+   >>> t.loc_indices['x']
+   1
+
 Engines
 =======
 When creating an index via |add_index|, the keyword argument "engine" may be

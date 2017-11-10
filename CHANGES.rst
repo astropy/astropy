@@ -122,6 +122,11 @@ astropy.table
 - Added a new ``showtable`` command-line script to view binary or ASCII table
   files. [#6859]
 
+- Added new table property ``astropy.table.Table.loc_indices`` that returns the
+  location of rows by indexes. [#6831]
+
+- Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
