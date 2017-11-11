@@ -167,7 +167,11 @@ class LatexData(core.BaseData):
         if self.data_start:
             return find_latex_line(lines, self.data_start)
         else:
-            return self.header.start_line(lines) + 1
+            res = self.header.start_line(lines)
+            if res is None:
+                return None
+            else:
+                return res + 1
 
     def end_line(self, lines):
         if self.data_end:
