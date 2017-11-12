@@ -143,20 +143,24 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # rather than via the structured array.
     t = Table(masked=masked)
 
+    # In the loop below we access the data using data[col.name] rather than
+    # col.array to make sure that the data is scaled correctly if needed.
+    data = table.data
+
     columns = []
-    for col in table.data._coldefs:
-        columns.append(Column(data=col.array, name=col.name, copy=False))
+    for col in data.columns:
+        columns.append(Column(data=data[col.name], name=col.name, copy=False))
     t.add_columns(columns, copy=False)
 
     # Copy over null values if needed
     if masked:
-        for col in table.data._coldefs:
+        for col in data.columns:
             if col.null is not None:
                 t[col.name].set_fill_value(col.null)
                 t[col.name].mask[t[col.name] == col.null] = True
 
     # Copy over units
-    for col in table.data._coldefs:
+    for col in data.columns:
         if col.unit is not None:
             t[col.name].unit = u.Unit(col.unit, format='fits', parse_strict='silent')
 

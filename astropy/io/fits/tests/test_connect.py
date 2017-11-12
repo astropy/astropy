@@ -250,7 +250,7 @@ def test_masking_regression_1795():
     assert np.all(t['c3'].mask == np.array([False, False]))
     assert np.all(t['c4'].mask == np.array([False, False]))
     assert np.all(t['c1'].data == np.array([1, 2]))
-    assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
+    assert np.all(t['c2'].data == np.array([b'abc', b'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
 
