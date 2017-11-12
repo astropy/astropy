@@ -56,7 +56,6 @@ def showtable(filename, args):
         The path to a FITS file.
 
     """
-    print(args)
     read_kwargs = {k: v for k, v in vars(args).items()
                    if k in ('hdu', 'format', 'table_id') and v is not None}
     try:
@@ -68,7 +67,7 @@ def showtable(filename, args):
 
 
 def main(args=None):
-    """The main function called by the `fitsinfo` script."""
+    """The main function called by the `showtable` script."""
     parser = argparse.ArgumentParser(
         description=('Print tables from ASCII, FITS, HDF5, VOTable file(s).'))
     addarg = parser.add_argument
