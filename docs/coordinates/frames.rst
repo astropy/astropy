@@ -1,5 +1,15 @@
 .. include:: references.txt
 
+.. We call EarthLocation.of_site here first to force the downloading
+.. of sites.json so that future doctest output isn't clutted with
+.. "Downloading ... [done]". This can be removed once we have a better
+.. way of ignoring output lines based on pattern-matching, e.g.:
+.. https://github.com/astropy/pytest-doctestplus/issues/11
+
+.. testsetup::
+    >>> from astropy.coordinates import EarthLocation
+    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT
+
 Using and Designing Coordinate Frames
 *************************************
 
