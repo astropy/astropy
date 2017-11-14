@@ -7,7 +7,6 @@ import numpy as np
 from .core import (UnitsError, UnitConversionError, UnitTypeError,
                    dimensionless_unscaled, get_current_unit_registry)
 
-
 def _d(unit):
     if unit is None:
         return dimensionless_unscaled
@@ -86,18 +85,26 @@ if isinstance(getattr(np, 'positive', None), np.ufunc):
 
 # ufuncs handled as special cases
 
-UFUNC_HELPERS[np.sqrt] = lambda f, unit: (
+helper_sqrt = lambda f, unit: (
     [None], unit ** 0.5 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.square] = lambda f, unit: (
-    [None], unit ** 2 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.reciprocal] = lambda f, unit: (
-    [None], unit ** -1 if unit is not None else dimensionless_unscaled)
+UFUNC_HELPERS[np.sqrt] = helper_sqrt
 
-UFUNC_HELPERS[np.cbrt] = lambda f, unit: (
+helper_square = lambda f, unit: (
+    [None], unit ** 2 if unit is not None else dimensionless_unscaled)
+UFUNC_HELPERS[np.square] = helper_square
+
+helper_reciprocal = lambda f, unit: (
+    [None], unit ** -1 if unit is not None else dimensionless_unscaled)
+UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
+
+helper_cbrt = lambda f, unit: (
     [None], (unit ** Fraction(1, 3) if unit is not None
              else dimensionless_unscaled))
-UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
-                                           ([None], dimensionless_unscaled))
+UFUNC_HELPERS[np.cbrt] = helper_cbrt
+
+helper__ones_like = (lambda f, unit:
+                     ([None], dimensionless_unscaled))
+UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
 
 # ufuncs that require dimensionless input and and give dimensionless output
 
@@ -654,3 +661,257 @@ def check_output(output, unit, inputs, function=None):
         raise TypeError("Arguments cannot be cast safely to inplace "
                         "output with dtype={0}".format(output.dtype))
     return output
+
+# helpers for ufuncs in scipy.special
+# available ufuncs in this module are at 
+# https://docs.scipy.org/doc/scipy/reference/special.html
+
+try:
+    import scipy.special
+except ImportError:
+    pass
+else:
+    #list of all the scipy functions, remove these as support is added
+    UNSUPPORTED_UFUNCS |= {scipy.special.eval_hermitenorm,
+                           scipy.special.eval_sh_jacobi,
+                           scipy.special.y1,
+                           scipy.special.pdtr,
+                           scipy.special.ncfdtridfn,
+                           scipy.special.nbdtrc,
+                           scipy.special.it2i0k0,
+                           scipy.special.bdtrin,
+                           scipy.special.eval_sh_legendre,
+                           scipy.special.pdtrc,
+                           scipy.special.yn,
+                           scipy.special.ncfdtrinc,
+                           scipy.special.nbdtri,
+                           scipy.special.it2j0y0,
+                           scipy.special.bei,
+                           scipy.special.pdtri,
+                           scipy.special.yv,
+                           scipy.special.bdtr,
+                           scipy.special.nctdtr,
+                           scipy.special.nbdtrik,
+                           scipy.special.it2struve0,
+                           scipy.special.pdtrik,
+                           scipy.special.yve,
+                           scipy.special.bdtrc,
+                           scipy.special.btdtrib,
+                           scipy.special.nctdtridf,
+                           scipy.special.nbdtrin,
+                           scipy.special.itairy,
+                           scipy.special.poch,
+                           scipy.special.zetac,
+                           scipy.special.nctdtrinc,
+                           scipy.special.ncfdtr,
+                           scipy.special.iti0k0,
+                           scipy.special.pro_ang1,
+                           scipy.special.pro_ang1_cv,
+                           scipy.special.nctdtrit,
+                           scipy.special.itj0y0,
+                           scipy.special.gammainc,
+                           scipy.special.pro_cv,
+                           scipy.special.ndtr,
+                           scipy.special.itmodstruve0,
+                           scipy.special.exp1,
+                           scipy.special.chndtr,
+                           scipy.special.gammaincc,
+                           scipy.special.pro_rad1,
+                           scipy.special.ndtri,
+                           scipy.special.itstruve0,
+                           scipy.special.chndtridf,
+                           scipy.special.gammainccinv,
+                           scipy.special.pro_rad1_cv,
+                           scipy.special.nrdtrimn,
+                           scipy.special.iv,
+                           scipy.special.gammaincinv,
+                           scipy.special.pro_rad2,
+                           scipy.special.nrdtrisd,
+                           scipy.special.ive,
+                           scipy.special.expi,
+                           scipy.special.gammaln,
+                           scipy.special.pro_rad2_cv,
+                           scipy.special.obl_ang1,
+                           scipy.special.j0,
+                           scipy.special.pseudo_huber,
+                           scipy.special.expit,
+                           scipy.special.obl_ang1_cv,
+                           scipy.special.j1,
+                           scipy.special.gdtr,
+                           scipy.special.eval_jacobi,
+                           scipy.special.obl_cv,
+                           scipy.special.jv,
+                           scipy.special.expn,
+                           scipy.special.eval_chebyt,
+                           scipy.special.gdtrc,
+                           scipy.special.rel_entr,
+                           scipy.special.eval_laguerre,
+                           scipy.special.obl_rad1,
+                           scipy.special.jve,
+                           scipy.special.eval_chebyu,
+                           scipy.special.gdtria,
+                           scipy.special.binom,
+                           scipy.special.obl_rad1_cv,
+                           scipy.special.k0,
+                           scipy.special.fdtr,
+                           scipy.special.gdtrib,
+                           scipy.special.chdtr,
+                           scipy.special.round,
+                           scipy.special.boxcox,
+                           scipy.special.eval_gegenbauer,
+                           scipy.special.k0e,
+                           scipy.special.obl_rad2,
+                           scipy.special.fdtrc,
+                           scipy.special.gdtrix,
+                           scipy.special.ellipe,
+                           scipy.special.chdtrc,
+                           scipy.special.shichi,
+                           scipy.special.eval_genlaguerre,
+                           scipy.special.ellipj,
+                           scipy.special.k1,
+                           scipy.special.fdtri,
+                           scipy.special.hankel1,
+                           scipy.special.obl_rad2_cv,
+                           scipy.special.ellipeinc,
+                           scipy.special.sici,
+                           scipy.special.ellipkinc,
+                           scipy.special.k1e,
+                           scipy.special.fdtridfd,
+                           scipy.special.hankel1e,
+                           scipy.special.pbdv,
+                           scipy.special.kei,
+                           scipy.special.fresnel,
+                           scipy.special.hankel2,
+                           scipy.special.airye,
+                           scipy.special.boxcox1p,
+                           scipy.special.smirnov,
+                           scipy.special.keip,
+                           scipy.special.hankel2e,
+                           scipy.special.btdtr,
+                           scipy.special.btdtri,
+                           scipy.special.beip,
+                           scipy.special.smirnovi,
+                           scipy.special.eval_legendre,
+                           scipy.special.kelvin,
+                           scipy.special.logit,
+                           scipy.special.huber,
+                           scipy.special.pbwa,
+                           scipy.special.btdtria,
+                           scipy.special.ber,
+                           scipy.special.spence,
+                           scipy.special.eval_sh_chebyt,
+                           scipy.special.ker,
+                           scipy.special.lpmv,
+                           scipy.special.hyp0f1,
+                           scipy.special.bdtri,
+                           scipy.special.chdtri,
+                           scipy.special.sph_harm,
+                           scipy.special.kerp,
+                           scipy.special.mathieu_a,
+                           scipy.special.hyp1f1,
+                           scipy.special.bdtrik,
+                           scipy.special.berp,
+                           scipy.special.chdtriv,
+                           scipy.special.stdtr,
+                           scipy.special.kl_div,
+                           scipy.special.mathieu_b,
+                           scipy.special.hyp1f2,
+                           scipy.special.besselpoly,
+                           scipy.special.stdtridf,
+                           scipy.special.kn,
+                           scipy.special.mathieu_cem,
+                           scipy.special.hyp2f0,
+                           scipy.special.stdtrit,
+                           scipy.special.ellipkm1,
+                           scipy.special.kolmogi,
+                           scipy.special.hyp2f1,
+                           scipy.special.mathieu_modcem1,
+                           scipy.special.beta,
+                           scipy.special.struve,
+                           scipy.special.kolmogorov,
+                           scipy.special.hyp3f0,
+                           scipy.special.eval_chebyc,
+                           scipy.special.betainc,
+                           scipy.special.mathieu_modcem2,
+                           scipy.special.kv,
+                           scipy.special.mathieu_modsem1,
+                           scipy.special.hyperu,
+                           scipy.special.eval_chebys,
+                           scipy.special.tklmbda,
+                           scipy.special.betaincinv,
+                           scipy.special.kve,
+                           scipy.special.i0,
+                           scipy.special.mathieu_modsem2,
+                           scipy.special.betaln,
+                           scipy.special.i0e,
+                           scipy.special.mathieu_sem,
+                           scipy.special.cosm1,
+                           scipy.special.wrightomega,
+                           scipy.special.log_ndtr,
+                           scipy.special.modfresnelm,
+                           scipy.special.i1,
+                           scipy.special.xlog1py,
+                           scipy.special.chndtrinc,
+                           scipy.special.i1e,
+                           scipy.special.modfresnelp,
+                           scipy.special.xlogy,
+                           scipy.special.chndtrix,
+                           scipy.special.ncfdtri,
+                           scipy.special.modstruve,
+                           scipy.special.inv_boxcox,
+                           scipy.special.pbvv,
+                           scipy.special.eval_hermite,
+                           scipy.special.eval_sh_chebyu,
+                           scipy.special.y0,
+                           scipy.special.agm,
+                           scipy.special.ncfdtridfd,
+                           scipy.special.nbdtr,
+                           scipy.special.inv_boxcox1p,
+                           scipy.special.airy
+                       }
+    
+    erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
+                       scipy.special.loggamma, scipy.special.gammasgn,
+                       scipy.special.psi, scipy.special.rgamma,
+                       scipy.special.erfc, scipy.special.erfcx,
+                       scipy.special.erfi, scipy.special.wofz,
+                       scipy.special.dawsn, scipy.special.entr,
+                       scipy.special.exprel, scipy.special.expm1,
+                       scipy.special.log1p, scipy.special.exp2,
+                       scipy.special.exp10
+                   )
+    for ufunc in erf_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+
+    UFUNC_HELPERS[scipy.special.cbrt] = helper_cbrt
+
+    # ufuncs that require input in degrees, minutes, second and give 
+    # output in radians
+    def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
+        from .si import degree, arcmin, arcsec, radian
+        try:
+            return [get_converter(unit1, degree),
+                    get_converter(unit2, arcmin),
+                    get_converter(unit3, arcsec)], radian
+        except UnitsError:
+            raise UnitTypeError("Can only apply '{0}' function to "
+                                "quantities with angle units"
+                                .format(f.__name__))
+
+
+    UFUNC_HELPERS[scipy.special.radian] = helper_degree_minute_second_to_radian
+
+    # ufuncs that require input in degrees and give dimensionless output
+    def helper_degree_to_dimensionless(f, unit):
+        from .si import degree
+        try:
+            return [get_converter(unit, degree)], dimensionless_unscaled
+        except UnitsError:
+            raise UnitTypeError("Can only apply '{0}' function to "
+                                "quantities with angle units"
+                                .format(f.__name__))
+    
+    cosdg_like_ufuncs = (scipy.special.cosdg, scipy.special.sindg,
+                         scipy.special.tandg, scipy.special.cotdg)
+    for ufunc in cosdg_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
