@@ -54,6 +54,8 @@ astropy.modeling
 
 - A ``deepcopy()`` method was added to models. [#6515]
 
+- Added units support to ``AffineTransformation``. [#6853]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
