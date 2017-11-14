@@ -66,7 +66,7 @@ def test_parse_single_table2():
 
 @raises(IndexError)
 def test_parse_single_table3():
-    table2 = parse_single_table(
+    parse_single_table(
         get_pkg_data_filename('data/regression.xml'),
         table_number=3, pedantic=False)
 
@@ -151,7 +151,7 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
         get_pkg_data_filename(
             'data/regression.bin.tabledata.truth.{0}.xml'.format(
                 votable.version)),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
     with io.open(str(tmpdir.join("regression.bin.tabledata.xml")),
                  'rt', encoding='utf-8') as fd:
@@ -173,7 +173,7 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
     with gzip.GzipFile(
-        str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
+            str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
         output = gzfd.readlines()
     output = [x.decode('utf-8').rstrip() for x in output]
     truth = [x.rstrip() for x in truth]
@@ -596,12 +596,12 @@ class TestParse:
 
         if self.votable.version != '1.1':
             info = self.votable.get_info_by_id("ErrorInfo")
-            assert info.value == "One might expect to find some INFO here, too..."
+            assert info.value == "One might expect to find some INFO here, too..."  # noqa
 
     def test_repr(self):
         assert '3 tables' in repr(self.votable)
         assert repr(list(self.votable.iter_fields_and_params())[0]) == \
-            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'  # noqa
         # Smoke test
         repr(list(self.votable.iter_groups()))
 
@@ -736,7 +736,7 @@ def test_open_files():
 
 @raises(VOTableSpecError)
 def test_too_many_columns():
-    votable = parse(
+    parse(
         get_pkg_data_filename('data/too_many_columns.xml.gz'),
         pedantic=False)
 
@@ -776,8 +776,8 @@ def test_build_from_scratch(tmpdir):
     assert_array_equal(
         table.array.mask, np.array([(False, [[False, False], [False, False]]),
                                     (False, [[False, False], [False, False]])],
-                                    dtype=[(str('filename'), str('?')),
-                                           (str('matrix'), str('?'), (2, 2))]))
+                                   dtype=[(str('filename'), str('?')),
+                                          (str('matrix'), str('?'), (2, 2))]))
 
 
 def test_validate(test_path_object=False):
@@ -807,7 +807,7 @@ def test_validate(test_path_object=False):
 
     with io.open(
         get_pkg_data_filename('data/validation.txt'),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
@@ -981,7 +981,7 @@ def test_no_resource_check():
 
     with io.open(
         get_pkg_data_filename('data/no_resource.txt'),
-        'rt', encoding='utf-8') as fd:
+            'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
