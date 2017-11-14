@@ -159,11 +159,8 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
-    for line in difflib.unified_diff(truth, output):
-        sys.stdout.write(
-            line.
-            encode('unicode_escape').
-            replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
@@ -813,8 +810,8 @@ def test_validate(test_path_object=False):
     truth = truth[1:]
     output = output[1:-1]
 
-    for line in difflib.unified_diff(truth, output):
-        sys.stdout.write(line.replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
@@ -987,8 +984,8 @@ def test_no_resource_check():
     truth = truth[1:]
     output = output[1:-1]
 
-    for line in difflib.unified_diff(truth, output):
-        sys.stdout.write(line.replace('\\n', '\n'))
+    sys.stdout.writelines(
+        difflib.unified_diff(truth, output, fromfile='truth', tofile='output'))
 
     assert truth == output
 
