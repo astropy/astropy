@@ -5,6 +5,9 @@ language: c
 
 compiler: gcc
 
+cache:
+  - ccache
+
 os:
     - linux
 
