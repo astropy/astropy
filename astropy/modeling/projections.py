@@ -1989,12 +1989,9 @@ class AffineTransformation2D(Model):
             if not all([hasattr(translation, 'unit'), hasattr(matrix, 'unit')]):
                 raise ValueError("To use AffineTransformation with quantities, "
                                  "both matrix and unit need to be quantities.")
-            # How to make sure the two quantities have the same unit?
             unit = translation.unit
-            try:
-                # matrix should have the same units as translation
-                matrix.to(unit)
-            except u.UnitConversionError:
+            # matrix should have the same units as translation
+            if not (matrix.unit / translation.unit) == u.dimensionless_unscaled:
                 raise ValueError("matrix and translation must have the same units.")
 
         augmented_matrix = np.empty((3, 3), dtype=float)
