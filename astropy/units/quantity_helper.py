@@ -740,7 +740,6 @@ else:
                            scipy.special.gdtr,
                            scipy.special.eval_jacobi,
                            scipy.special.obl_cv,
-                           scipy.special.jv,
                            scipy.special.expn,
                            scipy.special.eval_chebyt,
                            scipy.special.gdtrc,
@@ -915,3 +914,20 @@ else:
                          scipy.special.tandg, scipy.special.cotdg)
     for ufunc in cosdg_like_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
+
+    def helper_2dimensionless_to_dimensionless(f, unit1, unit2):
+        try:
+            converter1 = (get_converter(unit1, dimensionless_unscaled)
+                          if unit1 is not None else None)
+            converter2 = (get_converter(unit2, dimensionless_unscaled)
+                          if unit2 is not None else None)
+        except UnitsError:
+            raise UnitTypeError("Can only apply '{0}' function with "
+                                "dimensionless arguments."
+                                .format(f.__name__))
+
+        return ([converter1, converter2], dimensionless_unscaled)
+
+    jv_like_ufuncs = (scipy.special.jv, )
+    for ufunc in jv_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_2dimensionless_to_dimensionless
