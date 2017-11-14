@@ -7,6 +7,7 @@ from ....io import fits
 
 try:
     import matplotlib  # pylint: disable=W0611
+    import matplotlib.image as mpimg
     HAS_MATPLOTLIB = True
     from ..fits2bitmap import fits2bitmap, main
 except ImportError:
@@ -53,3 +54,18 @@ class TestFits2Bitmap(object):
         filename = tmpdir.join('test.fits' + file_exten).strpath
         fits.writeto(filename, np.ones((128, 128)))
         main([filename, '-e', '0'])
+
+    def test_orientation(self, tmpdir):
+        """
+        Regression test to check the image vertical orientation/origin.
+        """
+
+        filename = tmpdir.join(self.filename).strpath
+        data = np.zeros((32, 32))
+        data[0:16, :] = 1.
+        fits.writeto(filename, data)
+        main([filename, '-e', '0'])
+
+        img = mpimg.imread(filename.replace('.fits', '.png'))
+        assert img[0, 0, 0] == 0.
+        assert img[31, 31, 0] == 1.
