@@ -305,3 +305,29 @@ def test_c_projections_shaped():
         theta,
         [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
          [89.00010152, 88.96933478, 88.88210788, 88.75019826, 88.58607353]])
+
+
+def test_affine_with_quantities():
+    x = 1
+    y = 2
+    xdeg = (x * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    ydeg = (y * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    xpix = x * u.pix
+    ypix = y * u.pix
+
+    # test affine with matrix only
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg)
+    with pytest.raises(ValueError):
+        qx1, qy1 = qaff(xpix, ypix, equivalencies={
+            'x': u.pixel_scale(2.5 * u.deg / u.pix),
+            'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+
+    # test affine with matrix and translation
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg, translation=[1, 2] * u.deg)
+    qx1, qy1 = qaff(xpix, ypix, equivalencies={
+        'x': u.pixel_scale(2.5 * u.deg / u.pix),
+        'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+    aff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]], translation=[1, 2])
+    x1, y1 = aff(xdeg.value, ydeg.value)
+    assert_quantity_allclose(qx1, x1 * u.deg)
+    assert_quantity_allclose(qy1, y1 * u.deg)

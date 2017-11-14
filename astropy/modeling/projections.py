@@ -1947,8 +1947,11 @@ class AffineTransformation2D(Model):
                 "have an inverse".format(self.__class__.__name__))
 
         matrix = np.linalg.inv(self.matrix.value)
+        if self.matrix.unit is not None:
+            matrix = matrix * self.matrix.unit
         translation = -np.dot(matrix, self.translation.value)
-
+        if self.translation.unit is not None:
+            translation = translation * self.translation.unit
         return self.__class__(matrix=matrix, translation=translation)
 
     @classmethod
@@ -1963,7 +1966,6 @@ class AffineTransformation2D(Model):
         x, y : array, float
               x and y coordinates
         """
-
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
@@ -1975,7 +1977,6 @@ class AffineTransformation2D(Model):
 
         augmented_matrix = cls._create_augmented_matrix(matrix, translation)
         result = np.dot(augmented_matrix, inarr)
-
         x, y = result[0], result[1]
         x.shape = y.shape = shape
 
@@ -1983,8 +1984,37 @@ class AffineTransformation2D(Model):
 
     @staticmethod
     def _create_augmented_matrix(matrix, translation):
+        unit = None
+        if any([hasattr(translation, 'unit'), hasattr(matrix, 'unit')]):
+            if not all([hasattr(translation, 'unit'), hasattr(matrix, 'unit')]):
+                raise ValueError("To use AffineTransformation with quantities, "
+                                 "both matrix and unit need to be quantities.")
+            # How to make sure the two quantities have the same unit?
+            unit = translation.unit
+            try:
+                # matrix should have the same units as translation
+                matrix.to(unit)
+            except u.UnitConversionError:
+                raise ValueError("matrix and translation must have the same units.")
+
         augmented_matrix = np.empty((3, 3), dtype=float)
         augmented_matrix[0:2, 0:2] = matrix
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]
-        return augmented_matrix
+        if unit is not None:
+            return augmented_matrix * unit
+        else:
+            return augmented_matrix
+
+    @property
+    def input_units(self):
+        if self.translation.unit is None and self.matrix.unit is None:
+            return None
+        elif self.translation.unit is not None:
+            return {'x': self.translation.unit,
+                    'y': self.translation.unit
+                    }
+        else:
+            return {'x': self.matrix.unit,
+                    'y': self.matrix.unit
+                    }
