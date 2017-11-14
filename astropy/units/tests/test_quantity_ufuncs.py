@@ -1043,3 +1043,36 @@ else:
 
             with pytest.raises(TypeError):
                 scipy.special.radian(3. * u.m, 2. * u.s, 1. * u.kg)
+                
+        jv_like_ufuncs = (scipy.special.jv, )
+        @pytest.mark.parametrize('function', jv_like_ufuncs)
+        def test_jv_scalar(self, function):
+            q = function(2. * u.m / (2. * u.m), 3. * u.m / (6. * u.m))
+            assert q.unit == u.dimensionless_unscaled
+            assert q.value == function(1.0, 0.5)
+
+        @pytest.mark.parametrize('function', jv_like_ufuncs)        
+        def test_jv_array(self, function):
+            q = function(np.ones(3) * u.m / (1. * u.m),
+                         np.array([2., 3., 6.]) * u.m / (6. * u.m))
+            assert q.unit == u.dimensionless_unscaled
+            assert np.all(q.value == function(
+                np.ones(3),
+                np.array([1. / 3., 1. / 2., 1.]))
+            )
+            # should also work on quantities that can be made dimensionless
+            q2 = function(np.ones(3) * u.m / (1. * u.m), 
+                          np.array([2., 3., 6.]) * u.m / (6. * u.cm))
+            assert q2.unit == u.dimensionless_unscaled
+            assert_allclose(q2.value,
+                            function(np.ones(3),
+                                     np.array([100. / 3., 100. / 2., 100.])))
+
+        @pytest.mark.parametrize('function', jv_like_ufuncs)
+        def test_exp_invalid_units(self, function):
+            # Can't use jv() with non-dimensionless quantities
+            with pytest.raises(TypeError) as exc:
+                function(1. * u.kg, 3. * u.m / u.s)
+            assert exc.value.args[0] == ("Can only apply '{0}' function with "
+                                         "dimensionless arguments."
+                                         .format(function.__name__))
