@@ -473,6 +473,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed the vertical orientation of the output bitmap image to match that
+  of the FITS image. [#6844]
+
 astropy.vo
 ^^^^^^^^^^
 
