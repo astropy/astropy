@@ -11,11 +11,6 @@ from ... import units as u
 from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
 
-try:
-    import scipy.special
-except ImportError:
-    pass
-
 
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
@@ -990,56 +985,61 @@ class TestUfuncOuter:
         assert type(s13_greater_outer) is np.ndarray
         assert np.all(s13_greater_outer == check13_greater_outer)
 
-class TestScipySpecialUfuncs:
+try:
+    import scipy.special
+except ImportError:
+    pass
+else:
+    class TestScipySpecialUfuncs:
 
-    erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
-                       scipy.special.loggamma, scipy.special.gammasgn,
-                       scipy.special.psi, scipy.special.rgamma,
-                       scipy.special.erfc, scipy.special.erfcx,
-                       scipy.special.erfi, scipy.special.wofz,
-                       scipy.special.dawsn, scipy.special.entr,
-                       scipy.special.exprel, scipy.special.expm1,
-                       scipy.special.log1p, scipy.special.exp2,
-                       scipy.special.exp10
-                   )
+        erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
+                           scipy.special.loggamma, scipy.special.gammasgn,
+                           scipy.special.psi, scipy.special.rgamma,
+                           scipy.special.erfc, scipy.special.erfcx,
+                           scipy.special.erfi, scipy.special.wofz,
+                           scipy.special.dawsn, scipy.special.entr,
+                           scipy.special.exprel, scipy.special.expm1,
+                           scipy.special.log1p, scipy.special.exp2,
+                           scipy.special.exp10
+                       )
 
-    @pytest.mark.parametrize('function', erf_like_ufuncs)
-    def test_erf_scalar(self, function):
-        TestQuantityMathFuncs.test_exp_scalar(None, function)
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_scalar(self, function):
+            TestQuantityMathFuncs.test_exp_scalar(None, function)
 
-    @pytest.mark.parametrize('function', erf_like_ufuncs)
-    def test_erf_array(self, function):
-        TestQuantityMathFuncs.test_exp_array(None, function)
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_array(self, function):
+            TestQuantityMathFuncs.test_exp_array(None, function)
 
-    @pytest.mark.parametrize('function', erf_like_ufuncs)
-    def test_erf_invalid_units(self, function):
-        TestQuantityMathFuncs.test_exp_invalid_units(None, function)
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_invalid_units(self, function):
+            TestQuantityMathFuncs.test_exp_invalid_units(None, function)
 
-    @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
-    def test_cbrt_scalar(self, function):
-        TestQuantityMathFuncs.test_cbrt_scalar(None, function)
+        @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
+        def test_cbrt_scalar(self, function):
+            TestQuantityMathFuncs.test_cbrt_scalar(None, function)
 
-    @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
-    def test_cbrt_array(self, function):
-        TestQuantityMathFuncs.test_cbrt_array(None, function)
-        
-    def test_radian(self):
-        q1 = scipy.special.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
-        assert_allclose(q1.value, np.pi)
-        assert q1.unit == u.radian
+        @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
+        def test_cbrt_array(self, function):
+            TestQuantityMathFuncs.test_cbrt_array(None, function)
 
-        q2 = scipy.special.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
-        assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
-        assert q2.unit == u.radian
+        def test_radian(self):
+            q1 = scipy.special.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q1.value, np.pi)
+            assert q1.unit == u.radian
 
-        q3 = scipy.special.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
-        assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
+            q2 = scipy.special.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
+            assert q2.unit == u.radian
 
-        # the following doesn't make much sense in terms of the name of the
-        # routine, but we check it gives the correct result.
-        q4 = scipy.special.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
-        assert_allclose(q4.value, 3.)
-        assert q4.unit == u.radian
+            q3 = scipy.special.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
+            assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
 
-        with pytest.raises(TypeError):
-            scipy.special.radian(3. * u.m, 2. * u.s, 1. * u.kg)
+            # the following doesn't make much sense in terms of the name of the
+            # routine, but we check it gives the correct result.
+            q4 = scipy.special.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q4.value, 3.)
+            assert q4.unit == u.radian
+
+            with pytest.raises(TypeError):
+                scipy.special.radian(3. * u.m, 2. * u.s, 1. * u.kg)
