@@ -514,9 +514,9 @@ must be defined:
 
   Maps component names to the recommended unit to convert the values of that
   component to if the representation is part of a coordinate frame.  Can be
-  ``None`` (or missing) to indicate there is no preferred unit.  If this
-  dictionary is not defined, no conversion of components to particular units
-  will occur.
+  ``None`` to indicate there is no preferred unit.  If this dictionary is not
+  defined (or a component is missing), by default angular components
+  will be converted to degrees, while others are not converted.
 
 Once you do this, you will then automatically be able to call ``represent_as``
 to convert other representations to/from your representation class.  Your

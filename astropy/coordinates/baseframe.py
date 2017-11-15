@@ -25,7 +25,7 @@ from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
 from .transformations import TransformGraph
 from . import representation as r
-
+from .angles import Angle
 from .attributes import Attribute
 
 # Import old names for Attributes so we don't break backwards-compatibility
@@ -560,9 +560,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
                               list(r.DIFFERENTIAL_CLASSES.values())):
             repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
-            for c in repr_diff_cls.attr_classes.keys():
+            for c, c_cls in repr_diff_cls.attr_classes.items():
                 repr_attrs[repr_diff_cls]['names'].append(c)
-                rec_unit = repr_diff_cls.recommended_units.get(c, None)
+                rec_unit = repr_diff_cls.recommended_units.get(
+                    c, u.deg if issubclass(c_cls, Angle) else None)
                 repr_attrs[repr_diff_cls]['units'].append(rec_unit)
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
