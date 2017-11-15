@@ -61,8 +61,9 @@ def showtable(filename, args):
                    if k in ('hdu', 'format', 'table_id') and v is not None}
     try:
         table = Table.read(filename, **read_kwargs)
-        table.pprint(max_lines=args.max_lines, max_width=args.max_width,
-                     show_unit=not args.hide_unit, show_dtype=args.show_dtype)
+        formatter = table.more if args.more else table.pprint
+        formatter(max_lines=args.max_lines, max_width=args.max_width,
+                  show_unit=not args.hide_unit, show_dtype=args.show_dtype)
     except IOError as e:
         log.error(str(e))
 
@@ -74,6 +75,8 @@ def main(args=None):
     addarg = parser.add_argument
 
     # pprint arguments
+    addarg('--more', action='store_true',
+           help='Use the pager mode from Table.more.')
     addarg('--max-lines', type=int,
            help='Maximum number of lines in table output.')
     addarg('--max-width', type=int,
