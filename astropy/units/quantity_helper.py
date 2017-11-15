@@ -7,6 +7,7 @@ import numpy as np
 from .core import (UnitsError, UnitConversionError, UnitTypeError,
                    dimensionless_unscaled, get_current_unit_registry)
 
+
 def _d(unit):
     if unit is None:
         return dimensionless_unscaled
@@ -29,293 +30,6 @@ def get_converter(from_unit, to_unit):
         return None
     else:
         return lambda val: scale * val
-
-
-UFUNC_HELPERS = {}
-
-# In this file, we implement the logic that determines for a given ufunc and
-# input how the input should be scaled and what unit the output will have.
-
-# list of ufuncs:
-# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
-
-UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
-                          np.bitwise_xor, np.invert, np.left_shift,
-                          np.right_shift, np.logical_and, np.logical_or,
-                          np.logical_xor, np.logical_not])
-for name in 'isnat', 'gcd', 'lcm':
-    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
-    ufunc = getattr(np, name, None)
-    if isinstance(ufunc, np.ufunc):
-        UNSUPPORTED_UFUNCS |= {ufunc}
-
-# SINGLE ARGUMENT UFUNCS
-
-# The functions below take a single argument, which is the quantity upon which
-# the ufunc is being used. The output of the function should be two values: the
-# scale by which the input needs to be multiplied before being passed to the
-# ufunc, and the unit the output will be in.
-
-# ufuncs that return a boolean and do not care about the unit
-helper_onearg_test = lambda f, unit: ([None], None)
-
-UFUNC_HELPERS[np.isfinite] = helper_onearg_test
-UFUNC_HELPERS[np.isinf] = helper_onearg_test
-UFUNC_HELPERS[np.isnan] = helper_onearg_test
-UFUNC_HELPERS[np.sign] = helper_onearg_test
-UFUNC_HELPERS[np.signbit] = helper_onearg_test
-
-# ufuncs that return a value with the same unit as the input
-
-helper_invariant = lambda f, unit: ([None], _d(unit))
-
-UFUNC_HELPERS[np.absolute] = helper_invariant
-UFUNC_HELPERS[np.fabs] = helper_invariant
-UFUNC_HELPERS[np.conj] = helper_invariant
-UFUNC_HELPERS[np.conjugate] = helper_invariant
-UFUNC_HELPERS[np.negative] = helper_invariant
-UFUNC_HELPERS[np.spacing] = helper_invariant
-UFUNC_HELPERS[np.rint] = helper_invariant
-UFUNC_HELPERS[np.floor] = helper_invariant
-UFUNC_HELPERS[np.ceil] = helper_invariant
-UFUNC_HELPERS[np.trunc] = helper_invariant
-# positive only was added in numpy 1.13
-if isinstance(getattr(np, 'positive', None), np.ufunc):
-    UFUNC_HELPERS[np.positive] = helper_invariant
-
-# ufuncs handled as special cases
-
-helper_sqrt = lambda f, unit: (
-    [None], unit ** 0.5 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.sqrt] = helper_sqrt
-
-helper_square = lambda f, unit: (
-    [None], unit ** 2 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.square] = helper_square
-
-helper_reciprocal = lambda f, unit: (
-    [None], unit ** -1 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
-
-helper_cbrt = lambda f, unit: (
-    [None], (unit ** Fraction(1, 3) if unit is not None
-             else dimensionless_unscaled))
-UFUNC_HELPERS[np.cbrt] = helper_cbrt
-
-helper__ones_like = (lambda f, unit:
-                     ([None], dimensionless_unscaled))
-UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
-
-# ufuncs that require dimensionless input and and give dimensionless output
-
-
-def helper_dimensionless_to_dimensionless(f, unit):
-    if unit is None:
-        return [None], dimensionless_unscaled
-
-    try:
-        return ([get_converter(unit, dimensionless_unscaled)],
-                dimensionless_unscaled)
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.exp2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
-
-
-def helper_modf(f, unit):
-    if unit is None:
-        return [None], (dimensionless_unscaled, dimensionless_unscaled)
-
-    try:
-        return ([get_converter(unit, dimensionless_unscaled)],
-                (dimensionless_unscaled, dimensionless_unscaled))
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.modf] = helper_modf
-
-
-# ufuncs that require dimensionless input and give output in radians
-def helper_dimensionless_to_radian(f, unit):
-    from .si import radian
-    if unit is None:
-        return [None], radian
-
-    try:
-        return [get_converter(unit, dimensionless_unscaled)], radian
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctan] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arccosh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsinh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
-
-
-# ufuncs that require input in degrees and give output in radians
-def helper_degree_to_radian(f, unit):
-    from .si import degree, radian
-    try:
-        return [get_converter(unit, degree)], radian
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.radians] = helper_degree_to_radian
-UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
-
-
-# ufuncs that require input in radians and give output in degrees
-def helper_radian_to_degree(f, unit):
-    from .si import degree, radian
-    try:
-        return [get_converter(unit, radian)], degree
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
-UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
-
-
-# ufuncs that require input in radians and give dimensionless output
-def helper_radian_to_dimensionless(f, unit):
-    from .si import radian
-    try:
-        return [get_converter(unit, radian)], dimensionless_unscaled
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tan] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.cosh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sinh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
-
-
-# ufuncs that require dimensionless_unscaled input and return non-quantities
-def helper_frexp(f, unit):
-    if not unit.is_unity():
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "unscaled dimensionless quantities"
-                            .format(f.__name__))
-    return [None], (None, None)
-
-
-UFUNC_HELPERS[np.frexp] = helper_frexp
-
-
-# TWO ARGUMENT UFUNCS
-def helper_multiplication(f, unit1, unit2):
-    return [None, None], _d(unit1) * _d(unit2)
-
-
-UFUNC_HELPERS[np.multiply] = helper_multiplication
-
-
-def helper_division(f, unit1, unit2):
-    return [None, None], _d(unit1) / _d(unit2)
-
-
-UFUNC_HELPERS[np.divide] = helper_division
-UFUNC_HELPERS[np.true_divide] = helper_division
-
-
-def helper_power(f, unit1, unit2):
-    # TODO: find a better way to do this, currently need to signal that one
-    # still needs to raise power of unit1 in main code
-    if unit2 is None:
-        return [None, None], False
-
-    try:
-        return [None, get_converter(unit2, dimensionless_unscaled)], False
-    except UnitsError:
-        raise UnitTypeError("Can only raise something to a "
-                            "dimensionless quantity")
-
-
-UFUNC_HELPERS[np.power] = helper_power
-# float_power was added in numpy 1.12
-if isinstance(getattr(np, 'float_power', None), np.ufunc):
-    UFUNC_HELPERS[np.float_power] = helper_power
-
-
-def helper_ldexp(f, unit1, unit2):
-    if unit2 is not None:
-        raise TypeError("Cannot use ldexp with a quantity "
-                        "as second argument.")
-    else:
-        return [None, None], _d(unit1)
-
-
-UFUNC_HELPERS[np.ldexp] = helper_ldexp
-
-
-def helper_copysign(f, unit1, unit2):
-    # if first arg is not a quantity, just return plain array
-    if unit1 is None:
-        return [None, None], None
-    else:
-        return [None, None], unit1
-
-
-UFUNC_HELPERS[np.copysign] = helper_copysign
-
-# heaviside only was added in numpy 1.13
-if isinstance(getattr(np, 'heaviside', None), np.ufunc):
-    def helper_heaviside(f, unit1, unit2):
-        try:
-            converter2 = (get_converter(unit2, dimensionless_unscaled)
-                          if unit2 is not None else None)
-        except UnitsError:
-            raise UnitTypeError("Can only apply 'heaviside' function with a "
-                                "dimensionless second argument.")
-        return ([None, converter2], dimensionless_unscaled)
-
-    UFUNC_HELPERS[np.heaviside] = helper_heaviside
-
-
-def helper_two_arg_dimensionless(f, unit1, unit2):
-    try:
-        converter1 = (get_converter(unit1, dimensionless_unscaled)
-                      if unit1 is not None else None)
-        converter2 = (get_converter(unit2, dimensionless_unscaled)
-                      if unit2 is not None else None)
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-    return ([converter1, converter2], dimensionless_unscaled)
-
-
-UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
-UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
-
 
 def get_converters_and_unit(f, unit1, unit2):
     converters = [None, None]
@@ -347,7 +61,6 @@ def get_converters_and_unit(f, unit1, unit2):
             return converters, unit2
         else:
             return converters, dimensionless_unscaled
-
     else:
         try:
             converters[changeable] = get_converter(unit2, unit1)
@@ -358,66 +71,6 @@ def get_converters_and_unit(f, unit1, unit2):
                 .format(f.__name__))
 
         return converters, unit1
-
-
-# This used to be a separate function that just called get_converters_and_unit.
-# Using it directly saves a few us; keeping the clearer name.
-helper_twoarg_invariant = get_converters_and_unit
-
-
-UFUNC_HELPERS[np.add] = helper_twoarg_invariant
-UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
-UFUNC_HELPERS[np.hypot] = helper_twoarg_invariant
-UFUNC_HELPERS[np.maximum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.minimum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmin] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmax] = helper_twoarg_invariant
-UFUNC_HELPERS[np.nextafter] = helper_twoarg_invariant
-UFUNC_HELPERS[np.remainder] = helper_twoarg_invariant
-UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
-
-
-def helper_twoarg_comparison(f, unit1, unit2):
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, None
-
-
-UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
-UFUNC_HELPERS[np.greater_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.not_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
-
-
-def helper_twoarg_invtrig(f, unit1, unit2):
-    from .si import radian
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, radian
-
-
-UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
-# another private function in numpy; use getattr in case it disappears
-if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
-    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
-
-
-def helper_twoarg_floor_divide(f, unit1, unit2):
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, dimensionless_unscaled
-
-
-UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
-
-# divmod only was added in numpy 1.13
-if isinstance(getattr(np, 'divmod', None), np.ufunc):
-    def helper_divmod(f, unit1, unit2):
-        converters, result_unit = get_converters_and_unit(f, unit1, unit2)
-        return converters, (dimensionless_unscaled, result_unit)
-
-    UFUNC_HELPERS[np.divmod] = helper_divmod
-
 
 def can_have_arbitrary_unit(value):
     """Test whether the items in value can have arbitrary units
@@ -434,6 +87,564 @@ def can_have_arbitrary_unit(value):
     `True` if each member is either zero or not finite, `False` otherwise
     """
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+
+def helper_onearg_test(f, unit):
+    return ([None], None)
+
+def helper_invariant(f, unit):
+    return ([None], _d(unit))
+
+def helper_sqrt(f, unit):
+    return ([None], unit ** Fraction(1, 2) if unit is not None
+            else dimensionless_unscaled)
+
+def helper_square(f, unit):
+    return ([None], unit ** 2 if unit is not None else dimensionless_unscaled)
+
+def helper_reciprocal(f, unit):
+    return ([None], unit ** -1 if unit is not None else dimensionless_unscaled)
+
+def helper_cbrt(f, unit):
+    return ([None], (unit ** Fraction(1, 3) if unit is not None
+                     else dimensionless_unscaled))
+
+def helper_modf(f, unit):
+    if unit is None:
+        return [None], (dimensionless_unscaled, dimensionless_unscaled)
+
+    try:
+        return ([get_converter(unit, dimensionless_unscaled)],
+                (dimensionless_unscaled, dimensionless_unscaled))
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+def helper__ones_like(f, unit):
+    return [None], dimensionless_unscaled
+
+def helper_dimensionless_to_dimensionless(f, unit):
+    if unit is None:
+        return [None], dimensionless_unscaled
+
+    try:
+        return ([get_converter(unit, dimensionless_unscaled)],
+                dimensionless_unscaled)
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+def helper_dimensionless_to_radian(f, unit):
+    from .si import radian
+    if unit is None:
+        return [None], radian
+
+    try:
+        return [get_converter(unit, dimensionless_unscaled)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+def helper_degree_to_radian(f, unit):
+    from .si import degree, radian
+    try:
+        return [get_converter(unit, degree)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+def helper_radian_to_degree(f, unit):
+    from .si import degree, radian
+    try:
+        return [get_converter(unit, radian)], degree
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+def helper_radian_to_dimensionless(f, unit):
+    from .si import radian
+    try:
+        return [get_converter(unit, radian)], dimensionless_unscaled
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+def helper_frexp(f, unit):
+    if not unit.is_unity():
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "unscaled dimensionless quantities"
+                            .format(f.__name__))
+    return [None], (None, None)
+
+def helper_multiplication(f, unit1, unit2):
+    return [None, None], _d(unit1) * _d(unit2)
+
+def helper_division(f, unit1, unit2):
+    return [None, None], _d(unit1) / _d(unit2)
+
+def helper_power(f, unit1, unit2):
+    # TODO: find a better way to do this, currently need to signal that one
+    # still needs to raise power of unit1 in main code
+    if unit2 is None:
+        return [None, None], False
+
+    try:
+        return [None, get_converter(unit2, dimensionless_unscaled)], False
+    except UnitsError:
+        raise UnitTypeError("Can only raise something to a "
+                            "dimensionless quantity")
+
+def helper_ldexp(f, unit1, unit2):
+    if unit2 is not None:
+        raise TypeError("Cannot use ldexp with a quantity "
+                        "as second argument.")
+    else:
+        return [None, None], _d(unit1)
+
+def helper_copysign(f, unit1, unit2):
+    # if first arg is not a quantity, just return plain array
+    if unit1 is None:
+        return [None, None], None
+    else:
+        return [None, None], unit1
+
+def helper_heaviside(f, unit1, unit2):
+    try:
+        converter2 = (get_converter(unit2, dimensionless_unscaled)
+                      if unit2 is not None else None)
+    except UnitsError:
+        raise UnitTypeError("Can only apply 'heaviside' function with a "
+                            "dimensionless second argument.")
+    return ([None, converter2], dimensionless_unscaled)
+
+def helper_two_arg_dimensionless(f, unit1, unit2):
+    try:
+        converter1 = (get_converter(unit1, dimensionless_unscaled)
+                      if unit1 is not None else None)
+        converter2 = (get_converter(unit2, dimensionless_unscaled)
+                      if unit2 is not None else None)
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+    return ([converter1, converter2], dimensionless_unscaled)
+
+
+
+# This used to be a separate function that just called get_converters_and_unit.
+# Using it directly saves a few us; keeping the clearer name.
+helper_twoarg_invariant = get_converters_and_unit
+
+def helper_twoarg_comparison(f, unit1, unit2):
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, None
+
+def helper_twoarg_invtrig(f, unit1, unit2):
+    from .si import radian
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, radian
+
+def helper_twoarg_floor_divide(f, unit1, unit2):
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, dimensionless_unscaled
+
+def helper_divmod(f, unit1, unit2):
+    converters, result_unit = get_converters_and_unit(f, unit1, unit2)
+    return converters, (dimensionless_unscaled, result_unit)
+
+def helper_degree_to_dimensionless(f, unit):
+    from .si import degree
+    try:
+        return [get_converter(unit, degree)], dimensionless_unscaled
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
+    from .si import degree, arcmin, arcsec, radian
+    try:
+        return [get_converter(unit1, degree),
+                get_converter(unit2, arcmin),
+                get_converter(unit3, arcsec)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+UFUNC_HELPERS = {}
+
+# In this file, we implement the logic that determines for a given ufunc and
+# input how the input should be scaled and what unit the output will have.
+
+# list of ufuncs:
+# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+
+UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
+                          np.bitwise_xor, np.invert, np.left_shift,
+                          np.right_shift, np.logical_and, np.logical_or,
+                          np.logical_xor, np.logical_not])
+for name in 'isnat', 'gcd', 'lcm':
+    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
+    ufunc = getattr(np, name, None)
+    if isinstance(ufunc, np.ufunc):
+        UNSUPPORTED_UFUNCS |= {ufunc}
+
+
+# SINGLE ARGUMENT UFUNCS
+
+# The functions below take a single argument, which is the quantity upon which
+# the ufunc is being used. The output of the function should be two values: the
+# scale by which the input needs to be multiplied before being passed to the
+# ufunc, and the unit the output will be in.
+
+# ufuncs that return a boolean and do not care about the unit
+UFUNC_HELPERS[np.isfinite] = helper_onearg_test
+UFUNC_HELPERS[np.isinf] = helper_onearg_test
+UFUNC_HELPERS[np.isnan] = helper_onearg_test
+UFUNC_HELPERS[np.sign] = helper_onearg_test
+UFUNC_HELPERS[np.signbit] = helper_onearg_test
+
+# ufuncs that return a value with the same unit as the input
+UFUNC_HELPERS[np.absolute] = helper_invariant
+UFUNC_HELPERS[np.fabs] = helper_invariant
+UFUNC_HELPERS[np.conj] = helper_invariant
+UFUNC_HELPERS[np.conjugate] = helper_invariant
+UFUNC_HELPERS[np.negative] = helper_invariant
+UFUNC_HELPERS[np.spacing] = helper_invariant
+UFUNC_HELPERS[np.rint] = helper_invariant
+UFUNC_HELPERS[np.floor] = helper_invariant
+UFUNC_HELPERS[np.ceil] = helper_invariant
+UFUNC_HELPERS[np.trunc] = helper_invariant
+# positive only was added in numpy 1.13
+if isinstance(getattr(np, 'positive', None), np.ufunc):
+    UFUNC_HELPERS[np.positive] = helper_invariant
+
+# ufuncs handled as special cases
+UFUNC_HELPERS[np.sqrt] = helper_sqrt
+UFUNC_HELPERS[np.square] = helper_square
+UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
+UFUNC_HELPERS[np.cbrt] = helper_cbrt
+UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
+UFUNC_HELPERS[np.modf] = helper_modf
+
+# ufuncs that require dimensionless input and and give dimensionless output
+UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.exp2] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.log] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
+UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
+
+# ufuncs that require dimensionless input and give output in radians
+UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
+UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
+UFUNC_HELPERS[np.arctan] = helper_dimensionless_to_radian
+UFUNC_HELPERS[np.arccosh] = helper_dimensionless_to_radian
+UFUNC_HELPERS[np.arcsinh] = helper_dimensionless_to_radian
+UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
+
+# ufuncs that require input in degrees and give output in radians
+UFUNC_HELPERS[np.radians] = helper_degree_to_radian
+UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
+
+# ufuncs that require input in radians and give output in degrees
+UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
+UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
+
+# ufuncs that require input in radians and give dimensionless output
+UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
+UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
+UFUNC_HELPERS[np.tan] = helper_radian_to_dimensionless
+UFUNC_HELPERS[np.cosh] = helper_radian_to_dimensionless
+UFUNC_HELPERS[np.sinh] = helper_radian_to_dimensionless
+UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
+
+# ufuncs that require dimensionless_unscaled input and return non-quantities
+UFUNC_HELPERS[np.frexp] = helper_frexp
+
+
+# TWO ARGUMENT UFUNCS
+UFUNC_HELPERS[np.multiply] = helper_multiplication
+UFUNC_HELPERS[np.divide] = helper_division
+UFUNC_HELPERS[np.true_divide] = helper_division
+UFUNC_HELPERS[np.power] = helper_power
+# float_power was added in numpy 1.12
+if isinstance(getattr(np, 'float_power', None), np.ufunc):
+    UFUNC_HELPERS[np.float_power] = helper_power
+UFUNC_HELPERS[np.ldexp] = helper_ldexp
+UFUNC_HELPERS[np.copysign] = helper_copysign
+# heaviside only was added in numpy 1.13
+if isinstance(getattr(np, 'heaviside', None), np.ufunc):
+    UFUNC_HELPERS[np.heaviside] = helper_heaviside
+UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
+UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
+UFUNC_HELPERS[np.add] = helper_twoarg_invariant
+UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
+UFUNC_HELPERS[np.hypot] = helper_twoarg_invariant
+UFUNC_HELPERS[np.maximum] = helper_twoarg_invariant
+UFUNC_HELPERS[np.minimum] = helper_twoarg_invariant
+UFUNC_HELPERS[np.fmin] = helper_twoarg_invariant
+UFUNC_HELPERS[np.fmax] = helper_twoarg_invariant
+UFUNC_HELPERS[np.nextafter] = helper_twoarg_invariant
+UFUNC_HELPERS[np.remainder] = helper_twoarg_invariant
+UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
+UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
+UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
+UFUNC_HELPERS[np.greater_equal] = helper_twoarg_comparison
+UFUNC_HELPERS[np.less] = helper_twoarg_comparison
+UFUNC_HELPERS[np.less_equal] = helper_twoarg_comparison
+UFUNC_HELPERS[np.not_equal] = helper_twoarg_comparison
+UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
+UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
+# another private function in numpy; use getattr in case it disappears
+if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
+UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
+# divmod only was added in numpy 1.13
+if isinstance(getattr(np, 'divmod', None), np.ufunc):
+    UFUNC_HELPERS[np.divmod] = helper_divmod
+
+# UFUNCS IN scipy.special
+# available ufuncs in this module are at
+# https://docs.scipy.org/doc/scipy/reference/special.html
+
+try:
+    import scipy.special
+except ImportError:
+    pass
+else:
+    #list of all the scipy functions, remove these as support is added
+    UNSUPPORTED_UFUNCS |= {scipy.special.eval_hermitenorm,
+                           scipy.special.eval_sh_jacobi,
+                           scipy.special.y1,
+                           scipy.special.pdtr,
+                           scipy.special.ncfdtridfn,
+                           scipy.special.nbdtrc,
+                           scipy.special.it2i0k0,
+                           scipy.special.bdtrin,
+                           scipy.special.eval_sh_legendre,
+                           scipy.special.pdtrc,
+                           scipy.special.yn,
+                           scipy.special.ncfdtrinc,
+                           scipy.special.nbdtri,
+                           scipy.special.it2j0y0,
+                           scipy.special.bei,
+                           scipy.special.pdtri,
+                           scipy.special.yv,
+                           scipy.special.bdtr,
+                           scipy.special.nctdtr,
+                           scipy.special.nbdtrik,
+                           scipy.special.it2struve0,
+                           scipy.special.pdtrik,
+                           scipy.special.yve,
+                           scipy.special.bdtrc,
+                           scipy.special.btdtrib,
+                           scipy.special.nctdtridf,
+                           scipy.special.nbdtrin,
+                           scipy.special.itairy,
+                           scipy.special.poch,
+                           scipy.special.zetac,
+                           scipy.special.nctdtrinc,
+                           scipy.special.ncfdtr,
+                           scipy.special.iti0k0,
+                           scipy.special.pro_ang1,
+                           scipy.special.pro_ang1_cv,
+                           scipy.special.nctdtrit,
+                           scipy.special.itj0y0,
+                           scipy.special.gammainc,
+                           scipy.special.pro_cv,
+                           scipy.special.ndtr,
+                           scipy.special.itmodstruve0,
+                           scipy.special.exp1,
+                           scipy.special.chndtr,
+                           scipy.special.gammaincc,
+                           scipy.special.pro_rad1,
+                           scipy.special.ndtri,
+                           scipy.special.itstruve0,
+                           scipy.special.chndtridf,
+                           scipy.special.gammainccinv,
+                           scipy.special.pro_rad1_cv,
+                           scipy.special.nrdtrimn,
+                           scipy.special.iv,
+                           scipy.special.gammaincinv,
+                           scipy.special.pro_rad2,
+                           scipy.special.nrdtrisd,
+                           scipy.special.ive,
+                           scipy.special.expi,
+                           scipy.special.gammaln,
+                           scipy.special.pro_rad2_cv,
+                           scipy.special.obl_ang1,
+                           scipy.special.j0,
+                           scipy.special.pseudo_huber,
+                           scipy.special.expit,
+                           scipy.special.obl_ang1_cv,
+                           scipy.special.j1,
+                           scipy.special.gdtr,
+                           scipy.special.eval_jacobi,
+                           scipy.special.obl_cv,
+                           scipy.special.expn,
+                           scipy.special.eval_chebyt,
+                           scipy.special.gdtrc,
+                           scipy.special.rel_entr,
+                           scipy.special.eval_laguerre,
+                           scipy.special.obl_rad1,
+                           scipy.special.jve,
+                           scipy.special.eval_chebyu,
+                           scipy.special.gdtria,
+                           scipy.special.binom,
+                           scipy.special.obl_rad1_cv,
+                           scipy.special.k0,
+                           scipy.special.fdtr,
+                           scipy.special.gdtrib,
+                           scipy.special.chdtr,
+                           scipy.special.round,
+                           scipy.special.boxcox,
+                           scipy.special.eval_gegenbauer,
+                           scipy.special.k0e,
+                           scipy.special.obl_rad2,
+                           scipy.special.fdtrc,
+                           scipy.special.gdtrix,
+                           scipy.special.ellipe,
+                           scipy.special.chdtrc,
+                           scipy.special.shichi,
+                           scipy.special.eval_genlaguerre,
+                           scipy.special.ellipj,
+                           scipy.special.k1,
+                           scipy.special.fdtri,
+                           scipy.special.hankel1,
+                           scipy.special.obl_rad2_cv,
+                           scipy.special.ellipeinc,
+                           scipy.special.sici,
+                           scipy.special.ellipkinc,
+                           scipy.special.k1e,
+                           scipy.special.fdtridfd,
+                           scipy.special.hankel1e,
+                           scipy.special.pbdv,
+                           scipy.special.kei,
+                           scipy.special.fresnel,
+                           scipy.special.hankel2,
+                           scipy.special.airye,
+                           scipy.special.boxcox1p,
+                           scipy.special.smirnov,
+                           scipy.special.keip,
+                           scipy.special.hankel2e,
+                           scipy.special.btdtr,
+                           scipy.special.btdtri,
+                           scipy.special.beip,
+                           scipy.special.smirnovi,
+                           scipy.special.eval_legendre,
+                           scipy.special.kelvin,
+                           scipy.special.logit,
+                           scipy.special.huber,
+                           scipy.special.pbwa,
+                           scipy.special.btdtria,
+                           scipy.special.ber,
+                           scipy.special.spence,
+                           scipy.special.eval_sh_chebyt,
+                           scipy.special.ker,
+                           scipy.special.lpmv,
+                           scipy.special.hyp0f1,
+                           scipy.special.bdtri,
+                           scipy.special.chdtri,
+                           scipy.special.sph_harm,
+                           scipy.special.kerp,
+                           scipy.special.mathieu_a,
+                           scipy.special.hyp1f1,
+                           scipy.special.bdtrik,
+                           scipy.special.berp,
+                           scipy.special.chdtriv,
+                           scipy.special.stdtr,
+                           scipy.special.kl_div,
+                           scipy.special.mathieu_b,
+                           scipy.special.hyp1f2,
+                           scipy.special.besselpoly,
+                           scipy.special.stdtridf,
+                           scipy.special.kn,
+                           scipy.special.mathieu_cem,
+                           scipy.special.hyp2f0,
+                           scipy.special.stdtrit,
+                           scipy.special.ellipkm1,
+                           scipy.special.kolmogi,
+                           scipy.special.hyp2f1,
+                           scipy.special.mathieu_modcem1,
+                           scipy.special.beta,
+                           scipy.special.struve,
+                           scipy.special.kolmogorov,
+                           scipy.special.hyp3f0,
+                           scipy.special.eval_chebyc,
+                           scipy.special.betainc,
+                           scipy.special.mathieu_modcem2,
+                           scipy.special.kv,
+                           scipy.special.mathieu_modsem1,
+                           scipy.special.hyperu,
+                           scipy.special.eval_chebys,
+                           scipy.special.tklmbda,
+                           scipy.special.betaincinv,
+                           scipy.special.kve,
+                           scipy.special.i0,
+                           scipy.special.mathieu_modsem2,
+                           scipy.special.betaln,
+                           scipy.special.i0e,
+                           scipy.special.mathieu_sem,
+                           scipy.special.cosm1,
+                           scipy.special.wrightomega,
+                           scipy.special.log_ndtr,
+                           scipy.special.modfresnelm,
+                           scipy.special.i1,
+                           scipy.special.xlog1py,
+                           scipy.special.chndtrinc,
+                           scipy.special.i1e,
+                           scipy.special.modfresnelp,
+                           scipy.special.xlogy,
+                           scipy.special.chndtrix,
+                           scipy.special.ncfdtri,
+                           scipy.special.modstruve,
+                           scipy.special.inv_boxcox,
+                           scipy.special.pbvv,
+                           scipy.special.eval_hermite,
+                           scipy.special.eval_sh_chebyu,
+                           scipy.special.y0,
+                           scipy.special.agm,
+                           scipy.special.ncfdtridfd,
+                           scipy.special.nbdtr,
+                           scipy.special.inv_boxcox1p,
+                           scipy.special.airy
+                       }
+
+    erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
+                       scipy.special.loggamma, scipy.special.gammasgn,
+                       scipy.special.psi, scipy.special.rgamma,
+                       scipy.special.erfc, scipy.special.erfcx,
+                       scipy.special.erfi, scipy.special.wofz,
+                       scipy.special.dawsn, scipy.special.entr,
+                       scipy.special.exprel, scipy.special.expm1,
+                       scipy.special.log1p, scipy.special.exp2,
+                       scipy.special.exp10
+                   )
+    for ufunc in erf_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+
+    #ufuncs handled as special cases
+    UFUNC_HELPERS[scipy.special.cbrt] = helper_cbrt
+    UFUNC_HELPERS[scipy.special.radian] = helper_degree_minute_second_to_radian
+
+    # ufuncs that require input in degrees and give dimensionless output
+    cosdg_like_ufuncs = (scipy.special.cosdg, scipy.special.sindg,
+                         scipy.special.tandg, scipy.special.cotdg)
+    for ufunc in cosdg_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
+
+    # ufuncs that require two dimensionless inputs and give dimensionless output
+    jv_like_ufuncs = (scipy.special.jv, )
+    for ufunc in jv_like_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
 
 
 def converters_and_unit(function, method, *args):
@@ -646,7 +857,7 @@ def check_output(output, unit, inputs, function=None):
         # if the output is used to store results of a function.
         output = output.view(np.ndarray)
     else:
-        # output is not a Quantity, so cannot attain a unit.
+        # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
             raise UnitTypeError("Cannot store quantity with dimension "
                                 "{0}in a non-Quantity instance."
@@ -661,273 +872,3 @@ def check_output(output, unit, inputs, function=None):
         raise TypeError("Arguments cannot be cast safely to inplace "
                         "output with dtype={0}".format(output.dtype))
     return output
-
-# helpers for ufuncs in scipy.special
-# available ufuncs in this module are at 
-# https://docs.scipy.org/doc/scipy/reference/special.html
-
-try:
-    import scipy.special
-except ImportError:
-    pass
-else:
-    #list of all the scipy functions, remove these as support is added
-    UNSUPPORTED_UFUNCS |= {scipy.special.eval_hermitenorm,
-                           scipy.special.eval_sh_jacobi,
-                           scipy.special.y1,
-                           scipy.special.pdtr,
-                           scipy.special.ncfdtridfn,
-                           scipy.special.nbdtrc,
-                           scipy.special.it2i0k0,
-                           scipy.special.bdtrin,
-                           scipy.special.eval_sh_legendre,
-                           scipy.special.pdtrc,
-                           scipy.special.yn,
-                           scipy.special.ncfdtrinc,
-                           scipy.special.nbdtri,
-                           scipy.special.it2j0y0,
-                           scipy.special.bei,
-                           scipy.special.pdtri,
-                           scipy.special.yv,
-                           scipy.special.bdtr,
-                           scipy.special.nctdtr,
-                           scipy.special.nbdtrik,
-                           scipy.special.it2struve0,
-                           scipy.special.pdtrik,
-                           scipy.special.yve,
-                           scipy.special.bdtrc,
-                           scipy.special.btdtrib,
-                           scipy.special.nctdtridf,
-                           scipy.special.nbdtrin,
-                           scipy.special.itairy,
-                           scipy.special.poch,
-                           scipy.special.zetac,
-                           scipy.special.nctdtrinc,
-                           scipy.special.ncfdtr,
-                           scipy.special.iti0k0,
-                           scipy.special.pro_ang1,
-                           scipy.special.pro_ang1_cv,
-                           scipy.special.nctdtrit,
-                           scipy.special.itj0y0,
-                           scipy.special.gammainc,
-                           scipy.special.pro_cv,
-                           scipy.special.ndtr,
-                           scipy.special.itmodstruve0,
-                           scipy.special.exp1,
-                           scipy.special.chndtr,
-                           scipy.special.gammaincc,
-                           scipy.special.pro_rad1,
-                           scipy.special.ndtri,
-                           scipy.special.itstruve0,
-                           scipy.special.chndtridf,
-                           scipy.special.gammainccinv,
-                           scipy.special.pro_rad1_cv,
-                           scipy.special.nrdtrimn,
-                           scipy.special.iv,
-                           scipy.special.gammaincinv,
-                           scipy.special.pro_rad2,
-                           scipy.special.nrdtrisd,
-                           scipy.special.ive,
-                           scipy.special.expi,
-                           scipy.special.gammaln,
-                           scipy.special.pro_rad2_cv,
-                           scipy.special.obl_ang1,
-                           scipy.special.j0,
-                           scipy.special.pseudo_huber,
-                           scipy.special.expit,
-                           scipy.special.obl_ang1_cv,
-                           scipy.special.j1,
-                           scipy.special.gdtr,
-                           scipy.special.eval_jacobi,
-                           scipy.special.obl_cv,
-                           scipy.special.expn,
-                           scipy.special.eval_chebyt,
-                           scipy.special.gdtrc,
-                           scipy.special.rel_entr,
-                           scipy.special.eval_laguerre,
-                           scipy.special.obl_rad1,
-                           scipy.special.jve,
-                           scipy.special.eval_chebyu,
-                           scipy.special.gdtria,
-                           scipy.special.binom,
-                           scipy.special.obl_rad1_cv,
-                           scipy.special.k0,
-                           scipy.special.fdtr,
-                           scipy.special.gdtrib,
-                           scipy.special.chdtr,
-                           scipy.special.round,
-                           scipy.special.boxcox,
-                           scipy.special.eval_gegenbauer,
-                           scipy.special.k0e,
-                           scipy.special.obl_rad2,
-                           scipy.special.fdtrc,
-                           scipy.special.gdtrix,
-                           scipy.special.ellipe,
-                           scipy.special.chdtrc,
-                           scipy.special.shichi,
-                           scipy.special.eval_genlaguerre,
-                           scipy.special.ellipj,
-                           scipy.special.k1,
-                           scipy.special.fdtri,
-                           scipy.special.hankel1,
-                           scipy.special.obl_rad2_cv,
-                           scipy.special.ellipeinc,
-                           scipy.special.sici,
-                           scipy.special.ellipkinc,
-                           scipy.special.k1e,
-                           scipy.special.fdtridfd,
-                           scipy.special.hankel1e,
-                           scipy.special.pbdv,
-                           scipy.special.kei,
-                           scipy.special.fresnel,
-                           scipy.special.hankel2,
-                           scipy.special.airye,
-                           scipy.special.boxcox1p,
-                           scipy.special.smirnov,
-                           scipy.special.keip,
-                           scipy.special.hankel2e,
-                           scipy.special.btdtr,
-                           scipy.special.btdtri,
-                           scipy.special.beip,
-                           scipy.special.smirnovi,
-                           scipy.special.eval_legendre,
-                           scipy.special.kelvin,
-                           scipy.special.logit,
-                           scipy.special.huber,
-                           scipy.special.pbwa,
-                           scipy.special.btdtria,
-                           scipy.special.ber,
-                           scipy.special.spence,
-                           scipy.special.eval_sh_chebyt,
-                           scipy.special.ker,
-                           scipy.special.lpmv,
-                           scipy.special.hyp0f1,
-                           scipy.special.bdtri,
-                           scipy.special.chdtri,
-                           scipy.special.sph_harm,
-                           scipy.special.kerp,
-                           scipy.special.mathieu_a,
-                           scipy.special.hyp1f1,
-                           scipy.special.bdtrik,
-                           scipy.special.berp,
-                           scipy.special.chdtriv,
-                           scipy.special.stdtr,
-                           scipy.special.kl_div,
-                           scipy.special.mathieu_b,
-                           scipy.special.hyp1f2,
-                           scipy.special.besselpoly,
-                           scipy.special.stdtridf,
-                           scipy.special.kn,
-                           scipy.special.mathieu_cem,
-                           scipy.special.hyp2f0,
-                           scipy.special.stdtrit,
-                           scipy.special.ellipkm1,
-                           scipy.special.kolmogi,
-                           scipy.special.hyp2f1,
-                           scipy.special.mathieu_modcem1,
-                           scipy.special.beta,
-                           scipy.special.struve,
-                           scipy.special.kolmogorov,
-                           scipy.special.hyp3f0,
-                           scipy.special.eval_chebyc,
-                           scipy.special.betainc,
-                           scipy.special.mathieu_modcem2,
-                           scipy.special.kv,
-                           scipy.special.mathieu_modsem1,
-                           scipy.special.hyperu,
-                           scipy.special.eval_chebys,
-                           scipy.special.tklmbda,
-                           scipy.special.betaincinv,
-                           scipy.special.kve,
-                           scipy.special.i0,
-                           scipy.special.mathieu_modsem2,
-                           scipy.special.betaln,
-                           scipy.special.i0e,
-                           scipy.special.mathieu_sem,
-                           scipy.special.cosm1,
-                           scipy.special.wrightomega,
-                           scipy.special.log_ndtr,
-                           scipy.special.modfresnelm,
-                           scipy.special.i1,
-                           scipy.special.xlog1py,
-                           scipy.special.chndtrinc,
-                           scipy.special.i1e,
-                           scipy.special.modfresnelp,
-                           scipy.special.xlogy,
-                           scipy.special.chndtrix,
-                           scipy.special.ncfdtri,
-                           scipy.special.modstruve,
-                           scipy.special.inv_boxcox,
-                           scipy.special.pbvv,
-                           scipy.special.eval_hermite,
-                           scipy.special.eval_sh_chebyu,
-                           scipy.special.y0,
-                           scipy.special.agm,
-                           scipy.special.ncfdtridfd,
-                           scipy.special.nbdtr,
-                           scipy.special.inv_boxcox1p,
-                           scipy.special.airy
-                       }
-    
-    erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
-                       scipy.special.loggamma, scipy.special.gammasgn,
-                       scipy.special.psi, scipy.special.rgamma,
-                       scipy.special.erfc, scipy.special.erfcx,
-                       scipy.special.erfi, scipy.special.wofz,
-                       scipy.special.dawsn, scipy.special.entr,
-                       scipy.special.exprel, scipy.special.expm1,
-                       scipy.special.log1p, scipy.special.exp2,
-                       scipy.special.exp10
-                   )
-    for ufunc in erf_like_ufuncs:
-        UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
-
-    UFUNC_HELPERS[scipy.special.cbrt] = helper_cbrt
-
-    # ufuncs that require input in degrees, minutes, second and give 
-    # output in radians
-    def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
-        from .si import degree, arcmin, arcsec, radian
-        try:
-            return [get_converter(unit1, degree),
-                    get_converter(unit2, arcmin),
-                    get_converter(unit3, arcsec)], radian
-        except UnitsError:
-            raise UnitTypeError("Can only apply '{0}' function to "
-                                "quantities with angle units"
-                                .format(f.__name__))
-
-
-    UFUNC_HELPERS[scipy.special.radian] = helper_degree_minute_second_to_radian
-
-    # ufuncs that require input in degrees and give dimensionless output
-    def helper_degree_to_dimensionless(f, unit):
-        from .si import degree
-        try:
-            return [get_converter(unit, degree)], dimensionless_unscaled
-        except UnitsError:
-            raise UnitTypeError("Can only apply '{0}' function to "
-                                "quantities with angle units"
-                                .format(f.__name__))
-    
-    cosdg_like_ufuncs = (scipy.special.cosdg, scipy.special.sindg,
-                         scipy.special.tandg, scipy.special.cotdg)
-    for ufunc in cosdg_like_ufuncs:
-        UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
-
-    def helper_2dimensionless_to_dimensionless(f, unit1, unit2):
-        try:
-            converter1 = (get_converter(unit1, dimensionless_unscaled)
-                          if unit1 is not None else None)
-            converter2 = (get_converter(unit2, dimensionless_unscaled)
-                          if unit2 is not None else None)
-        except UnitsError:
-            raise UnitTypeError("Can only apply '{0}' function with "
-                                "dimensionless arguments."
-                                .format(f.__name__))
-
-        return ([converter1, converter2], dimensionless_unscaled)
-
-    jv_like_ufuncs = (scipy.special.jv, )
-    for ufunc in jv_like_ufuncs:
-        UFUNC_HELPERS[ufunc] = helper_2dimensionless_to_dimensionless
