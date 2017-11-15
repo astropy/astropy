@@ -470,7 +470,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     methods (see those methods for details). Finally, classes can also define a
     ``recommended_units`` dictionary, which maps component names to the units
     they are best presented to users in (this is used only in representations
-    of coordinates, and may be overridden by frame classes).
+    of coordinates, and may be overridden by frame classes; by default, frames
+    present angles in degrees).
     """
 
     recommended_units = {}  # subclasses can override
@@ -1240,7 +1241,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     @classproperty
     def _dimensional_representation(cls):
@@ -1529,7 +1529,6 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, differentials=None, copy=True):
@@ -1682,7 +1681,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
@@ -1838,7 +1836,6 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
