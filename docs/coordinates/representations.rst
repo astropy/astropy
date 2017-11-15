@@ -510,14 +510,6 @@ must be defined:
   comp3, copy=True)``, and use ``super`` to call the base representation
   initializer.
 
-* ``recommended_units`` dictionary (optional):
-
-  Maps component names to the recommended unit to convert the values of that
-  component to if the representation is part of a coordinate frame.  Can be
-  ``None`` to indicate there is no preferred unit.  If this dictionary is not
-  defined (or a component is missing), by default angular components
-  will be converted to degrees, while others are not converted.
-
 Once you do this, you will then automatically be able to call ``represent_as``
 to convert other representations to/from your representation class.  Your
 representation will also be available for use in |skycoord| and all frame
@@ -561,9 +553,6 @@ In pseudo-code, this means that a class will look like::
         attr_classes = OrderedDict([('comp1', ComponentClass1),
                                      ('comp2', ComponentClass2),
                                      ('comp3', ComponentClass3)])
-
-        # recommended_units is optional
-        recommended_units = {'comp1': u.unit1, 'comp2': u.unit2, 'comp3': u.unit3}
 
 	# __init__ is optional
         def __init__(self, comp1, comp2, comp3, copy=True):
