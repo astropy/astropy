@@ -63,29 +63,6 @@ class BaseEclipticFrame(BaseCoordinateFrame):
     {params}
     """
 
-    frame_specific_representation_info = {
-        r.SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_lon_coslat', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_lat', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
-        r.SphericalDifferential: [
-            RepresentationMapping('d_lon', 'pm_lon', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_lat', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
-        r.CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s),
-        ],
-    }
-
-    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[r.SphericalCosLatDifferential]
-    frame_specific_representation_info[r.UnitSphericalDifferential] = \
-        frame_specific_representation_info[r.SphericalDifferential]
-
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
