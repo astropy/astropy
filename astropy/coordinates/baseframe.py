@@ -174,6 +174,69 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
                 'Could not find all expected BaseCoordinateFrame class '
                 'attributes.  Are you mis-using FrameMeta?')
 
+        # Unless overridden, velocity name defaults are:
+        #   * pm_{lon}_cos{lat} for SphericalCosLatDifferential
+        #   * radial_velocity for any d_distance, including RadialDifferential
+        #   * v_{x,y,z} for d_{x,y,z} for CartesianDifferential
+        # where {lon} and {lat} are the names of the angular components
+        if repr_info is None:
+            repr_info = dict()
+
+        if r.SphericalRepresentation in repr_info:
+            sph_mappings = repr_info[r.SphericalRepresentation]
+            component_map = dict([(m.reprname, m.framename)
+                                  for m in sph_mappings])
+
+        else:
+            component_map = dict()
+
+        component_map.setdefault('lon', 'lon')
+        component_map.setdefault('lat', 'lat')
+
+        if r.SphericalCosLatDifferential not in repr_info:
+            repr_info[r.SphericalCosLatDifferential] = [
+                RepresentationMapping(
+                    'd_lon_coslat',
+                    'pm_{lon}_cos{lat}'.format(**component_map),
+                    u.mas/u.yr),
+                RepresentationMapping('d_lat',
+                                      'pm_{lat}'.format(**component_map),
+                                      u.mas/u.yr),
+                RepresentationMapping('d_distance', 'radial_velocity',
+                                      u.km/u.s)
+            ]
+
+        if r.SphericalDifferential not in repr_info:
+            repr_info[r.SphericalDifferential] = [
+                RepresentationMapping('d_lon',
+                                      'pm_{lon}'.format(**component_map),
+                                      u.mas/u.yr),
+                RepresentationMapping('d_lat',
+                                      'pm_{lat}'.format(**component_map),
+                                      u.mas/u.yr),
+                RepresentationMapping('d_distance', 'radial_velocity',
+                                      u.km/u.s)
+            ]
+
+        if r.CartesianDifferential not in repr_info:
+            repr_info[r.CartesianDifferential] = [
+                RepresentationMapping('d_x', 'v_x', u.km/u.s),
+                RepresentationMapping('d_y', 'v_y', u.km/u.s),
+                RepresentationMapping('d_z', 'v_z', u.km/u.s)]
+
+        # Unit* classes should follow the same naming conventions
+        if r.SphericalRepresentation in repr_info:
+            repr_info.setdefault(r.UnitSphericalRepresentation,
+                                 repr_info[r.SphericalRepresentation])
+
+        if r.SphericalCosLatDifferential in repr_info:
+            repr_info.setdefault(r.UnitSphericalCosLatDifferential,
+                                 repr_info[r.SphericalCosLatDifferential])
+
+        if r.SphericalDifferential in repr_info:
+            repr_info.setdefault(r.UnitSphericalDifferential,
+                                 repr_info[r.SphericalDifferential])
+
         # Make read-only properties for the frame class attributes that should
         # be read-only to make them immutable after creation.
         # We copy attributes instead of linking to make sure there's no
