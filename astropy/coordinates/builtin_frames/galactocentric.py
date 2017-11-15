@@ -168,13 +168,6 @@ class Galactocentric(BaseCoordinateFrame):
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
 
     """
-    frame_specific_representation_info = {
-        r.CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s),
-        ],
-    }
 
     default_representation = r.CartesianRepresentation
     default_differential = r.CartesianDifferential
