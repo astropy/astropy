@@ -186,7 +186,7 @@ class SkyCoord(ShapedLikeNDArray):
             the `Galactic` frame.
         x, y, z : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values
-        w, u, v : float or `~astropy.units.Quantity`, optional
+        u, v, w : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
     """
 
