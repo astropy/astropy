@@ -1069,10 +1069,10 @@ else:
                                      np.array([100. / 3., 100. / 2., 100.])))
 
         @pytest.mark.parametrize('function', jv_like_ufuncs)
-        def test_exp_invalid_units(self, function):
+        def test_jv_invalid_units(self, function):
             # Can't use jv() with non-dimensionless quantities
             with pytest.raises(TypeError) as exc:
                 function(1. * u.kg, 3. * u.m / u.s)
-            assert exc.value.args[0] == ("Can only apply '{0}' function with "
-                                         "dimensionless arguments."
+            assert exc.value.args[0] == ("Can only apply '{0}' function to "
+                                         "dimensionless quantities"
                                          .format(function.__name__))
