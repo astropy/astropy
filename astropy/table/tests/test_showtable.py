@@ -7,6 +7,7 @@ from ..scripts import showtable
 ROOT = os.path.abspath(os.path.dirname(__file__))
 ASCII_ROOT = os.path.join(ROOT, '..', '..', 'io', 'ascii', 'tests')
 FITS_ROOT = os.path.join(ROOT, '..', '..', 'io', 'fits', 'tests')
+VOTABLE_ROOT = os.path.join(ROOT, '..', '..', 'io', 'votable', 'tests')
 
 
 def test_missing_file(capsys):
@@ -58,3 +59,19 @@ def test_ascii_format(capsys):
                    '--- --- ---\n'
                    '  1   2   3\n'
                    '  4   5   6\n')
+
+
+def test_votable(capsys):
+    showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
+                    '--table_id', 'main_table', '--max-width', '50'])
+    out, err = capsys.readouterr()
+    assert out == (
+        '   string_test    string_test_2 ... bitarray2 [16]\n'
+        '                                ...               \n'
+        '----------------- ------------- ... --------------\n'
+        '    String & test    Fixed stri ...  True .. False\n'
+        'String &amp; test    0123456789 ...       -- .. --\n'
+        '             XXXX          XXXX ...       -- .. --\n'
+        '                                ...       -- .. --\n'
+        '                                ...       -- .. --\n'
+    )
