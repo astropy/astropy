@@ -85,7 +85,7 @@ class Distance(u.SpecificTypeQuantity):
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     >>> d6 = Distance(distmod=24.47)
     >>> d7 = Distance(Distance(10 * u.Mpc))
-    >>> d8 = Distance(parallax=21.34*u.milliarcsecond)
+    >>> d8 = Distance(parallax=21.34*u.mas)
     """
 
     _equivalent_unit = u.m
@@ -142,19 +142,9 @@ class Distance(u.SpecificTypeQuantity):
                 if value is not None:
                     raise ValueError(value_msg)
 
-                value = cls._distmod_to_pc(distmod)
-                if unit is None:
-                    # if the unit is not specified, guess based on the mean of
-                    # the log of the distance
-                    meanlogval = np.log10(value.value).mean()
-                    if meanlogval > 6:
-                        unit = u.Mpc
-                    elif meanlogval > 3:
-                        unit = u.kpc
-                    elif meanlogval < -3:  # ~200 AU
-                        unit = u.AU
-                    else:
-                        unit = u.pc
+                value = (1 / parallax).to(u.pc,
+                                          equivalencies=u.parallax()).value
+                unit = u.pc
 
                 # Continue on to take account of unit and other arguments
                 # but a copy is already made, so no longer necessary
@@ -213,11 +203,6 @@ class Distance(u.SpecificTypeQuantity):
     @classmethod
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
-        return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
-
-    @classmethod
-    def _parallax_to_pc(cls, plx):
-        dm = u.Quantity(lpx, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
 
 
