@@ -116,10 +116,12 @@ class Distance(u.SpecificTypeQuantity):
 
             value_msg = ('Should given only one of `value`, `z`, `distmod`, or '
                          '`parallax` in Distance constructor.')
-            if distmod is not None:
-                if value is not None:
-                    raise ValueError(value_msg)
+            n_not_none = np.sum([x is not None
+                                 for x in [value, z, distmod, parallax]])
+            if n_not_none > 1:
+                raise ValueError(value_msg)
 
+            if distmod is not None:
                 value = cls._distmod_to_pc(distmod)
                 if unit is None:
                     # if the unit is not specified, guess based on the mean of
@@ -139,11 +141,7 @@ class Distance(u.SpecificTypeQuantity):
                 copy = False
 
             elif parallax is not None:
-                if value is not None:
-                    raise ValueError(value_msg)
-
-                value = (1 / parallax).to(u.pc,
-                                          equivalencies=u.parallax()).value
+                value = parallax.to(u.pc, equivalencies=u.parallax()).value
                 unit = u.pc
 
                 # Continue on to take account of unit and other arguments
@@ -151,8 +149,9 @@ class Distance(u.SpecificTypeQuantity):
                 copy = False
 
             elif value is None:
-                raise ValueError('None of `value`, `z`, or `distmod` were '
-                                 'given to Distance constructor')
+                raise ValueError('None of `value`, `z`, `distmod`, or '
+                                 '`parallax` were given to Distance '
+                                 'constructor')
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(
