@@ -45,6 +45,8 @@ class Distance(u.SpecificTypeQuantity):
     distmod : float or `~astropy.units.Quantity`
         The distance modulus for this distance. Note that if ``unit`` is not
         provided, a guess will be made at the unit between AU, pc, kpc, and Mpc.
+    parallax : `~astropy.units.Quantity` or `~astropy.coordinates.Angle`
+        The parallax in angular units, 1/distance.
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
     copy : bool, optional
@@ -83,13 +85,14 @@ class Distance(u.SpecificTypeQuantity):
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     >>> d6 = Distance(distmod=24.47)
     >>> d7 = Distance(Distance(10 * u.Mpc))
+    >>> d8 = Distance(parallax=21.34*u.milliarcsecond)
     """
 
     _equivalent_unit = u.m
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, dtype=None, copy=True, order=None,
+                distmod=None, parallax=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0, allow_negative=False):
 
         if z is not None:
@@ -111,10 +114,33 @@ class Distance(u.SpecificTypeQuantity):
                 raise ValueError('A `cosmology` was given but `z` was not '
                                  'provided in Distance constructor')
 
+            value_msg = ('Should given only one of `value`, `z`, `distmod`, or '
+                         '`parallax` in Distance constructor.')
             if distmod is not None:
                 if value is not None:
-                    raise ValueError('Should given only one of `value`, `z` '
-                                     'or `distmod` in Distance constructor.')
+                    raise ValueError(value_msg)
+
+                value = cls._distmod_to_pc(distmod)
+                if unit is None:
+                    # if the unit is not specified, guess based on the mean of
+                    # the log of the distance
+                    meanlogval = np.log10(value.value).mean()
+                    if meanlogval > 6:
+                        unit = u.Mpc
+                    elif meanlogval > 3:
+                        unit = u.kpc
+                    elif meanlogval < -3:  # ~200 AU
+                        unit = u.AU
+                    else:
+                        unit = u.pc
+
+                # Continue on to take account of unit and other arguments
+                # but a copy is already made, so no longer necessary
+                copy = False
+
+            elif parallax is not None:
+                if value is not None:
+                    raise ValueError(value_msg)
 
                 value = cls._distmod_to_pc(distmod)
                 if unit is None:
@@ -187,6 +213,11 @@ class Distance(u.SpecificTypeQuantity):
     @classmethod
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
+        return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
+
+    @classmethod
+    def _parallax_to_pc(cls, plx):
+        dm = u.Quantity(lpx, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
 
 
