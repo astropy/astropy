@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-``showtable`` is a command-line script based on astropy.io and astropy.table
-for printing ASCII, FITS, HDF5(?) or VOTable files(s) to the standard output.
+``showtable`` is a command-line script based on ``astropy.io`` and
+``astropy.table`` for printing ASCII, FITS, HDF5 or VOTable files(s) to the
+standard output.
 
 Example usage of ``showtable``:
 
-1. Print a summary of the HDUs in a FITS file::
+1. FITS::
 
     $ showtable astropy/io/fits/tests/data/table.fits
 
@@ -35,7 +36,7 @@ Example usage of ``showtable``:
 
 
 
-4. Print a summary of HDUs of all the FITS files in the current directory::
+4. Print all the FITS tables in the current directory::
 
     $ showtable *.fits
 
