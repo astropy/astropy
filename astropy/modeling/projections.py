@@ -1949,9 +1949,8 @@ class AffineTransformation2D(Model):
         matrix = np.linalg.inv(self.matrix.value)
         if self.matrix.unit is not None:
             matrix = matrix * self.matrix.unit
+        # If matrix has unit then translation has unit, so no need to assign it.
         translation = -np.dot(matrix, self.translation.value)
-        if self.translation.unit is not None:
-            translation = translation * self.translation.unit
         return self.__class__(matrix=matrix, translation=translation)
 
     @classmethod
