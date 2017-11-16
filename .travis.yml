@@ -27,8 +27,8 @@ env:
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
-        # Build against branch in fork until it has been merged into asdf
-        - ASDF_GIT='git+git://github.com/drdavella/asdf.git@astropy-transition#egg=asdf'
+        # Build against github source until asdf-2.0 has been released
+        - ASDF_GIT='git+git://github.com/spacetelescope/asdf.git#egg=asdf'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach'
         - PIP_DEPENDENCIES='pytest-astropy'
