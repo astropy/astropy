@@ -347,7 +347,7 @@ class TransformGraph:
             self._composite_cache[fttuple] = comptrans
         return self._composite_cache[fttuple]
 
-    def lookup_name(self, name):
+    def lookup_name(self, name, suppress_error=True):
         """
         Tries to locate the coordinate class with the provided alias.
 
@@ -355,15 +355,29 @@ class TransformGraph:
         ----------
         name : str
             The alias to look up.
+        suppress_error : bool
+            If True (the default) then it returns None if the name isn't
+            found otherwise it will raise an Exception.
+
+            .. versionadded:: 3.0
 
         Returns
         -------
         coordcls
-            The coordinate class corresponding to the ``name`` or `None` if
-            no such class exists.
-        """
+            The coordinate class corresponding to the name. If no such class
+            exists it returns None if suppress_error is true, otherwise
+            it raises an exception.
 
-        return self._cached_names.get(name, None)
+        Raises
+        -------
+        KeyError
+        If the coordinate class corresponding to the ``name`` does not exists
+        and suppress_error is False.
+        """
+        if suppress_error:
+            return self._cached_names.get(name, None)
+        else:
+            return self._cached_names[name]
 
     def get_names(self):
         """

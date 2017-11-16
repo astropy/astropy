@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``lookup_name`` method of the ``TransformGraph`` class now has an extra
+  argument called ``suppress_error`` which can be used to raise or suppress
+  Error, if the ``name`` isn't found.
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
