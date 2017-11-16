@@ -215,8 +215,10 @@ def test_parallax():
         d = Distance(parallax=20*u.milliarcsecond, distmod=20)
 
     # array
-    d = Distance(parallax=[1, 10, 100.]*u.mas)
+    plx = [1, 10, 100.]*u.mas
+    d = Distance(parallax=plx)
     assert quantity_allclose(d.pc, [1000., 100., 10.])
+    assert quantity_allclose(plx, d.parallax)
 
 def test_distance_in_coordinates():
     """
