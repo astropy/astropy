@@ -8,6 +8,7 @@ cartesian coordinates.
 import numpy as np
 
 from .. import units as u
+from .angles import Angle
 
 __all__ = ['Distance']
 
@@ -203,6 +204,11 @@ class Distance(u.SpecificTypeQuantity):
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
+
+    @property
+    def parallax(self):
+        """The parallax angle as an `~astropy.coordinates.Angle` object"""
+        return Angle(self.to(u.milliarcsecond, u.parallax()))
 
 
 def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
