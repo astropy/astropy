@@ -16,9 +16,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The ``Distance`` object now accepts a ``parallax`` with angular units in the
-  initializer, and supports retrieving a parallax (as an angle) via the
-  ``.parallax`` attributes. [#6855]
+- The ``Distance`` object now accepts ``parallax`` as a keyword in the
+  initializer, and supports retrieving a parallax (as an ``Angle``) via 
+  the ``.parallax`` attributes. [#6855]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
