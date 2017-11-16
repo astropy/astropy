@@ -496,6 +496,44 @@ class SkyCoord(ShapedLikeNDArray):
             frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
 
+    def evolve_to(self, new_obstime):
+        """
+        Update the position of the source represented by this coordinate object
+        to a new specified time using the velocity and assuming linear motion.
+
+        This is sometimes referred to as an "epoch transformation."
+
+        Parameters
+        ----------
+        new_obstime : `~astropy.time.Time`
+            The time at which to evolve the position to.
+        """
+
+        # Validate that we have velocity info
+        if 's' not in self.frame.data.differentials:
+            raise ValueError('SkyCoord requires velocity data to evolve the '
+                             'position.')
+
+        # TODO: if frame transformation needs an obstime, raise a
+        # notimplementederror
+
+        # If no obstime already on this object, raise error: we need to know the
+        # time / epoch at which the the position/velocity were measured
+        dt = (new_obstime - self.obstime)
+
+        cart = self.frame.represent_as('cartesian')
+        pos = cart.without_differentials()
+        vel = cart.differentials['s']
+
+        new_rep = pos + vel.to_cartesian() * dt
+        new_rep = new_rep.with_differentials(vel)
+        new_rep = new_rep.represent_as(
+            self.frame.data.__class__,
+            self.frame.data.differentials['s'].__class__)
+
+        new_frame = self.frame.replicate_without_data(obstime=new_obstime)
+        return self.__class__(new_frame.realize_frame(new_rep))
+
     def __getattr__(self, attr):
         """
         Overrides getattr to return coordinates that this can be transformed
