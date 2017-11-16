@@ -299,31 +299,50 @@ for name in 'isnat', 'gcd', 'lcm':
 # SINGLE ARGUMENT UFUNCS
 
 # The functions below take a single argument, which is the quantity upon which
-# the ufunc is being used. The output of the function should be two values: the
-# scale by which the input needs to be multiplied before being passed to the
-# ufunc, and the unit the output will be in.
+# the ufunc is being used. The output of the helper function should be two
+# values: the scale by which the input needs to be multiplied before being
+# passed to the ufunc, and the unit the output will be in.
 
 # ufuncs that return a boolean and do not care about the unit
-UFUNC_HELPERS[np.isfinite] = helper_onearg_test
-UFUNC_HELPERS[np.isinf] = helper_onearg_test
-UFUNC_HELPERS[np.isnan] = helper_onearg_test
-UFUNC_HELPERS[np.sign] = helper_onearg_test
-UFUNC_HELPERS[np.signbit] = helper_onearg_test
+onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
+for ufunc in onearg_test_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_onearg_test
 
 # ufuncs that return a value with the same unit as the input
-UFUNC_HELPERS[np.absolute] = helper_invariant
-UFUNC_HELPERS[np.fabs] = helper_invariant
-UFUNC_HELPERS[np.conj] = helper_invariant
-UFUNC_HELPERS[np.conjugate] = helper_invariant
-UFUNC_HELPERS[np.negative] = helper_invariant
-UFUNC_HELPERS[np.spacing] = helper_invariant
-UFUNC_HELPERS[np.rint] = helper_invariant
-UFUNC_HELPERS[np.floor] = helper_invariant
-UFUNC_HELPERS[np.ceil] = helper_invariant
-UFUNC_HELPERS[np.trunc] = helper_invariant
-# positive only was added in numpy 1.13
+invariant_ufuncs = (np.absolute, np.fabs, np.conj, np.conjugate, np.negative,
+                    np.spacing, np.rint, np.floor, np.ceil, np.trunc)
+# positive was added in numpy 1.13
 if isinstance(getattr(np, 'positive', None), np.ufunc):
     UFUNC_HELPERS[np.positive] = helper_invariant
+
+
+# ufuncs that require dimensionless input and and give dimensionless output
+dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
+                                         np.log10, np.log2, np.log1p)
+for ufunc in dimensionless_to_dimensionless_ufuncs:
+    UFUNC_HELPERS = helper_dimensionless_to_dimensionless
+
+# ufuncs that require dimensionless input and give output in radians
+dimensionless_to_radian_ufuncs = (np.arccos, np.arcsin, np.arctan, np.arccosh,
+                                  np.arcsinh, np.arctanh)
+for ufunc in dimensionless_to_radian_ufuncs:
+    UFUNC_HELPERS = helper_dimensionless_to_radian
+
+# ufuncs that require input in degrees and give output in radians
+degree_to_radian_ufuncs = (np.radian, np.deg2rad)
+for ufunc in degree_to_radian_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_degree_to_radian
+
+# ufuncs that require input in radians and give output in degrees
+radian_to_degree_ufuncs = (np.degrees, np.rad2deg)
+for ufunc in radian_to_degree_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_radian_to_degree
+
+# ufuncs that require input in radians and give dimensionless output
+radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh,
+                                  np.tanh)
+for ufunc in radian_to_dimensionless_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
 
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.sqrt] = helper_sqrt
@@ -332,86 +351,63 @@ UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
 UFUNC_HELPERS[np.cbrt] = helper_cbrt
 UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
-
-# ufuncs that require dimensionless input and and give dimensionless output
-UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.exp2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
-
-# ufuncs that require dimensionless input and give output in radians
-UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctan] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arccosh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsinh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
-
-# ufuncs that require input in degrees and give output in radians
-UFUNC_HELPERS[np.radians] = helper_degree_to_radian
-UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
-
-# ufuncs that require input in radians and give output in degrees
-UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
-UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
-
-# ufuncs that require input in radians and give dimensionless output
-UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tan] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.cosh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sinh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
-
-# ufuncs that require dimensionless_unscaled input and return non-quantities
 UFUNC_HELPERS[np.frexp] = helper_frexp
 
 
 # TWO ARGUMENT UFUNCS
+
+# The functions below take a two arguments. The output of the helper function
+# should be two values: a list of scalings by which the inputs need to be
+# multiplied before being passed to the ufunc, and the unit the output will be
+# in.
+
+# two argument ufuncs that require dimensionless input and and give
+# dimensionless output
+two_arg_dimensionless_ufuncs = (np.logaddexp, np.logaddexp2)
+for ufunc in two_arg_dimensionless_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
+
+# two argument ufuncs that return a value with the same unit as the input
+twoarg_invariant_ufuncs = (np.add, np.subtract, np.hypot, np.maximum,
+                           np.minimum, np.fmin, np.fmax, np.nextafter,
+                           np.remainder, np.mod, np.fmod)
+for ufunc in twoarg_invariant_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_invariant
+
+# two argument ufuncs that need compatible inputs and return a boolean
+twoarg_comparison_ufuncs = (np.greater, np.greater_equal, np.less,
+                            np.less_equal, np.not_equal, np.equal)
+for ufunc in twoarg_comparison_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_comparison
+
+# two argument ufuncs that do inverse trigonometry
+twoarg_invtrig_ufuncs = (np.arctan2, )
+for ufunc in twoarg_invtrig_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
+# another private function in numpy; use getattr in case it disappears
+if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
+
+# ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power
-# float_power was added in numpy 1.12
-if isinstance(getattr(np, 'float_power', None), np.ufunc):
-    UFUNC_HELPERS[np.float_power] = helper_power
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
 UFUNC_HELPERS[np.copysign] = helper_copysign
+UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
 # heaviside only was added in numpy 1.13
 if isinstance(getattr(np, 'heaviside', None), np.ufunc):
     UFUNC_HELPERS[np.heaviside] = helper_heaviside
-UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
-UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
-UFUNC_HELPERS[np.add] = helper_twoarg_invariant
-UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
-UFUNC_HELPERS[np.hypot] = helper_twoarg_invariant
-UFUNC_HELPERS[np.maximum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.minimum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmin] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmax] = helper_twoarg_invariant
-UFUNC_HELPERS[np.nextafter] = helper_twoarg_invariant
-UFUNC_HELPERS[np.remainder] = helper_twoarg_invariant
-UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
-UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
-UFUNC_HELPERS[np.greater_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.not_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
-# another private function in numpy; use getattr in case it disappears
-if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
-    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
-UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
+# float_power was added in numpy 1.12
+if isinstance(getattr(np, 'float_power', None), np.ufunc):
+    UFUNC_HELPERS[np.float_power] = helper_power
 # divmod only was added in numpy 1.13
 if isinstance(getattr(np, 'divmod', None), np.ufunc):
     UFUNC_HELPERS[np.divmod] = helper_divmod
 
-# UFUNCS IN scipy.special
+
+# UFUNCS FROM SCIPY.SPECIAL
 # available ufuncs in this module are at
 # https://docs.scipy.org/doc/scipy/reference/special.html
 
