@@ -302,8 +302,8 @@ details).
 
 An example of this is below.  It demonstrates how to compute this correction if
 observing some object at a known RA and Dec from the Keck observatory at a
-particular time.  If a precision of around 3 m/s is sufficient, the computed 
-correction can then be added to any observed radial velocity to determine 
+particular time.  If a precision of around 3 m/s is sufficient, the computed
+correction can then be added to any observed radial velocity to determine
 the final heliocentric radial velocity::
 
     >>> from astropy.time import Time
@@ -313,10 +313,10 @@ the final heliocentric radial velocity::
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
     >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
     >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.074064687695454 km / s>
+    <Quantity 20.077135 km / s>
     >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
     >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.071494016308176 km / s>
+    <Quantity 20.070039 km / s>
 
 Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc).  See the
