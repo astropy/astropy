@@ -8,6 +8,7 @@ cartesian coordinates.
 import numpy as np
 
 from .. import units as u
+from .angles import Angle
 
 __all__ = ['Distance']
 
@@ -45,6 +46,8 @@ class Distance(u.SpecificTypeQuantity):
     distmod : float or `~astropy.units.Quantity`
         The distance modulus for this distance. Note that if ``unit`` is not
         provided, a guess will be made at the unit between AU, pc, kpc, and Mpc.
+    parallax : `~astropy.units.Quantity` or `~astropy.coordinates.Angle`
+        The parallax in angular units.
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
     copy : bool, optional
@@ -83,13 +86,14 @@ class Distance(u.SpecificTypeQuantity):
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     >>> d6 = Distance(distmod=24.47)
     >>> d7 = Distance(Distance(10 * u.Mpc))
+    >>> d8 = Distance(parallax=21.34*u.mas)
     """
 
     _equivalent_unit = u.m
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, dtype=None, copy=True, order=None,
+                distmod=None, parallax=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0, allow_negative=False):
 
         if z is not None:
@@ -111,11 +115,14 @@ class Distance(u.SpecificTypeQuantity):
                 raise ValueError('A `cosmology` was given but `z` was not '
                                  'provided in Distance constructor')
 
-            if distmod is not None:
-                if value is not None:
-                    raise ValueError('Should given only one of `value`, `z` '
-                                     'or `distmod` in Distance constructor.')
+            value_msg = ('Should given only one of `value`, `z`, `distmod`, or '
+                         '`parallax` in Distance constructor.')
+            n_not_none = np.sum([x is not None
+                                 for x in [value, z, distmod, parallax]])
+            if n_not_none > 1:
+                raise ValueError(value_msg)
 
+            if distmod is not None:
                 value = cls._distmod_to_pc(distmod)
                 if unit is None:
                     # if the unit is not specified, guess based on the mean of
@@ -134,9 +141,18 @@ class Distance(u.SpecificTypeQuantity):
                 # but a copy is already made, so no longer necessary
                 copy = False
 
+            elif parallax is not None:
+                value = parallax.to(u.pc, equivalencies=u.parallax()).value
+                unit = u.pc
+
+                # Continue on to take account of unit and other arguments
+                # but a copy is already made, so no longer necessary
+                copy = False
+
             elif value is None:
-                raise ValueError('None of `value`, `z`, or `distmod` were '
-                                 'given to Distance constructor')
+                raise ValueError('None of `value`, `z`, `distmod`, or '
+                                 '`parallax` were given to Distance '
+                                 'constructor')
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(
@@ -188,6 +204,11 @@ class Distance(u.SpecificTypeQuantity):
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
+
+    @property
+    def parallax(self):
+        """The parallax angle as an `~astropy.coordinates.Angle` object"""
+        return Angle(self.to(u.milliarcsecond, u.parallax()))
 
 
 def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
