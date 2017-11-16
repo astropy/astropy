@@ -311,6 +311,8 @@ for ufunc in onearg_test_ufuncs:
 # ufuncs that return a value with the same unit as the input
 invariant_ufuncs = (np.absolute, np.fabs, np.conj, np.conjugate, np.negative,
                     np.spacing, np.rint, np.floor, np.ceil, np.trunc)
+for ufunc in invariant_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_invariant
 # positive was added in numpy 1.13
 if isinstance(getattr(np, 'positive', None), np.ufunc):
     UFUNC_HELPERS[np.positive] = helper_invariant
@@ -320,16 +322,16 @@ if isinstance(getattr(np, 'positive', None), np.ufunc):
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
                                          np.log10, np.log2, np.log1p)
 for ufunc in dimensionless_to_dimensionless_ufuncs:
-    UFUNC_HELPERS = helper_dimensionless_to_dimensionless
+    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
 # ufuncs that require dimensionless input and give output in radians
 dimensionless_to_radian_ufuncs = (np.arccos, np.arcsin, np.arctan, np.arccosh,
                                   np.arcsinh, np.arctanh)
 for ufunc in dimensionless_to_radian_ufuncs:
-    UFUNC_HELPERS = helper_dimensionless_to_radian
+    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_radian
 
 # ufuncs that require input in degrees and give output in radians
-degree_to_radian_ufuncs = (np.radian, np.deg2rad)
+degree_to_radian_ufuncs = (np.radians, np.deg2rad)
 for ufunc in degree_to_radian_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_degree_to_radian
 
@@ -628,7 +630,7 @@ else:
     # ufuncs that require input in degrees and give dimensionless output
     degree_to_dimensionless_sps_ufuncs = (sps.cosdg, sps.sindg, sps.tandg,
                                           sps.cotdg)
-    for ufunc in cosdg_like_ufuncs:
+    for ufunc in degree_to_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
 
     # ufuncs that require two dimensionless inputs and give dimensionless output
