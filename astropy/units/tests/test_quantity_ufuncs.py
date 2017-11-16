@@ -23,13 +23,13 @@ class TestUfuncCoverage:
         all_extern_ufuncs |= all_np_ufuncs
 
         try:
-            all_scipy_special_ufuncs = set([
-                ufunc for ufunc in scipy.special.__dict__.values() 
-                if type(ufunc) == np.ufunc
-            ])
-            all_extern_ufuncs |= all_scipy_special_ufuncs
-        except NameError:
+            import scipy.special as sps
+        except ImportError:
             pass
+        else:
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values() 
+                                  if type(ufunc) == np.ufunc])
+            all_extern_ufuncs |= all_sps_ufuncs
 
         from .. import quantity_helper as qh
 
@@ -986,21 +986,21 @@ class TestUfuncOuter:
         assert np.all(s13_greater_outer == check13_greater_outer)
 
 try:
-    import scipy.special
+    import scipy.special as sps
 except ImportError:
     pass
 else:
     class TestScipySpecialUfuncs:
 
-        erf_like_ufuncs = (scipy.special.erf, scipy.special.gamma,
-                           scipy.special.loggamma, scipy.special.gammasgn,
-                           scipy.special.psi, scipy.special.rgamma,
-                           scipy.special.erfc, scipy.special.erfcx,
-                           scipy.special.erfi, scipy.special.wofz,
-                           scipy.special.dawsn, scipy.special.entr,
-                           scipy.special.exprel, scipy.special.expm1,
-                           scipy.special.log1p, scipy.special.exp2,
-                           scipy.special.exp10
+        erf_like_ufuncs = (sps.erf, sps.gamma,
+                           sps.loggamma, sps.gammasgn,
+                           sps.psi, sps.rgamma,
+                           sps.erfc, sps.erfcx,
+                           sps.erfi, sps.wofz,
+                           sps.dawsn, sps.entr,
+                           sps.exprel, sps.expm1,
+                           sps.log1p, sps.exp2,
+                           sps.exp10
                        )
 
         @pytest.mark.parametrize('function', erf_like_ufuncs)
@@ -1015,36 +1015,38 @@ else:
         def test_erf_invalid_units(self, function):
             TestQuantityMathFuncs.test_exp_invalid_units(None, function)
 
-        @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
+        @pytest.mark.parametrize('function', (sps.cbrt, ))
         def test_cbrt_scalar(self, function):
             TestQuantityMathFuncs.test_cbrt_scalar(None, function)
 
-        @pytest.mark.parametrize('function', (scipy.special.cbrt, ))
+        @pytest.mark.parametrize('function', (sps.cbrt, ))
         def test_cbrt_array(self, function):
             TestQuantityMathFuncs.test_cbrt_array(None, function)
 
         def test_radian(self):
-            q1 = scipy.special.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
+            q1 = sps.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
             assert_allclose(q1.value, np.pi)
             assert q1.unit == u.radian
 
-            q2 = scipy.special.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
+            q2 = sps.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
             assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
             assert q2.unit == u.radian
 
-            q3 = scipy.special.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
+            q3 = sps.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
             assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
 
             # the following doesn't make much sense in terms of the name of the
             # routine, but we check it gives the correct result.
-            q4 = scipy.special.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
+            q4 = sps.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
             assert_allclose(q4.value, 3.)
             assert q4.unit == u.radian
 
             with pytest.raises(TypeError):
-                scipy.special.radian(3. * u.m, 2. * u.s, 1. * u.kg)
+                sps.radian(3. * u.m, 2. * u.s, 1. * u.kg)
                 
-        jv_like_ufuncs = (scipy.special.jv, )
+        jv_like_ufuncs = (sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve,
+                          sps.kn, sps.kv, sps.kve, sps.iv, sps.ive,
+                          sps.hankel1, sps.hankel1e, sps.hankel2, sps.hankel2e)
         @pytest.mark.parametrize('function', jv_like_ufuncs)
         def test_jv_scalar(self, function):
             q = function(2. * u.m / (2. * u.m), 3. * u.m / (6. * u.m))
