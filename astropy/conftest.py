@@ -7,7 +7,12 @@ making use of astropy's test runner).
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
-enable_deprecations_as_exceptions(include_astropy_deprecations=False)
+enable_deprecations_as_exceptions(
+    include_astropy_deprecations=False,
+    # This is a workaround for the OpenSSL deprecation warning that comes from
+    # the `requests` module. It only appears when both asdf and sphinx are
+    # installed. This can be removed once pyopenssl 1.7.20+ is released.
+    modules_to_ignore_on_import=['requests'])
 
 try:
     import matplotlib
@@ -16,6 +21,4 @@ except ImportError:
 else:
     matplotlib.use('Agg')
 
-# This is astropy-specific so should not be included in a generic plugin that
-# could potentially be used by other projects
 PYTEST_HEADER_MODULES['Cython'] = 'cython'
