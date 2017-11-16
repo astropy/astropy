@@ -1078,3 +1078,4 @@ else:
             assert exc.value.args[0] == ("Can only apply '{0}' function to "
                                          "dimensionless quantities"
                                          .format(function.__name__))
+
