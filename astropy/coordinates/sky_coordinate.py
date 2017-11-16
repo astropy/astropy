@@ -217,11 +217,13 @@ class SkyCoord(ShapedLikeNDArray):
                 setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
+        component_names = frame.representation_component_names
+        component_names.update(frame.get_representation_component_names('s'))
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame.representation_component_names
-                                      or attr in frame.get_frame_attr_names()):
+            if value is not None and (attr in component_names
+                                      or attr in frame_attr_names):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
@@ -1682,9 +1684,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
 
-    frame_attr_names = frame.representation_component_names.keys()
-    repr_attr_names = frame.representation_component_names.values()
-    repr_attr_classes = frame.representation.attr_classes.values()
+    frame_attr_names = list(frame.representation_component_names.keys())
+    repr_attr_names = list(frame.representation_component_names.values())
+    repr_attr_classes = list(frame.representation.attr_classes.values())
     n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
@@ -1702,14 +1704,38 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         data = coords.data.represent_as(frame.representation)
 
         values = []  # List of values corresponding to representation attrs
+        repr_attr_name_to_drop = []
         for repr_attr_name in repr_attr_names:
             # If coords did not have an explicit distance then don't include in initializers.
             if (isinstance(coords.data, UnitSphericalRepresentation) and
                     repr_attr_name == 'distance'):
+                repr_attr_name_to_drop.append(repr_attr_name)
                 continue
 
             # Get the value from `data` in the eventual representation
             values.append(getattr(data, repr_attr_name))
+
+        # drop the ones that were skipped because they were distances
+        for nametodrop in repr_attr_name_to_drop:
+            nameidx = repr_attr_names.index(nametodrop)
+            del repr_attr_names[nameidx]
+            del units[nameidx]
+            del frame_attr_names[nameidx]
+            del repr_attr_classes[nameidx]
+
+        if coords.data.differentials:
+            vel = coords.data.differentials['s']
+            for frname, reprname in coords.get_representation_component_names('s').items():
+                if (reprname == 'd_distance' and not hasattr(vel, reprname) and
+                    'unit' in vel.get_name()):
+                    continue
+                values.append(getattr(vel, reprname))
+                units.append(None)
+                frame_attr_names.append(frname)
+                repr_attr_names.append(reprname)
+                repr_attr_classes.append(vel.attr_classes[reprname])
+
+
 
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
