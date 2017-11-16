@@ -1382,3 +1382,29 @@ def test_extra_attributes():
     # Finally, check that we can delete such attributes.
     del sc3.obstime
     assert sc3.obstime is None
+
+
+def test_evolve_to():
+    t1 = Time('2015-01-01T00:00')
+    t2 = Time('2025-01-01T00:00')
+
+    # Check a very simple case first:
+    # frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
+    #              distance=10.*u.pc,
+    #              pm_ra_cosdec=0.1*u.deg/u.yr,
+    #              pm_dec=0*u.mas/u.yr,
+    #              radial_velocity=0*u.km/u.s)
+    # c1 = SkyCoord(frame, obstime=t1)
+    # c2 = c1.evolve_to(t2)
+
+    # print(c2.separation(c1))
+    # assert quantity_allclose(c2.separation(c1), 1*u.arcsec)
+
+    frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
+                 pm_ra_cosdec=0.1*u.deg/u.yr,
+                 pm_dec=0*u.mas/u.yr,
+                 radial_velocity=100*u.km/u.s)
+    c1 = SkyCoord(frame, obstime=t1)
+    c2 = c1.evolve_to(t2)
+
+    print(c2.separation(c1))
