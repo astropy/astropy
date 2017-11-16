@@ -380,6 +380,8 @@ astropy.coordinates
 
 - Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6699]
 
+- Improved accuracy of radial velocity corrections in ``SkyCoord.radial_velocity_correction```. [#6861]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
