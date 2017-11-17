@@ -1405,6 +1405,19 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return np.stack((pm_lon.value,
                          pm_lat.to(pm_lon.unit).value), axis=0) * pm_lon.unit
 
+    @property
+    def radial_velocity(self):
+        """
+        Shorthand for the radial or line-of-sight velocity as a `Quantity`
+        object.
+        """
+        if 's' not in self.data.differentials:
+            raise ValueError('Frame has no associated velocity (Differential) '
+                             'data information.')
+
+        sph = self.represent_as('spherical', in_frame_units=True)
+        return sph.differentials['s'].d_distance
+
 
 class GenericFrame(BaseCoordinateFrame):
     """
