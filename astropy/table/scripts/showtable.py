@@ -71,16 +71,25 @@ def showtable(filename, args):
 def main(args=None):
     """The main function called by the `showtable` script."""
     parser = argparse.ArgumentParser(
-        description=('Print tables from ASCII, FITS, HDF5, VOTable file(s).'))
+        description=(
+            'Print tables from ASCII, FITS, HDF5, VOTable file(s).'
+            'The default behavior is make the table output fit onto a single '
+            'screen page.  For a long and wide table this will mean cutting '
+            'out inner rows and columns.  To print **all** the rows or columns'
+            ' use ``--max-lines=-1`` or ``max-width=-1``, respectively.'
+        ))
+
     addarg = parser.add_argument
 
     # pprint arguments
     addarg('--more', action='store_true',
            help='Use the pager mode from Table.more.')
     addarg('--max-lines', type=int,
-           help='Maximum number of lines in table output.')
+           help='Maximum number of lines in table output (default=screen '
+           'length, -1 for no limit).')
     addarg('--max-width', type=int,
-           help='Maximum character width of output.')
+           help='Maximum width in table output (default=screen width, '
+           '-1 for no limit).')
     addarg('--hide-unit', action='store_true',
            help='Hide the header row for unit (which is shown '
            'only if one or more columns has a unit).')
