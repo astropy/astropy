@@ -61,6 +61,20 @@ def test_ascii_format(capsys):
                    '  4   5   6\n')
 
 
+def test_ascii_delimiter(capsys):
+    showtable.main([os.path.join(ASCII_ROOT, 't/simple2.txt'),
+                    '--format', 'ascii', '--delimiter', '|'])
+    out, err = capsys.readouterr()
+    assert out == (
+        "obsid redshift  X    Y      object   rad \n"
+        "                                         \n"
+        "----- -------- ---- ---- ----------- ----\n"
+        " 3102     0.32 4167 4085 Q1250+568-A  9.0\n"
+        " 3102     0.32 4706 3916 Q1250+568-B 14.0\n"
+        "  877     0.22 4378 3892 'Source 82' 12.5\n"
+    )
+
+
 def test_votable(capsys):
     showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
                     '--table_id', 'main_table', '--max-width', '50'])
