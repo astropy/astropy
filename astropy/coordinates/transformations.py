@@ -148,6 +148,31 @@ class TransformGraph:
         self._graph[fromsys][tosys] = transform
         self.invalidate_cache()
 
+        # Now we check to see if any attributes were added that override
+        # *any* component names, which we can't have for some of the logic in
+        # the SkyCoord initializer
+        attrs = set(self.frame_attributes.keys())
+        comps = self.frame_component_names
+
+        invalid_attrs = attrs.intersection(comps)
+        if invalid_attrs:
+            invalid_frames = set()
+            for attr in invalid_attrs:
+                if attr in fromsys.frame_attributes:
+                    invalid_frames.update([fromsys])
+
+                if attr in tosys.frame_attributes:
+                    invalid_frames.update([tosys])
+
+            del self._graph[fromsys][tosys]
+
+            raise ValueError("Frame(s) {0} contain invalid attribute names: {1}"
+                             "\nFrame attributes can not conflict with *any* of"
+                             " the frame data component names (see "
+                             "`frame_transform_graph.frame_component_names`):\n"
+                             "{2}".format(list(invalid_frames), invalid_attrs,
+                                          comps))
+
     def remove_transform(self, fromsys, tosys, transform):
         """
         Removes a coordinate transform from the graph.
