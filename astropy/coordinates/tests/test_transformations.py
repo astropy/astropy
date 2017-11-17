@@ -430,3 +430,23 @@ def test_function_transform_with_differentials():
         t2 = t3.transform_to(TCoo2)
         assert len(w) == 1
         assert 'they have been dropped' in str(w[0].message)
+
+
+def test_frame_override_component_with_attribute():
+    """
+    It was previously possible to define a frame with an attribute with the
+    same name as a component. We don't want to allow this!
+    """
+    from ..baseframe import BaseCoordinateFrame
+    from ..attributes import Attribute
+
+    class BorkedFrame(BaseCoordinateFrame):
+        ra = Attribute(default=150)
+
+    with pytest.raises(ValueError) as exc:
+        @frame_transform_graph.transform(t.FunctionTransform, BorkedFrame, TCoo2)
+        def trans(coo1, f):
+            pass
+
+    assert ('BorkedFrame' in exc.value.args[0] and
+            "{'ra'}" in exc.value.args[0])
