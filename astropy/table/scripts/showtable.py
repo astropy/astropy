@@ -10,7 +10,7 @@ Example usage of ``showtable``:
 
     $ showtable astropy/io/fits/tests/data/table.fits
 
-    target V_mag
+     target V_mag
     ------- -----
     NGC1001  11.1
     NGC1002  12.3
