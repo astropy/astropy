@@ -57,10 +57,13 @@ def showtable(filename, args):
         The path to a FITS file.
 
     """
-    read_kwargs = {k: v for k, v in vars(args).items()
-                   if k in ('hdu', 'format', 'table_id') and v is not None}
+    # these parameters are passed to Table.read if they are specified in the
+    # command-line
+    read_kwargs = ('hdu', 'format', 'table_id', 'delimiter')
+    kwargs = {k: v for k, v in vars(args).items()
+              if k in read_kwargs and v is not None}
     try:
-        table = Table.read(filename, **read_kwargs)
+        table = Table.read(filename, **kwargs)
         formatter = table.more if args.more else table.pprint
         formatter(max_lines=args.max_lines, max_width=args.max_width,
                   show_unit=not args.hide_unit, show_dtype=args.show_dtype)
@@ -97,8 +100,9 @@ def main(args=None):
            help='Include a header row for column dtypes.')
 
     # ASCII-specific arguments
-    # FIXME: add more args ? (delimiter, guess ?)
     addarg('--format', help='Input table format (only for ASCII files).')
+    addarg('--delimiter',
+           help='Column delimiter string (only for ASCII files).')
 
     # FITS-specific arguments
     addarg('--hdu', help='Name of the HDU to show (only for FITS files).')
