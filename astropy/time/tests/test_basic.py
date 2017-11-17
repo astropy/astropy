@@ -1108,7 +1108,7 @@ def test_cache():
     assert 'cache' not in t._time.__dict__
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
-    assert 'cache' in t.__dict__
+    assert 'cache' in t._time.__dict__
 
 
 def test_epoch_date_jd_is_day_fraction():
