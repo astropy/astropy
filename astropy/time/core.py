@@ -14,6 +14,7 @@ from datetime import datetime
 
 import numpy as np
 
+from ..utils.compat import NUMPY_LT_1_11
 from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
@@ -1083,7 +1084,14 @@ class Time(ShapedLikeNDArray):
         """
         # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
-        approx = np.nanmin(jd, axis, keepdims=True)
+
+        if NUMPY_LT_1_11:
+            # MaskedArray.min ignores keepdims so do it by hand
+            approx = np.min(jd, axis)
+            if axis is not None:
+                approx = np.expand_dims(approx, axis)
+        else:
+            approx = np.min(jd, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
         # full precision, all numbers near 0 can be represented correctly,
@@ -1106,7 +1114,14 @@ class Time(ShapedLikeNDArray):
         """
         # For procedure, see comment on argmin.
         jd = self.jd1 + self.jd2
-        approx = jd.max(axis, keepdims=True)
+
+        if NUMPY_LT_1_11:
+            # MaskedArray.max ignores keepdims so do it by hand (numpy <= 1.10)
+            approx = np.max(jd, axis)
+            if axis is not None:
+                approx = np.expand_dims(approx, axis)
+        else:
+            approx = np.max(jd, axis, keepdims=True)
 
         dt = (self.jd1 - approx) + self.jd2
 
