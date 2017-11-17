@@ -1216,7 +1216,7 @@ def test_setitem_location():
     with pytest.raises(ValueError) as err:
         t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
     assert 'cannot set to Time with different location' in str(err)
-    
+
     # Broadcasting works
     t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
     t[0, :] = Time([-3, -4], format='cxcsec', location=loc)
