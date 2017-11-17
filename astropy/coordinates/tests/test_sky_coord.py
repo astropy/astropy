@@ -1384,27 +1384,20 @@ def test_extra_attributes():
     assert sc3.obstime is None
 
 
-def test_evolve_to():
+def test_move_to():
     t1 = Time('2015-01-01T00:00')
     t2 = Time('2025-01-01T00:00')
 
     # Check a very simple case first:
-    # frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
-    #              distance=10.*u.pc,
-    #              pm_ra_cosdec=0.1*u.deg/u.yr,
-    #              pm_dec=0*u.mas/u.yr,
-    #              radial_velocity=0*u.km/u.s)
-    # c1 = SkyCoord(frame, obstime=t1)
-    # c2 = c1.evolve_to(t2)
-
-    # print(c2.separation(c1))
-    # assert quantity_allclose(c2.separation(c1), 1*u.arcsec)
-
     frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
+                 distance=10.*u.pc,
                  pm_ra_cosdec=0.1*u.deg/u.yr,
                  pm_dec=0*u.mas/u.yr,
-                 radial_velocity=100*u.km/u.s)
+                 radial_velocity=0*u.km/u.s)
     c1 = SkyCoord(frame, obstime=t1)
-    c2 = c1.evolve_to(t2)
+    c2 = c1.move_to(new_obstime=t2)
+    c3 = c1.move_to(dt=10*u.year)
 
-    print(c2.separation(c1))
+    # TODO: we need to actually check something here...remember trigonometry,
+    # though - the source moves on a straight line, so the above won't move by
+    # 1 deg
