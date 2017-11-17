@@ -19,22 +19,21 @@ else:
 
 def test_numpy_init():
     # Test that we can initialize directly from a Numpy array if we provide a unit
-    rates = [1, 5, 30, 400]
-    parr = np.random.poisson(rates, (1000, 4))
+    rates = np.array([1, 5, 30, 400])[:, np.newaxis]
+    parr = np.random.poisson(rates, (4, 1000))
     u.Distribution(parr, unit=u.kpc)
-
-    # also try manually-specifying the center
-    u.Distribution(parr, rates, u.kpc)
 
 
 def test_quantity_init():
     # Test that we can initialize directly from a Quantity
-    pq = np.random.poisson([1, 5, 30, 400], (1000, 4)) * u.kpc
+    pq = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
+                           (4, 1000)) * u.kpc
     u.Distribution(pq)
 
 
 def test_init_scalar():
-    parr = np.random.poisson([1, 5, 30, 400], (1000, 4))
+    parr = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
+                             (4, 1000))
     with pytest.raises(TypeError) as exc:
         u.Distribution(parr.ravel()[0])
     assert exc.value.args[0] == "Attempted to initialize a Distribution with a scalar"
@@ -43,14 +42,16 @@ def test_init_scalar():
 class TestDistributionStatistics():
     def setup_class(self):
         with NumpyRNGContext(12345):
-            self.data = np.random.normal([1, 2, 3, 4], [3, 2, 4, 5], (10000, 4))
+            self.data = np.random.normal(np.array([1, 2, 3, 4])[:, np.newaxis],
+                                         np.array([3, 2, 4, 5])[:, np.newaxis],
+                                         (4, 10000))
 
         self.distr = u.Distribution(self.data * u.kpc)
 
     def test_shape(self):
         # u.Distribution shape
         assert self.distr.shape == (4, )
-        assert self.distr.distribution.shape == (10000, 4)
+        assert self.distr.distribution.shape == (4, 10000)
 
     def test_size(self):
         # Total number of values
@@ -67,7 +68,7 @@ class TestDistributionStatistics():
 
     def test_pdf_mean(self):
         # Mean of each PDF
-        expected = np.mean(self.data, axis=0) * self.distr.unit
+        expected = np.mean(self.data, axis=-1) * self.distr.unit
         assert_quantity_allclose(self.distr.pdf_mean, expected)
         assert_quantity_allclose(self.distr.pdf_mean, [1, 2, 3, 4] * self.distr.unit, rtol=0.05)
 
@@ -78,7 +79,7 @@ class TestDistributionStatistics():
 
     def test_pdf_std(self):
         # Standard deviation of each PDF
-        expected = np.std(self.data, axis=0) * self.distr.unit
+        expected = np.std(self.data, axis=-1) * self.distr.unit
         assert_quantity_allclose(self.distr.pdf_std, expected)
         assert_quantity_allclose(self.distr.pdf_std, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
 
@@ -89,7 +90,7 @@ class TestDistributionStatistics():
 
     def test_pdf_var(self):
         # Variance of each PDF
-        expected = np.var(self.data, axis=0) * self.distr.unit**2
+        expected = np.var(self.data, axis=-1) * self.distr.unit**2
         assert_quantity_allclose(self.distr.pdf_var, expected)
         assert_quantity_allclose(self.distr.pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
 
@@ -100,7 +101,7 @@ class TestDistributionStatistics():
 
     def test_pdf_median(self):
         # Median of each PDF
-        expected = np.median(self.data, axis=0) * self.distr.unit
+        expected = np.median(self.data, axis=-1) * self.distr.unit
         assert_quantity_allclose(self.distr.pdf_median, expected)
         assert_quantity_allclose(self.distr.pdf_median, [1, 2, 3, 4] * self.distr.unit, rtol=0.1)
 
@@ -112,8 +113,8 @@ class TestDistributionStatistics():
     @pytest.mark.skipif(not HAS_SCIPY, reason='no scipy')
     def test_pdf_mad_smad(self):
         # Median absolute deviation of each PDF
-        median = np.median(self.data, axis=0)
-        expected = np.median(np.abs(self.data - median), axis=0) * self.distr.unit
+        median = np.median(self.data, axis=-1, keepdims=True)
+        expected = np.median(np.abs(self.data - median), axis=-1) * self.distr.unit
         assert_quantity_allclose(self.distr.pdf_mad, expected)
         assert_quantity_allclose(self.distr.pdf_smad, self.distr.pdf_mad * SMAD_FACTOR, rtol=1e-5)
         assert_quantity_allclose(self.distr.pdf_smad, [3, 2, 4, 5] * self.distr.unit, rtol=0.05)
@@ -126,7 +127,7 @@ class TestDistributionStatistics():
         assert isinstance(self.distr.pdf_smad, u.Quantity)
 
     def test_percentile(self):
-        expected = np.percentile(self.data, [10, 50, 90], axis=0) * self.distr.unit
+        expected = np.percentile(self.data, [10, 50, 90], axis=-1) * self.distr.unit
         percs = self.distr.percentiles([10, 50, 90])
         assert_quantity_allclose(percs, expected)
         assert percs.shape == (3, 4)
@@ -138,23 +139,24 @@ class TestDistributionStatistics():
 
     def test_add_quantity(self):
         distrplus = self.distr + [2000, 0, 0, 500] * u.pc
-        expected = (np.median(self.data, axis=0) + np.array([2, 0, 0, 0.5])) * self.distr.unit
+        expected = (np.median(self.data, axis=-1) + np.array([2, 0, 0, 0.5])) * self.distr.unit
         assert_quantity_allclose(distrplus.pdf_median, expected)
-        expected = np.var(self.data, axis=0) * self.distr.unit**2
+        expected = np.var(self.data, axis=-1) * self.distr.unit**2
         assert_quantity_allclose(distrplus.pdf_var, expected)
 
     def test_add_distribution(self):
-        another_data = (np.random.randn(10000, 4)
-                        * [1000, .01, 80, 10]
-                        + [2000, 0, 0, 500])
+        another_data = (np.random.randn(4, 10000)
+                        * np.array([1000, .01, 80, 10])[:, np.newaxis]
+                        + np.array([2000, 0, 0, 500])[:, np.newaxis])
         # another_data is in pc, but main distr is in kpc
         another_distr = u.Distribution(another_data, unit=u.pc)
         combined_distr = self.distr + another_distr
 
-        expected = np.median(self.data + another_data/1000, axis=0) * self.distr.unit
+        expected = np.median(self.data + another_data/1000,
+                             axis=-1) * self.distr.unit
         assert_quantity_allclose(combined_distr.pdf_median, expected)
 
-        expected = np.var(self.data + another_data/1000, axis=0) * self.distr.unit**2
+        expected = np.var(self.data + another_data/1000, axis=-1) * self.distr.unit**2
         assert_quantity_allclose(combined_distr.pdf_var, expected)
 
 
@@ -163,13 +165,13 @@ def test_helper_normal_samples():
 
     with NumpyRNGContext(12345):
         n_dist = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
-        assert n_dist.distribution.shape == (100, 4)
+        assert n_dist.distribution.shape == (4, 100)
         assert n_dist.shape == (4, )
         assert n_dist.unit == u.kpc
         assert np.all(n_dist.pdf_std > 100*u.pc)
 
         n_dist2 = u.NormalDistribution(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
-        assert n_dist2.distribution.shape == (20000, 4)
+        assert n_dist2.distribution.shape == (4, 20000)
         assert n_dist2.shape == (4, )
         assert n_dist2.unit == u.kpc
         assert np.all(n_dist2.pdf_std < 100*u.pc)
@@ -181,25 +183,28 @@ def test_helper_poisson_samples():
     with NumpyRNGContext(12345):
         p_dist = u.PoissonDistribution(centerqadu, n_samples=100)
         assert p_dist.shape == (4,)
-        assert p_dist.distribution.shape == (100, 4)
+        assert p_dist.distribution.shape == (4, 100)
         assert p_dist.unit == u.adu
-        assert np.all(np.min(p_dist) >= 0)
+        p_min = np.min(p_dist)
+        assert isinstance(p_min, u.Distribution)
+        assert p_min.shape == ()
+        assert np.all(p_min >= 0)
         assert np.all(np.abs(p_dist.pdf_mean - centerqadu) < centerqadu)
 
 
 def test_helper_uniform_samples():
     udist = u.UniformDistribution([1, 2]*u.kpc, [3, 4]*u.kpc)
     assert udist.shape == (2, )
-    assert udist.distribution.shape == (1000, 2)
-    assert np.all(np.min(udist.distribution, axis=0) > [1, 2]*u.kpc)
-    assert np.all(np.max(udist.distribution, axis=0) < [3, 4]*u.kpc)
+    assert udist.distribution.shape == (2, 1000)
+    assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
+    assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
     udist = u.UniformDistribution.from_center_width([1, 3, 2] * u.pc, [5, 4, 3] * u.pc)
     assert udist.shape == (3, )
-    assert udist.distribution.shape == (1000, 3)
-    assert np.all(np.min(udist.distribution, axis=0) > [-1.5, 1, 0.5]*u.pc)
-    assert np.all(np.max(udist.distribution, axis=0) < [3.5, 5, 3.5]*u.pc)
+    assert udist.distribution.shape == (3, 1000)
+    assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
+    assert np.all(np.max(udist.distribution, axis=-1) < [3.5, 5, 3.5]*u.pc)
 
 
 def test_helper_normal_exact():
@@ -233,7 +238,7 @@ def test_arithmetic_exact():
 
 
 def test_reprs():
-    darr = np.arange(30).reshape(10, 3)
+    darr = np.arange(30).reshape(3, 10)
     distr = u.Distribution(darr, unit=u.kpc)
 
     assert 'n_samples=10' in repr(distr)

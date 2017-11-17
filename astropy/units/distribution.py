@@ -17,7 +17,7 @@ __all__ = ['Distribution', 'NormalDistribution', 'PoissonDistribution',
            'UniformDistribution']
 
 
-class Distribution(Quantity):
+class Distribution:
     """
     A unitful value with associated uncertainty distribution.  While subclasses
     may have exact analytic forms, this class uses samples to represent the
@@ -45,27 +45,99 @@ class Distribution(Quantity):
     available so that subclasses can change it.
     """
 
-    __array_priority__ = Quantity.__array_priority__ + 1
-
-    # this is what the summary statistics get downgraded to. Someone subclassing
-    # Distribution might want to use this to get to something other than
-    # Quantity.
-    stat_view = Quantity
-
     def __new__(cls, distr, distr_center=None, unit=None, *args, **kwargs):
-        if not isinstance(distr, cls.stat_view):
-            distr = cls.stat_view(distr, unit=unit)
 
-        if len(distr.shape) < 1:
+        if distr.shape == ():
             raise TypeError('Attempted to initialize a Distribution with a scalar')
 
+        # Not clear whether one wants the distr_center argument still.
+        # Would need __array_finalize__ to preserve it through slicing, etc.
         if distr_center is None:
-            distr_center = np.median(distr, axis=0)
+            distr_center = np.median(distr, axis=-1)
 
-        self = super(Distribution, cls).__new__(cls, distr_center, unit, *args, **kwargs)
-        self.distribution = distr
+        # Not clear why the unit argument is needed.
+        if unit is not None:
+            distr = Quantity(distr, unit, copy=False, subok=True)
 
+        new_dtype = np.dtype({'names': ['samples'],
+                              'formats': [(distr.dtype, (distr.shape[-1],))]})
+        distr_cls = type(distr)
+        if not issubclass(distr_cls, Distribution):
+            # Probably should have a dict on the class with these, so
+            # we don't create new classes needlessly.
+            new_name = distr_cls.__name__ + cls.__name__
+            new_cls = type(new_name, (cls, distr_cls),
+                           {'_distr_cls': distr_cls})
+        self = distr.view(dtype=new_dtype, type=new_cls)
+        # Get rid of trailing dimension of 1.
+        self.shape = distr.shape[:-1]
+        self.center = distr_center
         return self
+
+    @property
+    def distribution(self):
+        return self['samples']
+
+    def __getitem__(self, item):
+        result = super().__getitem__(item)
+        if item == 'samples':
+            return super(Distribution, result).view(self._distr_cls)
+        else:
+            return result
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        converted = []
+        outputs = kwargs.pop('out', None)
+        if outputs:
+            kwargs['out'] = tuple((output.distribution if
+                                   isinstance(output, Distribution)
+                                   else output) for output in outputs)
+        if method in {'reduce', 'accumulate', 'reduceat'}:
+            axis = kwargs.get('axis', None)
+            if axis is None:
+                assert isinstance(inputs[0], Distribution)
+                kwargs['axis'] = tuple(range(inputs[0].ndim))
+
+        for input_ in inputs:
+            if isinstance(input_, Distribution):
+                converted.append(input_.distribution)
+            else:
+                shape = getattr(input_, 'shape', ())
+                if shape:
+                    converted.append(input_[..., np.newaxis])
+                else:
+                    converted.append(input_)
+
+        results = getattr(ufunc, method)(*converted, **kwargs)
+
+        if not isinstance(results, tuple):
+            results = (results,)
+        if outputs is None:
+            outputs = (None,) * len(results)
+
+        finals = []
+        for result, output in zip(results, outputs):
+            if output is not None:
+                finals.append(output)
+            else:
+                if getattr(result, 'shape', False):
+                    finals.append(Distribution(result))
+                else:
+                    finals.append(result)
+
+        return finals if len(finals) > 1 else finals[0]
+
+    # Override view so that we stay a Distribution version of the new type.
+    def view(self, dtype=None, type=None):
+        if type is None:
+            if issubclass(dtype, np.ndarray):
+                type = dtype
+                dtype = None
+            else:
+                raise ValueError('Cannot set just dtype for a Distribution.')
+
+        result = self.distribution.view(dtype, type)
+        return Distribution(result)
 
     def __repr__(self):
         superrepr = super().__repr__()
@@ -87,42 +159,42 @@ class Distribution(Quantity):
         """
         The number of samples of this distribution.  A single int.
         """
-        return self.distribution.shape[0]
+        return self.dtype['samples'].shape[0]
 
     @property
     def pdf_mean(self):
         """
         The mean of this distribution.
         """
-        return self.distribution.mean(axis=0).view(self.stat_view)
+        return self.distribution.mean(axis=-1)
 
     @property
     def pdf_std(self):
         """
         The standard deviation of this distribution.
         """
-        return self.distribution.std(axis=0).view(self.stat_view)
+        return self.distribution.std(axis=-1)
 
     @property
     def pdf_var(self):
         """
         The variance of this distribution.
         """
-        return self.distribution.var(axis=0).view(self.stat_view)
+        return self.distribution.var(axis=-1)
 
     @property
     def pdf_median(self):
         """
         The median of this distribution.
         """
-        return np.median(self.distribution, axis=0).view(self.stat_view)
+        return np.median(self.distribution, axis=-1)
 
     @property
     def pdf_mad(self):
         """
         The median absolute deviation of this distribution.
         """
-        return np.median(np.abs(self.distribution - self.pdf_median), axis=0).view(self.stat_view)
+        return np.abs(self - self.pdf_median).pdf_median
 
     # we set this by hand because the symbolic expression (below) requires scipy
     # _smad_scale_factor = 1 / scipy.stats.norm.ppf(0.75)
@@ -152,10 +224,13 @@ class Distribution(Quantity):
         percs : Quantity
             The ``fracs`` percentiles of this distribution.
         """
-        perc = np.percentile(self.distribution, perc, axis=0)
+        perc = np.percentile(self.distribution, perc, axis=-1)
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
-        return self.stat_view(perc, unit=self.unit, copy=False)
+        if hasattr(self.distribution, '_new_view'):
+            return self.distribution._new_view(perc)
+        else:
+            return perc
 
     def hist(self, maxtoshow=10, **kwargs):
         """
@@ -172,6 +247,7 @@ class Distribution(Quantity):
             is large.
         Additional keywords are passed into `astropy.visualization.hist`
         """
+        # NOTE: not adjusted to new structure!!
         labelset = 'label' in kwargs
         scalar_distr = len(self.shape) == 1
         if scalar_distr:
@@ -232,13 +308,10 @@ class NormalDistribution(Distribution):
         if std is None:
             raise ValueError('NormalDistribution requires one of std, var, or ivar')
 
-        randshape = [n_samples] + list(np.broadcast(std, center).shape)
-        distr = np.random.randn(*randshape)*std + center
-        if distr.unit != center.unit:
-            distr = distr.to(center.unit)
-
-        self = super(NormalDistribution, cls).__new__(cls, distr, center, unit=None,
-                                                      **kwargs)
+        randshape = np.broadcast(std, center).shape + (n_samples,)
+        distr = np.random.randn(*randshape)
+        self = super(NormalDistribution, cls).__new__(cls, distr, **kwargs)
+        self = center + self * std
         self.distr_std = std
         return self
 
@@ -257,14 +330,15 @@ class PoissonDistribution(Distribution):
     Remaining keywords are passed into the `Quantity` constructor
     """
     def __new__(cls, poissonval, n_samples=1000, **kwargs):
-        randshape = [n_samples] + list(poissonval.shape)
-        distr = np.random.poisson(poissonval.value, randshape)
+        randshape = poissonval.shape + (n_samples,)
+        distr = np.random.poisson(poissonval.value[..., np.newaxis], randshape)
 
         self = super(PoissonDistribution, cls).__new__(cls, distr,
                                                        unit=poissonval.unit,
                                                        **kwargs)
         self.distr_std = poissonval**0.5
         return self
+
 
 class UniformDistribution(Distribution):
     """
@@ -288,8 +362,9 @@ class UniformDistribution(Distribution):
         if lower.unit != upper.unit:
             upper = upper.to(lower.unit)
 
-        newshape = [n_samples] + list(lower.shape)
-        distr = np.random.uniform(lower, upper, newshape)
+        newshape = lower.shape + (n_samples,)
+        distr = np.random.uniform(lower[..., np.newaxis],
+                                  upper[..., np.newaxis], newshape)
 
         self = super(UniformDistribution, cls).__new__(cls, distr,
                                                        unit=lower.unit,
