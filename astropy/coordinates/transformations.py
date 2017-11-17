@@ -85,6 +85,23 @@ class TransformGraph:
 
         return self._cached_frame_attributes
 
+    @property
+    def frame_component_names(self):
+        """
+        A `set` of all component names every defined within any frame class in
+        this `TransformGraph`.
+        """
+        if self._cached_component_names is None:
+            self._cached_component_names = set()
+
+            for frame_cls in self.frame_set:
+                rep_info = frame_cls._frame_specific_representation_info
+                for mappings in rep_info.values():
+                    for rep_map in mappings:
+                        self._cached_component_names.update([rep_map.framename])
+
+        return self._cached_component_names
+
     def invalidate_cache(self):
         """
         Invalidates the cache that stores optimizations for traversing the
@@ -95,6 +112,7 @@ class TransformGraph:
         self._cached_names_dct = None
         self._cached_frame_set = None
         self._cached_frame_attributes = None
+        self._cached_component_names = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
