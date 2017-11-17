@@ -43,8 +43,10 @@ Example usage of ``showtable``:
 """
 
 import argparse
-from astropy.table import Table
+import warnings
 from astropy import log
+from astropy.table import Table
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 def showtable(filename, args):
@@ -57,6 +59,14 @@ def showtable(filename, args):
         The path to a FITS file.
 
     """
+    if args.info and args.stats:
+        warnings.warn('--info and --stats cannot be used together',
+                      AstropyUserWarning)
+    if (any((args.max_lines, args.max_width, args.hide_unit, args.show_dtype))
+            and (args.info or args.stats)):
+        warnings.warn('print parameters are ignored if --info or --stats is '
+                      'used', AstropyUserWarning)
+
     # these parameters are passed to Table.read if they are specified in the
     # command-line
     read_kwargs = ('hdu', 'format', 'table_id', 'delimiter')
@@ -64,9 +74,14 @@ def showtable(filename, args):
               if k in read_kwargs and v is not None}
     try:
         table = Table.read(filename, **kwargs)
-        formatter = table.more if args.more else table.pprint
-        formatter(max_lines=args.max_lines, max_width=args.max_width,
-                  show_unit=not args.hide_unit, show_dtype=args.show_dtype)
+        if args.info:
+            print(table.info)
+        elif args.stats:
+            table.info('stats')
+        else:
+            formatter = table.more if args.more else table.pprint
+            formatter(max_lines=args.max_lines, max_width=args.max_width,
+                      show_unit=not args.hide_unit, show_dtype=args.show_dtype)
     except IOError as e:
         log.error(str(e))
 
@@ -84,9 +99,14 @@ def main(args=None):
 
     addarg = parser.add_argument
 
-    # pprint arguments
     addarg('--more', action='store_true',
            help='Use the pager mode from Table.more.')
+    addarg('--info', action='store_true',
+           help='Show information about the table columns.')
+    addarg('--stats', action='store_true',
+           help='Show statistics about the table columns.')
+
+    # pprint arguments
     addarg('--max-lines', type=int,
            help='Maximum number of lines in table output (default=screen '
            'length, -1 for no limit).')

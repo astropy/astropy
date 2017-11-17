@@ -17,6 +17,27 @@ def test_missing_file(capsys):
                           "'foobar.fits'")
 
 
+def test_info(capsys):
+    showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--info'])
+    out, err = capsys.readouterr()
+    assert out == ('<Table length=3>\n'
+                   ' name   dtype \n'
+                   '------ -------\n'
+                   'target   str20\n'
+                   ' V_mag float32\n'
+                   '\n')
+
+
+def test_stats(capsys):
+    showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
+    out, err = capsys.readouterr()
+    assert out == ('<Table length=3>\n'
+                   ' name    mean    std   min  max \n'
+                   '------ ------- ------- ---- ----\n'
+                   'target      --      --   --   --\n'
+                   ' V_mag 12.8667 1.72111 11.1 15.2\n')
+
+
 def test_fits(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits')])
     out, err = capsys.readouterr()
