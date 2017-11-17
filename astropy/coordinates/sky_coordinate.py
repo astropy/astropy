@@ -496,7 +496,8 @@ class SkyCoord(ShapedLikeNDArray):
             frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
 
-    def evolve_to(self, new_obstime):
+    @u.quantity_input(dt=(u.year, None))
+    def move_to(self, new_obstime=None, dt=None):
         """
         Update the position of the source represented by this coordinate object
         to a new specified time using the velocity and assuming linear motion.
@@ -505,21 +506,34 @@ class SkyCoord(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_obstime : `~astropy.time.Time`
+        new_obstime : `~astropy.time.Time`, optional
             The time at which to evolve the position to.
+        dt : `~astropy.units.Quantity`, optional
+            A time to evolve as a `Quantity` object.
         """
+
+        if (new_obstime is None and dt is None or
+                new_obstime is not None and dt is not None):
+            raise ValueError("You must specify one of `new_obstime` or `dt`, "
+                             "but not both.")
 
         # Validate that we have velocity info
         if 's' not in self.frame.data.differentials:
             raise ValueError('SkyCoord requires velocity data to evolve the '
                              'position.')
 
-        # TODO: if frame transformation needs an obstime, raise a
-        # notimplementederror
+        if 'obstime' in self.frame.frame_attributes:
+            raise NotImplementedError("Updating the coordinates in a frame "
+                                      "with explicit time dependence is "
+                                      "currently not supported. If you would "
+                                      "like this functionality, please open an "
+                                      "issue on github:\n"
+                                      "https://github.com/astropy/astropy")
 
-        # If no obstime already on this object, raise error: we need to know the
-        # time / epoch at which the the position/velocity were measured
-        dt = (new_obstime - self.obstime)
+        if dt is None:
+            # If no obstime already on this object, raise error: we need to know the
+            # time / epoch at which the the position/velocity were measured
+            dt = (new_obstime - self.obstime)
 
         cart = self.frame.represent_as('cartesian')
         pos = cart.without_differentials()
@@ -531,6 +545,8 @@ class SkyCoord(ShapedLikeNDArray):
             self.frame.data.__class__,
             self.frame.data.differentials['s'].__class__)
 
+        # TODO: we should update the obstime of the returned SkyCoord, and need
+        # to carry along the frame attributes
         new_frame = self.frame.replicate_without_data(obstime=new_obstime)
         return self.__class__(new_frame.realize_frame(new_rep))
 
