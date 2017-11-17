@@ -20,6 +20,12 @@ astropy.coordinates
   initializer, and supports retrieving a parallax (as an ``Angle``) via
   the ``.parallax`` attributes. [#6855]
 
+- The coordinate frame classes (subclasses of ``BaseCoordinateFrame``) now
+  always have ``.velocity``, ``.proper_motion``, and ``.radial_velocity``
+  properties that provide shorthands to the full-space Cartesian velocity as
+  a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
+  radial or line-of-sigh velocity as a ``Quantity``. [#6869]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
