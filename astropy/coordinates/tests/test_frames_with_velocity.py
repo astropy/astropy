@@ -3,6 +3,7 @@
 
 
 import pytest
+import numpy as np
 
 from ... import units as u
 from ..builtin_frames import ICRS, Galactic, Galactocentric
@@ -219,3 +220,38 @@ def test_slicing_preserves_differential():
 
     for name in icrs.get_representation_component_names('s').keys():
         assert getattr(icrs, name) == getattr(icrs2, name)[0]
+
+
+def test_shorthand_attributes():
+    # Check that attribute access works
+
+    # for array data:
+    n = 4
+    icrs1 = ICRS(ra=np.random.uniform(0, 360, n)*u.deg,
+                 dec=np.random.uniform(-90, 90, n)*u.deg,
+                 distance=100*u.pc,
+                 pm_ra_cosdec=np.random.normal(0, 100, n)*u.mas/u.yr,
+                 pm_dec=np.random.normal(0, 100, n)*u.mas/u.yr,
+                 radial_velocity=np.random.normal(0, 100, n)*u.km/u.s)
+    v = icrs1.velocity
+    pm = icrs1.proper_motion
+    assert quantity_allclose(pm[0], icrs1.pm_ra_cosdec)
+    assert quantity_allclose(pm[1], icrs1.pm_dec)
+
+    # for scalar data:
+    icrs2 = ICRS(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
+                 pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
+                 radial_velocity=105.7*u.km/u.s)
+    v = icrs2.velocity
+    pm = icrs2.proper_motion
+    assert quantity_allclose(pm[0], icrs2.pm_ra_cosdec)
+    assert quantity_allclose(pm[1], icrs2.pm_dec)
+
+    # check that it fails where we expect:
+
+    # no distance
+    icrs3 = ICRS(ra=37.4*u.deg, dec=-55.8*u.deg,
+                 pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
+                 radial_velocity=105.7*u.km/u.s)
+    with pytest.raises(ValueError):
+        icrs3.velocity

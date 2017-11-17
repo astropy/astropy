@@ -1366,6 +1366,45 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self.represent_as('spherical', 'sphericalcoslat',
                                  in_frame_units=True)
 
+    @property
+    def velocity(self):
+        """
+        Shorthand for the Cartesian velocity as a `CartesianDifferential`
+        object.
+        """
+        if 's' not in self.data.differentials:
+            raise ValueError('Frame has no associated velocity (Differential) '
+                             'data information.')
+
+        try:
+            v = self.cartesian.differentials['s']
+        except Exception as e:
+            raise ValueError('Could not retrieve a Cartesian velocity. Your '
+                             'frame data must include all six of sky positions,'
+                             ' distance, proper motions, and radial velocity '
+                             'for this to work.')
+        return v
+
+    @property
+    def proper_motion(self):
+        """
+        Shorthand for the two-dimensional proper motion as a `Quantity` object
+        with angular velocity units. In the returned `Quantity`, ``axis=0`` is
+        the longitude/latitude dimension so that ``.proper_motion[0]`` is the
+        longitudinal proper motion and ``.proper_motion[1]`` is latitudinal.
+        The longitudinal proper motion already includes the cos(latitude) term.
+        """
+        if 's' not in self.data.differentials:
+            raise ValueError('Frame has no associated velocity (Differential) '
+                             'data information.')
+
+        sph = self.represent_as('spherical', 'sphericalcoslat',
+                                in_frame_units=True)
+        pm_lon = sph.differentials['s'].d_lon_coslat
+        pm_lat = sph.differentials['s'].d_lat
+        return np.stack((pm_lon.value,
+                         pm_lat.to(pm_lon.unit).value), axis=0) * pm_lon.unit
+
 
 class GenericFrame(BaseCoordinateFrame):
     """
