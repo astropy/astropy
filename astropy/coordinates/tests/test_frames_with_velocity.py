@@ -250,8 +250,20 @@ def test_shorthand_attributes():
     # check that it fails where we expect:
 
     # no distance
+    rv = 105.7*u.km/u.s
     icrs3 = ICRS(ra=37.4*u.deg, dec=-55.8*u.deg,
                  pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
-                 radial_velocity=105.7*u.km/u.s)
+                 radial_velocity=rv)
     with pytest.raises(ValueError):
         icrs3.velocity
+
+    icrs3.set_representation_cls('cartesian')
+    assert hasattr(icrs3, 'radial_velocity')
+    assert quantity_allclose(icrs3.radial_velocity, rv)
+
+    icrs4 = ICRS(x=30*u.pc, y=20*u.pc, z=11*u.pc,
+                 v_x=10*u.km/u.s, v_y=10*u.km/u.s, v_z=10*u.km/u.s,
+                 representation=r.CartesianRepresentation,
+                 differential_cls=r.CartesianDifferential)
+    icrs4.radial_velocity
+
