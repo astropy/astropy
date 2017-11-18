@@ -615,7 +615,8 @@ by ``CHANGES.md`` in the instructions.
    all pass, you can proceed on.
 
 #. If you did the previous step, do ``git clean -fxd`` again to remove anything
-   you made there. Then you can upload to PyPI via ``twine``::
+   you made there.  Run ``python setup.py build sdist --format=gztar`` to
+   create the files for upload.  Then you can upload to PyPI via ``twine``::
 
         twine upload dist/*
 
