@@ -652,13 +652,10 @@ class EarthLocation(u.Quantity):
         return obsgeopos, obsgeovel
 
     def gravitational_redshift(self, obstime):
-        """
-        Return the gravitational redshift at this EarthLocation.
+        """Return the gravitational redshift at this EarthLocation.
 
-        The gravitational redshift due to the potential from the Earth itself,
-        the Sun and other bodies is of order 3 metres/sec. This routine calculates
-        the redshift, considering the effect of the Sun, Jupiter, the Moon and the
-        Earth itself.
+        Calculates the gravitational redshift, of order 3 m/s, due to the Sun,
+        Jupiter, the Moon, and the Earth itself.
 
         Parameters
         ----------
@@ -672,17 +669,18 @@ class EarthLocation(u.Quantity):
         """
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
-        masses = [consts.M_sun, consts.M_jup, 7.34767309e22*u.kg]
-        positions = [get_body_barycentric(name, obstime) for name in ('sun', 'jupiter', 'moon')]
-        earth_pos = get_body_barycentric('earth', obstime)
-        distances = [(pos - earth_pos).norm() for pos in positions]
-        redshifts = [-consts.G*mass/consts.c/distance for (mass, distance) in
+        names = ('sun', 'jupiter', 'moon', 'earth')
+        GM_moon = consts.G * 7.34767309e22*u.kg
+        masses = (consts.GM_sun, consts.GM_jup, GM_moon, consts.GM_earth)
+        positions = [get_body_barycentric(name, obstime) for name in names]
+        # Calculate distances to objects other than earth.
+        distances = [(pos - positions[-1]).norm() for pos in positions[:-1]]
+        # Append distance from Earth's center for Earth's contribution.
+        distances.append(CartesianRepresentation(self.geocentric).norm())
+        # Get redshifts due to all objects.
+        redshifts = [-GM / consts.c / distance for (GM, distance) in
                      zip(masses, distances)]
-        # now Earth's contribution
-        distance = CartesianRepresentation(self.geocentric).norm()
-        gravitational_redshift = (u.Quantity(redshifts).sum()
-                                  - consts.G*consts.M_earth/consts.c/distance)
-        return gravitational_redshift
+        return sum(redshifts)
 
     @property
     def x(self):
