@@ -40,12 +40,12 @@ class Supergalactic(BaseCoordinateFrame):
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
 
-    differential_cls : `BaseDifferential`, dict, optional
+    differential_type : `BaseDifferential`, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets
         the expected input differential class, thereby changing the expected
         keyword arguments of the data passed in. For example, passing
-        ``differential_cls=CartesianDifferential`` will make the classes
+        ``differential_type=CartesianDifferential`` will make the classes
         expect velocity data with the argument names ``v_x, v_y, v_z``.
     """
 

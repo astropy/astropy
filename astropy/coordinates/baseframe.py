@@ -101,22 +101,22 @@ def _get_repr_classes(base, **differentials):
     base = _get_repr_cls(base)
     repr_classes = {'base': base}
 
-    for name, differential_cls in differentials.items():
-        if differential_cls == 'base':
+    for name, differential_type in differentials.items():
+        if differential_type == 'base':
             # We don't want to fail for this case.
-            differential_cls = r.DIFFERENTIAL_CLASSES.get(base.get_name(), None)
+            differential_type = r.DIFFERENTIAL_CLASSES.get(base.get_name(), None)
 
-        elif differential_cls in r.DIFFERENTIAL_CLASSES:
-            differential_cls = r.DIFFERENTIAL_CLASSES[differential_cls]
+        elif differential_type in r.DIFFERENTIAL_CLASSES:
+            differential_type = r.DIFFERENTIAL_CLASSES[differential_type]
 
-        elif (differential_cls is not None and
-              (not isinstance(differential_cls, type) or
-               not issubclass(differential_cls, r.BaseDifferential))):
+        elif (differential_type is not None and
+              (not isinstance(differential_type, type) or
+               not issubclass(differential_type, r.BaseDifferential))):
             raise ValueError(
                 'Differential is {0!r} but must be a BaseDifferential class '
                 'or one of the string aliases {1}'.format(
-                    differential_cls, list(r.DIFFERENTIAL_CLASSES)))
-        repr_classes[name] = differential_cls
+                    differential_type, list(r.DIFFERENTIAL_CLASSES)))
+        repr_classes[name] = differential_type
     return repr_classes
 
 
@@ -341,12 +341,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         arguments)
     *args, **kwargs
         Coordinates, with names that depend on the subclass.
-    differential_cls : `BaseDifferential`, dict, optional
+    differential_type : `BaseDifferential`, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets
         the expected input differential class, thereby changing the expected
         keyword arguments of the data passed in. For example, passing
-        ``differential_cls=CartesianDifferential`` will make the classes
+        ``differential_type=CartesianDifferential`` will make the classes
         expect velocity data with the argument names ``v_x, v_y, v_z``.
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
@@ -366,30 +366,30 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     # Default empty frame_attributes dict
 
     def __init__(self, *args, copy=True, representation=None,
-                 differential_cls=None, **kwargs):
+                 differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
-        # class or string for representation and differential_cls.
+        # class or string for representation and differential_type.
 
-        if representation is not None or differential_cls is not None:
+        if representation is not None or differential_type is not None:
 
             if representation is None:
                 representation = self.default_representation
 
-            if (inspect.isclass(differential_cls) and
-                    issubclass(differential_cls, r.BaseDifferential)):
+            if (inspect.isclass(differential_type) and
+                    issubclass(differential_type, r.BaseDifferential)):
                 # TODO: assumes the differential class is for the velocity
                 # differential
-                differential_cls = {'s': differential_cls}
+                differential_type = {'s': differential_type}
 
-            elif differential_cls is None:
+            elif differential_type is None:
                 if representation == self.default_representation:
-                    differential_cls = {'s': self.default_differential}
+                    differential_type = {'s': self.default_differential}
                 else:
-                    differential_cls = {'s': 'base'}  # see set_representation_cls()
+                    differential_type = {'s': 'base'}  # see set_representation_cls()
 
-            self.set_representation_cls(representation, **differential_cls)
+            self.set_representation_cls(representation, **differential_type)
 
         # if not set below, this is a frame with no data
         representation_data = None
@@ -442,7 +442,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             # Now we handle the Differential data:
             # Get any differential data passed in to the frame initializer
             # using keyword or positional arguments for the component names
-            differential_cls = self.get_representation_cls('s')
+            differential_type = self.get_representation_cls('s')
             diff_component_names = self.get_representation_component_names('s')
             diff_kwargs = {}
             for nmkw, nmrep in diff_component_names.items():
@@ -453,14 +453,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     diff_kwargs[nmrep] = kwargs.pop(nmkw)
 
             if diff_kwargs:
-                if (hasattr(differential_cls, '_unit_differential') and
+                if (hasattr(differential_type, '_unit_differential') and
                         'd_distance' not in diff_kwargs):
-                    differential_cls = differential_cls._unit_differential
+                    differential_type = differential_type._unit_differential
 
                 elif len(diff_kwargs) == 1 and 'd_distance' in diff_kwargs:
-                    differential_cls = r.RadialDifferential
+                    differential_type = r.RadialDifferential
 
-                differential_data = differential_cls(copy=copy, **diff_kwargs)
+                differential_data = differential_type(copy=copy, **diff_kwargs)
 
         if len(args) > 0:
             raise TypeError(
@@ -918,27 +918,27 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         representation_cls = repr_classes['base']
         # We only keep velocity information
         if 's' in self.data.differentials:
-            differential_cls = repr_classes['s']
+            differential_type = repr_classes['s']
         elif s is None or s == 'base':
-            differential_cls = None
+            differential_type = None
         else:
             raise TypeError('Frame data has no associated differentials '
                             '(i.e. the frame has no velocity data) - '
                             'represent_as() only accepts a new '
                             'representation.')
 
-        if differential_cls:
+        if differential_type:
             cache_key = (representation_cls.__name__,
-                         differential_cls.__name__, in_frame_units)
+                         differential_type.__name__, in_frame_units)
         else:
             cache_key = (representation_cls.__name__, in_frame_units)
 
         cached_repr = self.cache['representation'].get(cache_key)
         if not cached_repr:
-            if differential_cls:
+            if differential_type:
                 # TODO NOTE: only supports a single differential
                 data = self.data.represent_as(representation_cls,
-                                              differential_cls)
+                                              differential_type)
                 diff = data.differentials['s']  # TODO: assumes velocity
             else:
                 data = self.data.represent_as(representation_cls)
@@ -954,13 +954,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
                 data = data.__class__(copy=False, **datakwargs)
 
-            if differential_cls:
+            if differential_type:
                 # the original differential
                 data_diff = self.data.differentials['s']
 
                 # If the new differential is known to this frame and has a
                 # defined set of names and units, then use that.
-                new_attrs = self.representation_info.get(differential_cls)
+                new_attrs = self.representation_info.get(differential_type)
                 if new_attrs and in_frame_units:
                     diffkwargs = dict((comp, getattr(diff, comp))
                                       for comp in diff.components)
@@ -989,7 +989,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
                     # Here we have to bypass using with_differentials() because
                     # it has a validation check. But because .representation and
-                    # .differential_cls don't point to the original classes, if
+                    # .differential_type don't point to the original classes, if
                     # the input differential is a RadialDifferential, it usually
                     # gets turned into a SphericalCosLatDifferential (or
                     # whatever the default is) with strange units for the d_lon
@@ -1348,7 +1348,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             if self._data is None:
                 self.data  # see above.
             # TODO: this doesn't work for the case when there is only
-            # unitspherical information. The differential_cls gets set to the
+            # unitspherical information. The differential_type gets set to the
             # default_differential, which expects full information, so the
             # units don't work out
             rep = self.represent_as(in_frame_units=True,
