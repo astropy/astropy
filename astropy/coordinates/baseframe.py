@@ -336,11 +336,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     Parameters
     ----------
-    representation : `BaseRepresentation` or None
-        A representation object or `None` to have no data (or use the other
+    representation_type : `BaseRepresentation` or None
+        A representation class or ``None`` to have no data (or use the other
         arguments)
     *args, **kwargs
-        Coordinates, with names that depend on the subclass.
+        Coordinate components, with names that depend on the subclass.
     differential_type : `BaseDifferential`, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets
@@ -365,17 +365,22 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     frame_attributes = OrderedDict()
     # Default empty frame_attributes dict
 
-    def __init__(self, *args, copy=True, representation=None,
+    def __init__(self, *args, copy=True, representation_type=None,
                  differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
         # class or string for representation and differential_type.
 
-        if representation is not None or differential_type is not None:
+        # TODO: this is here for backwards compatibility. It should be possible
+        # to use either the kwarg representation_type, or representation.
+        # In future versions, we will raise a deprecation warning here:
+        representation_type = kwargs.pop('representation', representation_type)
 
-            if representation is None:
-                representation = self.default_representation
+        if representation_type is not None or differential_type is not None:
+
+            if representation_type is None:
+                representation_type = self.default_representation
 
             if (inspect.isclass(differential_type) and
                     issubclass(differential_type, r.BaseDifferential)):
@@ -389,7 +394,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 else:
                     differential_type = {'s': 'base'}  # see set_representation_cls()
 
-            self.set_representation_cls(representation, **differential_type)
+            self.set_representation_cls(representation_type,
+                                        **differential_type)
 
         # if not set below, this is a frame with no data
         representation_data = None
@@ -415,8 +421,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                      'velocity differential is supported. Got: '
                                      '{0}'.format(diffs))
 
-        elif self.representation:
-            representation_cls = self.representation
+        elif self.representation_type:
+            representation_type = self.representation_type
             # Get any representation data passed in to the frame initializer
             # using keyword or positional arguments for the component names
             repr_kwargs = {}
@@ -433,11 +439,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
 
-                if (issubclass(representation_cls, r.SphericalRepresentation)
+                if (issubclass(representation_type, r.SphericalRepresentation)
                         and 'distance' not in repr_kwargs):
-                    representation_cls = representation_cls._unit_representation
+                    representation_type = representation_type._unit_representation
 
-                representation_data = representation_cls(copy=copy, **repr_kwargs)
+                representation_data = representation_type(copy=copy,
+                                                          **repr_kwargs)
 
             # Now we handle the Differential data:
             # Get any differential data passed in to the frame initializer
@@ -624,7 +631,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         if not hasattr(self, '_representation'):
             self._representation = {'base': self.default_representation,
                                     's': self.default_differential}
-        return self._representation[which] if which is not None else self._representation
+
+        if which is not None:
+            return self._representation[which]
+        else:
+            return self._representation
 
     def set_representation_cls(self, base=None, s='base'):
         """Set representation and/or differential class for this frame's data.
@@ -643,7 +654,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             base = self._representation['base']
         self._representation = _get_repr_classes(base=base, s=s)
 
-    representation = property(
+    representation_type = property(
         fget=get_representation_cls, fset=set_representation_cls,
         doc="""The representation class used for this frame's data.
 
@@ -652,6 +663,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         wish to set an explicit differential class (rather than have it be
         inferred), use the ``set_represenation_cls`` method.
         """)
+
+    # TODO: deprecate these?
+    @property
+    def representation(self):
+        return self.representation_type
+
+    @representation.setter
+    def representation(self, value):
+        self.representation_type = value
 
     @classmethod
     def _get_representation_info(cls):
@@ -831,7 +851,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return self._replicate(None, copy=copy, **kwargs)
 
-    def realize_frame(self, representation):
+    def realize_frame(self, representation_type):
         """
         Generates a new frame *with new data* from another frame (which may or
         may not have data). Roughly speaking, the converse of
@@ -839,7 +859,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         Parameters
         ----------
-        representation : BaseRepresentation
+        representation_type : `BaseRepresentation`
             The representation to use as the data for the new frame.
 
         Returns
@@ -848,7 +868,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        return self._replicate(representation)
+        return self._replicate(representation_type)
 
     def represent_as(self, base, s='base', in_frame_units=False):
         """
@@ -1339,7 +1359,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 self.data  # this raises the "no data" error by design - doing it
                 # this way means we don't have to replicate the error message here
 
-            rep = self.represent_as(self.representation, in_frame_units=True)
+            rep = self.represent_as(self.representation_type,
+                                    in_frame_units=True)
             val = getattr(rep, repr_names[attr])
             return val
 
