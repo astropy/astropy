@@ -118,6 +118,7 @@ matrix:
         - os: linux
           stage: Initial tests
           env: CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES NUMPY_VERSION=1.12
+               PYTEST_VERSION='>3.2'
           compiler: clang
 
         # Pinning conda version temporarily to 4.3.21, as some anaconda
