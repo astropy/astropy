@@ -17,7 +17,7 @@ from ..utils import ShapedLikeNDArray
 
 from .distances import Distance
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
@@ -221,6 +221,8 @@ class SkyCoord(ShapedLikeNDArray):
         component_names.update(frame.get_representation_component_names('s'))
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
+        if 'differential_cls' in kwargs:
+            coord_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
         for attr, value in kwargs.items():
             if value is not None and (attr in component_names
                                       or attr in frame_attr_names):
@@ -323,15 +325,20 @@ class SkyCoord(ShapedLikeNDArray):
         # by keyword args or else get a None default.  Pop them off of kwargs
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
+        # TODO: possibly remove the below.  The representation/differential
+        # information should *already* be stored in the frame object, as it is
+        # extracted in _get_frame.  So it may be redundent to include it below.
         if 'representation' in kwargs:
             valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
+        if 'differential_cls' in kwargs:
+            valid_kwargs['differential_cls'] = _get_diff_cls(kwargs.pop('differential_cls'))
 
         for attr in frame_transform_graph.frame_attributes:
             if attr in kwargs:
                 valid_kwargs[attr] = kwargs.pop(attr)
 
         # Get units
-        units = _get_units(args, kwargs)
+        units = _get_representation_component_units(args, kwargs)
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
         # and migrate to valid_kwargs.
@@ -339,22 +346,14 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Error if anything is still left in kwargs
         if kwargs:
-
-            # TODO: remove this when velocities are supported in SkyCoord
-            vel_url = 'http://docs.astropy.org/en/stable/coordinates/velocities.html'
-            for k in kwargs:
-                if k.startswith('pm_') or k == 'radial_velocity':
-                    raise ValueError('Velocity data is currently only supported'
-                                     ' in the coordinate frame objects, not in '
-                                     'SkyCoord. See the velocities '
-                                     'documentation page for more information: '
-                                     '{0}'.format(vel_url))
-
             raise ValueError('Unrecognized keyword argument(s) {0}'
                              .format(', '.join("'{0}'".format(key) for key in kwargs)))
 
-        # Finally deal with the unnamed args.  This figures out what the arg[0] is
-        # and returns a dict with appropriate key/values for initializing frame class.
+        # Finally deal with the unnamed args.  This figures out what the arg[0]
+        # is and returns a dict with appropriate key/values for initializing
+        # frame class. Note that differentials are *never* valid args, only
+        # kwargs.  So they are not accounted for here (unless they're in a frame
+        # or SkyCoord object)
         if args:
             if len(args) == 1:
                 # One arg which must be a coordinate.  In this case
@@ -1628,18 +1627,19 @@ def _get_frame(args, kwargs):
                                  "new frame='{1}'.  Instead transform the coordinate."
                                  .format(coord_frame_cls.__name__, frame_cls.__name__))
 
+    frameclskwargs = {}
     if 'representation' in kwargs:
-        frame = frame_cls(representation=_get_repr_cls(kwargs['representation']))
-    else:
-        frame = frame_cls()
+        frameclskwargs['representation'] = _get_repr_cls(kwargs['representation'])
+    if 'differential_cls' in kwargs:
+        frameclskwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
 
-    return frame
+    return frame_cls(**frameclskwargs)
 
 
-def _get_units(args, kwargs):
+def _get_representation_component_units(args, kwargs):
     """
-    Get the longitude unit and latitude unit from kwargs.  Possible enhancement
-    is to allow input from args as well.
+    Get the unit from kwargs for the *representation* components (not the
+    differentials).
     """
     if 'unit' not in kwargs:
         units = [None, None, None]
@@ -1865,6 +1865,9 @@ def _get_representation_attrs(frame, units, kwargs):
     for the underlying data values in the representation, e.g. "ra" for "lon"
     for many equatorial spherical representations, or "w" for "x" in the
     cartesian representation of Galactic.
+
+    This also gets any *differential* kwargs, because they go into the same
+    frame initializer later on.
     """
     frame_attr_names = frame.representation_component_names.keys()
     repr_attr_classes = frame.representation.attr_classes.values()
@@ -1874,6 +1877,17 @@ def _get_representation_attrs(frame, units, kwargs):
         value = kwargs.pop(frame_attr_name, None)
         if value is not None:
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+
+    # also check the differentials.  They aren't included in the units keyword,
+    # so we only look for the names.
+
+    # TODO: change _representation['s'] to `differential_type` when that exists
+    differential_type = frame._representation['s'].attr_classes
+    for frame_name, repr_name in frame.get_representation_component_names('s').items():
+        diff_attr_class = differential_type[repr_name]
+        value = kwargs.pop(frame_name, None)
+        if value is not None:
+            valid_kwargs[frame_name] = diff_attr_class(value)
 
     return valid_kwargs
 
