@@ -57,6 +57,10 @@ entry_points['console_scripts'] = [
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
 ]
+# Register ASDF extensions
+entry_points['asdf_extensions'] = [
+    'astropy = astropy.io.misc.asdf.extension:AstropyAsdfExtension'
+]
 
 min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
 setup_requires = [min_numpy_version]
