@@ -528,7 +528,7 @@ by ``CHANGES.md`` in the instructions.
    and update the release date, which should currently be set to
    ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
-#. Update the version number in ``setup.py`` to the version you're about to
+#. Update the version number in ``setup.cfg`` to the version you're about to
    release, without the ``.dev`` suffix (e.g. ``0.1``).
 
 #. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
@@ -562,9 +562,9 @@ by ``CHANGES.md`` in the instructions.
 
         git clean -fxd
 
-#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+#. Add the changes to ``CHANGES.rst`` and ``setup.cfg``::
 
-        git add CHANGES.rst setup.py
+        git add CHANGES.rst setup.cfg
 
    and commit with message::
 
@@ -574,7 +574,7 @@ by ``CHANGES.md`` in the instructions.
 
         git tag v<version>
 
-#. Change ``VERSION`` in ``setup.py`` to next version number, but with a
+#. Change ``VERSION`` in ``setup.cfg`` to next version number, but with a
    ``.dev`` suffix at the end (e.g. ``0.2.dev``). Add a new section to
    ``CHANGES.rst`` for next version, with a single entry ``No changes yet``, e.g.::
 
@@ -583,9 +583,9 @@ by ``CHANGES.md`` in the instructions.
 
        - No changes yet
 
-#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+#. Add the changes to ``CHANGES.rst`` and ``setup.cfg``::
 
-        git add CHANGES.rst setup.py
+        git add CHANGES.rst setup.cfg
 
    and commit with message::
 
