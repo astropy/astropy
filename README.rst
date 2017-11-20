@@ -45,6 +45,22 @@ with the Astropy Project, see http://dashboard.astropy.org.
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
 
+
+Acknowledging or Citing Astropy
+-------------------------------
+
+.. image:: http://depsy.org/api/package/pypi/astropy/badge.svg
+    :target: http://depsy.org/package/python/astropy
+    :alt: Research software impact
+
+If you use Astropy for work/research presented in a publication
+(whether directly, or as a dependency to another package), we ask that you
+cite the `Astropy Paper <http://dx.doi.org/10.1051/0004-6361/201322068>`_
+(`ADS <http://adsabs.harvard.edu/abs/2013A%26A...558A..33A>`_ -
+`BibTeX <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2013A%26A...558A..33A&data_type=BIBTEX&db_key=AST&nocookieset=1>`_). We provide the following as a standard acknowledgment you can use if there is not a specific place to cite the paper::
+
+    This research made use of Astropy, a community-developed core Python package for Astronomy (Astropy Collaboration, 2013).
+
 License
 -------
 Astropy is licensed under a 3-clause BSD style license - see the
