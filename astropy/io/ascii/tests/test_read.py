@@ -1374,5 +1374,7 @@ def test_read_chunks_table_changes():
     table = '\n'.join(col)
     t1 = ascii.read(table, guess=False)
     t2 = ascii.read(table, fast_reader={'chunk_size': 100})
-    for name in t1.colnames:
-        assert np.all(t1[name] == t2[name])
+
+    # This also confirms that the dtypes are exactly the same, i.e.
+    # the string itemsizes are the same.
+    assert np.all(t1 == t2)

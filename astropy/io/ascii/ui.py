@@ -642,12 +642,27 @@ def _read_in_chunks(table, **kwargs):
     # Numpy won't allow resizing the original so make a copy here.
     out_cols = {col.name: col.data.copy() for col in tbl0.itercols()}
 
+    str_kinds = ('S', 'U')
     for tbl in tbl_chunks:
         masked |= tbl.masked
         for name, col in tbl.columns.items():
+            # Concatenate current column data and new column data
+
+            # If one of the inputs is string-like and the other is not, then
+            # convert the non-string to a string.  In a perfect world this would
+            # be handled by numpy, but as of numpy 1.13 this results in a string
+            # dtype that is too long (https://github.com/numpy/numpy/issues/10062).
+
+            col1, col2 = out_cols[name], col.data
+            if col1.dtype.kind in str_kinds and col2.dtype.kind not in str_kinds:
+                col2 = np.array(col2.tolist(), dtype=col1.dtype.kind)
+            elif col2.dtype.kind in str_kinds and col1.dtype.kind not in str_kinds:
+                col1 = np.array(col1.tolist(), dtype=col2.dtype.kind)
+
             # Choose either masked or normal concatenation
             concatenate = np.ma.concatenate if masked else np.concatenate
-            out_cols[name] = concatenate([out_cols[name], col.data])
+
+            out_cols[name] = concatenate([col1, col2])
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
