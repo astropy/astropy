@@ -1221,3 +1221,61 @@ def test_setitem_location():
     t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
     t[0, :] = Time([-3, -4], format='cxcsec', location=loc)
     assert allclose_sec(t.value, [[-3, -4], [3, 4]])
+
+
+def test_setitem_from_python_objects():
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    assert t.cache == {}
+    t.iso
+    assert 'iso' in t.cache['format']
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:00:02.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Setting item clears cache
+    t[0, 1] = 100
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [3, 4]])
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:01:40.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Set with a float value
+    t.iso
+    t[1, :] = 200
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [200, 200]])
+
+    # Array of strings in yday format
+    t[:, 1] = ['1998:002', '1998:003']
+    assert allclose_sec(t.value, [[1, 86400 * 1],
+                                  [200, 86400 * 2]])
+
+    # Incompatible numeric value
+    t = Time(['2000:001', '2000:002'])
+    t[0] = '2001:001'
+    with pytest.raises(ValueError) as err:
+        t[0] = 100
+    assert 'cannot convert value to a compatible Time object' in str(err)
+
+
+def test_setitem_from_time_objects():
+    """Set from existing Time object.
+    """
+    # Set from time object with different scale
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = Time(['2000:010'], scale='tai')
+    t[1] = t2[0]
+    assert t.value[1] == t2.utc.value[0]
+
+    # Time object with different scale and format
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2.format = 'jyear'
+    t[1] = t2[0]
+    assert t.yday[1] == t2.utc.yday[0]
+
+
+def test_setitem_bad_item():
+    t = Time([1, 2], format='cxcsec')
+    with pytest.raises(IndexError):
+        t['asdf'] = 3
