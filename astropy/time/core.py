@@ -14,7 +14,7 @@ from datetime import datetime
 
 import numpy as np
 
-from ..utils.compat import NUMPY_LT_1_11
+from ..utils.compat import NUMPY_LT_1_11_2
 from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
@@ -1085,7 +1085,7 @@ class Time(ShapedLikeNDArray):
         # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
 
-        if NUMPY_LT_1_11:
+        if NUMPY_LT_1_11_2:
             # MaskedArray.min ignores keepdims so do it by hand
             approx = np.min(jd, axis)
             if axis is not None:
@@ -1115,7 +1115,7 @@ class Time(ShapedLikeNDArray):
         # For procedure, see comment on argmin.
         jd = self.jd1 + self.jd2
 
-        if NUMPY_LT_1_11:
+        if NUMPY_LT_1_11_2:
             # MaskedArray.max ignores keepdims so do it by hand (numpy <= 1.10)
             approx = np.max(jd, axis)
             if axis is not None:
