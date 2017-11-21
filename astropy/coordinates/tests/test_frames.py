@@ -993,5 +993,3 @@ def test_uvw_frame():
     assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
     assert compVectors(W,east),"fail test d, w != east"
     #print("passed d")
-
-
