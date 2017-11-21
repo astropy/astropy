@@ -40,6 +40,8 @@ from .hcrs import HCRS
 from .ecliptic import (GeocentricTrueEcliptic, BarycentricTrueEcliptic,
                        HeliocentricTrueEcliptic, BaseEclipticFrame)
 from .skyoffset import SkyOffsetFrame
+from .enu import ENU
+from .uvw import UVW
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -56,7 +58,7 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
            'SkyOffsetFrame', 'GalacticLSR', 'LSR',
-           'BaseEclipticFrame', 'BaseRADecFrame']
+           'BaseEclipticFrame', 'BaseRADecFrame','ENU','UVW']
 
 
 def _make_transform_graph_docs():
