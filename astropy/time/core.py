@@ -1153,7 +1153,6 @@ class Time(ShapedLikeNDArray):
         ``np.min``; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
-
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1170,7 +1169,6 @@ class Time(ShapedLikeNDArray):
         ``np.max``; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
-
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1187,7 +1185,6 @@ class Time(ShapedLikeNDArray):
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
-
         if out is not None:
             raise ValueError("Since `Time` instances are immutable, ``out`` "
                              "cannot be set to anything but ``None``.")
@@ -1208,7 +1205,6 @@ class Time(ShapedLikeNDArray):
             Axis to be sorted.  If ``None``, the flattened array is sorted.
             By default, sort over the last axis.
         """
-
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
