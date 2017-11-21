@@ -1348,11 +1348,11 @@ class SkyCoord(ShapedLikeNDArray):
                              'inconsistent with the `obstime` frame '
                              'attribute on the SkyCoord')
 
+        pos_earth, v_earth = get_body_barycentric_posvel('earth', obstime)
         if kind == 'barycentric':
-            v_origin_to_earth = get_body_barycentric_posvel('earth', obstime)[1]
+            v_origin_to_earth = v_earth
         elif kind == 'heliocentric':
             v_sun = get_body_barycentric_posvel('sun', obstime)[1]
-            v_earth = get_body_barycentric_posvel('earth', obstime)[1]
             v_origin_to_earth = v_earth - v_sun
         else:
             raise ValueError("`kind` argument to radial_velocity_correction must "
@@ -1363,12 +1363,13 @@ class SkyCoord(ShapedLikeNDArray):
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
         if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = self.represent_as(UnitSphericalRepresentation).to_cartesian()
+            targcart = self.icrs.cartesian
         else:
             # skycoord has distances so apply parallax
-            obs_icrs_cart = get_body_barycentric('earth', obstime) + gcrs_p
-            icrs_cart = self.cartesian
-            targcart = (icrs_cart - obs_icrs_cart).represent_as(UnitSphericalRepresentation).to_cartesian()
+            obs_icrs_cart = pos_earth + gcrs_p
+            icrs_cart = self.icrs.cartesian
+            targcart = icrs_cart - obs_icrs_cart
+            targcart /= targcart.norm()
 
         if kind == 'barycentric':
             beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
