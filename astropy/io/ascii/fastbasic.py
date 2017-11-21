@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import copy
 from collections import OrderedDict
 
 from . import core
@@ -89,6 +90,14 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         self.strict_names = self.kwargs.pop('strict_names', False)
 
+        fast_reader = self.kwargs.get('fast_reader', True)
+        if not isinstance(fast_reader, dict):
+            fast_reader = {}
+
+        fast_reader.pop('enable', None)
+        self.return_header_chars = fast_reader.pop('return_header_chars', False)
+        self.kwargs['fast_reader'] = fast_reader
+
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
                                       self.strip_whitespace_fields,
                                       delimiter=self.delimiter,
@@ -109,7 +118,15 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
         with set_locale('C'):
             data, comments = self.engine.read(try_int, try_float, try_string)
+        out = self.make_table(data, comments)
 
+        if self.return_header_chars:
+            out.meta['__ascii_fast_reader_header_chars__'] = self.engine.header_chars
+
+        return out
+
+    def make_table(self, data, comments):
+        """Actually make the output table give the data and comments."""
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
@@ -230,21 +247,19 @@ class FastCommentedHeader(FastBasic):
         if 'data_start' not in kwargs:
             self.data_start = 0
 
-    def read(self, table):
+    def make_table(self, data, comments):
         """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
+        Actually make the output table give the data and comments.  This is
+        slightly different from the base FastBasic method in the way comments
+        are handled.
         """
-        out = super().read(table)
+        meta = OrderedDict()
+        if comments:
+            meta['comments'] = comments[1:]
+            if not meta['comments']:
+                del meta['comments']
 
-        # Strip off first comment since this is the header line for
-        # commented_header format.
-        if 'comments' in out.meta:
-            out.meta['comments'] = out.meta['comments'][1:]
-            if not out.meta['comments']:
-                del out.meta['comments']
-
-        return out
+        return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def _read_header(self):
         tmp = self.engine.source
