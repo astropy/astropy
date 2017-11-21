@@ -16,7 +16,7 @@ from . import ITRS
 
 class ENU(BaseCoordinateFrame):
     """
-    A coordinate or frame in the East-North-Up (ENU) system.  
+    A coordinate or frame in the East-North-Up (ENU) system.
 
     This frame has the following frame attributes, which are necessary for
     transforming from ENU to some other system:
@@ -53,8 +53,7 @@ class ENU(BaseCoordinateFrame):
         'cartesian': [RepresentationMapping('x', 'east'),
                       RepresentationMapping('y', 'north'),
                      RepresentationMapping('z','up')],
-    }
-    
+    } 
     default_representation = CartesianRepresentation
 
     obstime = TimeAttribute(default=None)
@@ -70,7 +69,6 @@ def itrs_to_enu(itrs_coo, enu_frame):
     if it specifies a direction.'''
     is_unitspherical = (isinstance(itrs_coo.data, UnitSphericalRepresentation) or
                         itrs_coo.cartesian.x.unit == u.one)
-    
     lon, lat, height = enu_frame.location.to_geodetic('WGS84')
     lonrad = lon.to(u.radian).value
     latrad = lat.to(u.radian).value
@@ -84,7 +82,6 @@ def itrs_to_enu(itrs_coo, enu_frame):
     east = [-sinlon,coslon,0]
     up = [coslat*coslon,coslat*sinlon,sinlat]
     R = np.array([east,north,up])
-    
     if is_unitspherical:
         p = itrs_coo.cartesian.xyz.value
         diff = p
@@ -139,4 +136,3 @@ def enu_to_enu(from_coo, to_frame):
     # for now we just implement this through ITRS to make sure we get everything
     # covered
     return from_coo.transform_to(ITRS(obstime=from_coo.obstime)).transform_to(to_frame)
-

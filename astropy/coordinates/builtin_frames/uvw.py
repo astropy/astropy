@@ -4,7 +4,7 @@ import numpy as np
 
 import astropy.units as u
 
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, 
+from astropy.coordinates.baseframe import (BaseCoordinateFrame,
                          RepresentationMapping, frame_transform_graph)
 
 from astropy.coordinates.attributes import (CoordinateAttribute,
@@ -17,7 +17,7 @@ from . import (ITRS,ICRS,AltAz)
 
 class UVW(BaseCoordinateFrame):
     """
-    A coordinate or frame in the UVW system, the conventional radio astronomy frame.  
+    A coordinate or frame in the UVW system, the conventional radio astronomy frame.
 
     This frame has the following frame attributes, which are necessary for
     transforming from UVW to some other system:
@@ -64,7 +64,6 @@ class UVW(BaseCoordinateFrame):
                       RepresentationMapping('y', 'v'),
                      RepresentationMapping('z','w')],
     }
-    
     default_representation = CartesianRepresentation
 
     obstime = TimeAttribute(default=None)
@@ -73,13 +72,11 @@ class UVW(BaseCoordinateFrame):
 
     def __init__(self, *args, **kwargs):
         super(UVW, self).__init__(*args, **kwargs)
- 
 @frame_transform_graph.transform(FunctionTransform, ITRS, UVW)
 def itrs_to_uvw(itrs_coo, uvw_frame):
     '''Defines the transformation between ITRS and the UVW frame.'''
     is_unitspherical = (isinstance(itrs_coo.data, UnitSphericalRepresentation) or
                         itrs_coo.cartesian.x.unit == u.one)
-    
     lon, lat, height = uvw_frame.location.to_geodetic('WGS84')
     #local sidereal time
     lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_frame.location,obstime=uvw_frame.obstime).transform_to(ICRS).ra
@@ -87,7 +84,7 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
     ha = (lst - uvw_frame.phase.ra).to(u.radian).value
     dec = uvw_frame.phase.dec.to(u.radian).value
     lonrad = lon.to(u.radian).value - ha
-    latrad = dec 
+    latrad = dec
     sinlat = np.sin(latrad)
     coslat = np.cos(latrad)
     sinlon = np.sin(lonrad)
@@ -102,7 +99,6 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
         p = itrs_coo.cartesian.xyz.value
         diff = p
         penu = R.dot(diff)
-    
         rep = CartesianRepresentation(x = u.Quantity(penu[0],u.one,copy=False),
                                      y = u.Quantity(penu[1],u.one,copy=False),
                                      z = u.Quantity(penu[2],u.one,copy=False),
@@ -112,7 +108,6 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
         p0 = ITRS(*uvw_frame.location.geocentric,obstime=uvw_frame.obstime).cartesian.xyz
         diff = (p.T-p0).T
         penu = R.dot(diff)
-      
         rep = CartesianRepresentation(x = penu[0],
                 y = penu[1],
                 z = penu[2],
@@ -121,13 +116,13 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
     return uvw_frame.realize_frame(rep)
 
 @frame_transform_graph.transform(FunctionTransform, UVW, ITRS)
-def uvw_to_itrs(uvw_coo, itrs_frame):    
+def uvw_to_itrs(uvw_coo, itrs_frame):
     lon, lat, height = uvw_coo.location.to_geodetic('WGS84')
     lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_coo.location,obstime=uvw_coo.obstime).transform_to(ICRS).ra
     ha = (lst - uvw_coo.phase.ra).to(u.radian).value
     dec = uvw_coo.phase.dec.to(u.radian).value
     lonrad = lon.to(u.radian).value - ha
-    latrad = dec  
+    latrad = dec
     sinlat = np.sin(latrad)
     coslat = np.cos(latrad)
     sinlon = np.sin(lonrad)
@@ -156,8 +151,6 @@ def uvw_to_itrs(uvw_coo, itrs_frame):
                 z = p[2],
                 copy=False)
     return itrs_frame.realize_frame(rep)
-    
 @frame_transform_graph.transform(FunctionTransform, UVW, UVW)
 def uvw_to_uvw(from_coo, to_frame):
     return from_coo.transform_to(ITRS(obstime=from_coo.obstime)).transform_to(to_frame)
-
