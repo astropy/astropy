@@ -986,7 +986,7 @@ def test_uvw_frame():
     ra = lst - ha
     dec = 0*u.deg
     phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
-    uvw = UVW(obstime=time,location=loc,phase=phaseTrack)
+    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
     U = ac.SkyCoord(1*u.m,0*u.m,0*u.m,frame=uvw).transform_to(enu)
     V = ac.SkyCoord(0*u.m,1*u.m,0*u.m,frame=uvw).transform_to(enu)
     W = ac.SkyCoord(0*u.m,0*u.m,1*u.m,frame=uvw).transform_to(enu)
