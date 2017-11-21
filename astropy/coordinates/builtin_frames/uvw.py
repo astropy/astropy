@@ -54,8 +54,8 @@ class UVW(BaseCoordinateFrame):
     It enables simple transformation between various other frames and the observers frame during the radio synthesis.
     It enables easily calculating elevation of a field with e.g.
 
-    >>> coord = SkyCoord(ra=..., dec=..., frame=UVW(location=..., obstime=..., phase=...))
-    >>> elevation = coord.transform_to(AltAz).alt
+    #>>> coord = astropy.coordinates.SkyCoord(ra=..., dec=..., frame=UVW(location=..., obstime=..., phase=...))
+    #>>> elevation = coord.transform_to(astropy.coordinates.AltAz).alt
 
     """
 
