@@ -388,7 +388,7 @@ def unique(input_table, keys=None, silent=False, keep='first'):
 
     Examples
     --------
-    >>> from astropy.table import Table
+    >>> from astropy.table import unique, Table
     >>> import numpy as np
     >>> table = Table(data=[[1,2,3,2,3,3],
     ... [2,3,4,5,4,6],
