@@ -532,11 +532,11 @@ class Time(ShapedLikeNDArray):
 
     @precision.setter
     def precision(self, val):
+        del self.cache
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
         self._time.precision = val
-        del self.cache
 
     @property
     def in_subfmt(self):
@@ -548,10 +548,10 @@ class Time(ShapedLikeNDArray):
 
     @in_subfmt.setter
     def in_subfmt(self, val):
+        del self.cache
         if not isinstance(val, str):
             raise ValueError('in_subfmt attribute must be a string')
         self._time.in_subfmt = val
-        del self.cache
 
     @property
     def out_subfmt(self):
@@ -562,10 +562,10 @@ class Time(ShapedLikeNDArray):
 
     @out_subfmt.setter
     def out_subfmt(self, val):
+        del self.cache
         if not isinstance(val, str):
             raise ValueError('out_subfmt attribute must be a string')
         self._time.out_subfmt = val
-        del self.cache
 
     @property
     def shape(self):
@@ -658,9 +658,11 @@ class Time(ShapedLikeNDArray):
         return self._time.mask
 
     def __setitem__(self, item, value):
+        # Any use of setitem results in immediate cache invalidation
+        del self.cache
+
         if value in (np.ma.masked, np.nan):
             self._time.jd2[item] = np.nan
-            del self.cache
             return
 
         # If there is a vector location then broadcast to the Time shape
@@ -697,8 +699,6 @@ class Time(ShapedLikeNDArray):
         value = getattr(value, self.scale)
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
-
-        del self.cache
 
     def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
@@ -1371,11 +1371,11 @@ class Time(ShapedLikeNDArray):
         return self._delta_ut1_utc
 
     def _set_delta_ut1_utc(self, val):
+        del self.cache
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         val = self._match_shape(val)
         self._delta_ut1_utc = val
-        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -1422,11 +1422,11 @@ class Time(ShapedLikeNDArray):
         return self._delta_tdb_tt
 
     def _set_delta_tdb_tt(self, val):
+        del self.cache
         if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
             val = val.to(u.second).value
         val = self._match_shape(val)
         self._delta_tdb_tt = val
-        del self.cache
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
