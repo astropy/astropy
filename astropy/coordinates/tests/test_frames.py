@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 from copy import deepcopy
 import numpy as np
 
 from ... import units as u
-from ...extern import six
-from ...tests.helper import (pytest, quantity_allclose as allclose,
+from ...tests.helper import (catch_warnings,
+                             pytest, quantity_allclose as allclose,
                              assert_quantity_allclose as assert_allclose)
 from ...utils import OrderedDescriptorContainer
-from .. import representation
-from ..representation import REPRESENTATION_CLASSES
+from ...utils.compat import NUMPY_LT_1_14
+from ...utils.exceptions import AstropyWarning
+from .. import representation as r
+from ..https://casa.nrao.edu/Memos/CoordConvention.pdfrepresentation import REPRESENTATION_CLASSES
 
 
 def setup_function(func):
@@ -26,18 +26,17 @@ def teardown_function(func):
 
 
 def test_frame_attribute_descriptor():
-    """ Unit tests of the FrameAttribute descriptor """
-    from ..baseframe import FrameAttribute
+    """ Unit tests of the Attribute descriptor """
+    from ..attributes import Attribute
 
-    @six.add_metaclass(OrderedDescriptorContainer)
-    class TestFrameAttributes(object):
-        attr_none = FrameAttribute()
-        attr_2 = FrameAttribute(default=2)
-        attr_3_attr2 = FrameAttribute(default=3, secondary_attribute='attr_2')
-        attr_none_attr2 = FrameAttribute(default=None, secondary_attribute='attr_2')
-        attr_none_nonexist = FrameAttribute(default=None, secondary_attribute='nonexist')
+    class TestAttributes(metaclass=OrderedDescriptorContainer):
+        attr_none = Attribute()
+        attr_2 = Attribute(default=2)
+        attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')
+        attr_none_attr2 = Attribute(default=None, secondary_attribute='attr_2')
+        attr_none_nonexist = Attribute(default=None, secondary_attribute='nonexist')
 
-    t = TestFrameAttributes()
+    t = TestAttributes()
 
     # Defaults
     assert t.attr_none is None
@@ -66,20 +65,21 @@ def test_frame_attribute_descriptor():
 
 def test_frame_subclass_attribute_descriptor():
     from ..builtin_frames import FK4
-    from ..baseframe import FrameAttribute, TimeFrameAttribute
+    from ..attributes import Attribute, TimeAttribute
     from astropy.time import Time
 
     _EQUINOX_B1980 = Time('B1980', scale='tai')
 
     class MyFK4(FK4):
         # equinox inherited from FK4, obstime overridden, and newattr is new
-        obstime = TimeFrameAttribute(default=_EQUINOX_B1980)
-        newattr = FrameAttribute(default='newattr')
+        obstime = TimeAttribute(default=_EQUINOX_B1980)
+        newattr = Attribute(default='newattr')
 
     mfk4 = MyFK4()
     assert mfk4.equinox.value == 'B1950.000'
     assert mfk4.obstime.value == 'B1980.000'
     assert mfk4.newattr == 'newattr'
+
     assert set(mfk4.get_frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
 
     mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')
@@ -91,11 +91,11 @@ def test_frame_subclass_attribute_descriptor():
 def test_create_data_frames():
     from ..builtin_frames import ICRS
 
-    #from repr
-    i1 = ICRS(representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
-    i2 = ICRS(representation.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
+    # from repr
+    i1 = ICRS(r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc))
+    i2 = ICRS(r.UnitSphericalRepresentation(lon=1*u.deg, lat=2*u.deg))
 
-    #from preferred name
+    # from preferred name
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
     i4 = ICRS(ra=1*u.deg, dec=2*u.deg)
 
@@ -106,7 +106,7 @@ def test_create_data_frames():
     assert i2.data.lat == i4.data.lat
     assert i2.data.lon == i4.data.lon
 
-    #now make sure the preferred names work as properties
+    # now make sure the preferred names work as properties
     assert_allclose(i1.ra, i3.ra)
     assert_allclose(i2.ra, i4.ra)
     assert_allclose(i1.distance, i3.distance)
@@ -136,7 +136,7 @@ def test_create_orderered_data():
         ICRS(1*u.deg, 2*u.deg, 1*u.deg, 2*u.deg)
 
     with pytest.raises(TypeError):
-        sph = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+        sph = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
         ICRS(sph, 1*u.deg, 2*u.deg)
 
 
@@ -152,9 +152,10 @@ def test_create_nodata_frames():
     f4 = FK4()
     assert f4.equinox == FK4.get_frame_attr_names()['equinox']
 
-    #obstime is special because it's a property that uses equinox if obstime is not set
+    # obstime is special because it's a property that uses equinox if obstime is not set
     assert f4.obstime in (FK4.get_frame_attr_names()['obstime'],
                           FK4.get_frame_attr_names()['equinox'])
+
 
 def test_no_data_nonscalar_frames():
     from ..builtin_frames import AltAz
@@ -183,18 +184,42 @@ def test_frame_repr():
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    ( 1.,  2.)>')
+                        '    ({})>').format(' 1.,  2.' if NUMPY_LT_1_14
+                                             else '1., 2.')
     assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    ( 1.,  2.,  3.)>')
+                        '    ({})>').format(' 1.,  2.,  3.' if NUMPY_LT_1_14
+                                            else '1., 2., 3.')
 
     # try with arrays
-    i2 = ICRS(ra=[1.1,2.1]*u.deg, dec=[2.1,3.1]*u.deg)
-    i3 = ICRS(ra=[1.1,2.1]*u.deg, dec=[-15.6,17.1]*u.deg, distance=[11.,21.]*u.kpc)
+    i2 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[2.1, 3.1]*u.deg)
+    i3 = ICRS(ra=[1.1, 2.1]*u.deg, dec=[-15.6, 17.1]*u.deg, distance=[11., 21.]*u.kpc)
 
     assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
-                        '    [( 1.1,  2.1), ( 2.1,  3.1)]>')
-    assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
-                        '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+                        '    [{}]>').format('( 1.1,  2.1), ( 2.1,  3.1)'
+                                            if NUMPY_LT_1_14 else
+                                            '(1.1, 2.1), (2.1, 3.1)')
+
+    if NUMPY_LT_1_14:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [( 1.1, -15.6,  11.), ( 2.1,  17.1,  21.)]>')
+    else:
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [(1.1, -15.6, 11.), (2.1,  17.1, 21.)]>')
+
+
+def test_frame_repr_vels():
+    from ..builtin_frames import ICRS
+
+    i = ICRS(ra=1*u.deg, dec=2*u.deg,
+             pm_ra_cosdec=1*u.marcsec/u.yr, pm_dec=2*u.marcsec/u.yr)
+
+    # unit comes out as mas/yr because of the preferred units defined in the
+    # frame RepresentationMapping
+    assert repr(i) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                       '    ({0})\n'
+                       ' (pm_ra_cosdec, pm_dec) in mas / yr\n'
+                       '    ({0})>').format(' 1.,  2.' if NUMPY_LT_1_14 else
+                                            '1., 2.')
 
 
 def test_converting_units():
@@ -208,9 +233,9 @@ def test_converting_units():
 
     # Use values that aren't subject to rounding down to X.9999...
     i2 = ICRS(ra=2.*u.deg, dec=2.*u.deg)
-    i2_many = ICRS(ra=[2.,4.]*u.deg, dec=[2.,-8.1]*u.deg)
+    i2_many = ICRS(ra=[2., 4.]*u.deg, dec=[2., -8.1]*u.deg)
 
-    #converting from FK5 to ICRS and back changes the *internal* representation,
+    # converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
     i4 = i2.transform_to(FK5).transform_to(ICRS)
@@ -227,7 +252,7 @@ def test_converting_units():
     assert ri2_many == ri4_many
     assert i2_many.data.lon.unit != i4_many.data.lon.unit  # Internal repr changed
 
-    #but that *shouldn't* hold if we turn off units for the representation
+    # but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         frame_specific_representation_info = {
             'spherical': {'names': ('ra', 'dec', 'distance'),
@@ -262,7 +287,7 @@ def test_realizing():
     from ..builtin_frames import ICRS, FK5
     from ...time import Time
 
-    rep = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+    rep = r.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
 
     i = ICRS()
     i2 = i.realize_frame(rep)
@@ -279,11 +304,41 @@ def test_realizing():
     assert f2.equinox == f.equinox
     assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
+    # Check that a nicer error message is returned:
+    with pytest.raises(TypeError) as excinfo:
+        f.realize_frame(f.representation)
+
+    assert ('Class passed as data instead of a representation' in
+            excinfo.value.args[0])
+
+def test_replicating():
+    from ..builtin_frames import ICRS, AltAz
+    from ...time import Time
+
+    i = ICRS(ra=[1]*u.deg, dec=[2]*u.deg)
+
+    icopy = i.replicate(copy=True)
+    irepl = i.replicate(copy=False)
+    i.data._lat[:] = 0*u.deg
+    assert np.all(i.data.lat == irepl.data.lat)
+    assert np.all(i.data.lat != icopy.data.lat)
+
+    iclone = i.replicate_without_data()
+    assert i.has_data
+    assert not iclone.has_data
+
+    aa = AltAz(alt=1*u.deg, az=2*u.deg, obstime=Time('J2000'))
+    aaclone = aa.replicate_without_data(obstime=Time('J2001'))
+    assert not aaclone.has_data
+    assert aa.obstime != aaclone.obstime
+    assert aa.pressure == aaclone.pressure
+    assert aa.obswl == aaclone.obswl
+
 
 def test_getitem():
     from ..builtin_frames import ICRS
 
-    rep = representation.SphericalRepresentation(
+    rep = r.SphericalRepresentation(
         [1, 2, 3]*u.deg, [4, 5, 6]*u.deg, [7, 8, 9]*u.kpc)
 
     i = ICRS(rep)
@@ -294,6 +349,7 @@ def test_getitem():
 
     iidx2 = i[0]
     assert iidx2.ra.isscalar
+
 
 def test_transform():
     """
@@ -307,29 +363,26 @@ def test_transform():
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ == representation.UnitSphericalRepresentation
+    assert i2.data.__class__ == r.UnitSphericalRepresentation
 
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
-
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
     f = i.transform_to(FK5)
     i2 = f.transform_to(ICRS)
 
-    assert i2.data.__class__ != representation.UnitSphericalRepresentation
-
+    assert i2.data.__class__ != r.UnitSphericalRepresentation
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
     f4 = f.transform_to(FK4)
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
-    #make sure attributes are copied over correctly
+    # make sure attributes are copied over correctly
     assert f4.equinox == FK4.get_frame_attr_names()['equinox']
     assert f4_2.equinox == f.equinox
 
-
-    #make sure self-transforms also work
+    # make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     i2 = i.transform_to(ICRS)
 
@@ -344,8 +397,7 @@ def test_transform():
     with pytest.raises(AssertionError):
         assert_allclose(f.dec, f2.dec)
 
-
-    #finally, check Galactic round-tripping
+    # finally, check Galactic round-tripping
     i1 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     i2 = i1.transform_to(Galactic).transform_to(ICRS)
 
@@ -357,7 +409,7 @@ def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
     from ..builtin_frames import ICRS, FK5
     from ...time import Time
-    times = Time('2016-08-23') + np.linspace(0,10,12)*u.day
+    times = Time('2016-08-23') + np.linspace(0, 10, 12)*u.day
     coo1 = ICRS(ra=[[0.], [10.], [20.]]*u.deg,
                 dec=[[-30.], [30.], [60.]]*u.deg)
     coo2 = coo1.transform_to(FK5(equinox=times))
@@ -379,6 +431,16 @@ def test_sep():
     sep3d = i3.separation_3d(i4)
     assert_allclose(sep3d.to(u.kpc), np.array([1, 1])*u.kpc)
 
+    # check that it works even with velocities
+    i5 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc,
+              pm_ra_cosdec=[1, 2]*u.mas/u.yr, pm_dec=[3, 4]*u.mas/u.yr,
+              radial_velocity=[5, 6]*u.km/u.s)
+    i6 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[7, 8]*u.kpc,
+              pm_ra_cosdec=[1, 2]*u.mas/u.yr, pm_dec=[3, 4]*u.mas/u.yr,
+              radial_velocity=[5, 6]*u.km/u.s)
+
+    sep3d = i5.separation_3d(i6)
+    assert_allclose(sep3d.to(u.kpc), np.array([2, 2])*u.kpc)
 
 def test_time_inputs():
     """
@@ -401,7 +463,7 @@ def test_time_inputs():
 
     # A vector time should work if the shapes match, but we don't automatically
     # broadcast the basic data (just like time).
-    FK4([1, 2]* u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
+    FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
     with pytest.raises(ValueError) as err:
         FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
     assert 'shape' in str(err)
@@ -425,8 +487,8 @@ def test_is_frame_attr_default():
     assert not c2.is_frame_attr_default('equinox')
     assert not c3.is_frame_attr_default('equinox')
 
-    c4 = c1.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
-    c5 = c2.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c4 = c1.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c5 = c2.realize_frame(r.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
 
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
@@ -462,9 +524,9 @@ def test_representation():
     icrs_spher = icrs.spherical
 
     # Testing when `_representation` set to `CartesianRepresentation`.
-    icrs.representation = representation.CartesianRepresentation
+    icrs.representation = r.CartesianRepresentation
 
-    assert icrs.representation == representation.CartesianRepresentation
+    assert icrs.representation == r.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
@@ -477,15 +539,15 @@ def test_representation():
         assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
-    icrs.representation = representation.CylindricalRepresentation
+    icrs.representation = r.CylindricalRepresentation
 
-    assert icrs.representation == representation.CylindricalRepresentation
+    assert icrs.representation == r.CylindricalRepresentation
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
 
-    assert icrs.representation is representation.SphericalRepresentation
+    assert icrs.representation is r.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -500,7 +562,7 @@ def test_representation():
     # Testing setter input using text argument for cylindrical.
     icrs.representation = 'cylindrical'
 
-    assert icrs.representation is representation.CylindricalRepresentation
+    assert icrs.representation is r.CylindricalRepresentation
     assert icrs.data == data
 
     with pytest.raises(ValueError) as err:
@@ -518,11 +580,58 @@ def test_represent_as():
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
 
     cart1 = icrs.represent_as('cartesian')
-    cart2 = icrs.represent_as(representation.CartesianRepresentation)
+    cart2 = icrs.represent_as(r.CartesianRepresentation)
 
     cart1.x == cart2.x
     cart1.y == cart2.y
     cart1.z == cart2.z
+
+    # now try with velocities
+    icrs = ICRS(ra=0*u.deg, dec=0*u.deg, distance=10*u.kpc,
+                pm_ra_cosdec=0*u.mas/u.yr, pm_dec=0*u.mas/u.yr,
+                radial_velocity=1*u.km/u.s)
+
+    # single string
+    rep2 = icrs.represent_as('cylindrical')
+    assert isinstance(rep2, r.CylindricalRepresentation)
+    assert isinstance(rep2.differentials['s'], r.CylindricalDifferential)
+
+    # single class with positional in_frame_units, verify that warning raised
+    with catch_warnings() as w:
+        icrs.represent_as(r.CylindricalRepresentation, False)
+        assert len(w) == 1
+        assert w[0].category == AstropyWarning
+        assert 'argument position' in str(w[0].message)
+
+    # TODO: this should probably fail in the future once we figure out a better
+    # workaround for dealing with UnitSphericalRepresentation's with
+    # RadialDifferential's
+    # two classes
+    # rep2 = icrs.represent_as(r.CartesianRepresentation,
+    #                          r.SphericalCosLatDifferential)
+    # assert isinstance(rep2, r.CartesianRepresentation)
+    # assert isinstance(rep2.differentials['s'], r.SphericalCosLatDifferential)
+
+    with pytest.raises(ValueError):
+        icrs.represent_as('odaigahara')
+
+
+def test_shorthand_representations():
+    from ..builtin_frames import ICRS
+
+    rep = r.CartesianRepresentation([1, 2, 3]*u.pc)
+    dif = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
+    rep = rep.with_differentials(dif)
+
+    icrs = ICRS(rep)
+
+    sph = icrs.spherical
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalDifferential)
+
+    sph = icrs.sphericalcoslat
+    assert isinstance(sph, r.SphericalRepresentation)
+    assert isinstance(sph.differentials['s'], r.SphericalCosLatDifferential)
 
 
 def test_dynamic_attrs():
@@ -542,6 +651,7 @@ def test_dynamic_attrs():
     c.blahblah = 1
     assert c.blahblah == 1
 
+
 def test_nodata_error():
     from ..builtin_frames import ICRS
 
@@ -551,6 +661,7 @@ def test_nodata_error():
 
     assert 'does not have associated data' in str(excinfo.value)
 
+
 def test_len0_data():
     from ..builtin_frames import ICRS
 
@@ -558,32 +669,34 @@ def test_len0_data():
     assert i.has_data
     repr(i)
 
+
 def test_quantity_attributes():
     from ..builtin_frames import GCRS
 
-    #make sure we can create a GCRS frame with valid inputs
+    # make sure we can create a GCRS frame with valid inputs
     GCRS(obstime='J2002', obsgeoloc=[1, 2, 3]*u.km, obsgeovel=[4, 5, 6]*u.km/u.s)
 
-    #make sure it fails for invalid lovs or vels
+    # make sure it fails for invalid lovs or vels
     with pytest.raises(TypeError):
-        GCRS(obsgeoloc=[1, 2, 3])  #no unit
+        GCRS(obsgeoloc=[1, 2, 3])  # no unit
     with pytest.raises(u.UnitsError):
-        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  #incorrect unit
+        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  # incorrect unit
     with pytest.raises(ValueError):
-        GCRS(obsgeoloc=[1, 3]*u.km)  #incorrect shape
+        GCRS(obsgeoloc=[1, 3]*u.km)  # incorrect shape
+
 
 def test_eloc_attributes():
     from .. import AltAz, ITRS, GCRS, EarthLocation
 
     el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
-    it = ITRS(representation.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
+    it = ITRS(r.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
     gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
 
     el1 = AltAz(location=el).location
     assert isinstance(el1, EarthLocation)
     # these should match *exactly* because the EarthLocation
-    assert el1.latitude == el.latitude
-    assert el1.longitude == el.longitude
+    assert el1.lat == el.lat
+    assert el1.lon == el.lon
     assert el1.height == el.height
 
     el2 = AltAz(location=it).location
@@ -594,16 +707,16 @@ def test_eloc_attributes():
     # only along the z-axis), but latitude should not. Also, height is relative
     # to the *surface* in EarthLocation, but the ITRS distance is relative to
     # the center of the Earth
-    assert not allclose(el2.latitude, it.spherical.lat)
-    assert allclose(el2.longitude, it.spherical.lon)
+    assert not allclose(el2.lat, it.spherical.lat)
+    assert allclose(el2.lon, it.spherical.lon)
     assert el2.height < -6000*u.km
 
     el3 = AltAz(location=gc).location
     # GCRS inputs implicitly get transformed to ITRS and then onto
     # EarthLocation's elliptical geoid. So both lat and lon shouldn't match
     assert isinstance(el3, EarthLocation)
-    assert not allclose(el3.latitude, gc.dec)
-    assert not allclose(el3.longitude, gc.ra)
+    assert not allclose(el3.lat, gc.dec)
+    assert not allclose(el3.lon, gc.ra)
     assert np.abs(el3.height) < 500*u.km
 
 
@@ -648,30 +761,32 @@ def test_representation_subclass():
     # Normally when instantiating a frame without a distance the frame will try
     # and use UnitSphericalRepresentation internally instead of
     # SphericalRepresentation.
-    frame = FK5(representation=representation.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
-    assert frame.representation == representation.SphericalRepresentation
+    frame = FK5(representation=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    assert type(frame._data) == r.UnitSphericalRepresentation
+    assert frame.representation == r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
-    class NewSphericalRepresentation(representation.SphericalRepresentation):
-        attr_classes = representation.SphericalRepresentation.attr_classes
+    class NewSphericalRepresentation(r.SphericalRepresentation):
+        attr_classes = r.SphericalRepresentation.attr_classes
 
     frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
-    assert type(frame._data) == representation.UnitSphericalRepresentation
+    assert type(frame._data) == r.UnitSphericalRepresentation
     assert frame.representation == NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
     assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
-                           "    ( 32.,  20.)>")
+                           "    ({})>").format(' 32.,  20.' if NUMPY_LT_1_14
+                                               else '32., 20.')
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and
     # SphericalRepresentation or a subclass for the representation.
 
-    class NewUnitSphericalRepresentation(representation.UnitSphericalRepresentation):
-        attr_classes = representation.UnitSphericalRepresentation.attr_classes
+    class NewUnitSphericalRepresentation(r.UnitSphericalRepresentation):
+        attr_classes = r.UnitSphericalRepresentation.attr_classes
+
         def __repr__(self):
             return "<NewUnitSphericalRepresentation: spam spam spam>"
 
@@ -689,7 +804,7 @@ def test_getitem_representation():
     from ..builtin_frames import ICRS
     c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
     c.representation = 'cartesian'
-    assert c[0].representation is representation.CartesianRepresentation
+    assert c[0].representation is r.CartesianRepresentation
 
 
 def test_component_error_useful():
@@ -770,3 +885,112 @@ def test_inplace_change():
     # This will use a second (potentially cached rep)
     assert i.ra == 10 * u.deg
     assert i.dec == 2 * u.deg
+
+
+def test_representation_with_multiple_differentials():
+    from ..builtin_frames import ICRS
+
+    dif1 = r.CartesianDifferential([1, 2, 3]*u.km/u.s)
+    dif2 = r.CartesianDifferential([1, 2, 3]*u.km/u.s**2)
+    rep = r.CartesianRepresentation([1, 2, 3]*u.pc,
+                                    differentials={'s': dif1, 's2': dif2})
+
+    # check warning is raised for a scalar
+    with pytest.raises(ValueError):
+        ICRS(rep)
+
+def test_enu_frame():
+    from ... import time as at
+    from ... import units as u
+    from ... import coordinates as ac
+
+    time = at.Time("2017-01-26T17:07:00.000",format='isot',scale='utc')
+    loc = ac.EarthLocation(lon=10*u.deg,lat=0*u.deg,height=0*u.km)
+    enu = ac.ENU(location=loc,obstime=time)
+#    print("With dim test:")
+    enucoords = ac.SkyCoord(east = np.array([0,1])*u.m,
+                            north=np.array([0,1])*u.m,
+                            up=np.array([0,1])*u.m,frame=enu)
+#    print (enucoords)
+    #enucoords.transform_to('itrs')
+    c2 = enucoords.transform_to('itrs').transform_to(enu)
+    assert np.all(np.isclose(enucoords.cartesian.xyz.value, c2.cartesian.xyz.value))
+
+#    print("Without dim test:")
+    enucoords = ac.SkyCoord(east = np.array([0,1]),
+                            north=np.array([0,1]),
+                            up=np.array([0,1]),frame=enu)
+    #print(enucoords.transform_to('itrs'))
+    c2 = enucoords.transform_to('itrs').transform_to(enu)
+    assert np.all(np.isclose(enucoords.cartesian.xyz.value, c2.cartesian.xyz.value))
+
+
+
+
+def test_uvw_frame():
+    """Test the UVW frame by ensuring it meets the conventions defined in:
+    https://casa.nrao.edu/Memos/CoordConvention.pdf
+    """
+    from ... import time as at
+    from ... import units as u
+    from ... import coordinates as ac
+
+    def compVectors(a,b):
+        a = a.cartesian.xyz.value
+        a /= np.linalg.norm(a)
+        b = b.cartesian.xyz.value
+        b /= np.linalg.norm(b)
+        h = np.linalg.norm(a-b)
+        return h < 1e-8
+    # with X - East, Z - NCP and Y - Down
+    time = at.Time("2017-01-26T17:07:00.000",format='isot',scale='utc')
+    loc = ac.EarthLocation(lon=10*u.deg,lat=10*u.deg,height=0*u.km)
+    enu = ac.ENU(location=loc,obstime=time)
+    x = ac.SkyCoord(1,0,0,frame=enu)
+    z = ac.SkyCoord(0,np.cos(loc.geodetic[1].rad),np.sin(loc.geodetic[1].rad),frame=enu)
+    #ncp = ac.SkyCoord(0*u.one,0*u.one,1*u.one,frame='itrs').transform_to(enu)
+    y = ac.SkyCoord(0,np.sin(loc.geodetic[1].rad),-np.cos(loc.geodetic[1].rad),frame=enu)
+    lst = ac.AltAz(alt=90*u.deg,az=0*u.deg,location=loc,obstime=time).transform_to(ac.ICRS).ra
+    #ha = lst - ra
+    print("a) when ha=0,dec=90  uvw aligns with xyz")
+    ha = 0*u.deg
+    ra = lst - ha
+    dec = 90*u.deg
+    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
+    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
+    U = ac.SkyCoord(1,0,0,frame=uvw).transform_to(enu)
+    V = ac.SkyCoord(0,1,0,frame=uvw).transform_to(enu)
+    W = ac.SkyCoord(0,0,1,frame=uvw).transform_to(enu)
+    assert compVectors(U,x),"fail test a, u != x"
+    assert compVectors(V,y),"fail test a, v != y"
+    assert compVectors(W,z),"fail test a, w != z"
+    #print("passed a")
+    #print("b) v, w, z are always on great circle")
+    assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
+    #print("passed b")
+    #print("c) when ha = 0 U points east")
+    ha = 0*u.deg
+    ra = lst - ha
+    dec = 35*u.deg
+    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
+    uvw = ac.UVW(obstime=time,location=loc,phase=phaseTrack)
+    U = ac.SkyCoord(1*u.m,0*u.m,0*u.m,frame=uvw).transform_to(enu)
+    V = ac.SkyCoord(0*u.m,1*u.m,0*u.m,frame=uvw).transform_to(enu)
+    W = ac.SkyCoord(0*u.m,0*u.m,1*u.m,frame=uvw).transform_to(enu)
+    assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
+    east = ac.SkyCoord(1,0,0,frame=enu)
+    assert compVectors(U,east),"fail test c, u != east"
+    #print("passed c")
+    #print("d) when dec=0 and ha = -6 w points east")
+    ha = -6*u.hourangle
+    ra = lst - ha
+    dec = 0*u.deg
+    phaseTrack = ac.SkyCoord(ra,dec,frame=ac.ICRS)
+    uvw = UVW(obstime=time,location=loc,phase=phaseTrack)
+    U = ac.SkyCoord(1*u.m,0*u.m,0*u.m,frame=uvw).transform_to(enu)
+    V = ac.SkyCoord(0*u.m,1*u.m,0*u.m,frame=uvw).transform_to(enu)
+    W = ac.SkyCoord(0*u.m,0*u.m,1*u.m,frame=uvw).transform_to(enu)
+    assert np.cross(V.cartesian.xyz.value,W.cartesian.xyz.value).dot(z.cartesian.xyz.value) < 1e-10, "Not on the great circle"
+    assert compVectors(W,east),"fail test d, w != east"
+    #print("passed d")
+

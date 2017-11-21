@@ -24,19 +24,24 @@ imported.  Placing the trasnformation functions in separate modules avoids
 circular dependencies, because they need references to the frame classes.
 """
 
+from .baseradec import BaseRADecFrame
 from .icrs import ICRS
 from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
 from .galactocentric import Galactocentric
+from .lsr import LSR, GalacticLSR
 from .supergalactic import Supergalactic
 from .altaz import AltAz
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 from .hcrs import HCRS
-from .ecliptic import GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic
+from .ecliptic import (GeocentricTrueEcliptic, BarycentricTrueEcliptic,
+                       HeliocentricTrueEcliptic, BaseEclipticFrame)
 from .skyoffset import SkyOffsetFrame
+from .enu import ENU
+from .uvw import UVW
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -52,7 +57,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
            'PrecessedGeocentric', 'GeocentricTrueEcliptic',
            'BarycentricTrueEcliptic', 'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame']
+           'SkyOffsetFrame', 'GalacticLSR', 'LSR',
+           'BaseEclipticFrame', 'BaseRADecFrame', 'ENU', 'UVW']
 
 
 def _make_transform_graph_docs():
@@ -62,13 +68,16 @@ def _make_transform_graph_docs():
     """
     import inspect
     from textwrap import dedent
-    from ...extern import six
     from ..baseframe import BaseCoordinateFrame, frame_transform_graph
 
     isclass = inspect.isclass
-    coosys = [item for item in six.itervalues(globals())
+    coosys = [item for item in globals().values()
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
-    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
+
+    # currently, all of the priorities are set to 1, so we don't need to show
+    #   then in the transform graph.
+    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys,
+                                                  priorities=False)
 
     docstr = """
     The diagram below shows all of the coordinate systems built into the
@@ -79,16 +88,41 @@ def _make_transform_graph_docs():
     between these systems, but the pre-defined transformations should be
     sufficient for typical usage.
 
-    The graph also indicates the priority for each transformation as a
-    number next to the arrow.  These priorities are used to decide the
-    preferred order when two transformation paths have the same number
-    of steps.  These priorities are defined such that the path with a
-    *smaller* total priority is favored.
+    The color of an edge in the graph (i.e. the transformations between two
+    frames) is set by the type of transformation; the legend box defines the
+    mapping from transform class name to color.
 
 
     .. graphviz::
 
     """
 
-    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+
+    # colors are in dictionary at the bottom of transformations.py
+    from ..transformations import trans_to_color
+    html_list_items = []
+    for cls, color in trans_to_color.items():
+        block = u"""
+            <li style='list-style: none;'>
+                <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
+                    <b>{0}:</b>
+                    <span style="font-size: 24px; color: {1};"><b>➝</b></span>
+                </p>
+            </li>
+        """.format(cls.__name__, color)
+        html_list_items.append(block)
+
+    graph_legend = u"""
+    .. raw:: html
+
+        <ul>
+            {}
+        </ul>
+    """.format("\n".join(html_list_items))
+    docstr = docstr + dedent(graph_legend)
+
+    return docstr
+
+
 _transform_graph_docs = _make_transform_graph_docs()

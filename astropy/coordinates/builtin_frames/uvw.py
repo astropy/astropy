@@ -3,23 +3,24 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 import astropy.units as u
-import astropy.time as at
 
-from astropy.coordinates.baseframe import (BaseCoordinateFrame, RepresentationMapping,                               frame_transform_graph)
+from astropy.coordinates.baseframe import (BaseCoordinateFrame, 
+                         RepresentationMapping, frame_transform_graph)
 
-from astropy.coordinates.attributes import (TimeAttribute, EarthLocationAttribute)
+from astropy.coordinates.attributes import (CoordinateAttribute,
+                         TimeAttribute, EarthLocationAttribute)
 
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates.representation import (SphericalRepresentation,
                               UnitSphericalRepresentation,CartesianRepresentation)
-from . import ITRS
+from . import (ITRS,ICRS,AltAz)
 
-class ENU(BaseCoordinateFrame):
+class UVW(BaseCoordinateFrame):
     """
-    A coordinate or frame in the East-North-Up (ENU) system.  
+    A coordinate or frame in the UVW system, the conventional radio astronomy frame.  
 
     This frame has the following frame attributes, which are necessary for
-    transforming from ENU to some other system:
+    transforming from UVW to some other system:
 
     * ``obstime``
         The time at which the observation is taken.  Used for determining the
@@ -28,57 +29,70 @@ class ENU(BaseCoordinateFrame):
         The location on the Earth.  This can be specified either as an
         `~astropy.coordinates.EarthLocation` object or as anything that can be
         transformed to an `~astropy.coordinates.ITRS` frame.
+    * ``phase``
+        The phase tracking center of the frame.  This can be specified either as an
+        (ra,dec) `~astropy.units.Qunatity` or as anything that can be
+        transformed to an `~astropy.coordinates.ICRS` frame.
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    east : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The east coordinate for this object (``north`` and ``up`` must also be given and
+    u : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The u coordinate for this object (``v`` and ``w`` must also be given and
         ``representation`` must be None).
-    north : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The north coordinate for this object (``east`` and ``up`` must also be given and
+    v : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The v coordinate for this object (``u`` and ``w`` must also be given and
         ``representation`` must be None).
-    up : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The up coordinate for this object (``north`` and ``east`` must also be given and
+    w : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The w coordinate for this object (``u`` and ``v`` must also be given and
         ``representation`` must be None).
 
     Notes
     -----
-    This is useful as an intermediate frame between ITRS and UVW for radio astronomy, and also as a observing frame.
+    This is useful for radio astronomers.
+    It enables simple transformation between various other frames and the observers frame during the radio synthesis.
+    It enables easily calculating elevation of a field with e.g.
+
+    >>> coord = SkyCoord(ra=..., dec=..., frame=UVW(location=..., obstime=..., phase=...))
+    >>> elevation = coord.transform_to(AltAz).alt
 
     """
 
     frame_specific_representation_info = {
-        'cartesian': [RepresentationMapping('x', 'east'),
-                      RepresentationMapping('y', 'north'),
-                     RepresentationMapping('z','up')],
+        'cartesian': [RepresentationMapping('x', 'u'),
+                      RepresentationMapping('y', 'v'),
+                     RepresentationMapping('z','w')],
     }
     
     default_representation = CartesianRepresentation
 
-    obstime = TimeAttribute(default=None)#at.Time("2000-01-01T00:00:00.000",format="isot",scale="tai"))
+    obstime = TimeAttribute(default=None)
     location = EarthLocationAttribute(default=None)
+    phase = CoordinateAttribute(ICRS,default=None)
 
     def __init__(self, *args, **kwargs):
-        super(ENU, self).__init__(*args, **kwargs)
-
-@frame_transform_graph.transform(FunctionTransform, ITRS, ENU)
-def itrs_to_enu(itrs_coo, enu_frame):
-    '''Defines the transformation between ITRS and the ENU frame.
-    ITRS usually has units attached but ENU does not require units 
-    if it specifies a direction.'''
+        super(UVW, self).__init__(*args, **kwargs)
+ 
+@frame_transform_graph.transform(FunctionTransform, ITRS, UVW)
+def itrs_to_uvw(itrs_coo, uvw_frame):
+    '''Defines the transformation between ITRS and the UVW frame.'''
     
-    #if np.any(itrs_coo.obstime != enu_frame.obstime):
-    #    itrs_coo = itrs_coo.transform_to(ITRS(obstime=enu_frame.obstime))
+    #if np.any(itrs_coo.obstime != uvw_frame.obstime):
+    #    itrs_coo = itrs_coo.transform_to(ITRS(obstime=uvw_frame.obstime))
         
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(itrs_coo.data, UnitSphericalRepresentation) or
                         itrs_coo.cartesian.x.unit == u.one)
     
-    lon, lat, height = enu_frame.location.to_geodetic('WGS84')
-    lonrad = lon.to(u.radian).value
-    latrad = lat.to(u.radian).value
+    lon, lat, height = uvw_frame.location.to_geodetic('WGS84')
+    #local sidereal time
+    lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_frame.location,obstime=uvw_frame.obstime).transform_to(ICRS).ra
+    #hour angle
+    ha = (lst - uvw_frame.phase.ra).to(u.radian).value
+    dec = uvw_frame.phase.dec.to(u.radian).value
+    lonrad = lon.to(u.radian).value - ha
+    latrad = dec 
     sinlat = np.sin(latrad)
     coslat = np.cos(latrad)
     sinlon = np.sin(lonrad)
@@ -102,7 +116,7 @@ def itrs_to_enu(itrs_coo, enu_frame):
                                      copy=False)
     else:
         p = itrs_coo.cartesian.xyz
-        p0 = ITRS(*enu_frame.location.geocentric,obstime=enu_frame.obstime).cartesian.xyz
+        p0 = ITRS(*uvw_frame.location.geocentric,obstime=uvw_frame.obstime).cartesian.xyz
         diff = (p.T-p0).T
         penu = R.dot(diff)
       
@@ -111,21 +125,21 @@ def itrs_to_enu(itrs_coo, enu_frame):
                                      z = penu[2],#u.Quantity(penu[2],u.m,copy=False),
                                      copy=False)
 
-    return enu_frame.realize_frame(rep)
+    return uvw_frame.realize_frame(rep)
 
-
-@frame_transform_graph.transform(FunctionTransform, ENU, ITRS)
-def enu_to_itrs(enu_coo, itrs_frame):
-    #p = itrs_frame.cartesian.xyz.to(u.m).value
-    #p0 = np.array(enu_coo.location.to(u.m).value)
-    #p = np.array(itrs_frame.location.to(u.m).value)
+@frame_transform_graph.transform(FunctionTransform, UVW, ITRS)
+def uvw_to_itrs(uvw_coo, itrs_frame):    
+    lon, lat, height = uvw_coo.location.to_geodetic('WGS84')
+    lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_coo.location,obstime=uvw_coo.obstime).transform_to(ICRS).ra
+    ha = (lst - uvw_coo.phase.ra).to(u.radian).value
+    dec = uvw_coo.phase.dec.to(u.radian).value
+    lonrad = lon.to(u.radian).value - ha
+    latrad = dec  
+    sinlat = np.sin(latrad)
+    coslat = np.cos(latrad)
+    sinlon = np.sin(lonrad)
+    coslon = np.cos(lonrad)
     
-    
-    lon, lat, height = enu_coo.location.to_geodetic('WGS84')
-    sinlat = np.sin(lat.to(u.radian).value)
-    coslat = np.cos(lat.to(u.radian).value)
-    sinlon = np.sin(lon.to(u.radian).value)
-    coslon = np.cos(lon.to(u.radian).value)
     north = [-sinlat*coslon,
                       -sinlat*sinlon,
                       coslat]
@@ -133,16 +147,16 @@ def enu_to_itrs(enu_coo, itrs_frame):
     up = [coslat*coslon,coslat*sinlon,sinlat]
     R = np.array([east,north,up])
     
-    if isinstance(enu_coo.data, UnitSphericalRepresentation) or enu_coo.cartesian.x.unit == u.one:
-        diff = R.T.dot(enu_coo.cartesian.xyz)
+    if isinstance(uvw_coo.data, UnitSphericalRepresentation) or uvw_coo.cartesian.x.unit == u.one:
+        diff = R.T.dot(uvw_coo.cartesian.xyz)
         p = diff
         rep = CartesianRepresentation(x = u.Quantity(p[0],u.one,copy=False),
                                      y = u.Quantity(p[1],u.one,copy=False),
                                      z = u.Quantity(p[2],u.one,copy=False),
                                      copy=False)
     else:
-        diff = R.T.dot(enu_coo.cartesian.xyz)
-        p0 = ITRS(*enu_coo.location.geocentric,obstime=enu_coo.obstime).cartesian.xyz
+        diff = R.T.dot(uvw_coo.cartesian.xyz)
+        p0 = ITRS(*uvw_coo.location.geocentric,obstime=uvw_coo.obstime).cartesian.xyz
         #print (R,diff)
         p = (diff.T + p0).T
         #print (p)
@@ -152,9 +166,9 @@ def enu_to_itrs(enu_coo, itrs_frame):
                                      copy=False)
 
     return itrs_frame.realize_frame(rep)
-     
-@frame_transform_graph.transform(FunctionTransform, ENU, ENU)
-def enu_to_enu(from_coo, to_frame):
+    
+@frame_transform_graph.transform(FunctionTransform, UVW, UVW)
+def uvw_to_uvw(from_coo, to_frame):
     # for now we just implement this through ITRS to make sure we get everything
     # covered
     return from_coo.transform_to(ITRS(obstime=from_coo.obstime)).transform_to(to_frame)
