@@ -702,7 +702,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
 
             # Step backwards from last character in chunk and find first newline
             for idx in range(len(chunk) - 1, -1, -1):
-                if chunk[idx] == '\n':
+                if final_chunk or chunk[idx] == '\n':
                     break
             else:
                 raise ValueError('no newline found in chunk (chunk_size too small?)')
