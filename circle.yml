@@ -4,7 +4,7 @@ machine:
 
 dependencies:
   override:
-    - docker pull astropy/astropy-py35-32bit-test-env:1.9
+    - docker pull astropy/astropy-py35-32bit-test-env:1.10
 
 test:
   override:
