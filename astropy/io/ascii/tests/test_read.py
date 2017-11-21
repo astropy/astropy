@@ -1366,11 +1366,13 @@ def test_read_chunks_chunk_size_too_small():
     assert 'no newline found in chunk (chunk_size too small?)' in str(err)
 
 
-@pytest.mark.xfail
 def test_read_chunks_table_changes():
-    """Column changes type between chunks"""
-    col = ['a b'] + ['1.12334 xyz'] * 50 + ['abcdefg 555'] * 50
+    """Column changes type or size between chunks.  This also tests the case with
+    no final newline.
+    """
+    col = ['a b c'] + ['1.12334 xyz a'] * 50 + ['abcdefg 555 abc'] * 50
     table = '\n'.join(col)
     t1 = ascii.read(table, guess=False)
     t2 = ascii.read(table, fast_reader={'chunk_size': 100})
-    assert np.all(t1 == t2)
+    for name in t1.colnames:
+        assert np.all(t1[name] == t2[name])
