@@ -96,6 +96,8 @@ disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
+For reading very large tables see the section on :ref:`chunk_reading`.
+
 .. Note::
 
    Reading a table which contains unicode characters is supported; if you need
