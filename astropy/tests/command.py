@@ -5,6 +5,7 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
+import glob
 import shutil
 import subprocess
 import sys
@@ -146,6 +147,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                'parallel={1.parallel!r}, '
                'docs_path={1.docs_path!r}, '
                'skip_docs={1.skip_docs!r}, '
+               'add_local_eggs_to_path=True, '  # see _build_temp_install below
                'repeat={1.repeat!r})); '
                '{cmd_post}'
                'sys.exit(result)')
@@ -157,8 +159,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         """
         # Install the runtime and test dependencies.
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(
-                self.distribution.install_requires)
+            self.distribution.fetch_build_eggs(self.distribution.install_requires)
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
@@ -243,6 +244,14 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.testing_path)
+
+        # Copy any additional dependencies that may have been installed via
+        # tests_requires or install_requires. We then pass the
+        # add_local_eggs_to_path=True option to package.test() to make sure the
+        # eggs get included in the path.
+        if os.path.exists('.eggs'):
+            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
+
 
     def _generate_coverage_commands(self):
         """
