@@ -17,15 +17,12 @@ from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
 
-def _has_test_dependencies(): # pragma: no cover
-    # Using the test runner will not work without these dependencies, but
-    # pytest-openfiles is optional, so it's not listed here.
-    required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
-    for module in required:
-        if find_spec(module) is None:
-            return False
+def _has_doctestplus():  # pragma: no cover
+    return not find_spec('pytest_doctestplus') is None
 
-    return True
+
+def _has_remotedata():  # pragma: no cover
+    return not find_spec('pytest_remotedata') is None
 
 
 class keyword:
@@ -178,9 +175,6 @@ class TestRunnerBase:
         """
 
     def run_tests(self, **kwargs):
-        if not _has_test_dependencies(): # pragma: no cover
-            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
-            raise RuntimeError(msg)
 
         # The docstring for this method is defined as a class variable.
         # This allows it to be built for each subclass in __new__.
@@ -322,7 +316,8 @@ class TestRunner(TestRunnerBase):
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
                     # Turn on the doctest_rst plugin
-                    all_args.append('--doctest-rst')
+                    if _has_doctestplus():
+                        all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
             if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
@@ -391,6 +386,9 @@ class TestRunner(TestRunnerBase):
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
         """
+
+        if not _has_remotedata():
+            return []
 
         if remote_data is True:
             remote_data = 'any'
@@ -498,7 +496,10 @@ class TestRunner(TestRunnerBase):
                     "({0}) does not exist.".format(docs_path))
                 docs_path = None
         if docs_path and not kwargs['skip_docs'] and not kwargs['test_path']:
-            return [docs_path, '--doctest-rst']
+            if _has_doctestplus():
+                return [docs_path, '--doctest-rst']
+            else:
+                return [docs_path]
 
         return []
 

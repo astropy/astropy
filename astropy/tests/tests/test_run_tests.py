@@ -10,6 +10,13 @@ from textwrap import dedent
 
 import pytest
 
+try:
+    import pytest_doctestplus
+except ImportError:
+    PYTEST_DOCTESTPLUS_INSTALLED = False
+else:
+    PYTEST_DOCTESTPLUS_INSTALLED = True
+
 # test helper.run_tests function
 from ... import test as run_tests
 
@@ -38,6 +45,7 @@ def test_unicode_literal_conversion():
     assert isinstance('ångström', str)
 
 
+@pytest.mark.skipif('not PYTEST_DOCTESTPLUS_INSTALLED')
 def test_doctest_float_replacement(tmpdir):
     test1 = dedent("""
         This will demonstrate a doctest that fails due to a few extra decimal
