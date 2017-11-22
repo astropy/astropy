@@ -105,7 +105,7 @@ astropy.tests
   entry points to work correctly. [#6890]
 
 - The tests_require setting in setup.py now works properly when running
-  'python setup.py test'
+  'python setup.py test'. [#6892]
 
 astropy.time
 ^^^^^^^^^^^^
