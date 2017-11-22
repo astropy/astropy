@@ -13,6 +13,31 @@ from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
 
 testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
+@pytest.mark.skip
+def test_testcase(tc):
+        results = tc.f(*tc.q_in)
+        # careful of the following line, would break on a function returning
+        # a single tuple (as opposed to tuple of return values)
+        results = (results, ) if type(results) != tuple else results
+        for result, expected in zip(results, tc.q_out):
+            assert result.unit == expected.unit
+            assert_allclose(result.value, expected.value, atol=1.E-15)
+
+testexc = namedtuple('testexc', ['f', 'q_in', 'exc', 'msg'])
+@pytest.mark.skip
+def test_testexc(te):
+    with pytest.raises(te.exc) as exc:
+        te.f(*te.q_in)
+    if te.msg is not None:
+        assert te.msg in exc.value.args[0]
+
+testwarn = namedtuple('testwarn', ['f', 'q_in', 'wfilter'])
+@pytest.mark.skip
+def test_testwarn(tw):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(tw.wfilter)
+        tw.f(*tw.q_in)
+    
 
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
@@ -158,82 +183,95 @@ class TestQuantityTrigonometricFuncs:
             q_out=(180. * u.degree, )
         )
     ))
-    def test_testcase(self, tc):
-        results = tc.f(*tc.q_in)
-        # careful of the following line, would break on a function returning
-        # a single tuple (as opposed to tuple of return values)
-        results = (results, ) if type(results) != tuple else results
-        for result, expected in zip(results, tc.q_out):
-            assert result.unit == expected.unit
-            assert_allclose(result.value, expected.value, atol=1.E-15)
-
-    def test_radians(self):
-
-        with pytest.raises(TypeError):
-            np.deg2rad(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.radians(3. * u.m)
-
-    def test_degrees(self):
-
-        with pytest.raises(TypeError):
-            np.rad2deg(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.degrees(3. * u.m)
-
-    def test_sin_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.sin(3. * u.m)
-        assert exc.value.args[0] == ("Can only apply 'sin' function "
-                                     "to quantities with angle units")
-
-    def test_arcsin_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arcsin(3. * u.m)
-        assert exc.value.args[0] == ("Can only apply 'arcsin' function to "
-                                     "dimensionless quantities")
-
-    def test_arcsin_no_warning_on_unscaled_quantity(self):
-        a = 15 * u.kpc
-        b = 27 * u.pc
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
-            np.arcsin(b/a)
-
-    def test_cos_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.cos(3. * u.s)
-        assert exc.value.args[0] == ("Can only apply 'cos' function "
-                                     "to quantities with angle units")
-
-    def test_arccos_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arccos(3. * u.s)
-        assert exc.value.args[0] == ("Can only apply 'arccos' function to "
-                                     "dimensionless quantities")
-
-    def test_tan_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.tan(np.array([1, 2, 3]) * u.N)
-        assert exc.value.args[0] == ("Can only apply 'tan' function "
-                                     "to quantities with angle units")
-
-    def test_arctan_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arctan(np.array([1, 2, 3]) * u.N)
-        assert exc.value.args[0] == ("Can only apply 'arctan' function to "
-                                     "dimensionless quantities")
-
-    def test_arctan2_invalid(self):
-        with pytest.raises(u.UnitsError) as exc:
-            np.arctan2(np.array([1, 2, 3]) * u.N, 1. * u.s)
-        assert "compatible dimensions" in exc.value.args[0]
-        with pytest.raises(u.UnitsError) as exc:
-            np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
-        assert "dimensionless quantities when other arg" in exc.value.args[0]
+    def test_testcases(self, tc):
+        return test_testcase(tc)
+    
+    @pytest.mark.parametrize('te', (
+        testexc(
+            f=np.deg2rad,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.radians,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.rad2deg,
+            q_in=(3. * u.m),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.degrees,
+            q_in=(3. * u.m),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.sin,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg="Can only apply 'sin' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arcsin,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg="Can only apply 'arcsin' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.cos,
+            q_in=(3. * u.s, ),
+            exc=TypeError,
+            msg="Can only apply 'cos' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arccos,
+            q_in=(3. * u.s, ),
+            exc=TypeError,
+            msg="Can only apply 'arccos' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.tan,
+            q_in=(np.array([1, 2, 3]) * u.N, ),
+            exc=TypeError,
+            msg="Can only apply 'tan' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arctan,
+            q_in=(np.array([1, 2, 3]) * u.N, ),
+            exc=TypeError,
+            msg="Can only apply 'arctan' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.arctan2,
+            q_in=(np.array([1, 2, 3]) * u.N, 1. * u.s),
+            exc=u.UnitsError,
+            msg="compatible dimensions"
+        ),
+        testexc(
+            f=np.arctan2,
+            q_in=(np.array([1, 2, 3]) * u.N, 1.),
+            exc=u.UnitsError,
+            msg="dimensionless quantities when other arg"
+        )
+    ))      
+    def test_testexcs(self, te):
+        return test_testexc(te)
+        
+    @pytest.mark.parametrize('tw', (
+        testwarn(
+            f=np.arcsin,
+            q_in=(27. * u.pc / (15 * u.kpc), ),
+            wfilter='error'
+        ),
+    ))
+    def test_testwarns(self, tw):
+        return test_testwarn(tw)
 
 
 class TestQuantityMathFuncs:
