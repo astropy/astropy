@@ -157,11 +157,10 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         """
         Run the tests!
         """
-        # Install the runtime and test dependencies.
+
+        # Install the runtime dependencies.
         if self.distribution.install_requires:
             self.distribution.fetch_build_eggs(self.distribution.install_requires)
-        if self.distribution.tests_require:
-            self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
         # Ensure there is a doc path
         if self.docs_path is None:
@@ -178,6 +177,20 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         # Build a testing install of the package
         self._build_temp_install()
+
+        # Install the test dependencies
+        # NOTE: we do this here after _build_temp_install because there is
+        # a weird but which occurs if psutil is installed in this way before
+        # astropy is built, Cython can have segmentation fault. Strange, eh?
+        if self.distribution.tests_require:
+            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+
+        # Copy any additional dependencies that may have been installed via
+        # tests_requires or install_requires. We then pass the
+        # add_local_eggs_to_path=True option to package.test() to make sure the
+        # eggs get included in the path.
+        if os.path.exists('.eggs'):
+            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
 
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
@@ -244,14 +257,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             self.docs_path = new_docs_path
 
         shutil.copy('setup.cfg', self.testing_path)
-
-        # Copy any additional dependencies that may have been installed via
-        # tests_requires or install_requires. We then pass the
-        # add_local_eggs_to_path=True option to package.test() to make sure the
-        # eggs get included in the path.
-        if os.path.exists('.eggs'):
-            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
-
 
     def _generate_coverage_commands(self):
         """
