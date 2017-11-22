@@ -697,7 +697,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         -------
         tuple :
             - `Quantity` subclass
-            - bool: True is subclasses of the given class are ok
+            - bool: True if subclasses of the given class are ok
         """
         return Quantity, True
 
