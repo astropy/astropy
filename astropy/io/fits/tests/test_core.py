@@ -673,10 +673,12 @@ class TestFileFunctions(FitsTestCase):
                             with fits.open(urlobj, mode=mode) as fits_handle:
                                 assert len(fits_handle) == 1
 
-            except urllib.error.HTTPError:
+            except (urllib.error.HTTPError, urllib.error.URLError):
                 continue
             else:
                 break
+        else:
+            raise Exception("Could not download file")
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
