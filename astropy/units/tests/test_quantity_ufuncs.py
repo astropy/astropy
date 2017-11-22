@@ -86,6 +86,36 @@ class TestQuantityTrigonometricFuncs:
             f=np.arccos,
             q_in=(np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian), ),
             q_out=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+        ),
+        testcase(
+            f=np.tan,
+            q_in=(np.pi / 3. * u.radian, ),
+            q_out=(np.sqrt(3.) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.tan,
+            q_in=(np.array([0., 45., 135., 180.]) * u.degree, ),
+            q_out=(np.array([0., 1., -1., 0.]) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.arctan,
+            q_in=(np.tan(np.pi / 3. * u.radian), ),
+            q_out=(np.pi / 3. * u.radian, )
+        ),
+        testcase(
+            f=np.arctan,
+            q_in=(np.tan(np.array([10., 30., 70., 80.]) * u.degree), ),
+            q_out=(np.radians(np.array([10., 30., 70., 80.]) * u.degree), )
+        ),
+        testcase(
+            f=np.arctan2,
+            q_in=(np.array([10., 30., 70., 80.]) * u.m, 2.0 * u.km),
+            q_out=(np.arctan2(np.array([10., 30., 70., 80.]), 2000.) * u.radian, )
+        ),
+        testcase(
+            f=np.arctan2,
+            q_in=((np.array([10., 80.]) * u.m / (2.0 * u.km)).to(u.dimensionless_unscaled), 1.),
+            q_out=(np.arctan2(np.array([10., 80.]) / 2000., 1.) * u.radian, )
         )
     ))
     def test_testcase(self, tc):
@@ -96,6 +126,17 @@ class TestQuantityTrigonometricFuncs:
         for result, expected in zip(results, tc.q_out):
             assert result.unit == expected.unit
             assert_allclose(result.value, expected.value, atol=1.E-15)
+
+    def test_arctan2_valid(self):
+        q1 = np.array([10., 30., 70., 80.]) * u.m
+        q2 = 2.0 * u.km
+        assert np.arctan2(q1, q2).unit == u.radian
+        assert_allclose(np.arctan2(q1, q2).value,
+                        np.arctan2(q1.value, q2.to_value(q1.unit)))
+        q3 = q1 / q2
+        q4 = 1.
+        at2 = np.arctan2(q3, q4)
+        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
 
     def test_sin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -129,25 +170,6 @@ class TestQuantityTrigonometricFuncs:
         assert exc.value.args[0] == ("Can only apply 'arccos' function to "
                                      "dimensionless quantities")
 
-    def test_tan_scalar(self):
-        q = np.tan(np.pi / 3. * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, np.sqrt(3.))
-
-    def test_tan_array(self):
-        q = np.tan(np.array([0., 45., 135., 180.]) * u.degree)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([0., 1., -1., 0.]), atol=1.e-15)
-
-    def test_arctan_scalar(self):
-        q = np.pi / 3. * u.radian
-        assert np.arctan(np.tan(q))
-
-    def test_arctan_array(self):
-        q = np.array([10., 30., 70., 80.]) * u.degree
-        assert_allclose(np.arctan(np.tan(q)).to_value(q.unit), q.value)
-
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
             np.tan(np.array([1, 2, 3]) * u.N)
@@ -160,16 +182,7 @@ class TestQuantityTrigonometricFuncs:
         assert exc.value.args[0] == ("Can only apply 'arctan' function to "
                                      "dimensionless quantities")
 
-    def test_arctan2_valid(self):
-        q1 = np.array([10., 30., 70., 80.]) * u.m
-        q2 = 2.0 * u.km
-        assert np.arctan2(q1, q2).unit == u.radian
-        assert_allclose(np.arctan2(q1, q2).value,
-                        np.arctan2(q1.value, q2.to_value(q1.unit)))
-        q3 = q1 / q2
-        q4 = 1.
-        at2 = np.arctan2(q3, q4)
-        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
+    
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
