@@ -104,6 +104,9 @@ astropy.tests
   a temporary directory instead of copying the build. This allows
   entry points to work correctly. [#6890]
 
+- The tests_require setting in setup.py now works properly when running
+  'python setup.py test'. [#6892]
+
 astropy.time
 ^^^^^^^^^^^^
 

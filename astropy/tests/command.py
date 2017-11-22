@@ -5,6 +5,7 @@ Implements the wrapper for the Astropy test runner in the form of the
 
 
 import os
+import glob
 import shutil
 import subprocess
 import sys
@@ -146,6 +147,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                'parallel={1.parallel!r}, '
                'docs_path={1.docs_path!r}, '
                'skip_docs={1.skip_docs!r}, '
+               'add_local_eggs_to_path=True, '  # see _build_temp_install below
                'repeat={1.repeat!r})); '
                '{cmd_post}'
                'sys.exit(result)')
@@ -155,12 +157,10 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         """
         Run the tests!
         """
-        # Install the runtime and test dependencies.
+
+        # Install the runtime dependencies.
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(
-                self.distribution.install_requires)
-        if self.distribution.tests_require:
-            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+            self.distribution.fetch_build_eggs(self.distribution.install_requires)
 
         # Ensure there is a doc path
         if self.docs_path is None:
@@ -177,6 +177,20 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         # Build a testing install of the package
         self._build_temp_install()
+
+        # Install the test dependencies
+        # NOTE: we do this here after _build_temp_install because there is
+        # a weird but which occurs if psutil is installed in this way before
+        # astropy is built, Cython can have segmentation fault. Strange, eh?
+        if self.distribution.tests_require:
+            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+
+        # Copy any additional dependencies that may have been installed via
+        # tests_requires or install_requires. We then pass the
+        # add_local_eggs_to_path=True option to package.test() to make sure the
+        # eggs get included in the path.
+        if os.path.exists('.eggs'):
+            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
 
         # Run everything in a try: finally: so that the tmp dir gets deleted.
         try:
