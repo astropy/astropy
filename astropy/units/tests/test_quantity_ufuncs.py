@@ -116,6 +116,46 @@ class TestQuantityTrigonometricFuncs:
             f=np.arctan2,
             q_in=((np.array([10., 80.]) * u.m / (2.0 * u.km)).to(u.dimensionless_unscaled), 1.),
             q_out=(np.arctan2(np.array([10., 80.]) / 2000., 1.) * u.radian, )
+        ),
+        testcase(
+            f=np.deg2rad,
+            q_in=(180. * u.degree, ),
+            q_out=(np.pi * u.radian, )
+        ),
+        testcase(
+            f=np.radians,
+            q_in=(180. * u.degree, ),
+            q_out=(np.pi * u.radian, )
+        ),
+        testcase(
+            f=np.deg2rad,
+            q_in=(3. * u.radian, ),
+            q_out=(3. * u.radian, )
+        ),
+        testcase(
+            f=np.radians,
+            q_in=(3. * u.radian, ),
+            q_out=(3. * u.radian, )
+        ),
+        testcase(
+            f=np.rad2deg,
+            q_in=(60. * u.degree, ),
+            q_out=(60. * u.degree, )
+        ),
+        testcase(
+            f=np.degrees,
+            q_in=(60. * u.degree, ),
+            q_out=(60. * u.degree, )
+        ),
+        testcase(
+            f=np.rad2deg,
+            q_in=(np.pi * u.radian, ),
+            q_out=(180. * u.degree, )
+        ),
+        testcase(
+            f=np.degrees,
+            q_in=(np.pi * u.radian, ),
+            q_out=(180. * u.degree, )
         )
     ))
     def test_testcase(self, tc):
@@ -127,16 +167,21 @@ class TestQuantityTrigonometricFuncs:
             assert result.unit == expected.unit
             assert_allclose(result.value, expected.value, atol=1.E-15)
 
-    def test_arctan2_valid(self):
-        q1 = np.array([10., 30., 70., 80.]) * u.m
-        q2 = 2.0 * u.km
-        assert np.arctan2(q1, q2).unit == u.radian
-        assert_allclose(np.arctan2(q1, q2).value,
-                        np.arctan2(q1.value, q2.to_value(q1.unit)))
-        q3 = q1 / q2
-        q4 = 1.
-        at2 = np.arctan2(q3, q4)
-        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
+    def test_radians(self):
+
+        with pytest.raises(TypeError):
+            np.deg2rad(3. * u.m)
+
+        with pytest.raises(TypeError):
+            np.radians(3. * u.m)
+
+    def test_degrees(self):
+
+        with pytest.raises(TypeError):
+            np.rad2deg(3. * u.m)
+
+        with pytest.raises(TypeError):
+            np.degrees(3. * u.m)
 
     def test_sin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -182,8 +227,6 @@ class TestQuantityTrigonometricFuncs:
         assert exc.value.args[0] == ("Can only apply 'arctan' function to "
                                      "dimensionless quantities")
 
-    
-
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:
             np.arctan2(np.array([1, 2, 3]) * u.N, 1. * u.s)
@@ -191,58 +234,6 @@ class TestQuantityTrigonometricFuncs:
         with pytest.raises(u.UnitsError) as exc:
             np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
         assert "dimensionless quantities when other arg" in exc.value.args[0]
-
-    def test_radians(self):
-
-        q1 = np.deg2rad(180. * u.degree)
-        assert_allclose(q1.value, np.pi)
-        assert q1.unit == u.radian
-
-        q2 = np.radians(180. * u.degree)
-        assert_allclose(q2.value, np.pi)
-        assert q2.unit == u.radian
-
-        # the following doesn't make much sense in terms of the name of the
-        # routine, but we check it gives the correct result.
-        q3 = np.deg2rad(3. * u.radian)
-        assert_allclose(q3.value, 3.)
-        assert q3.unit == u.radian
-
-        q4 = np.radians(3. * u.radian)
-        assert_allclose(q4.value, 3.)
-        assert q4.unit == u.radian
-
-        with pytest.raises(TypeError):
-            np.deg2rad(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.radians(3. * u.m)
-
-    def test_degrees(self):
-
-        # the following doesn't make much sense in terms of the name of the
-        # routine, but we check it gives the correct result.
-        q1 = np.rad2deg(60. * u.degree)
-        assert_allclose(q1.value, 60.)
-        assert q1.unit == u.degree
-
-        q2 = np.degrees(60. * u.degree)
-        assert_allclose(q2.value, 60.)
-        assert q2.unit == u.degree
-
-        q3 = np.rad2deg(np.pi * u.radian)
-        assert_allclose(q3.value, 180.)
-        assert q3.unit == u.degree
-
-        q4 = np.degrees(np.pi * u.radian)
-        assert_allclose(q4.value, 180.)
-        assert q4.unit == u.degree
-
-        with pytest.raises(TypeError):
-            np.rad2deg(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.degrees(3. * u.m)
 
 
 class TestQuantityMathFuncs:
