@@ -183,41 +183,45 @@ class TestRunnerBase:
 
     def run_tests(self, **kwargs):
 
-        # We need to install the dependencies for the 'test' entry in
-        # extras_require. We start off by finding the
-        # pkg_resources.EggInfoDistribution object which contains information
-        # about the dependencies
-        import pkg_resources
-        pk_dist = pkg_resources.get_distribution(__name__.split('.')[0])
-        requirements = [str(r) for r in pk_dist.requires(extras=('test',))]
+        if not _has_test_dependencies():  # pragma: no cover
 
-        # We now need to make a setuptools.Distribution instance to install
-        # the requirements. We install eggs to a .eggs folder inside a temporary
-        # folder and add these to sys.path.
-        from setuptools import Distribution
-        st_dist = Distribution()
+            print("Some test dependencies are missing - we will now attempt to install them")
 
-        start_dir = os.path.abspath('.')
-        tmp = tempfile.mkdtemp()
-        try:
-            os.chdir(tmp)
-            st_dist.fetch_build_eggs(requirements)
-        finally:
-            os.chdir(start_dir)
+            # We need to install the dependencies for the 'test' entry in
+            # extras_require. We start off by finding the
+            # pkg_resources.EggInfoDistribution object which contains information
+            # about the dependencies
+            import pkg_resources
+            pk_dist = pkg_resources.get_distribution(__name__.split('.')[0])
+            requirements = [str(r) for r in pk_dist.requires(extras=('test',))]
 
-        egg_dir = os.path.join(tmp, '.eggs')
+            # We now need to make a setuptools.Distribution instance to install
+            # the requirements. We install eggs to a .eggs folder inside a temporary
+            # folder and add these to sys.path.
+            from setuptools import Distribution
+            st_dist = Distribution()
 
-        # Add each egg to sys.path individually
-        for egg in glob.glob(os.path.join(egg_dir, '*.egg')):
-            sys.path.insert(0, egg)
+            start_dir = os.path.abspath('.')
+            tmp = tempfile.mkdtemp()
+            try:
+                os.chdir(tmp)
+                st_dist.fetch_build_eggs(requirements)
+            finally:
+                os.chdir(start_dir)
 
-        # We now need to force reload pkg_resources in case any pytest
-        # plugins were added above, so that their entry points are picked up
-        import pkg_resources
-        importlib.reload(pkg_resources)
+            egg_dir = os.path.join(tmp, '.eggs')
 
-        if not _has_test_dependencies(): # pragma: no cover
-            msg = "Test dependencies are missing. You should install the 'pytest-astropy' package."
+            # Add each egg to sys.path individually
+            for egg in glob.glob(os.path.join(egg_dir, '*.egg')):
+                sys.path.insert(0, egg)
+
+            # We now need to force reload pkg_resources in case any pytest
+            # plugins were added above, so that their entry points are picked up
+            import pkg_resources
+            importlib.reload(pkg_resources)
+
+        if not _has_test_dependencies():  # pragma: no cover
+            msg = "Test dependencies are still missing. You should install the 'pytest-astropy' package manually."
             raise RuntimeError(msg)
 
         # The docstring for this method is defined as a class variable.
