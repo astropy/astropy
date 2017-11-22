@@ -206,8 +206,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
     def _build_temp_install(self):
         """
         Install the package and to a temporary directory for the purposes of
-        testing this avoids creating pyc and __pycache__ directories inside the
-        build directory
+        testing. This allows us to test the install command, include the
+        entry points, and also avoids creating pyc and __pycache__ directories
+        inside the build directory
         """
 
         # On OSX the default path for temp files is under /var, but in most
