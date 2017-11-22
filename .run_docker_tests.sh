@@ -16,7 +16,11 @@ uname -m
 echo "Output of sys.maxsize in Python:"
 python3 -c 'import sys; print(sys.maxsize)'
 
-easy_install-3.5 pytest-xdist
+
+# We install pytest-astropy explicitly here because the auto-installation
+# of dependencies does not work when using the --parallel option (sub-
+# processes don't see the temporarily installed dependencies)
+easy_install-3.5 pytest-astropy pytest-xdist
 
 PYTHONHASHSEED=42 python3 setup.py test --parallel=4
 

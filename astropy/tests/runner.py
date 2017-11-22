@@ -185,7 +185,9 @@ class TestRunnerBase:
 
         if not _has_test_dependencies():  # pragma: no cover
 
-            print("Some test dependencies are missing - we will now attempt to install them")
+            print("Some test dependencies are missing - we will now "
+                  "attempt to install them to a temporary directory "
+                  "for the duration of the tests")
 
             # We need to install the dependencies for the 'test' entry in
             # extras_require. We start off by finding the
