@@ -17,7 +17,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
 - The ``Distance`` object now accepts ``parallax`` as a keyword in the
-  initializer, and supports retrieving a parallax (as an ``Angle``) via 
+  initializer, and supports retrieving a parallax (as an ``Angle``) via
   the ``.parallax`` attributes. [#6855]
 
 astropy.cosmology
@@ -68,11 +68,6 @@ astropy.nddata
 
 astropy.samp
 ^^^^^^^^^^^^
-  - Issue a warning when assigning a string value to a column and
-    the string gets truncated.  This can occur because numpy string
-    arrays are fixed-width and silently drop characters which do not
-    fit within the fixed width. [#5624]
-  - Remove a table's rows through the __delitem__ method. [#5839]
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -98,6 +93,8 @@ astropy.table
 
 - Added support for reading time columns in FITS compliant binary tables
   as ``astropy.time.Time`` Table columns. [#6442]
+
+- Allowed to remove table rows through the ``__delitem__`` method. [#5839]
 
 astropy.tests
 ^^^^^^^^^^^^^
