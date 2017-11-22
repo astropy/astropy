@@ -47,7 +47,7 @@ with the Astropy Project, see http://dashboard.astropy.org.
 
 
 Contributing Code, Documentation, or Feedback
---------------------------------------------
+---------------------------------------------
 The Astropy project is made both by and for its users, so we welcome and encourage
 contributions of many kinds. Our goal is to keep this a positive, inclusive,
 successful, and growing community, by abiding with the
