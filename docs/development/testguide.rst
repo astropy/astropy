@@ -166,6 +166,14 @@ within those files.
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
 
+Note also that this test runner actually installs astropy into a temporary
+directory and uses that for running the tests.  This means that tests of things
+like entry points or data file paths should act just like they would once
+astropy is installed.  The other two approaches described below do *not* do
+this, and hence may give different results when run from the astropy source
+code. Hence if you're running the tests because you've modified code that might
+be impacted by this, the ``setup.py test`` approach is the recommended method.
+
 .. _astropy.test():
 
 astropy.test()
