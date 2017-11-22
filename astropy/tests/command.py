@@ -240,35 +240,44 @@ class AstropyTest(Command, object):
 
     def _build_temp_install(self):
         """
-        Build the package and copy the build to a temporary directory for
-        the purposes of testing this avoids creating pyc and __pycache__
-        directories inside the build directory
+        Install the package and to a temporary directory for the purposes of
+        testing. This allows us to test the install command, include the
+        entry points, and also avoids creating pyc and __pycache__ directories
+        inside the build directory
         """
-        self.reinitialize_command('build', inplace=True)
-        self.run_command('build')
-        build_cmd = self.get_finalized_command('build')
-        new_path = os.path.abspath(build_cmd.build_lib)
 
         # On OSX the default path for temp files is under /var, but in most
         # cases on OSX /var is actually a symlink to /private/var; ensure we
         # dereference that link, because py.test is very sensitive to relative
         # paths...
+
         tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
                                    dir=self.temp_root)
         self.tmp_dir = os.path.realpath(tmp_dir)
-        self.testing_path = os.path.join(self.tmp_dir, os.path.basename(new_path))
-        shutil.copytree(new_path, self.testing_path)
+
+        # We now install the package to the temporary directory. We do this
+        # rather than build and copy because this will ensure that e.g. entry
+        # points work.
+        self.reinitialize_command('install')
+        install_cmd = self.distribution.get_command_obj('install')
+        install_cmd.prefix = self.tmp_dir
+        self.run_command('install')
+
+        # We now get the path to the site-packages directory that was created
+        # inside self.tmp_dir
+        install_cmd = self.get_finalized_command('install')
+        self.testing_path = install_cmd.install_lib
 
         # Ideally, docs_path is set properly in run(), but if it is still
         # not set here, do not pretend it is, otherwise bad things happen.
         # See astropy/package-template#157
         if self.docs_path is not None:
-            new_docs_path = os.path.join(self.tmp_dir,
+            new_docs_path = os.path.join(self.testing_path,
                                          os.path.basename(self.docs_path))
             shutil.copytree(self.docs_path, new_docs_path)
             self.docs_path = new_docs_path
 
-        shutil.copy('setup.cfg', self.tmp_dir)
+        shutil.copy('setup.cfg', self.testing_path)
 
     def _generate_coverage_commands(self):
         """
