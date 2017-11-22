@@ -22,7 +22,9 @@ def _has_test_dependencies(): # pragma: no cover
     # pytest-openfiles is optional, so it's not listed here.
     required = ['pytest', 'pytest_remotedata', 'pytest_doctestplus']
     for module in required:
-        if find_spec(module) is None:
+        spec = find_spec(module)
+        # Checking loader accounts for packages that were uninstalled
+        if spec is None or spec.loader is None:
             return False
 
     return True
