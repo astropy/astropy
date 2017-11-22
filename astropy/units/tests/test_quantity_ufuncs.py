@@ -6,11 +6,13 @@ import warnings
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
+from collections import namedtuple
 
 from ... import units as u
 from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
 
+testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
 
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
@@ -44,27 +46,56 @@ class TestQuantityTrigonometricFuncs:
     """
     Test trigonometric functions
     """
-
-    def test_sin_scalar(self):
-        q = np.sin(30. * u.degree)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, 0.5)
-
-    def test_sin_array(self):
-        q = np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([0., 1. / np.sqrt(2.), 1.]), atol=1.e-15)
-
-    def test_arcsin_scalar(self):
-        q1 = 30. * u.degree
-        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_arcsin_array(self):
-        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
+    @pytest.mark.parametrize('tc', (
+        testcase(
+            f=np.sin, 
+            q_in=(30. * u.degree, ), 
+            q_out=(0.5*u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.sin, 
+            q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+            q_out=(np.array([0., 1. / np.sqrt(2.), 1.]) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.arcsin,
+            q_in=(np.sin(30. * u.degree), ),
+            q_out=(np.radians(30.) * u.radian, )
+        ),
+        testcase(
+            f=np.arcsin,
+            q_in=(np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian), ),
+            q_out=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, )
+        ),
+        testcase(
+            f=np.cos,
+            q_in=(np.pi / 3. * u.radian, ),
+            q_out=(0.5 * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.cos,
+            q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+            q_out=(np.array([1., 1. / np.sqrt(2.), 0.]) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.arccos,
+            q_in=(np.cos(np.pi / 3. * u.radian), ),
+            q_out=(np.pi / 3. * u.radian, )
+        ),
+        testcase(
+            f=np.arccos,
+            q_in=(np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian), ),
+            q_out=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+        )
+    ))
+    def test_testcase(self, tc):
+        results = tc.f(*tc.q_in)
+        # careful of the following line, would break on a function returning
+        # a single tuple (as opposed to tuple of return values)
+        results = (results, ) if type(results) != tuple else results
+        for result, expected in zip(results, tc.q_out):
+            assert result.unit == expected.unit
+            assert_allclose(result.value, expected.value, atol=1.E-15)
 
     def test_sin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -85,27 +116,6 @@ class TestQuantityTrigonometricFuncs:
         with warnings.catch_warnings():
             warnings.filterwarnings('error')
             np.arcsin(b/a)
-
-    def test_cos_scalar(self):
-        q = np.cos(np.pi / 3. * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, 0.5)
-
-    def test_cos_array(self):
-        q = np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([1., 1. / np.sqrt(2.), 0.]), atol=1.e-15)
-
-    def test_arccos_scalar(self):
-        q1 = np.pi / 3. * u.radian
-        q2 = np.arccos(np.cos(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_arccos_array(self):
-        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        q2 = np.arccos(np.cos(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
 
     def test_cos_invalid_units(self):
         with pytest.raises(TypeError) as exc:
