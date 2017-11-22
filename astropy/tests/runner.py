@@ -190,7 +190,7 @@ class TestRunnerBase:
 
             # Add each egg to sys.path individually
             for egg in glob.glob(os.path.join('.eggs', '*.egg')):
-                sys.path.append(egg)
+                sys.path.insert(0, egg)
 
             # We now need to force reload pkg_resources in case any pytest
             # plugins were added above, so that their entry points are picked up
