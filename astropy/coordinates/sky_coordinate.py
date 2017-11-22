@@ -1287,13 +1287,25 @@ class SkyCoord(ShapedLikeNDArray):
         vcorr : `~astropy.units.Quantity` with velocity units
             The  correction with a positive sign.  I.e., *add* this
             to an observed radial velocity to get the barycentric (or
-            heliocentric) velocity.
+            heliocentric) velocity. If m/s precision or better is needed,
+            see the notes below.
 
         Notes
         -----
-        The algorithm here is sufficient to perform corrections at the ~1 to
-        10 m/s level, but has not been validated at better precision.  Future
-        versions of Astropy will likely aim to improve this.
+        The barycentric correction is calculated to higher precision than the
+        heliocentric correction and includes additional physics (e.g time dilation).
+        Use barycentric corrections if m/s precision is required.
+
+        The algorithm here is sufficient to perform corrections at the mm/s level, but
+        care is needed in application. Strictly speaking, the barycentric correction is
+        multiplicative and should be applied as::
+
+           sc = SkyCoord(1*u.deg, 2*u.deg)
+           vcorr = sc.rv_correction(kind='barycentric', obstime=t, location=loc)
+           rv = rv + vcorr + rv * vcorr / consts.c
+
+        If your target is nearby and/or has finite proper motion you may need to account
+        for terms arising from this. See Wright & Eastmann (2014) for details.
 
         The default is for this method to use the builtin ephemeris for
         computing the sun and earth location.  Other ephemerides can be chosen
@@ -1376,7 +1388,7 @@ class SkyCoord(ShapedLikeNDArray):
             gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
             gr = location.gravitational_redshift(obstime)
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
-            # neglectic Shapiro delay and effects of the star's own motion
+            # neglecting Shapiro delay and effects of the star's own motion
             zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
             return zb * speed_of_light
         else:
