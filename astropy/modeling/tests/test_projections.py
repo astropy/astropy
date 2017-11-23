@@ -305,3 +305,51 @@ def test_c_projections_shaped():
         theta,
         [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
          [89.00010152, 88.96933478, 88.88210788, 88.75019826, 88.58607353]])
+
+
+def test_affine_with_quantities():
+    x = 1
+    y = 2
+    xdeg = (x * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    ydeg = (y * u.pix).to(u.deg, equivalencies=u.pixel_scale(2.5 * u.deg / u.pix))
+    xpix = x * u.pix
+    ypix = y * u.pix
+
+    # test affine with matrix only
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg)
+    with pytest.raises(ValueError):
+        qx1, qy1 = qaff(xpix, ypix, equivalencies={
+            'x': u.pixel_scale(2.5 * u.deg / u.pix),
+            'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+
+    # test affine with matrix and translation
+    qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg,
+                                              translation=[1, 2] * u.deg)
+    qx1, qy1 = qaff(xpix, ypix, equivalencies={
+        'x': u.pixel_scale(2.5 * u.deg / u.pix),
+        'y': u.pixel_scale(2.5 * u.deg / u.pix)})
+    aff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]], translation=[1, 2])
+    x1, y1 = aff(xdeg.value, ydeg.value)
+    assert_quantity_allclose(qx1, x1 * u.deg)
+    assert_quantity_allclose(qy1, y1 * u.deg)
+
+    # test the case of WCS PC and CDELT transformations
+    pc = np.array([[0.86585778922708, 0.50029020461607],
+                   [-0.50029020461607, 0.86585778922708]])
+    cdelt = np.array([[1, 3.0683055555556E-05], [3.0966944444444E-05, 1]])
+    matrix = cdelt * pc
+    qaff = projections.AffineTransformation2D(matrix=matrix * u.deg,
+                                              translation=[0, 0] * u.deg)
+
+    inv_matrix = np.linalg.inv(matrix)
+    inv_qaff = projections.AffineTransformation2D(matrix=inv_matrix * u.pix,
+                                                  translation=[0, 0] * u.pix)
+    qaff.inverse = inv_qaff
+    qx1, qy1 = qaff(xpix, ypix, equivalencies={
+            'x': u.pixel_scale(1 * u.deg / u.pix),
+            'y': u.pixel_scale(1 * u.deg / u.pix)})
+    x1, y1 = qaff.inverse(qx1, qy1, equivalencies={
+        'x': u.pixel_scale(1 * u.deg / u.pix),
+        'y': u.pixel_scale(1 * u.deg / u.pix)})
+    assert_quantity_allclose(x1, xpix)
+    assert_quantity_allclose(y1, ypix)
