@@ -399,6 +399,8 @@ astropy.coordinates
   yield the correct type of frame, and works at all for non-equatorial frames.
   [#6612]
 
+- Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6699]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
