@@ -97,10 +97,11 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     Parameters
     ----------
-    val1 : numpy ndarray, list, str, or number
-        Data to initialize table.
-    val2 : numpy ndarray, list, str, or number; optional
-        Data to initialize table.
+    val1 : numpy ndarray, list, number, str, or bytes
+        Values to initialize the time or times.  Bytes are decoded as ascii.
+    val2 : numpy ndarray, list, or number; optional
+        Value(s) to initialize the time or times.  Only used for numerical
+        input, to help preserve precision.
     scale : str
         Time scale of input value(s)
     precision : int

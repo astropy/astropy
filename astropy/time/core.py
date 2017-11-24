@@ -197,10 +197,11 @@ class Time(ShapedLikeNDArray):
 
     Parameters
     ----------
-    val : sequence, str, number, or `~astropy.time.Time` object
-        Value(s) to initialize the time or times.
-    val2 : sequence, str, or number; optional
-        Value(s) to initialize the time or times.
+    val : sequence, ndarray, number, str, bytes, or `~astropy.time.Time` object
+        Value(s) to initialize the time or times.  Bytes are decoded as ascii.
+    val2 : sequence, ndarray, or number; optional
+        Value(s) to initialize the time or times.  Only used for numerical
+        input, to help preserve precision.
     format : str, optional
         Format of input value(s)
     scale : str, optional
@@ -1498,10 +1499,10 @@ class TimeDelta(Time):
 
     Parameters
     ----------
-    val : numpy ndarray, list, str, number, or `~astropy.time.TimeDelta` object
-        Data to initialize table.
+    val : sequence, ndarray, number, or `~astropy.time.TimeDelta` object
+        Value(s) to initialize the time difference(s).
     val2 : numpy ndarray, list, str, or number; optional
-        Data to initialize table.
+        Additional values, as needed to preserve precision.
     format : str, optional
         Format of input value(s)
     scale : str, optional
