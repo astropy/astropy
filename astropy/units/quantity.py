@@ -1439,51 +1439,12 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
                                    out=out)
 
-    def var(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.var, axis, dtype,
-                                   out=out, ddof=ddof, unit=self.unit**2)
-
-    def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof)
-
-    def mean(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.mean, axis, dtype, out=out)
-
-    def ptp(self, axis=None, out=None):
-        return self._wrap_function(np.ptp, axis, out=out)
-
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
-
-    def max(self, axis=None, out=None, keepdims=False):
-        return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
-
-    def min(self, axis=None, out=None, keepdims=False):
-        return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
-
-    def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-        return self._wrap_function(np.sum, axis, dtype, out=out,
-                                   keepdims=keepdims)
-
-    def prod(self, axis=None, dtype=None, out=None, keepdims=False):
-        if not self.unit.is_unity():
-            raise ValueError("cannot use prod on scaled or "
-                             "non-dimensionless Quantity arrays")
-        return self._wrap_function(np.prod, axis, dtype, out=out,
-                                   keepdims=keepdims)
 
     def dot(self, b, out=None):
         result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
         return self._wrap_function(np.dot, b, out=out, unit=result_unit)
-
-    def cumsum(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.cumsum, axis, dtype, out=out)
-
-    def cumprod(self, axis=None, dtype=None, out=None):
-        if not self.unit.is_unity():
-            raise ValueError("cannot use cumprod on scaled or "
-                             "non-dimensionless Quantity arrays")
-        return self._wrap_function(np.cumprod, axis, dtype, out=out)
 
     # Calculation: override methods that do not make sense.
 
