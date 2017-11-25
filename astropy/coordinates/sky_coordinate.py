@@ -245,6 +245,67 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
+    def _cache_index0_template(self):
+        """Cache a template instance self[0]"""
+        # Set up the iterator with an index, a template scalar instance
+        # of this SkyCoord object, representation data component names
+        # (the private versions), and representation component values.
+        comp_names = []
+        self_comps = []
+        for comp_name in self.representation_component_names.values():
+            try:
+                self_comp = getattr(self.data, comp_name)
+            except AttributeError:
+                pass  # e.g. for distance in UnitSphericalRepresentation
+            else:
+                comp_names.append('_' + comp_name)
+                # Store the component values (no need for units here)
+                self_comps.append(self_comp.value)
+
+        self.cache['index0_template'] = super().__getitem__(0)
+        self.cache['comp_names'] = comp_names
+        self.cache['self_comps'] = self_comps
+
+    def __getitem__(self, item):
+        # Allow for special case of a single integer index, for ~20x speedup
+        # from super() __getitem__ (which creates a new object from scratch).
+        if isinstance(item, (int, np.integer)):
+            if 'index0_template' not in self.cache:
+                self._cache_index0_template()
+
+            # Make a deep copy of the index-0 template, then set the
+            # scalar representation component values to the corresponding
+            # indexed values from the self components.
+            out = copy.deepcopy(self.cache['index0_template'])
+            for comp_name, self_comp in zip(self.cache['comp_names'],
+                                            self.cache['self_comps']):
+                # Get the output scalar component
+                comp = getattr(out._sky_coord_frame._data, comp_name)
+                # Adapted from Quantity.__setitem__ to do a direct in-place set of
+                # the quantity value.
+                comp.view(np.ndarray).__setitem__((), self_comp[item])
+
+            # Set frame attributes and extra frame attributes, respectively.
+            frame = self._sky_coord_frame
+            for attr in frame.frame_attributes:
+                value = getattr(frame, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = value[item]
+                setattr(out._sky_coord_frame, '_' + attr, value)
+
+            for attr in self._extra_frameattr_names:
+                value = getattr(self, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = value[item]
+                setattr(out, '_' + attr, value)
+
+            # Unlike _apply(), this version does NOT copy `info` attribute.
+
+        else:
+            out = super().__getitem__(item)
+
+        return out
+
     def _apply(self, method, *args, **kwargs):
         """Create a new instance, applying a method to the underlying data.
 

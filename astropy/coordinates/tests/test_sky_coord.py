@@ -1382,3 +1382,28 @@ def test_extra_attributes():
     # Finally, check that we can delete such attributes.
     del sc3.obstime
     assert sc3.obstime is None
+
+
+@pytest.mark.parametrize('frame', ['fk4', 'fk5', 'icrs'])
+@pytest.mark.parametrize('shape', [(13,), (4, 3, 2)])
+def test_fast_getitem(frame, shape):
+    """Test SkyCoord.__getitem__ which uses a cached template for performance.
+    This tests with a variety of frame, frame attributes, extra attributes,
+    and shapes.
+    """
+    size = np.zeros(shape=shape).size
+    ras = np.linspace(1, 80, size).reshape(shape) * u.deg
+    decs = np.linspace(5, 70, size).reshape(shape) * u.deg
+    obstimes = Time(np.arange(size).reshape(shape), format='cxcsec')
+
+    # Make single vector SkyCoord and a list of single SkyCoord.
+    sc = SkyCoord(ras, decs, frame=frame, obstime=obstimes, equinox='J2001.0')
+    scs = [SkyCoord(ra, dec, frame=frame, obstime=obstime, equinox='J2001.0')
+           for ra, dec, obstime in zip(ras, decs, obstimes)]
+
+    for i in range(len(scs)):
+        assert sc[i].is_equivalent_frame(scs[i])
+        assert np.all(sc[i].ra == scs[i].ra)
+        assert np.all(sc[i].dec == scs[i].dec)
+        assert np.all(sc[i].obstime == scs[i].obstime)
+        assert np.all(sc[i].equinox == scs[i].equinox)
