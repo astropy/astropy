@@ -298,13 +298,10 @@ class TestQuantityStatsFuncs:
     def test_prod(self):
 
         q1 = np.array([1, 2, 6]) * u.m
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             q1.prod()
-        assert 'cannot use prod' in exc.value.args[0]
-
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             np.prod(q1)
-        assert 'cannot use prod' in exc.value.args[0]
 
         q2 = np.array([3., 4., 5.]) * u.Unit(1)
         assert q2.prod() == 60. * u.Unit(1)
@@ -313,13 +310,10 @@ class TestQuantityStatsFuncs:
     def test_cumprod(self):
 
         q1 = np.array([1, 2, 6]) * u.m
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             q1.cumprod()
-        assert 'cannot use cumprod' in exc.value.args[0]
-
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             np.cumprod(q1)
-        assert 'cannot use cumprod' in exc.value.args[0]
 
         q2 = np.array([3, 4, 5]) * u.Unit(1)
         assert np.all(q2.cumprod() == np.array([3, 12, 60]) * u.Unit(1))

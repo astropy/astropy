@@ -832,10 +832,9 @@ class TestLogQuantityMethods:
 
     @pytest.mark.parametrize('method', ('prod', 'cumprod'))
     def test_never_ok(self, method):
-        with pytest.raises(ValueError):
+        with pytest.raises(u.UnitsError):
             getattr(self.mJy, method)()
-
-        with pytest.raises(ValueError):
+        with pytest.raises(u.UnitsError):
             getattr(self.m1, method)()
 
 
