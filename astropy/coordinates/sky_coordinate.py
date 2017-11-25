@@ -245,6 +245,51 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
+    def __iter__(self):
+        """Set up an iterator which uses a template scalar instance of self
+        to speed up iteration significantly."""
+        if self.ndim == 0:
+            raise TypeError("scalar '{}' object is not iterable"
+                            .format(self.__class__.__name__))
+
+        if len(self) > 0:
+            # Set up the iterator with an index, a template scalar instance
+            # of this SkyCoord object, representation data component names
+            # (the private versions), and representation component values.
+            self._iter_idx = 0
+            self._iter_template = self[0]
+            self._iter_comp_names = []
+            self._iter_self_comps = []
+            for comp_name in self.representation_component_names.values():
+                try:
+                    self_comp = getattr(self.data, comp_name)
+                except AttributeError:
+                    pass  # e.g. for distance in UnitSphericalRepresentation
+                else:
+                    self._iter_comp_names.append('_' + comp_name)
+                    # Store the component values (no need for units here)
+                    self._iter_self_comps.append(self_comp.value)
+
+        return self
+
+    def __next__(self):
+        if self._iter_idx == len(self):
+            raise StopIteration
+
+        # Make a deep copy of the scalar instance template, then set the scalar
+        # representation component values to the corresponding indexed values
+        # from the self components.
+        out = copy.deepcopy(self._iter_template)
+        for comp_name, self_comp in zip(self._iter_comp_names, self._iter_self_comps):
+            # Get the output scalar component
+            comp = getattr(out._sky_coord_frame._data, comp_name)
+            # Adapted from Quantity.__setitem__ to do a direct in-place set of
+            # the quantity value.
+            comp.view(np.ndarray).__setitem__((), self_comp[self._iter_idx])
+
+        self._iter_idx += 1
+        return out
+
     def _apply(self, method, *args, **kwargs):
         """Create a new instance, applying a method to the underlying data.
 
