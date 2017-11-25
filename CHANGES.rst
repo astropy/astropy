@@ -17,7 +17,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
 - The ``Distance`` object now accepts ``parallax`` as a keyword in the
-  initializer, and supports retrieving a parallax (as an ``Angle``) via 
+  initializer, and supports retrieving a parallax (as an ``Angle``) via
   the ``.parallax`` attributes. [#6855]
 
 astropy.cosmology
@@ -95,6 +95,8 @@ astropy.table
 
 - Added support for reading time columns in FITS compliant binary tables
   as ``astropy.time.Time`` Table columns. [#6442]
+
+- Allowed to remove table rows through the ``__delitem__`` method. [#5839]
 
 astropy.tests
 ^^^^^^^^^^^^^

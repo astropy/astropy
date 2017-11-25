@@ -1358,8 +1358,18 @@ class Table:
     def __delitem__(self, item):
         if isinstance(item, str):
             self.remove_column(item)
-        elif isinstance(item, tuple):
+        elif isinstance(item, (int, np.integer)):
+            self.remove_row(item)
+        elif (isinstance(item, (list, tuple, np.ndarray)) and
+              all(isinstance(x, str) for x in item)):
             self.remove_columns(item)
+        elif (isinstance(item, (list, np.ndarray)) and
+              np.asarray(item).dtype.kind == 'i'):
+            self.remove_rows(item)
+        elif isinstance(item, slice):
+            self.remove_rows(item)
+        else:
+            raise IndexError('illegal key or index value')
 
     def field(self, item):
         """Return column[item] for recarray compatibility."""
