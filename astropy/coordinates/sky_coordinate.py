@@ -229,7 +229,8 @@ class SkyCoord(ShapedLikeNDArray):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
-        self._data_representation = self.representation
+        # Capture initial representation for use in _set_index0_template
+        self._index0_representation = self.representation
 
     @property
     def frame(self):
@@ -243,21 +244,19 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
-    def _cache_index0_template(self):
+    def _set_index0_template(self):
         """Cache a template instance self[0]"""
         # Set up the iterator with an index, a template scalar instance
         # of this SkyCoord object, representation data component names
         # (the private versions), and representation component values.
         original_representation = self.representation
         try:
-            if self.representation is not self._data_representation:
-                self.representation = self._data_representation
+            if self.representation is not self._index0_representation:
+                self.representation = self._index0_representation
 
-            self.cache['index0_template'] = super().__getitem__(0)
-            self.cache['comp_names'] = ['_' + name
-                                        for name in self.data.components]
-            self.cache['self_comps'] = [getattr(self.data, name).value
-                                        for name in self.data.components]
+            self._index0_template = super().__getitem__(0)
+            self._index0_comps = {'_' + name: getattr(self.data, name).value
+                                  for name in self.data.components}
         finally:
             if self.representation is not original_representation:
                 self.representation = original_representation
@@ -266,16 +265,15 @@ class SkyCoord(ShapedLikeNDArray):
         # Allow for special case of a single integer index, for ~20x speedup
         # from super() __getitem__ (which creates a new object from scratch).
         if isinstance(item, (int, np.integer)):
-            if 'index0_template' not in self.cache:
-                self._cache_index0_template()
+            if not hasattr(self, '_index0_template'):
+                self._set_index0_template()
 
             # Make a deep copy of the index-0 template, then set the
             # scalar representation component values to the corresponding
             # indexed values from the self components.
-            out = copy.deepcopy(self.cache['index0_template'])
+            out = copy.deepcopy(self._index0_template)
             out_frame_data = out._sky_coord_frame._data
-            for comp_name, self_comp in zip(self.cache['comp_names'],
-                                            self.cache['self_comps']):
+            for comp_name, self_comp in self._index0_comps.items():
                 # Get the output scalar component
                 comp = getattr(out_frame_data, comp_name)
                 # Adapted from Quantity.__setitem__ to do a direct in-place set of
@@ -296,7 +294,7 @@ class SkyCoord(ShapedLikeNDArray):
                     value = value[item]
                 setattr(out, '_' + attr, value)
 
-            if self.representation is not self._data_representation:
+            if self.representation is not self._index0_representation:
                 out.representation = self.representation
 
             # Unlike _apply(), this version does NOT copy `info` attribute.
