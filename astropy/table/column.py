@@ -933,18 +933,27 @@ class Column(BaseColumn):
         Make comparison methods which encode the ``other`` object to utf-8
         in the case of a bytestring dtype for Py3+.
         """
+        swap_op = {'__eq__': '__eq__',
+                   '__ne__': '__ne__',
+                   '__gt__': '__lt__',
+                   '__lt__': '__gt__',
+                   '__ge__': '__le__',
+                   '__le__': '__ge__'}
 
         def _compare(self, other):
+            op = oper  # copy enclosed ref to allow swap below
+
             # Special case to work around #6838.  Other combinations work OK,
             # see tests.test_column.test_unicode_sandwich_compare().  In this
             # case just swap self and other.
             if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
                     isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
                 self, other = other, self
+                op = swap_op[op]
 
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
-            return getattr(self.data, oper)(other)
+            return getattr(self.data, op)(other)
 
         return _compare
 
