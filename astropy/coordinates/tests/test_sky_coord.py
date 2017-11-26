@@ -1403,7 +1403,26 @@ def test_fast_getitem(frame, shape):
 
     for i in range(len(scs)):
         assert sc[i].is_equivalent_frame(scs[i])
+        assert repr(sc[i]) == repr(scs[i])
         assert np.all(sc[i].ra == scs[i].ra)
         assert np.all(sc[i].dec == scs[i].dec)
         assert np.all(sc[i].obstime == scs[i].obstime)
         assert np.all(sc[i].equinox == scs[i].equinox)
+
+    # Now change representation, first from an existing object where the
+    # template was already cached, then from a new version where it was not.
+    for re_init in False, True:
+        if re_init:
+            sc = SkyCoord(ras, decs, frame=frame, obstime=obstimes, equinox='J2001.0')
+        sc.representation = 'cartesian'
+        for sc_ in scs:
+            sc_.representation = 'cartesian'
+
+        for i in range(len(scs)):
+            assert sc[i].is_equivalent_frame(scs[i])
+            assert repr(sc[i]) == repr(scs[i])
+            assert np.all(sc[i].x == scs[i].x)
+            assert np.all(sc[i].y == scs[i].y)
+            assert np.all(sc[i].z == scs[i].z)
+            assert np.all(sc[i].obstime == scs[i].obstime)
+            assert np.all(sc[i].equinox == scs[i].equinox)
