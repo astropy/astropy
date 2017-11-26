@@ -741,9 +741,12 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         elif isinstance(value, bytes) or value is np.ma.masked:
             pass
         else:
-            value = np.asarray(value)
-            if value.dtype.char == 'U':
-                value = np.char.encode(value, encoding='utf-8')
+            arr = np.asarray(value)
+            if arr.dtype.char == 'U':
+                arr = np.char.encode(arr, encoding='utf-8')
+                if isinstance(value, np.ma.MaskedArray):
+                    arr = np.ma.array(arr, mask=value.mask, copy=False)
+            value = arr
 
         return value
 
