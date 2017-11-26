@@ -935,9 +935,17 @@ class Column(BaseColumn):
         """
 
         def _compare(self, other):
+            # Special case to work around #6838.  Other combinations work OK,
+            # see tests.test_column.test_unicode_sandwich_compare().  In this
+            # case just swap self and other.
+            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
+                    isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
+                self, other = other, self
+
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
             return getattr(self.data, oper)(other)
+
         return _compare
 
     __eq__ = _make_compare('__eq__')

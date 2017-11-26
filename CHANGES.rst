@@ -451,6 +451,9 @@ astropy.table
 - Fixed a problem when setting a column format to an invalid value.  This
   was supposed to revert to the previous (valid) value but was not. [#6812]
 
+- Fixed a problem when comparing a unicode masked column (on left side) to
+  a bytes masked column (on right side).
+
 astropy.tests
 ^^^^^^^^^^^^^
 
