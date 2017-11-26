@@ -452,7 +452,7 @@ astropy.table
   was supposed to revert to the previous (valid) value but was not. [#6812]
 
 - Fixed a problem when comparing a unicode masked column (on left side) to
-  a bytes masked column (on right side).
+  a bytes masked column (on right side). [#6899]
 
 astropy.tests
 ^^^^^^^^^^^^^
