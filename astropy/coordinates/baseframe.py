@@ -266,7 +266,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     # Default empty frame_attributes dict
 
     def __init__(self, *args, copy=True, representation=None,
-                 differential_cls=None,**kwargs):
+                 differential_cls=None, **kwargs):
         self._attr_names_with_defaults = []
 
         # TODO: we should be able to deal with an instance, not just a
@@ -635,6 +635,30 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     representation_component_units = property(get_representation_component_units)
 
+    def _replicate(self, data, copy=False, **kwargs):
+        # This is to provide a slightly nicer error message if the user tries to
+        # use frame_obj.representation instead of frame_obj.data to get the
+        # underlying representation object [e.g., #2890]
+        if inspect.isclass(data):
+            raise TypeError('Class passed as data instead of a representation '
+                            'instance. If you called frame.representation, this'
+                            ' returns the representation class. frame.data '
+                            'returns the instantiated object - you may want to '
+                            ' use this instead.')
+        if copy and data is not None:
+            data = data.copy()
+
+        for attr in self.get_frame_attr_names():
+            if (attr not in self._attr_names_with_defaults and
+                    attr not in kwargs):
+                value = getattr(self, attr)
+                if copy:
+                    value = value.copy()
+
+                kwargs[attr] = value
+
+        return self.__class__(data, copy=False, **kwargs)
+
     def replicate(self, copy=False, **kwargs):
         """
         Return a replica of the frame, optionally with new frame attributes.
@@ -662,7 +686,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         frameobj : same as this frame
             Replica of this object, but possibly with new frame attributes.
         """
-        return self._apply('copy' if copy else 'replicate', **kwargs)
+        return self._replicate(self.data, copy=copy, **kwargs)
 
     def replicate_without_data(self, copy=False, **kwargs):
         """
@@ -691,8 +715,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             Replica of this object, but without data and possibly with new frame
             attributes.
         """
-        kwargs['_framedata'] = None
-        return self._apply('copy' if copy else 'replicate', **kwargs)
+        return self._replicate(None, copy=copy, **kwargs)
 
     def realize_frame(self, representation):
         """
@@ -711,12 +734,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        # Here we pass representation_cls=None to _apply, since we do not want
-        # to insist that the realized frame has the same representation as
-        # self.  [Avoids breaking sunpy; see gh-6208]
-        # TODO: should we expose this, so one has a choice?
-        return self._apply('replicate', _framedata=representation,
-                           representation_cls=None)
+        return self._replicate(representation)
 
     def represent_as(self, base, s='base', in_frame_units=False):
         """
@@ -1125,55 +1143,26 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         kwargs : dict
             Any keyword arguments for ``method``.
         """
-        if '_framedata' in kwargs:
-            data = kwargs.pop('_framedata')
-        else:
-            data = self.data if self.has_data else None
-
-        # This is to provide a slightly nicer error message if the user tries to
-        # use frame_obj.representation instead of frame_obj.data to get the
-        # underlying representation object [e.g., #2890]
-        if inspect.isclass(data):
-            raise TypeError('Class passed as data instead of a representation '
-                            'instance. If you called frame.representation, this'
-                            ' returns the representation class. frame.data '
-                            'returns the instantiated object - you may want to '
-                            ' use this instead.')
-
-        # TODO: expose this trickery in docstring?
-        representation_cls = kwargs.pop('representation_cls',
-                                        self.representation)
-
-        differential_cls = kwargs.pop('differential_cls',
-                                      self.get_representation_cls('s'))
-
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
-                if method == 'replicate' and not hasattr(value, method):
-                    return value  # reference directly
-                else:
-                    return value._apply(method, *args, **kwargs)
+                return value._apply(method, *args, **kwargs)
             else:
                 if callable(method):
                     return method(value, *args, **kwargs)
                 else:
-                    if method == 'replicate' and not hasattr(value, method):
-                        return value  # reference directly
-                    else:
-                        return getattr(value, method)(*args, **kwargs)
+                    return getattr(value, method)(*args, **kwargs)
 
-        if data is not None:
-            data = apply_method(data)
+        new = super().__new__(self.__class__)
+        if hasattr(self, '_representation'):
+            new._representation = self._representation.copy()
+        new._attr_names_with_defaults = self._attr_names_with_defaults.copy()
 
-        # TODO: change to representation_cls in __init__ - gh-6219.
-        frattrs = {'representation': representation_cls,
-                   'differential_cls': differential_cls}
-        for attr in self.get_frame_attr_names():
-            if attr not in self._attr_names_with_defaults:
-                if (method == 'copy' or method == 'replicate') and attr in kwargs:
-                    value = kwargs[attr]
-                else:
-                    value = getattr(self, attr)
+        for attr in self.frame_attributes:
+            _attr = '_' + attr
+            if attr in self._attr_names_with_defaults:
+                setattr(new, _attr, getattr(self, _attr))
+            else:
+                value = getattr(self, _attr)
                 if getattr(value, 'size', 1) > 1:
                     value = apply_method(value)
                 elif method == 'copy' or method == 'flatten':
@@ -1182,9 +1171,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     # always returns a one-dimensional array. So, just copy.
                     value = copy.copy(value)
 
-                frattrs[attr] = value
+                setattr(new, _attr, value)
 
-        return self.__class__(data, **frattrs)
+        if self.has_data:
+            new._data = apply_method(self.data)
+        else:
+            new._data = None
+            shapes = [getattr(new, '_' + attr).shape
+                      for attr in new.frame_attributes
+                      if (attr not in new._attr_names_with_defaults and
+                          getattr(getattr(new, '_' + attr), 'size', 1) > 1)]
+            if shapes:
+                new._no_data_shape = (check_broadcast(*shapes)
+                                      if len(shapes) > 1 else shapes[0])
+            else:
+                new._no_data_shape = ()
+
+        return new
 
     @override__dir__
     def __dir__(self):
