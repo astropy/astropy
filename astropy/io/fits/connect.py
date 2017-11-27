@@ -63,7 +63,7 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False):
+def read_table_fits(input, hdu=None, astropy_native=False, memmap=True):
     """
     Read a Table object from an FITS file
 
@@ -89,6 +89,11 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     astropy_native : bool, optional
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
+    memmap : bool, optional
+        Whether to use memory mapping, which accesses data on disk as needed. If
+        you are only accessing part of the data, this is often more efficient.
+        If you want to access all the values in the table, and you are able to
+        fit the table in memory, you may want to try turning memory mapping off.
     """
 
     if isinstance(input, HDUList):
@@ -127,7 +132,7 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     else:
 
-        hdulist = fits_open(input, return_bytes=True)
+        hdulist = fits_open(input, return_bytes=True, memmap=memmap)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,
