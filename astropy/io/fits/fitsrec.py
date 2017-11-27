@@ -152,7 +152,7 @@ class FITS_rec(np.recarray):
     """
 
     _record_type = FITS_record
-    _return_bytes = False
+    _character_as_bytes = False
 
     def __new__(subtype, input):
         """
@@ -219,7 +219,7 @@ class FITS_rec(np.recarray):
             return
 
         if isinstance(obj, FITS_rec):
-            self._return_bytes = obj._return_bytes
+            self._character_as_bytes = obj._character_as_bytes
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
@@ -970,7 +970,7 @@ class FITS_rec(np.recarray):
         elif _bool and field.dtype != bool:
             field = np.equal(field, ord('T'))
         elif _str:
-            if not self._return_bytes:
+            if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
                     field = decode_ascii(field)
 

@@ -247,7 +247,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         If not given or None, it defaults to the value of the ``EXTVER``
         card of the ``header`` or 1.
         (default: None)
-    return_bytes : bool
+    character_as_bytes : bool
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
@@ -263,7 +263,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     which perform their own heap maintenance.
     """
 
-    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, return_bytes=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, character_as_bytes=False):
 
         super().__init__(data=data, header=header, name=name, ver=ver)
 
@@ -271,7 +271,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             raise ValueError('header must be a Header object.')
 
         self._uint = uint
-        self._return_bytes = return_bytes
+        self._character_as_bytes = character_as_bytes
 
         if data is DELAYED:
             # this should never happen
@@ -408,7 +408,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     def data(self):
         data = self._get_tbdata()
         data._coldefs = self.columns
-        data._return_bytes = self._return_bytes
+        data._character_as_bytes = self._character_as_bytes
         # Columns should now just return a reference to the data._coldefs
         del self.columns
         return data
@@ -710,7 +710,7 @@ class TableHDU(_TableBaseHDU):
         If not given or None, it defaults to the value of the ``EXTVER``
         card of the ``header`` or 1.
         (default: None)
-    return_bytes : bool
+    character_as_bytes : bool
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
@@ -726,8 +726,8 @@ class TableHDU(_TableBaseHDU):
     __format_RE = re.compile(
         r'(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?')
 
-    def __init__(self, data=None, header=None, name=None, ver=None, return_bytes=False):
-        super().__init__(data, header, name=name, ver=ver, return_bytes=return_bytes)
+    def __init__(self, data=None, header=None, name=None, ver=None, character_as_bytes=False):
+        super().__init__(data, header, name=name, ver=ver, character_as_bytes=character_as_bytes)
 
     @classmethod
     def match_header(cls, header):
@@ -826,7 +826,7 @@ class BinTableHDU(_TableBaseHDU):
         If not given or None, it defaults to the value of the ``EXTVER``
         card of the ``header`` or 1.
         (default: None)
-    return_bytes : bool
+    character_as_bytes : bool
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
@@ -836,7 +836,7 @@ class BinTableHDU(_TableBaseHDU):
     _extension = 'BINTABLE'
     _ext_comment = 'binary table extension'
 
-    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, return_bytes=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, character_as_bytes=False):
         from ....table import Table
         if isinstance(data, Table):
             from ..convenience import table_to_hdu
@@ -846,7 +846,7 @@ class BinTableHDU(_TableBaseHDU):
             data = hdu.data
             header = hdu.header
 
-        super().__init__(data, header, name=name, uint=uint, ver=ver, return_bytes=return_bytes)
+        super().__init__(data, header, name=name, uint=uint, ver=ver, character_as_bytes=character_as_bytes)
 
     @classmethod
     def match_header(cls, header):
