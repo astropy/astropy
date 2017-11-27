@@ -936,12 +936,12 @@ class Column(BaseColumn):
         Make comparison methods which encode the ``other`` object to utf-8
         in the case of a bytestring dtype for Py3+.
         """
-        swap_op = {'__eq__': '__eq__',
-                   '__ne__': '__ne__',
-                   '__gt__': '__lt__',
-                   '__lt__': '__gt__',
-                   '__ge__': '__le__',
-                   '__le__': '__ge__'}
+        swapped_oper = {'__eq__': '__eq__',
+                        '__ne__': '__ne__',
+                        '__gt__': '__lt__',
+                        '__lt__': '__gt__',
+                        '__ge__': '__le__',
+                        '__le__': '__ge__'}[oper]
 
         def _compare(self, other):
             op = oper  # copy enclosed ref to allow swap below
@@ -949,10 +949,16 @@ class Column(BaseColumn):
             # Special case to work around #6838.  Other combinations work OK,
             # see tests.test_column.test_unicode_sandwich_compare().  In this
             # case just swap self and other.
+            #
+            # This is related to an issue in numpy that was addressed in np 1.13.
+            # However that fix does not make this problem go away, but maybe
+            # future numpy versions will do so.  NUMPY_LT_1_13 to get the
+            # attention of future maintainers to check (by deleting or versioning
+            # the if block below).  See #6899 discussion.
             if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U' and
                     isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
                 self, other = other, self
-                op = swap_op[op]
+                op = swapped_oper
 
             if self.dtype.char == 'S':
                 other = self._encode_str(other)
