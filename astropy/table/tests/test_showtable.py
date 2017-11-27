@@ -98,7 +98,7 @@ def test_ascii_delimiter(capsys):
 
 def test_votable(capsys):
     showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
-                    '--table_id', 'main_table', '--max-width', '50'])
+                    '--table-id', 'main_table', '--max-width', '50'])
     out, err = capsys.readouterr()
     assert out == (
         '   string_test    string_test_2 ... bitarray2 [16]\n'
