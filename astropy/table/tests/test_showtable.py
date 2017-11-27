@@ -20,22 +20,22 @@ def test_missing_file(capsys):
 def test_info(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--info'])
     out, err = capsys.readouterr()
-    assert out == ('<Table length=3>\n'
-                   ' name   dtype \n'
-                   '------ -------\n'
-                   'target   str20\n'
-                   ' V_mag float32\n'
-                   '\n')
+    assert out == ('<Table length=3>{0}'
+                   ' name   dtype {0}'
+                   '------ -------{0}'
+                   'target   str20{0}'
+                   ' V_mag float32{0}'
+                   '\n').format(os.linesep)
 
 
 def test_stats(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
     out, err = capsys.readouterr()
-    assert out == ('<Table length=3>\n'
-                   ' name    mean    std   min  max \n'
-                   '------ ------- ------- ---- ----\n'
-                   'target      --      --   --   --\n'
-                   ' V_mag 12.8667 1.72111 11.1 15.2\n')
+    assert out == ('<Table length=3>{0}'
+                   ' name    mean    std   min  max {0}'
+                   '------ ------- ------- ---- ----{0}'
+                   'target      --      --   --   --{0}'
+                   ' V_mag 12.8667 1.72111 11.1 15.2{0}').format(os.linesep)
 
 
 def test_fits(capsys):
