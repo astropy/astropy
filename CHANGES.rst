@@ -112,6 +112,7 @@ astropy.table
   as ``astropy.time.Time`` Table columns. [#6442]
 
 - Allowed to remove table rows through the ``__delitem__`` method. [#5839]
+
 - Added a new ``showtable`` command-line script to view binary tables. [#6859]
 
 astropy.tests
