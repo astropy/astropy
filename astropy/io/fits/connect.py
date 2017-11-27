@@ -132,7 +132,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
 
     else:
 
-        hdulist = fits_open(input, return_bytes=True, memmap=memmap)
+        hdulist = fits_open(input, character_as_bytes=True, memmap=memmap)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,

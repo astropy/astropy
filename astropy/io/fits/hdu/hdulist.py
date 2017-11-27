@@ -114,7 +114,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read.
 
-        - **return_bytes** : bool
+        - **character_as_bytes** : bool
 
             Whether to return bytes for string columns. By default this is `False`
             and (unicode) strings are returned, but this does not respect memory
