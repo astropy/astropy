@@ -43,6 +43,7 @@ Example usage of ``showtable``:
 """
 
 import argparse
+import textwrap
 import warnings
 from astropy import log
 from astropy.table import Table
@@ -89,52 +90,61 @@ def showtable(filename, args):
 def main(args=None):
     """The main function called by the `showtable` script."""
     parser = argparse.ArgumentParser(
-        description=(
-            'Print tables from ASCII, FITS, HDF5, VOTable file(s).'
-            'The default behavior is make the table output fit onto a single '
-            'screen page.  For a long and wide table this will mean cutting '
-            'out inner rows and columns.  To print **all** the rows or columns'
-            ' use ``--max-lines=-1`` or ``max-width=-1``, respectively.'
-        ))
+        description=textwrap.dedent("""
+            Print tables from ASCII, FITS, HDF5, VOTable file(s).  The tables
+            are read with 'astropy.table.Table.read' and are printed with
+            'astropy.table.Table.pprint'. The default behavior is to make the
+            table output fit onto a single screen page.  For a long and wide
+            table this will mean cutting out inner rows and columns.  To print
+            **all** the rows or columns use ``--max-lines=-1`` or
+            ``max-width=-1``, respectively.
+        """))
 
     addarg = parser.add_argument
+    addarg('filename', nargs='+', help='path to one or more files')
 
     addarg('--more', action='store_true',
-           help='Use the pager mode from Table.more.')
+           help='use the pager mode from Table.more')
     addarg('--info', action='store_true',
-           help='Show information about the table columns.')
+           help='show information about the table columns')
     addarg('--stats', action='store_true',
-           help='Show statistics about the table columns.')
+           help='show statistics about the table columns')
 
     # pprint arguments
+    pprint_args = parser.add_argument_group('pprint arguments')
+    addarg = pprint_args.add_argument
     addarg('--max-lines', type=int,
-           help='Maximum number of lines in table output (default=screen '
-           'length, -1 for no limit).')
+           help='maximum number of lines in table output (default=screen '
+           'length, -1 for no limit)')
     addarg('--max-width', type=int,
-           help='Maximum width in table output (default=screen width, '
-           '-1 for no limit).')
+           help='maximum width in table output (default=screen width, '
+           '-1 for no limit)')
     addarg('--hide-unit', action='store_true',
-           help='Hide the header row for unit (which is shown '
-           'only if one or more columns has a unit).')
+           help='hide the header row for unit (which is shown '
+           'only if one or more columns has a unit)')
     addarg('--show-dtype', action='store_true',
-           help='Include a header row for column dtypes.')
+           help='include a header row for column dtypes')
 
     # ASCII-specific arguments
-    addarg('--format', help='Input table format (only for ASCII files).')
-    addarg('--delimiter',
-           help='Column delimiter string (only for ASCII files).')
+    ascii_args = parser.add_argument_group('ASCII arguments')
+    addarg = ascii_args.add_argument
+    addarg('--format', help='input table format')
+    addarg('--delimiter', help='column delimiter string')
 
     # FITS-specific arguments
-    addarg('--hdu', help='Name of the HDU to show (only for FITS files).')
+    fits_args = parser.add_argument_group('FITS arguments')
+    addarg = fits_args.add_argument
+    addarg('--hdu', help='name of the HDU to show')
 
     # HDF5-specific arguments
-    addarg('--path', help='The path from which to read the table (only '
-           'for HDF5 files).')
+    hdf5_args = parser.add_argument_group('HDF5 arguments')
+    addarg = hdf5_args.add_argument
+    addarg('--path', help='the path from which to read the table')
 
     # VOTable-specific arguments
-    addarg('--table_id', help='The table to read in (only for VOTable files).')
-
-    addarg('filename', nargs='+', help='Path to one or more files.')
+    votable_args = parser.add_argument_group('VOTable arguments')
+    addarg = votable_args.add_argument
+    addarg('--table-id', help='the table to read in')
 
     args = parser.parse_args(args)
 
