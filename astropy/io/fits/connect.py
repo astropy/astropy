@@ -63,7 +63,7 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False, memmap=True):
+def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
     """
     Read a Table object from an FITS file
 
