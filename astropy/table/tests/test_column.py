@@ -764,3 +764,59 @@ def test_unicode_sandwich_set(Column):
     c[:] = ''
     c[:] = [uba, b'def']
     assert np.all(c == [uba, b'def'])
+
+
+@pytest.mark.parametrize('class1', [table.MaskedColumn, table.Column])
+@pytest.mark.parametrize('class2', [table.MaskedColumn, table.Column, str, list])
+def test_unicode_sandwich_compare(class1, class2):
+    """Test that comparing a bytestring Column/MaskedColumn with various
+    str (unicode) object types gives the expected result.  Tests #6838.
+    """
+    obj1 = class1([b'a', b'c'])
+    if class2 is str:
+        obj2 = 'a'
+    elif class2 is list:
+        obj2 = ['a', 'b']
+    else:
+        obj2 = class2(['a', 'b'])
+
+    assert np.all((obj1 == obj2) == [True, False])
+    assert np.all((obj2 == obj1) == [True, False])
+
+    assert np.all((obj1 != obj2) == [False, True])
+    assert np.all((obj2 != obj1) == [False, True])
+
+    assert np.all((obj1 > obj2) == [False, True])
+    assert np.all((obj2 > obj1) == [False, False])
+
+    assert np.all((obj1 <= obj2) == [True, False])
+    assert np.all((obj2 <= obj1) == [True, True])
+
+    assert np.all((obj1 < obj2) == [False, False])
+    assert np.all((obj2 < obj1) == [False, True])
+
+    assert np.all((obj1 >= obj2) == [True, True])
+    assert np.all((obj2 >= obj1) == [True, False])
+
+
+def test_unicode_sandwich_masked_compare():
+    """Test the fix for #6839 from #6899."""
+    c1 = table.MaskedColumn(['a', 'b', 'c', 'd'],
+                            mask=[True, False, True, False])
+    c2 = table.MaskedColumn([b'a', b'b', b'c', b'd'],
+                            mask=[True, True, False, False])
+
+    for cmp in ((c1 == c2), (c2 == c1)):
+        assert cmp[0] is np.ma.masked
+        assert cmp[1] is np.ma.masked
+        assert cmp[2] is np.ma.masked
+        assert cmp[3]
+
+    for cmp in ((c1 != c2), (c2 != c1)):
+        assert cmp[0] is np.ma.masked
+        assert cmp[1] is np.ma.masked
+        assert cmp[2] is np.ma.masked
+        assert not cmp[3]
+
+    # Note: comparisons <, >, >=, <= fail to return a masked array entirely,
+    # see https://github.com/numpy/numpy/issues/10092.
