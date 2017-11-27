@@ -1234,7 +1234,7 @@ class TestConvertNumpyArray():
         for idx in range(len(arr.dtype)):
             assert arr.dtype[idx].byteorder != non_native_order
 
-        with fits.open(filename) as hdul:
+        with fits.open(filename, return_bytes=True) as hdul:
             data = hdul[1].data
             for colname in data.columns.names:
                 assert np.all(data[colname] == arr[colname])
