@@ -1152,6 +1152,9 @@ def test_string_valued_columns():
     tutf32 = Time(Column(['B1950']))
     tbytes = Time(Column([b'B1950']))
     assert tutf32 == tbytes
+    # Regression tests for arrays with entries with unequal length. gh-6903.
+    times = Column([b'2012-01-01', b'2012-01-01T00:00:00'])
+    assert np.all(Time(times) == Time(['2012-01-01', '2012-01-01T00:00:00']))
 
 
 def test_bytes_input():

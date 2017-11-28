@@ -737,8 +737,10 @@ class TimeString(TimeUnique):
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
+        # Here .item() is needed for arrays with entries of unequal length,
+        # to strip trailing 0 bytes.
         to_string = (str if val1.dtype.kind == 'U' else
-                     lambda x: str(x, encoding='ascii'))
+                     lambda x: str(x.item(), encoding='ascii'))
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
@@ -1062,7 +1064,7 @@ class TimeEpochDateString(TimeString):
         epoch_prefix = self.epoch_prefix
         # Be liberal in what we accept: convert bytes to ascii.
         to_string = (str if val1.dtype.kind == 'U' else
-                     lambda x: str(x, encoding='ascii'))
+                     lambda x: str(x.item(), encoding='ascii'))
         iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
         for val, years in iterator:
             try:
