@@ -329,7 +329,8 @@ astropy.time
 
 - Initialization of ``Time`` instances with bytes or arrays with dtype ``S``
   will now automatically attempt to decode as ASCII. This ensures ``Column``
-  instances with ASCII strings stored with dtype ``S`` can be used. [#6823]
+  instances with ASCII strings stored with dtype ``S`` can be used.
+  [#6823, #6903]
 
 astropy.units
 ^^^^^^^^^^^^^
