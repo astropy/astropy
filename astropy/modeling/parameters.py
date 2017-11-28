@@ -7,7 +7,7 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-
+import weakref
 import functools
 import numbers
 import types
@@ -375,15 +375,15 @@ class Parameter(OrderedDescriptor):
     def default(self):
         """Parameter default value"""
 
-        if (self._model is None or self._default is None or
-                len(self._model) == 1):
+        if (self._model is None or self._default is None or self._model() is None or
+                len(self._model()) == 1):
             return self._default
 
         # Otherwise the model we are providing for has more than one parameter
         # sets, so ensure that the default is repeated the correct number of
         # times along the model_set_axis if necessary
-        n_models = len(self._model)
-        model_set_axis = self._model._model_set_axis
+        n_models = len(self._model())
+        model_set_axis = self._model()._model_set_axis
         default = self._default
         new_shape = (np.shape(default) +
                      (1,) * (model_set_axis + 1 - np.ndim(default)))
@@ -402,16 +402,16 @@ class Parameter(OrderedDescriptor):
     @property
     def value(self):
         """The unadorned value proxied by this parameter."""
-
-        if self._model is None:
+        #model = self._model()
+        if self._model is None or self._model() is None:
             raise AttributeError('Parameter definition does not have a value')
 
-        value = self._get_model_value(self._model)
+        value = self._get_model_value(self._model())
         if self._getter is None:
             return value
         else:
-            raw_unit = self._model._param_metrics[self.name]['raw_unit']
-            orig_unit = self._model._param_metrics[self.name]['orig_unit']
+            raw_unit = self._model()._param_metrics[self.name]['raw_unit']
+            orig_unit = self._model()._param_metrics[self.name]['orig_unit']
             if raw_unit is not None:
                 return np.float64(self._getter(value, raw_unit, orig_unit).value)
             else:
@@ -419,7 +419,8 @@ class Parameter(OrderedDescriptor):
 
     @value.setter
     def value(self, value):
-        if self._model is None:
+        model = self._model()
+        if model is None:
             raise AttributeError('Cannot set a value on a parameter '
                                  'definition')
 
@@ -431,7 +432,7 @@ class Parameter(OrderedDescriptor):
                             "unitless values, not Quantity objects. To set a "
                             "parameter to a quantity simply set the parameter "
                             "directly without using .value")
-        self._set_model_value(self._model, value)
+        self._set_model_value(model, value)
 
     @property
     def unit(self):
@@ -442,27 +443,26 @@ class Parameter(OrderedDescriptor):
         model class, rather than a model instance) this is the required/
         default unit for the parameter.
         """
-
-        if self._model is None:
+        if self._model is None or self._model() is None:
             return self._unit
         else:
             # orig_unit may be undefined early on in model instantiation
-            return self._model._param_metrics[self.name].get('orig_unit',
-                                                             self._unit)
+            return self._model()._param_metrics[self.name].get('orig_unit',
+                                                       self._unit)
 
     @unit.setter
     def unit(self, unit):
         self._set_unit(unit)
 
     def _set_unit(self, unit, force=False):
-
-        if self._model is None:
+        model = self._model()
+        if model is None:
             raise AttributeError('Cannot set unit on a parameter definition')
 
-        orig_unit = self._model._param_metrics[self.name]['orig_unit']
+        orig_unit = model._param_metrics[self.name]['orig_unit']
 
         if force:
-            self._model._param_metrics[self.name]['orig_unit'] = unit
+            model._param_metrics[self.name]['orig_unit'] = unit
         else:
             if orig_unit is None:
                 raise ValueError('Cannot attach units to parameters that were '
@@ -491,17 +491,16 @@ class Parameter(OrderedDescriptor):
     @property
     def shape(self):
         """The shape of this parameter's value array."""
-
-        if self._model is None:
+        if self._model is None or self._model() is None:
             raise AttributeError('Parameter definition does not have a '
                                  'shape.')
+        model = self._model()
+        shape = model._param_metrics[self._name]['shape']
 
-        shape = self._model._param_metrics[self._name]['shape']
-
-        if len(self._model) > 1:
+        if len(model) > 1:
             # If we are dealing with a model *set* the shape is the shape of
             # the parameter within a single model in the set
-            model_axis = self._model._model_set_axis
+            model_axis = model._model_set_axis
 
             if model_axis < 0:
                 model_axis = len(shape) + model_axis
@@ -525,8 +524,8 @@ class Parameter(OrderedDescriptor):
         Boolean indicating if the parameter is kept fixed during fitting.
         """
 
-        if self._model is not None:
-            fixed = self._model._constraints['fixed']
+        if self._model is not None and self._model() is not None:
+            fixed = self._model()._constraints['fixed']
             return fixed.get(self._name, self._fixed)
         else:
             return self._fixed
@@ -534,10 +533,10 @@ class Parameter(OrderedDescriptor):
     @fixed.setter
     def fixed(self, value):
         """Fix a parameter"""
-        if self._model is not None:
+        if self._model is not None and self._model() is not None:
             if not isinstance(value, bool):
                 raise TypeError("Fixed can be True or False")
-            self._model._constraints['fixed'][self._name] = value
+            self._model()._constraints['fixed'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'fixed' on Parameter "
                                  "definition")
@@ -550,8 +549,8 @@ class Parameter(OrderedDescriptor):
         A callable which provides the relationship of the two parameters.
         """
 
-        if self._model is not None:
-            tied = self._model._constraints['tied']
+        if self._model is not None and self._model() is not None:
+            tied = self._model()._constraints['tied']
             return tied.get(self._name, self._tied)
         else:
             return self._tied
@@ -560,10 +559,10 @@ class Parameter(OrderedDescriptor):
     def tied(self, value):
         """Tie a parameter"""
 
-        if self._model is not None:
+        if self._model is not None and self._model() is not None:
             if not callable(value) and value not in (False, None):
                 raise TypeError("Tied must be a callable")
-            self._model._constraints['tied'][self._name] = value
+            self._model()._constraints['tied'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'tied' on Parameter "
                                  "definition")
@@ -572,8 +571,8 @@ class Parameter(OrderedDescriptor):
     def bounds(self):
         """The minimum and maximum values of a parameter as a tuple"""
 
-        if self._model is not None:
-            bounds = self._model._constraints['bounds']
+        if self._model is not None and self._model() is not None:
+            bounds = self._model()._constraints['bounds']
             return bounds.get(self._name, self._bounds)
         else:
             return self._bounds
@@ -582,7 +581,7 @@ class Parameter(OrderedDescriptor):
     def bounds(self, value):
         """Set the minimum and maximum values of a parameter from a tuple"""
 
-        if self._model is not None:
+        if self._model is not None and self._model() is not None:
             _min, _max = value
             if _min is not None:
                 if not isinstance(_min, numbers.Number):
@@ -594,8 +593,8 @@ class Parameter(OrderedDescriptor):
                     raise TypeError("Max value must be a number")
                 _max = float(_max)
 
-            bounds = self._model._constraints.setdefault('bounds', {})
-            self._model._constraints['bounds'][self._name] = (_min, _max)
+            bounds = self._model()._constraints.setdefault('bounds', {})
+            self._model()._constraints['bounds'][self._name] = (_min, _max)
         else:
             raise AttributeError("can't set attribute 'bounds' on Parameter "
                                  "definition")
@@ -610,7 +609,7 @@ class Parameter(OrderedDescriptor):
     def min(self, value):
         """Set a minimum value of a parameter"""
 
-        if self._model is not None:
+        if self._model is not None and self._model() is not None:
             self.bounds = (value, self.max)
         else:
             raise AttributeError("can't set attribute 'min' on Parameter "
@@ -626,7 +625,7 @@ class Parameter(OrderedDescriptor):
     def max(self, value):
         """Set a maximum value of a parameter."""
 
-        if self._model is not None:
+        if self._model is not None and self._model() is not None:
             self.bounds = (self.min, value)
         else:
             raise AttributeError("can't set attribute 'max' on Parameter "
@@ -753,8 +752,8 @@ class Parameter(OrderedDescriptor):
         This will probably be removed are retweaked at some point in the
         process of rethinking how parameter values are stored/updated.
         """
-
-        return self._get_model_value(self._model)
+        if self._model() is not None:
+            return self._get_model_value(self._model())
 
     def _bind(self, model):
         """
@@ -763,9 +762,9 @@ class Parameter(OrderedDescriptor):
         are defined in class bodies.
         """
 
-        self._model = model
-        self._getter = self._create_value_wrapper(self._getter, model)
-        self._setter = self._create_value_wrapper(self._setter, model)
+        self._model = weakref.ref(model)
+        self._getter = self._create_value_wrapper(self._getter, self._model())
+        self._setter = self._create_value_wrapper(self._setter, self._model())
 
     # TODO: These methods should probably be moved to the Model class, since it
     # has entirely to do with details of how the model stores parameters.
