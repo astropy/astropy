@@ -33,7 +33,7 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         # Build against github source until asdf-2.0 has been released
-        - ASDF_GIT='git+git://github.com/spacetelescope/asdf.git#egg=asdf'
+        - ASDF_GIT='git+git://github.com/drdavella/asdf.git@relocate-icrs-coord#egg=asdf'
         - CONDA_DEPENDENCIES='Cython jinja2'
         - CONDA_ALL_DEPENDENCIES='Cython jinja2 scipy h5py matplotlib pyyaml scikit-image pandas pytz beautifulsoup4 ipython mpmath bleach'
         - SETUP_XVFB=True
