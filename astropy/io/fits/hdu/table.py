@@ -263,7 +263,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     which perform their own heap maintenance.
     """
 
-    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, character_as_bytes=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None,
+                 character_as_bytes=False):
 
         super().__init__(data=data, header=header, name=name, ver=ver)
 
@@ -836,7 +837,8 @@ class BinTableHDU(_TableBaseHDU):
     _extension = 'BINTABLE'
     _ext_comment = 'binary table extension'
 
-    def __init__(self, data=None, header=None, name=None, uint=False, ver=None, character_as_bytes=False):
+    def __init__(self, data=None, header=None, name=None, uint=False, ver=None,
+                 character_as_bytes=False):
         from ....table import Table
         if isinstance(data, Table):
             from ..convenience import table_to_hdu
@@ -846,7 +848,8 @@ class BinTableHDU(_TableBaseHDU):
             data = hdu.data
             header = hdu.header
 
-        super().__init__(data, header, name=name, uint=uint, ver=ver, character_as_bytes=character_as_bytes)
+        super().__init__(data, header, name=name, uint=uint, ver=ver,
+                         character_as_bytes=character_as_bytes)
 
     @classmethod
     def match_header(cls, header):
