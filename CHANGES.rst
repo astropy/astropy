@@ -1,6 +1,8 @@
 2.0.3 (unreleased)
 ==================
 
+- Test run to expose CI test failures in v2.0.x series. [#6915]
+
 Bug Fixes
 ---------
 
