@@ -76,14 +76,16 @@ def _decode_mixins(tbl):
     except (AttributeError, ValueError):
         return tbl
 
-    # Lines are base64-encoded to deal with whitespace, see _encode_mixins for details.
-    b64_line = ''.join(tbl.meta['comments'][i0 + 1:i1])
-    lines = [b64decode(b64_line.encode('ascii')).decode('ascii')]
+    # The single `meta_yaml_line` is split into COMMENT cards, each with 70
+    # characters of the meta line and a trailing \ (backslash).  Strip the
+    # backslashes and join together.
+    lines = [line[:-1] for line in tbl.meta['comments'][i0 + 1:i1]]
+    meta_yaml_line = ''.join(lines)
 
     del tbl.meta['comments'][i0:i1 + 1]
     if not tbl.meta['comments']:
         del tbl.meta['comments']
-    info = meta.get_header_from_yaml(lines)
+    info = meta.get_header_from_yaml([meta_yaml_line])
 
     # Get column attribute information, e.g.
     # [{'name': 'col0', 'datatype': 'float64', 'unit': 'm', 'description': 'hello'}]
@@ -278,17 +280,15 @@ def _encode_mixins(tbl):
     tbl = serialize._represent_mixins_as_columns(tbl)
     meta_yaml_line = meta.get_yaml_from_table(tbl, compact=True)[0]
 
-    # Need to encode the YAML metadata line in a format with no whitespace
-    # because even the compact form has significant whitespace.  However, the
-    # FITS COMMENT card does not respect leading/trailing whitespace so it can
-    # get lost and this causes load() failures.
-    b64_line = b64encode(meta_yaml_line.encode('ascii')).decode('ascii')
+    # Split into 70 character chunks for COMMENT cards
+    idxs = list(range(0, len(meta_yaml_line) + 70, 70))
+    lines = [meta_yaml_line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
 
     # Any existing meta or comments in `tbl` is in meta_yaml_line now, so
     # clear it here.  PROBABLY WRONG. FIX ME
     tbl.meta = {'comments': []}
     tbl.meta['comments'].append('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
-    tbl.meta['comments'].append(b64_line)
+    tbl.meta['comments'].extend(lines)
     tbl.meta['comments'].append('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
 
     return tbl
