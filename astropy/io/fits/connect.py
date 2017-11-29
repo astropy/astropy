@@ -5,10 +5,11 @@ import os
 import re
 import warnings
 from collections import OrderedDict
+from base64 import b64encode, b64decode
 
 from .. import registry as io_registry
 from ... import units as u
-from ...table import Table, Column, MaskedColumn
+from ...table import Table, serialize, meta, Column, MaskedColumn
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
@@ -61,6 +62,47 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return True
     else:
         return False
+
+
+def _decode_mixins(tbl):
+    """Decode a Table ``tbl`` that has astropy Columns + appropriate meta-data into
+    the corresponding table with mixin columns (as appropriate).
+    """
+    # If available read in __serialized_columns__ meta info which is stored
+    # in FITS COMMENTS between two sentinels.
+    try:
+        i0 = tbl.meta['comments'].index('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+        i1 = tbl.meta['comments'].index('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+    except (AttributeError, ValueError):
+        return tbl
+
+    # Lines are base64-encoded to deal with whitespace, see _encode_mixins for details.
+    b64_line = ''.join(tbl.meta['comments'][i0 + 1:i1])
+    lines = [b64decode(b64_line.encode('ascii')).decode('ascii')]
+
+    del tbl.meta['comments'][i0:i1 + 1]
+    if not tbl.meta['comments']:
+        del tbl.meta['comments']
+    info = meta.get_header_from_yaml(lines)
+
+    # Get column attribute information, e.g.
+    # [{'name': 'col0', 'datatype': 'float64', 'unit': 'm', 'description': 'hello'}]
+    cols = info['datatype']
+
+    # Update table meta to include meta that is passed through the YAML-ized
+    # COMMENT lines.  In particular this has a `__serialized_columns__` dict
+    # with everything needed to construct mixin columns from plain columns.
+    tbl.meta.update(info['meta'])
+    tbl = serialize._construct_mixins_from_columns(tbl)
+
+    # Use the `datatype` attribute information to update attributes that are
+    # NOT already handled via standard FITS column keys (name, dtype, unit).
+    for col in cols:
+        for attr in ['format', 'description', 'meta']:
+            if attr in col:
+                setattr(tbl[col['name']].info, attr, col[attr])
+
+    return tbl
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
@@ -219,7 +261,37 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
     # TODO: implement masking
 
+    # Decode any mixin columns that have been stored as standard Columns.
+    t = _decode_mixins(t)
+
     return t
+
+
+def _encode_mixins(tbl):
+    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+    astropy Columns + appropriate meta-data to allow subsequent decoding.
+    """
+    # Convert the table to one with no mixins, only Column objects.  This adds
+    # meta data which is extracted with meta.get_yaml_from_table.  TODO: this
+    # needs a new pathway to IGNORE Time-subclass columns and leave them in the
+    # table so that the downstream FITS Time handling does the right thing.
+    tbl = serialize._represent_mixins_as_columns(tbl)
+    meta_yaml_line = meta.get_yaml_from_table(tbl, compact=True)[0]
+
+    # Need to encode the YAML metadata line in a format with no whitespace
+    # because even the compact form has significant whitespace.  However, the
+    # FITS COMMENT card does not respect leading/trailing whitespace so it can
+    # get lost and this causes load() failures.
+    b64_line = b64encode(meta_yaml_line.encode('ascii')).decode('ascii')
+
+    # Any existing meta or comments in `tbl` is in meta_yaml_line now, so
+    # clear it here.  PROBABLY WRONG. FIX ME
+    tbl.meta = {'comments': []}
+    tbl.meta['comments'].append('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+    tbl.meta['comments'].append(b64_line)
+    tbl.meta['comments'].append('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+
+    return tbl
 
 
 def write_table_fits(input, output, overwrite=False):
@@ -235,6 +307,9 @@ def write_table_fits(input, output, overwrite=False):
     overwrite : bool
         Whether to overwrite any existing file without warning.
     """
+
+    # Encode any mixin columns into standard Columns.
+    input = _encode_mixins(input)
 
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 

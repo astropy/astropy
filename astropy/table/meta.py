@@ -184,7 +184,7 @@ def _get_col_attributes(col):
     return attrs
 
 
-def get_yaml_from_table(table):
+def get_yaml_from_table(table, compact=False):
     """
     Return lines with a YAML representation of header content from the ``table``.
 
@@ -192,6 +192,8 @@ def get_yaml_from_table(table):
     ----------
     table : `~astropy.table.Table` object
         Table for which header content is output
+    compact : bool
+        If True then dump yaml as a single compact string, not human readable.
 
     Returns
     -------
@@ -203,10 +205,10 @@ def get_yaml_from_table(table):
     if table.meta:
         header['meta'] = table.meta
 
-    return get_yaml_from_header(header)
+    return get_yaml_from_header(header, compact)
 
 
-def get_yaml_from_header(header):
+def get_yaml_from_header(header, compact=False):
     """
     Return lines with a YAML representation of header content from a Table.
 
@@ -222,6 +224,8 @@ def get_yaml_from_header(header):
     ----------
     header : dict
         Table header content
+    compact : bool
+        If True then dump yaml as a single compact string, not human readable.
 
     Returns
     -------
@@ -286,7 +290,8 @@ def get_yaml_from_header(header):
     header['datatype'] = [_get_col_attributes(col) for col in header['cols']]
     del header['cols']
 
-    lines = yaml.dump(header, Dumper=TableDumper).splitlines()
+    kwargs = {'width': float('inf'), 'default_flow_style': True} if compact else {}
+    lines = yaml.dump(header, Dumper=TableDumper, **kwargs).splitlines()
     return lines
 
 
