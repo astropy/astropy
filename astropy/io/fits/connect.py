@@ -63,7 +63,8 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
+def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
+                    character_as_bytes=True):
     """
     Read a Table object from an FITS file
 
@@ -96,6 +97,13 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
         fit the table in memory, you may be better off leaving memory mapping
         off. However, if your table would not fit in memory, you should set this
         to `True`.
+    character_as_bytes : bool, optional
+        If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
+        and are converted on-the-fly to unicode strings when accessing
+        individual elements. If you need to use Numpy unicode arrays (dtype
+        ``U``) internally, you should set this to `False`, but note that this
+        will use more memory. If set to `False`, string columns will not be
+        memory-mapped even if ``memmap`` is `True`.
     """
 
     if isinstance(input, HDUList):
@@ -134,7 +142,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
 
     else:
 
-        hdulist = fits_open(input, character_as_bytes=True, memmap=memmap)
+        hdulist = fits_open(input, character_as_bytes=character_as_bytes,
+                            memmap=memmap)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,

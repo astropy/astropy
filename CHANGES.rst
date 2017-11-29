@@ -47,7 +47,7 @@ astropy.io.fits
   particular when done through ``Table.read``. The ``Table.read`` now also
   supports a ``memmap=`` keyword argument to indicate whether or not to use
   memory mapping when reading the table. When reading FITS tables with
-  ``fits.open``, a new keyworkd argument ``character_as_bytes`` can be passed -
+  ``fits.open``, a new keyword argument ``character_as_bytes`` can be passed -
   when set to `True`, character columns are returned as Numpy byte arrays
   (Numpy type S) while when set to `False`, the same columns are decoded to
   Unicode strings (Numpy type U) which uses more memory. [#6821]
