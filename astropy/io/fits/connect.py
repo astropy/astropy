@@ -93,7 +93,9 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
         Whether to use memory mapping, which accesses data on disk as needed. If
         you are only accessing part of the data, this is often more efficient.
         If you want to access all the values in the table, and you are able to
-        fit the table in memory, you may want to try turning memory mapping off.
+        fit the table in memory, you may be better off leaving memory mapping
+        off. However, if your table would not fit in memory, you should set this
+        to `True`.
     """
 
     if isinstance(input, HDUList):
