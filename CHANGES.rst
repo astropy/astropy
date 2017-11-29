@@ -448,6 +448,10 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed an issue where the biweight statistics functions would
+  sometimes cause runtime underflow/overflow errors for float32 input
+  arrays. [#6905]
+
 astropy.table
 ^^^^^^^^^^^^^
 
