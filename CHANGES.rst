@@ -247,8 +247,9 @@ astropy.table
   methods it was needed only for Python2 usage. [#6655]
 
 - When reading in FITS tables with ``Table.read``, string columns are now
-  represented using Numpy byte (dtype ``S``) arrays rather than Numpy unicode
-  arrays (dtype ``U``). [#6821]
+  represented using Numpy byte (dtype ``S``) arrays rather than Numpy
+  unicode arrays (dtype ``U``). The ``Column`` class then ensures the
+  bytes are automatically converted to string as needed. [#6821]
 
 astropy.tests
 ^^^^^^^^^^^^^
