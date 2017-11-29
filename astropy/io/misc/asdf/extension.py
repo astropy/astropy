@@ -35,11 +35,7 @@ ASTROPY_URL_MAPPING = [
     (ASTROPY_SCHEMA_URI_BASE,
      filepath_to_url(
          os.path.join(SCHEMA_PATH, 'astropy.org')) +
-         '/{url_suffix}.yaml'),
-    ('tag:astropy.org:astropy/',
-     filepath_to_url(
-         os.path.join(SCHEMA_PATH, 'astropy.org')) +
-         '/astropy/{url_suffix}.yaml')]
+         '/{url_suffix}.yaml')]
 
 
 # This extension is used to register custom types that have both tags and
