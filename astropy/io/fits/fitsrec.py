@@ -267,7 +267,7 @@ class FITS_rec(np.recarray):
         self._uint = False
 
     @classmethod
-    def from_columns(cls, columns, nrows=0, fill=False):
+    def from_columns(cls, columns, nrows=0, fill=False, character_as_bytes=False):
         """
         Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
@@ -329,6 +329,7 @@ class FITS_rec(np.recarray):
         raw_data = np.empty(columns.dtype.itemsize * nrows, dtype=np.uint8)
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
+        data._character_as_bytes = character_as_bytes
 
         # Make sure the data is a listener for changes to the columns
         columns._add_listener(data)
