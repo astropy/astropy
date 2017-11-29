@@ -5,6 +5,11 @@ language: c
 
 compiler: gcc
 
+# Cache can be cleared from the travis settings menu, see docs currently at
+# https://docs.travis-ci.com/user/caching#Clearing-Caches
+cache:
+  - ccache
+
 os:
     - linux
 
