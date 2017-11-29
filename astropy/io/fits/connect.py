@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...table import Table, Column
+from ...table import Table, Column, MaskedColumn
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
@@ -156,20 +156,23 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
 
     columns = []
     for col in data.columns:
-        columns.append(Column(data=data[col.name], name=col.name, copy=False))
-    t.add_columns(columns, copy=False)
 
-    # Copy over null values if needed
-    if masked:
-        for col in data.columns:
+        # Set column data
+        if masked:
+            column = MaskedColumn(data=data[col.name], name=col.name, copy=False)
             if col.null is not None:
-                t[col.name].set_fill_value(col.null)
-                t[col.name].mask[t[col.name] == col.null] = True
+                column.set_fill_value(col.null)
+                column.mask[column.data == col.null] = True
+        else:
+            column = Column(data=data[col.name], name=col.name, copy=False)
 
-    # Copy over units
-    for col in data.columns:
+        # Copy over units
         if col.unit is not None:
-            t[col.name].unit = u.Unit(col.unit, format='fits', parse_strict='silent')
+            column.unit = u.Unit(col.unit, format='fits', parse_strict='silent')
+
+        columns.append(column)
+
+    t.add_columns(columns, copy=False)
 
     # TODO: deal properly with unsigned integers
 
