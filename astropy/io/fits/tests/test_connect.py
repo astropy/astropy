@@ -147,6 +147,25 @@ class TestSingleTable:
         t = Table.read(hdu)
         assert equal_data(t, self.data)
 
+    def test_memmap(self, tmpdir):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, memmap=False)
+        t3 = Table.read(filename, memmap=True)
+        assert equal_data(t2, t3)
+
+    @pytest.mark.parametrize('memmap', (False, True))
+    def test_character_as_bytes(self, tmpdir, memmap):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, character_as_bytes=False, memmap=memmap)
+        t3 = Table.read(filename, character_as_bytes=True, memmap=memmap)
+        assert t2['b'].dtype.kind == 'U'
+        assert t3['b'].dtype.kind == 'S'
+        assert equal_data(t2, t3)
+
 
 class TestMultipleHDU:
 
