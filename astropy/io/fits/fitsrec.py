@@ -612,10 +612,8 @@ class FITS_rec(np.recarray):
             raise AttributeError(exc.args[0])
 
     def __del__(self):
-
         try:
             del self._coldefs
-
             if self.dtype.fields is not None:
                 for col in self._col_weakrefs:
 
