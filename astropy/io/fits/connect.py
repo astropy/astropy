@@ -145,10 +145,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
     # Check if table is masked
     masked = any(col.null is not None for col in table.columns)
 
-    # Convert to an astropy.table.Table object
-    # Note: in future, it may make more sense to do this column-by-column,
+    # TODO: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(masked=masked)
 
     # In the loop below we access the data using data[col.name] rather than
     # col.array to make sure that the data is scaled correctly if needed.
@@ -172,7 +170,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False):
 
         columns.append(column)
 
-    t.add_columns(columns, copy=False)
+    # Create Table object
+    t = Table(columns, masked=masked, copy=False)
 
     # TODO: deal properly with unsigned integers
 
