@@ -246,6 +246,10 @@ astropy.table
   ``convert_bytestring_to_unicode`` and ``convert_unicode_to_bytestring``
   methods it was needed only for Python2 usage. [#6655]
 
+- When reading in FITS tables with ``Table.read``, string columns are now
+  represented using Numpy byte (dtype ``S``) arrays rather than Numpy unicode
+  arrays (dtype ``U``). [#6821]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
