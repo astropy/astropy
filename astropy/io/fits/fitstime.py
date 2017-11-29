@@ -362,10 +362,6 @@ def _convert_time_column(col, column_info):
             # [+/-C]CCYY-MM-DD[Thh:mm:ss[.s...]] where the number of characters
             # from index 20 to the end of string represents the precision
             precision = max(int(col.info.dtype.str[2:]) - 20, 0)
-            if col.info.dtype.kind == 'S':
-                # We need to decode the bytes array because Time only takes
-                # string arrays.
-                col = np.char.decode(col, 'ascii')
             return Time(col, format='fits', scale=column_info['scale'],
                         precision=precision,
                         location=column_info['location'])
