@@ -43,9 +43,9 @@ astropy.io.fits
 - Added ``ver`` attribute to set the ``EXTVER`` header keyword to ``ImageHDU``
   and ``TableHDU``. [#6454]
 
-- The performance for reading FITS tables has been significantly improved
-  for cases where the table contains one or more string columns, in
-  particular when done through ``Table.read``. [#6821]
+- The performance for reading FITS tables has been significantly improved,
+  in particular for cases where the tables contain one or more string columns
+  and when done through ``Table.read``. [#6821]
 
 - The ``Table.read`` now supports a ``memmap=`` keyword argument to control
   whether or not to use  memory mapping when reading the table. [#6821]
