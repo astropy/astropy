@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import types
+from pkgutil import find_loader
 from collections import OrderedDict
 
 import pytest
@@ -34,10 +35,12 @@ try:
 except ImportError:  # Python 2.7
     importlib_machinery = None
 
-pytest_plugins = ('astropy.tests.pytest_doctestplus',
-                  'astropy.tests.pytest_openfiles',
-                  'astropy.tests.pytest_repeat',
-                  'astropy.tests.pytest_remotedata')
+pytest_plugins = ['astropy.tests.pytest_repeat']
+
+_PLUGINS_PREFIX = 'astropy.extern.plugins'
+for plugin in ['pytest_doctestplus', 'pytest_openfiles', 'pytest_remotedata']:
+    if find_loader(plugin) is None:
+        pytest_plugins.append('{}.{}.plugin'.format(_PLUGINS_PREFIX, plugin))
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
