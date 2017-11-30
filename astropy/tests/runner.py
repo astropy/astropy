@@ -198,7 +198,6 @@ class TestRunnerBase(object):
             self.keywords['plugins'] = []
 
         plugins = [
-            'astropy.tests.pytest_plugins',
             'astropy.tests.pytest_repeat'
         ]
 
