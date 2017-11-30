@@ -3,7 +3,7 @@
 This plugin provides advanced doctest support and enables the testing of .rst
 files.
 """
-import six
+from ...bundled import six
 
 import doctest
 import fnmatch

@@ -9,8 +9,8 @@ import re
 
 import numpy as np
 
-import six
-from six.moves import zip
+from ...bundled import six
+from ...bundled.six.moves import zip
 
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
