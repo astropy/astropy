@@ -1295,7 +1295,7 @@ def _rstrip_inplace(array):
     # the right length. Trailing spaces (which are represented as 32) are then
     # converted to null characters (represented as zeros). To avoid creating
     # large temporary mask arrays, we loop over chunks (attempting to do that
-    # on a 1-D version of the array; large memomry may still be needed in the
+    # on a 1-D version of the array; large memory may still be needed in the
     # unlikely case that a string array has small first dimension and cannot
     # be represented as a contiguous 1-D array in memory).
 
@@ -1303,18 +1303,18 @@ def _rstrip_inplace(array):
 
     if dt.kind not in 'SU':
         raise TypeError("This function can only be used on string arrays")
+    # View the array as appropriate integers. The last dimension will
+    # equal the number of characters in each string.
     bpc = 1 if dt.kind == 'S' else 4
-    dt_int = "{0}{1}u{2}".format(dt.itemsize // bpc, dt.byteorder, dt.bpc)
+    dt_int = "{0}{1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
     b = np.array(array, copy=False).view(dt_int)
     # For optimal speed, work in chunks of the internal ufunc buffer size.
     bufsize = np.getbufsize()
-    # Attempt to make it a 1-D array so that the chunks have known size.
-    # We cannot use ravel, since that will copy for non-contiguous arrays.
-    # and we need a view of the input array. The code will work on non-1D
-    # arrays, although the chunks will now be larger.
-    if b.ndim > 1:
+    # Attempt to have the strings as a 1-D array to give the chunk known size.
+    # Note: the code will work if this fails; the chunks will just be larger.
+    if b.ndim > 2:
         try:
-            b.shape = -1
+            b.shape = -1, b.shape[-1]
         except AttributeError:
             pass
     for j in range(0, b.shape[0], bufsize):
