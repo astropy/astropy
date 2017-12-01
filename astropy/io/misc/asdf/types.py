@@ -33,11 +33,11 @@ class AstropyTypeMeta(ExtensionTypeMeta):
 @six.add_metaclass(AstropyTypeMeta)
 class AstropyType(CustomType):
     """
-    This class represents types that have schemas that are defined by Astropy.
-    standard, but have tags that are implemented within astropy.
+    This class represents types that have schemas and tags that are defined by
+    Astropy.
 
-    IMPORTANT: This parent class should **not** be used for types that also
-    have schemas that are defined by astropy.
+    IMPORTANT: This parent class should **not** be used for types that have
+    schemas that are defined by the ASDF standard.
     """
     organization = 'astropy.org'
     standard = 'astropy'
