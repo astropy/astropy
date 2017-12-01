@@ -423,7 +423,7 @@ def writeto(filename, data, header=None, output_verify='exception',
                 checksum=checksum)
 
 
-def table_to_hdu(table):
+def table_to_hdu(table, character_as_bytes=False):
     """
     Convert an `~astropy.table.Table` object to a FITS
     `~astropy.io.fits.BinTableHDU`.
@@ -491,7 +491,7 @@ def table_to_hdu(table):
 
             col.null = fill_value.astype(table[col.name].dtype)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=True)
+        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
 
     # Set units for output HDU
     for col in table_hdu.columns:
