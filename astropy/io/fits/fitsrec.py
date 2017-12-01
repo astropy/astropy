@@ -1292,17 +1292,17 @@ def _rstrip_inplace(array):
     """
 
     # The following implementation uses a 1D view of the buffer (via ravel())
-    # converts it to a 2D array of unsigned 8-bit integers. Trailing spaces
-    # (which are represented as 32 are then converted to null characters,
-    # represented as zeros). The loop over j is to avoid creating too large
-    # temporary arrays in memory.
+    # converts it to a 2D array of unsigned integers. Trailing spaces (which are
+    # represented as 32 are then converted to null characters, represented as
+    # zeros). The loop over j is to avoid creating too large temporary arrays in
+    # memory.
 
     dt = array.dtype
 
     if dt.kind not in 'SU':
         raise TypeError("This function can only be used on string arrays")
 
-    dt_int = "{0}{1}u{2}".format(dt.itemsize, dt.byteorder, 1 if dt.kind == 'S' else 4)
+    dt_int = "{0}{1}u{2}".format(dt.itemsize // dt.alignment, dt.byteorder, dt.alignment)
     b = np.array(array, copy=False).ravel().view(dt_int)
     for j in range(0, b.shape[0], 10000):
         c = b[j:j + 10000]
