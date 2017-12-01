@@ -1307,7 +1307,10 @@ def _rstrip_inplace(array):
     # equal the number of characters in each string.
     bpc = 1 if dt.kind == 'S' else 4
     dt_int = "{0}{1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
-    b = np.array(array, copy=False).view(dt_int)
+    if isinstance(array, np.chararray):
+        b = np.array(array, copy=False).view(dt_int)
+    else:
+        b = array.view(dt_int)
     # For optimal speed, work in chunks of the internal ufunc buffer size.
     bufsize = np.getbufsize()
     # Attempt to have the strings as a 1-D array to give the chunk known size.
