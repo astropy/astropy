@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...table import Table
+from ...table import Table, Column, MaskedColumn
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
@@ -63,7 +63,8 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu=None, astropy_native=False):
+def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
+                    character_as_bytes=True):
     """
     Read a Table object from an FITS file
 
@@ -89,6 +90,20 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     astropy_native : bool, optional
         Read in FITS columns as native astropy objects where possible instead
         of standard Table Column objects. Default is False.
+    memmap : bool, optional
+        Whether to use memory mapping, which accesses data on disk as needed. If
+        you are only accessing part of the data, this is often more efficient.
+        If you want to access all the values in the table, and you are able to
+        fit the table in memory, you may be better off leaving memory mapping
+        off. However, if your table would not fit in memory, you should set this
+        to `True`.
+    character_as_bytes : bool, optional
+        If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
+        and are converted on-the-fly to unicode strings when accessing
+        individual elements. If you need to use Numpy unicode arrays (dtype
+        ``U``) internally, you should set this to `False`, but note that this
+        will use more memory. If set to `False`, string columns will not be
+        memory-mapped even if ``memmap`` is `True`.
     """
 
     if isinstance(input, HDUList):
@@ -127,7 +142,8 @@ def read_table_fits(input, hdu=None, astropy_native=False):
 
     else:
 
-        hdulist = fits_open(input)
+        hdulist = fits_open(input, character_as_bytes=character_as_bytes,
+                            memmap=memmap)
 
         try:
             return read_table_fits(hdulist, hdu=hdu,
@@ -138,23 +154,33 @@ def read_table_fits(input, hdu=None, astropy_native=False):
     # Check if table is masked
     masked = any(col.null is not None for col in table.columns)
 
-    # Convert to an astropy.table.Table object
-    # Note: in future, it may make more sense to do this column-by-column,
+    # TODO: in future, it may make more sense to do this column-by-column,
     # rather than via the structured array.
-    t = Table(table.data, masked=masked)
 
-    # Copy over null values if needed
-    if masked:
-        for col in table.columns:
+    # In the loop below we access the data using data[col.name] rather than
+    # col.array to make sure that the data is scaled correctly if needed.
+    data = table.data
+
+    columns = []
+    for col in data.columns:
+
+        # Set column data
+        if masked:
+            column = MaskedColumn(data=data[col.name], name=col.name, copy=False)
             if col.null is not None:
-                t[col.name].set_fill_value(col.null)
-                t[col.name].mask[t[col.name] == col.null] = True
+                column.set_fill_value(col.null)
+                column.mask[column.data == col.null] = True
+        else:
+            column = Column(data=data[col.name], name=col.name, copy=False)
 
-    # Copy over units
-    for col in table.columns:
+        # Copy over units
         if col.unit is not None:
-            t[col.name].unit = u.Unit(
-                col.unit, format='fits', parse_strict='silent')
+            column.unit = u.Unit(col.unit, format='fits', parse_strict='silent')
+
+        columns.append(column)
+
+    # Create Table object
+    t = Table(columns, masked=masked, copy=False)
 
     # TODO: deal properly with unsigned integers
 

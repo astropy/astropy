@@ -1,4 +1,5 @@
 import os
+import gc
 import pathlib
 import warnings
 
@@ -147,6 +148,33 @@ class TestSingleTable:
         t = Table.read(hdu)
         assert equal_data(t, self.data)
 
+    def test_memmap(self, tmpdir):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, memmap=False)
+        t3 = Table.read(filename, memmap=True)
+        assert equal_data(t2, t3)
+        # To avoid issues with --open-files, we need to remove references to
+        # data that uses memory mapping and force the garbage collection
+        del t1, t2, t3
+        gc.collect()
+
+    @pytest.mark.parametrize('memmap', (False, True))
+    def test_character_as_bytes(self, tmpdir, memmap):
+        filename = str(tmpdir.join('test_simple.fts'))
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename, character_as_bytes=False, memmap=memmap)
+        t3 = Table.read(filename, character_as_bytes=True, memmap=memmap)
+        assert t2['b'].dtype.kind == 'U'
+        assert t3['b'].dtype.kind == 'S'
+        assert equal_data(t2, t3)
+        # To avoid issues with --open-files, we need to remove references to
+        # data that uses memory mapping and force the garbage collection
+        del t1, t2, t3
+        gc.collect()
+
 
 class TestMultipleHDU:
 
@@ -250,7 +278,7 @@ def test_masking_regression_1795():
     assert np.all(t['c3'].mask == np.array([False, False]))
     assert np.all(t['c4'].mask == np.array([False, False]))
     assert np.all(t['c1'].data == np.array([1, 2]))
-    assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
+    assert np.all(t['c2'].data == np.array([b'abc', b'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
 

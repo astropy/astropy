@@ -43,6 +43,19 @@ astropy.io.fits
 - Added ``ver`` attribute to set the ``EXTVER`` header keyword to ``ImageHDU``
   and ``TableHDU``. [#6454]
 
+- The performance for reading FITS tables has been significantly improved,
+  in particular for cases where the tables contain one or more string columns
+  and when done through ``Table.read``. [#6821]
+
+- The ``Table.read`` now supports a ``memmap=`` keyword argument to control
+  whether or not to use  memory mapping when reading the table. [#6821]
+
+- When reading FITS tables with ``fits.open``, a new keyword argument
+  ``character_as_bytes`` can be passed - when set to `True`, character columns
+  are returned as Numpy byte arrays (Numpy type S) while when set to `False`,
+  the same columns are decoded to Unicode strings (Numpy type U) which uses more
+  memory. [#6821]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -236,6 +249,11 @@ astropy.table
 - Deprecated the ``python3_only`` kwarg of the
   ``convert_bytestring_to_unicode`` and ``convert_unicode_to_bytestring``
   methods it was needed only for Python2 usage. [#6655]
+
+- When reading in FITS tables with ``Table.read``, string columns are now
+  represented using Numpy byte (dtype ``S``) arrays rather than Numpy
+  unicode arrays (dtype ``U``). The ``Column`` class then ensures the
+  bytes are automatically converted to string as needed. [#6821]
 
 astropy.tests
 ^^^^^^^^^^^^^
