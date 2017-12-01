@@ -118,7 +118,7 @@ class OutputChecker(doctest.OutputChecker):
                 else:
                     nw_.append(nw)
 
-                if not np.allclose(float(ng), float(nw), equal_nan=True):
+                if not np.allclose(float(ng), float(nw)):
                     return False
 
             # replace all floats in the "got" string by those from "wanted".
