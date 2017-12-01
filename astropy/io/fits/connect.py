@@ -222,7 +222,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
     return t
 
 
-def write_table_fits(input, output, overwrite=False):
+def write_table_fits(input, output, overwrite=False, character_as_bytes=True):
     """
     Write a Table object to a FITS file
 
@@ -236,7 +236,7 @@ def write_table_fits(input, output, overwrite=False):
         Whether to overwrite any existing file without warning.
     """
 
-    table_hdu = table_to_hdu(input)
+    table_hdu = table_to_hdu(input, character_as_bytes=character_as_bytes)
 
     # Check if output file already exists
     if isinstance(output, str) and os.path.exists(output):
