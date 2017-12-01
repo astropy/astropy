@@ -1481,7 +1481,7 @@ class Table:
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, name=None, rename_duplicate=False):
+    def add_column(self, col, index=None, name=None, rename_duplicate=False, copy=True):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1498,6 +1498,8 @@ class Table:
             Column name
         rename_duplicate : bool
             Uniquify column name if it already exist. Default is False.
+        copy : bool
+            Make a copy of the new column. Default is True.
 
         Examples
         --------
@@ -1568,7 +1570,7 @@ class Table:
         if name is not None:
             name = (name,)
 
-        self.add_columns([col], [index], name, rename_duplicate=rename_duplicate)
+        self.add_columns([col], [index], name, copy=copy, rename_duplicate=rename_duplicate)
 
     def add_columns(self, cols, indexes=None, names=None, copy=True, rename_duplicate=False):
         """
