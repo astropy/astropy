@@ -1284,19 +1284,35 @@ def _get_recarray_field(array, key):
     return field
 
 
-def _rstrip_inplace(array, chars=None):
+def _rstrip_inplace(array):
     """
-    Performs an in-place rstrip operation on string arrays.
-    This is necessary since the built-in `np.char.rstrip` in Numpy does not
-    perform an in-place calculation.  This can be removed if ever
-    https://github.com/numpy/numpy/issues/6303 is implemented (however, for
-    the purposes of this module the only in-place vectorized string functions
-    we need are rstrip and encode).
+    Performs an in-place rstrip operation on string arrays. This is necessary
+    since the built-in `np.char.rstrip` in Numpy does not perform an in-place
+    calculation.
     """
 
-    for item in np.nditer(array, flags=['zerosize_ok'],
-                                 op_flags=['readwrite']):
-        item[...] = item.item().rstrip(chars)
+    # The following implementation uses a 1D view of the buffer (via ravel())
+    # converts it to a 2D array of unsigned 8-bit integers. Trailing spaces
+    # (which are represented as 32 are then converted to null characters,
+    # represented as zeros). The loop over j is to avoid creating too large
+    # temporary arrays in memory.
+
+    dt = array.dtype
+
+    if dt.kind not in 'SU':
+        raise TypeError("This function can only be used on string arrays")
+
+    dt_int = "{0}{1}u{2}".format(dt.itemsize, dt.byteorder, 1 if dt.kind == 'S' else 4)
+    b = np.array(array, copy=False).ravel().view(dt_int)
+    for j in range(0, b.shape[0], 10000):
+        c = b[j:j + 10000]
+        mask = np.ones(c.shape[:-1], dtype=bool)
+        for i in range(-1, -c.shape[-1], -1):
+            mask &= c[..., i] == 32
+            c[..., i][mask] = 0
+            mask = c[..., i] == 0
+
+    return array
 
 
 class _UnicodeArrayEncodeError(UnicodeEncodeError):
