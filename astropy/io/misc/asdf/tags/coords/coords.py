@@ -5,6 +5,7 @@ from asdf.yamlutil import custom_tree_to_tagged_tree
 
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
+from astropy.tests.helper import assert_quantity_allclose
 
 from ...types import AstropyType
 from ..unit.quantity import QuantityType
@@ -52,4 +53,7 @@ class ICRSCoordType(AstropyType):
 
     @classmethod
     def assert_equal(cls, old, new):
-        assert new.ra == old.ra and new.dec == old.dec
+        assert isinstance(old, ICRS)
+        assert isinstance(new, ICRS)
+        assert_quantity_allclose(new.ra, old.ra)
+        assert_quantity_allclose(new.dec, old.dec)
