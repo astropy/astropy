@@ -9,6 +9,7 @@ from collections import OrderedDict
 from .. import registry as io_registry
 from ... import units as u
 from ...table import Table, serialize, meta, Column, MaskedColumn
+from ...time import Time, TimeDelta
 from ...utils.exceptions import AstropyUserWarning
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
@@ -273,7 +274,8 @@ def _encode_mixins(tbl):
     # meta data which is extracted with meta.get_yaml_from_table.  TODO: this
     # needs a new pathway to IGNORE Time-subclass columns and leave them in the
     # table so that the downstream FITS Time handling does the right thing.
-    encode_tbl = serialize._represent_mixins_as_columns(tbl)
+    encode_tbl = serialize._represent_mixins_as_columns(
+        tbl, exclude_classes=(Time, TimeDelta))
     if encode_tbl is tbl:
         return tbl
 

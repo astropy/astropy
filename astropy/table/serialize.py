@@ -32,9 +32,12 @@ class SerializedColumn(dict):
     pass
 
 
-def _represent_mixin_as_column(col, name, new_cols, mixin_cols):
+def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
+                               exclude_classes=()):
     """Convert a mixin column to a plain columns or a set of mixin columns."""
-    if not has_info_class(col, MixinInfo):
+    # If not a mixin, or if an instance of the ``exclude_classes`` tuple then
+    # treat as a normal column.
+    if not has_info_class(col, MixinInfo) or isinstance(col, exclude_classes):
         new_cols.append(col)
         return
 
@@ -100,10 +103,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols):
     mixin_cols[name] = obj_attrs
 
 
-def _represent_mixins_as_columns(tbl):
+def _represent_mixins_as_columns(tbl, exclude_classes=()):
     """
     Convert any mixin columns to plain Column or MaskedColumn and
-    return a new table.
+    return a new table.  Exclude any mixin columns in ``exclude_classes``,
+    which must be a tuple of classes.
     """
     if not tbl.has_mixin_columns:
         return tbl
@@ -113,7 +117,8 @@ def _represent_mixins_as_columns(tbl):
     new_cols = []
 
     for col in tbl.itercols():
-        _represent_mixin_as_column(col, col.info.name, new_cols, mixin_cols)
+        _represent_mixin_as_column(col, col.info.name, new_cols, mixin_cols,
+                                   exclude_classes=exclude_classes)
 
     meta = deepcopy(tbl.meta)
     meta['__serialized_columns__'] = mixin_cols
