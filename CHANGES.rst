@@ -47,6 +47,9 @@ astropy.io.fits
   in particular for cases where the tables contain one or more string columns
   and when done through ``Table.read``. [#6821]
 
+- The performance for writing tables from ``Table.write`` has now been
+  significantly improved for tables containing one or more string columns. [#6920]
+
 - The ``Table.read`` now supports a ``memmap=`` keyword argument to control
   whether or not to use  memory mapping when reading the table. [#6821]
 
@@ -55,6 +58,12 @@ astropy.io.fits
   are returned as Numpy byte arrays (Numpy type S) while when set to `False`,
   the same columns are decoded to Unicode strings (Numpy type U) which uses more
   memory. [#6821]
+
+- The ``table_to_hdu`` function and the ``BinTableHDU.from_columns`` and
+  ``FITS_rec.from_columns`` methods now include a ``character_as_bytes``
+   keyword argument - if set to `True`, then when string columns are accessed,
+  byte columns will be returned, which can provide significantly improved
+  performance. [#6920]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
