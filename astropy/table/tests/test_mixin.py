@@ -211,14 +211,10 @@ def test_io_write_fail(mixin_cols):
     # Only do this test if there are unsupported column types (i.e. anything besides
     # BaseColumn and Quantity class instances).
     unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity))
-    # Partially supported columns (FITS)
-    fits_unsupported_cols = t.columns.not_isinstance((BaseColumn, u.Quantity, time.Time))
 
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
-    for fmt in ('fits', 'votable', 'hdf5'):
-        if fmt == 'fits' and not fits_unsupported_cols:
-            pytest.skip("no unsupported column types")
+    for fmt in ('votable', 'hdf5'):
         if fmt == 'hdf5' and not HAS_H5PY:
             continue
         out = StringIO()
