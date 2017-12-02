@@ -432,6 +432,10 @@ def table_to_hdu(table, character_as_bytes=False):
     ----------
     table : astropy.table.Table
         The table to convert.
+    character_as_bytes : bool
+        Whether to return bytes for string columns when accessed from the HDU.
+        By default this is `False` and (unicode) strings are returned, but for
+        large tables this may use up a lot of memory.
 
     Returns
     -------
