@@ -21,6 +21,12 @@ from ....time import Time  # , TimeDelta
 from ....tests.helper import quantity_allclose
 from ....units.quantity import QuantityInfo
 
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -441,6 +447,7 @@ compare_attrs = {
 }
 
 
+@pytest.mark.skipif('not HAS_YAML')
 def test_fits_mixins_qtable_to_table(tmpdir):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -475,6 +482,7 @@ def test_fits_mixins_qtable_to_table(tmpdir):
         assert_objects_equal(col, col2, attrs, compare_class)
 
 
+@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_fits_mixins_as_one(table_cls, tmpdir):
     """Test write/read all cols at once and validate intermediate column names"""
@@ -513,6 +521,7 @@ def test_fits_mixins_as_one(table_cls, tmpdir):
     assert hdus[1].columns.names == serialized_names
 
 
+@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
