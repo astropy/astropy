@@ -76,30 +76,36 @@ def _decode_mixins(tbl):
     except (ValueError, KeyError):
         return tbl
 
-    # The single `meta_yaml_line` is split into COMMENT cards, each with 70
-    # characters of the meta line and a trailing \ (backslash).  Strip the
-    # backslashes and join together.
-    lines = [line[:-1] for line in tbl.meta['comments'][i0 + 1:i1]]
-    meta_yaml_line = ''.join(lines)
+    # The YAML data are split into COMMENT cards, with lines longer than 70
+    # characters being split with a continuation character \ (backslash).
+    # Strip the backslashes and join together.
+    continuation_line = False
+    lines = []
+    for line in tbl.meta['comments'][i0 + 1:i1]:
+        if continuation_line:
+            lines[-1] = lines[-1] + line[:70]
+        else:
+            lines.append(line[:70])
+        continuation_line = len(line) == 71
 
     del tbl.meta['comments'][i0:i1 + 1]
     if not tbl.meta['comments']:
         del tbl.meta['comments']
-    info = meta.get_header_from_yaml([meta_yaml_line])
+    info = meta.get_header_from_yaml(lines)
 
     # Add serialized column information to table meta for use in constructing mixins
     tbl.meta['__serialized_columns__'] = info['meta']['__serialized_columns__']
 
-    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
-    # as guidance.
-    tbl = serialize._construct_mixins_from_columns(tbl)
-
-    # Use the `datatype` attribute information to update attributes that are
+    # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
     for col in info['datatype']:
         for attr in ['format', 'description', 'meta']:
             if attr in col:
                 setattr(tbl[col['name']].info, attr, col[attr])
+
+    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
+    # as guidance.
+    tbl = serialize._construct_mixins_from_columns(tbl)
 
     return tbl
 
@@ -283,19 +289,22 @@ def _encode_mixins(tbl):
     tbl_meta_copy = encode_tbl.meta.copy()
     try:
         encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
-        meta_yaml_line = meta.get_yaml_from_table(encode_tbl, compact=True)[0]
+        meta_yaml_lines = meta.get_yaml_from_table(encode_tbl, compact=True)  # [0]
     finally:
         encode_tbl.meta = tbl_meta_copy
     del encode_tbl.meta[ser_col]
 
-    # Split into 70 character chunks for COMMENT cards
-    idxs = list(range(0, len(meta_yaml_line) + 70, 70))
-    lines = [meta_yaml_line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
-
     if 'comments' not in encode_tbl.meta:
         encode_tbl.meta['comments'] = []
     encode_tbl.meta['comments'].append('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
-    encode_tbl.meta['comments'].extend(lines)
+
+    for line in meta_yaml_lines:
+        # Split line into 70 character chunks for COMMENT cards
+        idxs = list(range(0, len(line) + 70, 70))
+        lines = [line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
+        lines[-1] = lines[-1][:-1]
+        encode_tbl.meta['comments'].extend(lines)
+
     encode_tbl.meta['comments'].append('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
 
     return encode_tbl

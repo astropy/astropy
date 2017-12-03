@@ -290,8 +290,7 @@ def get_yaml_from_header(header, compact=False):
     header['datatype'] = [_get_col_attributes(col) for col in header['cols']]
     del header['cols']
 
-    kwargs = {'width': float('inf'), 'default_flow_style': True} if compact else {}
-    lines = yaml.dump(header, Dumper=TableDumper, **kwargs).splitlines()
+    lines = yaml.dump(header, Dumper=TableDumper).splitlines()
     return lines
 
 
