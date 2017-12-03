@@ -859,10 +859,12 @@ class TestFileFunctions(FitsTestCase):
         gf = self._make_gzip_file()
         with fits.open(gf, mode='update') as h:
             h[0].header['EXPFLAG'] = 'ABNORMAL'
+            h[1].data[0, 0] = 1
         with fits.open(gf) as h:
             # Just to make sur ethe update worked; if updates work
             # normal writes should work too...
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
+            assert h[1].data[0, 0] == 1
 
     def test_write_read_gzip_file(self):
         """
