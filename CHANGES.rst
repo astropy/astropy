@@ -61,7 +61,7 @@ astropy.io.fits
 
 - The ``table_to_hdu`` function and the ``BinTableHDU.from_columns`` and
   ``FITS_rec.from_columns`` methods now include a ``character_as_bytes``
-   keyword argument - if set to `True`, then when string columns are accessed,
+  keyword argument - if set to `True`, then when string columns are accessed,
   byte columns will be returned, which can provide significantly improved
   performance. [#6920]
 
