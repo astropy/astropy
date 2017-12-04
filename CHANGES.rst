@@ -72,6 +72,8 @@ astropy.io.fits
   keyword argument - if set to `True`, then when string columns are accessed,
   byte columns will be returned, which can provide significantly improved
   performance. [#6920]
+- Added support for writing and reading back a table which has "mixin columns"
+  such as ``SkyCoord`` or ``EarthLocation`` with no loss of information. [#6912]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

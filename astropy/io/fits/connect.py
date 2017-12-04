@@ -73,8 +73,8 @@ def _decode_mixins(tbl):
     # If available read in __serialized_columns__ meta info which is stored
     # in FITS COMMENTS between two sentinels.
     try:
-        i0 = tbl.meta['comments'].index('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
-        i1 = tbl.meta['comments'].index('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+        i0 = tbl.meta['comments'].index('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
+        i1 = tbl.meta['comments'].index('--END-ASTROPY-SERIALIZED-COLUMNS--')
     except (ValueError, KeyError):
         return tbl
 
@@ -298,26 +298,31 @@ def _encode_mixins(tbl):
             return tbl
 
     # Convert the table to one with no mixins, only Column objects.  This adds
-    # meta data which is extracted with meta.get_yaml_from_table.  TODO: this
-    # needs a new pathway to IGNORE Time-subclass columns and leave them in the
-    # table so that the downstream FITS Time handling does the right thing.
+    # meta data which is extracted with meta.get_yaml_from_table.  This ignores
+    # Time-subclass columns and leave them in the table so that the downstream
+    # FITS Time handling does the right thing.
     encode_tbl = serialize._represent_mixins_as_columns(
         tbl, exclude_classes=(Time, TimeDelta))
     if encode_tbl is tbl:
         return tbl
 
+    # Get the YAML serialization of information describing the table columns.
+    # This is re-using ECSV code that combined existing table.meta with with
+    # the extra __serialized_columns__ key.  For FITS the table.meta is handled
+    # by the native FITS connect code, so don't include that in the YAML
+    # output.
     ser_col = '__serialized_columns__'
     tbl_meta_copy = encode_tbl.meta.copy()
     try:
         encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
-        meta_yaml_lines = meta.get_yaml_from_table(encode_tbl, compact=True)  # [0]
+        meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
     finally:
         encode_tbl.meta = tbl_meta_copy
     del encode_tbl.meta[ser_col]
 
     if 'comments' not in encode_tbl.meta:
         encode_tbl.meta['comments'] = []
-    encode_tbl.meta['comments'].append('--BEGIN-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+    encode_tbl.meta['comments'].append('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
 
     for line in meta_yaml_lines:
         # Split line into 70 character chunks for COMMENT cards
@@ -326,7 +331,7 @@ def _encode_mixins(tbl):
         lines[-1] = lines[-1][:-1]
         encode_tbl.meta['comments'].extend(lines)
 
-    encode_tbl.meta['comments'].append('--END-BASE64-ASTROPY-SERIALIZED-COLUMNS--')
+    encode_tbl.meta['comments'].append('--END-ASTROPY-SERIALIZED-COLUMNS--')
 
     return encode_tbl
 

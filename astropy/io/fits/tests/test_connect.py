@@ -386,7 +386,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
-    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description', 'info.meta']
     for attr in attrs + info_attrs:
         a1 = obj1
         a2 = obj2
@@ -397,6 +397,14 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             except AttributeError:
                 a1 = a1[subattr]
                 a2 = a2[subattr]
+
+        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
+        # fix this.
+        if attr == 'info.meta':
+            if a1 is None:
+                a1 = {}
+            if a2 is None:
+                a2 = {}
 
         if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
             assert quantity_allclose(a1, a2, rtol=1e-10)
@@ -531,7 +539,8 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
 
     c = [1.0, 2.0]
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
-    t[name].info.description = 'description'
+    t[name].info.description = 'my description'
+    t[name].info.meta = {'list': list(range(50)), 'dict': {'a': 'b' * 200}}
 
     if not t.has_mixin_columns:
         pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
