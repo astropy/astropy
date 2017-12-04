@@ -95,6 +95,15 @@ class TestIERS_AExcerpt():
                       (iers_tab['UT1Flag'] == 'P') |
                       (iers_tab['UT1Flag'] == 'B'))
 
+        assert iers_tab['dX_2000A'].unit is u.marcsec
+        assert iers_tab['dY_2000A'].unit is u.marcsec
+        assert 'P' in iers_tab['NutFlag']
+        assert 'I' in iers_tab['NutFlag']
+        assert 'B' in iers_tab['NutFlag']
+        assert np.all((iers_tab['NutFlag'] == 'P') |
+                      (iers_tab['NutFlag'] == 'I') |
+                      (iers_tab['NutFlag'] == 'B'))
+
         assert iers_tab['PM_x'].unit is u.arcsecond
         assert iers_tab['PM_y'].unit is u.arcsecond
         assert 'P' in iers_tab['PolPMFlag']
@@ -113,6 +122,21 @@ class TestIERS_AExcerpt():
         assert_quantity_allclose(ut1_utc,
                                  [-0.4916557, -0.4925323, -0.4934373] * u.s,
                                  atol=1.*u.ns)
+
+
+        dcip_x,dcip_y, status = iers_tab.dcip_xy(t, return_status=True)
+        assert status[0] == iers.FROM_IERS_B
+        assert np.all(status[1:] == iers.FROM_IERS_A)
+        # These values are *exactly* as given in the table, so they should
+        # match to double precision accuracy.
+        print(dcip_x)
+        print(dcip_y)
+        assert_quantity_allclose(dcip_x,
+                                 [-0.086, -0.093, -0.087] * u.marcsec,
+                                 atol=1.*u.narcsec)
+        assert_quantity_allclose(dcip_y,
+                                 [0.094, 0.081, 0.072] * u.marcsec,
+                                 atol=1*u.narcsec)
 
         pm_x, pm_y, status = iers_tab.pm_xy(t, return_status=True)
         assert status[0] == iers.FROM_IERS_B

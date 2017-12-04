@@ -255,7 +255,7 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(jd1, jd2, ['dX_2000A', 'dY_2000A'],
-                                 self.ut1_utc_source if return_status else None)
+                                 self.dcip_source if return_status else None)
 
     def pm_xy(self, jd1, jd2=0., return_status=False):
         """Interpolate polar motions from IERS Table for given dates.
