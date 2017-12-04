@@ -184,7 +184,7 @@ def _get_col_attributes(col):
     return attrs
 
 
-def get_yaml_from_table(table, compact=False):
+def get_yaml_from_table(table):
     """
     Return lines with a YAML representation of header content from the ``table``.
 
@@ -192,8 +192,6 @@ def get_yaml_from_table(table, compact=False):
     ----------
     table : `~astropy.table.Table` object
         Table for which header content is output
-    compact : bool
-        If True then dump yaml as a single compact string, not human readable.
 
     Returns
     -------
@@ -205,10 +203,10 @@ def get_yaml_from_table(table, compact=False):
     if table.meta:
         header['meta'] = table.meta
 
-    return get_yaml_from_header(header, compact)
+    return get_yaml_from_header(header)
 
 
-def get_yaml_from_header(header, compact=False):
+def get_yaml_from_header(header):
     """
     Return lines with a YAML representation of header content from a Table.
 
@@ -224,8 +222,6 @@ def get_yaml_from_header(header, compact=False):
     ----------
     header : dict
         Table header content
-    compact : bool
-        If True then dump yaml as a single compact string, not human readable.
 
     Returns
     -------
@@ -235,7 +231,8 @@ def get_yaml_from_header(header, compact=False):
     try:
         import yaml
     except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
+        raise ImportError('`import yaml` failed, PyYAML package is '
+                          'required for serializing mixin columns')
 
     from ..io.misc.yaml import AstropyDumper
 
@@ -290,7 +287,7 @@ def get_yaml_from_header(header, compact=False):
     header['datatype'] = [_get_col_attributes(col) for col in header['cols']]
     del header['cols']
 
-    lines = yaml.dump(header, Dumper=TableDumper).splitlines()
+    lines = yaml.dump(header, Dumper=TableDumper, width=130).splitlines()
     return lines
 
 
@@ -300,10 +297,9 @@ class YamlParseError(Exception):
 
 def get_header_from_yaml(lines):
     """
-    Get a header dict from input ``lines`` which should be valid YAML in the
-    ECSV meta format.  This input will typically be created by
-    get_yaml_from_header.  The output is a dictionary which describes all the
-    table and column meta.
+    Get a header dict from input ``lines`` which should be valid YAML.  This
+    input will typically be created by get_yaml_from_header.  The output is a
+    dictionary which describes all the table and column meta.
 
     The get_cols() method in the io/ascii/ecsv.py file should be used as a
     guide to using the information when constructing a table using this
@@ -318,12 +314,14 @@ def get_header_from_yaml(lines):
     -------
     header : dict
         Dictionary describing table and column meta
+
     """
 
     try:
         import yaml
     except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
+        raise ImportError('`import yaml` failed, PyYAML package '
+                          'is required for serializing mixin columns')
 
     from ..io.misc.yaml import AstropyLoader
 
