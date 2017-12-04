@@ -22,8 +22,8 @@ class ICRSCoordType(AstropyType):
 
     @classmethod
     def from_tree(cls, node, ctx):
-        angle = QuantityType.from_tree(node['ra']['wrap_angle'], ctx)
-        wrap_angle = Angle(angle.value, unit=angle.unit)
+        angle = Angle(QuantityType.from_tree(node['ra']['wrap_angle'], ctx))
+        wrap_angle = Angle(angle)
         ra = Longitude(
             node['ra']['value'],
             unit=node['ra']['unit'],
@@ -36,9 +36,7 @@ class ICRSCoordType(AstropyType):
     def to_tree(cls, frame, ctx):
         node = {}
 
-        wrap_angle = Quantity(
-            frame.ra.wrap_angle.value,
-            unit=frame.ra.wrap_angle.unit)
+        wrap_angle = Quantity(frame.ra.wrap_angle)
         node['ra'] = {
             'value': frame.ra.value,
             'unit': frame.ra.unit.to_string(),
