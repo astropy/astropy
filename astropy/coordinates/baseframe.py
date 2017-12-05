@@ -182,6 +182,13 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if repr_info is None:
             repr_info = {}
 
+        for cls_or_name in repr_info.keys():
+            if isinstance(cls_or_name, str):
+                # TODO: this provides a layer of backwards compatibility in
+                # case the key is a string, but now we want explicit classes.
+                repr_info[_get_repr_cls(cls_or_name)] = repr_info[cls_or_name]
+                del repr_info[cls_or_name]
+
         # The default spherical names are 'lon' and 'lat'
         repr_info.setdefault(r.SphericalRepresentation,
                              [RepresentationMapping('lon', 'lon'),
@@ -647,11 +654,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 repr_attrs[repr_diff_cls]['units'].append(rec_unit)
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
-
-            if isinstance(repr_diff_cls, str):
-                # TODO: this provides a layer of backwards compatibility in
-                # case the key is a string, but now we want explicit classes.
-                repr_diff_cls = _get_repr_cls(repr_diff_cls)
 
             # take the 'names' and 'units' tuples from repr_attrs,
             # and then use the RepresentationMapping objects
