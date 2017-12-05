@@ -501,6 +501,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- Ensure that ``Quantity`` slices can be set with objects that have a ``unit``
+  attribute (such as ``Column``). [#6123]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
