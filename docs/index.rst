@@ -139,7 +139,7 @@ There are additional tools of use for developers in the
    development/ccython
    development/releasing
    development/workflow/maintainer_workflow
-   development/affiliated-packages
+   development/astropy-package-template
    changelog
 
 .. _project-details:
