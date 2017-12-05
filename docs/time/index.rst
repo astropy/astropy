@@ -94,6 +94,20 @@ this information is kept is the ``fits`` format::
   >>> print(t2.fits)
   ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
 
+One can set the time values in-place using the usual numpy array setting
+item syntax::
+
+  >>> t2[1] = '2014-12-25'
+  >>> print(t2)
+  ['1999-01-01T00:01:04.307' '2014-12-25T00:00:00.000']
+
+The |Time| object also has support for missing values, which is particularly
+useful for :ref:`table_operations` such as joining and stacking::
+
+  >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
+  >>> print(t2)
+  [-- '2014-12-25T00:00:00.000']
+
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
@@ -576,13 +590,56 @@ The two should be very close to each other.
 Using Time objects
 -------------------
 
-There are four basic operations available with |Time| objects:
+There are five basic operations available with |Time| objects:
 
+- Get and set time values(s) for an array-valued |Time| object.
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
 - Calculate the `sidereal time`_ corresponding to the time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
+
+Get and set values
+^^^^^^^^^^^^^^^^^^
+
+For an existing |Time| object which is array-valued, one can use the
+usual numpy array item syntax to get either a single item or a subset
+of items.  The returned value is a |Time| object with all the same
+attributes::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> print(t[1])
+  2001:040
+  >>> print(t[1:])
+  ['2001:040' '2001:060' '2001:080']
+  >>> print(t[[2, 0]])
+  ['2001:060' '2001:020']
+
+As of astropy version 3.0, one can also set values in-place for an
+array-valued |Time| object::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[1] = '2010:001'
+  >>> print(t)
+  ['2001:020' '2010:001' '2001:060' '2001:080']
+  >>> t[[2, 0]] = '1990:123'
+  >>> print(t)
+  ['1990:123' '2010:001' '1990:123' '2001:080']
+
+The new value (on the right hand side) when setting can be one of three
+possibilities:
+
+- Scalar string value or array of string values where each value
+  is in a valid time format that can be automatically parsed and
+  used to create a |Time| object.
+- Value or array of values where each value has the same ``format`` as
+  the |Time| object being set.  For instance, a float or numpy array
+  of floats for an object with ``format='unix'``.
+- |Time| object with identical ``location`` (but ``scale`` and
+  ``format`` need not be the same).  The right side value will be
+  transformed so the time ``scale`` matches.
 
 Get representation
 ^^^^^^^^^^^^^^^^^^^
