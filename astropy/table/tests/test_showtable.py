@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 from ..scripts import showtable
@@ -103,4 +101,56 @@ def test_votable(capsys):
         '             XXXX          XXXX ...       -- .. --',
         '                                ...       -- .. --',
         '                                ...       -- .. --',
+    ]
+
+
+def test_max_lines(capsys):
+    showtable.main([os.path.join(ASCII_ROOT, 't/cds2.dat'),
+                    '--format', 'ascii.cds', '--max-lines', '7',
+                    '--max-width', '30'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        '      SST       ... Note',
+        '                ...     ',
+        '--------------- ... ----',
+        '041314.1+281910 ...   --',
+        '            ... ...  ...',
+        '044427.1+251216 ...   --',
+        '044642.6+245903 ...   --',
+        'Length = 215 rows',
+    ]
+
+
+def test_show_dtype(capsys):
+    showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'),
+                    '--show-dtype'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        ' target  V_mag ',
+        ' str20  float32',
+        '------- -------',
+        'NGC1001    11.1',
+        'NGC1002    12.3',
+        'NGC1003    15.2',
+    ]
+
+
+def test_hide_unit(capsys):
+    showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),
+                    '--format', 'ascii.cds'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK Fit ',
+        '       h  min   s       deg arcmin arcsec             mag     ',
+        '----- --- --- ----- --- --- ------ ------ ----- ----- --- ----',
+        '    1   3  28 39.09   +  31      6    1.9    --    I*  -- 1.35',
+    ]
+
+    showtable.main([os.path.join(ASCII_ROOT, 't/cds.dat'),
+                    '--format', 'ascii.cds', '--hide-unit'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Index RAh RAm  RAs  DE- DEd DEm DEs Match Class  AK Fit ',
+        '----- --- --- ----- --- --- --- --- ----- ----- --- ----',
+        '    1   3  28 39.09   +  31   6 1.9    --    I*  -- 1.35',
     ]
