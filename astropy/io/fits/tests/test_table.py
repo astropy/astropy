@@ -298,6 +298,19 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
         hdul.close()
+
+        # Test Scaling
+
+        r1 = np.array([11., 12.])
+        c2 = fits.Column(name='def', format='D', array=r1, bscale=2.3,
+                         bzero=0.6)
+        hdu = fits.TableHDU.from_columns([c2])
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
+        with open(self.temp('toto.fits')) as f:
+            assert '4.95652173913043548D+00' in f.read()
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
+
         a.close()
 
     def test_endianness(self):
