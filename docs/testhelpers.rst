@@ -16,11 +16,11 @@ To ease development of tests that work with Astropy, the
 tests that use Astropy conventions or classes easier to work with. e.g.,
 functions to test for near-equality of `~astropy.units.Quantity` objects.
 
-The functionality here is not exhaustive, because much of the useful
-tools are either in the standard library, py.test, or
-`numpy.testing <https://docs.scipy.org/doc/numpy/reference/routines.testing.html>`_.
-This module contains primarily functionality specific to astropy or
-packages that follow the Astropy package template.
+The functionality here is not exhaustive, because much of the useful tools
+are either in the standard library, py.test, or `numpy.testing
+<https://docs.scipy.org/doc/numpy/reference/routines.testing.html>`_.  This
+module contains primarily functionality specific to the astropy core package
+or packages that follow the Astropy package template.
 
 
 Reference/API

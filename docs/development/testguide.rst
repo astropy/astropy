@@ -144,10 +144,10 @@ separately.
 setup.py test
 =============
 
-astropy and the Astropy package template provide a ``test`` setup command,
-invoked by running ``python setup.py test`` while in the package root
-directory. Run ``python setup.py test --help`` to see the options to the
-test command.
+The astropy core package and the Astropy package template provide a ``test``
+setup command, invoked by running ``python setup.py test`` while in the
+package root directory. Run ``python setup.py test --help`` to see the
+options to the test command.
 
 Since ``python setup.py test`` wraps the widely-used pytest framework, you may
 from time to time want to pass options to the ``pytest`` command itself. For
