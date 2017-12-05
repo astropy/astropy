@@ -260,6 +260,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     """
 
     supported_constraints = ['fixed']
+    supports_masked_input = True
 
     def __init__(self):
         self.fit_info = {'residuals': None,
@@ -316,11 +317,17 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
-            input coordinates
-        y : array
-            input coordinates
-        z : array (optional)
-            input coordinates
+            Input coordinates
+        y : array-like
+            Input coordinates
+        z : array-like (optional)
+            Input coordinates.
+            If the dependent (``y`` or ``z``) co-ordinate values are provided
+            as a `numpy.ma.MaskedArray`, any masked points are ignored when
+            fitting. Note that model set fitting is significantly slower when
+            there are masked points (not just an empty mask), as the matrix
+            equation has to be solved for each model separately when their
+            co-ordinate grids differ.
         weights : array (optional)
             weights
         rcond :  float, optional
@@ -413,7 +420,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     # axis is *last*.  That's fine, but this could be
                     # generalized for other dimensionalities of z.
                     # TODO: See above comment
-                    rhs = np.array([i.flatten() for i in z]).T
+                    rhs = z.reshape((z.shape[0], -1)).T
                 else:
                     rhs = z.T
             else:
@@ -422,6 +429,14 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
             lhs = np.asarray(lhs).T
+
+        # Some models (eg. Polynomial1D) don't flatten multi-dimensional inputs
+        # when constructing their Vandermonde matrix, which can lead to obscure
+        # failures below. Ultimately, np.linalg.lstsq can't handle >2D matrices,
+        # so just raise a slightly more informative error when this happens:
+        if lhs.ndim > 2:
+            raise ValueError('{0} gives unsupported >2D derivative matrix for '
+                             'this x/y'.format(type(model_copy).__name__))
 
         # Subtract any terms fixed by the user from (a copy of) the RHS, in
         # order to fit the remaining terms correctly:
@@ -460,7 +475,48 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             rcond = len(x) * np.finfo(x.dtype).eps
 
         scl = (lhs * lhs).sum(0)
-        lacoef, resids, rank, sval = np.linalg.lstsq(lhs / scl, rhs, rcond)
+        lhs /= scl
+
+        masked = np.any(np.ma.getmask(rhs))
+
+        if len(model_copy) == 1 or not masked:
+
+            # If we're fitting one or more models over a common set of points,
+            # we only have to solve a single matrix equation, which is an order
+            # of magnitude faster than calling lstsq() once per model below:
+
+            good = ~rhs.mask if masked else slice(None)  # latter is a no-op
+
+            # Solve for one or more models:
+            lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
+                                                         rhs[good], rcond)
+
+        else:
+
+            # Where fitting multiple models with masked pixels, initialize an
+            # empty array of coefficients and populate it one model at a time.
+            # The shape matches the number of coefficients from the Vandermonde
+            # matrix and the number of models from the RHS:
+            lacoef = np.zeros(lhs.shape[-1:] + rhs.shape[-1:], dtype=rhs.dtype)
+
+            # Loop over the models and solve for each one. By this point, the
+            # model set axis is the second of two. Transpose rather than using,
+            # say, np.moveaxis(array, -1, 0), since it's slightly faster and
+            # lstsq can't handle >2D arrays anyway. This could perhaps be
+            # optimized by collecting together models with identical masks
+            # (eg. those with no rejected points) into one operation, though it
+            # will still be relatively slow when calling lstsq repeatedly.
+            for model_rhs, model_lacoef in zip(rhs.T, lacoef.T):
+
+                # Cull masked points on both sides of the matrix equation:
+                good = ~model_rhs.mask
+                model_lhs = lhs[good]
+                model_rhs = model_rhs[good][..., np.newaxis]
+
+                # Solve for this model:
+                t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
+                                                             model_rhs, rcond)
+                model_lacoef[:] = t_coef.T
 
         self.fit_info['residuals'] = resids
         self.fit_info['rank'] = rank
@@ -1046,11 +1102,11 @@ class JointFitter(metaclass=_FitterMeta):
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
 
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
+    x = np.asanyarray(x, dtype=float)
+    y = np.asanyarray(y, dtype=float)
 
     if z is not None:
-        z = np.asarray(z, dtype=float)
+        z = np.asanyarray(z, dtype=float)
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
