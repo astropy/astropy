@@ -11,7 +11,9 @@ from numpy.testing.utils import assert_allclose
 from ..biweight import (biweight_location, biweight_scale,
                         biweight_midvariance, biweight_midcovariance,
                         biweight_midcorrelation)
+
 from ...extern.six.moves import range
+from ...tests.helper import catch_warnings
 from ...utils.misc import NumpyRNGContext
 
 
@@ -249,3 +251,18 @@ def test_biweight_midcorrelation_inputs():
     with pytest.raises(ValueError) as e:
         biweight_midcorrelation(a2, a3)
         assert 'x and y must have the same shape.' in str(e.value)
+
+
+def test_biweight_32bit_runtime_warnings():
+    """Regression test for #6905."""
+    with NumpyRNGContext(12345):
+        data = np.random.random(100).astype(np.float32)
+        data[50] = 30000.
+
+        with catch_warnings(RuntimeWarning) as warning_lines:
+            biweight_scale(data)
+            assert len(warning_lines) == 0
+
+        with catch_warnings(RuntimeWarning) as warning_lines:
+            biweight_midvariance(data)
+            assert len(warning_lines) == 0
