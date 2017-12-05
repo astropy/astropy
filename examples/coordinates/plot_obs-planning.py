@@ -36,7 +36,6 @@ package.
 # Make print work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
