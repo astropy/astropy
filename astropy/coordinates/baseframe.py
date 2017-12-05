@@ -183,24 +183,20 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
             repr_info = dict()
 
         if r.SphericalRepresentation in repr_info:
-            sph_mappings = repr_info[r.SphericalRepresentation]
-            component_map = dict([(m.reprname, m.framename)
-                                  for m in sph_mappings])
+            sph_component_map = {m.reprname: m.framename
+                                 for m in repr_info[r.SphericalRepresentation]}
 
         else:
-            component_map = dict()
-
-        component_map.setdefault('lon', 'lon')
-        component_map.setdefault('lat', 'lat')
+            sph_component_map = {'lat': 'lat', 'lon': 'lon'}
 
         if r.SphericalCosLatDifferential not in repr_info:
             repr_info[r.SphericalCosLatDifferential] = [
                 RepresentationMapping(
                     'd_lon_coslat',
-                    'pm_{lon}_cos{lat}'.format(**component_map),
+                    'pm_{lon}_cos{lat}'.format(**sph_component_map),
                     u.mas/u.yr),
                 RepresentationMapping('d_lat',
-                                      'pm_{lat}'.format(**component_map),
+                                      'pm_{lat}'.format(**sph_component_map),
                                       u.mas/u.yr),
                 RepresentationMapping('d_distance', 'radial_velocity',
                                       u.km/u.s)
@@ -209,10 +205,10 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if r.SphericalDifferential not in repr_info:
             repr_info[r.SphericalDifferential] = [
                 RepresentationMapping('d_lon',
-                                      'pm_{lon}'.format(**component_map),
+                                      'pm_{lon}'.format(**sph_component_map),
                                       u.mas/u.yr),
                 RepresentationMapping('d_lat',
-                                      'pm_{lat}'.format(**component_map),
+                                      'pm_{lat}'.format(**sph_component_map),
                                       u.mas/u.yr),
                 RepresentationMapping('d_distance', 'radial_velocity',
                                       u.km/u.s)
