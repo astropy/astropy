@@ -528,7 +528,7 @@ def get_config(packageormod=None, reload=False):
                 else:
                     cfgfn = path.join(get_config_dir(), rootname + '.cfg')
                 cobj = configobj.ConfigObj(cfgfn, interpolation=False)
-            except (IOError, OSError) as e:
+            except OSError as e:
                 msg = ('Configuration defaults will be used due to ')
                 errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
                 msg += e.__class__.__name__ + errstr

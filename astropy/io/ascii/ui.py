@@ -476,7 +476,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         return None
 
     # Define whitelist of exceptions that are expected from readers when
-    # processing invalid inputs.  Note that IOError must fall through here
+    # processing invalid inputs.  Note that OSError must fall through here
     # so one cannot simply catch any exception.
     guess_exception_classes = (core.InconsistentTableError, ValueError, TypeError,
                                AttributeError, core.OptionalTableImportError,
@@ -853,7 +853,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
                     "Use the argument 'overwrite=True' in the future.".format(
                         output), AstropyDeprecationWarning)
             elif not overwrite:
-                raise IOError("{} already exists".format(output))
+                raise OSError("{} already exists".format(output))
 
     if output is None:
         output = sys.stdout

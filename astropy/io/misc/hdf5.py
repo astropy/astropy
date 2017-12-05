@@ -96,7 +96,7 @@ def read_table_hdf5(input, path=None):
             try:
                 input = input[path]
             except (KeyError, ValueError):
-                raise IOError("Path {0} does not exist".format(path))
+                raise OSError("Path {0} does not exist".format(path))
 
         # `input` is now either a group or a dataset. If it is a group, we
         # will search for all structured arrays inside the group, and if there
@@ -248,7 +248,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             if overwrite and not append:
                 os.remove(output)
             else:
-                raise IOError("File exists: {0}".format(output))
+                raise OSError("File exists: {0}".format(output))
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
@@ -274,7 +274,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             # Delete only the dataset itself
             del output_group[name]
         else:
-            raise IOError("Table {0} already exists".format(path))
+            raise OSError("Table {0} already exists".format(path))
 
     # Write the table to the file
     if compression:

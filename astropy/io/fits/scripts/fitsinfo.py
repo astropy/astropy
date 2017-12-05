@@ -40,7 +40,7 @@ def fitsinfo(filename):
 
     try:
         fits.info(filename)
-    except IOError as e:
+    except OSError as e:
         log.error(str(e))
     return
 

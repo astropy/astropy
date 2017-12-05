@@ -912,8 +912,8 @@ class TestHDUListFunctions(FitsTestCase):
         with codecs.open(filename, mode='w', encoding='utf=8') as f:
             f.write(u'Ce\xe7i ne marche pas')
 
-        # This should raise an IOError because there is no end card.
-        with pytest.raises(IOError):
+        # This should raise an OSError because there is no end card.
+        with pytest.raises(OSError):
             fits.open(filename)
 
     def test_no_resource_warning_raised_on_non_fits_file(self):

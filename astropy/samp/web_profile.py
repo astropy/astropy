@@ -113,7 +113,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
                 self.end_headers()
                 self.wfile.write(proxyfile.read())
                 proxyfile.close()
-            except IOError:
+            except OSError:
                 self.report_404()
                 return
 

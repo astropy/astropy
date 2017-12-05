@@ -754,8 +754,8 @@ class HDUList(list, _Verify):
                         filename, backup), AstropyUserWarning)
                 try:
                     shutil.copy(filename, backup)
-                except IOError as exc:
-                    raise IOError('Failed to save backup to destination {}: '
+                except OSError as exc:
+                    raise OSError('Failed to save backup to destination {}: '
                                   '{}'.format(filename, exc))
 
         self.verify(option=output_verify)
@@ -1017,7 +1017,7 @@ class HDUList(list, _Verify):
             if hdulist._file.close_on_error:
                 hdulist._file.close()
 
-            raise IOError('Empty or corrupt FITS file')
+            raise OSError('Empty or corrupt FITS file')
 
         if not lazy_load_hdus:
             # Go ahead and load all HDUs
@@ -1087,7 +1087,7 @@ class HDUList(list, _Verify):
                     except EOFError:
                         self._read_all = True
                         return False
-                    except IOError:
+                    except OSError:
                         # Close the file: see
                         # https://github.com/astropy/astropy/issues/6168
                         #
@@ -1354,7 +1354,7 @@ class HDUList(list, _Verify):
             if self._truncate:
                 try:
                     self._file.truncate(hdu._data_offset + hdu._data_size)
-                except IOError:
+                except OSError:
                     self._resize = True
                 self._truncate = False
 

@@ -475,7 +475,7 @@ class EarthLocation(u.Quantity):
                         reg = get_downloaded_sites(force_download)
                     else:
                         reg = get_downloaded_sites()
-                except IOError:
+                except OSError:
                     if force_download:
                         raise
                     msg = ('Could not access the online site list. Falling '

@@ -178,7 +178,7 @@ class SAMPClient:
         while self._is_running:
             try:
                 read_ready = select.select([self.client.socket], [], [], 0.1)[0]
-            except select.error as exc:
+            except OSError as exc:
                 warnings.warn("Call to select in SAMPClient failed: {0}".format(exc),
                               SAMPWarning)
             else:
