@@ -115,7 +115,7 @@ astropy.tests
 ^^^^^^^^^^^^^
 
 - Split pytest plugins into separate modules. Move remotedata, openfiles,
-  doctestplus plugins to standalone repositories. [#6606]
+  doctestplus plugins to standalone repositories. [#6384, #6606]
 
 - When testing, astropy (or the package being tested) is now installed to
   a temporary directory instead of copying the build. This allows
