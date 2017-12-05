@@ -197,36 +197,33 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         sph_component_map = {m.reprname: m.framename
                              for m in repr_info[r.SphericalRepresentation]}
 
-        if r.SphericalCosLatDifferential not in repr_info:
-            repr_info[r.SphericalCosLatDifferential] = [
-                RepresentationMapping(
-                    'd_lon_coslat',
-                    'pm_{lon}_cos{lat}'.format(**sph_component_map),
-                    u.mas/u.yr),
-                RepresentationMapping('d_lat',
-                                      'pm_{lat}'.format(**sph_component_map),
-                                      u.mas/u.yr),
-                RepresentationMapping('d_distance', 'radial_velocity',
-                                      u.km/u.s)
-            ]
+        repr_info.setdefault(r.SphericalCosLatDifferential, [
+            RepresentationMapping(
+                'd_lon_coslat',
+                'pm_{lon}_cos{lat}'.format(**sph_component_map),
+                u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
 
-        if r.SphericalDifferential not in repr_info:
-            repr_info[r.SphericalDifferential] = [
-                RepresentationMapping('d_lon',
-                                      'pm_{lon}'.format(**sph_component_map),
-                                      u.mas/u.yr),
-                RepresentationMapping('d_lat',
-                                      'pm_{lat}'.format(**sph_component_map),
-                                      u.mas/u.yr),
-                RepresentationMapping('d_distance', 'radial_velocity',
-                                      u.km/u.s)
-            ]
+        repr_info.setdefault(r.SphericalDifferential, [
+            RepresentationMapping('d_lon',
+                                  'pm_{lon}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
 
-        if r.CartesianDifferential not in repr_info:
-            repr_info[r.CartesianDifferential] = [
-                RepresentationMapping('d_x', 'v_x', u.km/u.s),
-                RepresentationMapping('d_y', 'v_y', u.km/u.s),
-                RepresentationMapping('d_z', 'v_z', u.km/u.s)]
+        repr_info.setdefault(r.CartesianDifferential, [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)])
 
         # Unit* classes should follow the same naming conventions
         repr_info.setdefault(r.UnitSphericalRepresentation,
