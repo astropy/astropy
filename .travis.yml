@@ -101,7 +101,7 @@ matrix:
         # for the image tests.
         - os: linux
           env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES' mkl=11.3.3'
+               CONDA_DEPENDENCIES="`echo $CONDA_ALL_DEPENDENCIES mkl=11.3.3`"
                PIP_DEPENDENCIES='jplephem mock pytest-mpl'
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
