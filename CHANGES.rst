@@ -100,6 +100,15 @@ astropy.table
 
 - Improved exception handling and error messages when column ``format``
   attribute is incorrect for the column type. [#6385]
+  - The config and cache directories and the name of the config file are now
+    customizable. This allows affiliated packages to put their configuration
+    files in locations other than ``CONFIG_DIR/.astropy/``. [#5828]
+
+  - The config and cache directories and the name of the config file are now
+    customizable. This allows affiliated packages to put their configuration
+    files in locations other than ``CONFIG_DIR/.astropy/``. [#5828]
+
+- ``astropy.constants``
 
 - Allow to pass ``htmldict`` option to the jsviewer writer. [#6551]
 
@@ -1104,6 +1113,12 @@ astropy.wcs
 ^^^^^^^^^^^
 
 - Removed deprecated ``wcs.rotateCD``. [#6170]
+- The bundled version of pytest has now been removed, but the
+  astropy.tests.helper.pytest import will continue to work properly.
+  Affiliated packages should nevertheless transition to importing pytest
+  directly rather than from astropy.tests.helper. This also means that
+  pytest is now a formal requirement for testing for both Astropy and
+  for affiliated packages. [#5694]
 
 
 Bug Fixes

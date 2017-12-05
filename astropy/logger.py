@@ -491,7 +491,7 @@ class AstropyLogger(Logger):
             try:
                 if log_file_path == '' or testing_mode:
                     log_file_path = os.path.join(
-                        _config.get_config_dir(), "astropy.log")
+                        _config.get_config_dir('astropy'), "astropy.log")
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
