@@ -9,10 +9,11 @@ import shlex
 import sys
 import tempfile
 import warnings
+from pkgutil import find_loader
 from collections import OrderedDict
 
-from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
+from ..config.paths import set_temp_config, set_temp_cache
 from ..utils import wraps, find_current_module
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
@@ -150,7 +151,7 @@ class TestRunnerBase(object):
             func = getattr(self, keyword)
             result = func(keywords[keyword], keywords)
 
-            # Allow disabaling of options in a subclass
+            # Allow disabling of options in a subclass
             if result is NotImplemented:
                 raise TypeError("run_tests() got an unexpected keyword argument {}".format(keyword))
 
@@ -192,6 +193,25 @@ class TestRunnerBase(object):
             raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
 
         args = self._generate_args(**kwargs)
+
+        if 'plugins' not in self.keywords or self.keywords['plugins'] is None:
+            self.keywords['plugins'] = []
+
+        plugins = [
+            'astropy.tests.pytest_repeat'
+        ]
+
+        if find_loader('pytest_doctestplus') is None:
+            plugins.append('astropy.tests.pytest_doctestplus')
+
+        if find_loader('pytest_openfiles') is None:
+            plugins.append('astropy.tests.pytest_openfiles')
+
+        if find_loader('pytest_remotedata') is None:
+            plugins.append('astropy.tests.pytest_remotedata')
+
+        # Make plugins available to test runner without registering them
+        self.keywords['plugins'].extend(plugins)
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
@@ -308,12 +328,8 @@ class TestRunner(TestRunnerBase):
                 common = os.path.commonprefix((abs_docs_path, abs_test_path))
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
+                    # Turn on the doctest_rst plugin
+                    all_args.append('--doctest-rst')
                     test_path = abs_test_path
 
             if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
@@ -377,7 +393,7 @@ class TestRunner(TestRunnerBase):
     def remote_data(self, remote_data, kwargs):
         """
         remote_data : {'none', 'astropy', 'any'}, optional
-            Controls whether to run tests marked with @remote_data. This can be
+            Controls whether to run tests marked with @pytest.mark.remote_data. This can be
             set to run no tests with remote data (``none``), only ones that use
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
