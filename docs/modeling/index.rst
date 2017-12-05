@@ -347,6 +347,37 @@ function in which the resulting mean (variance) is the sum of the means
     plt.plot(x, g2(x), 'k-')
     plt.plot(x, g3(x), 'k-')
 
+.. _modeling-getting-started-masked-data:
+
+Fitting masked data
+-------------------
+
+.. versionadded:: 2.0.4
+
+When `astropy.modeling.fitting.LinearLSQFitter` is provided with the dependent
+co-ordinate values as a `numpy.ma.MaskedArray`, it ignores any masked values
+when performing the fit::
+
+    >>> p_init = models.Polynomial1D(degree=1)
+    >>> x = np.arange(10)
+    >>> y = np.ma.masked_array(2*x+1, mask=np.zeros_like(x))
+    >>> y[7] = 100.       # simulate spurious value
+    >>> y.mask[7] = True
+    >>> fitter = fitting.LinearLSQFitter()
+    >>> p = fitter(p_init, x, y)
+    >>> print('Fit intercept={:.3f}, slope={:.3f}'.format(p.c0.value, p.c1.value))  # doctest: +FLOAT_CMP
+    Fit intercept=1.000, slope=2.000
+
+At present, the non-linear fitters do not distinguish between good and bad
+values in this way.
+
+Note that model set fitting is currently about an order of magnitude slower in
+the presence of masked values, because the matrix equation has to be solved for
+each model separately, on their respective co-ordinate grids. This is still an
+order of magnitude faster than fitting separate model instances, however.
+Supplying a `numpy.ma.MaskedArray` without any bad (``True``) mask values
+produces the normal, faster behaviour.
+
 .. _modeling-using:
 
 Using `astropy.modeling`
