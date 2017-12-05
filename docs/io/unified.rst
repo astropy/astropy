@@ -72,6 +72,9 @@ content of tables for the formats supported by the unified I/O interface::
     NGC1002  12.3
     NGC1003  15.2
 
+To get full documentation on the usage and available options do ``showtable
+--help``.
+
 
 .. _built_in_readers_writers:
 

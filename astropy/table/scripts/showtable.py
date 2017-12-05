@@ -76,13 +76,14 @@ def showtable(filename, args):
     try:
         table = Table.read(filename, **kwargs)
         if args.info:
-            print(table.info)
+            table.info('attributes')
         elif args.stats:
             table.info('stats')
         else:
             formatter = table.more if args.more else table.pprint
             formatter(max_lines=args.max_lines, max_width=args.max_width,
-                      show_unit=not args.hide_unit, show_dtype=args.show_dtype)
+                      show_unit=(False if args.hide_unit else None),
+                      show_dtype=args.show_dtype)
     except IOError as e:
         log.error(str(e))
 
@@ -97,12 +98,16 @@ def main(args=None):
             table output fit onto a single screen page.  For a long and wide
             table this will mean cutting out inner rows and columns.  To print
             **all** the rows or columns use ``--max-lines=-1`` or
-            ``max-width=-1``, respectively.
+            ``max-width=-1``, respectively. The complete list of supported
+            formats can be found at
+            http://astropy.readthedocs.io/en/latest/io/unified.html#built-in-table-readers-writers
         """))
 
     addarg = parser.add_argument
     addarg('filename', nargs='+', help='path to one or more files')
 
+    addarg('--format', help='input table format, should be specified if it '
+           'cannot be automatically detected')
     addarg('--more', action='store_true',
            help='use the pager mode from Table.more')
     addarg('--info', action='store_true',
@@ -128,7 +133,6 @@ def main(args=None):
     # ASCII-specific arguments
     ascii_args = parser.add_argument_group('ASCII arguments')
     addarg = ascii_args.add_argument
-    addarg('--format', help='input table format')
     addarg('--delimiter', help='column delimiter string')
 
     # FITS-specific arguments
