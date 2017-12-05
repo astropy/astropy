@@ -118,7 +118,17 @@ class OutputChecker(doctest.OutputChecker):
                 else:
                     nw_.append(nw)
 
-                if not np.allclose(float(ng), float(nw)):
+                ngf = float(ng)
+                nwf = float(nw)
+
+                # This is a workaround for the backported version of this
+                # plugin since we need to support older versions of numpy that
+                # do not provide the 'equal_nan' argument, which was added in
+                # numpy-1.10.
+                if np.isnan(ngf) and np.isnan(nwf):
+                    continue
+
+                if not np.allclose(ngf, nwf):
                     return False
 
             # replace all floats in the "got" string by those from "wanted".
