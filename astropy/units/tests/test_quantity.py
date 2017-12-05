@@ -1284,6 +1284,27 @@ def test_quantity_from_table():
     assert_array_equal(qbp.value, t['b'])
 
 
+def test_assign_slice_with_quantity_like():
+    # Regression tests for gh-5961
+    from ... table import Table, Column
+    # first check directly that we can use a Column to assign to a slice.
+    c = Column(np.arange(10.), unit=u.mm)
+    q = u.Quantity(c)
+    q[:2] = c[:2]
+    # next check that we do not fail the original problem.
+    t = Table()
+    t['x'] = np.arange(10) * u.mm
+    t['y'] = np.ones(10) * u.mm
+    assert type(t['x']) is Column
+
+    xy = np.vstack([t['x'], t['y']]).T * u.mm
+    ii = [0, 2, 4]
+
+    assert xy[ii, 0].unit == t['x'][ii].unit
+    # should not raise anything
+    xy[ii, 0] = t['x'][ii]
+
+
 def test_insert():
     """
     Test Quantity.insert method.  This does not test the full capabilities
