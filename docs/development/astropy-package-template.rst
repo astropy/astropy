@@ -1,17 +1,16 @@
-********************************************************
-How to create and maintain an Astropy affiliated package
-********************************************************
+**********************************************************************
+How to create and maintain a Python package using the Astropy template
+**********************************************************************
 
 If you run into any problems, don't hesitate to ask for help on the
 astropy-dev mailing list!
 
-The `package-template`_ repository provides a template for packages that are
-affiliated with the `Astropy`_ project. This package design mirrors the
-layout of the main `Astropy`_ repository, as well as reusing much of the
-helper code used to organize `Astropy`_. The instructions below describe how
-to take this template and adjust it for your particular affiliated package,
-as well as how to update your package to the latest version of the package
-template.
+The `package-template`_ repository provides a template for Python
+packages. This package design mirrors the layout of the main `Astropy`_
+repository, as well as reusing much of the helper code used to organize
+`Astropy`_. The instructions below describe how to take this template and
+adjust it for your particular package, as well as how to update
+your package to the latest version of the package template.
 
 There are two main ways you can use this template layout to create a new
 package:
@@ -63,7 +62,7 @@ Starting a new package
 
 #. The `package-template`_ infrastructure relies on the `astropy-helpers`_
    package, and we recommend adding this as a sub-module so as to easily be
-   able to bundle it in releases of affiliated packages::
+   able to bundle it in releases of your packages::
 
     git submodule add https://github.com/astropy/astropy-helpers.git astropy_helpers
 
@@ -308,7 +307,7 @@ files manually`_ section since this explains what many of the files do.
 #. Go into the directory you just created, and open the ``setup.cfg``
    file with your favorite text editor.  Edit the settings in the
    ``metadata`` section.  These values will be used to automatically
-   replace special placeholders in the affiliated package template.
+   replace special placeholders in the package template.
 
    #. Change the ``package_name`` variable to whatever you decide your
       package should be named. By tradition/very strong suggestion,
@@ -317,7 +316,7 @@ files manually`_ section since this explains what many of the files do.
       sentence) description of your package.
    #. Add your name and email address by changing the ``author`` and
       ``author_email`` variables.
-   #. If your affiliated package has a website, change ``url`` to point
+   #. If your package has a website, change ``url`` to point
       to that site.  Otherwise, you can leave it pointing to `Astropy`_
       or just delete it.
    #. Exit out of your text editor.
@@ -369,7 +368,7 @@ files manually`_ section since this explains what many of the files do.
       git mv docs/packagename docs/<packagename>
 
 #. Edit the ``README.rst`` file, deleting all of the content and replacing it
-   with a short description of your affiliated package.
+   with a short description of your package.
 
 #.  Open ``docs/<packagename>/index.rst`` and you can start writing the documentation
     for your package, but at least replace ``packagename`` in ``automodapi::``
@@ -379,7 +378,7 @@ files manually`_ section since this explains what many of the files do.
 
       git commit -a -m "Adjusted for new project <packagename>"
 
-#. (This step assumes your affiliated package is hosted as part of the astropy
+#. (This step assumes your package is hosted as part of the astropy
    organization on Github.  If it's instead hosted somewhere else, just adjust
    the URL in the instructions below to match wherever your repository lives)
    Now you will want to tell git that it should be pushing and pulling updates
@@ -411,7 +410,7 @@ files manually`_ section since this explains what many of the files do.
    ``git push upstream master``.
 
    Additionally, you can set things up to make it easier to pull future
-   changes to the package template to your affiliated package.  Add a remote
+   changes to the package template to your package.  Add a remote
    for the package template::
 
       git remote add template git@github.com:astropy/package-template.git
@@ -493,16 +492,12 @@ files manually`_ section since this explains what many of the files do.
       for mod_name in MOCK_MODULES:
           sys.modules[mod_name] = Mock()
 
-#. You're now ready to start doing actual work on your affiliated package.  You
+#. You're now ready to start doing actual work on your package.  You
    will probably want to read over the developer guidelines of the Astropy
    documentation, and if you are hosting your code in GitHub, you might also
    want to read the `Github help <https://help.github.com/>`_ to ensure you know
    how to push your code to GitHub and some recommended workflows that work for
    the core Astropy Project.
-
-#. Once you have started work on the affiliated package, you should register
-   your package with the Astropy affiliated package registry. Instructions for
-   doing this will be provided on the `Astropy`_ website.
 
 #. Good luck with your code and your science!
 
@@ -512,10 +507,10 @@ Updating to the latest template files
 See instructions in :ref:`Item 14 above <template-changes-with-gitfu>`.
 
 
-Releasing an affiliated package
-*******************************
+Releasing a Python package
+**************************
 
-You can release an affiliated package using the steps given below. In these
+You can release a package using the steps given below. In these
 instructions, we assume that the release is made from a fresh clone of the
 remote "main" repository and not from a forked copy. We also assume that
 the changelog file is named ``CHANGES.rst``, like for the astropy core
@@ -546,7 +541,7 @@ by ``CHANGES.md`` in the instructions.
         python setup.py test
 
    You may need to add the ``--remote-data`` flag or any other flags that you
-   normally add when fully testing your affiliated package.
+   normally add when fully testing your package.
 
    .. note::
 
@@ -633,11 +628,9 @@ by ``CHANGES.md`` in the instructions.
    then go to the project settings, and under **Versions** you should see the
    tag you just pushed. Select the tag to activate it, and save.
 
-#. If your affiliated package is available in the `astropy conda channel
-   <https://github.com/astropy/conda-channel-astropy>`_, you should also submit
-   a pull request to update the version number of your affiliated package. See the
-   `conda-channel-astropy README <https://github.com/astropy/conda-channel-astropy/>`_
-   for details.
+#. If your package is available in the ``conda-forge`` conda channel, you
+   should also submit a pull request to update the version number in the
+   feedstock of your package.
 
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
