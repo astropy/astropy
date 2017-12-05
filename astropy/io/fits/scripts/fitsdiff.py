@@ -79,7 +79,7 @@ def handle_options(argv=None):
             try:
                 values = [v.strip() for v in open(value, 'r').readlines()]
                 setattr(parser.values, option.dest, values)
-            except IOError as exc:
+            except OSError as exc:
                 log.warning('reading {} for {} failed: {}; ignoring this '
                             'argument'.format(value, opt, exc))
                 del exc

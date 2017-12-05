@@ -676,7 +676,7 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
     open(filename, 'w').close()
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
-    with pytest.raises(IOError) as err:
+    with pytest.raises(OSError) as err:
         t.write(filename, overwrite=False, format=format,
                 fast_writer=fast_writer)
     assert str(err.value).endswith('already exists')

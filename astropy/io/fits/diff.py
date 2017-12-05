@@ -165,7 +165,7 @@ class _BaseDiff:
 
         if isinstance(fileobj, str):
             if os.path.exists(fileobj) and not overwrite:
-                raise IOError("File {0} exists, aborting (pass in "
+                raise OSError("File {0} exists, aborting (pass in "
                               "overwrite=True to overwrite)".format(fileobj))
             else:
                 filepath = fileobj
@@ -277,7 +277,7 @@ class FITSDiff(_BaseDiff):
             try:
                 a = fitsopen(a)
             except Exception as exc:
-                raise IOError("error opening file a ({}): {}: {}".format(
+                raise OSError("error opening file a ({}): {}: {}".format(
                         a, exc.__class__.__name__, exc.args[0]))
             close_a = True
         else:
@@ -287,7 +287,7 @@ class FITSDiff(_BaseDiff):
             try:
                 b = fitsopen(b)
             except Exception as exc:
-                raise IOError("error opening file b ({}): {}: {}".format(
+                raise OSError("error opening file b ({}): {}: {}".format(
                         b, exc.__class__.__name__, exc.args[0]))
             close_b = True
         else:

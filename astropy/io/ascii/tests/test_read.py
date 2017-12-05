@@ -264,7 +264,7 @@ def test_extra_data_col2(fast_reader):
         ascii.read('t/simple5.txt', delimiter='|', fast_reader=fast_reader)
 
 
-@raises(IOError)
+@raises(OSError)
 def test_missing_file():
     ascii.read('does_not_exist')
 

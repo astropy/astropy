@@ -407,7 +407,7 @@ class Header:
         endcard : bool, optional
             If True (the default) the header must end with an END card in order
             to be considered valid.  If an END card is not found an
-            `IOError` is raised.
+            `OSError` is raised.
 
         padding : bool, optional
             If True (the default) the header will be required to be padded out
@@ -510,7 +510,7 @@ class Header:
         if not end_found and is_eof and endcard:
             # TODO: Pass this error to validation framework as an ERROR,
             # rather than raising an exception
-            raise IOError('Header missing END card.')
+            raise OSError('Header missing END card.')
 
         header_str = ''.join(read_blocks)
 
@@ -681,7 +681,7 @@ class Header:
             blocks = self.tostring(sep=sep, endcard=endcard, padding=padding)
             actual_block_size = _block_size(sep)
             if padding and len(blocks) % actual_block_size != 0:
-                raise IOError(
+                raise OSError(
                     'Header size ({}) is not a multiple of block '
                     'size ({}).'.format(
                         len(blocks) - actual_block_size + BLOCK_SIZE,
@@ -691,7 +691,7 @@ class Header:
                 fileobj.flush()
                 try:
                     offset = fileobj.tell()
-                except (AttributeError, IOError):
+                except (AttributeError, OSError):
                     offset = 0
                 fileobj.write(blocks.encode('ascii'))
                 fileobj.flush()

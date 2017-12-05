@@ -420,12 +420,12 @@ def test_invalid_location_download():
 
 def test_invalid_location_download_noconnect():
     """
-    checks that download_file gives an IOError if the socket is blocked
+    checks that download_file gives an OSError if the socket is blocked
     """
     from ..data import download_file
 
     # This should invoke socket's monkeypatched failure
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         download_file('http://astropy.org/nonexistentfile')
 
 

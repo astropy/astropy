@@ -157,12 +157,12 @@ class StreamingHDU:
         -----
         Only the amount of data specified in the header provided to the class
         constructor may be written to the stream.  If the provided data would
-        cause the stream to overflow, an `IOError` exception is
+        cause the stream to overflow, an `OSError` exception is
         raised and the data is not written. Once sufficient data has been
         written to the stream to satisfy the amount specified in the header,
         the stream is padded to fill a complete FITS block and no more data
         will be accepted. An attempt to write more data after the stream has
-        been filled will raise an `IOError` exception. If the
+        been filled will raise an `OSError` exception. If the
         dtype of the input data does not match what is expected by the header,
         a `TypeError` exception is raised.
         """
@@ -170,7 +170,7 @@ class StreamingHDU:
         size = self._ffo.tell() - self._data_offset
 
         if self.writecomplete or size + data.nbytes > self._size:
-            raise IOError('Attempt to write more data to the stream than the '
+            raise OSError('Attempt to write more data to the stream than the '
                           'header specified.')
 
         if BITPIX2DTYPE[self._header['BITPIX']] != data.dtype.name:

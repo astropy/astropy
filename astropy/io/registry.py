@@ -500,7 +500,7 @@ def read(cls, *args, format=None, **kwargs):
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except IOError:
+                    except OSError:
                         raise
                     except Exception:
                         fileobj = None

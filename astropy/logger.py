@@ -496,7 +496,7 @@ class AstropyLogger(Logger):
                     log_file_path = os.path.expanduser(log_file_path)
 
                 fh = logging.FileHandler(log_file_path)
-            except (IOError, OSError) as e:
+            except OSError as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
                     '{1}'.format(log_file_path, str(e)), RuntimeWarning)

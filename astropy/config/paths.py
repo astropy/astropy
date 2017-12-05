@@ -283,7 +283,7 @@ def _find_or_create_astropy_dir(dirnm, linkto):
                     raise
         elif not os.path.isdir(innerdir):
             msg = 'Intended Astropy directory {0} is actually a file.'
-            raise IOError(msg.format(innerdir))
+            raise OSError(msg.format(innerdir))
 
         try:
             os.mkdir(maindir)
@@ -298,6 +298,6 @@ def _find_or_create_astropy_dir(dirnm, linkto):
 
     elif not os.path.isdir(maindir):
         msg = 'Intended Astropy {0} directory {1} is actually a file.'
-        raise IOError(msg.format(dirnm, maindir))
+        raise OSError(msg.format(dirnm, maindir))
 
     return os.path.abspath(maindir)
