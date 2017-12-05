@@ -180,14 +180,15 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         #   * v_{x,y,z} for d_{x,y,z} for CartesianDifferential
         # where {lon} and {lat} are the names of the angular components
         if repr_info is None:
-            repr_info = dict()
+            repr_info = {}
 
-        if r.SphericalRepresentation in repr_info:
-            sph_component_map = {m.reprname: m.framename
-                                 for m in repr_info[r.SphericalRepresentation]}
+        # The default spherical names are 'lon' and 'lat'
+        repr_info.setdefault(r.SphericalRepresentation,
+                             [RepresentationMapping('lon', 'lon'),
+                              RepresentationMapping('lat', 'lat')])
 
-        else:
-            sph_component_map = {'lat': 'lat', 'lon': 'lon'}
+        sph_component_map = {m.reprname: m.framename
+                             for m in repr_info[r.SphericalRepresentation]}
 
         if r.SphericalCosLatDifferential not in repr_info:
             repr_info[r.SphericalCosLatDifferential] = [
@@ -221,17 +222,14 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
                 RepresentationMapping('d_z', 'v_z', u.km/u.s)]
 
         # Unit* classes should follow the same naming conventions
-        if r.SphericalRepresentation in repr_info:
-            repr_info.setdefault(r.UnitSphericalRepresentation,
-                                 repr_info[r.SphericalRepresentation])
+        repr_info.setdefault(r.UnitSphericalRepresentation,
+                             repr_info[r.SphericalRepresentation])
 
-        if r.SphericalCosLatDifferential in repr_info:
-            repr_info.setdefault(r.UnitSphericalCosLatDifferential,
-                                 repr_info[r.SphericalCosLatDifferential])
+        repr_info.setdefault(r.UnitSphericalCosLatDifferential,
+                             repr_info[r.SphericalCosLatDifferential])
 
-        if r.SphericalDifferential in repr_info:
-            repr_info.setdefault(r.UnitSphericalDifferential,
-                                 repr_info[r.SphericalDifferential])
+        repr_info.setdefault(r.UnitSphericalDifferential,
+                             repr_info[r.SphericalDifferential])
 
         # Make read-only properties for the frame class attributes that should
         # be read-only to make them immutable after creation.
