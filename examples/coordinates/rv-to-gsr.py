@@ -27,7 +27,6 @@ transformation using a sky position and barycentric radial-velocity.
 ################################################################################
 # Make print work the same in all versions of Python and import the required
 # Astropy packages:
-from __future__ import print_function
 import astropy.units as u
 import astropy.coordinates as coord
 
