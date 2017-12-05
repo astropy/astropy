@@ -262,3 +262,5 @@ Other Credits
 please send an email to the coordinators, or
 `open a pull request for this page <https://github.com/astropy/astropy/edit/master/docs/credits.rst>`_
 in the `astropy repository <https://github.com/astropy/astropy>`_)
+
+For how to acknowledge Astropy, please see `the Acknowledging or Citing Astropy page <http://www.astropy.org/acknowledging.html>`_.
