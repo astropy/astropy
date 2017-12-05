@@ -205,9 +205,9 @@ class TestChecksumFunctions(FitsTestCase):
                 # The checksum ends up being different on Windows, possibly due
                 # to slight floating point differences
                 assert 'CHECKSUM' in hdul[1].header
-                assert hdul[1].header['CHECKSUM'] == '51IDA1G981GCA1G9'
+                assert hdul[1].header['CHECKSUM'] == '3rKFAoI94oICAoI9'
                 assert 'DATASUM' in hdul[1].header
-                assert hdul[1].header['DATASUM'] == '1948208413'
+                assert hdul[1].header['DATASUM'] == '1914653725'
 
     def test_compressed_image_data(self):
         with fits.open(self.data('comp.fits')) as h1:
