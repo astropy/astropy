@@ -708,7 +708,7 @@ IterParser_next(IterParser* self)
             buflen = (Py_ssize_t)read(
                 self->file, self->buffer, (size_t)self->buffersize);
             if (buflen == -1) {
-                PyErr_SetFromErrno(PyExc_IOError);
+                PyErr_SetFromErrno(PyExc_OSError);
                 goto fail;
             } else if (buflen < self->buffersize) {
                 /* EOF detection method only works for local regular files */

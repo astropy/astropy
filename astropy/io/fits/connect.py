@@ -243,7 +243,7 @@ def write_table_fits(input, output, overwrite=False):
         if overwrite:
             os.remove(output)
         else:
-            raise IOError("File exists: {0}".format(output))
+            raise OSError("File exists: {0}".format(output))
 
     table_hdu.writeto(output)
 

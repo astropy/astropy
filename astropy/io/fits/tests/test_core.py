@@ -29,7 +29,7 @@ class TestCore(FitsTestCase):
         with fits.open(self.data('ascii.fits')) as f:
             pass
 
-    @raises(IOError)
+    @raises(OSError)
     def test_missing_file(self):
         fits.open(self.temp('does-not-exist.fits'))
 
@@ -574,12 +574,12 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_nonexistent(self):
         """Test that trying to open a non-existent file results in an
-        IOError (and not some other arbitrary exception).
+        OSError (and not some other arbitrary exception).
         """
 
         try:
             fits.open(self.temp('foobar.fits'))
-        except IOError as e:
+        except OSError as e:
             assert 'No such file or directory' in str(e)
 
         # But opening in ostream or append mode should be okay, since they
@@ -796,12 +796,12 @@ class TestFileFunctions(FitsTestCase):
         """Opening zipped files in a writeable mode should fail."""
 
         zf = self._make_zip_file()
-        pytest.raises(IOError, fits.open, zf, 'update')
-        pytest.raises(IOError, fits.open, zf, 'append')
+        pytest.raises(OSError, fits.open, zf, 'update')
+        pytest.raises(OSError, fits.open, zf, 'append')
 
         zf = zipfile.ZipFile(zf, 'a')
-        pytest.raises(IOError, fits.open, zf, 'update')
-        pytest.raises(IOError, fits.open, zf, 'append')
+        pytest.raises(OSError, fits.open, zf, 'update')
+        pytest.raises(OSError, fits.open, zf, 'append')
 
     def test_read_open_astropy_gzip_file(self):
         """
@@ -816,7 +816,7 @@ class TestFileFunctions(FitsTestCase):
         finally:
             gf.close()
 
-    @raises(IOError)
+    @raises(OSError)
     def test_open_multiple_member_zipfile(self):
         """
         Opening zip files containing more than one member files should fail
@@ -970,7 +970,7 @@ class TestFileFunctions(FitsTestCase):
 
         class MockMmap(mmap.mmap):
             def flush(self):
-                raise mmap.error('flush is broken on this platform')
+                raise OSError('flush is broken on this platform')
 
         old_mmap = mmap.mmap
         mmap.mmap = MockMmap

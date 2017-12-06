@@ -327,7 +327,7 @@ def test_read_invalid_return():
 def test_non_existing_unknown_ext():
     """Raise the correct error when attempting to read a non-existing
     file with an unknown extension."""
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         data = Table.read('non-existing-file-with-unknown.ext')
 
 

@@ -122,7 +122,7 @@ class TestConvenience(FitsTestCase):
 
         # This may seem weird, but check printdiff to see, need to test
         # incorrect second file
-        with pytest.raises(IOError):
+        with pytest.raises(OSError):
             printdiff('o4sp040b0_raw.fits', 'fakefile.fits', extname='sci')
 
         # Test HDU object inputs

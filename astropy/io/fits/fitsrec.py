@@ -785,7 +785,7 @@ class FITS_rec(np.recarray):
         raw_data = self._get_raw_data()
 
         if raw_data is None:
-            raise IOError(
+            raise OSError(
                 "Could not find heap data for the {!r} variable-length "
                 "array column.".format(column.name))
 

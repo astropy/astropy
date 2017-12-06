@@ -80,7 +80,7 @@ def test_read_invalid_path(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         Table.read(test_file, path='test/')
     assert exc.value.args[0] == "Path test/ does not exist"
 
@@ -89,7 +89,7 @@ def test_read_invalid_path(tmpdir):
 def test_read_missing_group(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     h5py.File(test_file, 'w').close()  # create empty file
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         Table.read(test_file, path='test/path/table')
     assert exc.value.args[0] == "Path test/path/table does not exist"
 
@@ -99,7 +99,7 @@ def test_read_missing_table(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     with h5py.File(test_file, 'w') as f:
         f.create_group('test').create_group('path')
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         Table.read(test_file, path='test/path/table')
     assert exc.value.args[0] == "Path test/path/table does not exist"
 
@@ -108,7 +108,7 @@ def test_read_missing_table(tmpdir):
 def test_read_missing_group_fileobj(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     with h5py.File(test_file, 'w') as f:
-        with pytest.raises(IOError) as exc:
+        with pytest.raises(OSError) as exc:
             Table.read(f, path='test/path/table')
         assert exc.value.args[0] == "Path test/path/table does not exist"
 
@@ -129,7 +129,7 @@ def test_read_write_existing_table(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         t1.write(test_file, path='the_table', append=True)
     assert exc.value.args[0] == "Table the_table already exists"
 
@@ -150,7 +150,7 @@ def test_read_write_existing(tmpdir):
     h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         t1.write(test_file, path='the_table')
     assert exc.value.args[0].startswith("File exists:")
 
@@ -204,7 +204,7 @@ def test_read_write_existing_append_overwrite(tmpdir):
     t1.write(test_file, path='table2', append=True)
     t1v2 = Table()
     t1v2.add_column(Column(name='a', data=[4, 5, 6]))
-    with pytest.raises(IOError) as exc:
+    with pytest.raises(OSError) as exc:
         t1v2.write(test_file, path='table1', append=True)
     assert exc.value.args[0] == 'Table table1 already exists'
     t1v2.write(test_file, path='table1', append=True, overwrite=True)

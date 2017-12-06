@@ -1091,7 +1091,7 @@ class BinTableHDU(_TableBaseHDU):
                         exist.append(f)
 
         if exist:
-            raise IOError('  '.join(["File '{}' already exists.".format(f)
+            raise OSError('  '.join(["File '{}' already exists.".format(f)
                                      for f in exist]))
 
         # Process the data

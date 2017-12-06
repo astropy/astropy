@@ -781,7 +781,7 @@ class CompImageHDU(BinTableHDU):
             huge_hdu = self.data.nbytes > 2 ** 32
 
             if huge_hdu and not CFITSIO_SUPPORTS_Q_FORMAT:
-                raise IOError(
+                raise OSError(
                     "Astropy cannot compress images greater than 4 GB in size "
                     "({} is {} bytes) without CFITSIO >= 3.35".format(
                         (self.name, self.ver), self.data.nbytes))

@@ -125,7 +125,7 @@ cdef class FileString:
     def __cinit__(self, fname):
         self.fhandle = open(fname, 'r')
         if not self.fhandle:
-            raise IOError('File "{0}" could not be opened'.format(fname))
+            raise OSError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, access=mmap.ACCESS_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
         PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)

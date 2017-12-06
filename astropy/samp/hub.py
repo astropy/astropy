@@ -533,7 +533,7 @@ class SAMPHubServer:
 
             try:
                 read_ready = select.select([self._server.socket], [], [], 0.01)[0]
-            except select.error as exc:
+            except OSError as exc:
                 warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
                               SAMPWarning)
             else:
@@ -556,7 +556,7 @@ class SAMPHubServer:
                 # also update the pop-up in case there are any changes.
                 try:
                     read_ready = select.select([self._web_profile_server.socket], [], [], 0.01)[0]
-                except select.error as exc:
+                except OSError as exc:
                     warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
                                   SAMPWarning)
                 else:

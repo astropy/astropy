@@ -235,9 +235,9 @@ class _File:
             raise EOFError
         try:
             return self._file.read(size)
-        except IOError:
+        except OSError:
             # On some versions of Python, it appears, GzipFile will raise an
-            # IOError if you try to read past its end (as opposed to just
+            # OSError if you try to read past its end (as opposed to just
             # returning '')
             if self.compression == 'gzip':
                 return ''
@@ -395,7 +395,7 @@ class _File:
 
     def _overwrite_existing(self, overwrite, fileobj, closed):
         """Overwrite an existing file if ``overwrite`` is ``True``, otherwise
-        raise an IOError.  The exact behavior of this method depends on the
+        raise an OSError.  The exact behavior of this method depends on the
         _File object state and is only meant for use within the ``_open_*``
         internal methods.
         """
@@ -411,7 +411,7 @@ class _File:
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise IOError("File {!r} already exists.".format(self.name))
+                raise OSError("File {!r} already exists.".format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""
@@ -431,7 +431,7 @@ class _File:
         elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
             # Handle bzip2 files
             if mode in ['update', 'append']:
-                raise IOError("update and append modes are not supported "
+                raise OSError("update and append modes are not supported "
                               "with bzip2 files")
             # bzip2 only supports 'w' and 'r' modes
             bzip2_mode = 'w' if mode == 'ostream' else 'r'
@@ -467,7 +467,7 @@ class _File:
             # to properly process the FITS header (and handle the possibility
             # of a compressed file).
             self._file.seek(0)
-        except (IOError,OSError):
+        except (OSError,OSError):
             return
 
         self._try_read_compressed(fileobj, magic, mode)
@@ -481,7 +481,7 @@ class _File:
         self._file = fileobj
 
         if fileobj_closed(fileobj):
-            raise IOError("Cannot read from/write to a closed file-like "
+            raise OSError("Cannot read from/write to a closed file-like "
                           "object ({!r}).".format(fileobj))
 
         if isinstance(fileobj, zipfile.ZipFile):
@@ -502,12 +502,12 @@ class _File:
         # Any "writeable" mode requires a write() method on the file object
         if (self.mode in ('update', 'append', 'ostream') and
             not hasattr(self._file, 'write')):
-            raise IOError("File-like object does not have a 'write' "
+            raise OSError("File-like object does not have a 'write' "
                           "method, required for mode '{}'.".format(self.mode))
 
         # Any mode except for 'ostream' requires readability
         if self.mode != 'ostream' and not hasattr(self._file, 'read'):
-            raise IOError("File-like object does not have a 'read' "
+            raise OSError("File-like object does not have a 'read' "
                           "method, required for mode {!r}.".format(self.mode))
 
     def _open_filename(self, filename, mode, overwrite):
@@ -551,14 +551,14 @@ class _File:
             os.fsync(tmpfd)
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
-            except mmap.error as exc:
+            except OSError as exc:
                 warnings.warn('Failed to create mmap: {}; mmap use will be '
                               'disabled'.format(str(exc)), AstropyUserWarning)
                 del exc
                 return False
             try:
                 mm.flush()
-            except mmap.error:
+            except OSError:
                 warnings.warn('mmap.flush is unavailable on this platform; '
                               'using mmap in writeable mode will be disabled',
                               AstropyUserWarning)
@@ -578,7 +578,7 @@ class _File:
         """
 
         if mode in ('update', 'append'):
-            raise IOError(
+            raise OSError(
                   "Writing to zipped fits files is not currently "
                   "supported")
 
@@ -591,7 +591,7 @@ class _File:
 
         namelist = zfile.namelist()
         if len(namelist) != 1:
-            raise IOError(
+            raise OSError(
               "Zip files with multiple members are not supported.")
         self._file = tempfile.NamedTemporaryFile(suffix='.fits')
         self._file.write(zfile.read(namelist[0]))
