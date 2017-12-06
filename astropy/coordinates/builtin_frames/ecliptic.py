@@ -5,7 +5,7 @@ from ... import units as u
 from .. import representation as r
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
 from ..attributes import TimeAttribute
-from .utils import EQUINOX_J2000
+from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
@@ -170,6 +170,7 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 HeliocentricTrueEcliptic.__doc__ = HeliocentricTrueEcliptic.__doc__.format(
