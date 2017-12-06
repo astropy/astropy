@@ -235,7 +235,7 @@ def test_barycorr():
                                                       location=test_input_loc,
                                                       kind='barycentric')
 
-    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=5*u.m/u.s)
+    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10*u.mm/u.s)
     return bvcs_astropy, barycorr_bvcs  # for interactively examination
 
 

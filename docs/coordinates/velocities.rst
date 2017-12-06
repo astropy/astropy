@@ -302,8 +302,9 @@ details).
 
 An example of this is below.  It demonstrates how to compute this correction if
 observing some object at a known RA and Dec from the Keck observatory at a
-particular time.  The computed correction would then be added to any observed
-radial velocity to determine the final heliocentric radial velocity::
+particular time.  If a precision of around 3 m/s is sufficient, the computed
+correction can then be added to any observed radial velocity to determine
+the final heliocentric radial velocity::
 
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord, EarthLocation
@@ -312,12 +313,51 @@ radial velocity to determine the final heliocentric radial velocity::
     >>> sc = SkyCoord(ra=4.88375*u.deg, dec=35.0436389*u.deg)
     >>> barycorr = sc.radial_velocity_correction(obstime=Time('2016-6-4'), location=keck)
     >>> barycorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.07369348639167 km / s>
+    <Quantity 20.077135 km / s>
     >>> heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time('2016-6-4'), location=keck)
     >>> heliocorr.to(u.km/u.s)  # doctest: +FLOAT_CMP
-    <Quantity 20.071122815002827 km / s>
+    <Quantity 20.070039 km / s>
 
 Note that there are a few different ways to specify the options for the
 correction (e.g., the location, observation time, etc).  See the
 `~astropy.coordinates.SkyCoord.radial_velocity_correction` docs for more
 information.
+
+Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
+------------------------------------------------------------------------
+
+The correction computed by `~astropy.coordinates.SkyCoord.radial_velocity_correction`
+can be added to any observed radial velocity to provide a correction that is accurate
+to a level of approximately 3 m/s. If you need more precise corrections, there are a number
+of subtleties you must be aware of.
+
+The first is that one should always use a barycentric correction, as the barycenter is a fixed
+point where gravity is constant. Since the heliocentre does not satisfy these conditions, corrections
+to the heliocentre are only suitable for low precision work. As a result, and
+to increase speed, the heliocentric correction in
+`~astropy.coordinates.SkyCoord.radial_velocity_correction` does not include effects such as the
+gravitational redshift due to the potential at the Earth's surface. For these reasons, the
+barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` should always
+be used for high precision work.
+
+Other considerations necessary for radial velocity corrections at the cm/s level are outlined
+in `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_. Most important
+is that the barycentric correction is, strictly speaking, *multiplicative*, so that one should apply it
+as
+
+.. math::
+
+    v_t = v_m + v_b + \frac{v_b v_m}{c},
+
+where :math:`v_t` is the true radial velocity,  :math:`v_m` is the measured radial velocity and :math:`v_b`
+is the barycentric correction returned by `~astropy.coordinates.SkyCoord.radial_velocity_correction`.
+Failure to apply the barycentric correction in this way leads to errors of order 3 m/s.
+
+The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
+with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
+the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at infinite distance. We do not include
+the Shapiro delay, nor any effect related to the finite distance or proper motion of the source.
+The Shapiro delay is unlikely to be important unless you seek mm/s precision, but the effects of the
+source's parallax and proper motion can be important at the cm/s level. These effects are likely to be
+added to future versions of Astropy along with velocity support for |skycoord|, but in the meantime
+see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.

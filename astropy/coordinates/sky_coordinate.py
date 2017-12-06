@@ -12,6 +12,7 @@ from ..extern import six
 from ..extern.six.moves import zip, range
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
+from ..constants import c as speed_of_light
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.data_info import MixinInfo
@@ -20,7 +21,7 @@ from ..utils import ShapedLikeNDArray
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import ICRS, GCRS, SkyOffsetFrame
+from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -1288,13 +1289,25 @@ class SkyCoord(ShapedLikeNDArray):
         vcorr : `~astropy.units.Quantity` with velocity units
             The  correction with a positive sign.  I.e., *add* this
             to an observed radial velocity to get the barycentric (or
-            heliocentric) velocity.
+            heliocentric) velocity. If m/s precision or better is needed,
+            see the notes below.
 
         Notes
         -----
-        The algorithm here is sufficient to perform corrections at the ~1 to
-        10 m/s level, but has not been validated at better precision.  Future
-        versions of Astropy will likely aim to improve this.
+        The barycentric correction is calculated to higher precision than the
+        heliocentric correction and includes additional physics (e.g time dilation).
+        Use barycentric corrections if m/s precision is required.
+
+        The algorithm here is sufficient to perform corrections at the mm/s level, but
+        care is needed in application. Strictly speaking, the barycentric correction is
+        multiplicative and should be applied as::
+
+           sc = SkyCoord(1*u.deg, 2*u.deg)
+           vcorr = sc.rv_correction(kind='barycentric', obstime=t, location=loc)
+           rv = rv + vcorr + rv * vcorr / consts.c
+
+        If your target is nearby and/or has finite proper motion you may need to account
+        for terms arising from this. See Wright & Eastmann (2014) for details.
 
         The default is for this method to use the builtin ephemeris for
         computing the sun and earth location.  Other ephemerides can be chosen
@@ -1308,7 +1321,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         """
         # has to be here to prevent circular imports
-        from .solar_system import get_body_barycentric_posvel
+        from .solar_system import get_body_barycentric_posvel, get_body_barycentric
 
         # location validation
         timeloc = getattr(obstime, 'location', None)
@@ -1349,11 +1362,11 @@ class SkyCoord(ShapedLikeNDArray):
                              'inconsistent with the `obstime` frame '
                              'attribute on the SkyCoord')
 
+        pos_earth, v_earth = get_body_barycentric_posvel('earth', obstime)
         if kind == 'barycentric':
-            v_origin_to_earth = get_body_barycentric_posvel('earth', obstime)[1]
+            v_origin_to_earth = v_earth
         elif kind == 'heliocentric':
             v_sun = get_body_barycentric_posvel('sun', obstime)[1]
-            v_earth = get_body_barycentric_posvel('earth', obstime)[1]
             v_origin_to_earth = v_earth - v_sun
         else:
             raise ValueError("`kind` argument to radial_velocity_correction must "
@@ -1361,11 +1374,30 @@ class SkyCoord(ShapedLikeNDArray):
                              "'{}'".format(kind))
 
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
-        gtarg = self.transform_to(GCRS(obstime=obstime,
-                                       obsgeoloc=gcrs_p,
-                                       obsgeovel=gcrs_v))
-        targcart = gtarg.represent_as(UnitSphericalRepresentation).to_cartesian()
-        return targcart.dot(v_origin_to_earth + gcrs_v)
+        # transforming to GCRS is not the correct thing to do here, since we don't want to
+        # include aberration (or light deflection)? Instead, only apply parallax if necessary
+        if self.data.__class__ is UnitSphericalRepresentation:
+            targcart = self.icrs.cartesian
+        else:
+            # skycoord has distances so apply parallax
+            obs_icrs_cart = pos_earth + gcrs_p
+            icrs_cart = self.icrs.cartesian
+            targcart = icrs_cart - obs_icrs_cart
+            targcart /= targcart.norm()
+
+        if kind == 'barycentric':
+            beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
+            gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
+            gr = location._gravitational_redshift(obstime)
+            # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
+            # neglecting Shapiro delay and effects of the star's own motion
+            zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
+            return zb * speed_of_light
+        else:
+            # do a simpler correction ignoring time dilation and gravitational redshift
+            # this is adequate since Heliocentric corrections shouldn't be used if
+            # cm/s precision is required.
+            return targcart.dot(v_origin_to_earth + gcrs_v)
 
     # Table interactions
     @classmethod
