@@ -75,7 +75,7 @@ to the various functions:
   >>> get_body_barycentric('moon', t, ephemeris='builtin')
   ... # doctest: +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (  1.50107516e+08, -866828.92708201, -418980.15909655)>
+      (  1.50107513e+08, -866838.51786769, -418988.57509287)>
 
 For a list of the bodies for which positions can be calculated, do:
 

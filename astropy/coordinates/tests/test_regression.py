@@ -51,9 +51,9 @@ def test_regression_5085():
                                  lon=longitudes,
                                  distance=distances, equinox=times)
     # expected result
-    ras = Longitude([310.50095387, 314.67109863, 319.56507471]*u.deg)
-    decs = Latitude([-18.25190707, -17.1556641, -15.71616651]*u.deg)
-    distances = u.Quantity([1.78309902, 1.710874, 1.61326648]*u.au)
+    ras = Longitude([310.50095400, 314.67109920, 319.56507428]*u.deg)
+    decs = Latitude([-18.25190443, -17.1556676, -15.71616522]*u.deg)
+    distances = u.Quantity([1.78309901, 1.710874, 1.61326649]*u.au)
     expected_result = GCRS(ra=ras, dec=decs,
                            distance=distances, obstime="J2000").cartesian.xyz
     actual_result = coo.transform_to(GCRS(obstime="J2000")).cartesian.xyz

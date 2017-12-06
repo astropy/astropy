@@ -26,8 +26,7 @@ def test_against_pytpm_doc_example():
                                         equinox='J2000')
     astropy_out = fk5_in.transform_to(pytpm_out)
 
-    # we check w/i 1 arcmin because there are some subtle differences in pyTPM's ecl definition
-    assert pytpm_out.separation(astropy_out) < (1*u.arcmin)
+    assert pytpm_out.separation(astropy_out) < (1*u.arcsec)
 
 
 def test_ecliptic_heliobary():

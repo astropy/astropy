@@ -22,10 +22,17 @@ from ..errors import UnitsError
 
 
 def _ecliptic_rotation_matrix(equinox):
+    # This code calls pmat06 from ERFA, which retrieves the precession
+    # matrix (including frame bias) according to the IAU 2006 model, but
+    # leaves out the nutation. This matches what ERFA does in the ecm06
+    # function and also brings the results closer to what other libraries
+    # give (see https://github.com/astropy/astropy/pull/6508). However,
+    # notice that this makes the name "TrueEcliptic" misleading, and might
+    # be changed in the future (discussion in the same pull request)
     jd1, jd2 = get_jd12(equinox, 'tt')
-    rnpb = erfa.pnm06a(jd1, jd2)
+    rbp = erfa.pmat06(jd1, jd2)
     obl = erfa.obl06(jd1, jd2)*u.radian
-    return matrix_product(rotation_matrix(obl, 'x'), rnpb)
+    return matrix_product(rotation_matrix(obl, 'x'), rbp)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
@@ -76,10 +83,10 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     # get barycentric sun coordinate
     # this goes here to avoid circular import errors
     from ..solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', to_frame.equinox)
+    bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
 
     # offset to heliocentric
-    heliocart = from_coo.cartesian + bary_sun_pos
+    heliocart = from_coo.cartesian - bary_sun_pos
 
     # now compute the matrix to precess to the right orientation
     rmat = _ecliptic_rotation_matrix(to_frame.equinox)
@@ -105,7 +112,7 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     from ..solar_system import get_body_barycentric
 
     # get barycentric sun coordinate
-    bary_sun_pos = get_body_barycentric('sun', from_coo.equinox)
+    bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
 
-    newrepr = intermed_repr - bary_sun_pos
+    newrepr = intermed_repr + bary_sun_pos
     return to_frame.realize_frame(newrepr)
