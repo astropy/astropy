@@ -159,6 +159,12 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- ``EarthLocation`` now has a method to compute the  gravitational redshift due
+  due to solar system bodies.  [#6861, #6935]
+
+- ``EarthLocation`` now has a ``get_gcrs`` convenience method to get the
+  location in GCRS coordinates.  [#6861, #6935]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
