@@ -650,8 +650,11 @@ class EarthLocation(u.Quantity):
         obsgeovel = gcrs_data.differentials['s'].to_cartesian()
         return obsgeopos, obsgeovel
 
+    _GM_moon = consts.G * 7.34767309e22*u.kg
     def gravitational_redshift(self, obstime,
-                               bodies=('sun', 'jupiter', 'moon', 'earth')):
+                               bodies=('sun', 'jupiter', 'moon', 'earth'),
+                               masses=(consts.GM_sun, consts.GM_jup,
+                                       _GM_moon, consts.GM_earth)):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -667,6 +670,10 @@ class EarthLocation(u.Quantity):
             should be any body name `get_body_barycentric` accepts.  Defaults to
             Jupiter, the Sun, the Moon, and Earth Itself.
 
+        masses : list of Quantity
+            The gravitational parameters (G * mass) to assume for the bodies
+            requested in ``bodies``. Length must match ``bodies``.
+
         Returns
         --------
         redshift :  `~astropy.units.Quantity`
@@ -675,8 +682,9 @@ class EarthLocation(u.Quantity):
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
 
-        GM_moon = consts.G * 7.34767309e22*u.kg
-        masses = (consts.GM_sun, consts.GM_jup, GM_moon, consts.GM_earth)
+        if len(masses) != len(bodies):
+            raise ValueError("masses and bodies must be same length")
+
         positions = [get_body_barycentric(name, obstime) for name in bodies]
         # Calculate distances to objects other than earth.
         distances = [(pos - positions[-1]).norm() for pos in positions[:-1]]
