@@ -779,7 +779,7 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
 
-        with pytest.raises(IOError):
+        with pytest.raises(OSError):
             diffobj.report(fileobj=outpath)
 
     def test_file_output_overwrite_success(self):

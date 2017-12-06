@@ -479,7 +479,7 @@ class TransformGraph:
                                         stderr=subprocess.PIPE)
                 stdout, stderr = proc.communicate(dotgraph)
                 if proc.returncode != 0:
-                    raise IOError('problem running graphviz: \n' + stderr)
+                    raise OSError('problem running graphviz: \n' + stderr)
 
                 with open(savefn, 'w') as f:
                     f.write(stdout)

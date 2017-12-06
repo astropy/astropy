@@ -377,7 +377,7 @@ class WCS(WCSBase):
                 try:
                     is_path = (possible_filename(header) and
                                os.path.exists(header))
-                except (IOError, ValueError):
+                except (OSError, ValueError):
                     is_path = False
 
                 if is_path:

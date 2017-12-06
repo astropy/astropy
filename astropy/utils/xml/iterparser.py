@@ -177,7 +177,7 @@ def get_xml_encoding(source):
     with get_xml_iterator(source) as iterator:
         start, tag, data, pos = next(iterator)
         if not start or tag != 'xml':
-            raise IOError('Invalid XML file')
+            raise OSError('Invalid XML file')
 
     # The XML spec says that no encoding === utf-8
     return data.get('encoding') or 'utf-8'

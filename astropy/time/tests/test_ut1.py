@@ -13,7 +13,7 @@ allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
 
 try:
     iers.IERS_A.open()  # check if IERS_A is available
-except IOError:
+except OSError:
     HAS_IERS_A = False
 else:
     HAS_IERS_A = True

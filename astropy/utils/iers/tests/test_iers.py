@@ -13,11 +13,11 @@ from ....table import QTable
 from ....time import Time
 
 
-FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', IOError)
+FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
 try:
     iers.IERS_A.open()  # check if IERS_A is available
-except IOError:
+except OSError:
     HAS_IERS_A = False
 else:
     HAS_IERS_A = True

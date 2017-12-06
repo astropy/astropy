@@ -151,7 +151,7 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
         if overwrite:
             os.remove(output)
         else:
-            raise IOError("File exists: {0}".format(output))
+            raise OSError("File exists: {0}".format(output))
 
     # Create a new VOTable file
     table_file = from_table(input, table_id=table_id)

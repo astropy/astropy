@@ -546,14 +546,14 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     def _writeheader(self, fileobj):
         offset = 0
         if not fileobj.simulateonly:
-            with suppress(AttributeError, IOError):
+            with suppress(AttributeError, OSError):
                 offset = fileobj.tell()
 
             self._header.tofile(fileobj)
 
             try:
                 size = fileobj.tell() - offset
-            except (AttributeError, IOError):
+            except (AttributeError, OSError):
                 size = len(str(self._header))
         else:
             size = len(str(self._header))
@@ -570,7 +570,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             fileobj.flush()
             try:
                 offset = fileobj.tell()
-            except IOError:
+            except OSError:
                 offset = 0
 
         if self._data_loaded or self._data_needs_rescale:
@@ -826,7 +826,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
             fileobj.flush()
             try:
                 offset = fileobj.tell()
-            except IOError:
+            except OSError:
                 offset = 0
 
         if self.data is not None:

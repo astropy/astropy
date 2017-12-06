@@ -135,7 +135,7 @@ def hub_script(timeout=0):
             hub.stop()
         except NameError:
             pass
-    except IOError as e:
+    except OSError as e:
         print("[SAMP] Error: I/O error({0}): {1}".format(e.errno, e.strerror))
         sys.exit(1)
     except SystemExit:

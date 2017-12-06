@@ -31,7 +31,7 @@ def assert_output(mtype, private_key, sender_id, params, timeout=None):
                 rec_sender_id = pickle.load(f)
                 rec_params = pickle.load(f)
             break
-        except (IOError, EOFError):
+        except (OSError, EOFError):
             if timeout is not None and time.time() - start > timeout:
                 raise Exception("Timeout while waiting for file: {0}".format(filename))
 

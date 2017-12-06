@@ -217,7 +217,7 @@ def check_running_hub(lockfilename):
     # Check whether a lockfile already exists
     try:
         lockfiledict = read_lockfile(lockfilename)
-    except IOError:
+    except OSError:
         return is_running, lockfiledict
 
     if "samp.hub.xmlrpc.url" in lockfiledict:

@@ -1059,7 +1059,7 @@ def _get_file_mode(filename, default='readonly'):
     if fmode is not None:
         mode = FILE_MODES.get(fmode)
         if mode is None:
-            raise IOError(
+            raise OSError(
                 "File mode of the input file object ({!r}) cannot be used to "
                 "read/write FITS files.".format(fmode))
 

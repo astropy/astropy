@@ -215,7 +215,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
-        except (IOError, EOFError, struct.error):  # invalid gzip file
+        except (OSError, EOFError, struct.error):  # invalid gzip file
             fileobj.seek(0)
             fileobj_new.close()
         else:
@@ -238,7 +238,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 tmp.close()
                 fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
-        except IOError:  # invalid bzip2 file
+        except OSError:  # invalid bzip2 file
             fileobj.seek(0)
             fileobj_new.close()
             # raise
@@ -257,7 +257,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             raise ValueError(
                 ".xz format files are not supported since the Python "
                 "interpreter does not include the lzma module.")
-        except (IOError, EOFError) as e:  # invalid xz file
+        except (OSError, EOFError) as e:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
             # should we propagate this to the caller to signal bad content?
@@ -396,7 +396,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     ------
     urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
-    IOError
+    OSError
         If problems occur writing or reading a local file.
 
     Examples
@@ -439,7 +439,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     datafn = _find_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
-        raise IOError("Tried to access a data file that's actually "
+        raise OSError("Tried to access a data file that's actually "
                       "a package data directory")
     elif os.path.isfile(datafn):  # local file
         with get_readable_fileobj(datafn, encoding=encoding) as fileobj:
@@ -511,7 +511,7 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
     ------
     urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
-    IOError
+    OSError
         If problems occur writing or reading a local file.
 
     Returns
@@ -575,7 +575,7 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
         fs_path = os.path.normpath(data_name)
         datafn = _find_pkg_data_path(fs_path, package=package)
         if os.path.isdir(datafn):
-            raise IOError("Tried to access a data file that's actually "
+            raise OSError("Tried to access a data file that's actually "
                           "a package data directory")
         elif os.path.isfile(datafn):  # local file
             return datafn
@@ -654,7 +654,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     ------
     urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
-    IOError
+    OSError
         If problems occur writing or reading a local file.
 
     See Also
@@ -715,7 +715,7 @@ def get_pkg_data_filenames(datadir, package=None, pattern='*'):
 
     path = _find_pkg_data_path(datadir, package=package)
     if os.path.isfile(path):
-        raise IOError(
+        raise OSError(
             "Tried to access a data directory that's actually "
             "a package data file")
     elif os.path.isdir(path):
@@ -723,7 +723,7 @@ def get_pkg_data_filenames(datadir, package=None, pattern='*'):
             if fnmatch.fnmatch(filename, pattern):
                 yield os.path.join(path, filename)
     else:
-        raise IOError("Path not found")
+        raise OSError("Path not found")
 
 
 def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
@@ -875,7 +875,7 @@ def _find_hash_fn(hash):
 
     try:
         dldir, urlmapfn = _get_download_cache_locs()
-    except (IOError, OSError) as e:
+    except OSError as e:
         msg = 'Could not access cache directory to search for data file: '
         warn(CacheMissingWarning(msg + str(e)))
         return None
@@ -909,7 +909,7 @@ def get_free_space_in_dir(path):
         retval = ctypes.windll.kernel32.GetDiskFreeSpaceExW(
                 ctypes.c_wchar_p(path), None, None, ctypes.pointer(free_bytes))
         if retval == 0:
-            raise IOError('Checking free space on {!r} failed '
+            raise OSError('Checking free space on {!r} failed '
                           'unexpectedly.'.format(path))
         return free_bytes.value
     else:
@@ -920,7 +920,7 @@ def get_free_space_in_dir(path):
 def check_free_space_in_dir(path, size):
     """
     Determines if a given directory has enough space to hold a file of
-    a given size.  Raises an IOError if the file would be too large.
+    a given size.  Raises an OSError if the file would be too large.
 
     Parameters
     ----------
@@ -932,13 +932,13 @@ def check_free_space_in_dir(path, size):
 
     Raises
     -------
-    IOError : There is not enough room on the filesystem
+    OSError : There is not enough room on the filesystem
     """
     from ..utils.console import human_file_size
 
     space = get_free_space_in_dir(path)
     if space < size:
-        raise IOError(
+        raise OSError(
             "Not enough free space in '{0}' "
             "to download a {1} file".format(
                 path, human_file_size(size)))
@@ -988,7 +988,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     if cache:
         try:
             dldir, urlmapfn = _get_download_cache_locs()
-        except (IOError, OSError) as e:
+        except OSError as e:
             msg = 'Remote data cache could not be accessed due to '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
@@ -1099,7 +1099,7 @@ def is_url_in_cache(url_key):
     # The code below is modified from astropy.utils.data.download_file()
     try:
         dldir, urlmapfn = _get_download_cache_locs()
-    except (IOError, OSError) as e:
+    except OSError as e:
         msg = 'Remote data cache could not be accessed due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
@@ -1211,7 +1211,7 @@ def clear_download_cache(hashorurl=None):
 
     try:
         dldir, urlmapfn = _get_download_cache_locs()
-    except (IOError, OSError) as e:
+    except OSError as e:
         msg = 'Not clearing data cache - cache inacessable due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
@@ -1285,11 +1285,11 @@ def _get_download_cache_locs():
                 raise
     elif not os.path.isdir(datadir):
         msg = 'Data cache directory {0} is not a directory'
-        raise IOError(msg.format(datadir))
+        raise OSError(msg.format(datadir))
 
     if os.path.isdir(shelveloc):
         msg = 'Data cache shelve object location {0} is a directory'
-        raise IOError(msg.format(shelveloc))
+        raise OSError(msg.format(shelveloc))
 
     return datadir, shelveloc
 
@@ -1348,7 +1348,7 @@ def get_cached_urls():
     # The code below is modified from astropy.utils.data.download_file()
     try:
         dldir, urlmapfn = _get_download_cache_locs()
-    except (IOError, OSError) as e:
+    except OSError as e:
         msg = 'Remote data cache could not be accessed due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
