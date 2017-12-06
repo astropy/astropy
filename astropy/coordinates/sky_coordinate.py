@@ -1386,7 +1386,7 @@ class SkyCoord(ShapedLikeNDArray):
         if kind == 'barycentric':
             beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
             gamma_obs = 1 / np.sqrt(1 - beta_obs.norm()**2)
-            gr = location.gravitational_redshift(obstime)
+            gr = location._gravitational_redshift(obstime)
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
             zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
