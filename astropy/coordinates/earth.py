@@ -10,11 +10,12 @@ import urllib.parse
 
 import numpy as np
 from .. import units as u
+from .. import constants as consts
 from ..units.quantity import QuantityInfoBase
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.compat.numpycompat import NUMPY_LT_1_12
 from .angles import Longitude, Latitude
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, CartesianDifferential
 from .errors import UnknownSiteException
 from ..utils import data, deprecated
 
@@ -602,6 +603,30 @@ class EarthLocation(u.Quantity):
                                      for the location of this object at the
                                      default ``obstime``.""")
 
+    def _get_gcrs(self, obstime):
+        """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the GCRS position/velocity at.
+
+        Returns
+        --------
+        gcrs : `~astropy.coordinates.GCRS` instance
+            With velocity included.
+        """
+        # do this here to prevent a series of complicated circular imports
+        from .builtin_frames import GCRS
+
+        itrs = self.get_itrs(obstime)
+        # Assume the observatory itself is fixed on the ground.
+        # We do a direct assignment rather than an update to avoid validation
+        # and creation of a new object.
+        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
+        itrs.data.differentials['s'] = CartesianDifferential(zeros)
+        return itrs.transform_to(GCRS(obstime=obstime))
+
     def get_gcrs_posvel(self, obstime):
         """
         Calculate the GCRS position and velocity of this object at the
@@ -619,18 +644,42 @@ class EarthLocation(u.Quantity):
         obsgeovel : `~astropy.coordinates.CartesianRepresentation`
             The GCRS velocity of the object
         """
-        # do this here to prevent a series of complicated circular imports
-        from .builtin_frames import GCRS
-
-        itrs = self.get_itrs(obstime)
-        geocentric_frame = GCRS(obstime=obstime)
         # GCRS position
-        obsgeoloc = itrs.transform_to(geocentric_frame).cartesian
-        vel_x = -OMEGA_EARTH * obsgeoloc.y
-        vel_y = OMEGA_EARTH * obsgeoloc.x
-        vel_z = 0. * vel_x.unit
-        obsgeovel = CartesianRepresentation(vel_x, vel_y, vel_z)
-        return obsgeoloc, obsgeovel
+        gcrs_data = self._get_gcrs(obstime).data
+        obsgeopos = gcrs_data.without_differentials()
+        obsgeovel = gcrs_data.differentials['s'].to_cartesian()
+        return obsgeopos, obsgeovel
+
+    def _gravitational_redshift(self, obstime):
+        """Return the gravitational redshift at this EarthLocation.
+
+        Calculates the gravitational redshift, of order 3 m/s, due to the Sun,
+        Jupiter, the Moon, and the Earth itself.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the redshift at.
+
+        Returns
+        --------
+        redshift :  `~astropy.units.Quantity`
+            Gravitational redshift in velocity units at given obstime.
+        """
+        # needs to be here to avoid circular imports
+        from .solar_system import get_body_barycentric
+        names = ('sun', 'jupiter', 'moon', 'earth')
+        GM_moon = consts.G * 7.34767309e22*u.kg
+        masses = (consts.GM_sun, consts.GM_jup, GM_moon, consts.GM_earth)
+        positions = [get_body_barycentric(name, obstime) for name in names]
+        # Calculate distances to objects other than earth.
+        distances = [(pos - positions[-1]).norm() for pos in positions[:-1]]
+        # Append distance from Earth's center for Earth's contribution.
+        distances.append(CartesianRepresentation(self.geocentric).norm())
+        # Get redshifts due to all objects.
+        redshifts = [-GM / consts.c / distance for (GM, distance) in
+                     zip(masses, distances)]
+        return sum(redshifts)
 
     @property
     def x(self):
