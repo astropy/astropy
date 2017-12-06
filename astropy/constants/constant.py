@@ -192,7 +192,11 @@ class Constant(Quantity, metaclass=ConstantMeta):
         """
 
         instances = self._registry[self.name.lower()]
-        return instances.get('si') or super().si
+        inst = instances.get('si')
+        if inst is not None:
+            return inst
+        else:
+            return super().si
 
     @property
     def cgs(self):
