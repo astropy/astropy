@@ -18,8 +18,6 @@ include astropy/astropy.cfg
 include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
 
-include astropy/table/tests/notebook_repr_html.ipynb
-
 include astropy/utils/misc/data/.hidden_file.txt
 
 recursive-include docs *
