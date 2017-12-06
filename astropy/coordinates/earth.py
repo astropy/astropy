@@ -603,7 +603,7 @@ class EarthLocation(u.Quantity):
                                      for the location of this object at the
                                      default ``obstime``.""")
 
-    def get_gcrs(self, obstime):
+    def _get_gcrs(self, obstime):
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
 
         Parameters
@@ -645,12 +645,12 @@ class EarthLocation(u.Quantity):
             The GCRS velocity of the object
         """
         # GCRS position
-        gcrs_data = self.get_gcrs(obstime).data
+        gcrs_data = self._get_gcrs(obstime).data
         obsgeopos = gcrs_data.without_differentials()
         obsgeovel = gcrs_data.differentials['s'].to_cartesian()
         return obsgeopos, obsgeovel
 
-    def gravitational_redshift(self, obstime):
+    def _gravitational_redshift(self, obstime):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the Sun,
