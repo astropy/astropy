@@ -28,12 +28,12 @@ accessed through the ``python setup.py test`` command.
 Testing Dependencies
 ********************
 
-As of Astropy 3.0, the dependencies used by the Astropy test runner are
-provided by a separate package called ``pytest-astropy``. This package provides
-the ``pytest`` dependency itself, in addition to several ``pytest`` plugins
-that are used by Astropy, and will also be of general use to other packages.
+The dependencies used by the Astropy test runner have been moved to a separate
+package called ``pytest-astropy``. This package provides the ``pytest``
+dependency itself, in addition to several ``pytest`` plugins that are used by
+Astropy, and will also be of general use to other packages.
 
-The ``pytest-astropy`` package is also compatible with with the 2.0 series of
+The ``pytest-astropy`` package is compatible with with the 2.0 series of
 Astropy, starting with 2.0.3. The plugins provided by ``pytest-astropy`` will
 be used if they are installed. If they are not installed, Astropy will fall
 back to using internally packaged versions of the plugins.
@@ -211,18 +211,6 @@ Astropy Test Function
 ---------------------
 
 .. autofunction:: astropy.test
-
-pytest
-======
-
-The test suite can be run directly from the native ``pytest`` command. In this
-case, it is important for developers to be aware that they must manually
-rebuild any extensions by running ``setup.py build_ext`` before testing.
-
-In contrast to the case of running from ``setup.py``, the ``--doctest-plus``
-and ``--doctest-rst`` options are not enabled by default when running the
-``pytest`` command directly. This flags should be explicitly given if they are
-needed.
 
 Test-running options
 ====================
