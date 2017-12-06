@@ -14,6 +14,8 @@ from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
 from ...tests.helper import quantity_allclose
 from ... import units as u
+from ...time import Time
+from ... import constants
 from ..name_resolve import NameResolveError
 
 
@@ -316,3 +318,45 @@ def test_geodetic_tuple():
     assert res1.lat == res2.lat and quantity_allclose(res1.lat, lat)
     assert res1.lon == res2.lon and quantity_allclose(res1.lon, lon)
     assert res1.height == res2.height and quantity_allclose(res1.height, height)
+
+
+def test_gravitational_redshift():
+    someloc = EarthLocation(lon=-87.7*u.deg, lat=37*u.deg)
+    sometime = Time('2017-8-21 18:26:40')
+    zg0 = someloc.gravitational_redshift(sometime)
+
+    # should be of order ~few mm/s change per week
+    d_week = np.abs(someloc.gravitational_redshift(sometime + 7 * u.day) - zg0)
+    assert d_week < 1*u.cm/u.s
+    assert d_week > 1*u.mm/u.s
+
+    # ~cm/s over a half-year
+    d_halfyear = np.abs(someloc.gravitational_redshift(sometime + 365/2 * u.day) - zg0)
+    assert d_halfyear < 1*u.m/u.s
+    assert d_halfyear > 1*u.cm/u.s
+
+    # but when back to the same time in a year, should be tenths of mm even over decades
+    d_year = np.abs(someloc.gravitational_redshift(sometime - 20 * u.year) - zg0)
+    assert d_year < 1*u.mm/u.s
+    assert d_year > .1*u.mm/u.s
+
+
+    # check mass adjustments
+    # if Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
+    masses = [constants.G*constants.M_sun,
+              0*constants.G*u.kg,
+              0*constants.G*u.kg,
+              constants.G*constants.M_earth]
+    d_moonjup = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
+    assert d_moonjup < 1*u.mm/u.s
+    assert d_moonjup > .1*u.mm/u.s
+
+    # if the earth is also ignored, effect should be off by ~ 20 cm/s
+    masses[3] *= 0
+    d_moonjupearth = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
+    assert d_moonjupearth < 1*u.m/u.s
+    assert d_moonjupearth > 10*u.cm/u.s
+
+    # if all masses are ignored, should be 0
+    masses[0] *= 0
+    assert someloc.gravitational_redshift(sometime, masses=masses) == 0
