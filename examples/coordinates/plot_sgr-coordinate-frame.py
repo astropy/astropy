@@ -44,7 +44,6 @@ See Also
 # Make `print` work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import astropy_mpl_style
@@ -76,14 +75,12 @@ class Sagittarius(coord.BaseCoordinateFrame):
     ----------
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-
     Lambda : `Angle`, optional, must be keyword
         The longitude-like angle corresponding to Sagittarius' orbit.
     Beta : `Angle`, optional, must be keyword
         The latitude-like angle corresponding to Sagittarius' orbit.
     distance : `Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
-
     pm_Lambda_cosBeta : :class:`~astropy.units.Quantity`, optional, must be keyword
         The proper motion along the stream in ``Lambda`` (including the
         ``cos(Beta)`` factor) for this object (``pm_Beta`` must also be given).
