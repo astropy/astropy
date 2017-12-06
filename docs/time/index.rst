@@ -39,6 +39,7 @@ object by supplying one or more input time values as well as the `time format`_ 
 ``"2010-01-01 00:00:00"`` or a list or a `numpy` array of values as shown below.
 In general any output values have the same shape (scalar or array) as the input.
 
+  >>> import numpy as np
   >>> from astropy.time import Time
   >>> times = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
   >>> t = Time(times, format='isot', scale='utc')
@@ -97,6 +98,7 @@ this information is kept is the ``fits`` format::
 One can set the time values in-place using the usual numpy array setting
 item syntax::
 
+  >>> t2 = t.tt.copy()  # Copy required if transformed Time will be modified
   >>> t2[1] = '2014-12-25'
   >>> print(t2)
   ['1999-01-01T00:01:04.307' '2014-12-25T00:00:00.000']
@@ -590,9 +592,10 @@ The two should be very close to each other.
 Using Time objects
 -------------------
 
-There are five basic operations available with |Time| objects:
+The operations available with |Time| objects include:
 
-- Get and set time values(s) for an array-valued |Time| object.
+- Get and set time values(s) for an array-valued |Time| object:
+- Set missing (masked) values.
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
@@ -640,6 +643,43 @@ possibilities:
 - |Time| object with identical ``location`` (but ``scale`` and
   ``format`` need not be the same).  The right side value will be
   transformed so the time ``scale`` matches.
+
+If it is required that the |Time| object be immutable then set the
+``writeable`` attribute to `False`.  In this case attemping to set a
+value will raise a ``ValueError: assignment destination is
+read-only``.  See the section on `Caching`_ for an example.
+
+Missing values
+^^^^^^^^^^^^^^
+
+The |Time| and |TimeDelta| objects support functionality for marking
+values as missing or invalid.  This is also known as masking,
+and is especially useful for :ref:`table_operations` such as joining
+and stacking.  To set one or more items as missing, assign the special
+value `~numpy.ma.masked`, for example::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[2] = np.ma.masked
+  >>> print(t)
+  ['2001:020' '2001:040' -- '2001:080']
+
+Once one or more values in the object are masked, any operations will
+propagate those values as masked, and access to format attributes such
+as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
+object::
+
+  >>> t.unix
+  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
+               mask = [False False  True False],
+         fill_value = 1e+20)
+
+One can view the ``mask``, but note that it is read-only and
+setting the mask is always done by setting the item to `~numpy.ma.masked`.
+
+  >>> t.mask
+  array([False, False,  True, False], dtype=bool)
+  >>> t[:2] = np.ma.masked
 
 Get representation
 ^^^^^^^^^^^^^^^^^^^
@@ -728,8 +768,18 @@ the cache.  In order to explicitly clear the internal cache do::
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
   Wall time: 267 ms
 
-Since these objects are immutable (cannot be changed internally), this should
-not normally be required.
+Since astropy 3.0 these objects can be changed internally.  In order
+to ensure consistency between the transformed (and cached) version and
+the original, the transformed object is set to be not writeable.  For
+example::
+
+  >>> x = t.tt  # doctest: +SKIP
+  >>> x[1] = '2000:001'  # doctest: +SKIP
+    File "/Users/aldcroft/git/astropy/astropy/time/core.py", line 700, in __setitem__
+      self._time.jd1[item] = value._time.jd1
+  ValueError: assignment destination is read-only
+
+If you require modifying the object then make a copy first, e.g. ``x = t.tt.copy()``.
 
 Transformation offsets
 """"""""""""""""""""""
