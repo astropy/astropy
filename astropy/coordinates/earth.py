@@ -650,16 +650,22 @@ class EarthLocation(u.Quantity):
         obsgeovel = gcrs_data.differentials['s'].to_cartesian()
         return obsgeopos, obsgeovel
 
-    def gravitational_redshift(self, obstime):
+    def gravitational_redshift(self, obstime,
+                               bodies=('sun', 'jupiter', 'moon', 'earth')):
         """Return the gravitational redshift at this EarthLocation.
 
-        Calculates the gravitational redshift, of order 3 m/s, due to the Sun,
-        Jupiter, the Moon, and the Earth itself.
+        Calculates the gravitational redshift, of order 3 m/s, due to the
+        requested solar system bodies.
 
         Parameters
         ----------
         obstime : `~astropy.time.Time`
             The ``obstime`` to calculate the redshift at.
+
+        bodies : list
+            The bodies to include in the redshift calculation.  List elements
+            should be any body name `get_body_barycentric` accepts.  Defaults to
+            Jupiter, the Sun, the Moon, and Earth Itself.
 
         Returns
         --------
@@ -668,10 +674,10 @@ class EarthLocation(u.Quantity):
         """
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
-        names = ('sun', 'jupiter', 'moon', 'earth')
+
         GM_moon = consts.G * 7.34767309e22*u.kg
         masses = (consts.GM_sun, consts.GM_jup, GM_moon, consts.GM_earth)
-        positions = [get_body_barycentric(name, obstime) for name in names]
+        positions = [get_body_barycentric(name, obstime) for name in bodies]
         # Calculate distances to objects other than earth.
         distances = [(pos - positions[-1]).norm() for pos in positions[:-1]]
         # Append distance from Earth's center for Earth's contribution.
