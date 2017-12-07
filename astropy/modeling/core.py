@@ -2377,13 +2377,15 @@ class _CompoundModelMeta(_ModelMeta):
             '__module__': str(modname)})
 
         new_cls = mcls(name, (_CompoundModel,), members)
-
+        print(new_cls[1].mean._model)
         if isinstance(left, Model) and isinstance(right, Model):
             # Both models used in the operator were already instantiated models,
             # not model *classes*.  As such it's not particularly useful to return
             # the class itself, but to instead produce a new instance:
+            ### This is where the weeak reference dies.
             instance = new_cls()
 
+            print('instance', instance[1].mean._model)
             # Workaround for https://github.com/astropy/astropy/issues/3542
             # TODO: Any effort to restructure the tree-like data structure for
             # compound models should try to obviate this workaround--if
