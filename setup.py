@@ -59,7 +59,8 @@ entry_points['console_scripts'] = [
 ]
 # Register ASDF extensions
 entry_points['asdf_extensions'] = [
-    'astropy = astropy.io.misc.asdf.extension:AstropyAsdfExtension'
+    'astropy = astropy.io.misc.asdf.extension:AstropyExtension',
+    'astropy-asdf = astropy.io.misc.asdf.extension:AstropyAsdfExtension',
 ]
 
 min_numpy_version = 'numpy>=' + astropy.__minimum_numpy_version__
