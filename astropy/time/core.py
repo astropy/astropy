@@ -658,6 +658,15 @@ class Time(ShapedLikeNDArray):
         return self._time.mask
 
     def __setitem__(self, item, value):
+        if not self.writeable:
+            if self.shape:
+                raise ValueError('{} object is read-only. Make a '
+                                 'copy() or set "writeable" attribute to True.'
+                                 .format(self.__class__.__name__))
+            else:
+                raise ValueError('scalar {} object is read-only.'
+                                 .format(self.__class__.__name__))
+
         # Any use of setitem results in immediate cache invalidation
         del self.cache
 
@@ -1231,6 +1240,9 @@ class Time(ShapedLikeNDArray):
                 else:
                     tm = self.replicate()
                     tm._set_scale(attr)
+                    if tm.shape:
+                        # Prevent future modification of cached array-like object
+                        tm.writeable = False
                 cache[attr] = tm
             return cache[attr]
 

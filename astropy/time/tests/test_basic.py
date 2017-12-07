@@ -1177,15 +1177,28 @@ def test_writeable_flag():
     t.writeable = False
     with pytest.raises(ValueError) as err:
         t[1] = 5.0
-    assert 'assignment destination is read-only' in str(err)
+    assert 'Time object is read-only. Make a copy()' in str(err)
 
     with pytest.raises(ValueError) as err:
         t[:] = 5.0
-    assert 'assignment destination is read-only' in str(err)
+    assert 'Time object is read-only. Make a copy()' in str(err)
 
     t.writeable = True
     t[1] = 10.0
     assert allclose_sec(t[1].value, 10.0)
+
+    # Scalar is not writeable
+    t = Time('2000:001', scale='utc')
+    with pytest.raises(ValueError) as err:
+        t[()] = '2000:002'
+    assert 'scalar Time object is read-only.' in str(err)
+
+    # Transformed attribute is not writeable
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = t.tt  # t2 is read-only now because t.tt is cached
+    with pytest.raises(ValueError) as err:
+        t2[0] = '2005:001'
+    assert 'Time object is read-only. Make a copy()' in str(err)
 
 
 def test_setitem_location():
