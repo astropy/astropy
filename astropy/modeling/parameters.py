@@ -309,11 +309,11 @@ class Parameter(OrderedDescriptor):
     def __len__(self):
         if self._model is None:
             raise TypeError('Parameter definitions do not have a length.')
-        return len(self._model)
+        return len(self._model())
 
     def __getitem__(self, key):
         value = self.value
-        if len(self._model) == 1:
+        if len(self._model()) == 1:
             # Wrap the value in a list so that getitem can work for sensible
             # indices like [0] and [-1]
             value = [value]
@@ -323,7 +323,7 @@ class Parameter(OrderedDescriptor):
         # Get the existing value and check whether it even makes sense to
         # apply this index
         oldvalue = self.value
-        n_models = len(self._model)
+        n_models = len(self._model())
 
         # if n_models == 1:
         #    # Convert the single-dimension value to a list to allow some slices
@@ -701,7 +701,7 @@ class Parameter(OrderedDescriptor):
             # the name "validator"
             def validator(self, value):
                 if self._validator is not None:
-                    return self._validator(self._model, value)
+                    return self._validator(self._model(), value)
 
             return types.MethodType(validator, self)
 
