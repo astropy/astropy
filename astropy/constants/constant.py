@@ -185,14 +185,21 @@ class Constant(Quantity, metaclass=ConstantMeta):
 
         return self._system
 
+    def _instance_or_super(self, key):
+        instances = self._registry[self.name.lower()]
+        inst = instances.get(key)
+        if inst is not None:
+            return inst
+        else:
+            return getattr(super(), key)
+
     @property
     def si(self):
         """If the Constant is defined in the SI system return that instance of
         the constant, else convert to a Quantity in the appropriate SI units.
         """
 
-        instances = self._registry[self.name.lower()]
-        return instances.get('si') or super().si
+        return self._instance_or_super('si')
 
     @property
     def cgs(self):
@@ -200,12 +207,11 @@ class Constant(Quantity, metaclass=ConstantMeta):
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
 
-        instances = self._registry[self.name.lower()]
-        return instances.get('cgs') or super().cgs
+        return self._instance_or_super('cgs')
 
     def __array_finalize__(self, obj):
         for attr in ('_abbrev', '_name', '_value', '_unit_string',
-                      '_uncertainty', '_reference', '_system'):
+                     '_uncertainty', '_reference', '_system'):
             setattr(self, attr, getattr(obj, attr, None))
 
         self._checked_units = getattr(obj, '_checked_units', False)
