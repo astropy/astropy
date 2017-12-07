@@ -96,7 +96,8 @@ astropy.tests
 - Fixed a bug that meant that the data.astropy.org mirror could not be used when
   using --remote-data=astropy. [#6724]
 
-- Support compatibility with new ``pytest-astropy`` plugins. [#6918]
+- Support compatibility with new ``pytest-astropy`` plugins. Version 0.2.0
+  of ``pytest-astropy`` is included as an external package. [#6918]
 
 astropy.time
 ^^^^^^^^^^^^
