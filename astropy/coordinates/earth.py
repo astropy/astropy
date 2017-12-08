@@ -628,7 +628,7 @@ class EarthLocation(u.Quantity):
         # Assume the observatory itself is fixed on the ground.
         # We do a direct assignment rather than an update to avoid validation
         # and creation of a new object.
-        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
+        zeros = broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
         itrs.data.differentials['s'] = CartesianDifferential(zeros)
         return itrs.transform_to(GCRS(obstime=obstime))
 
