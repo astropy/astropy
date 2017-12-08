@@ -963,6 +963,10 @@ class FITS_rec(np.recarray):
                         field = test_overflow
                 else:
                     field += bzero
+
+            # mark the column as scaled
+            column._physical_values = True
+
         elif _bool and field.dtype != bool:
             field = np.equal(field, ord('T'))
         elif _str:
