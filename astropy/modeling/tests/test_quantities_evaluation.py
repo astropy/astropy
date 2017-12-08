@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 
 
 from ..core import Model
-from ..models import Gaussian1D
+from ..models import Gaussian1D, Shift
 from ... import units as u
 from ...units import UnitsError
 from ...tests.helper import assert_quantity_allclose
@@ -186,3 +186,29 @@ class TestInputUnits():
 
         assert_quantity_allclose(result, 12 * u.deg)
         assert result.unit is u.rad
+
+
+def test_compound_input_units():
+    """
+    Test incompatible units to first model in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 | s2
+
+    with pytest.raises(UnitsError):
+        cs(10*u.pix)
+
+
+def test_compound_compound_units():
+    """
+    Test incompatible model units in chain.
+    """
+    s1 = Shift(10*u.pix)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 | s2
+
+    with pytest.raises(UnitsError):
+        cs(10*u.pix)
