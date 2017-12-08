@@ -187,8 +187,47 @@ class TestInputUnits():
         assert_quantity_allclose(result, 12 * u.deg)
         assert result.unit is u.rad
 
+def test_and_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 & s2
+
+    out = cs(10*u.arcsecond, 20*u.arcsecond)
+
+    assert_quantity_allclose(out[0], 10*u.deg + 10*u.arcsec)
+    assert_quantity_allclose(out[1], 10*u.deg + 20*u.arcsec)
+
+def test_plus_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 + s2
+
+    out = cs(10*u.arcsecond)
+
+    assert_quantity_allclose(out, 20*u.deg + 20*u.arcsec)
 
 def test_compound_input_units():
+    """
+    Test units to first model in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 | s2
+
+    out = cs(10*u.arcsecond)
+
+    assert_quantity_allclose(out, 20*u.deg + 10*u.arcsec)
+
+def test_compound_input_units_fail():
     """
     Test incompatible units to first model in chain.
     """
@@ -201,7 +240,7 @@ def test_compound_input_units():
         cs(10*u.pix)
 
 
-def test_compound_compound_units():
+def test_compound_incompatible_units_fail():
     """
     Test incompatible model units in chain.
     """
@@ -212,3 +251,46 @@ def test_compound_compound_units():
 
     with pytest.raises(UnitsError):
         cs(10*u.pix)
+
+
+def test_compound_pipe_equiv_call():
+    """
+    Test incompatible model units in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 | s2
+
+    out = cs(10*u.pix, equivalencies={'x': u.pixel_scale(0.5*u.deg/u.pix)})
+    assert_quantity_allclose(out, 25*u.deg)
+
+
+def test_compound_and_equiv_call():
+    """
+    Test incompatible model units in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s2 = Shift(10*u.deg)
+
+    cs = s1 & s2
+
+    out = cs(10*u.pix, 10*u.pix, equivalencies={'x': u.pixel_scale(0.5*u.deg/u.pix),
+                                                'y': u.pixel_scale(0.5*u.deg/u.pix)})
+    assert_quantity_allclose(out[0], 25*u.deg)
+    assert_quantity_allclose(out[1], 25*u.deg)
+
+
+def test_compound_compound_equiv_class():
+    """
+    Test incompatible model units in chain.
+    """
+    s1 = Shift(10*u.deg)
+    s1.input_units_equivalencies = {'x': u.pixel_scale(0.5*u.deg/u.pix)}
+    s2 = Shift(10*u.deg)
+
+    cs = s1 | s2
+
+
+    out = cs(10*u.pix)
+    assert_quantity_allclose(out, 25*u.deg)
