@@ -17,7 +17,7 @@ from ....tests.helper import catch_warnings
 from ....units.format.fits import UnitScaleError
 
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
-from ....time import Time  # , TimeDelta
+from ....time import Time, TimeDelta
 from ....tests.helper import quantity_allclose
 from ....units.quantity import QuantityInfo
 
@@ -425,7 +425,7 @@ tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
 
 mixin_cols = {
     'tm': tm,
-    # 'dt': TimeDelta([1, 2] * u.day),
+    'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
     'scc': scc,
     'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
@@ -442,7 +442,7 @@ compare_attrs = {
     'c1': ['data'],
     'c2': ['data'],
     'tm': time_attrs,
-    # 'dt': ['shape', 'value', 'format', 'scale'],
+    'dt': ['shape', 'value', 'format', 'scale'],
     'sc': ['ra', 'dec', 'representation', 'frame.name'],
     'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
     'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
@@ -498,7 +498,7 @@ def test_fits_mixins_as_one(table_cls, tmpdir):
     names = sorted(mixin_cols)
 
     serialized_names = ['ang',
-                        # 'dt',
+                        'dt.jd1', 'dt.jd2',
                         'el2.x', 'el2.y', 'el2.z',
                         'lat',
                         'lon',

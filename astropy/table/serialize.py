@@ -35,9 +35,10 @@ class SerializedColumn(dict):
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
                                exclude_classes=()):
     """Convert a mixin column to a plain columns or a set of mixin columns."""
-    # If not a mixin, or if an instance of the ``exclude_classes`` tuple then
-    # treat as a normal column.
-    if not has_info_class(col, MixinInfo) or isinstance(col, exclude_classes):
+    # If not a mixin, or if class in ``exclude_classes`` tuple then
+    # treat as a normal column.  Excluded sub-classes must be explicitly
+    # specified.
+    if not has_info_class(col, MixinInfo) or col.__class__ in exclude_classes:
         new_cols.append(col)
         return
 
