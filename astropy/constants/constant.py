@@ -195,7 +195,7 @@ class Constant(Quantity):
         if inst is not None:
             return inst
         else:
-            return getattr(super(), key)
+            return getattr(super(Constant, self), key)
 
     @property
     def si(self):
