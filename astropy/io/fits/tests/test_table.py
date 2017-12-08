@@ -2526,6 +2526,32 @@ class TestTableFunctions(FitsTestCase):
                         'deprecated in version 2.0 and will be removed in a '
                         'future version. Use argument "overwrite" instead.')
 
+    def test_column_with_scaling(self):
+        """Check that a scaled column if correctly saved once it is modified.
+        Regression test for https://github.com/astropy/astropy/issues/6887
+        """
+        c1 = fits.Column(name='c1', array=np.array([1], dtype='>i2'),
+                         format='1I', bscale=1, bzero=32768)
+        S = fits.HDUList([fits.PrimaryHDU(),
+                          fits.BinTableHDU.from_columns([c1])])
+
+        # Change value in memory
+        S[1].data['c1'][0] = 2
+        S.writeto(self.temp("a.fits"))
+        assert S[1].data['c1'] == 2
+
+        # Read and change value in memory
+        X = fits.open(self.temp("a.fits"))
+        X[1].data['c1'][0] = 10
+        assert X[1].data['c1'][0] == 10
+
+        # Write back to file
+        X.writeto(self.temp("b.fits"))
+
+        # Now check the file
+        with fits.open(self.temp("b.fits")) as hdul:
+            assert hdul[1].data['c1'][0] == 10
+
 
 @contextlib.contextmanager
 def _refcounting(type_):
