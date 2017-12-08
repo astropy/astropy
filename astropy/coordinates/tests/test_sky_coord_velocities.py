@@ -117,11 +117,14 @@ def test_separation(sc, sc2):
     sc.separation(sc2)
 
 
-def test_accesors(sc, scmany):
+def test_accessors(sc, scmany):
     sc.data.differentials['s']
     sc.spherical
     sc.galactic
+
     scmany[0]
+    scmany.spherical
+    scmany.galactic
 
 
 def test_transforms(sc):
