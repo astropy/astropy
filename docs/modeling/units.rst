@@ -276,6 +276,10 @@ If the return values are quantities in different units, they are converted to
 If set to `True`, values that are passed in compatible units will be converted
 to the exact units specified in ``input_units``.
 
+This attribute can also be a
+dictionary that maps input names to a Boolean to enable converting of that input
+to the specified unit.
+
 ``input_units_equivalencies``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -287,10 +291,12 @@ equivalencies, for example::
 ``input_units_allow_dimensionless``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If set to `True`, values that are plain scalars or Numpy arrays can be passed
-to evaluate even if ``input_units`` specifies that the input should have units.
-It is up to the :meth:`~astropy.modeling.Model.evaluate` to then decide how to
-handle these dimensionless values.
+If set to `True`, values that are plain scalars or Numpy arrays can be passed to
+evaluate even if ``input_units`` specifies that the input should have units. It
+is up to the :meth:`~astropy.modeling.Model.evaluate` to then decide how to
+handle these dimensionless values. This attribute can also be a dictionary that
+maps input names to a Boolean to enable passing dimensionless values to
+:meth:`~astropy.modeling.Model.evaluate` for that input.
 
 
 Fitting

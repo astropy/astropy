@@ -658,17 +658,20 @@ class Model(metaclass=_ModelMeta):
     # Enforce strict units on inputs to evaluate. If this is set to True, input
     # values to evaluate have to be in the exact right units specified by
     # input_units. In this case, if the input quantities are convertible to
-    # input_units, they are converted.
+    # input_units, they are converted. If this is a dictionary then it should
+    # map input name to a bool to set strict input units for that parameter.
     input_units_strict = False
 
     # Allow dimensionless input (and corresponding output). If this is True,
-    # input values to evaluate will gain the units specified in input_units.
+    # input values to evaluate will gain the units specified in input_units. If
+    # this is a dictionary then it should map input name to a bool to allow
+    # dimensionless numbers for that input.
     # Only has an effect if input_units is defined.
     input_units_allow_dimensionless = False
 
     # Default equivalencies to apply to input values. If set, this should be a
-    # dictionary where each key is a string that corresponds to one of the model
-    # inputs. Only has an effect if input_units is defined.
+    # dictionary where each key is a string that corresponds to one of the
+    # model inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
     def __init__(self, *args, meta=None, name=None, **kwargs):
