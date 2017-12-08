@@ -1369,8 +1369,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     @property
     def velocity(self):
         """
-        Shorthand for the Cartesian velocity as a `CartesianDifferential`
-        object.
+        Shorthand for retrieving the Cartesian space-motion as a
+        `CartesianDifferential` object. This is equivalent to calling
+        ``frame.cartesian.differentials['s']``.
         """
         if 's' not in self.data.differentials:
             raise ValueError('Frame has no associated velocity (Differential) '
@@ -1380,9 +1381,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             v = self.cartesian.differentials['s']
         except Exception as e:
             raise ValueError('Could not retrieve a Cartesian velocity. Your '
-                             'frame data must include all six of sky positions,'
-                             ' distance, proper motions, and radial velocity '
-                             'for this to work.')
+                             'frame must include velocity information for this '
+                             'to work.')
         return v
 
     @property
