@@ -16,9 +16,10 @@ converted in any way but are used natively.
 
 The available built-in mixin column classes are:
 
-- |Quantity|
-- |SkyCoord|
-- |Time|
+- |Quantity| and subclasses
+- |SkyCoord| and coordinate frame classes
+- |Time| and :class:`~astropy.time.TimeDelta`
+- :class:`~astropy.coordinates.EarthLocation`
 - `~astropy.table.NdarrayMixin`
 
 As a first example we can create a table and add a time column::
