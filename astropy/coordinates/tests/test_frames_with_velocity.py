@@ -266,4 +266,3 @@ def test_shorthand_attributes():
                  representation=r.CartesianRepresentation,
                  differential_cls=r.CartesianDifferential)
     icrs4.radial_velocity
-
