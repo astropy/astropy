@@ -21,7 +21,7 @@ def test_info(capsys):
     assert out.splitlines() == ['<Table length=3>',
                                 ' name   dtype ',
                                 '------ -------',
-                                'target   str20',
+                                'target bytes20',
                                 ' V_mag float32']
 
 
@@ -127,7 +127,7 @@ def test_show_dtype(capsys):
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         ' target  V_mag ',
-        ' str20  float32',
+        'bytes20 float32',
         '------- -------',
         'NGC1001    11.1',
         'NGC1002    12.3',
