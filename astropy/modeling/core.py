@@ -1455,8 +1455,6 @@ class Model(metaclass=_ModelMeta):
 
     def _validate_input_units(self, inputs, equivalencies=None):
 
-        print("VALIDATE UNITS", inputs, equivalencies, self.input_units)
-
         inputs = list(inputs)
 
         # Check that the units are correct, if applicable
@@ -1527,8 +1525,6 @@ class Model(metaclass=_ModelMeta):
                                              "converted to required input units of "
                                              "{1} ({2})".format(self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
-
-        print("OUT", inputs)
 
         return inputs
 
@@ -2801,14 +2797,39 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         ]
         return super()._format_str(keywords=keywords)
 
+
+    def _generate_input_output_units_dict(self, mapping, attr):
+        d = {}
+        for inp, (model, orig_inp) in mapping.items():
+            mattr = getattr(model, attr)
+            if isinstance(mattr, dict):
+                if orig_inp in mattr:
+                    d[inp] = mattr[orig_inp]
+        if d:
+            return d
+
+    @property
+    def input_units_allow_dimensionless(self):
+        return any(getattr(m, 'input_units_allow_dimensionless') for m in self._submodels)
+
+
+    @property
+    def input_units_strict(self):
+        return all(getattr(m, 'input_units_strict') for m in self._submodels)
+
     @property
     def input_units(self):
-        d = {}
-        for inp, (model, orig_inp) in self.inputs_map.items():
-            if model.input_units is not None:
-                if orig_inp in model.input_units:
-                    d[inp] = model.input_units[orig_inp]
-        return d
+        return self._generate_input_output_units_dict(self.inputs_map, 'input_units')
+
+    @property
+    def input_units_equivalencies(self):
+        return self._generate_input_output_units_dict(self.inputs_map,
+                                                      'input_units_equivalencies')
+
+    @property
+    def return_units(self):
+        return self._generate_input_output_units_dict(self.outputs_map,
+                                                      'return_units')
 
     def __getattr__(self, attr):
         # This __getattr__ is necessary, because _CompoundModelMeta creates
