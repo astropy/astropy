@@ -11,6 +11,7 @@ import numpy as np
 
 from ...bundled import six
 from ...bundled.six.moves import zip
+from ....utils.compat import NUMPY_LT_1_10
 
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
@@ -125,7 +126,7 @@ class OutputChecker(doctest.OutputChecker):
                 # plugin since we need to support older versions of numpy that
                 # do not provide the 'equal_nan' argument, which was added in
                 # numpy-1.10.
-                if np.isnan(ngf) and np.isnan(nwf):
+                if NUMPY_LT_1_10 and np.isnan(ngf) and np.isnan(nwf):
                     continue
 
                 if not np.allclose(ngf, nwf):
