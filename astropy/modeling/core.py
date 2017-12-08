@@ -1441,6 +1441,22 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
+        inputs = self._validate_input_units(inputs, equivalencies)
+
+        # The input formatting required for single models versus a multiple
+        # model set are different enough that they've been split into separate
+        # subroutines
+        if n_models == 1:
+            return _prepare_inputs_single_model(self, params, inputs,
+                                                **kwargs)
+        else:
+            return _prepare_inputs_model_set(self, params, inputs, n_models,
+                                             model_set_axis, **kwargs)
+
+    def _validate_input_units(self, inputs, equivalencies=None):
+
+        inputs = list(inputs)
+
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
@@ -1448,8 +1464,8 @@ class Model(metaclass=_ModelMeta):
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
             input_units_equivalencies = _combine_equivalency_dict(self.inputs,
-                                                                 equivalencies,
-                                                                 self.input_units_equivalencies)
+                                                                  equivalencies,
+                                                                  self.input_units_equivalencies)
 
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
@@ -1510,15 +1526,7 @@ class Model(metaclass=_ModelMeta):
                                              "{1} ({2})".format(self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
 
-        # The input formatting required for single models versus a multiple
-        # model set are different enough that they've been split into separate
-        # subroutines
-        if n_models == 1:
-            return _prepare_inputs_single_model(self, params, inputs,
-                                                **kwargs)
-        else:
-            return _prepare_inputs_model_set(self, params, inputs, n_models,
-                                             model_set_axis, **kwargs)
+        return inputs
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
         if len(self) == 1:
@@ -2719,31 +2727,34 @@ class _CompoundModelMeta(_ModelMeta):
         n_inputs = model.n_inputs
         n_outputs = model.n_outputs
 
-        # There is currently an unfortunate inconsistency in some models, which
-        # requires them to be instantiated for their evaluate to work.  I think
-        # that needs to be reconsidered and fixed somehow, but in the meantime
-        # we need to check for that case
-        if (not isinstance(model, Model) and
-                isinstancemethod(model, model.evaluate)):
+        # If model is not an instance, we need to instantiate it to make sure
+        # that we can call _validate_input_units (since e.g. input_units can
+        # be an instance property).
+
+        if isinstance(model, Model):
+            evaluate = model.evaluate
+            if n_outputs == 1:
+                def f(inputs, params):
+                    model._validate_input_units(inputs)
+                    return (evaluate(*inputs, *islice(params, n_params)),)
+            else:
+                def f(inputs, params):
+                    model._validate_input_units(inputs)
+                    return evaluate(*inputs, *islice(params, n_params))
+        else:
             if n_outputs == 1:
                 # Where previously model was a class, now make an instance
                 def f(inputs, params):
                     param_values = tuple(islice(params, n_params))
-                    return (model(*param_values).evaluate(
-                        *chain(inputs, param_values)),)
+                    m = model(*param_values)
+                    m._validate_input_units(inputs)
+                    return (m.evaluate(*chain(inputs, param_values)),)
             else:
                 def f(inputs, params):
                     param_values = tuple(islice(params, n_params))
-                    return model(*param_values).evaluate(
-                        *chain(inputs, param_values))
-        else:
-            evaluate = model.evaluate
-            if n_outputs == 1:
-                f = lambda inputs, params: \
-                    (evaluate(*chain(inputs, islice(params, n_params))),)
-            else:
-                f = lambda inputs, params: \
-                    evaluate(*chain(inputs, islice(params, n_params)))
+                    m = model(*param_values)
+                    m._validate_input_units(inputs)
+                    return m.evaluate(*chain(inputs, param_values))
 
         return (f, n_inputs, n_outputs)
 
