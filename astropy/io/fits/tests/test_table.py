@@ -3062,3 +3062,15 @@ def test_table_to_hdu():
 
     assert hdu.header['FOO'] == 'bar'
     assert hdu.header['TEST'] == 1
+
+
+def test_regression_scalar_indexing():
+    # Indexing a FITS_rec with a tuple that returns a scalar record
+    # should work
+    x = np.array([(1.0, 2), (3.0, 4)],
+                 dtype=[('x', float), ('y', int)]).view(fits.FITS_rec)
+    x1a = x[1]
+    # this should succeed.
+    x1b = x[(1,)]
+    # FITS_record does not define __eq__; so test elements.
+    assert all(a == b for a, b in zip(x1a, x1b))
