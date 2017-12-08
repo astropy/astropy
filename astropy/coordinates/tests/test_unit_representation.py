@@ -14,6 +14,8 @@ from astropy.coordinates.transformations import FunctionTransform
 from astropy.coordinates import ICRS
 from astropy.coordinates.baseframe import RepresentationMapping
 
+from .. import representation as r
+
 import astropy.units as u
 
 import astropy.coordinates
@@ -54,23 +56,23 @@ def test_unit_representation_subclass():
 
         _unit_representation = UnitSphericalWrap180Representation
 
-    class myframe(ICRS):
+    class MyFrame(ICRS):
         default_representation = SphericalWrap180Representation
         frame_specific_representation_info = {
-            'spherical': [RepresentationMapping('lon', 'ra'),
-                          RepresentationMapping('lat', 'dec')]
+            'spherical': [
+                RepresentationMapping('lon', 'ra'),
+                RepresentationMapping('lat', 'dec')]
         }
-        frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['unitsphericalwrap180'] = \
-        frame_specific_representation_info['sphericalwrap180'] = \
+            frame_specific_representation_info['sphericalwrap180'] = \
             frame_specific_representation_info['spherical']
 
     @frame_transform_graph.transform(FunctionTransform,
-                                     myframe, astropy.coordinates.ICRS)
+                                     MyFrame, astropy.coordinates.ICRS)
     def myframe_to_icrs(myframe_coo, icrs):
         return icrs.realize_frame(myframe_coo._data)
 
-    f = myframe(10*u.deg, 10*u.deg)
+    f = MyFrame(10*u.deg, 10*u.deg)
     assert isinstance(f._data, UnitSphericalWrap180Representation)
     assert isinstance(f.ra, Longitude180)
 
@@ -78,6 +80,6 @@ def test_unit_representation_subclass():
     assert isinstance(g, astropy.coordinates.ICRS)
     assert isinstance(g._data, UnitSphericalWrap180Representation)
 
-    frame_transform_graph.remove_transform(myframe,
+    frame_transform_graph.remove_transform(MyFrame,
                                            astropy.coordinates.ICRS,
                                            None)
