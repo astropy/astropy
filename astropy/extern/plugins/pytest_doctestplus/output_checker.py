@@ -13,6 +13,11 @@ from ...bundled import six
 from ...bundled.six.moves import zip
 from ....utils.compat import NUMPY_LT_1_10
 
+
+_ALLCLOSE_KWARGS = {}
+if not NUMPY_LT_1_10:
+    _ALLCLOSE_KWARGS['equal_nan'] = True
+
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
 # for the full SymPy license.
@@ -129,7 +134,7 @@ class OutputChecker(doctest.OutputChecker):
                 if NUMPY_LT_1_10 and np.isnan(ngf) and np.isnan(nwf):
                     continue
 
-                if not np.allclose(ngf, nwf):
+                if not np.allclose(ngf, nwf, **_ALLCLOSE_KWARGS):
                     return False
 
             # replace all floats in the "got" string by those from "wanted".
