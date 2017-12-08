@@ -87,6 +87,11 @@ Parameters for ``read()``
   This includes only significant non-comment line and can be negative to count
   from end.  See `Specifying header and data location`_ for more details.
 
+**encoding**: encoding to read the file (default=`None`)
+  When `None` use `locale.getpreferredencoding` as an encoding.  This matches
+  the default behavior of the built-in `open` when no ``mode`` argument is
+  provided.
+
 **converters** : dict of data type converters
   See the `Converters`_ section for more information.
 
