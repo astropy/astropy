@@ -2405,8 +2405,8 @@ class _CompoundModelMeta(_ModelMeta):
             '_tree': tree,
             '_is_dynamic': True,  # See docs for _ModelMeta._is_dynamic
             'inputs': inputs,
-            'inputs_map': inputs_map,
-            'outputs_map': outputs_map,
+            '_inputs_map': inputs_map,
+            '_outputs_map': outputs_map,
             'outputs': outputs,
             'linear': linear,
             'standard_broadcasting': standard_broadcasting,
@@ -2823,26 +2823,26 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
 
     @property
     def input_units_allow_dimensionless(self):
-        return self._generate_input_output_units_dict(self.inputs_map,
+        return self._generate_input_output_units_dict(self._inputs_map,
                                                       'input_units_allow_dimensionless')
 
     @property
     def input_units_strict(self):
-        return self._generate_input_output_units_dict(self.inputs_map,
+        return self._generate_input_output_units_dict(self._inputs_map,
                                                       'input_units_strict')
 
     @property
     def input_units(self):
-        return self._generate_input_output_units_dict(self.inputs_map, 'input_units')
+        return self._generate_input_output_units_dict(self._inputs_map, 'input_units')
 
     @property
     def input_units_equivalencies(self):
-        return self._generate_input_output_units_dict(self.inputs_map,
+        return self._generate_input_output_units_dict(self._inputs_map,
                                                       'input_units_equivalencies')
 
     @property
     def return_units(self):
-        return self._generate_input_output_units_dict(self.outputs_map,
+        return self._generate_input_output_units_dict(self._outputs_map,
                                                       'return_units')
 
     def __getattr__(self, attr):
