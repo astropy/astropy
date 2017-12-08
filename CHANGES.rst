@@ -26,6 +26,9 @@ astropy.coordinates
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
 
+- SkyCoord objects now support storing and tranforming differentials - i.e.,
+  both radial velocities and proper motions. [#6944]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -301,6 +304,10 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Frame objects now use the default differential even if the representation is
+  explicitly provided as long as the representation provided is the same type as
+  the default representation. [#6944]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
