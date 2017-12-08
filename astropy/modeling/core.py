@@ -1467,6 +1467,16 @@ class Model(metaclass=_ModelMeta):
                                                                   equivalencies,
                                                                   self.input_units_equivalencies)
 
+            if isinstance(self.input_units_strict, bool):
+                input_units_strict = {key: self.input_units_strict for key in self.inputs}
+            else:
+                input_units_strict = self.input_units_strict
+
+            if isinstance(self.input_units_allow_dimensionless, bool):
+                input_units_allow_dimensionless = {key: self.input_units_allow_dimensionless for key in self.inputs}
+            else:
+                input_units_allow_dimensionless = self.input_units_allow_dimensionless
+
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
             for i in range(len(inputs)):
@@ -1490,7 +1500,7 @@ class Model(metaclass=_ModelMeta):
                         # sure that we evaluate the model in its own frame
                         # of reference. If input_units_strict is set, we also
                         # need to convert to the input units.
-                        if len(input_units_equivalencies) > 0 or self.input_units_strict:
+                        if len(input_units_equivalencies) > 0 or input_units_strict[input_name]:
                             inputs[i] = inputs[i].to(input_unit, equivalencies=input_units_equivalencies[input_name])
 
                     else:
@@ -1518,7 +1528,7 @@ class Model(metaclass=_ModelMeta):
                     # input values without conversion, otherwise we raise an
                     # exception.
 
-                    if (not self.input_units_allow_dimensionless and
+                    if (not input_units_allow_dimensionless[input_name] and
                        input_unit is not dimensionless_unscaled and input_unit is not None):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("Units of input '{0}', (dimensionless), could not be "
@@ -2805,17 +2815,21 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
             if isinstance(mattr, dict):
                 if orig_inp in mattr:
                     d[inp] = mattr[orig_inp]
+            elif isinstance(mattr, bool):
+                d[inp] = mattr
+
         if d:
             return d
 
     @property
     def input_units_allow_dimensionless(self):
-        return any(getattr(m, 'input_units_allow_dimensionless') for m in self._submodels)
-
+        return self._generate_input_output_units_dict(self.inputs_map,
+                                                      'input_units_allow_dimensionless')
 
     @property
     def input_units_strict(self):
-        return all(getattr(m, 'input_units_strict') for m in self._submodels)
+        return self._generate_input_output_units_dict(self.inputs_map,
+                                                      'input_units_strict')
 
     @property
     def input_units(self):
@@ -2879,11 +2893,6 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     @sharedmethod
     def evaluate(self, *args):
         return self.__class__.evaluate(*args)
-
-    # @property
-    # def input_units(cls):
-    #
-
 
     # TODO: The way this works is highly inefficient--the inverse is created by
     # making a new model for each operator in the compound model, which could
