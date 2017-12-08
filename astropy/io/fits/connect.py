@@ -10,7 +10,7 @@ from .. import registry as io_registry
 from ... import units as u
 from ...table import Table, serialize, meta, Column, MaskedColumn
 from ...table.table import has_info_class
-from ...time import Time, TimeDelta
+from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.data_info import MixinInfo
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
@@ -280,17 +280,17 @@ def _encode_mixins(tbl):
     """
     # If PyYAML is not available then check to see if there are any mixin cols
     # that *require* YAML serialization.  FITS already has support for Time,
-    # TimeDelta, and Quantity, so if those are the only mixins the proceed
-    # without doing the YAML bit, for backward compatibility (i.e. not
-    # requiring YAML to write Time or Quantity).  In this case other mixin
-    # column meta (e.g.  description or meta) will be silently dropped,
-    # consistent with astropy <= 2.0 behavior.
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Time or Quantity).  In this case other mixin column meta (e.g.
+    # description or meta) will be silently dropped, consistent with astropy <=
+    # 2.0 behavior.
     try:
         import yaml
     except ImportError:
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
-                    col.__class__ not in (u.Quantity, Time, TimeDelta)):
+                    col.__class__ not in (u.Quantity, Time)):
                 raise TypeError('cannot write type {} column {!r} '
                                 'to FITS without PyYAML installed.'
                                 .format(col.info.name, col.__class__.__name__))
@@ -302,7 +302,7 @@ def _encode_mixins(tbl):
     # Time-subclass columns and leave them in the table so that the downstream
     # FITS Time handling does the right thing.
     encode_tbl = serialize._represent_mixins_as_columns(
-        tbl, exclude_classes=(Time, TimeDelta))
+        tbl, exclude_classes=(Time,))
     if encode_tbl is tbl:
         return tbl
 
