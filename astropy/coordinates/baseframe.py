@@ -66,7 +66,7 @@ def _get_diff_cls(value):
     Return a valid differential class from ``value`` or raise exception.
 
     As originally created, this is only used in the SkyCoord initializer, so if
-    that is refactored, this function my no longer be necessary. 
+    that is refactored, this function my no longer be necessary.
     """
 
     if value in r.DIFFERENTIAL_CLASSES:
@@ -302,7 +302,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 differential_cls = {'s': differential_cls}
 
             elif differential_cls is None:
-                differential_cls = {'s': 'base'} # see set_representation_cls()
+                if representation == self.default_representation:
+                    differential_cls = {'s': self.default_differential}
+                else:
+                    differential_cls = {'s': 'base'}  # see set_representation_cls()
 
             self.set_representation_cls(representation, **differential_cls)
 
