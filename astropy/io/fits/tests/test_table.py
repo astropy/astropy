@@ -2545,7 +2545,7 @@ class TestTableFunctions(FitsTestCase):
             assert np.all(hdu.data['A'] == data)
 
             # Test updating the unsigned int data
-            hdu.data['A'] = 99
+            hdu.data['A'][0] = 99
             hdu.writeto(self.temp('test2.fits'))
 
         with fits.open(self.temp('test2.fits'), uint=True) as hdul:
