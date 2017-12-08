@@ -2380,7 +2380,7 @@ class _CompoundModelMeta(_ModelMeta):
         else:
             modname = '__main__'
 
-        inputs, outputs = mcls._check_inputs_and_outputs(operator, left, right)
+        inputs, outputs, inputs_map, outputs_map = mcls._check_inputs_and_outputs(operator, left, right)
 
         if operator in ('|', '+', '-'):
             linear = left.linear and right.linear
@@ -2399,6 +2399,8 @@ class _CompoundModelMeta(_ModelMeta):
             '_tree': tree,
             '_is_dynamic': True,  # See docs for _ModelMeta._is_dynamic
             'inputs': inputs,
+            'inputs_map': inputs_map,
+            'outputs_map': outputs_map,
             'outputs': outputs,
             'linear': linear,
             'standard_broadcasting': standard_broadcasting,
@@ -2439,6 +2441,8 @@ class _CompoundModelMeta(_ModelMeta):
         if operator == '|':
             inputs = left.inputs
             outputs = right.outputs
+            input_mapping = {inp: (left, inp) for inp in left.inputs}
+            output_mapping = {out: (right, out) for out in right.outputs}
 
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
@@ -2449,12 +2453,31 @@ class _CompoundModelMeta(_ModelMeta):
                         left.name, left.n_inputs, left.n_outputs, right.name,
                         right.n_inputs, right.n_outputs))
         elif operator == '&':
+
             inputs = combine_labels(left.inputs, right.inputs)
             outputs = combine_labels(left.outputs, right.outputs)
+
+            input_mapping = {}
+            for i, inp in enumerate(inputs):
+                if i < len(left.inputs):
+                    input_mapping[inp] = left, left.inputs[i]
+                else:
+                    input_mapping[inp] = right, right.inputs[i - len(left.inputs)]
+
+            output_mapping = {}
+            for i, out in enumerate(outputs):
+                if i < len(left.outputs):
+                    output_mapping[out] = left, left.outputs[i]
+                else:
+                    output_mapping[out] = right, right.outputs[i - len(left.outputs)]
+
         else:
+
             # Without loss of generality
             inputs = left.inputs
             outputs = left.outputs
+            input_mapping = {inp: (left, inp) for inp in left.inputs}
+            output_mapping = {out: (left, out) for out in left.outputs}
 
             if (left.n_inputs != right.n_inputs or
                     left.n_outputs != right.n_outputs):
@@ -2466,7 +2489,7 @@ class _CompoundModelMeta(_ModelMeta):
                         operator, left.name, left.n_inputs, left.n_outputs,
                         right.name, right.n_inputs, right.n_outputs))
 
-        return inputs, outputs
+        return inputs, outputs, input_mapping, output_mapping
 
     @classmethod
     def _make_user_inverse(mcls, operator, left, right):
@@ -2778,6 +2801,15 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         ]
         return super()._format_str(keywords=keywords)
 
+    @property
+    def input_units(self):
+        d = {}
+        for inp, (model, orig_inp) in self.inputs_map.items():
+            if model.input_units is not None:
+                if orig_inp in model.input_units:
+                    d[inp] = model.input_units[orig_inp]
+        return d
+
     def __getattr__(self, attr):
         # This __getattr__ is necessary, because _CompoundModelMeta creates
         # Parameter descriptors *lazily*--they do not exist in the class
@@ -2826,6 +2858,11 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     @sharedmethod
     def evaluate(self, *args):
         return self.__class__.evaluate(*args)
+
+    # @property
+    # def input_units(cls):
+    #
+
 
     # TODO: The way this works is highly inefficient--the inverse is created by
     # making a new model for each operator in the compound model, which could
