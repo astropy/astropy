@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 
 
 from ..core import Model
-from ..models import Gaussian1D, Shift, Scale
+from ..models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
 from ... import units as u
 from ...units import UnitsError
 from ...tests.helper import assert_quantity_allclose
@@ -418,3 +418,33 @@ def test_compound_input_units_allow_dimensionless():
     with pytest.raises(UnitsError) as exc:
         out = cs(10, 10)
     assert exc.value.args[0] == "Units of input 'x1', (dimensionless), could not be converted to required input units of deg (angle)"
+
+
+def test_compound_return_units():
+    """
+    Test that return_units on the first model in the chain is respected for the
+    input to the second.
+    """
+
+    class PassModel(Model):
+
+        inputs = ('x', 'y')
+        outputs = ('x', 'y')
+
+        @property
+        def input_units(self):
+            """ Input units. """
+            return {'x': u.deg, 'y': u.deg}
+
+        @property
+        def return_units(self):
+            """ Output units. """
+            return {'x': u.deg, 'y': u.deg}
+
+        def evaluate(self, x, y):
+            return x.value, y.value
+
+
+    cs = Pix2Sky_TAN() | PassModel()
+
+    assert_quantity_allclose(cs(0*u.deg, 0*u.deg), (0, 90)*u.deg)
