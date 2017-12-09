@@ -1292,3 +1292,13 @@ def test_setitem_bad_item():
     t = Time([1, 2], format='cxcsec')
     with pytest.raises(IndexError):
         t['asdf'] = 3
+
+
+def test_setitem_deltas():
+    """Setting invalidates any transform deltas"""
+    t = Time([1, 2], format='cxcsec')
+    t.delta_tdb_tt = [1, 2]
+    t.delta_ut1_utc = [3, 4]
+    t[1] = 3
+    assert not hasattr(t, '_delta_tdb_tt')
+    assert not hasattr(t, '_delta_ut1_utc')

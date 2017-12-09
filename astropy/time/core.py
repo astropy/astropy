@@ -670,6 +670,11 @@ class Time(ShapedLikeNDArray):
         # Any use of setitem results in immediate cache invalidation
         del self.cache
 
+        # Setting invalidates transform deltas
+        for attr in ('_delta_tdb_tt', '_delta_ut1_utc'):
+            if hasattr(self, attr):
+                delattr(self, attr)
+
         if value in (np.ma.masked, np.nan):
             self._time.jd2[item] = np.nan
             return
