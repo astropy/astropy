@@ -128,6 +128,15 @@ def test_units_manipulation():
     (u.AA * u.erg) ** 9
 
 
+def test_compose():
+    x =  u.m.compose(units=[u.m])
+    assert x[0].to_string() == 'm'
+    x = u.m.compose(units=[u.km], include_prefix_units=True)
+    assert x[0].to_string() == '0.001 km'
+    x = u.m.compose(units=[u.km])
+    assert x[0].to_string() == '0.001 km'
+
+
 def test_decompose():
     assert u.Ry == u.Ry.decompose()
 

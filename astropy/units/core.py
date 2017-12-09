@@ -1115,7 +1115,7 @@ class UnitBase(metaclass=InheritDocstrings):
         return [self]
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
-                include_prefix_units=False):
+                include_prefix_units=None):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -1151,6 +1151,9 @@ class UnitBase(metaclass=InheritDocstrings):
             automatically determine which of the candidates are
             better.
         """
+        if include_prefix_units is None:
+            include_prefix_units = units is not None
+
         # Pre-normalize the equivalencies list
         equivalencies = self._normalize_equivalencies(equivalencies)
 
