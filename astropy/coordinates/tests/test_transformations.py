@@ -442,11 +442,15 @@ def test_frame_override_component_with_attribute():
 
     class BorkedFrame(BaseCoordinateFrame):
         ra = Attribute(default=150)
+        dec = Attribute(default=150)
 
+    def trans_func(coo1, f):
+        pass
+
+    trans = t.FunctionTransform(trans_func, BorkedFrame, ICRS)
     with pytest.raises(ValueError) as exc:
-        @frame_transform_graph.transform(t.FunctionTransform, BorkedFrame, TCoo2)
-        def trans(coo1, f):
-            pass
+        trans.register(frame_transform_graph)
 
     assert ('BorkedFrame' in exc.value.args[0] and
-            "{'ra'}" in exc.value.args[0])
+            "'ra'" in exc.value.args[0] and
+            "'dec'" in exc.value.args[0])
