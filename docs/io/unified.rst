@@ -58,6 +58,24 @@ Any additional arguments specified will depend on the format.  For examples of t
 section `Built-in table readers/writers`_.  This section also provides the full list of
 choices for the ``format`` argument.
 
+Command-line utility
+--------------------
+
+For convenience, the command-line tool ``showtable`` can be used to print the
+content of tables for the formats supported by the unified I/O interface::
+
+    $ showtable astropy/io/fits/tests/data/table.fits
+
+     target V_mag
+    ------- -----
+    NGC1001  11.1
+    NGC1002  12.3
+    NGC1003  15.2
+
+To get full documentation on the usage and available options do ``showtable
+--help``.
+
+
 .. _built_in_readers_writers:
 
 Built-in table readers/writers
