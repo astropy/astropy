@@ -125,10 +125,10 @@ There are also shorthands for retrieving a single `Quantity` object that
 contains the two-dimensional proper motion data, and for retrieving the radial
 (line-of-sight) velocity::
 
-    >>> icrs.proper_motion # doctest: +SKIP
-    [  4.8  -15.16] mas / yr
-    >>> icrs.radial_velocity
-    23.42 km / s
+    >>> icrs.proper_motion # doctest: +FLOAT_CMP
+    <Quantity [  4.8 ,-15.16] mas / yr>
+    >>> icrs.radial_velocity # doctest: +FLOAT_CMP
+    <Quantity 23.42 km / s>
 
 .. _astropy-coordinate-transform-with-velocities:
 
