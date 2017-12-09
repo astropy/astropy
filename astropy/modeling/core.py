@@ -2825,6 +2825,10 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
             return d
 
     @property
+    def _supports_unit_fitting(self):
+        return False
+
+    @property
     def input_units_allow_dimensionless(self):
         return self._generate_input_output_units_dict(self._inputs_map,
                                                       'input_units_allow_dimensionless')
