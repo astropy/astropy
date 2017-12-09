@@ -33,8 +33,8 @@ the file format, for instance ``'ascii.daophot'``:
 It is possible to load tables directly from the Internet using URLs. For example,
 download tables from Vizier catalogues in CDS format (``'ascii.cds'``)::
 
-    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
-    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe", 
+    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
+    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
     ...         format="ascii.cds")  # doctest: +SKIP
 
 For certain file formats, the format can be automatically detected, for
@@ -81,39 +81,39 @@ To get full documentation on the usage and available options do ``showtable
 Built-in table readers/writers
 ==============================
 
-The :class:`~astropy.table.Table` class has built-in support for various input 
-and output formats including :ref:`table_io_ascii`, 
+The :class:`~astropy.table.Table` class has built-in support for various input
+and output formats including :ref:`table_io_ascii`,
 -:ref:`table_io_fits`, :ref:`table_io_hdf5`, and :ref:`table_io_votable`.
 
 A full list of the supported formats and corresponding classes
 is shown in the table below.
-The ``Write`` column indicates those formats that support write functionality, and 
+The ``Write`` column indicates those formats that support write functionality, and
 the ``Suffix`` column indicates the filename suffix indicating a particular format.
 If the value of ``Suffix`` is ``auto``, the format is auto-detected from the file itself.
 Not all formats support auto-detection.
 
 ===========================  =====  ======  ============================================================================================
-           Format            Write  Suffix                                          Description                                    
+           Format            Write  Suffix                                          Description
 ===========================  =====  ======  ============================================================================================
-                      ascii    Yes          ASCII table in any supported format (uses guessing)                                     
-               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals             
-                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters                    
-                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table                                                
-     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line            
-                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values                         
-              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table                           
-                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)    
-          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width                                              
-ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header                       
- ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line               
-                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table                                             
-                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table                                              
-                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table                                           
-            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers                                
-                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line                
+                      ascii    Yes          ASCII table in any supported format (uses guessing)
+               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
+                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
+                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
+     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
+                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
+                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
+          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width
+ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
+ ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table
+                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
+                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
-           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table                          
-                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values  
+           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
+                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
                        fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
                        hdf5    Yes    auto  HDF5_: Hierarchical Data Format binary file
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
@@ -346,8 +346,8 @@ precision. For example:
     <Time object: scale='tt' format='jd' value=[ 2400100.5  2400200.5]>
     >>> tm['a'].location
     <EarthLocation (-2446354.,  4237210.,  4077985.) m>
-    >>> tm['a'] == t['a']
-    array([ True,  True], dtype=bool)
+    >>> all(tm['a'] == t['a'])
+    True
 
 The same will work with ``QTable``.
 
@@ -440,16 +440,16 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
     >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
     ...                                        package='astropy.io.fits.tests')
     >>> native = Table.read(chandra_events, astropy_native=True)
-    >>> native['time']
-    <Time object: scale='tt' format='mjd' value=[ 57413.76033393  57413.76033393]>
+    >>> native['time']  # doctest: +FLOAT_CMP
+    <Time object: scale='tt' format='mjd' value=[57413.76033393 57413.76033393]>
     >>> non_native = Table.read(chandra_events)
     >>> # MJDREF  =  5.0814000000000E+04, TIMESYS = 'TT'
     >>> ref_time = Time(non_native.meta['MJDREF'], format='mjd',
     ...                 scale=non_native.meta['TIMESYS'].lower())
     >>> # TTYPE1  = 'time', TUNIT1 = 's'
     >>> delta_time = TimeDelta(non_native['time'])
-    >>> ref_time + delta_time == native['time']
-    array([ True,  True], dtype=bool)
+    >>> all(ref_time + delta_time == native['time'])
+    True
 
 By default, FITS table columns will be read as standard `~astropy.table.Column`
 objects without taking the FITS time standard into consideration.
@@ -567,8 +567,8 @@ to ``t['a']`` will then store ``[100.0 200.0]`` instead of
     <Column name='a' dtype='float64' length=2>
     100.0
     200.0
-    >>> tm['a'] == t['a'].value
-    array([ True,  True], dtype=bool)
+    >>> all(tm['a'] == t['a'].value)
+    True
 
 By default, ``serialize_method['fits']`` in a Time column ``info`` is equal to
 ``'jd1_jd2'``, that is, Time column will be written in full precision.
@@ -635,7 +635,7 @@ overwriting existing files. To overwrite only a single table within an HDF5
 file that has multiple datasets, use *both* the ``overwrite=True`` and
 ``append=True`` arguments.
 
-If the metadata of the table cannot be written directly to the HDF5 file 
+If the metadata of the table cannot be written directly to the HDF5 file
 (e.g. dictionaries), or if you want to preserve the units and description
 of tables and columns, use ``serialize_meta=True``::
 
