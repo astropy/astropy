@@ -21,7 +21,7 @@
 .. _`ipython mailing list`: http://mail.python.org/mailman/listinfo/IPython-dev
 
 .. pip
-.. _pip: http://www.pip-installer.org/en/latest/
+.. _pip: https://pip.pypa.io
 
 .. virtualenv
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
