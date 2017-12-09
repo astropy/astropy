@@ -441,11 +441,11 @@ For example, let's simulate 60 observations of a sine wave with noise:
 >>> y = np.sin(2 * np.pi * t) + dy * rand.randn(60)
 >>> ls = LombScargle(t, y, dy)
 >>> freq, power = ls.autopower()
->>> print(power.max())
-0.338140019582
+>>> print(power.max())  # doctest: +FLOAT_CMP
+0.33814001958188855
 
 The peak of the periodogram has a value of 0.33, but how significant is
-this peak? We can address this question using the 
+this peak? We can address this question using the
 :func:`~astropy.stats.LombScargle.false_alarm_probability` method:
 
 .. doctest-requires:: scipy
@@ -479,7 +479,7 @@ false alarm probability, which can be done with the
 
   >>> probabilities = [0.1, 0.05, 0.01]
   >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
-  array([ 0.25446627,  0.27436154,  0.31716182])
+  array([0.25446627, 0.27436154, 0.31716182])
 
 This tells us that to attain a 10% false alarm probability requires the highest
 periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires
