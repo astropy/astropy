@@ -657,27 +657,8 @@ class Time(ShapedLikeNDArray):
     def mask(self):
         return self._time.mask
 
-    def __setitem__(self, item, value):
-        if not self.writeable:
-            if self.shape:
-                raise ValueError('{} object is read-only. Make a '
-                                 'copy() or set "writeable" attribute to True.'
-                                 .format(self.__class__.__name__))
-            else:
-                raise ValueError('scalar {} object is read-only.'
-                                 .format(self.__class__.__name__))
-
-        # Any use of setitem results in immediate cache invalidation
-        del self.cache
-
-        # Setting invalidates transform deltas
-        for attr in ('_delta_tdb_tt', '_delta_ut1_utc'):
-            if hasattr(self, attr):
-                delattr(self, attr)
-
-        if value in (np.ma.masked, np.nan):
-            self._time.jd2[item] = np.nan
-            return
+    def _make_value_equivalent(self, item, value):
+        """Coerce setitem value into an equivalent Time object"""
 
         # If there is a vector location then broadcast to the Time shape
         # and then select with ``item``
@@ -708,9 +689,35 @@ class Time(ShapedLikeNDArray):
                 except Exception as err:
                     raise ValueError('cannot convert value to a compatible Time object: {}'
                                      .format(err))
+        return value
+
+    def __setitem__(self, item, value):
+        if not self.writeable:
+            if self.shape:
+                raise ValueError('{} object is read-only. Make a '
+                                 'copy() or set "writeable" attribute to True.'
+                                 .format(self.__class__.__name__))
+            else:
+                raise ValueError('scalar {} object is read-only.'
+                                 .format(self.__class__.__name__))
+
+        # Any use of setitem results in immediate cache invalidation
+        del self.cache
+
+        # Setting invalidates transform deltas
+        for attr in ('_delta_tdb_tt', '_delta_ut1_utc'):
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        if value in (np.ma.masked, np.nan):
+            self._time.jd2[item] = np.nan
+            return
+
+        value = self._make_value_equivalent(item, value)
 
         # Finally directly set the jd1/2 values.  Locations are known to match.
-        value = getattr(value, self.scale)
+        if self.scale is not None:
+            value = getattr(value, self.scale)
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
 
@@ -1847,6 +1854,19 @@ class TimeDelta(Time):
     def to(self, *args, **kwargs):
         return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(*args, **kwargs)
+
+    def _make_value_equivalent(self, item, value):
+        """Coerce setitem value into an equivalent TimeDelta object"""
+        if not isinstance(value, TimeDelta):
+            try:
+                value = self.__class__(value, scale=self.scale)
+            except Exception:
+                try:
+                    value = self.__class__(value, scale=self.scale, format=self.format)
+                except Exception as err:
+                    raise ValueError('cannot convert value to a compatible TimeDelta '
+                                     'object: {}'.format(err))
+        return value
 
 
 class ScaleValueError(Exception):
