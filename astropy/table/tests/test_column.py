@@ -789,6 +789,9 @@ def test_unicode_sandwich_compare(class1, class2):
     else:
         obj2 = class2(['a', 'b'])
 
+    if six.PY2 and class2 == str:
+        return pytest.skip()
+
     assert np.all((obj1 == obj2) == [True, False])
     assert np.all((obj2 == obj1) == [True, False])
 
