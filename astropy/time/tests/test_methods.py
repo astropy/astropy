@@ -293,10 +293,8 @@ class TestManipulation():
 
 class TestArithmetic():
     """Arithmetic on Time objects, using both doubles."""
-    # kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
-    kwargs = ({'axis': None},)
-    # functions = ('min', 'max', 'sort')
-    functions = ('sort',)
+    kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
+    functions = ('min', 'max', 'sort')
 
     def setup(self):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
