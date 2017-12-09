@@ -72,7 +72,7 @@ be sliced too::
     array([2, 3])
 
     >>> ndd_sliced.mask
-    array([False,  True], dtype=bool)
+    array([False,  True]...)
 
     >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
     StdDevUncertainty([1.41421356, 1.73205081])
@@ -119,7 +119,7 @@ So we are able to get all valid data points by slicing with the mask::
     NDDataRef([1, 3, 7, 8])
 
     >>> ndd_sliced.mask
-    array([False, False, False, False], dtype=bool)
+    array([False, False, False, False]...)
 
     >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
     StdDevUncertainty([1.        , 1.73205081, 2.64575131, 2.82842712])
@@ -131,7 +131,7 @@ or all invalid points::
     NDDataRef([2, 4, 5, 6, 9])
 
     >>> ndd_sliced.mask
-    array([ True,  True,  True,  True,  True], dtype=bool)
+    array([ True,  True,  True,  True,  True]...)
 
     >>> ndd_sliced.uncertainty  # doctest: +FLOAT_CMP
     StdDevUncertainty([1.41421356, 2.        , 2.23606798, 2.44948974, 3.        ])

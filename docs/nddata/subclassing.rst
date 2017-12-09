@@ -60,7 +60,7 @@ Customize the setter for a property
     >>> ndd = NDDataMaskBoolNumpy([1,2,3])
     >>> ndd.mask = [True, False, True]
     >>> ndd.mask
-    array([ True, False,  True], dtype=bool)
+    array([ True, False,  True]...)
 
 Extend the setter for a property
 --------------------------------
@@ -309,7 +309,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     >>> ndd2 = NDDataWithFlags([1,2,3], flags=np.array([0,0,1], dtype=bool))
     >>> ndd3 = ndd1.add(ndd2)
     >>> ndd3.flags
-    array([ True, False,  True], dtype=bool)
+    array([ True, False,  True]...)
 
 
 Slicing an existing property
@@ -333,7 +333,7 @@ only 1D. This would lead to problems if one were to slice in two dimensions.
     >>> ndd = NDDataMask1D(np.ones((3,3)), mask=np.ones(3, dtype=bool))
     >>> nddsliced = ndd[1:3,1:3]
     >>> nddsliced.mask
-    array([ True,  True], dtype=bool)
+    array([ True,  True]...)
 
 .. note::
   The methods doing the slicing of the attributes are prefixed by a
