@@ -1388,11 +1388,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     @property
     def proper_motion(self):
         """
-        Shorthand for the two-dimensional proper motion as a `Quantity` object
-        with angular velocity units. In the returned `Quantity`, ``axis=0`` is
-        the longitude/latitude dimension so that ``.proper_motion[0]`` is the
-        longitudinal proper motion and ``.proper_motion[1]`` is latitudinal.
-        The longitudinal proper motion already includes the cos(latitude) term.
+        Shorthand for the two-dimensional proper motion as a
+        `~astropy.units.Quantity` object with angular velocity units. In the
+        returned `~astropy.units.Quantity`, ``axis=0`` is the longitude/latitude
+        dimension so that ``.proper_motion[0]`` is the longitudinal proper
+        motion and ``.proper_motion[1]`` is latitudinal. The longitudinal proper
+        motion already includes the cos(latitude) term.
         """
         if 's' not in self.data.differentials:
             raise ValueError('Frame has no associated velocity (Differential) '
@@ -1408,8 +1409,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     @property
     def radial_velocity(self):
         """
-        Shorthand for the radial or line-of-sight velocity as a `Quantity`
-        object.
+        Shorthand for the radial or line-of-sight velocity as a
+        `~astropy.units.Quantity` object.
         """
         if 's' not in self.data.differentials:
             raise ValueError('Frame has no associated velocity (Differential) '

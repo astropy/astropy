@@ -121,9 +121,9 @@ Cartesian velocity can be accessed with::
     <CartesianDifferential (d_x, d_y, d_z) in km / s
         ( 23.03160789,  7.44794505,  11.34587732)>
 
-There are also shorthands for retrieving a single `Quantity` object that
-contains the two-dimensional proper motion data, and for retrieving the radial
-(line-of-sight) velocity::
+There are also shorthands for retrieving a single `~astropy.units.Quantity`
+object that contains the two-dimensional proper motion data, and for retrieving
+the radial (line-of-sight) velocity::
 
     >>> icrs.proper_motion # doctest: +FLOAT_CMP
     <Quantity [  4.8 ,-15.16] mas / yr>
