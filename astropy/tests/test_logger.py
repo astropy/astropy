@@ -286,7 +286,9 @@ def test_exception_logging_argless_exception():
         assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message == 'Exception [astropy.tests.test_logger]'
+    # Pytest changed the format of its error message sometime between 3.1 and
+    # 3.3. Using ``startswith`` lets us be general enough to handle all cases.
+    assert log_list[0].message.startswith('Exception')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
 

@@ -783,7 +783,7 @@ def test_unicode_sandwich_compare(class1, class2):
     """
     obj1 = class1([b'a', b'c'])
     if class2 is str:
-        obj2 = 'a'
+        obj2 = str('a')
     elif class2 is list:
         obj2 = ['a', 'b']
     else:
