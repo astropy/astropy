@@ -28,6 +28,9 @@ astropy.coordinates
   properties that provide shorthands to the full-space Cartesian velocity as
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
+- Coordinate frame classes now can't be added to the frame transform graph if
+  they have frame attribute names that conflict with any component names.
+  [#6871]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
