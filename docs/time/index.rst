@@ -145,12 +145,6 @@ There is no distinction made between a "date" and a "time" since both concepts
 (as loosely defined in common usage) are just different representations of a
 moment in time.
 
-Once a |Time| object is created it cannot be altered internally.  In code lingo
-it is "immutable."  In particular the common operation of "converting" to a
-different `time scale`_ is always performed by returning a copy of the original
-|Time| object which has been converted to the new time scale.
-
-
 .. _time-format:
 
 Time Format
@@ -644,10 +638,14 @@ possibilities:
   ``format`` need not be the same).  The right side value will be
   transformed so the time ``scale`` matches.
 
+Whenever any item is set then the internal cache (see `Caching`_) is cleared
+along with the ``delta_tdb_tt`` and/or ``delta_ut1_utc`` transformation
+offsets, if they have been set.
+
 If it is required that the |Time| object be immutable then set the
-``writeable`` attribute to `False`.  In this case attemping to set a
-value will raise a ``ValueError: assignment destination is
-read-only``.  See the section on `Caching`_ for an example.
+``writeable`` attribute to `False`.  In this case attemping to set a value will
+raise a ``ValueError: Time object is read-only``.  See the section on
+`Caching`_ for an example.
 
 Missing values
 ^^^^^^^^^^^^^^
@@ -749,7 +747,7 @@ The computations for transforming to different time scales or formats can be
 time-consuming for large arrays.  In order to avoid repeated computations, each
 |Time| or |TimeDelta| instance caches such transformations internally::
 
-  >>> t = Time(np.arange(1e6), format='unix', scale='utc')  # doctest: +SKIP
+  >>> t = Time(np.arange(1e6), format='unix', scale='utc')
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
@@ -762,7 +760,7 @@ time-consuming for large arrays.  In order to avoid repeated computations, each
 Actions such as changing the output precision or sub-format will clear
 the cache.  In order to explicitly clear the internal cache do::
 
-  >>> del t.cache  # doctest: +SKIP
+  >>> del t.cache
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
@@ -773,11 +771,11 @@ to ensure consistency between the transformed (and cached) version and
 the original, the transformed object is set to be not writeable.  For
 example::
 
-  >>> x = t.tt  # doctest: +SKIP
-  >>> x[1] = '2000:001'  # doctest: +SKIP
-    File "/Users/aldcroft/git/astropy/astropy/time/core.py", line 700, in __setitem__
-      self._time.jd1[item] = value._time.jd1
-  ValueError: assignment destination is read-only
+  >>> x = t.tt
+  >>> x[1] = '2000:001'
+  Traceback (most recent call last):
+    ...
+  ValueError: Time object is read-only. Make a copy() or set "writeable" attribute to True.
 
 If you require modifying the object then make a copy first, e.g. ``x = t.tt.copy()``.
 
