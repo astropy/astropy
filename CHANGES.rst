@@ -113,6 +113,9 @@ astropy.table
 
 - Allowed to remove table rows through the ``__delitem__`` method. [#5839]
 
+- Added a new ``showtable`` command-line script to view binary or ASCII table
+  files. [#6859]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
