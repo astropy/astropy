@@ -483,40 +483,37 @@ class FITS_rec(np.recarray):
 
         if isinstance(key, string_types):
             return self.field(key)
-        elif isinstance(key, (slice, np.ndarray, tuple, list)):
-            # Have to view as a recarray then back as a FITS_rec, otherwise the
-            # circular reference fix/hack in FITS_rec.field() won't preserve
-            # the slice
-            subtype = type(self)
-            out = self.view(np.recarray).__getitem__(key).view(subtype)
-            out._coldefs = ColDefs(self._coldefs)
-            arrays = []
-            out._converted = {}
-            for idx, name in enumerate(self._coldefs.names):
-                #
-                # Store the new arrays for the _coldefs object
-                #
-                arrays.append(self._coldefs._arrays[idx][key])
 
-                # Ensure that the sliced FITS_rec will view the same scaled
-                # columns as the original; this is one of the few cases where
-                # it is not necessary to use _cache_field()
-                if name in self._converted:
-                    dummy = self._converted[name]
-                    field = np.ndarray.__getitem__(dummy, key)
-                    out._converted[name] = field
+        # Have to view as a recarray then back as a FITS_rec, otherwise the
+        # circular reference fix/hack in FITS_rec.field() won't preserve
+        # the slice.
+        out = self.view(np.recarray)[key]
+        if type(out) is np.record:
+            # Oops, we got a single element rather than a view. In that case,
+            # return a Record, which has no __getstate__ and is more efficient.
+            return self._record_type(self, key)
 
-            out._coldefs._arrays = arrays
-            return out
+        # We got a view; change it back to our class, and add stuff
+        out = out.view(type(self))
+        out._coldefs = ColDefs(self._coldefs)
+        arrays = []
+        out._converted = {}
+        for idx, name in enumerate(self._coldefs.names):
+            #
+            # Store the new arrays for the _coldefs object
+            #
+            arrays.append(self._coldefs._arrays[idx][key])
 
-        # if not a slice, do this because Record has no __getstate__.
-        # also more efficient.
-        else:
-            if isinstance(key, int) and key >= len(self):
-                raise IndexError("Index out of bounds")
+            # Ensure that the sliced FITS_rec will view the same scaled
+            # columns as the original; this is one of the few cases where
+            # it is not necessary to use _cache_field()
+            if name in self._converted:
+                dummy = self._converted[name]
+                field = np.ndarray.__getitem__(dummy, key)
+                out._converted[name] = field
 
-            newrecord = self._record_type(self, key)
-            return newrecord
+        out._coldefs._arrays = arrays
+        return out
 
     def __setitem__(self, key, value):
         if self._coldefs is None:

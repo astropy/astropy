@@ -48,6 +48,8 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix writing the result of ``fitsdiff`` to file with ``--output-file``. [#6621]
+- Fix a minor bug where ``FITS_rec`` instances can not be indexed with tuples
+  and other sequences that end up with a scalar. [#6955]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
