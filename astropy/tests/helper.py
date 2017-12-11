@@ -130,6 +130,7 @@ _modules_to_ignore_on_import = set([
     'scipy',
     'pygments',
     'ipykernel',
+    'IPython',   # deprecation warnings for async and await
     'setuptools'])
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
