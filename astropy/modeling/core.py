@@ -27,6 +27,7 @@ from collections import defaultdict, OrderedDict
 from contextlib import suppress
 from inspect import signature
 from itertools import chain, islice
+from functools import partial
 
 import numpy as np
 
@@ -2770,35 +2771,23 @@ class _CompoundModelMeta(_ModelMeta):
         # that we can call _validate_input_units (since e.g. input_units can
         # be an instance property).
 
-        if isinstance(model, Model):
-            evaluate = model.evaluate
+        def evaluate_wrapper(model, inputs, param_values):
+            inputs = model._validate_input_units(inputs)
+            outputs = model.evaluate(*inputs, *param_values)
             if n_outputs == 1:
-                def f(inputs, params):
-                    inputs = model._validate_input_units(inputs)
-                    outputs = (evaluate(*inputs, *islice(params, n_params)),)
-                    return model._process_output_units(inputs, outputs)
+                outputs = (outputs,)
+            return model._process_output_units(inputs, outputs)
 
-            else:
-                def f(inputs, params):
-                    inputs = model._validate_input_units(inputs)
-                    outputs = evaluate(*inputs, *islice(params, n_params))
-                    return model._process_output_units(inputs, outputs)
+        if isinstance(model, Model):
+            def f(inputs, params):
+                param_values = tuple(islice(params, n_params))
+                return evaluate_wrapper(model, inputs, param_values)
         else:
-            if n_outputs == 1:
-                # Where previously model was a class, now make an instance
-                def f(inputs, params):
-                    param_values = tuple(islice(params, n_params))
-                    m = model(*param_values)
-                    inputs = m._validate_input_units(inputs)
-                    outputs = (m.evaluate(*chain(inputs, param_values)),)
-                    return m._process_output_units(inputs, outputs)
-            else:
-                def f(inputs, params):
-                    param_values = tuple(islice(params, n_params))
-                    m = model(*param_values)
-                    inputs = m._validate_input_units(inputs)
-                    outputs = m.evaluate(*chain(inputs, param_values))
-                    return m._process_output_units(inputs, outputs)
+            # Where previously model was a class, now make an instance
+            def f(inputs, params):
+                param_values = tuple(islice(params, n_params))
+                m = model(*param_values)
+                return evaluate_wrapper(m, inputs, param_values)
 
         return (f, n_inputs, n_outputs)
 
