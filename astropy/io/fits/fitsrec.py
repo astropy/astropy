@@ -489,7 +489,7 @@ class FITS_rec(np.recarray):
         # circular reference fix/hack in FITS_rec.field() won't preserve
         # the slice.
         out = self.view(np.recarray)[key]
-        if type(out) is np.record:
+        if type(out) is not np.recarray:
             # Oops, we got a single element rather than a view. In that case,
             # return a Record, which has no __getstate__ and is more efficient.
             return self._record_type(self, key)
