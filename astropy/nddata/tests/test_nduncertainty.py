@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..nduncertainty import (StdDevUncertainty, NDUncertainty,
+from ..nduncertainty import (StdDevUncertainty,
+                             VarianceUncertainty,
+                             NDUncertainty,
                              IncompatibleUncertaintiesException,
                              UnknownUncertainty)
 from ..nddata import NDData
@@ -168,6 +168,8 @@ def test_uncertainty_type():
     assert fake_uncert.uncertainty_type == 'fake'
     std_uncert = StdDevUncertainty([10, 2])
     assert std_uncert.uncertainty_type == 'std'
+    var_uncert = VarianceUncertainty([10, 2])
+    assert var_uncert.uncertainty_type == 'var'
 
 
 def test_uncertainty_correlated():
