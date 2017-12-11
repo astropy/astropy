@@ -767,17 +767,7 @@ class Model(metaclass=_ModelMeta):
 
         outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
 
-        # If input values were quantities, we use return_units to cast
-        # the return values to the units specified by return_units.
-        if self.return_units and inputs_are_quantity:
-            # We allow a non-iterable unit only if there is one output
-            if self.n_outputs == 1 and not isiterable(self.return_units):
-                return_units = {self.outputs[0]: self.return_units}
-            else:
-                return_units = self.return_units
-
-            outputs = tuple([Quantity(out, return_units[out_name], subok=True)
-                             for out, out_name in zip(outputs, self.outputs)])
+        outputs = self._process_output_units(inputs, outputs)
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -1539,6 +1529,21 @@ class Model(metaclass=_ModelMeta):
                                                                 input_unit.physical_type))
 
         return inputs
+
+    def _process_output_units(self, inputs, outputs):
+        inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
+
+        if self.return_units and inputs_are_quantity:
+            # We allow a non-iterable unit only if there is one output
+            if self.n_outputs == 1 and not isiterable(self.return_units):
+                return_units = {self.outputs[0]: self.return_units}
+            else:
+                return_units = self.return_units
+
+            outputs = tuple([Quantity(out, return_units[out_name], subok=True)
+                            for out, out_name in zip(outputs, self.outputs)])
+
+        return outputs
 
     def prepare_outputs(self, format_info, *outputs, **kwargs):
         if len(self) == 1:
@@ -2761,21 +2766,6 @@ class _CompoundModelMeta(_ModelMeta):
         n_inputs = model.n_inputs
         n_outputs = model.n_outputs
 
-        def process_output_units(model, inputs, outputs):
-            inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
-
-            if model.return_units and inputs_are_quantity:
-                # We allow a non-iterable unit only if there is one output
-                if model.n_outputs == 1 and not isiterable(model.return_units):
-                    return_units = {model.outputs[0]: model.return_units}
-                else:
-                    return_units = model.return_units
-
-                outputs = tuple([Quantity(out, return_units[out_name], subok=True)
-                                for out, out_name in zip(outputs, model.outputs)])
-
-            return outputs
-
         # If model is not an instance, we need to instantiate it to make sure
         # that we can call _validate_input_units (since e.g. input_units can
         # be an instance property).
@@ -2786,13 +2776,13 @@ class _CompoundModelMeta(_ModelMeta):
                 def f(inputs, params):
                     inputs = model._validate_input_units(inputs)
                     outputs = (evaluate(*inputs, *islice(params, n_params)),)
-                    return process_output_units(model, inputs, outputs)
+                    return model._process_output_units(inputs, outputs)
 
             else:
                 def f(inputs, params):
                     inputs = model._validate_input_units(inputs)
                     outputs = evaluate(*inputs, *islice(params, n_params))
-                    return process_output_units(model, inputs, outputs)
+                    return model._process_output_units(inputs, outputs)
         else:
             if n_outputs == 1:
                 # Where previously model was a class, now make an instance
@@ -2801,14 +2791,14 @@ class _CompoundModelMeta(_ModelMeta):
                     m = model(*param_values)
                     inputs = m._validate_input_units(inputs)
                     outputs = (m.evaluate(*chain(inputs, param_values)),)
-                    return process_output_units(model, inputs, outputs)
+                    return m._process_output_units(inputs, outputs)
             else:
                 def f(inputs, params):
                     param_values = tuple(islice(params, n_params))
                     m = model(*param_values)
                     inputs = m._validate_input_units(inputs)
                     outputs = m.evaluate(*chain(inputs, param_values))
-                    return process_output_units(model, inputs, outputs)
+                    return m._process_output_units(inputs, outputs)
 
         return (f, n_inputs, n_outputs)
 
