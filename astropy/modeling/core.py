@@ -20,7 +20,6 @@ import copyreg
 import inspect
 import functools
 import operator
-import sys
 import types
 import warnings
 
@@ -31,7 +30,7 @@ from itertools import chain, islice
 
 import numpy as np
 
-from ..utils import indent, isinstancemethod, metadata
+from ..utils import indent, metadata
 from ..table import Table
 from ..units import Quantity, UnitsError, dimensionless_unscaled
 from ..units.utils import quantity_asanyarray
@@ -71,8 +70,8 @@ def _model_oper(oper, **kwargs):
     # _CompoundModelMeta has not been defined yet.
 
     # Perform an arithmetic operation on two models.
-    return lambda left, right: _CompoundModelMeta._from_operator(oper,
-            left, right, **kwargs)
+    return lambda left, right: _CompoundModelMeta._from_operator(oper, left,
+                                                                 right, **kwargs)
 
 
 class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
@@ -1678,7 +1677,7 @@ class Model(metaclass=_ModelMeta):
         n_models = kwargs.pop('n_models', None)
 
         if not (n_models is None or
-                    (isinstance(n_models, (int, np.integer)) and n_models >= 1)):
+                (isinstance(n_models, (int, np.integer)) and n_models >= 1)):
             raise ValueError(
                 "n_models must be either None (in which case it is "
                 "determined from the model_set_axis of the parameter initial "
@@ -2398,8 +2397,7 @@ class _CompoundModelMeta(_ModelMeta):
             # trickier to determine
             linear = False
 
-        standard_broadcasting = \
-                left.standard_broadcasting and right.standard_broadcasting
+        standard_broadcasting = left.standard_broadcasting and right.standard_broadcasting
 
         # Note: If any other members are added here, make sure to mention them
         # in the docstring of this method.
@@ -2665,7 +2663,7 @@ class _CompoundModelMeta(_ModelMeta):
 
     def _format_components(cls):
         return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
-                                 for idx, m in enumerate(cls._get_submodels()))
+                           for idx, m in enumerate(cls._get_submodels()))
 
     def _normalize_index(cls, index):
         """
@@ -2830,7 +2828,6 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         ]
         return super()._format_str(keywords=keywords)
 
-
     def _generate_input_output_units_dict(self, mapping, attr):
         d = {}
         for inp, (model, orig_inp) in mapping.items():
@@ -2940,8 +2937,6 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         operators['&'] = operator.and_
         # Reverse the order of compositions
         operators['|'] = lambda x, y: operator.or_(y, x)
-
-        leaf_idx = -1
 
         def getter(idx, model):
             try:
@@ -3208,8 +3203,8 @@ def render_model(model, arr=None, coords=None):
                 arr = add_array(arr, model(*sub_coords), pos)
             except ValueError:
                 raise ValueError('The `bounding_box` is larger than the input'
-                                ' arr in one or more dimensions. Set '
-                                '`model.bounding_box = None`.')
+                                 ' arr in one or more dimensions. Set '
+                                 '`model.bounding_box = None`.')
     else:
 
         if coords is None:
