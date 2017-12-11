@@ -13,7 +13,7 @@ from ..units import Unit, Quantity
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty', 'UnknownUncertainty',
-           'VarianceUncertainty']
+           'VarianceUncertainty', 'InverseVariance']
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -728,3 +728,116 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         return super()._propagate_multiply_divide(other_uncert,
                                                   result_data, correlation,
                                                   divide=True)
+
+
+def _inverse(x):
+    """Just a simple inverse for use in the InverseVariance"""
+    return 1 / x
+
+
+class InverseVariance(_VariancePropagationMixin, NDUncertainty):
+    """
+    Variance deviation uncertainty assuming first order gaussian error
+    propagation.
+
+    This class implements uncertainty propagation for ``addition``,
+    ``subtraction``, ``multiplication`` and ``division`` with other instances
+    of `VarianceUncertainty`. The class can handle if the uncertainty has a
+    unit that differs from (but is convertible to) the parents `NDData` unit.
+    The unit of the resulting uncertainty will have the same unit as the
+    resulting data. Also support for correlation is possible but requires the
+    correlation as input. It cannot handle correlation determination itself.
+
+    Parameters
+    ----------
+    args, kwargs :
+        see `NDUncertainty`
+
+    Examples
+    --------
+    `StdDevUncertainty` should always be associated with an `NDData`-like
+    instance, either by creating it during initialization::
+
+        >>> from astropy.nddata import NDData, StdDevUncertainty
+        >>> ndd = NDData([1,2,3],
+        ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.1, 0.1, 0.1])
+
+    or by setting it manually on the `NDData` instance::
+
+        >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
+        >>> ndd.uncertainty  # doctest: +FLOAT_CMP
+        StdDevUncertainty([0.2])
+
+    the uncertainty ``array`` can also be set directly::
+
+        >>> ndd.uncertainty.array = 2
+        >>> ndd.uncertainty
+        StdDevUncertainty(2)
+
+    .. note::
+        The unit will not be displayed.
+    """
+    @property
+    def uncertainty_type(self):
+        """``"var"`` : `VarianceUncertainty` implements variance.
+        """
+        return 'ivar'
+
+    @property
+    def supports_correlated(self):
+        """`True` : `StdDevUncertainty` allows to propagate correlated \
+                    uncertainties.
+
+        ``correlation`` must be given, this class does not implement computing
+        it by itself.
+        """
+        return True
+
+    @property
+    def unit(self):
+        """`~astropy.units.Unit` : The unit of the uncertainty, if any.
+
+        Even though it is not enforced the unit should be convertible to the
+        ``parent_nddata`` unit. Otherwise uncertainty propagation might give
+        wrong results.
+
+        If the unit is not set the square of the unit of the parent will
+        be returned.
+        """
+        if self._unit is None:
+            if (self._parent_nddata is None or
+                    self.parent_nddata.unit is None):
+                return None
+            else:
+                return 1 / self.parent_nddata.unit**2
+        return self._unit
+
+    def _propagate_add(self, other_uncert, result_data, correlation):
+        """Not possible for unknown uncertainty types.
+        """
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, 1,
+                                          to_variance=_inverse,
+                                          from_variance=_inverse)
+
+    def _propagate_subtract(self, other_uncert, result_data, correlation):
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, -1,
+                                          to_variance=_inverse,
+                                          from_variance=_inverse)
+
+    def _propagate_multiply(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=False,
+                                                  to_variance=_inverse,
+                                                  from_variance=_inverse)
+
+    def _propagate_divide(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=True,
+                                                  to_variance=_inverse,
+                                                  from_variance=_inverse)
