@@ -561,7 +561,7 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
     instance, either by creating it during initialization::
 
         >>> from astropy.nddata import NDData, StdDevUncertainty
-        >>> ndd = NDData([1,2,3],
+        >>> ndd = NDData([1,2,3], unit='m',
         ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
         >>> ndd.uncertainty  # doctest: +FLOAT_CMP
         StdDevUncertainty([0.1, 0.1, 0.1])
@@ -632,7 +632,7 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
 
 class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
     """
-    Variance deviation uncertainty assuming first order gaussian error
+    Variance uncertainty assuming first order Gaussian error
     propagation.
 
     This class implements uncertainty propagation for ``addition``,
@@ -650,26 +650,30 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     Examples
     --------
-    `StdDevUncertainty` should always be associated with an `NDData`-like
+    Compare this example to that in `StdDevUncertainty`; the uncertainties
+    in the examples below are equivalent to the uncertainties in
+    `StdDevUncertainty`.
+
+    `VarianceUncertainty` should always be associated with an `NDData`-like
     instance, either by creating it during initialization::
 
-        >>> from astropy.nddata import NDData, StdDevUncertainty
-        >>> ndd = NDData([1,2,3],
-        ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
+        >>> from astropy.nddata import NDData, VarianceUncertainty
+        >>> ndd = NDData([1,2,3], unit='m',
+        ...              uncertainty=VarianceUncertainty([0.01, 0.01, 0.01]))
         >>> ndd.uncertainty  # doctest: +FLOAT_CMP
-        StdDevUncertainty([0.1, 0.1, 0.1])
+        VarianceUncertainty([0.01, 0.01, 0.01])
 
     or by setting it manually on the `NDData` instance::
 
-        >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
+        >>> ndd.uncertainty = VarianceUncertainty([0.04], unit='m^2', copy=True)
         >>> ndd.uncertainty  # doctest: +FLOAT_CMP
-        StdDevUncertainty([0.2])
+        VarianceUncertainty([0.04])
 
     the uncertainty ``array`` can also be set directly::
 
-        >>> ndd.uncertainty.array = 2
+        >>> ndd.uncertainty.array = 4
         >>> ndd.uncertainty
-        StdDevUncertainty(2)
+        VarianceUncertainty(4)
 
     .. note::
         The unit will not be displayed.
@@ -682,7 +686,7 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     @property
     def supports_correlated(self):
-        """`True` : `StdDevUncertainty` allows to propagate correlated \
+        """`True` : `VarianceUncertainty` allows to propagate correlated \
                     uncertainties.
 
         ``correlation`` must be given, this class does not implement computing
@@ -710,8 +714,6 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         return self._unit
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types.
-        """
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, 1)
 
@@ -737,12 +739,12 @@ def _inverse(x):
 
 class InverseVariance(_VariancePropagationMixin, NDUncertainty):
     """
-    Variance deviation uncertainty assuming first order gaussian error
+    Inverse variance uncertainty assuming first order Gaussian error
     propagation.
 
     This class implements uncertainty propagation for ``addition``,
     ``subtraction``, ``multiplication`` and ``division`` with other instances
-    of `VarianceUncertainty`. The class can handle if the uncertainty has a
+    of `InverseVariance`. The class can handle if the uncertainty has a
     unit that differs from (but is convertible to) the parents `NDData` unit.
     The unit of the resulting uncertainty will have the same unit as the
     resulting data. Also support for correlation is possible but requires the
@@ -755,39 +757,43 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
 
     Examples
     --------
-    `StdDevUncertainty` should always be associated with an `NDData`-like
+    Compare this example to that in `StdDevUncertainty`; the uncertainties
+    in the examples below are equivalent to the uncertainties in
+    `StdDevUncertainty`.
+
+    `InverseVariance` should always be associated with an `NDData`-like
     instance, either by creating it during initialization::
 
-        >>> from astropy.nddata import NDData, StdDevUncertainty
-        >>> ndd = NDData([1,2,3],
-        ...              uncertainty=StdDevUncertainty([0.1, 0.1, 0.1]))
+        >>> from astropy.nddata import NDData, InverseVariance
+        >>> ndd = NDData([1,2,3], unit='m',
+        ...              uncertainty=InverseVariance([100, 100, 100]))
         >>> ndd.uncertainty  # doctest: +FLOAT_CMP
-        StdDevUncertainty([0.1, 0.1, 0.1])
+        InverseVariance([100, 100, 100])
 
     or by setting it manually on the `NDData` instance::
 
-        >>> ndd.uncertainty = StdDevUncertainty([0.2], unit='m', copy=True)
+        >>> ndd.uncertainty = InverseVariance([25], unit='1/m^2', copy=True)
         >>> ndd.uncertainty  # doctest: +FLOAT_CMP
-        StdDevUncertainty([0.2])
+        InverseVariance([25])
 
     the uncertainty ``array`` can also be set directly::
 
-        >>> ndd.uncertainty.array = 2
+        >>> ndd.uncertainty.array = 0.25
         >>> ndd.uncertainty
-        StdDevUncertainty(2)
+        InverseVariance(0.25)
 
     .. note::
         The unit will not be displayed.
     """
     @property
     def uncertainty_type(self):
-        """``"var"`` : `VarianceUncertainty` implements variance.
+        """``"ivar"`` : `InverseVariance` implements inverse variance.
         """
         return 'ivar'
 
     @property
     def supports_correlated(self):
-        """`True` : `StdDevUncertainty` allows to propagate correlated \
+        """`True` : `InverseVariance` allows to propagate correlated \
                     uncertainties.
 
         ``correlation`` must be given, this class does not implement computing
@@ -803,8 +809,8 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         ``parent_nddata`` unit. Otherwise uncertainty propagation might give
         wrong results.
 
-        If the unit is not set the square of the unit of the parent will
-        be returned.
+        If the unit is not set, the square of the inverse of the unit of the
+        parent will be returned.
         """
         if self._unit is None:
             if (self._parent_nddata is None or
@@ -815,8 +821,6 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         return self._unit
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types.
-        """
         return super()._propagate_add_sub(other_uncert, result_data,
                                           correlation, 1,
                                           to_variance=_inverse,
