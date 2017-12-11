@@ -35,7 +35,7 @@ to create an |Angle|::
     <Angle 1.03333333 hourangle>
     >>> Angle(np.arange(1., 8.), unit=u.deg)  # Numpy array from 1..7 in degrees  # doctest: +FLOAT_CMP
     <Angle [1., 2., 3., 4., 5., 6., 7.] deg>
-    >>> Angle('1°2′3″')               # Unicode degree, arcmin and arcsec symbols  # doctest: +FLOAT_CMP
+    >>> Angle(u'1°2′3″')               # Unicode degree, arcmin and arcsec symbols  # doctest: +FLOAT_CMP
     <Angle 1.03416667 deg>
     >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.  # doctest: +FLOAT_CMP
     <Angle 1.03427778 deg>
