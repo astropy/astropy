@@ -365,7 +365,179 @@ class UnknownUncertainty(NDUncertainty):
         return None
 
 
-class StdDevUncertainty(NDUncertainty):
+class _VariancePropagationMixin:
+    """
+    Propagation of uncertainties for variances, also used to perform error
+    propagation for variance-like uncertainties (standard deviation and inverse
+    variance).
+    """
+    def _propagate_add_sub(self, other_uncert, result_data, correlation,
+                           add_or_subtract,
+                           to_variance=lambda x: x, from_variance=lambda x: x):
+
+        if self.array is None:
+            # Formula: sigma = dB
+            if (other_uncert.unit is not None and
+                    (result_data.unit**2 != to_variance(other_uncert.unit))):
+                # If the other uncertainty has a unit and this unit differs
+                # from the unit of the result convert it to the results unit
+                return from_variance(to_variance(other_uncert.array *
+                                                 other_uncert.unit).to(
+                                                 result_data.unit**2).value)
+            else:
+                # Copy the result because _propagate will not copy it but for
+                # arithmetic operations users will expect copies.
+                return deepcopy(other_uncert.array)
+
+        elif other_uncert.array is None:
+            # Formula: sigma = dA
+
+            if (self.unit is not None and
+                    to_variance(self.unit) != self.parent_nddata.unit**2):
+                # If the uncertainty has a different unit than the result we
+                # need to convert it to the results unit.
+                return from_variance(to_variance(self.array * self.unit).to(result_data.unit**2))
+            else:
+                # Copy the result because _propagate will not copy it but for
+                # arithmetic operations users will expect copies.
+                return deepcopy(self.array)
+
+        else:
+            # Formula: sigma = sqrt(dA**2 + dB**2 + 2*cor*dA*dB)
+
+            # Calculate: dA (this) and dB (other)
+            if self.unit != other_uncert.unit:
+                # In case the two uncertainties (or data) have different units
+                # we need to use quantity operations. The case where only one
+                # has a unit and the other doesn't is not possible with
+                # addition and would have raised an exception in the data
+                # computation
+                this = to_variance(self.array * self.unit)
+                other = to_variance(other_uncert.array * other_uncert.unit)
+            else:
+                # Since both units are the same or None we can just use
+                # numpy operations
+                this = to_variance(self.array)
+                other = to_variance(other_uncert.array)
+
+            # Determine the result depending on the correlation
+            if isinstance(correlation, np.ndarray) or correlation != 0:
+                corr = 2 * correlation * np.sqrt(this * other)
+                result = this + other + add_or_subtract * corr
+            else:
+                result = this + other
+
+            if isinstance(result, Quantity):
+                # In case we worked with quantities we need to return the
+                # uncertainty that has the same unit as the resulting data.
+                # Note that this call is fast if the units are the same.
+                return from_variance(result.to_value(result_data.unit**2))
+            else:
+                return from_variance(result)
+
+    def _propagate_multiply_divide(self, other_uncert, result_data,
+                                   correlation,
+                                   divide=False,
+                                   to_variance=lambda x: x,
+                                   from_variance=lambda x: x):
+
+        # For multiplication we don't need the result as quantity
+        if isinstance(result_data, Quantity):
+            result_data = result_data.value
+
+        if divide:
+            correlation_sign = -1
+        else:
+            correlation_sign = 1
+
+        if self.array is None:
+            # We want the result to have a unit consistent with the parent, so
+            # we only need to convert the unit of the other uncertainty if it
+            # is different from its data's unit.
+            if (other_uncert.unit and
+                to_variance(1 * other_uncert.unit) !=
+                    ((1 * other_uncert.parent_nddata.unit)**2).unit):
+                other = to_variance((other_uncert.array * other_uncert.unit)).to(
+                    (1 * other_uncert.parent_nddata.unit)**2).value
+            else:
+                other = to_variance(other_uncert.array)
+            if divide:
+                # Formula: sigma**2 = (A / B)**2 * (dB / B**2)
+                return from_variance(result_data**2 * other /
+                                     other_uncert.parent_nddata.data**2)
+            else:
+                # Formula: sigma**2 = |A|**2 * dB
+                return from_variance(np.abs(self.parent_nddata.data**2 * other))
+
+        elif other_uncert.array is None:
+            # Just the reversed case
+            if (self.unit and
+                to_variance(1 * self.unit) !=
+                    ((1 * self.parent_nddata.unit)**2).unit):
+                this = to_variance(self.array * self.unit).to(
+                    (1 * self.parent_nddata.unit)**2).value
+            else:
+                this = to_variance(self.array)
+            if divide:
+                # Formula: sigma**2 = dA / B**2
+                return from_variance(this / other_uncert.parent_nddata.data**2)
+            else:
+                # Formula: sigma**2 = dA**2 * |B|**2
+                return from_variance(np.abs(other_uncert.parent_nddata.data**2 * this))
+        else:
+            # Multiplication Formulae
+            #   sigma**2 = |AB|**2*(dA/A**2+dB/B**2+2*sqrt(dA)/A*sqrt(dB)/B*cor)
+
+            # This formula is not very handy since it generates NaNs for every
+            # zero in A and B. So we rewrite it:
+
+            # Multiplication Formula:
+            #   sigma**2 = (dA*B**2 + dB*A**2 + (2 * cor * ABsqrt(dAdB)))
+
+            # Division formula (rewritten):
+            #   sigma**2 = dA/B**2 + (A/B)**2 * dB/B**2
+            #                   - 2 * cor * A *sqrt(dAdB) / B**3
+            #   sigma**2 = dA/B**2 + (A/B)**2 * dB/B**2
+            #                   - 2*cor * sqrt(dA)/B**2  * sqrt(dB) * A / B
+            #   sigma**2 = multiplication formula/B**4 (and sign change in
+            #               the correlation)
+
+            if (self.unit and
+                    to_variance(self.unit) != (self.parent_nddata.unit)**2):
+                # To get the unit right we need to convert the unit of
+                # each uncertainty to the same unit as it's parent
+                dA = (to_variance(self.array * self.unit).to(
+                    self.parent_nddata.unit**2).value)
+            else:
+                dA = to_variance(self.array)
+            # Calculate: dA * B**2 (left)
+            left = dA * other_uncert.parent_nddata.data**2
+
+            if (other_uncert.unit and
+                    to_variance(other_uncert.unit) != other_uncert.parent_nddata.unit**2):
+                # Make sure the unit of dB is the same as its parent
+                dB = (to_variance(other_uncert.array * other_uncert.unit).to(
+                         other_uncert.parent_nddata.unit**2).value)
+            else:
+                dB = to_variance(other_uncert.array)
+
+            # Calculate: dB * A**2 (right)
+            right = dB * self.parent_nddata.data**2
+
+            if isinstance(correlation, np.ndarray) or correlation != 0:
+                corr = (2 * correlation * np.sqrt(dA * dB) *
+                        self.parent_nddata.data *
+                        other_uncert.parent_nddata.data)
+            else:
+                corr = 0
+            if divide:
+                return from_variance((left + right + correlation_sign * corr) /
+                                     other_uncert.parent_nddata.data**4)
+            else:
+                return from_variance(left + right + correlation_sign * corr)
+
+
+class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
     """Standard deviation uncertainty assuming first order gaussian error
     propagation.
 
@@ -432,230 +604,29 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-
-        if self.array is None:
-            # Formula: sigma = dB
-
-            if other_uncert.unit is not None and (
-                        result_data.unit != other_uncert.unit):
-                # If the other uncertainty has a unit and this unit differs
-                # from the unit of the result convert it to the results unit
-                return (other_uncert.array * other_uncert.unit).to(
-                            result_data.unit).value
-            else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                return deepcopy(other_uncert.array)
-
-        elif other_uncert.array is None:
-            # Formula: sigma = dA
-
-            if self.unit is not None and self.unit != self.parent_nddata.unit:
-                # If the uncertainty has a different unit than the result we
-                # need to convert it to the results unit.
-                return self.unit.to(result_data.unit, self.array)
-            else:
-                # Copy the result because _propagate will not copy it but for
-                # arithmetic operations users will expect copies.
-                return deepcopy(self.array)
-
-        else:
-            # Formula: sigma = sqrt(dA**2 + dB**2 + 2*cor*dA*dB)
-
-            # Calculate: dA (this) and dB (other)
-            if self.unit != other_uncert.unit:
-                # In case the two uncertainties (or data) have different units
-                # we need to use quantity operations. The case where only one
-                # has a unit and the other doesn't is not possible with
-                # addition and would have raised an exception in the data
-                # computation
-                this = self.array * self.unit
-                other = other_uncert.array * other_uncert.unit
-            else:
-                # Since both units are the same or None we can just use
-                # numpy operations
-                this = self.array
-                other = other_uncert.array
-
-            # Determine the result depending on the correlation
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * this * other
-                result = np.sqrt(this**2 + other**2 + corr)
-            else:
-                result = np.sqrt(this**2 + other**2)
-
-            if isinstance(result, Quantity):
-                # In case we worked with quantities we need to return the
-                # uncertainty that has the same unit as the resulting data.
-                # Note that this call is fast if the units are the same.
-                return result.to_value(result_data.unit)
-            else:
-                return result
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, 1,
+                                          to_variance=lambda x: x**2,
+                                          from_variance=np.sqrt)
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        # Since the formulas are equivalent to addition you should look at the
-        # explanations provided in _propagate_add
-
-        if self.array is None:
-            if other_uncert.unit is not None and (
-                        result_data.unit != other_uncert.unit):
-                return (other_uncert.array * other_uncert.unit).to(
-                            result_data.unit).value
-            else:
-                return deepcopy(other_uncert.array)
-        elif other_uncert.array is None:
-            if self.unit is not None and self.unit != self.parent_nddata.unit:
-                return self.unit.to(result_data.unit, self.array)
-            else:
-                return deepcopy(self.array)
-        else:
-            # Formula: sigma = sqrt(dA**2 + dB**2 - 2*cor*dA*dB)
-            if self.unit != other_uncert.unit:
-                this = self.array * self.unit
-                other = other_uncert.array * other_uncert.unit
-            else:
-                this = self.array
-                other = other_uncert.array
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * this * other
-                # The only difference to addition is that the correlation is
-                # subtracted.
-                result = np.sqrt(this**2 + other**2 - corr)
-            else:
-                result = np.sqrt(this**2 + other**2)
-            if isinstance(result, Quantity):
-                return result.to_value(result_data.unit)
-            else:
-                return result
+        return super()._propagate_add_sub(other_uncert, result_data,
+                                          correlation, -1,
+                                          to_variance=lambda x: x**2,
+                                          from_variance=np.sqrt)
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-
-        # For multiplication we don't need the result as quantity
-        if isinstance(result_data, Quantity):
-            result_data = result_data.value
-
-        if self.array is None:
-            # Formula: sigma = |A| * dB
-
-            # We want the result to have the same unit as the parent, so we
-            # only need to convert the unit of the other uncertainty if it is
-            # different from its data's unit.
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                other = (other_uncert.array * other_uncert.unit).to(
-                            other_uncert.parent_nddata.unit).value
-            else:
-                other = other_uncert.array
-            return np.abs(self.parent_nddata.data * other)
-
-        elif other_uncert.array is None:
-            # Formula: sigma = dA * |B|
-
-            # Just the reversed case
-            if self.unit != self.parent_nddata.unit:
-                this = (self.array * self.unit).to(
-                                            self.parent_nddata.unit).value
-            else:
-                this = self.array
-            return np.abs(other_uncert.parent_nddata.data * this)
-
-        else:
-            # Formula: sigma = |AB|*sqrt((dA/A)**2+(dB/B)**2+2*dA/A*dB/B*cor)
-
-            # This formula is not very handy since it generates NaNs for every
-            # zero in A and B. So we rewrite it:
-
-            # Formula: sigma = sqrt((dA*B)**2 + (dB*A)**2 + (2 * cor * ABdAdB))
-
-            # Calculate: dA * B (left)
-            if self.unit != self.parent_nddata.unit:
-                # To get the unit right we need to convert the unit of
-                # each uncertainty to the same unit as it's parent
-                left = ((self.array * self.unit).to(
-                        self.parent_nddata.unit).value *
-                        other_uncert.parent_nddata.data)
-            else:
-                left = self.array * other_uncert.parent_nddata.data
-
-            # Calculate: dB * A (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                right = ((other_uncert.array * other_uncert.unit).to(
-                        other_uncert.parent_nddata.unit).value *
-                        self.parent_nddata.data)
-            else:
-                right = other_uncert.array * self.parent_nddata.data
-
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = (2 * correlation * left * right)
-                return np.sqrt(left**2 + right**2 + corr)
-            else:
-                return np.sqrt(left**2 + right**2)
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=False,
+                                                  to_variance=lambda x: x**2,
+                                                  from_variance=np.sqrt)
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
+        return super()._propagate_multiply_divide(other_uncert,
+                                                  result_data, correlation,
+                                                  divide=True,
+                                                  to_variance=lambda x: x**2,
+                                                  from_variance=np.sqrt)
 
-        # For division we don't need the result as quantity
-        if isinstance(result_data, Quantity):
-            result_data = result_data.value
 
-        if self.array is None:
-            # Formula: sigma = |(A / B) * (dB / B)|
-
-            # Calculate: dB / B (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                # We need (dB / B) to be dimensionless so we convert
-                # (if necessary) dB to the same unit as B
-                right = ((other_uncert.array * other_uncert.unit).to(
-                    other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data)
-            else:
-                right = (other_uncert.array / other_uncert.parent_nddata.data)
-            return np.abs(result_data * right)
-
-        elif other_uncert.array is None:
-            # Formula: sigma = dA / |B|.
-
-            # Calculate: dA
-            if self.unit != self.parent_nddata.unit:
-                # We need to convert dA to the unit of A to have a result that
-                # matches the resulting data's unit.
-                left = (self.array * self.unit).to(
-                        self.parent_nddata.unit).value
-            else:
-                left = self.array
-
-            return np.abs(left / other_uncert.parent_nddata.data)
-
-        else:
-            # Formula: sigma = |A/B|*sqrt((dA/A)**2+(dB/B)**2-2*dA/A*dB/B*cor)
-
-            # As with multiplication this formula creates NaNs where A is zero.
-            # So I'll rewrite it again:
-            # => sigma = sqrt((dA/B)**2 + (AdB/B**2)**2 - 2*cor*AdAdB/B**3)
-
-            # So we need to calculate dA/B in the same units as the result
-            # and the dimensionless dB/B to get a resulting uncertainty with
-            # the same unit as the data.
-
-            # Calculate: dA/B (left)
-            if self.unit != self.parent_nddata.unit:
-                left = ((self.array * self.unit).to(
-                        self.parent_nddata.unit).value /
-                        other_uncert.parent_nddata.data)
-            else:
-                left = self.array / other_uncert.parent_nddata.data
-
-            # Calculate: dB/B (right)
-            if other_uncert.unit != other_uncert.parent_nddata.unit:
-                right = ((other_uncert.array * other_uncert.unit).to(
-                    other_uncert.parent_nddata.unit).value /
-                    other_uncert.parent_nddata.data) * result_data
-            else:
-                right = (result_data * other_uncert.array /
-                         other_uncert.parent_nddata.data)
-
-            if isinstance(correlation, np.ndarray) or correlation != 0:
-                corr = 2 * correlation * left * right
-                # This differs from multiplication because the correlation
-                # term needs to be subtracted
-                return np.sqrt(left**2 + right**2 - corr)
-            else:
-                return np.sqrt(left**2 + right**2)

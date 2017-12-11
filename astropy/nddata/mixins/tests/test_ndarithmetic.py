@@ -395,7 +395,7 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
     assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
     # Compare it to the theoretical uncertainty
     ref_uncertainty = np.sqrt(uncert1**2 + uncert2**2 +
-                              2 * cor * uncert1 * uncert2)
+                              2 * cor * np.abs(uncert1 * uncert2))
     assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
 
     nd3 = nd1.subtract(nd2, uncertainty_correlation=cor)
@@ -404,7 +404,7 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
     assert_array_equal(nd3.uncertainty.array, nd4.uncertainty.array)
     # Compare it to the theoretical uncertainty
     ref_uncertainty = np.sqrt(uncert1**2 + uncert2**2 -
-                              2 * cor * uncert1 * uncert2)
+                              2 * cor * np.abs(uncert1 * uncert2))
     assert_array_equal(nd3.uncertainty.array, ref_uncertainty)
 
     # Multiplication and Division only work with almost equal array comparisons
@@ -417,7 +417,7 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
     # Compare it to the theoretical uncertainty
     ref_uncertainty = (np.abs(data1 * data2)) * np.sqrt(
         (uncert1 / data1)**2 + (uncert2 / data2)**2 +
-        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+        (2 * cor * np.abs(uncert1 * uncert2) / (data1 * data2)))
     assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty)
 
     nd3 = nd1.divide(nd2, uncertainty_correlation=cor)
@@ -426,11 +426,12 @@ def test_arithmetics_stddevuncertainty_basic_with_correlation(
     # Compare it to the theoretical uncertainty
     ref_uncertainty_1 = (np.abs(data1 / data2)) * np.sqrt(
         (uncert1 / data1)**2 + (uncert2 / data2)**2 -
-        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+        (2 * cor * np.abs(uncert1 * uncert2) / (data1 * data2)))
     assert_array_almost_equal(nd3.uncertainty.array, ref_uncertainty_1)
     ref_uncertainty_2 = (np.abs(data2 / data1)) * np.sqrt(
         (uncert1 / data1)**2 + (uncert2 / data2)**2 -
-        (2 * cor * uncert1 * uncert2 / (data1 * data2)))
+        (2 * cor * np.abs(uncert1 * uncert2) / (data1 * data2)))
+    assert_array_almost_equal(nd4.uncertainty.array, ref_uncertainty_2)
     assert_array_almost_equal(nd4.uncertainty.array, ref_uncertainty_2)
 
 
