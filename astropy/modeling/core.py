@@ -2454,8 +2454,8 @@ class _CompoundModelMeta(_ModelMeta):
         if operator == '|':
             inputs = left.inputs
             outputs = right.outputs
-            input_mapping = {inp: (left, inp) for inp in left.inputs}
-            output_mapping = {out: (right, out) for out in right.outputs}
+            inputs_map = {inp: (left, inp) for inp in left.inputs}
+            outputs_map = {out: (right, out) for out in right.outputs}
 
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
@@ -2470,27 +2470,27 @@ class _CompoundModelMeta(_ModelMeta):
             inputs = combine_labels(left.inputs, right.inputs)
             outputs = combine_labels(left.outputs, right.outputs)
 
-            input_mapping = {}
+            inputs_map = {}
             for i, inp in enumerate(inputs):
                 if i < len(left.inputs):
-                    input_mapping[inp] = left, left.inputs[i]
+                    inputs_map[inp] = left, left.inputs[i]
                 else:
-                    input_mapping[inp] = right, right.inputs[i - len(left.inputs)]
+                    inputs_map[inp] = right, right.inputs[i - len(left.inputs)]
 
-            output_mapping = {}
+            outputs_map = {}
             for i, out in enumerate(outputs):
                 if i < len(left.outputs):
-                    output_mapping[out] = left, left.outputs[i]
+                    outputs_map[out] = left, left.outputs[i]
                 else:
-                    output_mapping[out] = right, right.outputs[i - len(left.outputs)]
+                    outputs_map[out] = right, right.outputs[i - len(left.outputs)]
 
         else:
 
             # Without loss of generality
             inputs = left.inputs
             outputs = left.outputs
-            input_mapping = {inp: (left, inp) for inp in left.inputs}
-            output_mapping = {out: (left, out) for out in left.outputs}
+            inputs_map = {inp: (left, inp) for inp in left.inputs}
+            outputs_map = {out: (left, out) for out in left.outputs}
 
             if (left.n_inputs != right.n_inputs or
                     left.n_outputs != right.n_outputs):
@@ -2502,7 +2502,7 @@ class _CompoundModelMeta(_ModelMeta):
                         operator, left.name, left.n_inputs, left.n_outputs,
                         right.name, right.n_inputs, right.n_outputs))
 
-        return inputs, outputs, input_mapping, output_mapping
+        return inputs, outputs, inputs_map, outputs_map
 
     @classmethod
     def _make_user_inverse(mcls, operator, left, right):
@@ -2808,6 +2808,11 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
         return super()._format_str(keywords=keywords)
 
     def _generate_input_output_units_dict(self, mapping, attr):
+        """
+        This method is used to transform dict or bool settings from
+        submodels into a single dictionary for the composite model,
+        taking into account renaming of input parameters.
+        """
         d = {}
         for inp, (model, orig_inp) in mapping.items():
             mattr = getattr(model, attr)
@@ -2817,7 +2822,7 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
             elif isinstance(mattr, bool):
                 d[inp] = mattr
 
-        if d:
+        if d:  # Note that if d is empty, we just return None
             return d
 
     @property
