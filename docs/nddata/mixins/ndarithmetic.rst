@@ -365,7 +365,7 @@ correct uncertainty of ``0``::
 which would be consistent with the equivalent operation ``ndd1 * 0``::
 
     >>> ndd1.multiply(0, propagate_uncertainties=True).uncertainty
-    StdDevUncertainty([0])
+    StdDevUncertainty([ 0.])
 
 .. warning::
     The user needs to calculate or know the appropriate value or array manually
