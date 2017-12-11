@@ -1569,7 +1569,6 @@ class Model(metaclass=_ModelMeta):
             self = self.__new__(self, *dummy_args)
         else:
             needs_initialization = False
-            self = self.copy()
 
         aliases = dict(zip(self.param_names, param_names))
         # This is basically an alternative _initialize_constraints
@@ -1593,7 +1592,6 @@ class Model(metaclass=_ModelMeta):
 
         if needs_initialization:
             self.__init__(*dummy_args)
-
         return self
 
     def _initialize_constraints(self, kwargs):
@@ -2377,7 +2375,7 @@ class _CompoundModelMeta(_ModelMeta):
             '__module__': str(modname)})
 
         new_cls = mcls(name, (_CompoundModel,), members)
-        print(new_cls[1].mean._model)
+
         if isinstance(left, Model) and isinstance(right, Model):
             # Both models used in the operator were already instantiated models,
             # not model *classes*.  As such it's not particularly useful to return
@@ -2385,7 +2383,6 @@ class _CompoundModelMeta(_ModelMeta):
             ### This is where the weeak reference dies.
             instance = new_cls()
 
-            print('instance', instance[1].mean._model)
             # Workaround for https://github.com/astropy/astropy/issues/3542
             # TODO: Any effort to restructure the tree-like data structure for
             # compound models should try to obviate this workaround--if
@@ -2491,7 +2488,6 @@ class _CompoundModelMeta(_ModelMeta):
         # type objects
         if cls._submodels is not None:
             return cls._submodels
-
         submodels = [c.value for c in cls._tree.traverse_postorder()
                      if c.isleaf]
         cls._submodels = submodels
@@ -2768,7 +2764,6 @@ class _CompoundModel(Model, metaclass=_CompoundModelMeta):
     def __getitem__(self, index):
         index = self.__class__._normalize_index(index)
         model = self.__class__[index]
-
         if isinstance(index, slice):
             param_names = model.param_names
         else:

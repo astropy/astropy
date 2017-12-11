@@ -347,7 +347,7 @@ class Parameter(OrderedDescriptor):
 
     def __repr__(self):
         args = "'{0}'".format(self._name)
-        if self._model is None:
+        if self._model is None or self._model() is None:
             if self._default is not None:
                 args += ', default={0}'.format(self._default)
         else:
