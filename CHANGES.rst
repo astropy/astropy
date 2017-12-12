@@ -548,8 +548,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Fixed the vertical orientation of the output bitmap image to match that
-  of the FITS image. [#6844]
+- Fixed the vertical orientation of the ``fits2bitmap`` output bitmap
+  image to match that of the FITS image. [#6844, #6969]
+
+- Added a workaround for a bug in matplotlib so that the ``fits2bitmap``
+  script generates the correct output file type. [#6969]
 
 astropy.vo
 ^^^^^^^^^^

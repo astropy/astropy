@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+from distutils.version import LooseVersion
+
+from ..mpl_normalize import simple_norm
 from ... import log
 from ...io.fits import getdata
-from ..mpl_normalize import simple_norm
 
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
@@ -65,6 +67,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
         The matplotlib color map name.  The default is 'Greys_r'.
     """
 
+    import matplotlib
     import matplotlib.cm as cm
     import matplotlib.image as mimg
 
@@ -90,6 +93,16 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
             out_fn = os.path.splitext(out_fn)[0]
         out_fn += '.png'
 
+    # need to explicitly define the output format due to a bug in
+    # matplotlib (<= 2.1), otherwise the format will always be PNG
+    out_format = os.path.splitext(out_fn)[1][1:]
+
+    # workaround for matplotlib 2.0.0 bug where png images are inverted
+    # (mpl-#7656)
+    if (out_format.lower() == 'png' and
+            LooseVersion(matplotlib.__version__) == LooseVersion('2.0.0')):
+        image = image[::-1]
+
     if cmap not in cm.datad:
         log.critical('{0} is not a valid matplotlib colormap name.'
                      .format(cmap))
@@ -100,7 +113,8 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
                        min_percent=min_percent, max_percent=max_percent,
                        percent=percent)
 
-    mimg.imsave(out_fn, norm(image), cmap=cmap, origin='lower')
+    mimg.imsave(out_fn, norm(image), cmap=cmap, origin='lower',
+                format=out_format)
     log.info('Saved file to {0}.'.format(out_fn))
 
 
