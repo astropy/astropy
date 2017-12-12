@@ -982,7 +982,7 @@ of time.  Usage is most easily illustrated by examples::
   >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity  # doctest: +FLOAT_CMP
   <Quantity [240., 480., 720.] h>
   >>> dt > 400. * u.hr               # and compare to quantities with units of time
-  array([False,  True,  True], dtype=bool)
+  array([False,  True,  True]...)
   >>> dt + 1.*u.hr                   # can also add/subtract such quantities  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='None' format='jd' value=[10.04166667 20.04166667 30.04166667]>
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP

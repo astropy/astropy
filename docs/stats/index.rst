@@ -32,19 +32,22 @@ performed with the :func:`~astropy.stats.sigma_clip` function.  The
 function returns a masked array where outliers are masked::
 
     >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
-    >>> stats.sigma_clip(data, sigma=2, iters=5)  # doctest: +FLOAT_CMP
-    masked_array(data = [1 5 6 8 -- 5 3 2],
-                 mask = [False False False False  True False False False],
-           fill_value = 999999)
+    >>> stats.sigma_clip(data, sigma=2, iters=5)  # doctest: +SKIP
+    masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
+                 mask=[False, False, False, False,  True, False, False, False],
+           fill_value=999999)
+
+.. above and below, skipped masked_array tests can be included when we know
+   "not NUMPY_LT_1_14"
 
 Alternatively, the :class:`~astropy.stats.SigmaClip` class provides an
 object-oriented interface to sigma clipping::
 
     >>> sigclip = stats.SigmaClip(sigma=2, iters=5)
-    >>> sigclip(data)
-    masked_array(data = [1 5 6 8 -- 5 3 2],
-                 mask = [False False False False  True False False False],
-           fill_value = 999999)
+    >>> sigclip(data)  # doctest: +SKIP
+    masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
+                 mask=[False, False, False, False,  True, False, False, False],
+           fill_value=999999)
 
 In addition, there are also several convenience functions for making
 the calculation of statistics even easier.  For example,

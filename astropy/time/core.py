@@ -1209,7 +1209,7 @@ class Time(ShapedLikeNDArray):
             >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
             >>> delta, status = t.get_delta_ut1_utc(return_status=True)
             >>> status == TIME_BEFORE_IERS_RANGE
-            array([ True, False], dtype=bool)
+            array([ True, False]...)
         """
         if iers_table is None:
             from ..utils.iers import IERS

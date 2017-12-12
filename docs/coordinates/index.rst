@@ -286,7 +286,7 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
     >>> target = SkyCoord.from_name('M31')  # doctest: +REMOTE_DATA
     >>> keck = EarthLocation.of_site('Keck')  # doctest: +REMOTE_DATA
     >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <Quantity -22.363056056 km / s>
+    <Quantity -22.359784554780255 km / s>
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
