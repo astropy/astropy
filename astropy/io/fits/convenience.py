@@ -891,7 +891,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         if not datafile:
             # TODO: Really need to provide a better way to access the name of
             # any files underlying an HDU
-            root, tail = os.path.splitext(f._HDUList__file.name)
+            root, tail = os.path.splitext(f._file.name)
             datafile = root + '_' + repr(ext) + '.txt'
 
         # Dump the data from the HDU to the files
