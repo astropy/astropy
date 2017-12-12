@@ -348,10 +348,9 @@ for val in u.cgs.__dict__.values():
 @pytest.mark.parametrize('unit', sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str),
                          ids=_unit_as_str)
 def test_compose_cgs_to_si(unit):
-    for iter in range(10):
-        si = unit.to_system(u.si)
-        assert [x.is_equivalent(unit) for x in si]
-        assert si[0] == unit.si
+    si = unit.to_system(u.si)
+    assert [x.is_equivalent(unit) for x in si]
+    assert si[0] == unit.si
 
 
 # We use a set to make sure we don't have any duplicates.
@@ -414,7 +413,10 @@ def test_compose_failed():
 
 
 def test_compose_fractional_powers():
-    x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # Warning: with a complicated unit, this test becomes very slow;
+    # e.g., x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    # takes 3 s
+    x = u.m ** 0.5 / u.yr ** 1.5
 
     factored = x.compose()
 
