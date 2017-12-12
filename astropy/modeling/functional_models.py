@@ -461,9 +461,9 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -482,14 +482,7 @@ class Shift(Fittable1DModel):
     @staticmethod
     def evaluate(x, offset):
         """One dimensional Shift model function"""
-        if isinstance(offset, u.Quantity):
-            return_unit = offset.unit
-            offset = offset.value
-        if isinstance(x, u.Quantity):
-            x = x.value
-            return (x + offset) * return_unit
-        else:
-            return x + offset
+        return x + offset
 
     @staticmethod
     def sum_of_implicit_terms(x):
@@ -521,9 +514,9 @@ class Scale(Fittable1DModel):
     linear = True
     fittable = True
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):

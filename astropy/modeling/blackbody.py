@@ -174,7 +174,7 @@ class BlackBody1D(Fittable1DModel):
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input x values are assumed to be frequencies in Hz.
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     # We enable the spectral equivalency by default for the spectral axis
     input_units_equivalencies = {'x': u.spectral()}
