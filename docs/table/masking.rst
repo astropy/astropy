@@ -142,7 +142,7 @@ Masked entries are shown as ``--`` when the table is printed.  You can
 view the mask directly, either at the column or table level::
 
   >>> t['a'].mask
-  array([False,  True], dtype=bool)
+  array([False,  True]...)
 
   >>> t.mask
   <Table length=2>

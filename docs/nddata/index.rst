@@ -180,7 +180,7 @@ WCS, sliced appropriately also::
            [False,  True,  True,  True,  True,  True,  True,  True,  True,
              True,  True, False],
            [False, False, False, False, False, False, False, False, False,
-            False, False, False]], dtype=bool)
+            False, False, False]]...)
 
 For many applications it may be more convenient to use
 `~astropy.nddata.Cutout2D`, described in `image_utilities`_.

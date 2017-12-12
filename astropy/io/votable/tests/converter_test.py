@@ -237,8 +237,8 @@ def test_float_default_precision():
         None, name='c', datatype='float', arraysize="4",
         config=config)
     c = converters.get_converter(field, config=config)
-    assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
-            '1 2 3 8.9999990000000007')
+    assert (c.output([1, 2, 3, 8.9990234375], [False, False, False, False]) ==
+            '1 2 3 8.9990234375')
 
 
 def test_vararray():

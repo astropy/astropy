@@ -498,8 +498,8 @@ tools to use. We can reassign (update) the values::
 
 take the mean of a column::
 
-    >>> data['c3'].mean()
-    5.1999998927116398
+    >>> data['c3'].mean()  # doctest: +FLOAT_CMP
+    5.19999989271164
 
 and so on.
 
