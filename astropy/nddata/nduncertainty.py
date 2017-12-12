@@ -375,7 +375,36 @@ class _VariancePropagationMixin:
     def _propagate_add_sub(self, other_uncert, result_data, correlation,
                            subtract=False,
                            to_variance=lambda x: x, from_variance=lambda x: x):
+        """
+        Error propagation for addition or subtraction of variance or
+        variance-like uncertainties. Uncertainties are calculated using the
+        formulae for variance but can be used for uncertainty convertible to
+        a variance.
 
+        Parameters
+        ----------
+
+        other_uncert : `~astropy.nddata.NDUncertainty` instance
+            The uncertainty, if any, of the other operand.
+
+        result_data : `~astropy.nddata.NDData` instance
+            The results of the operation on the data.
+
+        correlation : float or `numpy.ndarray`-like
+            Correlation of the uncertainties.
+
+        subtract : bool, optional
+            If ``True``, propagate for subtraction, otherwise propagate for
+            addition.
+
+        to_variance : function, optional
+            Function that will transform the input uncertainties to variance.
+            The default assumes the uncertainty is the variance.
+
+        from_variance : function, optional
+            Function that will convert from variance to the input uncertainty.
+            The default assumes the uncertainty is the variance.
+        """
         if subtract:
             correlation_sign = -1
         else:
@@ -396,7 +425,7 @@ class _VariancePropagationMixin:
                 return deepcopy(other_uncert.array)
 
         elif other_uncert.array is None:
-            # Formula: sigma = dA
+            # Formula: sigma**2 = dA
 
             if (self.unit is not None and
                     to_variance(self.unit) != self.parent_nddata.unit**2):
@@ -409,8 +438,8 @@ class _VariancePropagationMixin:
                 return deepcopy(self.array)
 
         else:
-            # Formula: sigma = sqrt(dA**2 + dB**2 + 2*cor*dA*dB)
-
+            # Formula: sigma**2 = dA + dB +/- 2*cor*sqrt(dA*dB)
+            #     (sign depends on whether addition or subtraction)
             # Calculate: dA (this) and dB (other)
             if self.unit != other_uncert.unit:
                 # In case the two uncertainties (or data) have different units
@@ -446,7 +475,36 @@ class _VariancePropagationMixin:
                                    divide=False,
                                    to_variance=lambda x: x,
                                    from_variance=lambda x: x):
+        """
+        Error propagation for multiplication or division of variance or
+        variance-like uncertainties. Uncertainties are calculated using the
+        formulae for variance but can be used for uncertainty convertible to
+        a variance.
 
+        Parameters
+        ----------
+
+        other_uncert : `~astropy.nddata.NDUncertainty` instance
+            The uncertainty, if any, of the other operand.
+
+        result_data : `~astropy.nddata.NDData` instance
+            The results of the operation on the data.
+
+        correlation : float or `numpy.ndarray`-like
+            Correlation of the uncertainties.
+
+        divide : bool, optional
+            If ``True``, propagate for division, otherwise propagate for
+            multiplication.
+
+        to_variance : function, optional
+            Function that will transform the input uncertainties to variance.
+            The default assumes the uncertainty is the variance.
+
+        from_variance : function, optional
+            Function that will convert from variance to the input uncertainty.
+            The default assumes the uncertainty is the variance.
+        """
         # For multiplication we don't need the result as quantity
         if isinstance(result_data, Quantity):
             result_data = result_data.value
@@ -488,18 +546,28 @@ class _VariancePropagationMixin:
                 # Formula: sigma**2 = dA / B**2
                 return from_variance(this / other_uncert.parent_nddata.data**2)
             else:
-                # Formula: sigma**2 = dA**2 * |B|**2
+                # Formula: sigma**2 = dA * |B|**2
                 return from_variance(np.abs(other_uncert.parent_nddata.data**2 * this))
         else:
-            # Multiplication Formulae
+            # Multiplication
+            #
+            # The fundamental formula is:
             #   sigma**2 = |AB|**2*(dA/A**2+dB/B**2+2*sqrt(dA)/A*sqrt(dB)/B*cor)
-
+            #
             # This formula is not very handy since it generates NaNs for every
             # zero in A and B. So we rewrite it:
-
+            #
             # Multiplication Formula:
             #   sigma**2 = (dA*B**2 + dB*A**2 + (2 * cor * ABsqrt(dAdB)))
-
+            #
+            # Division
+            #
+            # The fundamental formula for division is:
+            #   sigma**2 = |A/B|**2*(dA/A**2+dB/B**2-2*sqrt(dA)/A*sqrt(dB)/B*cor)
+            #
+            # As with multiplication, it is convenient to rewrite this to avoid
+            # nans where A is zero.
+            #
             # Division formula (rewritten):
             #   sigma**2 = dA/B**2 + (A/B)**2 * dB/B**2
             #                   - 2 * cor * A *sqrt(dAdB) / B**3
