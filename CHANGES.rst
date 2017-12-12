@@ -362,6 +362,8 @@ astropy.io.fits
   checksums. [#6571]
 
 - Fixed potential problems with the compression module [#6732]
+- When datafile is missing, convenience.tabledump uses input file name to build
+  output file name. Fixed how it gets input file name from HDUList. [#6937]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^

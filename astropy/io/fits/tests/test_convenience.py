@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
+import os
 import warnings
 
 import pytest
@@ -138,3 +139,14 @@ class TestConvenience(FitsTestCase):
 
                 with pytest.raises(NotImplementedError):
                     printdiff(in1, in2, 0)
+
+    def test_tabledump_splittext(self):
+        """ 
+        Regression test for https://github.com/astropy/astropy/issues/6937
+        """ 
+        filename = self.data('tb.fits')
+        f = fits.hdu.hdulist.fitsopen(filename, mode='readonly')
+        root, tail = os.path.splitext(f._file.name)
+        assert tail == '.fits'
+
+
