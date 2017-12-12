@@ -61,11 +61,13 @@ class TestFits2Bitmap(object):
         """
 
         filename = tmpdir.join(self.filename).strpath
+        out_filename = 'fits2bitmap_test.png'
+        out_filename = tmpdir.join(out_filename).strpath
         data = np.zeros((32, 32))
         data[0:16, :] = 1.
         fits.writeto(filename, data)
-        main([filename, '-e', '0'])
+        main([filename, '-e', '0', '-o', out_filename])
 
-        img = mpimg.imread(filename.replace('.fits', '.png'))
-        assert img[0, 0, 0] == 0.
-        assert img[31, 31, 0] == 1.
+        img = mpimg.imread(out_filename)
+        assert img[0, 0, 0] == 0
+        assert img[31, 31, 0] == 1
