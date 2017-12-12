@@ -163,7 +163,6 @@ def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
 def test_initialize_from_fits_with_extension(tmpdir):
     fake_img1 = np.random.random(size=(100, 100))
     fake_img2 = np.random.random(size=(100, 100))
-    new_hdul = fits.HDUList()
     hdu0 = fits.PrimaryHDU()
     hdu1 = fits.ImageHDU(fake_img1)
     hdu2 = fits.ImageHDU(fake_img2)
@@ -279,7 +278,7 @@ def test_setting_uncertainty_with_array(ccd_data):
 
 def test_setting_uncertainty_wrong_shape_raises_error(ccd_data):
     with pytest.raises(ValueError):
-        ccd_data.uncertainty = np.random.random(size=2 * ccd_data.shape)
+        ccd_data.uncertainty = np.random.random(size=(3, 4))
 
 
 def test_to_hdu(ccd_data):

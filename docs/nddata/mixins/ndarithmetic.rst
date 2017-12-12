@@ -159,14 +159,14 @@ resulting mask will be. There are several options.
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
-      array([ True, False,  True,  True], dtype=bool)
+      array([ True, False,  True,  True]...)
 
   This defaults to ``"first_found"`` in case only one ``mask`` is not None::
 
       >>> ndd1 = NDDataRef(1)
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2).mask
-      array([ True, False, False,  True], dtype=bool)
+      array([ True, False, False,  True]...)
 
   Custom functions are also possible::
 
@@ -181,15 +181,15 @@ resulting mask will be. There are several options.
       >>> ndd1 = NDDataRef(1, mask=np.array([True, False, True, False]))
       >>> ndd2 = NDDataRef(1, mask=np.array([True, False, False, True]))
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values).mask
-      array([ True, False,  True,  True], dtype=bool)
+      array([ True, False,  True,  True]...)
 
   Additional parameters can be given by prefixing them with ``mask_``
   (which will be stripped before passing it to the function)::
 
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values, mask_start=1).mask
-      array([False, False, False, False], dtype=bool)
+      array([False, False, False, False]...)
       >>> ndd1.add(ndd2, handle_mask=take_alternating_values, mask_start=2).mask
-      array([False, False,  True,  True], dtype=bool)
+      array([False, False,  True,  True]...)
 
 meta
 ----
