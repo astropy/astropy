@@ -17,7 +17,12 @@ from . import (ITRS,ICRS,AltAz)
 
 class UVW(BaseCoordinateFrame):
     """
-    A coordinate or frame in the UVW system, the conventional radio astronomy frame.
+    A coordinate or frame in the UVW system, the conventional radio astronomy 
+    frame.
+    The UVW system are the local East, North, and Up unit vectors projected
+    into the plane of the sky, whose origin is fixed to a direction ``phase``.
+    These coordinates are used to measure the interferometric baselines in 
+    in radio interferometry.
 
     This frame has the following frame attributes, which are necessary for
     transforming from UVW to some other system:
@@ -26,37 +31,44 @@ class UVW(BaseCoordinateFrame):
         The time at which the observation is taken.  Used for determining the
         position and orientation of the Earth.
     * ``location``
-        The location on the Earth.  This can be specified either as an
+        The location of the center of the radio interferometer on the Earth,
+        typically the centroid of all antenna locations, though it can be
+        fixed to any particular antenna.  This can be specified either as an
         `~astropy.coordinates.EarthLocation` object or as anything that can be
         transformed to an `~astropy.coordinates.ITRS` frame.
     * ``phase``
-        The phase tracking center of the frame.  This can be specified either as an
-        (ra,dec) `~astropy.units.Qunatity` or as anything that can be
+        The phase tracking center of the frame.  This can be specified either
+        as an (ra,dec) `~astropy.units.Qunatity` or as anything that can be
         transformed to an `~astropy.coordinates.ICRS` frame.
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
+        A representation object or None to have no data (or use the other
+        keywords)
     u : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The u coordinate for this object (``v`` and ``w`` must also be given and
-        ``representation`` must be None).
+        The u coordinate for this object (``v`` and ``w`` must also be given
+        and ``representation`` must be None).
     v : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The v coordinate for this object (``u`` and ``w`` must also be given and
-        ``representation`` must be None).
+        The v coordinate for this object (``u`` and ``w`` must also be given
+        and ``representation`` must be None).
     w : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The w coordinate for this object (``u`` and ``v`` must also be given and
-        ``representation`` must be None).
+        The w coordinate for this object (``u`` and ``v`` must also be given
+        and ``representation`` must be None).
 
     Notes
     -----
     This is useful for radio astronomers.
-    It enables simple transformation between various other frames and the observers frame during the radio synthesis.
+    It enables simple transformation between various other frames and the
+    observers frame during the radio synthesis.
     It enables easily calculating elevation of a field with e.g.
 
-    #>>> coord = astropy.coordinates.SkyCoord(ra=..., dec=..., frame=UVW(location=..., obstime=..., phase=...))
+    #>>> coord = astropy.coordinates.SkyCoord(ra=..., dec=...,
+                frame=UVW(location=..., obstime=..., phase=...))
     #>>> elevation = coord.transform_to(astropy.coordinates.AltAz).alt
 
+    The local East-North-Up frame coordinates can easily be calculated by 
+    transforming to a UVW with ``phase`` pointing at zenith.
     """
 
     frame_specific_representation_info = {
@@ -78,9 +90,7 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
     is_unitspherical = (isinstance(itrs_coo.data, UnitSphericalRepresentation) or
                         itrs_coo.cartesian.x.unit == u.one)
     lon, lat, height = uvw_frame.location.to_geodetic('WGS84')
-    #local sidereal time
-    lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_frame.location,obstime=uvw_frame.obstime).transform_to(ICRS).ra
-    #hour angle
+    lst = uvw_frame.obstime.sidereal_time('mean',longitude=lon).to(u.radian).value
     ha = (lst - uvw_frame.phase.ra).to(u.radian).value
     dec = uvw_frame.phase.dec.to(u.radian).value
     lonrad = lon.to(u.radian).value - ha
@@ -118,7 +128,7 @@ def itrs_to_uvw(itrs_coo, uvw_frame):
 @frame_transform_graph.transform(FunctionTransform, UVW, ITRS)
 def uvw_to_itrs(uvw_coo, itrs_frame):
     lon, lat, height = uvw_coo.location.to_geodetic('WGS84')
-    lst = AltAz(alt=90*u.deg,az=0*u.deg,location=uvw_coo.location,obstime=uvw_coo.obstime).transform_to(ICRS).ra
+    lst = uvw_coo.obstime.sidereal_time('mean',longitude=lon).to(u.radian).value
     ha = (lst - uvw_coo.phase.ra).to(u.radian).value
     dec = uvw_coo.phase.dec.to(u.radian).value
     lonrad = lon.to(u.radian).value - ha
@@ -143,9 +153,7 @@ def uvw_to_itrs(uvw_coo, itrs_frame):
     else:
         diff = R.T.dot(uvw_coo.cartesian.xyz)
         p0 = ITRS(*uvw_coo.location.geocentric,obstime=uvw_coo.obstime).cartesian.xyz
-        #print (R,diff)
         p = (diff.T + p0).T
-        #print (p)
         rep = CartesianRepresentation(x = p[0],
                 y = p[1],
                 z = p[2],
