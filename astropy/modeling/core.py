@@ -655,19 +655,16 @@ class Model(metaclass=_ModelMeta):
     # model hasn't completed initialization yet
     _n_models = 1
 
-    # Enforce strict units on inputs to evaluate. If this is set to True, input
-    # values to evaluate have to be in the exact right units specified by
-    # input_units. In this case, if the input quantities are convertible to
-    # input_units, they are converted. If this is a dictionary then it should
-    # map input name to a bool to set strict input units for that parameter.
-    input_units_strict = False
+    # New classes can set this as a boolean value.
+    # It is converted to a dictionary mapping input name to a boolean value.
+    _input_units_strict = False
 
     # Allow dimensionless input (and corresponding output). If this is True,
     # input values to evaluate will gain the units specified in input_units. If
     # this is a dictionary then it should map input name to a bool to allow
     # dimensionless numbers for that input.
     # Only has an effect if input_units is defined.
-    input_units_allow_dimensionless = False
+    _input_units_allow_dimensionless = False
 
     # Default equivalencies to apply to input values. If set, this should be a
     # dictionary where each key is a string that corresponds to one of the
@@ -685,6 +682,57 @@ class Model(metaclass=_ModelMeta):
         # Parameter values must be passed in as keyword arguments in order to
         # distinguish them
         self._initialize_parameters(args, kwargs)
+        self._initialize_unit_support()
+
+    def _initialize_unit_support(self):
+        """
+        Convert self._input_units_strict and
+        self.input_units_allow_dimensionless to dictionaries
+        mapping input name to a boolena value.
+        """
+        if isinstance(self._input_units_strict, bool):
+            self._input_units_strict = {key: self._input_units_strict for
+                                        key in self.__class__.inputs}
+
+        if isinstance(self._input_units_allow_dimensionless, bool):
+            self._input_units_allow_dimensionless = {key: self._input_units_allow_dimensionless
+                                                     for key in self.__class__.inputs}
+
+    @property
+    def input_units_strict(self):
+        """
+        Enforce strict units on inputs to evaluate. If this is set to True, input
+        values to evaluate have to be in the exact right units specified by
+        input_units. In this case, if the input quantities are convertible to
+        input_units, they are converted. If this is a dictionary then it should
+        map input name to a bool to set strict input units for that parameter.
+        """
+        return self._input_units_strict
+
+    @input_units_strict.setter
+    def input_units_strict(self, val):
+        if isinstance(val, bool):
+            self._input_units_strict = {key: val for key in self.__class__.inputs}
+        else:
+            self._input_units_strict = val
+
+    @property
+    def input_units_allow_dimensionless(self):
+        """
+        Allow dimensionless input (and corresponding output). If this is True,
+        input values to evaluate will gain the units specified in input_units. If
+        this is a dictionary then it should map input name to a bool to allow
+        dimensionless numbers for that input.
+        Only has an effect if input_units is defined.
+        """
+        return self._input_units_allow_dimensionless
+
+    @input_units_allow_dimensionless.setter
+    def input_units_allow_dimensionless(self, val):
+        if isinstance(val, bool):
+            self._input_units_allow_dimensionless = {key: val for key in self.__class__.inputs}
+        else:
+            self._input_units_allow_dimensionless = val
 
     def __repr__(self):
         return self._format_repr()
@@ -1449,7 +1497,7 @@ class Model(metaclass=_ModelMeta):
     def _validate_input_units(self, inputs, equivalencies=None):
 
         inputs = list(inputs)
-
+        name = self.name or self.__class__.__name__
         # Check that the units are correct, if applicable
 
         if self.input_units is not None:
@@ -1459,16 +1507,6 @@ class Model(metaclass=_ModelMeta):
             input_units_equivalencies = _combine_equivalency_dict(self.inputs,
                                                                   equivalencies,
                                                                   self.input_units_equivalencies)
-
-            if isinstance(self.input_units_strict, bool):
-                input_units_strict = {key: self.input_units_strict for key in self.inputs}
-            else:
-                input_units_strict = self.input_units_strict
-
-            if isinstance(self.input_units_allow_dimensionless, bool):
-                input_units_allow_dimensionless = {key: self.input_units_allow_dimensionless for key in self.inputs}
-            else:
-                input_units_allow_dimensionless = self.input_units_allow_dimensionless
 
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
@@ -1493,7 +1531,7 @@ class Model(metaclass=_ModelMeta):
                         # sure that we evaluate the model in its own frame
                         # of reference. If input_units_strict is set, we also
                         # need to convert to the input units.
-                        if len(input_units_equivalencies) > 0 or input_units_strict[input_name]:
+                        if len(input_units_equivalencies) > 0 or self.input_units_strict[input_name]:
                             inputs[i] = inputs[i].to(input_unit, equivalencies=input_units_equivalencies[input_name])
 
                     else:
@@ -1502,15 +1540,16 @@ class Model(metaclass=_ModelMeta):
                         # to be able to raise more appropriate/nicer exceptions
 
                         if input_unit is dimensionless_unscaled:
-                            raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
+                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}), could not be "
                                              "converted to required dimensionless "
-                                             "input".format(self.inputs[i],
+                                             "input".format(name,
+                                                            self.inputs[i],
                                                             inputs[i].unit,
                                                             inputs[i].unit.physical_type))
                         else:
-                            raise UnitsError("Units of input '{0}', {1} ({2}), could not be "
+                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}), could not be "
                                              "converted to required input units of "
-                                             "{3} ({4})".format(self.inputs[i],
+                                             "{4} ({5})".format(name, self.inputs[i],
                                                                 inputs[i].unit,
                                                                 inputs[i].unit.physical_type,
                                                                 input_unit,
@@ -1521,12 +1560,12 @@ class Model(metaclass=_ModelMeta):
                     # input values without conversion, otherwise we raise an
                     # exception.
 
-                    if (not input_units_allow_dimensionless[input_name] and
+                    if (not self.input_units_allow_dimensionless[input_name] and
                        input_unit is not dimensionless_unscaled and input_unit is not None):
                         if np.any(inputs[i] != 0):
-                            raise UnitsError("Units of input '{0}', (dimensionless), could not be "
+                            raise UnitsError("{0}: Units of input '{1}', (dimensionless), could not be "
                                              "converted to required input units of "
-                                             "{1} ({2})".format(self.inputs[i], input_unit,
+                                             "{2} ({3})".format(name, self.inputs[i], input_unit,
                                                                 input_unit.physical_type))
 
         return inputs
