@@ -1371,7 +1371,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         Shorthand for retrieving the Cartesian space-motion as a
         `CartesianDifferential` object. This is equivalent to calling
-        ``frame.cartesian.differentials['s']``.
+        ``self.cartesian.differentials['s']``.
         """
         if 's' not in self.data.differentials:
             raise ValueError('Frame has no associated velocity (Differential) '
