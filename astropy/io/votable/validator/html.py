@@ -2,7 +2,6 @@
 
 # STDLIB
 import contextlib
-import io
 from math import ceil
 import os
 import re
@@ -124,7 +123,7 @@ def write_result(result):
 
     path = os.path.join(result.get_dirpath(), 'index.html')
 
-    with io.open(path, 'w', encoding='utf-8') as fd:
+    with open(path, 'w', encoding='utf-8') as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
             with w.tag('p'):
@@ -247,7 +246,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
     for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j:j+chunk_size]
         path = os.path.join(root, '{}_{:02d}.html'.format(basename, i))
-        with io.open(path, 'w', encoding='utf-8') as fd:
+        with open(path, 'w', encoding='utf-8') as fd:
             w = XMLWriter(fd)
             with make_html_header(w):
                 write_page_links(i)
@@ -291,7 +290,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
 
 def write_index(subsets, results, root='results'):
     path = os.path.join(root, 'index.html')
-    with io.open(path, 'w', encoding='utf-8') as fd:
+    with open(path, 'w', encoding='utf-8') as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
             w.element('h1', 'VO Validation results')

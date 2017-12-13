@@ -2,7 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import io
 import os
 import sys
 import subprocess
@@ -172,9 +171,9 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with io.open(f.strpath, 'wb') as fd:
+    with open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
-    with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
+    with open(f.strpath, 'rU', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert 'tstnmo = op2' in lns
@@ -247,7 +246,7 @@ def test_empty_config_file():
     from ..configuration import is_unedited_config_file
 
     def get_content(fn):
-        with io.open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
+        with open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
             return fd.read()
 
     content = get_content('data/empty.cfg')
