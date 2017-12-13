@@ -108,6 +108,28 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
      (v_x, v_y, v_z) in km / s
         (31., -10., 75.)>
 
+For any frame with velocity data with any representation, there are also
+shorthands that provide easier access to the underlying velocity data in
+commonly-needed formats. With any frame object with 3D velocity data, the 3D
+Cartesian velocity can be accessed with::
+
+    >>> icrs = ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
+    ...             distance=171*u.pc,
+    ...             pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr,
+    ...             radial_velocity=23.42*u.km/u.s)
+    >>> icrs.velocity # doctest: +FLOAT_CMP
+    <CartesianDifferential (d_x, d_y, d_z) in km / s
+        ( 23.03160789,  7.44794505,  11.34587732)>
+
+There are also shorthands for retrieving a single `~astropy.units.Quantity`
+object that contains the two-dimensional proper motion data, and for retrieving
+the radial (line-of-sight) velocity::
+
+    >>> icrs.proper_motion # doctest: +FLOAT_CMP
+    <Quantity [  4.8 ,-15.16] mas / yr>
+    >>> icrs.radial_velocity # doctest: +FLOAT_CMP
+    <Quantity 23.42 km / s>
+
 .. _astropy-coordinate-transform-with-velocities:
 
 Transforming frames with velocities
