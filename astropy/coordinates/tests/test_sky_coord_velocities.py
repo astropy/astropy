@@ -108,7 +108,7 @@ def sc2():
                 pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
 @pytest.fixture(scope="module")
 def scmany():
-  return SkyCoord(ICRS(ra=[1]*100*u.deg, dec=[2]*100*u.deg,
+    return SkyCoord(ICRS(ra=[1]*100*u.deg, dec=[2]*100*u.deg,
                      pm_ra_cosdec=np.random.randn(100)*u.mas/u.yr,
                      pm_dec=np.random.randn(100)*u.mas/u.yr,))
 
