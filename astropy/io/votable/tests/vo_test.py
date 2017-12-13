@@ -147,13 +147,13 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
     assert_validate_schema(str(tmpdir.join("regression.bin.tabledata.xml")),
                            votable.version)
 
-    with io.open(
+    with open(
         get_pkg_data_filename(
             'data/regression.bin.tabledata.truth.{0}.xml'.format(
                 votable.version)),
             'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
-    with io.open(str(tmpdir.join("regression.bin.tabledata.xml")),
+    with open(str(tmpdir.join("regression.bin.tabledata.xml")),
                  'rt', encoding='utf-8') as fd:
         output = fd.readlines()
 
@@ -799,10 +799,10 @@ def test_validate(test_path_object=False):
     output = output.readlines()
 
     # Uncomment to generate new groundtruth
-    # with io.open('validation.txt', 'wt', encoding='utf-8') as fd:
+    # with open('validation.txt', 'wt', encoding='utf-8') as fd:
     #     fd.write(u''.join(output))
 
-    with io.open(
+    with open(
         get_pkg_data_filename('data/validation.txt'),
             'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
@@ -973,10 +973,10 @@ def test_no_resource_check():
     output = output.readlines()
 
     # Uncomment to generate new groundtruth
-    # with io.open('no_resource.txt', 'wt', encoding='utf-8') as fd:
+    # with open('no_resource.txt', 'wt', encoding='utf-8') as fd:
     #     fd.write(u''.join(output))
 
-    with io.open(
+    with open(
         get_pkg_data_filename('data/no_resource.txt'),
             'rt', encoding='utf-8') as fd:
         truth = fd.readlines()

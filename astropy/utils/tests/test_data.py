@@ -4,7 +4,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import hashlib
-import io
 import os
 import pathlib
 import sys
@@ -251,7 +250,7 @@ def test_compute_hash(tmpdir):
 
     filename = tmpdir.join('tmp.dat').strpath
 
-    with io.open(filename, 'wb') as ntf:
+    with open(filename, 'wb') as ntf:
         ntf.write(rands)
         ntf.flush()
 
