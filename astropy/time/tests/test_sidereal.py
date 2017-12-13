@@ -8,8 +8,8 @@ import numpy as np
 from .. import Time
 from ..core import SIDEREAL_TIME_MODELS
 
-allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
-# 1 nanosec atol
+allclose_hours = functools.partial(np.allclose, rtol=1e-15, atol=3e-8)
+# 0.1 ms atol; IERS-B files change at that level.
 within_1_second = functools.partial(np.allclose, rtol=1., atol=1./3600.)
 within_2_seconds = functools.partial(np.allclose, rtol=1., atol=2./3600.)
 
