@@ -291,10 +291,21 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
 
-New in Astropy v2.0, the :doc:`coordinate frame classes <frames>` can now store
-and transform velocities along with positional coordinate information. This
-is not available from the |skycoord| class as this new functionality is
-experimental, but is accessible  for more information see the :doc:`velocities` page.
+In addition to positional coordinates, `~astropy.coordinates` supports storing
+and transforming velocities.  These are available both via the lower-level
+:doc:`coordinate frame classes <frames>`, (new in v3.0) via  |skycoord|
+objects::
+
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
+    >>> sc  # doctest: +SKIP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        ( 1.,  2.)
+     (radial_velocity) in km / s
+        ( 20.,)>
+
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the velocities.rst file
+
+For more details on velocity support (and limitations), see the :doc:`velocities` page.
 
 .. _astropy-coordinates-overview:
 

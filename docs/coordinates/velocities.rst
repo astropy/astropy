@@ -24,7 +24,7 @@ created as::
     >>> sc.radial_velocity  # doctest: +FLOAT_CMP
     <Quantity 20.0 km / s>
 
-.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the coordinates/index.rst file
 
 |skycoord| objects created in this manner follow all the same transformation
 rules, and will correctly update their velocities when transformed to other
