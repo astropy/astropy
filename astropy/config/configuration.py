@@ -665,13 +665,13 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     cfgfn = get_config(pkg).filename
 
-    with io.open(default_cfgfn, 'rt', encoding='latin-1') as fr:
+    with open(default_cfgfn, 'rt', encoding='latin-1') as fr:
         template_content = fr.read()
 
     doupdate = False
     if cfgfn is not None:
         if path.exists(cfgfn):
-            with io.open(cfgfn, 'rt', encoding='latin-1') as fd:
+            with open(cfgfn, 'rt', encoding='latin-1') as fd:
                 content = fd.read()
 
             identical = (content == template_content)
@@ -697,7 +697,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     if doupdate or needs_template:
         if needs_template:
-            with io.open(template_path, 'wt', encoding='latin-1') as fw:
+            with open(template_path, 'wt', encoding='latin-1') as fw:
                 fw.write(template_content)
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
@@ -712,7 +712,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                     ConfigurationChangedWarning)
 
         if doupdate and not identical:
-            with io.open(cfgfn, 'wt', encoding='latin-1') as fw:
+            with open(cfgfn, 'wt', encoding='latin-1') as fw:
                 fw.write(template_content)
             return True
 
