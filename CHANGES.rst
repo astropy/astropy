@@ -232,6 +232,8 @@ astropy.io.registry
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
+  - Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
+    or conversion to astropy tables is not affected. [#6262]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
