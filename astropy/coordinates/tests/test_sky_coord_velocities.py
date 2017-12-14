@@ -14,6 +14,11 @@ from ...tests.helper import assert_quantity_allclose
 from .. import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
                 SphericalCosLatDifferential, Galactic, PrecessedGeocentric)
 
+try:
+    import scipy
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 def test_creation_frameobjs():
     i = ICRS(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
@@ -132,6 +137,7 @@ def test_transforms(sc):
     assert isinstance(trans.frame, Galactic)
 
 
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching(sc, scmany):
     # just check that it works and yields something
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)
