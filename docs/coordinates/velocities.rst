@@ -16,13 +16,15 @@ created as::
     >>> from astropy.coordinates import SkyCoord
     >>> import astropy.units as u
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
-    >>> sc  # doctest: +FLOAT_CMP
+    >>> sc  # doctest: +SKIP
     <SkyCoord (ICRS): (ra, dec) in deg
         ( 1.,  2.)
      (radial_velocity) in km / s
         ( 20.,)>
     >>> sc.radial_velocity  # doctest: +FLOAT_CMP
     <Quantity 20.0 km / s>
+
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that
 
 |skycoord| objects created in this manner follow all the same transformation
 rules, and will correctly update their velocities when transformed to other
