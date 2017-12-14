@@ -406,7 +406,8 @@ Other Changes and Additions
 - The guide to setting up Emacs for code development was simplified, and
   updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
-2.0.3 (unreleased)
+
+2.0.4 (unreleased)
 ==================
 
 Bug Fixes
@@ -424,25 +425,6 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Ecliptic frame classes now support attributes ``v_x``, ``v_y``, ``v_z`` when
-  using with a Cartesian representation. [#6569]
-
-- Added a nicer error message when accidentally calling ``frame.representation``
-  instead of ``frame.data`` in the context of methods that use ``._apply()``.
-  [#6561]
-
-- Creating a new ``SkyCoord`` from a list of multiple ``SkyCoord`` objects now
-  yield the correct type of frame, and works at all for non-equatorial frames.
-  [#6612]
-
-- Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``. [#6699]
-
-- Improved accuracy of radial velocity corrections in ``SkyCoord.radial_velocity_correction```. [#6861]
-
-- The precision of ecliptic frames is now much better, after removing the
-  nutation from the rotation and fixing the computation of the position of the
-  Sun. [#6508]
-
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -455,14 +437,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fix a minor bug where ``FITS_rec`` instances can not be indexed with tuples
-  and other sequences that end up with a scalar. [#6955, #6966]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
-
-- Fix ``ImportError`` when ``hdf5`` is imported first in a fresh Python
-  interpreter in Python 3. [#6604, #6610]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -476,14 +452,95 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+2.0.3 (2017-12-13)
+==================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ecliptic frame classes now support attributes ``v_x``, ``v_y``, ``v_z`` when
+  using with a Cartesian representation. [#6569]
+
+- Added a nicer error message when accidentally calling ``frame.representation``
+  instead of ``frame.data`` in the context of methods that use ``._apply()``.
+  [#6561]
+
+- Creating a new ``SkyCoord`` from a list of multiple ``SkyCoord`` objects now
+  yield the correct type of frame, and works at all for non-equatorial frames.
+  [#6612]
+
+- Improved accuracy of velocity calculation in ``EarthLocation.get_gcrs_posvel``.
+  [#6699]
+
+- Improved accuracy of radial velocity corrections in
+  ``SkyCoord.radial_velocity_correction```. [#6861]
+
+- The precision of ecliptic frames is now much better, after removing the
+  nutation from the rotation and fixing the computation of the position of the
+  Sun. [#6508]
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+- Version 0.2.1 of ``pytest-astropy`` is included as an external package.
+  [#6918]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix writing the result of ``fitsdiff`` to file with ``--output-file``. [#6621]
+
+- Fix a minor bug where ``FITS_rec`` instances can not be indexed with tuples
+  and other sequences that end up with a scalar. [#6955, #6966]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Fix ``ImportError`` when ``hdf5`` is imported first in a fresh Python
+  interpreter in Python 3. [#6604, #6610]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
 - Suppress errors during WCS creation in CCDData.read(). [#6500]
 
 - Fixed a problem with ``CCDData.read`` when the extension wasn't given and the
   primary HDU contained no ``data`` but another HDU did. In that case the header
   were not correctly combined. [#6489]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -499,9 +556,6 @@ astropy.table
   garbage-collected, and the format function caching mechanism happens
   to re-use the same cache key. [#6714]
 
-- Fixed a problem when setting a column format to an invalid value.  This
-  was supposed to revert to the previous (valid) value but was not. [#6812]
-
 - Fixed a problem when comparing a unicode masked column (on left side) to
   a bytes masked column (on right side). [#6899]
 
@@ -511,12 +565,20 @@ astropy.table
 astropy.tests
 ^^^^^^^^^^^^^
 
-- Fixed a bug that causes tests for rst files to not be run on certain platforms. [#6555]
+- Fixed a bug that causes tests for rst files to not be run on certain
+  platforms. [#6555, #6608]
 
-- Fixed a bug that caused the doctestplus plugin to not work nicely with the hypothesis package. [#6605]
+- Fixed a bug that caused the doctestplus plugin to not work nicely with the
+  hypothesis package. [#6605, #6609]
 
 - Fixed a bug that meant that the data.astropy.org mirror could not be used when
   using --remote-data=astropy. [#6724]
+
+- Support compatibility with new ``pytest-astropy`` plugins. [#6918]
+
+- When testing, astropy (or the package being tested) is now installed to
+  a temporary directory instead of copying the build. This allows
+  entry points to work correctly. [#6890]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -560,11 +622,6 @@ astropy.visualization
 - Added a workaround for a bug in matplotlib so that the ``fits2bitmap``
   script generates the correct output file type. [#6969]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
@@ -575,6 +632,7 @@ Other Changes and Additions
 - Fixed broken links in the documentation. [#6745]
 
 - Ensured that all tests use the Astropy data mirror if needed. [#6767]
+
 
 2.0.2 (2017-09-08)
 ==================
