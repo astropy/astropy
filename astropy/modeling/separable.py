@@ -151,16 +151,16 @@ def _coord_matrix(model, pos, noutp):
     --------
     >>> from astropy.modeling.models import Shift, Rotation2D
     >>> _coord_matrix(Shift(1), 'left', 2)
-        array([[ 1.],
-               [ 0.]])
+    array([[ 1.],
+           [ 0.]])
     >>> _coord_matrix(Shift(1), 'right', 2)
-        array([[ 0.],
-               [ 1.]])
+    array([[ 0.],
+           [ 1.]])
     >>> _coord_matrix(Rotation2D(1), 'right', 4)
-        array([[ 0.,  0.],
-               [ 0.,  0.],
-               [ 1.,  1.],
-               [ 1.,  1.]])
+    array([[ 0.,  0.],
+           [ 0.,  0.],
+           [ 1.,  1.],
+           [ 1.,  1.]])
     """
     if isinstance(model, Mapping):
         axes = []
