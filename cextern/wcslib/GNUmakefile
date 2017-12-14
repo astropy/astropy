@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.16
+# GNU makefile for building WCSLIB 5.17
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,7 +32,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.16 2017/01/15 04:25:03 mcalabre Exp $
+# $Id: GNUmakefile,v 5.17 2017/09/18 08:44:25 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include makedefs
@@ -82,7 +82,7 @@ install :
 	   done
 	   $(INSTALL) -m 444 wcsconfig.h wcsconfig_f77.h $(INCDIR)
 	-  if [ ! -d "$(DOCDIR)" ] ; then \
-	     $(INSTALL) -d -m 2775 $(DOCDIR) ; \
+	     $(INSTALL) -d -m 775 $(DOCDIR) ; \
 	   fi
 	   $(INSTALL) -m 444 CHANGES COPYING* README $(DOCDIR)
 	-  if [ -h $(DOCLINK) ] ; then \
@@ -90,15 +90,15 @@ install :
 	     $(LN_S) $(notdir $(DOCDIR)) $(DOCLINK) ; \
 	   fi
 	-  if [ ! -d "$(PDFDIR)" ] ; then \
-	     $(INSTALL) -d -m 2775 $(PDFDIR) ; \
+	     $(INSTALL) -d -m 775 $(PDFDIR) ; \
 	   fi
 	   $(INSTALL) -m 444 wcslib.pdf $(PDFDIR)
 	-  if [ ! -d "$(HTMLDIR)/html" ] ; then \
-	     $(INSTALL) -d -m 2775 $(HTMLDIR)/html ; \
+	     $(INSTALL) -d -m 775 $(HTMLDIR)/html ; \
 	   fi
 	   $(INSTALL) -m 444 html/* $(HTMLDIR)/html
 	   if [ ! -d "$(LIBDIR)/pkgconfig" ] ; then \
-	     $(INSTALL) -d -m 2775 $(LIBDIR)/pkgconfig ; \
+	     $(INSTALL) -d -m 775 $(LIBDIR)/pkgconfig ; \
 	   fi
 	   $(INSTALL) -m 444 wcslib.pc $(LIBDIR)/pkgconfig/wcslib.pc
 

@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 5.16 2017/01/15 04:25:03 mcalabre Exp $
+# $Id: flavours,v 5.17 2017/09/18 08:44:25 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -51,18 +51,19 @@ ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
   export CC       := gcc -std=c89 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -g -O0 -Wall -Wpadded -Wno-long-long -fsanitize=address
+  export CFLAGS   := -g -O0 -Wall -Wextra -Wpadded -Wno-long-long
   export F77      := gfortran
   export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
-  export LDFLAGS  := -lasan
-         VALGRIND := valgrind -v --leak-check=yes --track-origins=yes
+  export LDFLAGS  :=
+         VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+         VALGRIND += --track-origins=yes
 endif
 
 ifeq "$(FLAVOUR)" "Linuxp"
   F := $(FLAVOUR)
   export CC       := gcc -std=c89 -pedantic
   export CPPFLAGS := $(FEATURES)
-  export CFLAGS   := -pg -g -O -Wall -Wpadded -Wno-long-long
+  export CFLAGS   := -pg -g -O -Wall -Wextra -Wpadded -Wno-long-long
   export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out

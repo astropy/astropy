@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  WCSLIB 5.17 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+  $Id: wcsutil.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -228,7 +228,8 @@ char *wcsutil_fptr2str(int (*func)(void), char hext[19])
 {
   unsigned char *p = (unsigned char *)(&func);
   char *t = hext;
-  int i, *(ip[2]), j[2], le = 1, gotone = 0;
+  unsigned int i;
+  int *(ip[2]), j[2], le = 1, gotone = 0;
 
   /* Test for little-endian addresses. */
   ip[0] = j;
@@ -351,7 +352,7 @@ static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
 }
 
 
-int wcsutil_str2double(const char *buf, const char *format, double *value)
+int wcsutil_str2double(const char *buf, double *value)
 
 {
   char ctmp[72];

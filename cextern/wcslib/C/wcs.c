@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  WCSLIB 5.17 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+  $Id: wcs.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -813,6 +813,7 @@ int wcssub(
       for (j = 0; j < naxis; j++) {
         if (map[j] == 0) continue;
 
+        /* Axis numbers in axmap[] are 0-relative. */
         for (jhat = 0; jhat < 10; jhat++) {
           axmap[jhat] = -1;
         }
@@ -836,7 +837,7 @@ int wcssub(
           }
         }
 
-        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat) {
+        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat || 10 < Nhat) {
           status = wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
             "NAXES was not set (or bad) for %s distortion on axis %d",
             dissrc->dtype[j], j+1);
@@ -848,9 +849,9 @@ int wcssub(
             axmap[jhat] = jhat;
 
             /* Make room for an additional DPja.AXIS.j record. */
-            /*ndp++;*/
+            ndp++;
           }
-          ndp++;
+
           if (map[axmap[jhat]] == 0) {
             /* Distortion depends on an axis excluded from the subimage. */
             status = wcserr_set(WCS_ERRMSG(WCSERR_NON_SEPARABLE));
@@ -913,7 +914,7 @@ int wcssub(
     }
   }
 
-  /* Reset WCSNPV, WCSNPS, and DISNDP. */
+  /* Reset NPVMAX, NPSMAX, and NDPMAX. */
   wcsnpv(npv);
   wcsnps(nps);
   disndp(ndp);

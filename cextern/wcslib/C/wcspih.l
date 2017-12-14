@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  WCSLIB 5.17 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+  $Id: wcspih.l,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -153,8 +153,8 @@ INLINE " "*(\/.*)?
 char *wcspih_hdr;
 int  wcspih_nkeyrec;
 
-int wcspih_final(int alts[], int ndp[], int ndq[], int distran,
-        double dsstmp[], char *wat[], int *nwcs, struct wcsprm **wcs);
+int wcspih_final(int ndp[], int ndq[], int distran, double dsstmp[],
+        char *wat[], int *nwcs, struct wcsprm **wcs);
 int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
         int ndp[], int ndq[], int distran, int *nwcs, struct wcsprm **wcs);
 void wcspih_naxes(int naxis, int i, int j, char a, int distype, int alts[],
@@ -1525,7 +1525,7 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	  } else {
 	    /* Read the keyvalue. */
-	    wcsutil_str2double(yytext, "%lf", &dbltmp);
+	    wcsutil_str2double(yytext, &dbltmp);
 	
 	    BEGIN(COMMENT);
 	  }
@@ -1613,7 +1613,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 <RECVALUE>{FLOAT} {
 	  rectype = 1;
-	  wcsutil_str2double(yytext, "%lf", &dbltmp);
+	  wcsutil_str2double(yytext, &dbltmp);
 	  BEGIN(RECEND);
 	}
 
@@ -1952,8 +1952,9 @@ jmp_buf wcspih_abort_jmp_env;
 	        "keyrecords.\n", nother, (nother==1)?"":"s");
 	    }
 	
-	    return wcspih_final(alts, ndp, ndq, distran, dsstmp, wat, nwcs,
-	                        wcs);
+	    status = wcspih_final(ndp, ndq, distran, dsstmp, wat, nwcs, wcs);
+	    free(watstr);
+	    return status;
 	  }
 	}
 
@@ -2204,7 +2205,6 @@ int wcspih_vsource(double *zsource, double vsource)
 *---------------------------------------------------------------------------*/
 
 int wcspih_final(
-  int alts[],
   int ndp[],
   int ndq[],
   int distran,
@@ -2465,8 +2465,6 @@ int wcspih_final(
     }
 
     disp->ndp = idp;
-
-    free(wat[0]);
   }
 
   return 0;
