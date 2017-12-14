@@ -44,14 +44,14 @@ def is_separable(transform):
     --------
     >>> from astropy.modeling.models import Shift, Scale, Rotation2D, Polynomial2D
     >>> is_separable(Shift(1) & Shift(2) | Scale(1) & Scale(2))
-        array([ True,  True], dtype=bool)
+        array([ True,  True]...)
     >>> is_separable(Shift(1) & Shift(2) | Rotation2D(2))
-        array([False, False], dtype=bool)
+        array([False, False]...)
     >>> is_separable(Shift(1) & Shift(2) | Mapping([0, 1, 0, 1]) | \
         Polynomial2D(1) & Polynomial2D(2))
-        array([False, False], dtype=bool)
+        array([False, False]...)
     >>> is_separable(Shift(1) & Shift(2) | Mapping([0, 1, 0, 1]))
-        array([ True,  True,  True,  True], dtype=bool)
+        array([ True,  True,  True,  True]...)
 
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
@@ -152,7 +152,7 @@ def _coord_matrix(model, pos, noutp):
     >>> from astropy.modeling.models import Shift, Rotation2D
     >>> _coord_matrix(Shift(1), 'left', 2)
         array([[ 1.],
-        [ 0.]])
+               [ 0.]])
     >>> _coord_matrix(Shift(1), 'right', 2)
         array([[ 0.],
                [ 1.]])
