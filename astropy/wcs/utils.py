@@ -45,7 +45,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
+    from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from ..time import Time
@@ -92,6 +92,8 @@ def _wcs_to_celestial_frame_builtin(wcs):
     else:
         if xcoord == 'GLON' and ycoord == 'GLAT':
             frame = Galactic()
+        elif xcoord == 'TLON' and ycoord == 'TLAT':
+            frame = ITRS(obstime=wcs.wcs.dateobs or None)
         else:
             frame = None
 
@@ -101,7 +103,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from ..coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, Galactic
+    from ..coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)
@@ -126,6 +128,11 @@ def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
     elif isinstance(frame, Galactic):
         xcoord = 'GLON'
         ycoord = 'GLAT'
+    elif isinstance(frame, ITRS):
+        xcoord = 'TLON'
+        ycoord = 'TLAT'
+        wcs.wcs.radesys = 'ITRS'
+        wcs.wcs.dateobs = frame.obstime.utc.isot
     else:
         return None
 
