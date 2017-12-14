@@ -4,8 +4,6 @@
 caching data files.
 """
 
-
-
 import atexit
 import contextlib
 import fnmatch
@@ -44,9 +42,13 @@ class Conf(_config.ConfigNamespace):
     Configuration parameters for `astropy.utils.data`.
     """
 
+    # NOTE: Make sure all the dataurl values have trailing "/".
     dataurl = _config.ConfigItem(
         'http://data.astropy.org/',
         'Primary URL for astropy remote data site.')
+    dataurl_alias = _config.ConfigItem(
+        'https://astropy.stsci.edu/data/',
+        'dataurl actually redirects to here.')
     dataurl_mirror = _config.ConfigItem(
         'http://www.astropy.org/astropy-data/',
         'Mirror URL for astropy remote data site.')
@@ -1003,6 +1005,14 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             with shelve.open(urlmapfn) as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
+                # If there is a cached copy from mirror, use it.
+                else:
+                    for cur_url in (conf.dataurl, conf.dataurl_alias):
+                        if url_key.startswith(cur_url):
+                            url_mirror = url_key.replace(cur_url,
+                                                         conf.dataurl_mirror)
+                            if url_mirror in url2hash:
+                                return url2hash[url_mirror]
 
         with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
             # keep a hash to rename the local file to the hashed name

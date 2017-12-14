@@ -540,6 +540,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``download_file`` function will check for cache downloaded from mirror URL
+  first before attempting actual download if primary URL is unavailable. [#6987]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
