@@ -16863,7 +16863,7 @@ char *wcspihtext;
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  WCSLIB 5.17 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -16885,7 +16885,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+  $Id: wcspih.c,v 5.17 2017/09/18 08:44:24 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -16986,8 +16986,8 @@ char *wcspihtext;
 char *wcspih_hdr;
 int  wcspih_nkeyrec;
 
-int wcspih_final(int alts[], int ndp[], int ndq[], int distran,
-        double dsstmp[], char *wat[], int *nwcs, struct wcsprm **wcs);
+int wcspih_final(int ndp[], int ndq[], int distran, double dsstmp[],
+        char *wat[], int *nwcs, struct wcsprm **wcs);
 int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
         int ndp[], int ndq[], int distran, int *nwcs, struct wcsprm **wcs);
 void wcspih_naxes(int naxis, int i, int j, char a, int distype, int alts[],
@@ -19068,7 +19068,7 @@ YY_RULE_SETUP
 	
 	  } else {
 	    /* Read the keyvalue. */
-	    wcsutil_str2double(wcspihtext, "%lf", &dbltmp);
+	    wcsutil_str2double(wcspihtext, &dbltmp);
 	
 	    BEGIN(COMMENT);
 	  }
@@ -19191,7 +19191,7 @@ YY_RULE_SETUP
 #line 1614 "wcspih.l"
 {
 	  rectype = 1;
-	  wcsutil_str2double(wcspihtext, "%lf", &dbltmp);
+	  wcsutil_str2double(wcspihtext, &dbltmp);
 	  BEGIN(RECEND);
 	}
 	YY_BREAK
@@ -19609,17 +19609,18 @@ case YY_STATE_EOF(FLUSH):
 	        "keyrecords.\n", nother, (nother==1)?"":"s");
 	    }
 	
-	    return wcspih_final(alts, ndp, ndq, distran, dsstmp, wat, nwcs,
-	                        wcs);
+	    status = wcspih_final(ndp, ndq, distran, dsstmp, wat, nwcs, wcs);
+	    free(watstr);
+	    return status;
 	  }
 	}
 	YY_BREAK
 case 239:
 YY_RULE_SETUP
-#line 1960 "wcspih.l"
+#line 1961 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 19623 "wcspih.c"
+#line 19624 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -20610,7 +20611,7 @@ void wcspihfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 1959 "wcspih.l"
+#line 1960 "wcspih.l"
 
 
 
@@ -20859,7 +20860,6 @@ int wcspih_vsource(double *zsource, double vsource)
 *---------------------------------------------------------------------------*/
 
 int wcspih_final(
-  int alts[],
   int ndp[],
   int ndq[],
   int distran,
@@ -21120,8 +21120,6 @@ int wcspih_final(
     }
 
     disp->ndp = idp;
-
-    free(wat[0]);
   }
 
   return 0;

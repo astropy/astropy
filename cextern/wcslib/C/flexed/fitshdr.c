@@ -10085,7 +10085,7 @@ char *fitshdrtext;
 #line 1 "fitshdr.l"
 /*============================================================================
 
-  WCSLIB 5.16 - an implementation of the FITS WCS standard.
+  WCSLIB 5.17 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2017, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -10107,7 +10107,7 @@ char *fitshdrtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.c,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+  $Id: fitshdr.c,v 5.17 2017/09/18 08:44:24 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -10616,7 +10616,7 @@ YY_RULE_SETUP
 #line 262 "fitshdr.l"
 {
 	  /* 64-bit signed integer keyvalue (up to 18 digits). */
-	  if (wcsutil_str2double(fitshdrtext, "%lf", &dtmp)) {
+	  if (wcsutil_str2double(fitshdrtext, &dtmp)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	
@@ -10705,7 +10705,7 @@ YY_RULE_SETUP
 {
 	  /* Float keyvalue. */
 	  kptr->type = 5;
-	  if (wcsutil_str2double(fitshdrtext, "%lf", &(kptr->keyvalue.f))) {
+	  if (wcsutil_str2double(fitshdrtext, &(kptr->keyvalue.f))) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	  }
@@ -10740,7 +10740,7 @@ YY_RULE_SETUP
 	  }
 	  *cptr = '\0';
 	
-	  if (wcsutil_str2double(ctmp, "%lf", kptr->keyvalue.c)) {
+	  if (wcsutil_str2double(ctmp, kptr->keyvalue.c)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	  }
@@ -10750,7 +10750,7 @@ YY_RULE_SETUP
 	  }
 	  *cptr = '\0';
 	
-	  if (wcsutil_str2double(ctmp, "%lf", kptr->keyvalue.c+1)) {
+	  if (wcsutil_str2double(ctmp, kptr->keyvalue.c+1)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	  }
