@@ -225,3 +225,18 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         out, err = capsys.readouterr()
         assert out == ""
         assert err == ""
+
+    def test_path(self, tmpdir): 
+        a = np.arange(100, dtype=float).reshape(10, 10)
+        b = np.arange(100, dtype=float).reshape(10, 10)
+        hdu_a = PrimaryHDU(data=a)
+        hdu_b = PrimaryHDU(data=b)
+        tmp_a = self.temp(tmpdir.join('testa.fits'))
+        tmp_b = self.temp(tmpdir.mkdir('sub').join('testb.fits'))
+        tmp_c = self.temp(tmpdir.join('sub/'))
+        hdu_a.writeto(tmp_a)
+        hdu_b.writeto(tmp_b)
+        numdiff1 = fitsdiff.main(["-r", "1e-1", tmp_a, tmp_b])
+        numdiff2 = fitsdiff.main(["-r", "1e-1", tmp_a, tmp_c])
+        assert numdiff1 == numdiff2
+

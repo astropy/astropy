@@ -232,7 +232,7 @@ def match_files(paths):
                 sys.exit(2)
             filelists.append(files)
         elif os.path.isdir(path):
-            filelists.append([os.path.abspath(f) for f in os.listdir(path)])
+            filelists.append([os.path.abspath(os.path.join(path,f)) for f in os.listdir(path)])
         elif os.path.isfile(path):
             filelists.append([path])
         else:
