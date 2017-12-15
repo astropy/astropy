@@ -1744,6 +1744,11 @@ Other Changes and Additions
 ---------------------------
 
 - Fixed broken links in the documentation. [#6745]
+- Fixed a bug which meant that rcParams were not taken into account
+  for axis labels.
+
+astropy.vo
+^^^^^^^^^^
 
 - Substantial performance improvement (potentially >1000x for some cases) when
   converting non-scalar ``coordinates.Angle`` objects to strings. [#7004]
