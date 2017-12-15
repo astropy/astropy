@@ -181,6 +181,8 @@ astropy.wcs
   coordinate frames to WCS (the opposite of what ``wcs_to_celestial_frame``
   currently does. [#6481]
 
+- ``wcslib`` was updated to v 5.17. [#6989]
+
 API Changes
 -----------
 
