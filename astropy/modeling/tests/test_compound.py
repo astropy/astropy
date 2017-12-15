@@ -720,23 +720,21 @@ class _ConstraintsTestB(Model):
         return mean
 
 
-@pytest.mark.parametrize('model',
-        [Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
-            Gaussian1D(fixed={'mean': True}),
-         (_ConstraintsTestA + _ConstraintsTestB)()])
-def test_inherit_constraints(model):
+def test_inherit_constraints():
     """
     Various tests for copying of constraint values between compound models and
     their members.
 
-    There are two versions of this test: One where a compound model is created
+    Th eoriginal test had two versions: One where a compound model is created
     from two model instances, and another where a compound model is created
     from two model classes that have default constraints set on some of their
-    parameters.
+    parameters. The second version was removed in #6946 as it is not intended
+    to be supported any more.
 
     Regression test for https://github.com/astropy/astropy/issues/3481
     """
-
+    model = Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) + \
+            Gaussian1D(fixed={'mean': True})
     # We have to copy the model before modifying it, otherwise the test fails
     # if it is run twice in a row, because the state of the model instance
     # would be preserved from one run to the next.
