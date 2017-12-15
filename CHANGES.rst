@@ -275,6 +275,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- The Astropy matplotlib plot style has been deprecated. It will continue to
+  work in future but is no longer documented. [#6991]
+
 astropy.wcs
 ^^^^^^^^^^^
 

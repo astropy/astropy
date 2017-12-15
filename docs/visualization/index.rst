@@ -24,69 +24,6 @@ Using `astropy.visualization`
    histogram.rst
    lupton_rgb.rst
 
-Astropy matplotlib style
-=========================
-
-The visualization package contains two dictionaries that can be used to
-set the Matplotlib plotting style:
-
-.. data:: astropy_mpl_style
-
-    Improves some settings over the matplotlib default style.
-
-.. data:: astropy_mpl_docs_style
-
-    Matplotlib style used by the Astropy documentation.
-
-To apply the custom style on top of your existing matplotlib style,
-perform the following:
-
-Using matplotlib version >= 1.5:
-
-.. NOTE:  skip this doctest because the travis-ci py2.7 test uses
-.. matplotlib 1.4.3, which does not support "axes.axisbelow"
-
-.. doctest-skip::
-
-    >>> import matplotlib.pyplot as plt
-    >>> from astropy.visualization import astropy_mpl_style
-    >>> plt.style.use(astropy_mpl_style)
-
-For older versions of matplotlib:
-
-.. doctest-requires:: matplotlib
-
-    >>> import matplotlib as mpl
-    >>> from astropy.visualization import astropy_mpl_style
-    >>> mpl.rcParams.update(astropy_mpl_style)
-
-Note that these styles are applied *on top* your existing matplotlib
-style.  If you want an exactly reproducible plot (i.e. if you want the
-plot to come out exactly the same independent of the user
-configuration), you should reset the matplotlib settings to the
-defaults *before* applying the astropy style.
-
-Using matplotlib version >= 1.5:
-
-.. NOTE:  skip this doctest because the travis-ci py2.7 test uses
-.. matplotlib 1.4.3, which does not support "axes.axisbelow"
-
-.. doctest-skip::
-
-    >>> import matplotlib.pyplot as plt
-    >>> from astropy.visualization import astropy_mpl_style
-    >>> plt.style.use('default')
-    >>> plt.style.use(astropy_mpl_style)
-
-For older versions of matplotlib:
-
-.. doctest-requires:: matplotlib
-
-    >>> import matplotlib as mpl
-    >>> from astropy.visualization import astropy_mpl_style
-    >>> mpl.rcdefaults()
-    >>> mpl.rcParams.update(astropy_mpl_style)
-
 .. _fits2bitmap:
 
 Scripts
@@ -100,8 +37,6 @@ more about the available options and how to use it, type::
 
 Reference/API
 =============
-
-.. automodapi:: astropy.visualization.mpl_style
 
 .. automodapi:: astropy.visualization
 
