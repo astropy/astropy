@@ -10,6 +10,9 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- New context manager ``constants_set`` to temporarily use an older version.
+  [#7008]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -184,8 +187,8 @@ astropy.utils
 - ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
   [#5471]
 
-- Added a ``dcip_xy`` method to IERS that interpolates along the dX_2000A and 
-  dY_2000A columns of the IERS table.  Hence, the data for the CIP offsets is 
+- Added a ``dcip_xy`` method to IERS that interpolates along the dX_2000A and
+  dY_2000A columns of the IERS table.  Hence, the data for the CIP offsets is
   now available for use in coordinate frame conversion. [#5837]
 
 - The functions ``matmul``, ``broadcast_arrays``, ``broadcast_to`` of the
@@ -345,7 +348,7 @@ astropy.io.ascii
 
 - Added support for reading very large tables in chunks to reduce memory
   usage. [#6458]
-  
+
 - Strip leading/trailing white-space from latex lines to avoid issues when
   matching ``\begin{tabular}`` statements.  This is done by introducing a new
   ``LatexInputter`` class to override the ``BaseInputter``. [#6311]

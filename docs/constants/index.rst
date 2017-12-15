@@ -93,7 +93,7 @@ Physical CODATA constants are in modules with names like ``codata2010`` or
       Unit  = J s
       Reference = CODATA 2010
 
-Astronomical constants defined (primarily) by the IAU are collected in 
+Astronomical constants defined (primarily) by the IAU are collected in
 modules with names like ``iau2012`` or ``iau2015``:
 
     >>> from astropy.constants import iau2012 as const
@@ -113,9 +113,26 @@ modules with names like ``iau2012`` or ``iau2015``:
       Reference = IAU 2015 Resolution B 3
 
 The astronomical and physical constants are combined into modules with
-names like ``astropyconst13`` and ``astropyconst20``.
+names like ``astropyconst13`` and ``astropyconst20``. To temporarily set
+constants to an older version (e.g., for regression testing), a context
+manager is available, as follows:
 
-.. warning:: 
+    >>> from astropy import constants as const
+    >>> with const.constants_set('astropyconst13'):
+    ...     print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62607004e-34
+      Uncertainty  = 8.1e-42
+      Unit  = J s
+      Reference = CODATA 2014
+
+.. warning::
 
     Units such as ``u.M_sun`` will use the current version of the
     corresponding constant. When using prior versions of the constants,
