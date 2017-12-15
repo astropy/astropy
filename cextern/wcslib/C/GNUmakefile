@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.16 and its test suite.
+# GNU makefile for building WCSLIB 5.17 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.16 2017/01/15 04:25:01 mcalabre Exp $
+# $Id: GNUmakefile,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -252,7 +252,7 @@ $(PICLIB) : $(MODULES:%.o=$(PICLIB)(%.o)) ;
 
 install : build
 	-  if [ ! -d "$(LIBDIR)" ] ; then \
-	     $(INSTALL) -d -m 2775 $(LIBDIR) ; \
+	     $(INSTALL) -d -m 775 $(LIBDIR) ; \
 	   fi
 	   $(INSTALL) -m 644 $(WCSLIB) $(LIBDIR)
 	   $(RANLIB) $(LIBDIR)/$(WCSLIB)
@@ -274,7 +274,7 @@ install : build
 	     fi ; \
 	   fi
 	-  if [ ! -d "$(INCDIR)" ] ; then \
-	     $(INSTALL) -d -m 2775 $(INCDIR) ; \
+	     $(INSTALL) -d -m 775 $(INCDIR) ; \
 	   fi
 	   $(INSTALL) -m 444 *.h $(INCDIR)
 	   $(RM) $(INCLINK)
