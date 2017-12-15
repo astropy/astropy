@@ -406,10 +406,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             if a2 is None:
                 a2 = {}
 
-        if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
-            assert quantity_allclose(a1, a2, rtol=1e-10)
-        else:
-            assert np.all(a1 == a2)
+        assert np.all(a1 == a2)
 
 # Testing FITS table read/write with mixins.  This is mostly
 # copied from ECSV mixin testing.
