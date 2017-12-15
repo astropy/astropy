@@ -295,6 +295,17 @@ def _encode_mixins(tbl):
                                 'to FITS without PyYAML installed.'
                                 .format(col.info.name, col.__class__.__name__))
         else:
+            # Warn if information will be lost.  This is hardcoded to the set
+            # difference between column info attributes and what FITS can store
+            # natively (name, dtype, unit).  See _get_col_attributes() in
+            # table/meta.py for where this comes from.
+            for col in tbl.itercols():
+                for attr in ('format', 'description', 'meta'):
+                    if getattr(col.info, attr, None) not in (None, {}):
+                        warnings.warn("table contains column(s) with defined 'format',"
+                                      " 'description', or 'meta' info attributes. These"
+                                      " will be dropped unless you install PyYAML.",
+                                      AstropyUserWarning)
             return tbl
 
     # Convert the table to one with no mixins, only Column objects.  This adds
