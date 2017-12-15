@@ -482,6 +482,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug which meant that rcParams were not taken into account
+  for axis labels.
+
 astropy.vo
 ^^^^^^^^^^
 

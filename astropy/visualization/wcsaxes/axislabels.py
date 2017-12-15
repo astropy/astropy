@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from matplotlib import rcParams
 from matplotlib.text import Text
 import matplotlib.transforms as mtransforms
 
@@ -12,6 +13,15 @@ from .frame import RectangularFrame
 class AxisLabels(Text):
 
     def __init__(self, frame, minpad=1, *args, **kwargs):
+
+        # Use rcParams if the following parameters were not specified explicitly
+        if 'weight' not in kwargs:
+            kwargs['weight'] = rcParams['axes.labelweight']
+        if 'size' not in kwargs:
+            kwargs['size'] = rcParams['axes.labelsize']
+        if 'color' not in kwargs:
+            kwargs['color'] = rcParams['axes.labelcolor']
+
         self._frame = frame
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
