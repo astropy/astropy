@@ -13,8 +13,8 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
-
-import itertools
+import inspect
+from contextlib import contextmanager
 
 # Hack to make circular imports with units work
 try:
@@ -23,10 +23,11 @@ try:
 except ImportError:
     pass
 
-from .constant import Constant, EMConstant
-from . import si
-from . import cgs
-from . import codata2014, iau2015
+from .constant import Constant, EMConstant  # noqa
+from . import si  # noqa
+from . import cgs  # noqa
+from . import codata2014, iau2015  # noqa
+from . import utils as _utils
 
 # for updating the constants module docstring
 _lines = [
@@ -36,19 +37,51 @@ _lines = [
     '========== ============== ================ =========================',
 ]
 
-for _nm, _c in itertools.chain(sorted(vars(codata2014).items()),
-                               sorted(vars(iau2015).items())):
-    if isinstance(_c, Constant) and _c.abbrev not in locals():
-        locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
-                                           _c._unit_string, _c.uncertainty,
-                                           _c.reference)
-
-        _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}'.format(
-            _c.abbrev, _c.value, _c._unit_string, _c.name))
+# NOTE: Update this when default changes.
+_utils._set_c(codata2014, iau2015, inspect.getmodule(inspect.currentframe()),
+              not_in_module_only=True, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])
 
 if __doc__ is not None:
     __doc__ += '\n'.join(_lines)
 
-del _lines, _nm, _c
+
+@contextmanager
+def constants_set(modname):
+    # Re-import here because these were deleted from namespace on init.
+    import inspect
+    import warnings
+    from . import utils as _utils
+
+    # NOTE: Update this when default changes.
+    if modname == 'astropyconst13':
+        from .astropyconst13 import codata2010 as codata
+        from .astropyconst13 import iau2012 as iaudata
+    else:
+        raise ValueError(
+            'Context manager does not currently handle {}'.format(modname))
+
+    module = inspect.getmodule(inspect.currentframe())
+
+    # Ignore warnings about "Constant xxx already has a definition..."
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        _utils._set_c(codata, iaudata, module,
+                      not_in_module_only=False, set_class=True)
+
+    try:
+        yield
+    finally:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            # NOTE: Update this when default changes.
+            _utils._set_c(codata2014, iau2015, module,
+                          not_in_module_only=False, set_class=True)
+
+
+# Clean up namespace
+del inspect
+del contextmanager
+del _utils
+del _lines
