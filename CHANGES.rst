@@ -163,6 +163,10 @@ astropy.utils
 - ``JsonCustomEncoder`` is expanded to handle ``Quantity`` and ``UnitBase``.
   [#5471]
 
+- Added a ``dcip_xy`` method to IERS that interpolates along the dX_2000A and 
+  dY_2000A columns of the IERS table.  Hence, the data for the CIP offsets is 
+  now available for use in coordinate frame conversion. [#5837]
+
 - The functions ``matmul``, ``broadcast_arrays``, ``broadcast_to`` of the
   ``astropy.utils.compat.numpy`` module have been deprecated. Use the
   NumPy functions directly. [#6691]
