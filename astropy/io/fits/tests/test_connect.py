@@ -560,3 +560,15 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
     if name.startswith('tm'):
         assert t2[name]._time.jd1.__class__ is np.ndarray
         assert t2[name]._time.jd2.__class__ is np.ndarray
+
+
+@pytest.mark.skipif('HAS_YAML')
+def test_warn_for_dropped_info_attributes(tmpdir):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([[1, 2]])
+    t['col0'].info.description = 'hello'
+    with catch_warnings() as warns:
+        t.write(filename, overwrite=True)
+    assert len(warns) == 1
+    assert str(warns[0].message).startswith(
+        "table contains column(s) with defined 'format'")
