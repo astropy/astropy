@@ -535,7 +535,7 @@ def time_to_fits(table):
         coord_meta[col.info.name]['coord_unit'] = 'd'
 
         # Time column reference position
-        if getattr(col, 'location', None) is None:
+        if getattr(col, 'location') is None:
             if location is not None:
                 warnings.warn(
                     'Time Column "{}" has no specified location, but global Time '
