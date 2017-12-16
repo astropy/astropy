@@ -1151,8 +1151,10 @@ class UnitBase(metaclass=InheritDocstrings):
             automatically determine which of the candidates are
             better.
         """
+        # if the specified units list explicitly contains prefix units,
+        # include_prefix_units should be turned on.  Ex: units=[u.kpc]
         if include_prefix_units is None:
-            include_prefix_units = units is not None
+            include_prefix_units = isinstance(units, (list, tuple))
 
         # Pre-normalize the equivalencies list
         equivalencies = self._normalize_equivalencies(equivalencies)
