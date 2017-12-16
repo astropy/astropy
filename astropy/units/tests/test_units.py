@@ -129,12 +129,15 @@ def test_units_manipulation():
 
 
 def test_compose():
-    x =  u.m.compose(units=[u.m])
-    assert x[0].to_string() == 'm'
+    x =  u.m.compose(units=(u.m))
+    assert x[0].bases[0] is u.m
+    assert x[0].scale == 1.0
     x = u.m.compose(units=[u.km], include_prefix_units=True)
-    assert x[0].to_string() == '0.001 km'
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
     x = u.m.compose(units=[u.km])
-    assert x[0].to_string() == '0.001 km'
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
 
 
 def test_decompose():
