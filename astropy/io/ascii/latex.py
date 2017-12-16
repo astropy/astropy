@@ -14,8 +14,8 @@ import re
 from . import core
 
 latexdicts = {'AA': {'tabletype': 'table',
-                      'header_start': r'\hline \hline', 'header_end': r'\hline',
-                      'data_end': r'\hline'},
+                     'header_start': r'\hline \hline', 'header_end': r'\hline',
+                     'data_end': r'\hline'},
               'doublelines': {'tabletype': 'table',
                               'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
                               'data_end': r'\hline\hline'},
@@ -73,6 +73,12 @@ def find_latex_line(lines, latex):
             return i
     else:
         return None
+
+
+class LatexInputter(core.BaseInputter):
+
+    def process_lines(self, lines):
+        return [lin.strip() for lin in lines]
 
 
 class LatexSplitter(core.BaseSplitter):
@@ -167,7 +173,10 @@ class LatexData(core.BaseData):
         if self.data_start:
             return find_latex_line(lines, self.data_start)
         else:
-            return self.header.start_line(lines) + 1
+            start = self.header.start_line(lines)
+            if start is None:
+                raise core.InconsistentTableError(r'Could not find table start')
+            return start + 1
 
     def end_line(self, lines):
         if self.data_end:
@@ -299,6 +308,7 @@ class Latex(core.BaseReader):
 
     header_class = LatexHeader
     data_class = LatexData
+    inputter_class = LatexInputter
 
     def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline'],
                  latexdict={}, caption='', col_align=None):
@@ -376,7 +386,7 @@ class AASTexHeader(LatexHeader):
         else:
             align = ''
         lines.append(r'\begin{' + self.latex['tabletype'] + r'}{' + self.latex['col_align'] + r'}'
-                       + align)
+                     + align)
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
