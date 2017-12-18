@@ -650,11 +650,11 @@ raise a ``ValueError: Time object is read-only``.  See the section on
 Missing values
 ^^^^^^^^^^^^^^
 
-The |Time| and |TimeDelta| objects support functionality for marking
-values as missing or invalid.  This is also known as masking,
-and is especially useful for :ref:`table_operations` such as joining
-and stacking.  To set one or more items as missing, assign the special
-value `~numpy.ma.masked`, for example::
+The |Time| and |TimeDelta| objects support functionality for marking values as
+missing or invalid (added in astropy 3.0).  This is also known as masking,
+and is especially useful for :ref:`table_operations` such as joining and
+stacking.  To set one or more items as missing, assign the special value
+`~numpy.ma.masked`, for example::
 
   >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
   ...          out_subfmt='date')
@@ -678,6 +678,34 @@ setting the mask is always done by setting the item to `~numpy.ma.masked`.
   >>> t.mask
   array([False, False,  True, False], dtype=bool)
   >>> t[:2] = np.ma.masked
+
+.. warning:: The internal implementation of missing value support is
+   provisional and may change in a subsequent release.  This would impact
+   information in the next section.  However, the documented API for using missing
+   values with |Time| and |TimeDelta| objects is stable.
+
+Custom format classes and missing values
+""""""""""""""""""""""""""""""""""""""""
+
+For advanced users who have written a custom time format via a
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
+class *if you wish to support missing values*.  For applications that
+do not take advantage of missing values then no changes are required.
+
+Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
+setting the corresponding entries of the ``jd2`` attribute to be `~numpy.nan`
+(but this is never done directly by the user).  For most array operations and
+numpy functions the `~numpy.nan` entries are propagated as expected and all is
+well.  However, this is not always the case, and in particular the `ERFA
+<https://github.com/liberfa/erfa>`_ routines do not generally support
+`~numpy.nan` values gracefully.
+
+In cases where `~np.nan` is not acceptable, format class methods should use the
+``jd2_filled`` property instead of ``jd2``.  This replaces `~numpy.nan` with
+``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituing ``0.0``
+will allow functions to return "reasonable" values which will then be masked in
+any subsequent outputs.  See the ``value`` property of the
+`~astropy.time.TimeDecimalYear` format for any example.
 
 Get representation
 ^^^^^^^^^^^^^^^^^^^
