@@ -236,7 +236,7 @@ def write_table_fits(input, output, overwrite=False):
         Whether to overwrite any existing file without warning.
     """
 
-    table_hdu = table_to_hdu(input)
+    table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
     if isinstance(output, str) and os.path.exists(output):

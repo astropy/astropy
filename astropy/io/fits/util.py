@@ -877,3 +877,53 @@ def get_testdata_filepath(filename):
     """
     return data.get_pkg_data_filename(
         'io/fits/tests/data/{}'.format(filename), 'astropy')
+
+
+def _rstrip_inplace(array):
+    """
+    Performs an in-place rstrip operation on string arrays. This is necessary
+    since the built-in `np.char.rstrip` in Numpy does not perform an in-place
+    calculation.
+    """
+
+    # The following implementation convert the string to unsigned integers of
+    # the right length. Trailing spaces (which are represented as 32) are then
+    # converted to null characters (represented as zeros). To avoid creating
+    # large temporary mask arrays, we loop over chunks (attempting to do that
+    # on a 1-D version of the array; large memory may still be needed in the
+    # unlikely case that a string array has small first dimension and cannot
+    # be represented as a contiguous 1-D array in memory).
+
+    dt = array.dtype
+
+    if dt.kind not in 'SU':
+        raise TypeError("This function can only be used on string arrays")
+    # View the array as appropriate integers. The last dimension will
+    # equal the number of characters in each string.
+    bpc = 1 if dt.kind == 'S' else 4
+    dt_int = "{0}{1}u{2}".format(dt.itemsize // bpc, dt.byteorder, bpc)
+    b = array.view(dt_int, np.ndarray)
+    # For optimal speed, work in chunks of the internal ufunc buffer size.
+    bufsize = np.getbufsize()
+    # Attempt to have the strings as a 1-D array to give the chunk known size.
+    # Note: the code will work if this fails; the chunks will just be larger.
+    if b.ndim > 2:
+        try:
+            b.shape = -1, b.shape[-1]
+        except AttributeError:  # can occur for non-contiguous arrays
+            pass
+    for j in range(0, b.shape[0], bufsize):
+        c = b[j:j + bufsize]
+        # Mask which will tell whether we're in a sequence of trailing spaces.
+        mask = np.ones(c.shape[:-1], dtype=bool)
+        # Loop over the characters in the strings, in reverse order. We process
+        # the i-th character of all strings in the chunk at the same time. If
+        # the character is 32, this corresponds to a space, and we then change
+        # this to 0. We then construct a new mask to find rows where the
+        # i-th character is 0 (null) and the i-1-th is 32 (space) and repeat.
+        for i in range(-1, -c.shape[-1], -1):
+            mask &= c[..., i] == 32
+            c[..., i][mask] = 0
+            mask = c[..., i] == 0
+
+    return array
