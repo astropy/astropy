@@ -15,7 +15,7 @@ from numpy import char as chararray
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, Delayed)
-from .util import decode_ascii, encode_ascii
+from .util import decode_ascii, encode_ascii, _rstrip_inplace
 from ...utils import lazyproperty
 
 
@@ -267,7 +267,7 @@ class FITS_rec(np.recarray):
         self._uint = False
 
     @classmethod
-    def from_columns(cls, columns, nrows=0, fill=False):
+    def from_columns(cls, columns, nrows=0, fill=False, character_as_bytes=False):
         """
         Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
@@ -329,6 +329,7 @@ class FITS_rec(np.recarray):
         raw_data = np.empty(columns.dtype.itemsize * nrows, dtype=np.uint8)
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
+        data._character_as_bytes = character_as_bytes
 
         # Make sure the data is a listener for changes to the columns
         columns._add_listener(data)
@@ -1278,21 +1279,6 @@ def _get_recarray_field(array, key):
             not isinstance(field, chararray.chararray)):
         field = field.view(chararray.chararray)
     return field
-
-
-def _rstrip_inplace(array, chars=None):
-    """
-    Performs an in-place rstrip operation on string arrays.
-    This is necessary since the built-in `np.char.rstrip` in Numpy does not
-    perform an in-place calculation.  This can be removed if ever
-    https://github.com/numpy/numpy/issues/6303 is implemented (however, for
-    the purposes of this module the only in-place vectorized string functions
-    we need are rstrip and encode).
-    """
-
-    for item in np.nditer(array, flags=['zerosize_ok'],
-                                 op_flags=['readwrite']):
-        item[...] = item.item().rstrip(chars)
 
 
 class _UnicodeArrayEncodeError(UnicodeEncodeError):
