@@ -1404,7 +1404,7 @@ def test_apply_space_motion():
     c2.apply_space_motion(dt=10*u.year)
 
     with pytest.raises(ValueError):
-        c1.apply_space_motion(new_obstime=t2)
+        c2.apply_space_motion(new_obstime=t2)
 
     # TODO: we need to actually check something here...remember trigonometry,
     # though - the source moves on a straight line, so the above won't move by
