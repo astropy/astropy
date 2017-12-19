@@ -1385,8 +1385,8 @@ def test_extra_attributes():
 
 
 def test_apply_space_motion():
-    t1 = Time('2015-01-01T00:00')
-    t2 = Time('2025-01-01T00:00')
+    t1 = Time('2005-01-01T00:00')
+    t2 = Time('2015-01-01T00:00')
 
     # Check a very simple case first:
     frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
@@ -1394,9 +1394,17 @@ def test_apply_space_motion():
                  pm_ra_cosdec=0.1*u.deg/u.yr,
                  pm_dec=0*u.mas/u.yr,
                  radial_velocity=0*u.km/u.s)
+
+    # Cases that should work (just testing input for now):
     c1 = SkyCoord(frame, obstime=t1)
-    c2 = c1.apply_space_motion(new_obstime=t2)
-    c3 = c1.apply_space_motion(dt=10*u.year)
+    c1.apply_space_motion(new_obstime=t2)
+    c1.apply_space_motion(dt=10*u.year)
+
+    c2 = SkyCoord(frame)
+    c2.apply_space_motion(dt=10*u.year)
+
+    with pytest.raises(ValueError):
+        c1.apply_space_motion(new_obstime=t2)
 
     # TODO: we need to actually check something here...remember trigonometry,
     # though - the source moves on a straight line, so the above won't move by
