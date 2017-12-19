@@ -692,7 +692,7 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
                         'scc.x', 'scc.y', 'scc.z',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime.jd1', 'scd.obstime.jd2',
-                        'tm',  # serialize_method is formatted_value
+                        'tm.jd1', 'tm.jd2',
                         ]
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -710,8 +710,9 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
     assert t.colnames == t2.colnames
 
     # Read directly via hdf5 and confirm column names
-    # hdus = hdf5.open(filename)
-    # assert hdus[1].columns.names == serialized_names
+    h5 = h5py.File(filename, 'r')
+    assert list(h5['root'].dtype.names) == serialized_names
+    h5.close()
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')

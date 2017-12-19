@@ -455,7 +455,7 @@ and the time coordinate column ``time`` as ``[1, 2]`` will give::
 
 By default, FITS table columns will be read as standard `~astropy.table.Column`
 objects without taking the FITS time standard into consideration.
-n
+
 * String time column in ISO-8601 Datetime format
 
 FITS uses a subset of ISO-8601 (which in itself does not imply a particular time scale)
