@@ -839,7 +839,7 @@ class TableLoc:
         Assign Table row's by value slice.
 
         Parameters
-            ----------
+        ----------
         key : column element, list, ndarray, slice or tuple
               Can be a value of the table primary index, a list/ndarray
               of such values, or a value slice (both endpoints are included).
@@ -870,7 +870,7 @@ class TableLocIndices(TableLoc):
         Retrieve Table row's indices by value slice.
 
         Parameters
-            ----------
+        ----------
         item : column element, list, ndarray, slice or tuple
                Can be a value of the table primary index, a list/ndarray
                of such values, or a value slice (both endpoints are included).
