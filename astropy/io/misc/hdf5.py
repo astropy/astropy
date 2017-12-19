@@ -352,7 +352,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
                                         data=header_encoded)
 
     else:
-        # Write the meta-data to the file
+        # Write the Table meta dict key:value pairs to the file as HDF5
+        # attributes.  This works only for a limited set of scalar data types
+        # like numbers, strings, etc., but not any complex types.  This path
+        # also ignores column meta like unit or format.
         for key in table.meta:
             val = table.meta[key]
             try:
