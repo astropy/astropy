@@ -532,6 +532,9 @@ class SkyCoord(ShapedLikeNDArray):
                                       "https://github.com/astropy/astropy")
 
         if new_obstime is not None and self.obstime is None:
+            # If no obstime is already on this object, raise an error if a new
+            # obstime is passed: we need to know the time / epoch at which the
+            # the position / velocity were measured initially
             raise ValueError('This object has no associated `obstime`. '
                              'apply_space_motion() must receive a time '
                              'difference, `dt`, and not a new obstime.')
@@ -543,8 +546,6 @@ class SkyCoord(ShapedLikeNDArray):
             t1 = Time('J2000')
 
         if dt is None:
-            # If no obstime already on this object, raise error: we need to know
-            # the time / epoch at which the the position/velocity were measured
             dt = new_obstime - self.obstime
         t2 = t1 + dt
 
