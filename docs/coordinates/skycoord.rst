@@ -389,8 +389,8 @@ new |SkyCoord| object in the requested frame::
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
 
-Digger deeper
--------------
+Digging deeper
+--------------
 *[Casual users can skip this section]*
 
 After transforming to Galactic the longitude and latitude values are now
