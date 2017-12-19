@@ -350,6 +350,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Coordinate frame classes now raise a warning when they are added to the frame
+  transform graph if they have frame attribute names that conflict with any
+  component names. [#6871]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
