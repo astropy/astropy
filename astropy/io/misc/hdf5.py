@@ -189,7 +189,7 @@ def _encode_mixins(tbl):
     from ...table import serialize
     from ...table.table import has_info_class
     from ... import units as u
-    from ...utils.data_info import MixinInfo
+    from ...utils.data_info import MixinInfo, serialize_context_as
 
     # If PyYAML is not available then check to see if there are any mixin cols
     # that *require* YAML serialization.  FITS already has support for Time,
@@ -210,7 +210,9 @@ def _encode_mixins(tbl):
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.
-    encode_tbl = serialize._represent_mixins_as_columns(tbl)
+
+    with serialize_context_as('hdf5'):
+        encode_tbl = serialize._represent_mixins_as_columns(tbl)
     if encode_tbl is tbl:
         return tbl
 
