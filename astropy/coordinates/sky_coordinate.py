@@ -496,8 +496,7 @@ class SkyCoord(ShapedLikeNDArray):
             frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
 
-    @u.quantity_input(dt=(u.year, None))
-    def move_to(self, new_obstime=None, dt=None):
+    def apply_space_motion(self, new_obstime=None, dt=None):
         """
         Update the position of the source represented by this coordinate object
         to a new specified time using the velocity and assuming linear motion.
@@ -508,8 +507,8 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         new_obstime : `~astropy.time.Time`, optional
             The time at which to evolve the position to.
-        dt : `~astropy.units.Quantity`, optional
-            A time to evolve as a `Quantity` object.
+        dt : `~astropy.units.Quantity`, `~astropy.time.TimeDelta`, optional
+            An amount of time to evolve the position of the source.
         """
 
         if (new_obstime is None and dt is None or
