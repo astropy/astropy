@@ -2534,9 +2534,11 @@ class Table:
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
         """
-        if((ext=='.h5'or ext=='.hdf5')and kwargs['overwrite']):
-            for col in self.colnames:
-                self.replace_column(col, np.core.defchararray.encode((self.columns[col])))
+        if isinstance(args[0],str):
+            if(args[0].endswith(('.hdf5', '.h5'))):
+                for col in self.colnames:
+                    if str(self.columns[col].dtype)[1]=='U':
+                        self.replace_column(col, np.core.defchararray.encode((self.columns[col]).astype(str)))
         io_registry.write(self, *args, **kwargs)
 
     def copy(self, copy_data=True):
