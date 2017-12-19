@@ -358,6 +358,8 @@ astropy.io.fits
 
 - Fixed potential problems with the compression module [#6732]
 
+- Fixed ``fitsdiff`` script to correctly find the path for .fits files when directories are passed as arguments. [#6834]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
