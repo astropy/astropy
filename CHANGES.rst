@@ -72,15 +72,20 @@ astropy.io.fits
   keyword argument - if set to `True`, then when string columns are accessed,
   byte columns will be returned, which can provide significantly improved
   performance. [#6920]
+
 - Added support for writing and reading back a table which has "mixin columns"
   such as ``SkyCoord`` or ``EarthLocation`` with no loss of information. [#6912]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-  - When writing to HDF5 files, the serialized metadata are now saved in a new
-    dataset, instead of the HDF5 dataset attributes. This allows for metadata of
-    any dimensions. [#6304]
+- When writing to HDF5 files, the serialized metadata are now saved in a new
+  dataset, instead of the HDF5 dataset attributes. This allows for metadata of
+  any dimensions. [#6304]
+
+- Added support in HDF5 for writing and reading back a table which has "mixin
+  columns" such as ``SkyCoord`` or ``EarthLocation`` with no loss of
+  information. [#7007]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
