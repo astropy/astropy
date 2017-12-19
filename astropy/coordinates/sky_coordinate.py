@@ -6,6 +6,7 @@ import collections
 
 import numpy as np
 
+from .. import _erfa as erfa
 from ..utils.compat.misc import override__dir__
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
@@ -20,7 +21,7 @@ from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+                             UnitSphericalRepresentation, SphericalDifferential)
 
 __all__ = ['SkyCoord', 'SkyCoordInfo']
 
@@ -530,24 +531,43 @@ class SkyCoord(ShapedLikeNDArray):
                                       "https://github.com/astropy/astropy")
 
         if dt is None:
-            # If no obstime already on this object, raise error: we need to know the
-            # time / epoch at which the the position/velocity were measured
-            dt = (new_obstime - self.obstime)
+            # If no obstime already on this object, raise error: we need to know
+            # the time / epoch at which the the position/velocity were measured
+            dt = new_obstime - self.obstime
 
-        cart = self.frame.represent_as('cartesian')
-        pos = cart.without_differentials()
-        vel = cart.differentials['s']
+        icrs = self.icrs
+        icrs.set_representation_cls(s=SphericalDifferential)
 
-        new_rep = pos + vel.to_cartesian() * dt
-        new_rep = new_rep.with_differentials(vel)
-        new_rep = new_rep.represent_as(
-            self.frame.data.__class__,
-            self.frame.data.differentials['s'].__class__)
+        try:
+            plx = icrs.distance.to(u.arcsecond, u.parallax()).value
+        except u.UnitConversionError: # No distance: set to 0 by starpm convention
+            plx = 0.
 
-        # TODO: we should update the obstime of the returned SkyCoord, and need
-        # to carry along the frame attributes
-        new_frame = self.frame.replicate_without_data(obstime=new_obstime)
-        return self.__class__(new_frame.realize_frame(new_rep))
+        try:
+            rv = icrs.radial_velocity.to(u.km/u.s).value
+        except u.UnitConversionError: # No RV
+            rv = 0.
+
+        # proper motion in RA should not include the cos(dec) term, see the
+        # erfa function eraStarpv, comment (4).
+        starpm = erfa.starpm(icrs.ra.radian, icrs.dec.radian,
+                             icrs.pm_ra.to(u.radian/u.yr).value,
+                             icrs.pm_dec.to(u.radian/u.yr).value,
+                             plx, rv,
+                             0., 0., dt.to(u.day).value, 0.)
+
+        icrs2 = ICRS(ra=starpm[0] * u.radian,
+                     dec=starpm[1] * u.radian,
+                     pm_ra=starpm[2] * u.radian/u.yr,
+                     pm_dec=starpm[3] * u.radian/u.yr,
+                     distance=Distance(parallax=starpm[4] * u.arcsec),
+                     radial_velocity=starpm[5] * u.km/u.s,
+                     differential_cls=SphericalDifferential)
+
+        # Update the obstime of the returned SkyCoord, and need to carry along
+        # the frame attributes
+        return self.__class__(icrs2.transform_to(self.frame),
+                              obstime=new_obstime)
 
     def __getattr__(self, attr):
         """

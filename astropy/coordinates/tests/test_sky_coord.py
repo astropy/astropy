@@ -1384,7 +1384,7 @@ def test_extra_attributes():
     assert sc3.obstime is None
 
 
-def test_move_to():
+def test_apply_space_motion():
     t1 = Time('2015-01-01T00:00')
     t2 = Time('2025-01-01T00:00')
 
@@ -1395,8 +1395,8 @@ def test_move_to():
                  pm_dec=0*u.mas/u.yr,
                  radial_velocity=0*u.km/u.s)
     c1 = SkyCoord(frame, obstime=t1)
-    c2 = c1.move_to(new_obstime=t2)
-    c3 = c1.move_to(dt=10*u.year)
+    c2 = c1.apply_space_motion(new_obstime=t2)
+    c3 = c1.apply_space_motion(dt=10*u.year)
 
     # TODO: we need to actually check something here...remember trigonometry,
     # though - the source moves on a straight line, so the above won't move by
