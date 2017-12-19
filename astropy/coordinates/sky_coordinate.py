@@ -566,7 +566,9 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Update the obstime of the returned SkyCoord, and need to carry along
         # the frame attributes
-        return self.__class__(icrs2.transform_to(self.frame),
+        # TODO: HACK for now is passing in .data because the SkyCoord init dies
+        # if a frame with a SphericalDifferential is passed in.
+        return self.__class__(icrs2.transform_to(self.frame).data,
                               obstime=new_obstime)
 
     def __getattr__(self, attr):
