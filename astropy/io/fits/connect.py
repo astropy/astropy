@@ -293,7 +293,7 @@ def _encode_mixins(tbl):
                     col.__class__ not in (u.Quantity, Time)):
                 raise TypeError('cannot write type {} column {!r} '
                                 'to FITS without PyYAML installed.'
-                                .format(col.info.name, col.__class__.__name__))
+                                .format(col.__class__.__name__, col.info.name))
         else:
             # Warn if information will be lost.  This is hardcoded to the set
             # difference between column info attributes and what FITS can store
