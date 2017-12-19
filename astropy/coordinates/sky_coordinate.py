@@ -531,15 +531,16 @@ class SkyCoord(ShapedLikeNDArray):
                                       "issue on github:\n"
                                       "https://github.com/astropy/astropy")
 
+        if new_obstime is not None and self.obstime is None:
+            raise ValueError('This object has no associated `obstime`. '
+                             'apply_space_motion() must receive a time '
+                             'difference, `dt`, and not a new obstime.')
+
         t1 = self.obstime
         if t1 is None:
-            # Arbitrary choice: if the current SkyCoord object has no obstime,
+            # MAGIC NUMBER: if the current SkyCoord object has no obstime,
             # assume J2000 to do the dt offset.
             t1 = Time('J2000')
-            if new_obstime is not None:
-                raise ValueError('This object has no associated `obstime`. '
-                                 'apply_space_motion() must receive a time '
-                                 'difference, `dt`, and not a new obstime.')
 
         if dt is None:
             # If no obstime already on this object, raise error: we need to know
