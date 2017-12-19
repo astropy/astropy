@@ -8,8 +8,11 @@ from collections import OrderedDict
 
 from .. import registry as io_registry
 from ... import units as u
-from ...table import Table, Column, MaskedColumn
+from ...table import Table, serialize, meta, Column, MaskedColumn
+from ...table.table import has_info_class
+from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.data_info import MixinInfo
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
 from .convenience import table_to_hdu
@@ -61,6 +64,52 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         return True
     else:
         return False
+
+
+def _decode_mixins(tbl):
+    """Decode a Table ``tbl`` that has astropy Columns + appropriate meta-data into
+    the corresponding table with mixin columns (as appropriate).
+    """
+    # If available read in __serialized_columns__ meta info which is stored
+    # in FITS COMMENTS between two sentinels.
+    try:
+        i0 = tbl.meta['comments'].index('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
+        i1 = tbl.meta['comments'].index('--END-ASTROPY-SERIALIZED-COLUMNS--')
+    except (ValueError, KeyError):
+        return tbl
+
+    # The YAML data are split into COMMENT cards, with lines longer than 70
+    # characters being split with a continuation character \ (backslash).
+    # Strip the backslashes and join together.
+    continuation_line = False
+    lines = []
+    for line in tbl.meta['comments'][i0 + 1:i1]:
+        if continuation_line:
+            lines[-1] = lines[-1] + line[:70]
+        else:
+            lines.append(line[:70])
+        continuation_line = len(line) == 71
+
+    del tbl.meta['comments'][i0:i1 + 1]
+    if not tbl.meta['comments']:
+        del tbl.meta['comments']
+    info = meta.get_header_from_yaml(lines)
+
+    # Add serialized column information to table meta for use in constructing mixins
+    tbl.meta['__serialized_columns__'] = info['meta']['__serialized_columns__']
+
+    # Use the `datatype` attribute info to update column attributes that are
+    # NOT already handled via standard FITS column keys (name, dtype, unit).
+    for col in info['datatype']:
+        for attr in ['format', 'description', 'meta']:
+            if attr in col:
+                setattr(tbl[col['name']].info, attr, col[attr])
+
+    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
+    # as guidance.
+    tbl = serialize._construct_mixins_from_columns(tbl)
+
+    return tbl
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
@@ -219,7 +268,83 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
     # TODO: implement masking
 
+    # Decode any mixin columns that have been stored as standard Columns.
+    t = _decode_mixins(t)
+
     return t
+
+
+def _encode_mixins(tbl):
+    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+    astropy Columns + appropriate meta-data to allow subsequent decoding.
+    """
+    # If PyYAML is not available then check to see if there are any mixin cols
+    # that *require* YAML serialization.  FITS already has support for Time,
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Time or Quantity).  In this case other mixin column meta (e.g.
+    # description or meta) will be silently dropped, consistent with astropy <=
+    # 2.0 behavior.
+    try:
+        import yaml
+    except ImportError:
+        for col in tbl.itercols():
+            if (has_info_class(col, MixinInfo) and
+                    col.__class__ not in (u.Quantity, Time)):
+                raise TypeError('cannot write type {} column {!r} '
+                                'to FITS without PyYAML installed.'
+                                .format(col.info.name, col.__class__.__name__))
+        else:
+            # Warn if information will be lost.  This is hardcoded to the set
+            # difference between column info attributes and what FITS can store
+            # natively (name, dtype, unit).  See _get_col_attributes() in
+            # table/meta.py for where this comes from.
+            for col in tbl.itercols():
+                for attr in ('format', 'description', 'meta'):
+                    if getattr(col.info, attr, None) not in (None, {}):
+                        warnings.warn("table contains column(s) with defined 'format',"
+                                      " 'description', or 'meta' info attributes. These"
+                                      " will be dropped unless you install PyYAML.",
+                                      AstropyUserWarning)
+            return tbl
+
+    # Convert the table to one with no mixins, only Column objects.  This adds
+    # meta data which is extracted with meta.get_yaml_from_table.  This ignores
+    # Time-subclass columns and leave them in the table so that the downstream
+    # FITS Time handling does the right thing.
+    encode_tbl = serialize._represent_mixins_as_columns(
+        tbl, exclude_classes=(Time,))
+    if encode_tbl is tbl:
+        return tbl
+
+    # Get the YAML serialization of information describing the table columns.
+    # This is re-using ECSV code that combined existing table.meta with with
+    # the extra __serialized_columns__ key.  For FITS the table.meta is handled
+    # by the native FITS connect code, so don't include that in the YAML
+    # output.
+    ser_col = '__serialized_columns__'
+    tbl_meta_copy = encode_tbl.meta.copy()
+    try:
+        encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
+        meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
+    finally:
+        encode_tbl.meta = tbl_meta_copy
+    del encode_tbl.meta[ser_col]
+
+    if 'comments' not in encode_tbl.meta:
+        encode_tbl.meta['comments'] = []
+    encode_tbl.meta['comments'].append('--BEGIN-ASTROPY-SERIALIZED-COLUMNS--')
+
+    for line in meta_yaml_lines:
+        # Split line into 70 character chunks for COMMENT cards
+        idxs = list(range(0, len(line) + 70, 70))
+        lines = [line[i0:i1] + '\\' for i0, i1 in zip(idxs[:-1], idxs[1:])]
+        lines[-1] = lines[-1][:-1]
+        encode_tbl.meta['comments'].extend(lines)
+
+    encode_tbl.meta['comments'].append('--END-ASTROPY-SERIALIZED-COLUMNS--')
+
+    return encode_tbl
 
 
 def write_table_fits(input, output, overwrite=False):
@@ -235,6 +360,9 @@ def write_table_fits(input, output, overwrite=False):
     overwrite : bool
         Whether to overwrite any existing file without warning.
     """
+
+    # Encode any mixin columns into standard Columns.
+    input = _encode_mixins(input)
 
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 

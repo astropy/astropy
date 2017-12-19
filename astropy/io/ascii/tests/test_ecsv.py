@@ -346,8 +346,11 @@ def test_ecsv_mixins_qtable_to_table():
         if isinstance(col.info, QuantityInfo):
             # Downgrade Quantity to Column + unit
             assert type(col2) is Column
-            attrs = ['unit']  # Other attrs are lost
+            # Class-specific attributes like `value` or `wrap_angle` are lost.
+            attrs = ['unit']
             compare_class = False
+            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            assert np.allclose(col.value, col2, rtol=1e-10)
 
         assert_objects_equal(col, col2, attrs, compare_class)
 
