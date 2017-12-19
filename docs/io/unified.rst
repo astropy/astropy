@@ -227,6 +227,13 @@ can use the convenience function
 binary table HDU and insert or append that to an existing
 :class:`~astropy.io.fits.HDUList`.
 
+As of astropy version 3.0 there is support for writing a table which contains
+:ref:`mixin_columns` such as `~astropy.time.Time` or
+`~astropy.coordinates.SkyCoord`.  This uses FITS ``COMMENT`` cards to capture
+additional information needed order to fully reconstruct the mixin columns when
+reading back from FITS.  The information is a Python `dict` structure which is
+serialized using YAML.
+
 Keywords
 ^^^^^^^^^
 
