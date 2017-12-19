@@ -12,7 +12,7 @@ from ...table import Table, serialize, meta, Column, MaskedColumn
 from ...table.table import has_info_class
 from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
-from ...utils.data_info import MixinInfo
+from ...utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
 from .convenience import table_to_hdu
@@ -312,8 +312,10 @@ def _encode_mixins(tbl):
     # meta data which is extracted with meta.get_yaml_from_table.  This ignores
     # Time-subclass columns and leave them in the table so that the downstream
     # FITS Time handling does the right thing.
-    encode_tbl = serialize._represent_mixins_as_columns(
-        tbl, exclude_classes=(Time,))
+
+    with serialize_context_as('fits'):
+        encode_tbl = serialize._represent_mixins_as_columns(
+            tbl, exclude_classes=(Time,))
     if encode_tbl is tbl:
         return tbl
 
