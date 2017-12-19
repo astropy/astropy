@@ -942,6 +942,8 @@ the available docstrings below:
 - `~astropy.coordinates.SkyCoord.position_angle`,
 - `~astropy.coordinates.SkyCoord.separation`,
 - `~astropy.coordinates.SkyCoord.separation_3d`
+- `~astropy.coordinates.SkyCoord.apply_space_motion`
 
 Addition information and examples can be found in the section on
-:ref:`astropy-coordinates-separations-matching`.
+:ref:`astropy-coordinates-separations-matching` and
+:ref:`astropy-coordinates-apply-space-motion`.
