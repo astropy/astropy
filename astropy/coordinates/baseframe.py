@@ -164,7 +164,8 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
 
             if (not found_repr_info and
                     '_frame_specific_representation_info' in m):
-                repr_info = m['_frame_specific_representation_info']
+                # create a copy of the dict so we don't mess with the contents
+                repr_info = dict(m['_frame_specific_representation_info'])
                 found_repr_info = True
 
             if found_default_repr and found_default_diff and found_repr_info:
@@ -186,8 +187,8 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
             if isinstance(cls_or_name, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
-                repr_info[_get_repr_cls(cls_or_name)] = repr_info[cls_or_name]
-                del repr_info[cls_or_name]
+                cls = _get_repr_cls(cls_or_name)
+                repr_info[cls] = repr_info.pop(cls_or_name)
 
         # The default spherical names are 'lon' and 'lat'
         repr_info.setdefault(r.SphericalRepresentation,
