@@ -15,6 +15,7 @@ from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.data_info import MixinInfo
 from ..utils import ShapedLikeNDArray
+from ..time import Time
 
 from .distances import Distance
 from .angles import Angle
@@ -530,10 +531,21 @@ class SkyCoord(ShapedLikeNDArray):
                                       "issue on github:\n"
                                       "https://github.com/astropy/astropy")
 
+        t1 = self.obstime
+        if t1 is None:
+            # Arbitrary choice: if the current SkyCoord object has no obstime,
+            # assume J2000 to do the dt offset.
+            t1 = Time('J2000')
+            if new_obstime is not None:
+                raise ValueError('This object has no associated `obstime`. '
+                                 'apply_space_motion() must receive a time '
+                                 'difference, `dt`, and not a new obstime.')
+
         if dt is None:
             # If no obstime already on this object, raise error: we need to know
             # the time / epoch at which the the position/velocity were measured
             dt = new_obstime - self.obstime
+        t2 = t1 + dt
 
         icrs = self.icrs
         icrs.set_representation_cls(s=SphericalDifferential)
@@ -554,7 +566,8 @@ class SkyCoord(ShapedLikeNDArray):
                              icrs.pm_ra.to(u.radian/u.yr).value,
                              icrs.pm_dec.to(u.radian/u.yr).value,
                              plx, rv,
-                             0., 0., dt.to(u.day).value, 0.)
+                             2400000.5, t1.tdb.mjd,
+                             2400000.5, t2.tdb.mjd)
 
         icrs2 = ICRS(ra=starpm[0] * u.radian,
                      dec=starpm[1] * u.radian,
@@ -569,7 +582,7 @@ class SkyCoord(ShapedLikeNDArray):
         # TODO: HACK for now is passing in .data because the SkyCoord init dies
         # if a frame with a SphericalDifferential is passed in.
         return self.__class__(icrs2.transform_to(self.frame).data,
-                              obstime=new_obstime)
+                              obstime=new_obstime, frame=self.frame)
 
     def __getattr__(self, attr):
         """
