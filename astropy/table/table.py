@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .index import TableIndices, TableLoc, TableILoc
+from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import re
 import sys
@@ -492,6 +492,14 @@ class Table:
         and iloc work only with single-column indices.
         '''
         return TableLoc(self)
+
+    @property
+    def loc_indices(self):
+        """
+        Return a TableLocIndices object that can be used for retrieving
+        the row indices corresponding to given table index key value or values.
+        """
+        return TableLocIndices(self)
 
     @property
     def iloc(self):

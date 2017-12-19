@@ -765,7 +765,7 @@ class TableIndices(list):
 
 
 class TableLoc:
-    '''
+    """
     A pseudo-list of Table rows allowing for retrieval
     of rows by indexed column values.
 
@@ -773,7 +773,7 @@ class TableLoc:
     ----------
     table : Table
         Indexed table to use
-    '''
+    """
 
     def __init__(self, table):
         self.table = table
@@ -781,19 +781,10 @@ class TableLoc:
         if len(self.indices) == 0:
             raise ValueError("Cannot create TableLoc object with no indices")
 
-    def __getitem__(self, item):
-        '''
-        Retrieve Table rows by value slice.
-
-        Parameters
-        ----------
-        item : column element, list, ndarray, slice or tuple
-            Can be a value of the table primary index, a list/ndarray
-            of such values, or a value slice (both endpoints are included).
-            If a tuple is provided, the first element must be
-            an index to use instead of the primary key, and the
-            second element must be as above.
-        '''
+    def _get_rows(self, item):
+        """
+        Retrieve Table rows indexes by value slice.
+        """
 
         if isinstance(item, tuple):
             key, item = item
@@ -815,13 +806,84 @@ class TableLoc:
             # item should be a list or ndarray of values
             rows = []
             for key in item:
-                rows.extend(index.find((key,)))
+                p = index.find((key,))
+                if len(p) == 0:
+                    raise KeyError('No matches found for key {0}'.format(key))
+                else:
+                    rows.extend(p)
+        return rows
+
+    def __getitem__(self, item):
+        """
+        Retrieve Table rows by value slice.
+
+        Parameters
+        ----------
+        item : column element, list, ndarray, slice or tuple
+            Can be a value of the table primary index, a list/ndarray
+            of such values, or a value slice (both endpoints are included).
+            If a tuple is provided, the first element must be
+            an index to use instead of the primary key, and the
+            second element must be as above.
+        """
+        rows = self._get_rows(item)
 
         if len(rows) == 0:  # no matches found
             raise KeyError('No matches found for key {0}'.format(item))
         elif len(rows) == 1:  # single row
             return self.table[rows[0]]
         return self.table[rows]
+
+    def __setitem__(self, key, value):
+        """
+        Assign Table row's by value slice.
+
+        Parameters
+        ----------
+        key : column element, list, ndarray, slice or tuple
+              Can be a value of the table primary index, a list/ndarray
+              of such values, or a value slice (both endpoints are included).
+              If a tuple is provided, the first element must be
+              an index to use instead of the primary key, and the
+              second element must be as above.
+
+        value : New values of the row elements.
+                Can be a list of tuples/lists to update the row.
+        """
+        rows = self._get_rows(key)
+        if len(rows) == 0:  # no matches found
+            raise KeyError('No matches found for key {0}'.format(key))
+        elif len(rows) == 1:  # single row
+            self.table[rows[0]] = value
+        else:  # multiple rows
+            if len(rows) == len(value):
+                for row, val in zip(rows, value):
+                    self.table[row] = val
+            else:
+                raise ValueError('Right side should contain {0} values'.format(len(rows)))
+
+
+class TableLocIndices(TableLoc):
+
+    def __getitem__(self, item):
+        """
+        Retrieve Table row's indices by value slice.
+
+        Parameters
+        ----------
+        item : column element, list, ndarray, slice or tuple
+               Can be a value of the table primary index, a list/ndarray
+               of such values, or a value slice (both endpoints are included).
+               If a tuple is provided, the first element must be
+               an index to use instead of the primary key, and the
+               second element must be as above.
+        """
+        rows = self._get_rows(item)
+        if len(rows) == 0:  # no matches found
+            raise KeyError('No matches found for key {0}'.format(item))
+        elif len(rows) == 1:  # single row
+            return rows[0]
+        return rows
 
 
 class TableILoc(TableLoc):
