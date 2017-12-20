@@ -173,7 +173,7 @@ def test_configitem_options(tmpdir):
     f = tmpdir.join('astropy.cfg')
     with open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
-    with open(f.strpath, 'rU', encoding='utf-8') as fd:
+    with open(f.strpath, 'r', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert 'tstnmo = op2' in lns
