@@ -1735,8 +1735,6 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 repr_attr_names.append(reprname)
                 repr_attr_classes.append(vel.attr_classes[reprname])
 
-
-
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord)
