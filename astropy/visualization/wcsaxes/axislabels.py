@@ -101,38 +101,38 @@ class AxisLabels(Text):
 
             if isinstance(self._frame, RectangularFrame):
 
-                if len(ticklabels_bbox_list) > 0:
-                    ticklabels_bbox = mtransforms.Bbox.union(ticklabels_bbox_list)
+                if len(ticklabels_bbox_list) > 0 and ticklabels_bbox_list[0] is not None:
+                    coord_ticklabels_bbox[axis] = [mtransforms.Bbox.union(ticklabels_bbox_list)]
                 else:
-                    ticklabels_bbox = None
+                    coord_ticklabels_bbox[axis] = [None]
 
                 if axis == 'l':
-                    if axis in visible_ticks and ticklabels_bbox is not None:
-                        left = ticklabels_bbox.xmin
+                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                        left = coord_ticklabels_bbox[axis][0].xmin
                     else:
                         left = xcen
                     xpos = left - padding
                     self.set_position((xpos, ycen))
 
                 elif axis == 'r':
-                    if axis in visible_ticks and ticklabels_bbox is not None:
-                        right = ticklabels_bbox.x1
+                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                        right = coord_ticklabels_bbox[axis][0].x1
                     else:
                         right = xcen
                     xpos = right + padding
                     self.set_position((xpos, ycen))
 
                 elif axis == 'b':
-                    if axis in visible_ticks and ticklabels_bbox is not None:
-                        bottom = ticklabels_bbox.ymin
+                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                        bottom = coord_ticklabels_bbox[axis][0].ymin
                     else:
                         bottom = ycen
                     ypos = bottom - padding
                     self.set_position((xcen, ypos))
 
                 elif axis == 't':
-                    if axis in visible_ticks and ticklabels_bbox is not None:
-                        top = ticklabels_bbox.y1
+                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                        top = coord_ticklabels_bbox[axis][0].y1
                     else:
                         top = ycen
                     ypos = top + padding
