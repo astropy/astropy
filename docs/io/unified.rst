@@ -273,15 +273,10 @@ Astropy native objects (mixin columns)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to store not only standard `~astropy.table.Column` objects to a
-FITS table HDU, but also the following Astropy native objects
-(:ref:`mixin_columns`) within a `~astropy.table.Table` or `~astropy.table.QTable`:
-
-- `astropy.time.Time`
-- `astropy.units.Quantity`
-
-Other mixin columns such as `~astropy.coordinates.SkyCoord` or
-`~astropy.coordinates.EarthLocation` are not currently supported due to reasons
-including extensive metadata and no precise mapping to the FITS standard.
+FITS table HDU, but also any Astropy native objects
+(:ref:`mixin_columns`) within a `~astropy.table.Table` or
+`~astropy.table.QTable`.  This includes `~astropy.time.Time`,
+`~astropy.units.Quantity`, `~astropy.coordinates.SkyCoord`, and many others.
 
 In general a mixin column may contain multiple data components as well as
 object attributes beyond the standard Column attributes like ``format`` or
@@ -642,24 +637,60 @@ overwriting existing files. To overwrite only a single table within an HDF5
 file that has multiple datasets, use *both* the ``overwrite=True`` and
 ``append=True`` arguments.
 
-If the metadata of the table cannot be written directly to the HDF5 file
-(e.g. dictionaries), or if you want to preserve the units and description
-of tables and columns, use ``serialize_meta=True``::
-
-    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True)
-
-The way serialized meta are saved in the HDF5 dataset have changed in Astropy 3.0.
-Files in the old format are still read correctly. If for some reason the user wants to *write*
-in the old format, they will specify the (deprecated) ``compatibility_mode`` keyword
-
-    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True, compatibility_mode=True)
-
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
 
+Metadata and mixin columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Astropy tables can contain metadata, both in the table ``meta`` attribute
+(which is an ordered dictionary of arbitrary key/value pairs), and within the
+columns, which each have attributes ``unit``, ``format``, ``description``,
+and ``meta``.
+
+By default, when writing a table to HDF5 the code will attempt to store each
+key/value pair within the table ``meta`` as HDF5 attributes of the table
+dataset.  This will fail of the values within ``meta`` are not objects that can
+be stored as HDF5 attributes.  In addition, if the table columns being stored
+have defined values for any of the above-listed column attributes, these
+metadata will *not* be stored and a warning will be issued.
+
+serialize_meta
+~~~~~~~~~~~~~~
+To enable storing all table and column metadata to the HDF5 file, call
+the ``write()`` method with ``serialize_meta=True``.  This will store metadata
+in a separate HDF5 dataset, contained in the same file, which is named
+``<path>.__table_column_meta__``.  Here ``path`` is the argument provided in
+the call to ``write()``::
+
+    >>> t.write('observations.hdf5', path='data', serialize_meta=True)
+
+As of astropy 3.0, by specifying ``serialize_meta=True`` one can also store to
+HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
+`~astropy.coordinates.SkyCoord` columns.
+
+compatibility_mode
+~~~~~~~~~~~~~~~~~~
+
+The way metadata are saved in the HDF5 dataset has changed in astropy 3.0.
+Previously the metadata were serialized with YAML and this was stored as an
+HDF5 attribute.  This process was subject to a fixed limit on the size of an
+attribute.  Starting with 3.0 the YAML-serialized metadata are stored as a
+separate dataset as described above, with no size limit.
+
+Files using the old convention are automatically recognized and will always be read
+correctly.
+
+If for some reason the user needs to *write* in the old format, they should
+specify the deprecated ``compatibility_mode`` keyword::
+
+    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True,
+    ...         compatibility_mode=True)
+
+.. warning:: The ``compatibility_mode`` keyword will be removed in a future
+   version of astropy so your code should be changed.
 
 .. _table_io_jsviewer:
 

@@ -144,7 +144,7 @@ def read_table_hdf5(input, path=None):
     # convert to a Table.
 
     # Create a Table object
-    from ...table import Table, meta
+    from ...table import Table, meta, serialize
 
     table = Table(np.array(input))
 
@@ -170,11 +170,48 @@ def read_table_hdf5(input, path=None):
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
+
+        # Construct new table with mixins, using tbl.meta['__serialized_columns__']
+        # as guidance.
+        table = serialize._construct_mixins_from_columns(table)
+
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
 
     return table
+
+
+def _encode_mixins(tbl):
+    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
+    astropy Columns + appropriate meta-data to allow subsequent decoding.
+    """
+    from ...table import serialize
+    from ...table.table import has_info_class
+    from ... import units as u
+    from ...utils.data_info import MixinInfo, serialize_context_as
+
+    # If PyYAML is not available then check to see if there are any mixin cols
+    # that *require* YAML serialization.  HDF5 already has support for
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Quantity).
+    try:
+        import yaml
+    except ImportError:
+        for col in tbl.itercols():
+            if (has_info_class(col, MixinInfo) and
+                    col.__class__ is not u.Quantity):
+                raise TypeError("cannot write type {} column '{}' "
+                                "to HDF5 without PyYAML installed."
+                                .format(col.__class__.__name__, col.info.name))
+
+    # Convert the table to one with no mixins, only Column objects.  This adds
+    # meta data which is extracted with meta.get_yaml_from_table.
+    with serialize_context_as('hdf5'):
+        encode_tbl = serialize._represent_mixins_as_columns(tbl)
+
+    return encode_tbl
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
@@ -214,13 +251,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
         import h5py
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
-
-    # Tables with mixin columns are not supported
-    if table.has_mixin_columns:
-        mixin_names = [name for name, col in table.columns.items()
-                       if not isinstance(col, table.ColumnClass)]
-        raise ValueError('cannot write table with mixin column(s) {0} to HDF5'
-                         .format(mixin_names))
 
     if path is None:
         raise ValueError("table path should be set via the path= argument")
@@ -276,6 +306,21 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             raise OSError("Table {0} already exists".format(path))
 
+    # Encode any mixin columns as plain columns + appropriate metadata
+    table = _encode_mixins(table)
+
+    # Warn if information will be lost when serialize_meta=False.  This is
+    # hardcoded to the set difference between column info attributes and what
+    # HDF5 can store natively (name, dtype) with no meta.
+    if serialize_meta is False:
+        for col in table.itercols():
+            for attr in ('unit', 'format', 'description', 'meta'):
+                if getattr(col.info, attr, None) not in (None, {}):
+                    warnings.warn("table contains column(s) with defined 'unit', 'format',"
+                                  " 'description', or 'meta' info attributes. These will"
+                                  " be dropped since serialize_meta=False.",
+                                  AstropyUserWarning)
+
     # Write the table to the file
     if compression:
         if compression is True:
@@ -304,7 +349,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
                                         data=header_encoded)
 
     else:
-        # Write the meta-data to the file
+        # Write the Table meta dict key:value pairs to the file as HDF5
+        # attributes.  This works only for a limited set of scalar data types
+        # like numbers, strings, etc., but not any complex types.  This path
+        # also ignores column meta like unit or format.
         for key in table.meta:
             val = table.meta[key]
             try:

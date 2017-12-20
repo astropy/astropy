@@ -572,3 +572,12 @@ def test_warn_for_dropped_info_attributes(tmpdir):
     assert len(warns) == 1
     assert str(warns[0].message).startswith(
         "table contains column(s) with defined 'format'")
+
+
+@pytest.mark.skipif('HAS_YAML')
+def test_error_for_mixins_but_no_yaml(tmpdir):
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([mixin_cols['sc']])
+    with pytest.raises(TypeError) as err:
+        t.write(filename)
+    assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err)
