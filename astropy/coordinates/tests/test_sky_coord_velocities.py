@@ -96,7 +96,6 @@ def test_creation_cartesian():
     assert_quantity_allclose(c.pm_ra_cosdec, sdif.d_lon_coslat)
 
 
-@pytest.mark.xfail  #TODO: FIX
 def test_useful_error_missing():
     sc_nod = SkyCoord(ICRS(1*u.deg, 2*u.deg))
     try:
@@ -107,11 +106,11 @@ def test_useful_error_missing():
 
     try:
         sc_nod.pm_dec
-    except AttributeError as e:
+    except Exception as e:
         msg_pm_dec = e.args[0]
 
     assert "has no attribute" in msg_l
-    assert "has no attribute" in msg_pm_dec
+    assert "has no associated differentials" in msg_pm_dec
 
 
 # ----------------------Operations on SkyCoords w/ velocities-------------------
