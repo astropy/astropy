@@ -336,12 +336,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     Parameters
     ----------
-    representation_type : `BaseRepresentation` or None
-        A representation class or ``None`` to have no data (or use the other
-        arguments)
+    data : `BaseRepresentation` subclass instance
+        A representation object or ``None`` to have no data (or use the
+        coordinate component arguments, see below).
     *args, **kwargs
         Coordinate components, with names that depend on the subclass.
-    differential_type : `BaseDifferential`, dict, optional
+    representation_type : `BaseRepresentation` subclass, str, optional
+        A representation class or ``None`` to have no data (or use the other
+        arguments)
+    differential_type : `BaseDifferential` subclass, str, dict, optional
         A differential class or dictionary of differential classes (currently
         only a velocity differential with key 's' is supported). This sets
         the expected input differential class, thereby changing the expected
@@ -369,9 +372,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                  differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
 
-        # TODO: we should be able to deal with an instance, not just a
-        # class or string for representation and differential_type.
-
         # TODO: this is here for backwards compatibility. It should be possible
         # to use either the kwarg representation_type, or representation.
         # In future versions, we will raise a deprecation warning here:
@@ -387,6 +387,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 # TODO: assumes the differential class is for the velocity
                 # differential
                 differential_type = {'s': differential_type}
+
+            elif isinstance(differential_type, str):
+                # TODO: assumes the differential class is for the velocity
+                # differential
+                diff_cls = r.DIFFERENTIAL_CLASSES[differential_type]
+                differential_type = {'s': diff_cls}
 
             elif differential_type is None:
                 if representation == self.default_representation:
