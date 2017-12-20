@@ -140,13 +140,18 @@ class TestConvenience(FitsTestCase):
                 with pytest.raises(NotImplementedError):
                     printdiff(in1, in2, 0)
 
-    def test_tabledump_splittext(self):
+    def test_tabledump(self):
         """ 
         Regression test for https://github.com/astropy/astropy/issues/6937
         """ 
+        # test without datafile
         filename = self.data('tb.fits')
-        f = fits.hdu.hdulist.fitsopen(filename, mode='readonly')
-        root, tail = os.path.splitext(f._file.name)
-        assert tail == '.fits'
+        fits.tabledump(filename)
+        assert os.path.isfile(self.data('tb_1.txt'))
+
+        # test with datafile
+        fits.tabledump(filename, datafile=self.data('test_tb.txt'))
+        assert os.path.isfile(self.data('test_tb.txt'))
+        
 
 

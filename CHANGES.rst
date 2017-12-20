@@ -476,6 +476,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- When datafile is missing, fits.tabledump uses input file name to build
+  output file name. Fixed how it gets input file name from HDUList. [#6937]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
