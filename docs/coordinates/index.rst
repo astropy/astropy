@@ -293,7 +293,7 @@ Velocities (Proper Motions and Radial Velocities)
 
 In addition to positional coordinates, `~astropy.coordinates` supports storing
 and transforming velocities.  These are available both via the lower-level
-:doc:`coordinate frame classes <frames>`, (new in v3.0) via  |skycoord|
+:doc:`coordinate frame classes <frames>`, and (new in v3.0) via  |skycoord|
 objects::
 
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
