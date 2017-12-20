@@ -146,6 +146,13 @@ class SkyCoord(ShapedLikeNDArray):
 
       >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
 
+    Velocity components (proper motions or radial velocities) can also be
+    provided in a similar manner::
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, radial_velocity=10*u.km/u.s)
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr, pm_dec=1*u.mas/u.yr)
+
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
     to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, and `Galactic`.
@@ -189,6 +196,11 @@ class SkyCoord(ShapedLikeNDArray):
             Cartesian coordinates values
         u, v, w : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
+        radial_velocity : `~astropy.units.Quantity`, optional
+            The component of the velocity along the line-of-sight (i.e., the
+            radial direction). Should have velocity units.
+       pm_dec, pm_ra_cosdec : `~astropy.units.Quantity`, optional
+            Proper motion components, in angle per time units.
     """
 
     # Declare that SkyCoord can be used as a Table column by defining the
