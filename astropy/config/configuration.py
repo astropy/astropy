@@ -424,7 +424,8 @@ class ConfigItem(metaclass=InheritDocstrings):
                 warn(
                     "Config parameter '{0}' {1} of the file '{2}' "
                     "is deprecated. Use '{3}' {4} instead.".format(
-                        name, section_name(module), get_config_filename(filename, rootname=self.rootname),
+                        name, section_name(module), get_config_filename(filename,
+                                                                        rootname=self.rootname),
                         self.name, section_name(new_module)),
                     AstropyDeprecationWarning)
                 options.append((sec[name], module, name))
@@ -438,7 +439,8 @@ class ConfigItem(metaclass=InheritDocstrings):
             warn(
                 "Config parameter '{0}' {1} of the file '{2}' is "
                 "given by more than one alias ({3}). Using the first.".format(
-                    self.name, section_name(sec), get_config_filename(filename, rootname=self.rootname),
+                    self.name, section_name(sec), get_config_filename(filename,
+                                                                      rootname=self.rootname),
                     ', '.join([
                         '.'.join(x[1:3]) for x in options if x[1] is not None])),
                 AstropyDeprecationWarning)
@@ -540,7 +542,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         if _autopkg:
             rootname = pkgname
         else:
-            rootname = 'astropy' # so we don't break affiliated packages
+            rootname = 'astropy'  # so we don't break affiliated packages
 
     cobj = _cfgobjs.get(pkgname, None)
 
