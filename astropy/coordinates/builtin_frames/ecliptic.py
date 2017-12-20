@@ -130,4 +130,3 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-
