@@ -109,7 +109,7 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
-def test_io_quantity_write(tmpdir):
+def test_votable_quantity_write(tmpdir):
     """
     Test that table with Quantity mixin column can be round-tripped by
     io.votable.  Note that FITS and HDF5 mixin support are tested (much more
@@ -192,7 +192,7 @@ def test_io_time_write_fits(tmpdir, table_types):
             assert (tm[name] == t[name].value).all()
 
 
-def test_io_write_fail(mixin_cols):
+def test_votable_mixin_write_fail(mixin_cols):
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
     io.votable.
