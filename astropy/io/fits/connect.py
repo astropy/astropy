@@ -12,7 +12,7 @@ from ...table import Table, serialize, meta, Column, MaskedColumn
 from ...table.table import has_info_class
 from ...time import Time
 from ...utils.exceptions import AstropyUserWarning
-from ...utils.data_info import MixinInfo
+from ...utils.data_info import MixinInfo, serialize_context_as
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES
 from .convenience import table_to_hdu
@@ -291,29 +291,32 @@ def _encode_mixins(tbl):
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
                     col.__class__ not in (u.Quantity, Time)):
-                raise TypeError('cannot write type {} column {!r} '
-                                'to FITS without PyYAML installed.'
-                                .format(col.info.name, col.__class__.__name__))
+                raise TypeError("cannot write type {} column '{}' "
+                                "to FITS without PyYAML installed."
+                                .format(col.__class__.__name__, col.info.name))
         else:
             # Warn if information will be lost.  This is hardcoded to the set
             # difference between column info attributes and what FITS can store
             # natively (name, dtype, unit).  See _get_col_attributes() in
             # table/meta.py for where this comes from.
             for col in tbl.itercols():
-                for attr in ('format', 'description', 'meta'):
-                    if getattr(col.info, attr, None) not in (None, {}):
-                        warnings.warn("table contains column(s) with defined 'format',"
-                                      " 'description', or 'meta' info attributes. These"
-                                      " will be dropped unless you install PyYAML.",
-                                      AstropyUserWarning)
+                if any(getattr(col.info, attr, None) not in (None, {})
+                       for attr in ('format', 'description', 'meta')):
+                    warnings.warn("table contains column(s) with defined 'format',"
+                                  " 'description', or 'meta' info attributes. These"
+                                  " will be dropped unless you install PyYAML.",
+                                  AstropyUserWarning)
+                    break
             return tbl
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.  This ignores
     # Time-subclass columns and leave them in the table so that the downstream
     # FITS Time handling does the right thing.
-    encode_tbl = serialize._represent_mixins_as_columns(
-        tbl, exclude_classes=(Time,))
+
+    with serialize_context_as('fits'):
+        encode_tbl = serialize._represent_mixins_as_columns(
+            tbl, exclude_classes=(Time,))
     if encode_tbl is tbl:
         return tbl
 

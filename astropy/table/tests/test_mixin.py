@@ -109,30 +109,21 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
-def test_io_quantity_write(tmpdir):
+def test_votable_quantity_write(tmpdir):
     """
-    Test that table with Quantity mixin column can be written by io.fits and
-    io.votable but not by io.misc.hdf5. Validation of the output is done.
-    Test that io.fits writes a table containing Quantity mixin columns that can
-    be round-tripped (metadata unit).
+    Test that table with Quantity mixin column can be round-tripped by
+    io.votable.  Note that FITS and HDF5 mixin support are tested (much more
+    thoroughly) in their respective subpackage tests
+    (io/fits/tests/test_connect.py and io/misc/tests/test_hdf5.py).
     """
     t = QTable()
     t['a'] = u.Quantity([1, 2, 4], unit='Angstrom')
 
     filename = str(tmpdir.join('table-tmp'))
-
-    # Show that FITS and VOTable formats succeed
-    for fmt in ('fits', 'votable'):
-        t.write(filename, format=fmt, overwrite=True)
-        qt = QTable.read(filename, format=fmt)
-        assert isinstance(qt['a'], u.Quantity)
-        assert qt['a'].unit == 'Angstrom'
-
-    # Show that HDF5 format fails
-    if HAS_H5PY:
-        with pytest.raises(ValueError) as err:
-            t.write(filename, format='hdf5', overwrite=True)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+    t.write(filename, format='votable', overwrite=True)
+    qt = QTable.read(filename, format='votable')
+    assert isinstance(qt['a'], u.Quantity)
+    assert qt['a'].unit == 'Angstrom'
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
@@ -201,11 +192,10 @@ def test_io_time_write_fits(tmpdir, table_types):
             assert (tm[name] == t[name].value).all()
 
 
-def test_io_write_fail(mixin_cols):
+def test_votable_mixin_write_fail(mixin_cols):
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
-    io.votable, io.fits and io.misc.hdf5. Also test that table with Time mixin
-    columns cannot be written by io.votable and io.misc.hdf5.
+    io.votable.
     """
     t = QTable(mixin_cols)
     # Only do this test if there are unsupported column types (i.e. anything besides
@@ -214,13 +204,11 @@ def test_io_write_fail(mixin_cols):
 
     if not unsupported_cols:
         pytest.skip("no unsupported column types")
-    for fmt in ('votable', 'hdf5'):
-        if fmt == 'hdf5' and not HAS_H5PY:
-            continue
-        out = StringIO()
-        with pytest.raises(ValueError) as err:
-            t.write(out, format=fmt)
-        assert 'cannot write table with mixin column(s)' in str(err.value)
+
+    out = StringIO()
+    with pytest.raises(ValueError) as err:
+        t.write(out, format='votable')
+    assert 'cannot write table with mixin column(s)' in str(err.value)
 
 
 def test_join(table_types):

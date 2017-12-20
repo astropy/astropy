@@ -5,7 +5,13 @@ import pytest
 import numpy as np
 
 from ....tests.helper import catch_warnings
-from ....table import Table, Column
+from ....table import Table, QTable, NdarrayMixin, Column
+
+from .... import units as u
+
+from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
+from ....time import Time, TimeDelta
+from ....units.quantity import QuantityInfo
 
 try:
     import h5py
@@ -520,6 +526,20 @@ def test_skip_meta(tmpdir):
         "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
 
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_fail_meta_serialize(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1.meta['f'] = str
+
+    with pytest.raises(Exception) as err:
+        t1.write(test_file, path='the_table', serialize_meta=True)
+    assert "cannot represent an object: <class 'str'>" in str(err)
+
+
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_h5py_objects(tmpdir):
 
@@ -545,3 +565,205 @@ def test_read_h5py_objects(tmpdir):
     assert np.all(t4['a'] == [1, 2, 3])
 
     f.close()         # don't raise an error in 'test --open-files'
+
+
+def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
+    if compare_class:
+        assert obj1.__class__ is obj2.__class__
+
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description', 'info.meta']
+    for attr in attrs + info_attrs:
+        a1 = obj1
+        a2 = obj2
+        for subattr in attr.split('.'):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
+        # fix this.
+        if attr == 'info.meta':
+            if a1 is None:
+                a1 = {}
+            if a2 is None:
+                a2 = {}
+
+        assert np.all(a1 == a2)
+
+# Testing HDF5 table read/write with mixins.  This is mostly
+# copied from FITS mixin testing.
+
+el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
+el2 = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
+              obstime='J1990.5')
+scc = sc.copy()
+scc.representation = 'cartesian'
+tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
+
+
+mixin_cols = {
+    'tm': tm,
+    'dt': TimeDelta([1, 2] * u.day),
+    'sc': sc,
+    'scc': scc,
+    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+                    obstime=['J1990.5', 'J1991.5']),
+    'q': [1, 2] * u.m,
+    'lat': Latitude([1, 2] * u.deg),
+    'lon': Longitude([1, 2] * u.deg, wrap_angle=180. * u.deg),
+    'ang': Angle([1, 2] * u.deg),
+    'el2': el2,
+}
+
+time_attrs = ['value', 'shape', 'format', 'scale', 'location']
+compare_attrs = {
+    'c1': ['data'],
+    'c2': ['data'],
+    'tm': time_attrs,
+    'dt': ['shape', 'value', 'format', 'scale'],
+    'sc': ['ra', 'dec', 'representation', 'frame.name'],
+    'scc': ['x', 'y', 'z', 'representation', 'frame.name'],
+    'scd': ['ra', 'dec', 'distance', 'representation', 'frame.name'],
+    'q': ['value', 'unit'],
+    'lon': ['value', 'unit', 'wrap_angle'],
+    'lat': ['value', 'unit'],
+    'ang': ['value', 'unit'],
+    'el2': ['x', 'y', 'z', 'ellipsoid'],
+    'nd': ['x', 'y', 'z'],
+}
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+def test_hdf5_mixins_qtable_to_table(tmpdir):
+    """Test writing as QTable and reading as Table.  Ensure correct classes
+    come out.
+    """
+    filename = str(tmpdir.join('test_simple.hdf5'))
+
+    names = sorted(mixin_cols)
+
+    t = QTable([mixin_cols[name] for name in names], names=names)
+    t.write(filename, format='hdf5', path='root', serialize_meta=True)
+    t2 = Table.read(filename, format='hdf5', path='root')
+
+    assert t.colnames == t2.colnames
+
+    for name, col in t.columns.items():
+        col2 = t2[name]
+
+        # Special-case Time, which does not yet support round-tripping
+        # the format.
+        if isinstance(col2, Time):
+            col2.format = col.format
+
+        attrs = compare_attrs[name]
+        compare_class = True
+
+        if isinstance(col.info, QuantityInfo):
+            # Downgrade Quantity to Column + unit
+            assert type(col2) is Column
+            # Class-specific attributes like `value` or `wrap_angle` are lost.
+            attrs = ['unit']
+            compare_class = False
+            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            assert np.all(col.value == col2)
+
+        assert_objects_equal(col, col2, attrs, compare_class)
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_hdf5_mixins_as_one(table_cls, tmpdir):
+    """Test write/read all cols at once and validate intermediate column names"""
+    filename = str(tmpdir.join('test_simple.hdf5'))
+    names = sorted(mixin_cols)
+
+    serialized_names = ['ang',
+                        'dt.jd1', 'dt.jd2',
+                        'el2.x', 'el2.y', 'el2.z',
+                        'lat',
+                        'lon',
+                        'q',
+                        'sc.ra', 'sc.dec',
+                        'scc.x', 'scc.y', 'scc.z',
+                        'scd.ra', 'scd.dec', 'scd.distance',
+                        'scd.obstime.jd1', 'scd.obstime.jd2',
+                        'tm.jd1', 'tm.jd2',
+                        ]
+
+    t = table_cls([mixin_cols[name] for name in names], names=names)
+    t.meta['C'] = 'spam'
+    t.meta['comments'] = ['this', 'is', 'a', 'comment']
+    t.meta['history'] = ['first', 'second', 'third']
+
+    t.write(filename, format="hdf5", path='root', serialize_meta=True)
+
+    t2 = table_cls.read(filename, format='hdf5', path='root')
+    assert t2.meta['C'] == 'spam'
+    assert t2.meta['comments'] == ['this', 'is', 'a', 'comment']
+    assert t2.meta['history'] == ['first', 'second', 'third']
+
+    assert t.colnames == t2.colnames
+
+    # Read directly via hdf5 and confirm column names
+    h5 = h5py.File(filename, 'r')
+    assert list(h5['root'].dtype.names) == serialized_names
+    h5.close()
+
+
+@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.parametrize('name_col', list(mixin_cols.items()))
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_hdf5_mixins_per_column(table_cls, name_col, tmpdir):
+    """Test write/read one col at a time and do detailed validation"""
+    filename = str(tmpdir.join('test_simple.hdf5'))
+    name, col = name_col
+
+    c = [1.0, 2.0]
+    t = table_cls([c, col, c], names=['c1', name, 'c2'])
+    t[name].info.description = 'my description'
+    t[name].info.meta = {'list': list(range(50)), 'dict': {'a': 'b' * 200}}
+
+    if not t.has_mixin_columns:
+        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
+
+    if isinstance(t[name], NdarrayMixin):
+        pytest.xfail('NdarrayMixin not supported')
+
+    t.write(filename, format="hdf5", path='root', serialize_meta=True)
+    t2 = table_cls.read(filename, format='hdf5', path='root')
+
+    assert t.colnames == t2.colnames
+
+    for colname in t.colnames:
+        assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
+
+    # Special case to make sure Column type doesn't leak into Time class data
+    if name.startswith('tm'):
+        assert t2[name]._time.jd1.__class__ is np.ndarray
+        assert t2[name]._time.jd2.__class__ is np.ndarray
+
+
+@pytest.mark.skipif('HAS_YAML or not HAS_H5PY')
+def test_warn_for_dropped_info_attributes(tmpdir):
+    filename = str(tmpdir.join('test.hdf5'))
+    t = Table([[1, 2]])
+    t['col0'].info.description = 'hello'
+    with catch_warnings() as warns:
+        t.write(filename, path='root', serialize_meta=False)
+    assert len(warns) == 1
+    assert str(warns[0].message).startswith(
+        "table contains column(s) with defined 'unit'")
+
+
+@pytest.mark.skipif('HAS_YAML or not HAS_H5PY')
+def test_error_for_mixins_but_no_yaml(tmpdir):
+    filename = str(tmpdir.join('test.hdf5'))
+    t = Table([mixin_cols['sc']])
+    with pytest.raises(TypeError) as err:
+        t.write(filename, path='root', serialize_meta=True)
+    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err)
