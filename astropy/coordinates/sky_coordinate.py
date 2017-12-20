@@ -1193,7 +1193,12 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .funcs import get_constellation
 
-        return get_constellation(self, short_name, constellation_list)
+        # drop the velocities - not needed for a pure-position application
+        extra_frameattrs = {nm: getattr(self, nm)
+                            for nm in self._extra_frameattr_names}
+        novel = SkyCoord(self.realize_frame(self.data.without_differentials()),
+                         **extra_frameattrs)
+        return get_constellation(novel, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
