@@ -107,7 +107,7 @@ class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
-    >>> icrs.representation
+    >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
@@ -129,7 +129,7 @@ without changing the intrinsic object itself which represents a point in 3d
 space.::
 
     >>> from astropy.coordinates import CartesianRepresentation
-    >>> icrs.representation = CartesianRepresentation
+    >>> icrs.representation_type = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) [dimensionless]
         (0.99923861, 0.01744177, 0.0348995)>
@@ -140,7 +140,7 @@ The representation can also be set at the time of creating a coordinate
 and affects the set of keywords used to supply the coordinate data.  For
 example to create a coordinate with cartesian data do::
 
-    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)  #  doctest: +FLOAT_CMP
+    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation_type='cartesian')  #  doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in kpc
         (1., 2., 3.)>
 

@@ -404,7 +404,7 @@ lies in some less-obvious attributes::
   >>> sc_gal.representation_component_units
   OrderedDict([('l', Unit("deg")), ('b', Unit("deg"))])
 
-  >>> sc_gal.representation
+  >>> sc_gal.representation_type
   <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 Together these tell the object that ``l`` and ``b`` are the longitude and
@@ -533,7 +533,7 @@ by extrapolating the previous documentation for spherical representations.
 Initialization just requires setting the ``representation`` keyword and
 supplying the corresponding components for that representation::
 
-    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (x, y, z) in kpc
         (1., 2., 3.)>
@@ -542,34 +542,34 @@ supplying the corresponding components for that representation::
 
 Other variations include::
 
-    >>> SkyCoord(1, 2*u.deg, 3, representation='cylindrical')  # doctest: +FLOAT_CMP
+    >>> SkyCoord(1, 2*u.deg, 3, representation_type='cylindrical')  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (, deg, )
         (1., 2., 3.)>
 
-    >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation='cylindrical')  # doctest: +FLOAT_CMP
+    >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation_type='cylindrical')  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (km, deg, m)
         (1., 2., 3.)>
 
-    >>> SkyCoord(rho=1, phi=2, z=3, unit=(u.km, u.deg, u.m), representation='cylindrical')  # doctest: +FLOAT_CMP
+    >>> SkyCoord(rho=1, phi=2, z=3, unit=(u.km, u.deg, u.m), representation_type='cylindrical')  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (km, deg, m)
         (1., 2., 3.)>
 
-    >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation='cylindrical')  # doctest: +FLOAT_CMP
+    >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation_type='cylindrical')  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (, deg, )
         (1., 2., 3.)>
 
 In general terms, the allowed syntax is as follows::
 
-  SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], [representation=REPRESENTATION],
+  SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], [representation_type=REPRESENTATION],
            keyword_args ...)
   SkyCoord(COMP1, COMP2, [COMP3], [FRAME | frame=FRAME], [unit=UNIT],
-           [representation=REPRESENTATION], keyword_args ...)
+           [representation_type=REPRESENTATION], keyword_args ...)
   SkyCoord([FRAME | frame=FRAME], <comp1_name>=COMP1, <comp2_name>=COMP2,
-           <comp3_name>=COMP3, [representation=REPRESENTATION], [unit=UNIT],
+           <comp3_name>=COMP3, [representation_type=REPRESENTATION], [unit=UNIT],
            keyword_args ...)
 
 In this case the ``keyword_args`` now includes the element
-``representation=REPRESENTATION``.  In the above description, elements in all
+``representation_type=REPRESENTATION``.  In the above description, elements in all
 capital letters (e.g. ``FRAME``) describes a user input of that element type.
 Elements in square brackets are optional.
 
@@ -676,7 +676,7 @@ names for that frame to the component name on the representation class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
-    >>> icrs.representation
+    >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
     OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
@@ -698,12 +698,12 @@ appears) without changing the intrinsic object itself which represents a point
 in 3d space.
 ::
 
-    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (x, y, z) in kpc
         (1., 2., 3.)>
 
-    >>> c.representation = 'cylindrical'
+    >>> c.representation_type = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
         (2.23606798, 63.43494882, 3.)>
@@ -714,12 +714,12 @@ in 3d space.
     ...
     AttributeError: 'SkyCoord' object has no attribute 'x'
 
-    >>> c.representation = 'spherical'
+    >>> c.representation_type = 'spherical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
         (63.43494882, 53.3007748, 3.74165739)>
 
-    >>> c.representation = 'unitspherical'
+    >>> c.representation_type = 'unitspherical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (63.43494882, 53.3007748)>
@@ -727,18 +727,18 @@ in 3d space.
 You can also use any representation class to set the representation::
 
     >>> from astropy.coordinates import CartesianRepresentation
-    >>> c.representation = CartesianRepresentation
+    >>> c.representation_type = CartesianRepresentation
 
 Note that if all you want is a particular representation without changing the
 state of the |SkyCoord| object, you should instead use the
 ``astropy.coordinates.SkyCoord.represent_as()`` method::
 
-    >>> c.representation = 'spherical'
+    >>> c.representation_type = 'spherical'
     >>> cart = c.represent_as(CartesianRepresentation)
     >>> cart  # doctest: +FLOAT_CMP
     <CartesianRepresentation (x, y, z) in kpc
         (1., 2., 3.)>
-    >>> c.representation
+    >>> c.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 
@@ -867,7 +867,7 @@ We now generate random data for visualisation using
 As next step, those coordinates are transformed into an astropy.coordinates
 |SkyCoord| object.
 
-    >>> c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    >>> c_gal = SkyCoord(galaxy, representation_type='cartesian', frame='galactic')
     >>> c_gal_icrs = c_gal.icrs
 
 Again, as in the last example, we need to convert the coordinates in radians
@@ -913,7 +913,7 @@ We use the same plotting setup as in the last example:
 
     # As next step, those coordinates are transformed into an astropy.coordinates
     # astropy.coordinates.SkyCoord object.
-    c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    c_gal = SkyCoord(galaxy, representation_type='cartesian', frame='galactic')
     c_gal_icrs = c_gal.icrs
 
     # Again, as in the last example, we need to convert the coordinates in radians
