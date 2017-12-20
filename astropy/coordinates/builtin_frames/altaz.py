@@ -4,31 +4,18 @@
 import numpy as np
 
 from ... import units as u
+from ...utils.decorators import format_doc
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from ..attributes import (Attribute, TimeAttribute,
                           QuantityAttribute, EarthLocationAttribute)
 
+__all__ = ['AltAz']
+
+
 _90DEG = 90*u.deg
 
-
-class AltAz(BaseCoordinateFrame):
-    """
-    A coordinate or frame in the Altitude-Azimuth system (Horizontal
-    coordinates).  Azimuth is oriented East of North (i.e., N=0, E=90 degrees).
-
-    This frame is assumed to *include* refraction effects if the ``pressure``
-    frame attribute is non-zero.
-
-    The frame attributes are listed under **Other Parameters**, which are
-    necessary for transforming from AltAz to some other system.
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other
-        keywords)
-
+doc_components = """
     az : `Angle`, optional, must be keyword
         The Azimuth for this object (``alt`` must also be given and
         ``representation`` must be None).
@@ -45,20 +32,9 @@ class AltAz(BaseCoordinateFrame):
         The proper motion in altitude for this object (``pm_az_cosalt`` must
         also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The radial velocity of this object.
+        The radial velocity of this object."""
 
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_type : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_type=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
-
+doc_footer = """
     Other parameters
     ----------------
     obstime : `~astropy.time.Time`
@@ -93,7 +69,19 @@ class AltAz(BaseCoordinateFrame):
     results.  For much better numerical stability, leaving the ``pressure`` at
     ``0`` (the default), disabling the refraction correction (yielding
     "topocentric" horizontal coordinates).
+    """
 
+@format_doc(base_doc, components=doc_components, footer=doc_footer)
+class AltAz(BaseCoordinateFrame):
+    """
+    A coordinate or frame in the Altitude-Azimuth system (Horizontal
+    coordinates).  Azimuth is oriented East of North (i.e., N=0, E=90 degrees).
+
+    This frame is assumed to *include* refraction effects if the ``pressure``
+    frame attribute is non-zero.
+
+    The frame attributes are listed under **Other Parameters**, which are
+    necessary for transforming from AltAz to some other system.
     """
 
     frame_specific_representation_info = {

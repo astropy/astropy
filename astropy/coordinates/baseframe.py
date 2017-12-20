@@ -18,7 +18,7 @@ import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
-from ..utils.decorators import lazyproperty
+from ..utils.decorators import lazyproperty, format_doc
 from ..utils.exceptions import AstropyWarning
 from .. import units as u
 from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
@@ -294,6 +294,37 @@ class RepresentationMapping(_RepresentationMappingBase):
         return super().__new__(cls, reprname, framename, defaultunit)
 
 
+base_doc = """{__doc__}
+    Parameters
+    ----------
+    data : `BaseRepresentation` subclass instance
+        A representation object or ``None`` to have no data (or use the
+        coordinate component arguments, see below).
+    {components}
+    representation_type : `BaseRepresentation` subclass, str, optional
+        A representation class or string name of a representation class. This
+        sets the expected input representation class, thereby changing the
+        expected keyword arguments for the data passed in. For example, passing
+        ``representation_type='cartesian'`` will make the classes expect
+        position data with cartesian names, i.e. ``x, y, z`` in most cases.
+    differential_type : `BaseDifferential` subclass, str, dict, optional
+        A differential class or dictionary of differential classes (currently
+        only a velocity differential with key 's' is supported). This sets the
+        expected input differential class, thereby changing the expected keyword
+        arguments of the data passed in. For example, passing
+        ``differential_type='cartesian'`` will make the classes expect velocity
+        data with the argument names ``v_x, v_y, v_z``.
+    copy : bool, optional
+        If `True` (default), make copies of the input coordinate arrays.
+        Can only be passed in as a keyword argument.
+    {footer}
+"""
+
+_components = """
+    *args, **kwargs
+        Coordinate components, with names that depend on the subclass.
+"""
+@format_doc(base_doc, components=_components, footer="")
 class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     """
     The base class for coordinate frames.
@@ -333,27 +364,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
       * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
 
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
-
-    Parameters
-    ----------
-    data : `BaseRepresentation` subclass instance
-        A representation object or ``None`` to have no data (or use the
-        coordinate component arguments, see below).
-    *args, **kwargs
-        Coordinate components, with names that depend on the subclass.
-    representation_type : `BaseRepresentation` subclass, str, optional
-        A representation class or ``None`` to have no data (or use the other
-        arguments)
-    differential_type : `BaseDifferential` subclass, str, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_type=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
     """
 
     default_representation = None

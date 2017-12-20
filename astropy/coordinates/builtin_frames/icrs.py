@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .baseradec import _base_radec_docstring, BaseRADecFrame
+from ...utils.decorators import format_doc
+from ..baseframe import base_doc
+from .baseradec import BaseRADecFrame, doc_components
+
+__all__ = ['ICRS']
 
 
+@format_doc(base_doc, components=doc_components, footer="")
 class ICRS(BaseRADecFrame):
     """
     A coordinate or frame in the ICRS system.
@@ -16,9 +21,4 @@ class ICRS(BaseRADecFrame):
     For more background on the ICRS and related coordinate transformations, see the
     references provided in the  :ref:`astropy-coordinates-seealso` section of the
     documentation.
-
-    {params}
     """
-
-
-ICRS.__doc__ = ICRS.__doc__.format(params=_base_radec_docstring)
