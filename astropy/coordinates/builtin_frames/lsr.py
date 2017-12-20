@@ -2,14 +2,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from ... import units as u
+from ...utils.decorators import format_doc
 from ...time import Time
 from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         frame_transform_graph)
+                         frame_transform_graph, base_doc)
 from ..transformations import AffineTransform
 from ..attributes import DifferentialAttribute
 
-from .baseradec import _base_radec_docstring, BaseRADecFrame
+from .baseradec import BaseRADecFrame, doc_components as doc_components_radec
 from .icrs import ICRS
 from .galactic import Galactic
 
@@ -21,6 +22,15 @@ v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25]*u.km/u.s)
 __all__ = ['LSR', 'GalacticLSR']
 
 
+doc_footer_lsr = """
+    Other parameters
+    ----------------
+    v_bary : `~astropy.coordinates.representation.CartesianDifferential`
+        The velocity of the solar system barycenter with respect to the LSR, in
+        Galactic cartesian velocity components.
+"""
+
+@format_doc(base_doc, components=doc_components_radec, footer=doc_footer_lsr)
 class LSR(BaseRADecFrame):
     r"""A coordinate or frame in the Local Standard of Rest (LSR).
 
@@ -43,23 +53,11 @@ class LSR(BaseRADecFrame):
     velocity of the solar system barycenter with respect to the LSR.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    v_bary : `~astropy.coordinates.representation.CartesianDifferential`
-        The velocity of the solar system barycenter with respect to the LSR, in
-        Galactic cartesian velocity components.
-
     """
 
     # frame attributes:
     v_bary = DifferentialAttribute(default=v_bary_Schoenrich2010,
                                    allowed_classes=[r.CartesianDifferential])
-
-
-LSR.__doc__ = LSR.__doc__.format(params=_base_radec_docstring)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
@@ -81,7 +79,28 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
 
 # ------------------------------------------------------------------------------
 
+doc_components_gal = """
+    l : `Angle`, optional, must be keyword
+        The Galactic longitude for this object (``b`` must also be given and
+        ``representation`` must be None).
+    b : `Angle`, optional, must be keyword
+        The Galactic latitude for this object (``l`` must also be given and
+        ``representation`` must be None).
+    distance : `~astropy.units.Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (``representation`` must be None).
 
+    pm_l_cosb : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic longitude (including the ``cos(b)`` term)
+        for this object (``pm_b`` must also be given).
+    pm_b : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The proper motion in Galactic latitude for this object (``pm_l_cosb``
+        must also be given).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
+"""
+
+@format_doc(base_doc, components=doc_components_gal, footer=doc_footer_lsr)
 class GalacticLSR(BaseCoordinateFrame):
     r"""A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
     to the `Galactic` frame.
@@ -105,48 +124,6 @@ class GalacticLSR(BaseCoordinateFrame):
     velocity of the solar system barycenter with respect to the LSR.
 
     The frame attributes are listed under **Other Parameters**.
-
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-
-    l : `Angle`, optional, must be keyword
-        The Galactic longitude for this object (``b`` must also be given and
-        ``representation`` must be None).
-    b : `Angle`, optional, must be keyword
-        The Galactic latitude for this object (``l`` must also be given and
-        ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The Distance for this object along the line-of-sight.
-        (``representation`` must be None).
-
-    pm_l_cosb : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in Galactic longitude (including the ``cos(b)`` term)
-        for this object (``pm_b`` must also be given).
-    pm_b : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The proper motion in Galactic latitude for this object (``pm_l_cosb``
-        must also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
-        The radial velocity of this object.
-
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_type : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_type=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
-
-    Other parameters
-    ----------------
-    v_bary : `~astropy.coordinates.representation.CartesianDifferential`
-        The velocity of the solar system barycenter with respect to the LSR, in
-        Galactic cartesian velocity components.
     """
 
     frame_specific_representation_info = {

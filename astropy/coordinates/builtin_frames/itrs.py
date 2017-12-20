@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from ...utils.decorators import format_doc
 from ..representation import CartesianRepresentation, CartesianDifferential
-from ..baseframe import BaseCoordinateFrame
+from ..baseframe import BaseCoordinateFrame, base_doc
 from ..attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
 
+__all__ = ['ITRS']
 
+
+@format_doc(base_doc, components="", footer="")
 class ITRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the International Terrestrial Reference System

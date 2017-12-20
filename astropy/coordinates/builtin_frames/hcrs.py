@@ -1,11 +1,24 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from ...utils.decorators import format_doc
 from ..attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
-from .baseradec import _base_radec_docstring, BaseRADecFrame
+from ..baseframe import base_doc
+from .baseradec import BaseRADecFrame, doc_components
+
+__all__ = ['HCRS']
 
 
+doc_footer = """
+    Other parameters
+    ----------------
+    obstime : `~astropy.time.Time`
+        The time at which the observation is taken.  Used for determining the
+        position of the Sun.
+"""
+
+@format_doc(base_doc, components=doc_components, footer=doc_footer)
 class HCRS(BaseRADecFrame):
     """
     A coordinate or frame in a Heliocentric system, with axes aligned to ICRS.
@@ -24,19 +37,8 @@ class HCRS(BaseRADecFrame):
     the documentation.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    obstime : `~astropy.time.Time`
-        The time at which the observation is taken.  Used for determining the
-        position of the Sun.
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-
-
-HCRS.__doc__ = HCRS.__doc__.format(params=_base_radec_docstring)
 
 # Transformations are defined in icrs_circ_transforms.py

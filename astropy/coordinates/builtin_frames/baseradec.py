@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from ...utils.decorators import format_doc
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 
 __all__ = ['BaseRADecFrame']
 
-_base_radec_docstring = """Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or ``None`` to have no data (or use the other
-        keywords below).
 
+doc_components = """
     ra : `Angle`, optional, must be keyword
         The RA for this object (``dec`` must also be given and ``representation``
         must be None).
@@ -30,28 +27,14 @@ _base_radec_docstring = """Parameters
         also be given).
     radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
         The radial velocity of this object.
-
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_type : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_type=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
 """
 
-
+@format_doc(base_doc, components=doc_components, footer="")
 class BaseRADecFrame(BaseCoordinateFrame):
     """
     A base class that defines default representation info for frames that
     represent longitude and latitude as Right Ascension and Declination
     following typical "equatorial" conventions.
-
-    {params}
     """
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
@@ -62,7 +45,3 @@ class BaseRADecFrame(BaseCoordinateFrame):
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
-
-
-BaseRADecFrame.__doc__ = BaseRADecFrame.__doc__.format(
-    params=_base_radec_docstring)
