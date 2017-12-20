@@ -62,7 +62,7 @@ def test_creation_attrs():
     assert_quantity_allclose(sc3.pm_dec, 6.388318503308237e-08 * u.arcmin / u.fortnight)
 
 
-def test_creation_copy():
+def test_creation_copy_basic():
     i = ICRS(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
     sc = SkyCoord(i)
     sc_cpy = SkyCoord(sc)
@@ -70,17 +70,19 @@ def test_creation_copy():
     for attrnm in ['ra', 'dec', 'pm_ra_cosdec', 'pm_dec']:
         assert_quantity_allclose(getattr(sc, attrnm), getattr(sc_cpy, attrnm))
 
-    sc2 = SkyCoord(1*u.deg, 2*u.deg,
-                   pm_ra=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr,
-                   differential_cls=SphericalDifferential)
 
-    sc2_cpy = SkyCoord(sc2)
+def test_creation_copy_rediff():
+    sc = SkyCoord(1*u.deg, 2*u.deg,
+                  pm_ra=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr,
+                  differential_cls=SphericalDifferential)
+
+    sc_cpy = SkyCoord(sc)
     for attrnm in ['ra', 'dec', 'pm_ra', 'pm_dec']:
-        assert_quantity_allclose(getattr(sc2, attrnm), getattr(sc2_cpy, attrnm))
+        assert_quantity_allclose(getattr(sc, attrnm), getattr(sc_cpy, attrnm))
 
-    sc2_newdiff = SkyCoord(sc2, differential_cls=SphericalCosLatDifferential)
-    reprepr = sc2.represent_as(SphericalRepresentation, SphericalCosLatDifferential)
-    assert_quantity_allclose(sc2_newdiff.pm_ra_cosdec, reprepr.d_lon_coslat)
+    sc_newdiff = SkyCoord(sc, differential_cls=SphericalCosLatDifferential)
+    reprepr = sc.represent_as(SphericalRepresentation, SphericalCosLatDifferential)
+    assert_quantity_allclose(sc_newdiff.pm_ra_cosdec, reprepr.d_lon_coslat)
 
 
 def test_creation_cartesian():
