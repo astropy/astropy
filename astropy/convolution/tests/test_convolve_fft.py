@@ -36,9 +36,8 @@ options = list(itertools.product(BOUNDARY_OPTIONS,
                                  NANTREATMENT_OPTIONS,
                                  (True, False),
                                  ))
-option_names_preserve_nan = \
-    ('boundary', 'nan_treatment', 'normalize_kernel',
-     'preserve_nan')
+option_names_preserve_nan = ('boundary', 'nan_treatment',
+                             'normalize_kernel', 'preserve_nan')
 options_preserve_nan = list(itertools.product(BOUNDARY_OPTIONS,
                                               NANTREATMENT_OPTIONS,
                                               (True, False),
@@ -178,7 +177,6 @@ class TestConvolve1D:
         if preserve_nan:
             assert np.isnan(z[1])
 
-        x = np.nan_to_num(z)
         z = np.nan_to_num(z)
 
         # for whatever reason, numpy's fft has very limited precision, and
@@ -222,7 +220,6 @@ class TestConvolve1D:
         if preserve_nan:
             assert np.isnan(z[1])
 
-        x = np.nan_to_num(z)
         z = np.nan_to_num(z)
 
         # for whatever reason, numpy's fft has very limited precision, and
