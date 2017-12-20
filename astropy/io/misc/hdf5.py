@@ -192,29 +192,24 @@ def _encode_mixins(tbl):
     from ...utils.data_info import MixinInfo, serialize_context_as
 
     # If PyYAML is not available then check to see if there are any mixin cols
-    # that *require* YAML serialization.  FITS already has support for Time,
+    # that *require* YAML serialization.  HDF5 already has support for
     # Quantity, so if those are the only mixins the proceed without doing the
     # YAML bit, for backward compatibility (i.e. not requiring YAML to write
-    # Time or Quantity).  In this case other mixin column meta (e.g.
-    # description or meta) will be silently dropped, consistent with astropy <=
-    # 2.0 behavior.
+    # Quantity).
     try:
         import yaml
     except ImportError:
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
                     col.__class__ is not u.Quantity):
-                raise TypeError('cannot write type {} column {!r} '
-                                'to HDF5 without PyYAML installed.'
+                raise TypeError("cannot write type {} column '{}' "
+                                "to HDF5 without PyYAML installed."
                                 .format(col.__class__.__name__, col.info.name))
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.
-
     with serialize_context_as('hdf5'):
         encode_tbl = serialize._represent_mixins_as_columns(tbl)
-    if encode_tbl is tbl:
-        return tbl
 
     return encode_tbl
 

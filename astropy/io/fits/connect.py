@@ -291,8 +291,8 @@ def _encode_mixins(tbl):
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
                     col.__class__ not in (u.Quantity, Time)):
-                raise TypeError('cannot write type {} column {!r} '
-                                'to FITS without PyYAML installed.'
+                raise TypeError("cannot write type {} column '{}' "
+                                "to FITS without PyYAML installed."
                                 .format(col.__class__.__name__, col.info.name))
         else:
             # Warn if information will be lost.  This is hardcoded to the set
@@ -300,12 +300,13 @@ def _encode_mixins(tbl):
             # natively (name, dtype, unit).  See _get_col_attributes() in
             # table/meta.py for where this comes from.
             for col in tbl.itercols():
-                for attr in ('format', 'description', 'meta'):
-                    if getattr(col.info, attr, None) not in (None, {}):
-                        warnings.warn("table contains column(s) with defined 'format',"
-                                      " 'description', or 'meta' info attributes. These"
-                                      " will be dropped unless you install PyYAML.",
-                                      AstropyUserWarning)
+                if any(getattr(col.info, attr, None) not in (None, {})
+                       for attr in ('format', 'description', 'meta')):
+                    warnings.warn("table contains column(s) with defined 'format',"
+                                  " 'description', or 'meta' info attributes. These"
+                                  " will be dropped unless you install PyYAML.",
+                                  AstropyUserWarning)
+                    break
             return tbl
 
     # Convert the table to one with no mixins, only Column objects.  This adds

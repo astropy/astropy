@@ -658,7 +658,7 @@ have defined values for any of the above-listed column attributes, these
 metadata will *not* be stored and a warning will be issued.
 
 serialize_meta
-""""""""""""""
+~~~~~~~~~~~~~~
 To enable storing all table and column metadata to the HDF5 file, call
 the ``write()`` method with ``serialize_meta=True``.  This will store metadata
 in a separate HDF5 dataset, contained in the same file, which is named
@@ -672,7 +672,7 @@ HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 `~astropy.coordinates.SkyCoord` columns.
 
 compatibility_mode
-""""""""""""""""""
+~~~~~~~~~~~~~~~~~~
 
 The way metadata are saved in the HDF5 dataset has changed in astropy 3.0.
 Previously the metadata were serialized with YAML and this was stored as an
