@@ -93,6 +93,20 @@ class SkyCoordInfo(MixinInfo):
         return out
 
 
+def _normalize_representation_type(kwargs):
+    """ This is added for backwards compatibility: if the user specifies the
+    old-style argument ``representation``, add it back in to the kwargs dict
+    as ``representation_type``.
+    """
+    if 'representation' in kwargs:
+        if 'representation_type' in kwargs:
+            raise ValueError("Both `representation` and `representation_type` "
+                             "were passed to a frame initializer. Please use "
+                             "only `representation_type` (`representation` is "
+                             "now pending deprecation).")
+        kwargs['representation_type'] = kwargs.pop('representation')
+
+
 class SkyCoord(ShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
@@ -236,13 +250,14 @@ class SkyCoord(ShapedLikeNDArray):
                 setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
+
         component_names = frame.representation_component_names
         component_names.update(frame.get_representation_component_names('s'))
-        if 'representation' in kwargs:
-            kwargs['representation_type'] = kwargs.pop('representation')
 
+        _normalize_representation_type(kwargs)
         if 'representation_type' in kwargs:
-            coord_kwargs['representation_type'] = _get_repr_cls(kwargs['representation_type'])
+            coord_kwargs['representation_type'] = _get_repr_cls(
+                kwargs['representation_type'])
 
         if 'differential_type' in kwargs:
             coord_kwargs['differential_type'] = _get_diff_cls(kwargs['differential_type'])
@@ -358,9 +373,8 @@ class SkyCoord(ShapedLikeNDArray):
         # TODO: possibly remove the below.  The representation/differential
         # information should *already* be stored in the frame object, as it is
         # extracted in _get_frame.  So it may be redundent to include it below.
-        if 'representation' in kwargs:
-            valid_kwargs['representation_type'] = kwargs.pop('representation')
-
+        # TODO: deprecate this in future
+        _normalize_representation_type(kwargs)
         if 'representation_type' in kwargs:
             valid_kwargs['representation_type'] = _get_repr_cls(
                 kwargs.pop('representation_type'))
@@ -1797,8 +1811,7 @@ def _get_frame(args, kwargs):
     frame_cls_kwargs = {}
 
     # TODO: deprecate this in future
-    if 'representation' in kwargs:
-        kwargs['representation_type'] = kwargs.pop('representation')
+    _normalize_representation_type(kwargs)
 
     if 'representation_type' in kwargs:
         frame_cls_kwargs['representation_type'] = _get_repr_cls(
