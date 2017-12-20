@@ -613,6 +613,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed IndexError when ``preserve_nan=True`` in ``convolve_fft``. Added
+  testing with ``preserve_nan=True``. [#7000]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
