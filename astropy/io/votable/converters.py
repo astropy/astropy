@@ -341,7 +341,7 @@ class Char(Converter):
         if mask:
             return ''
         if not isinstance(value, str):
-            value = value.decode('ascii')
+            value = value.decode('utf-8')
         return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
