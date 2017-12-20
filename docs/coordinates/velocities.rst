@@ -106,7 +106,7 @@ changed by specifying the `~astropy.coordinates.SphericalDifferential` class
     >>> from astropy.coordinates import SphericalDifferential
     >>> Galactic(l=11.23*u.degree, b=58.13*u.degree,
     ...          pm_l=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
-    ...          differential_cls=SphericalDifferential)  # doctest: +FLOAT_CMP
+    ...          differential_type=SphericalDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (l, b) in deg
         (11.23, 58.13)
      (pm_l, pm_b) in mas / yr
@@ -120,8 +120,8 @@ specify all coordinate and velocity components in Cartesian::
     ...                                  CartesianDifferential)
     >>> Galactic(u=103*u.pc, v=-11*u.pc, w=93.*u.pc,
     ...          U=31*u.km/u.s, V=-10*u.km/u.s, W=75*u.km/u.s,
-    ...          representation=CartesianRepresentation,
-    ...          differential_cls=CartesianDifferential)  # doctest: +FLOAT_CMP
+    ...          representation_type=CartesianRepresentation,
+    ...          differential_type=CartesianDifferential)  # doctest: +FLOAT_CMP
     <Galactic Coordinate: (u, v, w) in pc
         (103., -11., 93.)
      (U, V, W) in km / s
@@ -133,8 +133,8 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
 
     >>> ICRS(x=103*u.pc, y=-11*u.pc, z=93.*u.pc,
     ...      v_x=31*u.km/u.s, v_y=-10*u.km/u.s, v_z=75*u.km/u.s,
-    ...      representation=CartesianRepresentation,
-    ...      differential_cls=CartesianDifferential)  # doctest: +FLOAT_CMP
+    ...      representation_type=CartesianRepresentation,
+    ...      differential_type=CartesianDifferential)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (x, y, z) in pc
         (103., -11., 93.)
      (v_x, v_y, v_z) in km / s
