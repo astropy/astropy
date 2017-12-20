@@ -1613,11 +1613,15 @@ def _get_frame(args, kwargs):
              len(args) == 1 and len(arg) > 0):
             arg = arg[0]
 
-        coord_frame_cls = None
+        coord_frame_obj = coord_frame_cls = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_cls = arg.__class__
+            coord_frame_obj = arg
         elif isinstance(arg, SkyCoord):
-            coord_frame_cls = arg.frame.__class__
+            coord_frame_obj = arg.frame
+        if coord_frame_obj is not None:
+            coord_frame_cls = coord_frame_obj.__class__
+            kwargs.setdefault('differential_cls',
+                              coord_frame_obj.get_representation_cls('s'))
 
         if coord_frame_cls is not None:
             if not frame_specified_explicitly:
@@ -1724,10 +1728,11 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             del repr_attr_classes[nameidx]
 
         if coords.data.differentials:
-            vel = coords.data.differentials['s']
-            for frname, reprname in coords.get_representation_component_names('s').items():
-                if (reprname == 'd_distance' and not hasattr(vel, reprname) and
-                    'unit' in vel.get_name()):
+            orig_vel = coords.data.differentials['s']
+            vel = coords.data.represent_as(frame.representation, frame.get_representation_cls('s')).differentials['s']
+            for frname, reprname in frame.get_representation_component_names('s').items():
+                if (reprname == 'd_distance' and not hasattr(orig_vel, reprname) and
+                    'unit' in orig_vel.get_name()):
                     continue
                 values.append(getattr(vel, reprname))
                 units.append(None)

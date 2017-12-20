@@ -82,7 +82,8 @@ def test_creation_copy_rediff():
 
     sc_newdiff = SkyCoord(sc, differential_cls=SphericalCosLatDifferential)
     reprepr = sc.represent_as(SphericalRepresentation, SphericalCosLatDifferential)
-    assert_quantity_allclose(sc_newdiff.pm_ra_cosdec, reprepr.d_lon_coslat)
+    assert_quantity_allclose(sc_newdiff.pm_ra_cosdec,
+                             reprepr.differentials['s'].d_lon_coslat)
 
 
 def test_creation_cartesian():
