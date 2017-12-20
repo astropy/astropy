@@ -9,7 +9,7 @@ Using velocities with ``SkyCoord``
 ==================================
 
 The easiest way of getting a coordinate object with velocities is to use the
-|skycoord| interface.  For example, a |skycoord| tp represent a star with a
+|skycoord| interface.  For example, a |skycoord| to represent a star with a
 measured radial velocity but unknown proper motion and distance could be
 created as::
 
