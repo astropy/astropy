@@ -1745,8 +1745,20 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
-        data = coords.represent_as(frame.representation)
-        values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+        if coords.differentials:
+            diffs = frame.get_representation_cls('s')
+            data = coords.represent_as(frame.representation, diffs)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+            for frname, reprname in frame.get_representation_component_names('s').items():
+                values.append(getattr(data.differentials['s'], reprname))
+                units.append(None)
+                frame_attr_names.append(frname)
+                repr_attr_names.append(reprname)
+                repr_attr_classes.append(data.differentials['s'].attr_classes[reprname])
+
+        else:
+            data = coords.represent_as(frame.representation)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
 
     elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
           and coords.ndim == 2 and coords.shape[1] <= 3):
