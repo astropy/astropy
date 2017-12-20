@@ -957,3 +957,33 @@ def test_representation_with_multiple_differentials():
     # check warning is raised for a scalar
     with pytest.raises(ValueError):
         ICRS(rep)
+
+
+def test_representation_arg_backwards_compatibility():
+    # TODO: this test can be removed when the `representation` argument is
+    # removed from the BaseCoordinateFrame initializer.
+    from ..builtin_frames import ICRS
+
+    c1 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type=r.CartesianRepresentation)
+
+    c2 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation=r.CartesianRepresentation)
+
+    c3 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation='cartesian')
+
+    assert c1.x == c2.x
+    assert c1.y == c2.y
+    assert c1.z == c2.z
+
+    assert c1.x == c3.x
+    assert c1.y == c3.y
+    assert c1.z == c3.z
+
+    assert c1.representation == c1.representation_type
+
+    with pytest.raises(ValueError):
+        ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+             representation='cartesian',
+             representation_type='cartesian')
