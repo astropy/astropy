@@ -12,7 +12,8 @@ import numpy as np
 from ... import units as u
 from ...tests.helper import assert_quantity_allclose
 from .. import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-                SphericalCosLatDifferential, Galactic, PrecessedGeocentric)
+                SphericalCosLatDifferential, CartesianRepresentation,
+                CartesianDifferential, Galactic, PrecessedGeocentric)
 
 try:
     import scipy
@@ -60,7 +61,7 @@ def test_creation_attrs():
     assert_quantity_allclose(sc3.pm_ra_cosdec, 1.2776637006616473e-07 * u.arcmin / u.fortnight)
     assert_quantity_allclose(sc3.pm_dec, 6.388318503308237e-08 * u.arcmin / u.fortnight)
 
-@pytest.mark.xfail  #TODO: FIX
+
 def test_creation_copy():
     i = ICRS(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
     sc = SkyCoord(i)
@@ -80,6 +81,16 @@ def test_creation_copy():
     sc2_newdiff = SkyCoord(sc2, differential_cls=SphericalCosLatDifferential)
     reprepr = sc2.represent_as(SphericalRepresentation, SphericalCosLatDifferential)
     assert_quantity_allclose(sc2_newdiff.pm_ra_cosdec, reprepr.d_lon_coslat)
+
+
+def test_creation_cartesian():
+    rep = CartesianRepresentation([10, 0., 0.]*u.pc)
+    dif = CartesianDifferential([0, 100, 0.]*u.pc/u.Myr)
+    rep = rep.with_differentials(dif)
+    c = SkyCoord(rep)
+
+    sdif = dif.represent_as(SphericalCosLatDifferential, rep)
+    assert_quantity_allclose(c.pm_ra_cosdec, sdif.d_lon_coslat)
 
 
 @pytest.mark.xfail  #TODO: FIX
@@ -103,14 +114,27 @@ def test_useful_error_missing():
 # ----------------------Operations on SkyCoords w/ velocities-------------------
 
 # define some fixtires to get baseline coordinates to try operations with
-@pytest.fixture(scope="module")
-def sc():
-    return SkyCoord(1*u.deg, 2*u.deg,
-                  pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
+@pytest.fixture(scope="module", params=[(False, False),
+                                        (True, False),
+                                        (False, True),
+                                        (True, True)])
+def sc(request):
+    incldist, inclrv = request.param
+
+    args = [1*u.deg, 2*u.deg]
+    kwargs = dict(pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
+    if incldist:
+        kwargs['distance'] = 213.4*u.pc
+    if inclrv:
+        kwargs['radial_velocity'] = 61*u.km/u.s
+
+    return SkyCoord(*args, **kwargs)
+
 @pytest.fixture(scope="module")
 def sc2():
     return SkyCoord(1*u.deg, 2*u.deg,
                 pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
+
 @pytest.fixture(scope="module")
 def scmany():
     return SkyCoord(ICRS(ra=[1]*100*u.deg, dec=[2]*100*u.deg,
