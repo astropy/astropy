@@ -375,7 +375,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         # TODO: this is here for backwards compatibility. It should be possible
         # to use either the kwarg representation_type, or representation.
         # In future versions, we will raise a deprecation warning here:
-        representation_type = kwargs.pop('representation', representation_type)
+        if 'representation' in kwargs:
+            if representation_type is not None:
+                raise ValueError("Both `representation` and "
+                                 "`representation_type` were passed to a frame "
+                                 "initializer. Please use only "
+                                 "`representation_type` (`representation` is "
+                                 "now pending deprecation).")
+            representation_type = kwargs.pop('representation')
 
         if representation_type is not None or differential_type is not None:
 
