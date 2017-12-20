@@ -163,6 +163,14 @@ def test_transforms(sc):
     assert isinstance(trans.frame, Galactic)
 
 
+@pytest.mark.xfail
+def test_transforms_diff(sc):
+    # note that arguably this *should* fail for the no-distance cases: 3D
+    # information is necessary to truly solve this, hence the xfail
+    trans = sc.transform_to(PrecessedGeocentric(equinox='B1975'))
+    assert isinstance(trans.frame, PrecessedGeocentric)
+
+
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching(sc, scmany):
     # just check that it works and yields something
@@ -173,12 +181,14 @@ def test_position_angle(sc, sc2):
     sc.position_angle(sc2)
 
 
-@pytest.mark.xfail  #TODO: FIX
 def test_constellations(sc):
     const = sc.get_constellation()
     assert const == 'Pisces'
 
 
-@pytest.mark.xfail  #TODO: FIX
+# at the time of this writing, sky offset frames don't support velocities
+# TODO: make them actually work
+@pytest.mark.xfail
 def test_skyoffset_frame(sc):
+
     sc.skyoffset_frame()
