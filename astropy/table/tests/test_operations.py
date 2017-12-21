@@ -19,6 +19,19 @@ def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
 
 
+def skycoord_equal(sc1, sc2):
+    if not sc1.is_equivalent_frame(sc2):
+        return False
+    if sc1.representation is not sc2.representation:  # Will be representation_type..
+        return False
+    if sc1.shape != sc2.shape:
+        return False  # Maybe raise ValueError corresponding to future numpy behavior
+    eq = np.ones(shape=sc1.shape, dtype=bool)
+    for comp in sc1.data.components:
+        eq &= getattr(sc1.data, comp) == getattr(sc2.data, comp)
+    return np.all(eq)
+
+
 class TestJoin():
 
     def _setup(self, t_cls=Table):
@@ -450,6 +463,64 @@ class TestJoin():
                                         [False, False],
                                         [False, False]])
 
+    def test_mixin_functionality(self, mixin_cols):
+        col = mixin_cols['m']
+        cls_name = type(col).__name__
+        len_col = len(col)
+        idx = np.arange(len_col)
+        t1 = table.QTable([idx, col], names=['idx', 'm1'])
+        t2 = table.QTable([idx, col], names=['idx', 'm2'])
+        # Set up join mismatches for different join_type cases
+        t1 = t1[[0, 1, 3]]
+        t2 = t2[[0, 2, 3]]
+
+        # Test inner join, which works for all mixin_cols
+        out = table.join(t1, t2, join_type='inner')
+        assert len(out) == 2
+        assert out['m2'].__class__ is col.__class__
+        assert np.all(out['idx'] == [0, 3])
+        if cls_name == 'SkyCoord':
+            # SkyCoord doesn't support __eq__ so use our own
+            assert skycoord_equal(out['m1'], col[[0, 3]])
+            assert skycoord_equal(out['m2'], col[[0, 3]])
+        else:
+            assert np.all(out['m1'] == col[[0, 3]])
+            assert np.all(out['m2'] == col[[0, 3]])
+
+        # Check for left, right, outer join which requires masking.  Only Time
+        # supports this currently.
+        if cls_name == 'Time':
+            out = table.join(t1, t2, join_type='left')
+            assert len(out) == 3
+            assert np.all(out['idx'] == [0, 1, 3])
+            assert np.all(out['m1'] == t1['m1'])
+            assert np.all(out['m2'] == t2['m2'])
+            assert np.all(out['m1'].mask == [False, False, False])
+            assert np.all(out['m2'].mask == [False, True, False])
+
+            out = table.join(t1, t2, join_type='right')
+            assert len(out) == 3
+            assert np.all(out['idx'] == [0, 2, 3])
+            assert np.all(out['m1'] == t1['m1'])
+            assert np.all(out['m2'] == t2['m2'])
+            assert np.all(out['m1'].mask == [False, True, False])
+            assert np.all(out['m2'].mask == [False, False, False])
+
+            out = table.join(t1, t2, join_type='outer')
+            assert len(out) == 4
+            assert np.all(out['idx'] == [0, 1, 2, 3])
+            assert np.all(out['m1'] == col)
+            assert np.all(out['m2'] == col)
+            assert np.all(out['m1'].mask == [False, False, True, False])
+            assert np.all(out['m2'].mask == [False, True, False, False])
+        else:
+            # Otherwise make sure it fails with the right excpetion message
+            for join_type in ('outer', 'left', 'right'):
+                with pytest.raises(NotImplementedError) as err:
+                    table.join(t1, t2, join_type='outer')
+                assert ('join requires masking' in str(err) or
+                        'join unavailable' in str(err))
+
 
 class TestSetdiff():
 
@@ -472,8 +543,6 @@ class TestSetdiff():
         self.t1 = t_cls.read(lines1, format='ascii')
         self.t2 = t_cls.read(lines2, format='ascii')
         self.t3 = t_cls.read(lines3, format='ascii')
-
-
 
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
@@ -837,7 +906,7 @@ class TestVStack():
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
-    def test_check_for_mixin_functionality(self, mixin_cols):
+    def test_mixin_functionality(self, mixin_cols):
         col = mixin_cols['m']
         len_col = len(col)
         t = table.QTable([col], names=['a'])
@@ -1078,7 +1147,7 @@ class TestHStack():
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
 
-    def test_check_for_mixin_functionality(self, mixin_cols):
+    def test_mixin_functionality(self, mixin_cols):
         col1 = mixin_cols['m']
         col2 = col1[2:4]  # Shorter version of col1
         t1 = table.QTable([col1])
@@ -1090,9 +1159,11 @@ class TestHStack():
         assert type(out['col0_1']) is type(out['col0_2'])
         assert len(out) == len(col2)
 
-        # Check that columns are as expected.  Skip mixin types
-        # that don't support direct equality comparison.
-        if cls_name not in ('SkyCoord', 'ArrayWrapper'):
+        # Check that columns are as expected.
+        if cls_name == 'SkyCoord':
+            assert skycoord_equal(out['col0_1'], col1[:len(col2)])
+            assert skycoord_equal(out['col0_2'], col2)
+        else:
             assert np.all(out['col0_1'] == col1[:len(col2)])
             assert np.all(out['col0_2'] == col2)
 
