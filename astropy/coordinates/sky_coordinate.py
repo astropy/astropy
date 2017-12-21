@@ -19,7 +19,9 @@ from ..time import Time
 
 from .distances import Distance
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
+from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                        GenericFrame, _get_repr_cls, _get_diff_cls,
+                        _normalize_representation_type)
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation, SphericalDifferential)
@@ -91,20 +93,6 @@ class SkyCoordInfo(MixinInfo):
         # units.
 
         return out
-
-
-def _normalize_representation_type(kwargs):
-    """ This is added for backwards compatibility: if the user specifies the
-    old-style argument ``representation``, add it back in to the kwargs dict
-    as ``representation_type``.
-    """
-    if 'representation' in kwargs:
-        if 'representation_type' in kwargs:
-            raise ValueError("Both `representation` and `representation_type` "
-                             "were passed to a frame initializer. Please use "
-                             "only `representation_type` (`representation` is "
-                             "now pending deprecation).")
-        kwargs['representation_type'] = kwargs.pop('representation')
 
 
 class SkyCoord(ShapedLikeNDArray):
@@ -254,6 +242,7 @@ class SkyCoord(ShapedLikeNDArray):
         component_names = frame.representation_component_names
         component_names.update(frame.get_representation_component_names('s'))
 
+        # TODO: deprecate representation, remove this in future
         _normalize_representation_type(kwargs)
         if 'representation_type' in kwargs:
             coord_kwargs['representation_type'] = _get_repr_cls(
@@ -288,11 +277,11 @@ class SkyCoord(ShapedLikeNDArray):
     # TODO: deprecate these in future
     @property
     def representation(self):
-        return self.representation_type
+        return self.frame.representation
 
     @representation.setter
     def representation(self, value):
-        self.representation_type = value
+        self.frame.representation = value
 
     @property
     def shape(self):
@@ -373,7 +362,7 @@ class SkyCoord(ShapedLikeNDArray):
         # TODO: possibly remove the below.  The representation/differential
         # information should *already* be stored in the frame object, as it is
         # extracted in _get_frame.  So it may be redundent to include it below.
-        # TODO: deprecate this in future
+        # TODO: deprecate representation, remove this in future
         _normalize_representation_type(kwargs)
         if 'representation_type' in kwargs:
             valid_kwargs['representation_type'] = _get_repr_cls(
@@ -1810,7 +1799,7 @@ def _get_frame(args, kwargs):
 
     frame_cls_kwargs = {}
 
-    # TODO: deprecate this in future
+    # TODO: deprecate representation, remove this in future
     _normalize_representation_type(kwargs)
 
     if 'representation_type' in kwargs:

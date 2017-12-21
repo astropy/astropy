@@ -120,6 +120,20 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
+def _normalize_representation_type(kwargs):
+    """ This is added for backwards compatibility: if the user specifies the
+    old-style argument ``representation``, add it back in to the kwargs dict
+    as ``representation_type``.
+    """
+    if 'representation' in kwargs:
+        if 'representation_type' in kwargs:
+            raise ValueError("Both `representation` and `representation_type` "
+                             "were passed to a frame initializer. Please use "
+                             "only `representation_type` (`representation` is "
+                             "now pending deprecation).")
+        kwargs['representation_type'] = kwargs.pop('representation')
+
+
 # Need to subclass ABCMeta as well, so that this meta class can be combined
 # with ShapedLikeNDArray below (which is an ABC); without it, one gets
 # "TypeError: metaclass conflict: the metaclass of a derived class must be a
@@ -382,18 +396,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                  differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
 
-        # TODO: this is here for backwards compatibility. It should be possible
+        # This is here for backwards compatibility. It should be possible
         # to use either the kwarg representation_type, or representation.
-        # In future versions, we will raise a deprecation warning here:
-        if 'representation' in kwargs:
-            if representation_type is not None:
-                raise ValueError("Both `representation` and "
-                                 "`representation_type` were passed to a frame "
-                                 "initializer. Please use only "
-                                 "`representation_type` (`representation` is "
-                                 "now pending deprecation).")
-            representation_type = kwargs.pop('representation')
-
+        # TODO: In future versions, we will raise a deprecation warning here:
+        _normalize_representation_type(kwargs)
         if representation_type is not None or differential_type is not None:
 
             if representation_type is None:
@@ -430,8 +436,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             representation_data = args.pop(0)
             if len(args) > 0:
                 raise TypeError(
-                    'Cannot create a frame with both a representation and '
-                    'other positional arguments')
+                    'Cannot create a frame with both a representation object '
+                    'and other positional arguments')
 
             if representation_data is not None:
                 diffs = representation_data.differentials
@@ -1040,7 +1046,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     # This then causes the dictionary key check to fail (i.e.
                     # comparison against `diff._get_deriv_key()`)
                     data._differentials.update({'s': diff})
-                    # data = data.with_differentials({'s': diff})
 
             self.cache['representation'][cache_key] = data
 
