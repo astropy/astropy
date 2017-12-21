@@ -535,12 +535,7 @@ class Scale(Fittable1DModel):
     @staticmethod
     def evaluate(x, factor):
         """One dimensional Scale model function"""
-        if isinstance(factor, u.Quantity):
-            return_unit = factor.unit
-            factor = factor.value
-            return (x.value * factor) * return_unit
-        else:
-            return factor * x
+        return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
