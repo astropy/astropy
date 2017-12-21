@@ -92,11 +92,6 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
         conf = Conf()
     """
 
-    rootname = 'astropy'
-    """
-    Rootname sets the base path for all config files.
-    """
-
     def set_temp(self, attr, value):
         """
         Temporarily set a configuration value.
