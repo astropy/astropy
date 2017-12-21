@@ -556,6 +556,7 @@ class FittingWithOutlierRemoval:
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=weights,
                                **kwargs)
         else:
             filtered_data = z
@@ -567,6 +568,7 @@ class FittingWithOutlierRemoval:
                                x[~filtered_data.mask],
                                y[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=weights,
                                **kwargs)
         return filtered_data, fitted_model
 
