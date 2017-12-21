@@ -1030,7 +1030,7 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def bounding_box(self):
-        """
+        r"""
         A `tuple` of length `n_inputs` defining the bounding box limits, or
         `None` for no bounding box.
 
