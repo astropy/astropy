@@ -307,40 +307,52 @@ UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
 UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
 
 
-def get_converters_and_unit(f, *units):
-
+def get_converters_and_unit(f, unit1, unit2):
     converters = [None, None]
-    # no units for any input -- e.g., np.add(a1, a2, out=q)
-    if all(unit is None for unit in units):
-        return converters, dimensionless_unscaled
+    # By default, we try adjusting unit2 to unit1, so that the result will
+    # be unit1 as well. But if there is no second unit, we have to try
+    # adjusting unit1 (to dimensionless, see below).
+    if unit2 is None:
+        if unit1 is None:
+            # No units for any input -- e.g., np.add(a1, a2, out=q)
+            return converters, dimensionless_unscaled
+        changeable = 0
+        # swap units.
+        unit2 = unit1
+        unit1 = None
+    elif unit2 is unit1:
+        # ensure identical units is fast ("==" is slow, so avoid that).
+        return converters, unit1
+    else:
+        changeable = 1
 
-    fixed, changeable = (1, 0) if units[1] is None else (0, 1)
-    if units[fixed] is None:
+    # Try to get a converter from unit2 to unit1.
+    if unit1 is None:
         try:
-            converters[changeable] = get_converter(units[changeable],
+            converters[changeable] = get_converter(unit2,
                                                    dimensionless_unscaled)
         except UnitsError:
             # special case: would be OK if unitless number is zero, inf, nan
-            converters[fixed] = False
-            return converters, units[changeable]
+            converters[1-changeable] = False
+            return converters, unit2
         else:
             return converters, dimensionless_unscaled
 
     else:
         try:
-            converters[changeable] = get_converter(units[changeable],
-                                                   units[fixed])
+            converters[changeable] = get_converter(unit2, unit1)
         except UnitsError:
             raise UnitConversionError(
                 "Can only apply '{0}' function to quantities "
                 "with compatible dimensions"
                 .format(f.__name__))
 
-        return converters, units[fixed]
+        return converters, unit1
 
 
-def helper_twoarg_invariant(f, unit1, unit2):
-    return get_converters_and_unit(f, unit1, unit2)
+# This used to be a separate function that just called get_converters_and_unit.
+# Using it directly saves a few us; keeping the clearer name.
+helper_twoarg_invariant = get_converters_and_unit
 
 
 UFUNC_HELPERS[np.add] = helper_twoarg_invariant
@@ -441,10 +453,21 @@ def converters_and_unit(function, method, *args):
     UnitTypeError : when the conversion to the required (or consistent) units
         is not possible.
     """
-    # Check whether we even support this ufunc
-    if function in UNSUPPORTED_UFUNCS:
-        raise TypeError("Cannot use function '{0}' with quantities"
-                        .format(function.__name__))
+
+    # Check whether we support this ufunc, by getting the helper function
+    # (defined above) which returns a list of function(s) that convert the
+    # input(s) to the unit required for the ufunc, as well as the unit the
+    # result will have (a tuple of units if there are multiple outputs).
+    try:
+        ufunc_helper = UFUNC_HELPERS[function]
+    except KeyError:
+        if function in UNSUPPORTED_UFUNCS:
+            raise TypeError("Cannot use function '{0}' with quantities"
+                            .format(function.__name__))
+        else:
+            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
+                            "https://github.com/astropy/astropy"
+                            .format(function.__name__))
 
     if method == '__call__' or (method == 'outer' and function.nin == 2):
         # Find out the units of the arguments passed to the ufunc; usually,
@@ -452,16 +475,8 @@ def converters_and_unit(function, method, *args):
         # could also be a Numpy array, etc.  These are given unit=None.
         units = [getattr(arg, 'unit', None) for arg in args]
 
-        # If the ufunc is supported, then we call a helper function (defined
-        # above) which returns a list of function(s) that converts the input(s)
-        # to the unit required for the ufunc, as well as the unit the output
-        # will have (this is a tuple of units if there are multiple outputs).
-        if function in UFUNC_HELPERS:
-            converters, result_unit = UFUNC_HELPERS[function](function, *units)
-        else:
-            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
-                            "https://github.com/astropy/astropy"
-                            .format(function.__name__))
+        # Determine possible conversion functions, and the result unit.
+        converters, result_unit = ufunc_helper(function, *units)
 
         if any(converter is False for converter in converters):
             # for two-argument ufuncs with a quantity and a non-quantity,
@@ -516,30 +531,29 @@ def converters_and_unit(function, method, *args):
                         result_unit = dimensionless_unscaled
 
     else:  # methods for which the unit should stay the same
-        if method == 'at':
-            unit = getattr(args[0], 'unit', None)
-            units = [unit]
-            if function.nin == 2:
-                units.append(getattr(args[2], 'unit', None))
+        nin = function.nin
+        unit = getattr(args[0], 'unit', None)
+        if method == 'at' and nin <= 2:
+            if nin == 1:
+                units = [unit]
+            else:
+                units = [unit, getattr(args[2], 'unit', None)]
 
-            converters, result_unit = UFUNC_HELPERS[function](function, *units)
+            converters, result_unit = ufunc_helper(function, *units)
 
             # ensure there is no 'converter' for indices (2nd argument)
             converters.insert(1, None)
 
-        elif (method in ('reduce', 'accumulate', 'reduceat') and
-              function.nin == 2):
-            unit = getattr(args[0], 'unit', None)
-            converters, result_unit = UFUNC_HELPERS[function](function,
-                                                              unit, unit)
+        elif method in {'reduce', 'accumulate', 'reduceat'} and nin == 2:
+            converters, result_unit = ufunc_helper(function, unit, unit)
             converters = converters[:1]
             if method == 'reduceat':
                 # add 'scale' for indices (2nd argument)
                 converters += [None]
 
         else:
-            if method in ('reduce', 'accumulate', 'reduceat',
-                          'outer') and function.nin != 2:
+            if method in {'reduce', 'accumulate',
+                          'reduceat', 'outer'} and nin != 2:
                 raise ValueError("{0} only supported for binary functions"
                                  .format(method))
 
@@ -554,9 +568,10 @@ def converters_and_unit(function, method, *args):
                             "Quantity instance as the result is not a "
                             "Quantity.".format(function.__name__, method))
 
-        if converters[0] is not None or (unit is not None and
-                                         (not result_unit.is_equivalent(unit) or
-                                          result_unit.to(unit) != 1.)):
+        if (converters[0] is not None or
+            (unit is not None and unit is not result_unit and
+             (not result_unit.is_equivalent(unit) or
+              result_unit.to(unit) != 1.))):
             raise UnitsError("Cannot use '{1}' method on ufunc {0} with a "
                              "Quantity instance as it would change the unit."
                              .format(function.__name__, method))
