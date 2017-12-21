@@ -148,7 +148,8 @@ class TestConvenience(FitsTestCase):
         filename = self.data('tb.fits')
         fits.tabledump(filename)
         assert os.path.isfile(self.data('tb_1.txt'))
+        os.remove(self.data('tb_1.txt'))
 
         # test with datafile
-        fits.tabledump(filename, datafile=self.data('test_tb.txt'))
-        assert os.path.isfile(self.data('test_tb.txt'))
+        fits.tabledump(filename, datafile=self.temp('test_tb.txt'))
+        assert os.path.isfile(self.temp('test_tb.txt'))
