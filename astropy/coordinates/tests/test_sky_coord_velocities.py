@@ -150,13 +150,18 @@ def test_separation(sc, sc2):
 
 def test_accessors(sc, scmany):
     sc.data.differentials['s']
-    sc.spherical
-    sc.galactic
+    sph = sc.spherical
+    gal = sc.galactic
+
+    assert isinstance(sph, SphericalRepresentation)
+    assert gal.data.differentials is not None
 
     scmany[0]
-    scmany.spherical
-    scmany.galactic
+    sph = scmany.spherical
+    gal = scmany.galactic
 
+    assert isinstance(sph, SphericalRepresentation)
+    assert gal.data.differentials is not None
 
 def test_transforms(sc):
     trans = sc.transform_to('galactic')
