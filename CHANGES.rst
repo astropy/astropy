@@ -766,7 +766,6 @@ Other Changes and Additions
 
 2.0.5 (unreleased)
 2.0.4 (unreleased)
-2.0.4 (unreleased)
 ==================
 
 Bug Fixes
@@ -779,11 +778,6 @@ astropy.modeling
   the ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
   be dictionaries with input names as keys. [#6952]
 
-2.0.3 (unreleased)
-==================
-
-Bug Fixes
----------
 
 astropy.config
 ^^^^^^^^^^^^^^
