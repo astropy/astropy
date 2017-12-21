@@ -101,6 +101,12 @@ astropy.modeling
 - A ``deepcopy()`` method was added to models. [#6515]
 
 - Added units support to ``AffineTransformation``. [#6853]
+- Added ``is_separable`` function to modeling totest the
+- Added ``is_separable`` function to modeling to test the
+  separability of a model. [#6746]
+
+- Added ``Model.separable`` property. It returns a boolean value or
+  ``None`` if not set. [#6746]
 
 astropy.nddata
 ^^^^^^^^^^^^^^

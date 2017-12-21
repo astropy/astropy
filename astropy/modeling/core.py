@@ -633,6 +633,9 @@ class Model(metaclass=_ModelMeta):
     fittable = False
     linear = True
 
+    _separable = None
+    """ A boolean flag to indicate whether a model is separable."""
+
     meta = metadata.MetaData()
     """A dict-like object to store optional information."""
 
@@ -1110,6 +1113,17 @@ class Model(metaclass=_ModelMeta):
         """
 
         return self._user_bounding_box is not None
+
+    @property
+    def separable(self):
+        """ A flag indicating whether a model is separable."""
+
+        if self._separable is not None:
+            return self._separable
+        else:
+            raise NotImplementedError(
+                'The "separable" property is not defined for '
+                'model {}'.format(self.__class__.__name__))
 
     # *** Public methods ***
 
@@ -2080,6 +2094,7 @@ class Fittable1DModel(FittableModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = True
 
 
 class Fittable2DModel(FittableModel):
