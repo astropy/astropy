@@ -9,14 +9,7 @@ astropy.config
 
 - The config and cache directories and the name of the config file are now
   customizable. This allows affiliated packages to put their configuration
-  files in locations other than ``CONFIG_DIR/.astropy/``. [#5828]
-
-
-astropy.config
-^^^^^^^^^^^^^^
-- The config and cache directories and the name of the config file are now
-  customizable. This allows affiliated packages to put their configuration
-  files in locations other than ``CONFIG_DIR/.astropy/``. [#5828]
+  files in locations other than ``CONFIG_DIR/.astropy/``. [#6985]
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
@@ -135,8 +128,6 @@ astropy.table
 
 - Improved exception handling and error messages when column ``format``
   attribute is incorrect for the column type. [#6385]
-
-- ``astropy.constants``
 
 - Allow to pass ``htmldict`` option to the jsviewer writer. [#6551]
 
