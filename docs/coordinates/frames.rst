@@ -207,7 +207,7 @@ Similar broadcasting happens if you transform to another frame.  E.g.::
     >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +IGNORE_OUTPUT
     >>> lcoo  # doctest: +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): (az, alt) in deg
-        [( 94.71264994, 89.2142425 ), (307.69488826, 37.98077772)]>
+        [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
 
 Above, the shapes -- ``()`` for ``coo`` and ``(2,)`` for ``lf`` -- were
 broadcast against each other.  If you wished to determine the positions for a

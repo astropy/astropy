@@ -42,9 +42,10 @@ class TestBasic():
         ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert isinstance(ut1_utc, u.Quantity)
         assert ut1_utc.unit is u.second
+        # IERS files change at the 0.1 ms level; see gh-6981
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
         # should be future-proof; surely we've moved to another planet by then
         with pytest.raises(IndexError):
             ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.)
@@ -59,7 +60,7 @@ class TestBasic():
         ut1_utc3 = iers_tab.ut1_utc(t)
         assert_quantity_allclose(ut1_utc3, [-0.5868211, -0.5868184, -0.5868184,
                                             0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
 
         # Table behaves properly as a table (e.g. can be sliced)
         assert len(iers_tab[:2]) == 2
@@ -121,7 +122,7 @@ class TestIERS_AExcerpt():
         # match to double precision accuracy.
         assert_quantity_allclose(ut1_utc,
                                  [-0.4916557, -0.4925323, -0.4934373] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
 
 
         dcip_x,dcip_y, status = iers_tab.dcip_xy(t, return_status=True)
@@ -143,10 +144,10 @@ class TestIERS_AExcerpt():
         assert np.all(status[1:] == iers.FROM_IERS_A)
         assert_quantity_allclose(pm_x,
                                  [0.003734, 0.004581, 0.004623] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 atol=0.1*u.marcsec)
         assert_quantity_allclose(pm_y,
                                  [0.310824, 0.313150, 0.315517] * u.arcsec,
-                                 atol=1.*u.narcsec)
+                                 atol=0.1*u.marcsec)
 
         # Table behaves properly as a table (e.g. can be sliced)
         assert len(iers_tab[:2]) == 2
@@ -163,7 +164,7 @@ class TestIERS_A():
         assert np.all(status == iers.FROM_IERS_B)
         assert_quantity_allclose(ut1_utc, [-0.5868211, -0.5868184, -0.5868184,
                                            0.4131816, 0.41328895] * u.s,
-                                 atol=1.*u.ns)
+                                 atol=0.1*u.ms)
         ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0., return_status=True)
         assert status2 == iers.TIME_BEYOND_IERS_RANGE
 
