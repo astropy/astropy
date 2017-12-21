@@ -619,6 +619,8 @@ astropy.table
 - Enable tab-completion for column names with IPython 5 and later. [#7071]
 
 - Allow getting and setting a table Row using multiple column names. [#7107]
+- Added support for full use of ``Time`` mixin column for join, hstack, and
+  vstack table operations. [#6888]
 
 astropy.tests
 ^^^^^^^^^^^^^
