@@ -201,23 +201,29 @@ class TimeInfo(MixinInfo):
         attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
                                            ('meta', 'description'))
         attrs.pop('dtype')  # Not relevant for Time
+        col0 = cols[0]
 
-        # Check that location is the same for all input Time objects
-        ok = all(np.all(col0.location == col1.location)
-                 for col0, col1 in zip(cols[:-1], cols[1:]))
-        if not ok:
-            raise ValueError('input columns have inconsistent locations')
+        # Check that location is consistent for all Time objects
+        for col in cols[1:]:
+            # This is the method used by __setitem__ to ensure that the right side
+            # has a consistent location (and coerce data if necessary, but that does
+            # not happen in this case since `col` is already a Time object).  If this
+            # passes then any subsequent table operations via setitem will work.
+            try:
+                col0._make_value_equivalent(slice(None), col)
+            except ValueError:
+                raise ValueError('input columns have inconsistent locations')
 
-        # Make a new Time object
+        # Make a new Time object with the desired shape and attributes
         shape = (length,) + attrs.pop('shape')
         jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
         jd1 = np.full(shape, jd2000, dtype='f8')
         jd2 = np.zeros(shape, dtype='f8')
-        tm_attrs = {attr: getattr(cols[0], attr)
+        tm_attrs = {attr: getattr(col0, attr)
                     for attr in ('scale', 'location',
                                  'precision', 'in_subfmt', 'out_subfmt')}
         out = self._parent_cls(jd1, jd2, format='jd', **tm_attrs)
-        out.format = cols[0].format
+        out.format = col0.format
 
         # Set remaining info attributes
         for attr, value in attrs.items():
