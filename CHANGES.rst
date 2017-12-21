@@ -108,8 +108,6 @@ astropy.modeling
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
 
-- Propagate weights to undelying fitter in `FittingWithOutlierRemoval` [#7020]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -496,6 +494,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- Propagate weights to undelying fitter in `FittingWithOutlierRemoval` [#7020]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
