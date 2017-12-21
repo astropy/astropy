@@ -1140,6 +1140,8 @@ class UnitBase(metaclass=InheritDocstrings):
             composite units.
 
         include_prefix_units : bool, optional
+            Default is `True` if a sequence is passed in to ``units``,
+            `False` otherwise.
             When `True`, include prefixed units in the result.
             Default is `False`.
 
@@ -1151,8 +1153,8 @@ class UnitBase(metaclass=InheritDocstrings):
             automatically determine which of the candidates are
             better.
         """
-        # if the specified units list explicitly contains prefix units,
-        # include_prefix_units should be turned on.  Ex: units=[u.kpc]
+        # if units parameter is specified and is a sequence (list|tuple),
+        # include_prefix_units is turned on by default.  Ex: units=[u.kpc]
         if include_prefix_units is None:
             include_prefix_units = isinstance(units, (list, tuple))
 

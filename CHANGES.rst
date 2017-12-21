@@ -405,8 +405,9 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
-- When a prefix unit is specified, include_prefix_units should be automatic
-  [#4104, #6957]
+- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to ``units``,
+  ``include_prefix_units`` is set to `True` when unspecified.
+  [#6957]
 
 - Deprecated conversion of quantities to truth values. Currently, the expression
   ``bool(0 * u.dimensionless_unscaled)`` evaluates to ``True``. In the future,
