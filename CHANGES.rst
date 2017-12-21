@@ -433,6 +433,12 @@ astropy.modeling
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
 
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Added ``Model.separable`` property. It returns a boolean value or
+  ``None`` if not set. [#6746]
+
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
 
@@ -818,6 +824,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- Propagate weights to underlying fitter in ``FittingWithOutlierRemoval`` [#7249]
 
 - Fixed the evaluation of compound models with units. This required adding
   the ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
