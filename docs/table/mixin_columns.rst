@@ -204,7 +204,8 @@ does not handle mixin column types like |Quantity| or |SkyCoord|.
 
 **Masking**
 
-Mixin columns do not support masking, but there is limited support for use of
+Mixin columns do not generally support masking (with the exception of |Time|),
+but there is limited support for use of
 mixins within a masked table.  In this case a ``mask`` attribute is assigned to
 the mixin column object.  This ``mask`` is a special object that is a boolean
 array of ``False`` corresponding to the mixin data shape.  The ``mask`` looks
@@ -226,7 +227,8 @@ that contain mixin columns:
    * - :ref:`grouped-operations`
      - Not implemented yet, but no fundamental limitation
    * - :ref:`stack-vertically`
-     - Available for `~astropy.units.Quantity` and any other mixin classes that provide an
+     - Available for `~astropy.units.Quantity` subclasses, |Time|
+       and any other mixin classes that provide a
        `new_like() method`_ in the ``info`` descriptor.
    * - :ref:`stack-horizontally`
      - Works if output mixin column supports masking or if no masking is required
