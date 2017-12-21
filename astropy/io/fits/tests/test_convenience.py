@@ -141,9 +141,9 @@ class TestConvenience(FitsTestCase):
                     printdiff(in1, in2, 0)
 
     def test_tabledump(self):
-        """ 
+        """
         Regression test for https://github.com/astropy/astropy/issues/6937
-        """ 
+        """
         # test without datafile
         filename = self.data('tb.fits')
         fits.tabledump(filename)
@@ -152,6 +152,3 @@ class TestConvenience(FitsTestCase):
         # test with datafile
         fits.tabledump(filename, datafile=self.data('test_tb.txt'))
         assert os.path.isfile(self.data('test_tb.txt'))
-        
-
-
