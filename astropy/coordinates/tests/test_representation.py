@@ -10,9 +10,10 @@ from numpy.testing import assert_allclose
 
 from ... import units as u
 from ...tests.helper import (assert_quantity_allclose as
-                             assert_allclose_quantity)
+                             assert_allclose_quantity, catch_warnings)
 from ...utils import isiterable
 from ...utils.compat import NUMPY_LT_1_14
+from ...utils.exceptions import AstropyDeprecationWarning
 from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (REPRESENTATION_CLASSES,
@@ -1360,3 +1361,16 @@ def test_to_cartesian():
     cart = sr.to_cartesian()
     assert cart.get_name() == 'cartesian'
     assert not cart.differentials
+
+
+def test_recommended_units_deprecation():
+    sr = SphericalRepresentation(lat=1*u.deg, lon=2*u.deg, distance=10*u.m)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sr.recommended_units
+    assert 'recommended_units' in str(w[0].message)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        class MyClass(SphericalRepresentation):
+            attr_classes = SphericalRepresentation.attr_classes
+            recommended_units = {}
+    assert 'recommended_units' in str(w[0].message)

@@ -10,6 +10,7 @@ import functools
 import operator
 from collections import OrderedDict
 import inspect
+import warnings
 
 import numpy as np
 import astropy.units as u
@@ -18,6 +19,8 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..utils import ShapedLikeNDArray, classproperty
 
+from ..utils import deprecated_attribute
+from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import InheritDocstrings
 from ..utils.compat import NUMPY_LT_1_12, NUMPY_LT_1_14
 
@@ -37,6 +40,16 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
 # classes get registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
+
+
+# recommended_units deprecation message; if the attribute is removed later,
+# also remove its use in BaseFrame._get_representation_info.
+_recommended_units_deprecation = """
+The 'recommended_units' attribute is deprecated since 3.0 and may be removed
+in a future version. Its main use, of representing angles in degrees in frames,
+is now done automatically in frames. Further overrides are discouraged but can
+be done using a frame's ``frame_specific_representation_info``.
+"""
 
 
 def _array2string(values, prefix=''):
@@ -420,6 +433,13 @@ class MetaBaseRepresentation(InheritDocstrings, abc.ABCMeta):
             raise NotImplementedError('Representations must have an '
                                       '"attr_classes" class attribute.')
 
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
+
         repr_name = cls.get_name()
 
         if repr_name in REPRESENTATION_CLASSES:
@@ -467,13 +487,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     that want to define a smarter transformation path can overload the
     ``represent_as`` method. If one wants to use an associated differential
     class, one should also define ``unit_vectors`` and ``scale_factors``
-    methods (see those methods for details). Finally, classes can also define a
-    ``recommended_units`` dictionary, which maps component names to the units
-    they are best presented to users in (this is used only in representations
-    of coordinates, and may be overridden by frame classes).
+    methods (see those methods for details).
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -1240,7 +1258,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     @classproperty
     def _dimensional_representation(cls):
@@ -1529,7 +1546,6 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    recommended_units = {'lon': u.deg, 'lat': u.deg}
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, differentials=None, copy=True):
@@ -1682,7 +1698,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
@@ -1838,7 +1853,6 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
@@ -1931,6 +1945,13 @@ class MetaBaseDifferential(InheritDocstrings, abc.ABCMeta):
             cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
                                             for c in base_attr_classes])
 
+        if 'recommended_units' in dct:
+            warnings.warn(_recommended_units_deprecation,
+                          AstropyDeprecationWarning)
+            # Ensure we don't override the property that warns about the
+            # deprecation, but that the value remains the same.
+            dct.setdefault('_recommended_units', dct.pop('recommended_units'))
+
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
             raise ValueError("Differential class {0} already defined"
@@ -1974,7 +1995,8 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     those, and a default ``__init__`` for initialization.
     """
 
-    recommended_units = {}  # subclasses can override
+    recommended_units = deprecated_attribute('recommended_units', since='3.0')
+    _recommended_units = {}
 
     @classmethod
     def _check_base(cls, base):
