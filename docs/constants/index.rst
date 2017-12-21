@@ -1,3 +1,5 @@
+.. _astropy-constants:
+
 *******************************
 Constants (`astropy.constants`)
 *******************************
@@ -67,6 +69,8 @@ cannot be used in expressions without specifying a system::
     >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
     <Quantity 4.8032045057134676e-08 Fr>
 
+.. _astropy-constants-prior:
+
 Collections of constants (and prior versions)
 =============================================
 
@@ -118,7 +122,7 @@ constants to an older version (e.g., for regression testing), a context
 manager is available, as follows:
 
     >>> from astropy import constants as const
-    >>> with const.constants_set('astropyconst13'):
+    >>> with const.set_enabled_constants('astropyconst13'):
     ...     print(const.h)
       Name   = Planck constant
       Value  = 6.62606957e-34

@@ -47,8 +47,22 @@ if __doc__ is not None:
     __doc__ += '\n'.join(_lines)
 
 
+# TODO: Re-implement in a way that is more consistent with astropy.units.
+#       See https://github.com/astropy/astropy/pull/7008 discussions.
 @contextmanager
-def constants_set(modname):
+def set_enabled_constants(modname):
+    """
+    Context manager to temporarily set values in the ``constants``
+    namespace to an older version.
+    See :ref:`astropy-constants-prior` for usage.
+
+    Parameters
+    ----------
+    modname : {'astropyconst13'}
+        Name of the module containing an older version.
+
+    """
+
     # Re-import here because these were deleted from namespace on init.
     import inspect
     import warnings

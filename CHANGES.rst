@@ -10,8 +10,8 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- New context manager ``constants_set`` to temporarily use an older version.
-  [#7008]
+- New context manager ``set_enabled_constants`` to temporarily use an older
+  version. [#7008]
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
