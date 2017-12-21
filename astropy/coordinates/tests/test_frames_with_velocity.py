@@ -73,7 +73,7 @@ def test_all_arg_options(kwargs):
     repr_gal = repr(gal)
 
     for k in kwargs:
-        if '_type' in k:
+        if k == 'differential_type':
             continue
         getattr(icrs, k)
 
