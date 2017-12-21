@@ -553,30 +553,30 @@ class SkyCoord(ShapedLikeNDArray):
         icrs.set_representation_cls(s=SphericalDifferential)
 
         try:
-            plx = icrs.distance.to(u.arcsecond, u.parallax()).value
+            plx = icrs.distance.to_value(u.arcsecond, u.parallax())
         except u.UnitConversionError: # No distance: set to 0 by starpm convention
             plx = 0.
 
         try:
-            rv = icrs.radial_velocity.to(u.km/u.s).value
+            rv = icrs.radial_velocity.to_value(u.km/u.s)
         except u.UnitConversionError: # No RV
             rv = 0.
 
         # proper motion in RA should not include the cos(dec) term, see the
         # erfa function eraStarpv, comment (4).
         starpm = erfa.starpm(icrs.ra.radian, icrs.dec.radian,
-                             icrs.pm_ra.to(u.radian/u.yr).value,
-                             icrs.pm_dec.to(u.radian/u.yr).value,
+                             icrs.pm_ra.to_value(u.radian/u.yr),
+                             icrs.pm_dec.to_value(u.radian/u.yr),
                              plx, rv,
                              2400000.5, t1.tdb.mjd,
                              2400000.5, t2.tdb.mjd)
 
-        icrs2 = ICRS(ra=starpm[0] * u.radian,
-                     dec=starpm[1] * u.radian,
-                     pm_ra=starpm[2] * u.radian/u.yr,
-                     pm_dec=starpm[3] * u.radian/u.yr,
-                     distance=Distance(parallax=starpm[4] * u.arcsec),
-                     radial_velocity=starpm[5] * u.km/u.s,
+        icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
+                     dec=u.Quantity(starpm[1], u.radian, copy=False),
+                     pm_ra=u.Quantity(starpm[2], u.radian/u.yr, copy=False),
+                     pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
+                     distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
+                     radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
                      differential_cls=SphericalDifferential)
 
         # Update the obstime of the returned SkyCoord, and need to carry along
