@@ -157,6 +157,11 @@ class TestIERS_AExcerpt():
 class TestIERS_A():
 
     def test_simple(self):
+
+        # https://github.com/astropy/astropy/issues/5131
+        if os.path.isfile(iers.IERS_A_FILE):
+            pytest.xfail('Local IERS_A_FILE exists, this test will fail')
+
         iers_tab = iers.IERS_A.open()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
