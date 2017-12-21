@@ -7,9 +7,9 @@ import numpy as np
 from .. import Time
 from ...utils.iers import iers  # used in testing
 
-allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
-allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
-# 1 nanosec atol
+allclose_jd = functools.partial(np.allclose, rtol=0, atol=1e-9)
+allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-4)
+# 0.1 ms atol; IERS-B files change at that level.
 
 try:
     iers.IERS_A.open()  # check if IERS_A is available
