@@ -538,7 +538,6 @@ class Scale(Fittable1DModel):
         if isinstance(factor, u.Quantity):
             return_unit = factor.unit
             factor = factor.value
-        if isinstance(x, u.Quantity):
             return (x.value * factor) * return_unit
         else:
             return factor * x
