@@ -839,7 +839,8 @@ class TestVStack():
 
     def test_check_for_mixin_functionality(self, mixin_cols):
         col = mixin_cols['m']
-        t = table.QTable([col])
+        len_col = len(col)
+        t = table.QTable([col], names=['a'])
         cls_name = type(col).__name__
 
         # Vstack works for these classes:
@@ -847,17 +848,26 @@ class TestVStack():
                                      'Latitude', 'Longitude',
                                      'EarthLocation']
         if cls_name in implemented_mixin_classes:
-            table.vstack([t, t])
+            out = table.vstack([t, t])
+            assert len(out) == len_col * 2
+            assert np.all(out['a'][:len_col] == col)
+            assert np.all(out['a'][len_col:] == col)
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t])
             assert ('vstack unavailable for mixin column type(s): {}'
                     .format(cls_name) in str(err))
 
-        t2 = table.QTable([col], names='a')  # different from col0 name for t
-        mixin_classes_with_masking = ['Time']
-        if cls_name in mixin_classes_with_masking:
-            table.vstack([t, t2], join_type='outer')
+        # Check for outer stack which requires masking.  Only Time supports
+        # this currently.
+        t2 = table.QTable([col], names=['b'])  # different from col name for t
+        if cls_name == 'Time':
+            out = table.vstack([t, t2], join_type='outer')
+            assert len(out) == len_col * 2
+            assert np.all(out['a'][:len_col] == col)
+            assert np.all(out['b'][len_col:] == col)
+            assert np.all(out['a'].mask == [False] * len_col + [True] * len_col)
+            assert np.all(out['b'].mask == [True] * len_col + [False] * len_col)
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t2], join_type='outer')
@@ -1069,20 +1079,33 @@ class TestHStack():
         assert (self.t1 == table.hstack([self.t1])).all()
 
     def test_check_for_mixin_functionality(self, mixin_cols):
-        col = mixin_cols['m']
-        t = table.QTable([col])
-        t2 = t[:2]  # shorter version of same table
+        col1 = mixin_cols['m']
+        col2 = col1[2:4]  # Shorter version of col1
+        t1 = table.QTable([col1])
+        t2 = table.QTable([col2])
 
-        cls_name = type(col).__name__
+        cls_name = type(col1).__name__
 
-        table.hstack([t, t2], join_type='inner')
+        out = table.hstack([t1, t2], join_type='inner')
+        assert type(out['col0_1']) is type(out['col0_2'])
+        assert len(out) == len(col2)
 
-        mixin_classes_with_masking = ['Time']
-        if cls_name in mixin_classes_with_masking:
-            table.hstack([t, t2], join_type='outer')
+        # Check that columns are as expected.  Skip mixin types
+        # that don't support direct equality comparison.
+        if cls_name not in ('SkyCoord', 'ArrayWrapper'):
+            assert np.all(out['col0_1'] == col1[:len(col2)])
+            assert np.all(out['col0_2'] == col2)
+
+        # Time class supports masking, all other mixins do not
+        if cls_name == 'Time':
+            out = table.hstack([t1, t2], join_type='outer')
+            assert len(out) == len(t1)
+            assert np.all(out['col0_1'] == col1)
+            assert np.all(out['col0_2'][:len(col2)] == col2)
+            assert np.all(out['col0_2'].mask == [False, False, True, True])
         else:
             with pytest.raises(NotImplementedError) as err:
-                table.hstack([t, t2], join_type='outer')
+                table.hstack([t1, t2], join_type='outer')
             assert 'hstack requires masking' in str(err)
 
 
