@@ -251,6 +251,21 @@ though.
     ensure that it is actually an inverse or even approximate inverse.  So
     assign custom inverses at your own risk.
 
+.. _separability:
+
+Model Separability
+==================
+
+Simple models have a boolean `Model.separable <astropy.modeling.Model.separable>` property.
+It indicates whether the outputs are independent and is essential for computing the
+separability of compound models using the :func:`~astropy.modeling.is_separable` function.
+Having a separable compound model means that it can be decomposed into independent models,
+which in turn is useful in many applications.
+For example, it may be easier to define inverses using the independent parts of a model
+than the entire model.
+In other cases, tools using `GWCS <https://gwcs.readthedocs.io/en/latest/>`_,
+can be more flexible and take advantage of separable spectral and spatial transforms.
+
 
 Further examples
 ================

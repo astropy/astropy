@@ -4,7 +4,6 @@
 This module contains models representing polynomials and polynomial series.
 """
 
-
 from collections import OrderedDict
 
 import numpy as np
@@ -352,6 +351,7 @@ class Chebyshev1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -458,6 +458,7 @@ class Hermite1D(PolynomialModel):
 
     inputs = ('x')
     outputs = ('y')
+    _separable = True
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -566,6 +567,7 @@ class Hermite2D(OrthoPolynomialBase):
     example, the third Hermite polynomial (H2) is 4x^2-2, but if x was
     specified with units, 4x^2 and -2 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
@@ -688,6 +690,7 @@ class Legendre1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = False
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -781,6 +784,7 @@ class Polynomial1D(PolynomialModel):
 
     inputs = ('x',)
     outputs = ('y',)
+    _separable = True
 
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -881,6 +885,7 @@ class Polynomial2D(PolynomialModel):
 
     inputs = ('x', 'y')
     outputs = ('z',)
+    _separable = False
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1], n_models=None,
@@ -1057,6 +1062,7 @@ class Chebyshev2D(OrthoPolynomialBase):
     example, the third Chebyshev polynomial (T2) is 2x^2-1, but if x was
     specified with units, 2x^2 and -1 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
@@ -1187,6 +1193,7 @@ class Legendre2D(OrthoPolynomialBase):
     third Legendre polynomial (P2) is 1.5x^2-0.5, but if x was specified with
     units, 1.5x^2 and -0.5 would have incompatible units.
     """
+    _separable = False
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
@@ -1276,6 +1283,8 @@ class _SIP1D(PolynomialBase):
 
     inputs = ('u', 'v')
     outputs = ('w',)
+    _separable = False
+
 
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -1390,6 +1399,7 @@ class SIP(Model):
 
     inputs = ('u', 'v')
     outputs = ('x', 'y')
+    _separable = False
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
                  ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
@@ -1459,6 +1469,7 @@ class InverseSIP(Model):
 
     inputs = ('x', 'y')
     outputs = ('u', 'v')
+    _separable = False
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
                  n_models=None, model_set_axis=None, name=None, meta=None):

@@ -106,6 +106,8 @@ class Projection(Model):
     # This sets the circumference to 360 deg so that arc length is measured in deg.
     r0 = 180 * u.deg / np.pi
 
+    _separable = False
+
     @property
     @abc.abstractmethod
     def inverse(self):
@@ -169,6 +171,8 @@ class Zenithal(Projection):
         x &= R_\theta \sin \phi \\
         y &= R_\theta \cos \phi
     """
+
+    _separable = False
 
 
 class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
@@ -702,6 +706,7 @@ class Cylindrical(Projection):
     Cylindrical projections are so-named because the surface of
     projection is a cylinder.
     """
+    _separable = True
 
 
 class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
@@ -972,6 +977,8 @@ class PseudoCylindrical(Projection):
     distortion there.  Consequently, the meridians are curved.
     """
 
+    _separable = True
+
 
 class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
     r"""
@@ -1030,6 +1037,8 @@ class Pix2Sky_Parabolic(Pix2SkyProjection, PseudoCylindrical):
         \theta &= 3 \sin^{-1}\left(\frac{y}{180^\circ}\right)
     """
 
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_Parabolic()
@@ -1053,6 +1062,8 @@ class Sky2Pix_Parabolic(Sky2PixProjection, PseudoCylindrical):
         y &= 180^\circ \sin \frac{\theta}{3}
     """
 
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_Parabolic()
@@ -1075,6 +1086,8 @@ class Pix2Sky_Molleweide(Pix2SkyProjection, PseudoCylindrical):
         \phi &= \frac{\pi x}{2 \sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}} \\
         \theta &= \sin^{-1}\left(\frac{1}{90^\circ}\sin^{-1}\left(\frac{\pi}{180^\circ}\frac{y}{\sqrt{2}}\right) + \frac{y}{180^\circ}\sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}\right)
     """
+
+    _separable = False
 
     @property
     def inverse(self):
@@ -1106,6 +1119,8 @@ class Sky2Pix_Molleweide(Sky2PixProjection, PseudoCylindrical):
         \sin \theta = \frac{\gamma}{90^\circ} + \frac{\sin 2 \gamma}{\pi}
     """
 
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_Molleweide()
@@ -1128,6 +1143,8 @@ class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
         \phi &= 2 \arg \left(2Z^2 - 1, \frac{\pi}{180^\circ} \frac{Z}{2}x\right) \\
         \theta &= \sin^{-1}\left(\frac{\pi}{180^\circ}yZ\right)
     """
+
+    _separable = False
 
     @property
     def inverse(self):
@@ -1156,6 +1173,8 @@ class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     .. math::
         \gamma = \frac{180^\circ}{\pi} \sqrt{\frac{2}{1 + \cos \theta \cos(\phi / 2)}}
     """
+
+    _separable = False
 
     @property
     def inverse(self):
@@ -1195,6 +1214,8 @@ class Conic(Projection):
     """
     sigma = Parameter(default=90.0, getter=_to_orig_unit, setter=_to_radian)
     delta = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+
+    _separable = False
 
 
 class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
@@ -1576,6 +1597,7 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
         Bonne conformal latitude, in degrees.
     """
     theta1 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+    _separable = True
 
     @property
     def inverse(self):
@@ -1612,6 +1634,7 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
         Bonne conformal latitude, in degrees.
     """
     theta1 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+    _separable = True
 
     @property
     def inverse(self):
@@ -1632,6 +1655,8 @@ class Pix2Sky_Polyconic(Pix2SkyProjection, PseudoConic):
 
     Corresponds to the ``PCO`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_Polyconic()
@@ -1650,6 +1675,8 @@ class Sky2Pix_Polyconic(Sky2PixProjection, PseudoConic):
 
     Corresponds to the ``PCO`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_Polyconic()
@@ -1685,6 +1712,8 @@ class Pix2Sky_TangentialSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``TSC`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_TangentialSphericalCube()
@@ -1703,6 +1732,8 @@ class Sky2Pix_TangentialSphericalCube(Sky2PixProjection, QuadCube):
 
     Corresponds to the ``PCO`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_TangentialSphericalCube()
@@ -1721,6 +1752,8 @@ class Pix2Sky_COBEQuadSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``CSC`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_COBEQuadSphericalCube()
@@ -1739,6 +1772,8 @@ class Sky2Pix_COBEQuadSphericalCube(Sky2PixProjection, QuadCube):
 
     Corresponds to the ``CSC`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_COBEQuadSphericalCube()
@@ -1757,6 +1792,8 @@ class Pix2Sky_QuadSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``QSC`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_QuadSphericalCube()
@@ -1775,6 +1812,8 @@ class Sky2Pix_QuadSphericalCube(Sky2PixProjection, QuadCube):
 
     Corresponds to the ``QSC`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_QuadSphericalCube()
@@ -1806,6 +1845,8 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
     X : float
         The number of facets in latitude direction.
     """
+    _separable = True
+
     H = Parameter(default=4.0)
     X = Parameter(default=3.0)
 
@@ -1835,6 +1876,8 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
     X : float
         The number of facets in latitude direction.
     """
+    _separable = True
+
     H = Parameter(default=4.0)
     X = Parameter(default=3.0)
 
@@ -1856,6 +1899,8 @@ class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
 
     Corresponds to the ``XPH`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Sky2Pix_HEALPix()
@@ -1874,6 +1919,8 @@ class Sky2Pix_HEALPixPolar(Sky2PixProjection, HEALPix):
 
     Corresponds to the ``XPH`` projection in FITS WCS.
     """
+    _separable = False
+
     @property
     def inverse(self):
         return Pix2Sky_HEALPix()
@@ -1905,6 +1952,8 @@ class AffineTransformation2D(Model):
     outputs = ('x', 'y')
 
     standard_broadcasting = False
+
+    _separable = False
 
     matrix = Parameter(default=[[1.0, 0.0], [0.0, 1.0]])
     translation = Parameter(default=[0.0, 0.0])
