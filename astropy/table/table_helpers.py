@@ -163,6 +163,13 @@ class ArrayWrapper:
     def __len__(self):
         return len(self.data)
 
+    def __eq__(self, other):
+        """Minimal equality testing, mostly for mixin unit tests"""
+        if isinstance(other, ArrayWrapper):
+            return self.data == other.data
+        else:
+            return self.data == other
+
     @property
     def dtype(self):
         return self.data.dtype
