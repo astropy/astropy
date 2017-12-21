@@ -350,7 +350,8 @@ def get_converters_and_unit(f, unit1, unit2):
         return converters, unit1
 
 
-# Use function directly so to avoid a needless function call.
+# This used to be a separate function that just called get_converters_and_unit.
+# Using it directly saves a few us; keeping the clearer name.
 helper_twoarg_invariant = get_converters_and_unit
 
 
