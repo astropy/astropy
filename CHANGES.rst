@@ -102,6 +102,8 @@ astropy.modeling
 
 - Added units support to ``AffineTransformation``. [#6853]
 
+- Propagate weights to undelying fitter in `FittingWithOutlierRemoval` [#7020]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
