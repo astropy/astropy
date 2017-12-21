@@ -18,6 +18,7 @@ import numpy as np
 # AstroPy
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
+from .utils import is_effectively_unity
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
@@ -391,6 +392,10 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
+        # If we're a new object or viewing an ndarray, nothing has to be done.
+        if obj is None or obj.__class__ is np.ndarray:
+            return
+
         # If our unit is not set and obj has a valid one, use it.
         if self._unit is None:
             unit = getattr(obj, '_unit', None)
@@ -399,9 +404,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
 
         # Copy info if the original had `info` defined.  Because of the way the
         # DataInfo works, `'info' in obj.__dict__` is False until the
-        # `info` attribute is accessed or set.  Note that `obj` can be an
-        # ndarray which doesn't have a `__dict__`.
-        if 'info' in getattr(obj, '__dict__', ()):
+        # `info` attribute is accessed or set.
+        if 'info' in obj.__dict__:
             self.info = obj.info
 
     def __array_prepare__(self, obj, context=None):
@@ -627,9 +631,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             kwargs['out'] = (out_array,) if function.nout == 1 else out_array
 
         # Same for inputs, but here also convert if necessary.
-        arrays = tuple((converter(input_.value) if converter else
-                        getattr(input_, 'value', input_))
-                       for input_, converter in zip(inputs, converters))
+        arrays = [(converter(input_.value) if converter else
+                   getattr(input_, 'value', input_))
+                  for input_, converter in zip(inputs, converters)]
 
         # Call our superclass's __array_ufunc__
         result = super().__array_ufunc__(function, method, *arrays, **kwargs)
@@ -734,6 +738,9 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
             unit = self.unit
             quantity_subclass = self.__class__
         else:
+            # In principle, could gain time by testing unit is self.unit
+            # as well, and then quantity_subclass = self.__class__, but
+            # Constant relies on going through `__quantity_subclass__`.
             unit = Unit(unit)
             quantity_subclass = getattr(unit, '_quantity_class', Quantity)
             if isinstance(self, quantity_subclass):
@@ -746,6 +753,8 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         # convert python and numpy scalars, which cannot be viewed as arrays
         # and thus not as Quantity either, to zero-dimensional arrays.
         # (These are turned back into scalar in `.value`)
+        # Note that for an ndarray input, the np.array call takes only double
+        # ``obj.__class is np.ndarray``. So, not worth special-casing.
         if obj is None:
             obj = self.view(np.ndarray)
         else:
@@ -865,11 +874,24 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         --------
         to : Get a new instance in a different unit.
         """
-        value = self.view(np.ndarray)
-        if unit is not None:
+        if unit is None or unit is self.unit:
+            value = self.view(np.ndarray)
+        else:
             unit = Unit(unit)
-            if unit != self.unit:
+            # We want a view if the unit does not change.  One could check
+            # with "==", but that calculates the scale that we need anyway.
+            # TODO: would be better for `unit.to` to have an in-place flag.
+            try:
+                scale = self.unit._to(unit)
+            except Exception:
+                # Short-cut failed; try default (maybe equivalencies help).
                 value = self._to_value(unit, equivalencies)
+            else:
+                value = self.view(np.ndarray)
+                if not is_effectively_unity(scale):
+                    # not in-place!
+                    value = value * scale
+
         return value if self.shape else value.item()
 
     value = property(to_value,
