@@ -414,10 +414,6 @@ def test_compose_prefix_unit():
     assert x[0].bases == [u.pc, u.Myr]
     assert_allclose(x[0].scale, 1.0227121650537077)
 
-    x = (u.km/u.s).compose(units=(u.pc, u.Myr))
-    assert x[0].bases == [u.pc, u.Myr]
-    assert_allclose(x[0].scale, 1.0227121650537077)
-
     with raises(u.UnitsError):
         (u.km/u.s).compose(units=(u.pc, u.Myr), include_prefix_units=False)
 
