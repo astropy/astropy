@@ -363,6 +363,8 @@ astropy.io.fits
 
 - Fixed potential problems with the compression module [#6732]
 
+- Always use the 'D' format for floating point values in ascii tables. [#6938]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
