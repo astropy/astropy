@@ -1145,10 +1145,10 @@ def is_url_in_cache(url_key, pkgname='astropy'):
 
 
 def _do_download_files_in_parallel(args):
-    return download_file(*args, show_progress=False)
+    return download_file(*args)
 
 
-def download_files_in_parallel(urls, cache=False, show_progress=True,
+def download_files_in_parallel(urls, cache=True, show_progress=True,
                                timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
@@ -1200,10 +1200,6 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         progress = sys.stdout
     else:
         progress = io.BytesIO()
-
-    if timeout is None:
-        # use configfile default
-        timeout = REMOTE_TIMEOUT()
 
     # Combine duplicate URLs
     combined_urls = list(set(urls))
