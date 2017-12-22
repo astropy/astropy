@@ -431,7 +431,10 @@ class Angle(u.SpecificTypeQuantity):
         return bool(ok)
 
     def __str__(self):
-        return str(self.to_string())
+        if self.isscalar:
+            return str(self.to_string())
+        else:
+            return np.array2string(self, formatter={'all': lambda x: x.to_string()})
 
     def _repr_latex_(self):
         if self.isscalar:
@@ -439,8 +442,7 @@ class Angle(u.SpecificTypeQuantity):
         else:
             # Need to do a magic incantation to convert to str.  Regular str
             # or array2string causes all backslashes to get doubled.
-            return np.array2string(self.to_string(format='latex'),
-                                   formatter={'str_kind': lambda x: x})
+            return np.array2string(self, formatter={'all': lambda x: x.to_string(format='latex')})
 
 
 def _no_angle_subclass(obj):
