@@ -227,6 +227,9 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
             RepresentationMapping('d_z', 'v_z', u.km/u.s)])
 
         # Unit* classes should follow the same naming conventions
+        # TODO: this adds some unnecessary mappings for the Unit classes, so
+        # this could be cleaned up, but in practice doesn't seem to have any
+        # negative side effects
         repr_info.setdefault(r.UnitSphericalRepresentation,
                              repr_info[r.SphericalRepresentation])
 
