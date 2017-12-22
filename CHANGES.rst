@@ -413,9 +413,9 @@ astropy.units
   ``bool(0 * u.dimensionless_unscaled)`` evaluates to ``True``. In the future,
   attempting to convert a ``Quantity`` to a ``bool`` will raise ``ValueError``.
   [#6580, #6590]
- - Modify the ``brightness_temperature`` equivalency to provide a surface
-   brightness equivalency instead of the awkward assumed-per-beam equivalency
-   that previously existed [#5173, #6663]
+- Modify the ``brightness_temperature`` equivalency to provide a surface
+  brightness equivalency instead of the awkward assumed-per-beam equivalency
+  that previously existed [#5173, #6663]
 
 - Support was added for a number of ``scipy.special`` functions. [#6852]
 
