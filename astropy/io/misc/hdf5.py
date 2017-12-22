@@ -178,7 +178,6 @@ def read_table_hdf5(input, path=None):
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
-
     return table
 
 
@@ -214,6 +213,22 @@ def _encode_mixins(tbl):
     return encode_tbl
 
 
+def check_column_encoding(table):
+    """
+    Table with native py3 strings can't be stored in a hdf5 format so if
+    table has py3 strings then a copy of table is made and stored in temp.
+    the copy stored in temp has columns in bytes unicode.
+    """
+    colnames = [name for name in table.colnames if table.columns[name].info.dtype.kind == 'U']
+    if not colnames:
+        return table
+    else:
+        temp = table.copy(copy_data=False)
+        for column_name in colnames:
+            temp.replace_column(column_name, np.char.encode(table.columns[column_name], "utf-8"))
+        return temp
+
+
 def write_table_hdf5(table, output, path=None, compression=False,
                      append=False, overwrite=False, serialize_meta=False,
                      compatibility_mode=False):
@@ -246,7 +261,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
         replaced; the file/group will not be overwritten.
     """
     from ...table import meta
-
     try:
         import h5py
     except ImportError:
@@ -282,7 +296,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
-
         # Recursively call the write function
         try:
             return write_table_hdf5(table, f, path=path,
@@ -305,7 +318,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             del output_group[name]
         else:
             raise OSError("Table {0} already exists".format(path))
-
+    table = check_column_encoding(table)
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
 

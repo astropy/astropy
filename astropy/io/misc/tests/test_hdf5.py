@@ -568,6 +568,28 @@ def test_read_h5py_objects(tmpdir):
     f.close()         # don't raise an error in 'test --open-files'
 
 
+@pytest.mark.skipif('not HAS_H5PY')
+def test_write_to_Hdf5(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1['x']=['a', 'b', 'c']
+    t1['y']=[ 1, 2, 3 ]
+    t1['z']=[b'a', b'b', b'c']
+    t1.write(test_file, path='the_table', overwrite=True)
+    f = h5py.File(test_file)
+    t2 = Table.read(f, path='the_table')
+    t = Table.read(test_file, path='the_table')
+    assert np.all(t1['x'] == ['a', 'b', 'c'])
+    assert np.all(t1['y'] == [ 1, 2 , 3 ])
+    assert np.all(t1['z'] == [b'a', b'b', b'c'])
+    assert np.all(t['x'] == ['a', 'b', 'c'])
+    assert np.all(t['y'] == [ 1 ,2 ,3])
+    assert np.all(t['z'] == [b'a', b'b', b'c'])
+    assert np.all(t2['x'] == ['a', 'b', 'c'])
+    assert np.all(t2['y'] == [ 1, 2 , 3 ])
+    assert np.all(t2['z'] == [b'a', b'b', b'c'])
+
+
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
