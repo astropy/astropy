@@ -329,10 +329,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         proper motion components
       * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper motion
         components
-      * ``radial_velocity`` for any `d_distance` component
+      * ``radial_velocity`` for any ``d_distance`` component
       * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
 
-    where `{lon}` and `{lat}` are the frame names of the angular components.
+    where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
 
     Parameters
     ----------
