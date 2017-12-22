@@ -525,6 +525,14 @@ def test_skip_meta(tmpdir):
     assert str(w[0].message).startswith(
         "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
 
+@pytest.mark.skipif('not HAS_H5PY')
+def test_write_to_Hdf5(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1['x'],t1['y'] = ['1', '2', '3'],['a', 'b', 'c']
+    t1.write(test_file, path='the_table',overwrite=True)
+    assert np.all(t1['x']==['1','2','3']) 
+    assert np.all(t1['y']==['a','b','c'])	
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
 def test_fail_meta_serialize(tmpdir):
