@@ -636,8 +636,24 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     representation_component_units = property(get_representation_component_units)
 
     def _replicate(self, data, copy=False, **kwargs):
-        # This is to provide a slightly nicer error message if the user tries to
-        # use frame_obj.representation instead of frame_obj.data to get the
+        """Base for replicating a frame, with possibly different attributes.
+
+        Produces a new instance of the frame using the attributes of the old
+        frame (unless overridden) and with the data given.
+
+        Parameters
+        ----------
+        data : `~astropy.coordinates.BaseRepresentation` or `None`
+            Data to use in the new frame instance.  If `None`, it will be
+            a data-less frame.
+        copy : bool, optional
+            Whether data and the attributes on the old frame should be copied
+            (default), or passed on by reference.
+        **kwargs
+            Any attributes that should be overridden.
+        """
+        # This is to provide a slightly nicer error message if the user tries
+        # to use frame_obj.representation instead of frame_obj.data to get the
         # underlying representation object [e.g., #2890]
         if inspect.isclass(data):
             raise TypeError('Class passed as data instead of a representation '
