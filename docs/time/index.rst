@@ -693,15 +693,15 @@ class *if you wish to support missing values*.  For applications that
 do not take advantage of missing values then no changes are required.
 
 Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
-setting the corresponding entries of the ``jd2`` attribute to be `~numpy.nan`
+setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
 (but this is never done directly by the user).  For most array operations and
-numpy functions the `~numpy.nan` entries are propagated as expected and all is
+numpy functions the ``numpy.nan`` entries are propagated as expected and all is
 well.  However, this is not always the case, and in particular the `ERFA
 <https://github.com/liberfa/erfa>`_ routines do not generally support
-`~numpy.nan` values gracefully.
+``numpy.nan`` values gracefully.
 
-In cases where `~np.nan` is not acceptable, format class methods should use the
-``jd2_filled`` property instead of ``jd2``.  This replaces `~numpy.nan` with
+In cases where ``numpy.nan`` is not acceptable, format class methods should use the
+``jd2_filled`` property instead of ``jd2``.  This replaces ``numpy.nan`` with
 ``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituing ``0.0``
 will allow functions to return "reasonable" values which will then be masked in
 any subsequent outputs.  See the ``value`` property of the
