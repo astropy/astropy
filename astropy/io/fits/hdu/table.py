@@ -71,7 +71,7 @@ class _TableLikeHDU(_ValidHDU):
 
     @classmethod
     def from_columns(cls, columns, header=None, nrows=0, fill=False,
-                     **kwargs):
+                     character_as_bytes=False, **kwargs):
         """
         Given either a `ColDefs` object, a sequence of `Column` objects,
         or another table HDU or table data (a `FITS_rec` or multi-field
@@ -111,6 +111,11 @@ class _TableLikeHDU(_ValidHDU):
             copy the data from input, undefined cells will still be filled with
             zeros/blanks.
 
+        character_as_bytes : bool
+            Whether to return bytes for string columns when accessed from the
+            HDU. By default this is `False` and (unicode) strings are returned,
+            but for large tables this may use up a lot of memory.
+
         Notes
         -----
 
@@ -119,8 +124,9 @@ class _TableLikeHDU(_ValidHDU):
         """
 
         coldefs = cls._columns_type(columns)
-        data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill)
-        hdu = cls(data=data, header=header, **kwargs)
+        data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill,
+                                     character_as_bytes=character_as_bytes)
+        hdu = cls(data=data, header=header, character_as_bytes=character_as_bytes, **kwargs)
         coldefs._add_listener(hdu)
         return hdu
 

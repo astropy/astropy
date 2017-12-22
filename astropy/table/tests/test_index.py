@@ -6,7 +6,7 @@ import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastRBT, FastBST
 from ..sorted_array import SortedArray
-from ..table import QTable, Row
+from ..table import QTable, Row, Table
 from ... import units as u
 from ...time import Time
 from ..column import BaseColumn
@@ -418,14 +418,32 @@ class TestIndex(SetupData):
         for t2 in (t.loc[:], t.iloc[:]):
             assert_col_equal(t2['a'], [1, 2, 3, 4, 5])
 
+    def test_table_loc_indices(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = self.t
+
+        t.add_index('a', engine=engine)
+        t.add_index('b', engine=engine)
+
+        t2 = t.loc_indices[self.make_val(3)]  # single label, with primary key 'a'
+        assert t2 == 2
+
+        # list search
+        t2 = t.loc_indices[[self.make_val(1), self.make_val(4), self.make_val(2)]]
+        for i, p in zip(t2,[1,4,2]):  # same order as input list
+            assert i == p-1
+
     def test_invalid_search(self, main_col, table_types, engine):
-        # using .loc with a value not present should raise an exception
+        # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
         t = self.t
 
         t.add_index('a')
         with pytest.raises(KeyError):
             t.loc[self.make_val(6)]
+        with pytest.raises(KeyError):
+            t.loc_indices[self.make_val(6)]
+
 
     def test_copy_index_references(self, main_col, table_types, engine):
         # check against a bug in which indices were given an incorrect
@@ -460,3 +478,35 @@ class TestIndex(SetupData):
             for index, indexp in zip(t.indices, tp.indices):
                 assert np.all(index.data.data == indexp.data.data)
                 assert index.data.data.colnames == indexp.data.data.colnames
+
+    def test_updating_row_byindex(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = Table([['a', 'b', 'c', 'd'], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+
+        t.add_index('a', engine=engine)
+        t.add_index('b', engine=engine)
+
+        t.loc['c'] = ['g', 40, 50] # single label, with primary key 'a'
+        t2 = t[2]
+        assert list(t2) == ['g', 40, 50]
+
+        # list search
+        t.loc[['a', 'd', 'b']] = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
+        t2 = [['a', 20, 30], ['d', 50, 60], ['b', 30, 40]]
+        for i, p in zip(t2, [1, 4, 2]):  # same order as input list
+            assert list(t[p-1]) == i
+
+    def test_invalid_updation(self, main_col, table_types, engine):
+        # using .loc and .loc_indices with a value not present should raise an exception
+        self._setup(main_col, table_types)
+        t = Table([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]], names=('a', 'b', 'c'), meta={'name': 'first table'})
+
+        t.add_index('a')
+        with pytest.raises(ValueError):
+            t.loc[3] = [[1,2,3]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5, 6], [2, 3]]
+        with pytest.raises(ValueError):
+            t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5], [2, 3]]

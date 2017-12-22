@@ -381,3 +381,4 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
+.. automodapi:: astropy.modeling.separable

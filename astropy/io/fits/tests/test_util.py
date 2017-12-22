@@ -7,6 +7,7 @@ import gzip
 
 import pytest
 import numpy as np
+from numpy.testing import assert_equal
 
 try:
     from PIL import Image
@@ -16,7 +17,7 @@ except ImportError:
 
 from ....tests.helper import catch_warnings
 from .. import util
-from ..util import ignore_sigint
+from ..util import ignore_sigint, _rstrip_inplace
 from .._numpy_hacks import realign_dtype
 
 from . import FitsTestCase
@@ -148,3 +149,37 @@ class TestUtilMode(FitsTestCase):
             filename = self.temp('test3{0}.dat'.format(num))
             with open(filename, mode) as fileobj:
                 assert util.fileobj_mode(fileobj) == res
+
+
+def test_rstrip_inplace():
+
+    # Incorrect type
+    s = np.array([1, 2, 3])
+    with pytest.raises(TypeError) as exc:
+        _rstrip_inplace(s)
+    assert exc.value.args[0] == 'This function can only be used on string arrays'
+
+    # Bytes array
+    s = np.array(['a ', ' b', ' c c   '], dtype='S6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array(['a', ' b', ' c c'], dtype='S6'))
+
+    # Unicode array
+    s = np.array(['a ', ' b', ' c c   '], dtype='U6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array(['a', ' b', ' c c'], dtype='U6'))
+
+    # 2-dimensional array
+    s = np.array([['a ', ' b'], [' c c   ', ' a ']], dtype='S6')
+    _rstrip_inplace(s)
+    assert_equal(s, np.array([['a', ' b'], [' c c', ' a']], dtype='S6'))
+
+    # 3-dimensional array
+    s = np.repeat(' a a ', 24).reshape((2, 3, 4))
+    _rstrip_inplace(s)
+    assert_equal(s, ' a a')
+
+    # 3-dimensional non-contiguous array
+    s = np.repeat(' a a ', 1000).reshape((10, 10, 10))[:2, :3, :4]
+    _rstrip_inplace(s)
+    assert_equal(s, ' a a')

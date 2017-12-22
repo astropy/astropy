@@ -25,7 +25,7 @@ from ..utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
                      check_broadcast)
 from .transformations import TransformGraph
 from . import representation as r
-
+from .angles import Angle
 from .attributes import Attribute
 
 # Import old names for Attributes so we don't break backwards-compatibility
@@ -560,9 +560,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         for repr_diff_cls in (list(r.REPRESENTATION_CLASSES.values()) +
                               list(r.DIFFERENTIAL_CLASSES.values())):
             repr_attrs[repr_diff_cls] = {'names': [], 'units': []}
-            for c in repr_diff_cls.attr_classes.keys():
+            for c, c_cls in repr_diff_cls.attr_classes.items():
                 repr_attrs[repr_diff_cls]['names'].append(c)
-                rec_unit = repr_diff_cls.recommended_units.get(c, None)
+                # TODO: when "recommended_units" is removed, just directly use
+                # the default part here.
+                rec_unit = repr_diff_cls._recommended_units.get(
+                    c, u.deg if issubclass(c_cls, Angle) else None)
                 repr_attrs[repr_diff_cls]['units'].append(rec_unit)
 
         for repr_diff_cls, mappings in cls._frame_specific_representation_info.items():
@@ -1239,16 +1242,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self.__getattribute__(attr)  # Raise AttributeError.
 
     def __setattr__(self, attr, value):
-        repr_attr_names = set()
-        if hasattr(self, 'representation_info'):
-            for representation_attr in self.representation_info.values():
-                repr_attr_names.update(representation_attr['names'])
+        # Don't slow down access of private attributes!
+        if not attr.startswith('_'):
+            if hasattr(self, 'representation_info'):
+                repr_attr_names = set()
+                for representation_attr in self.representation_info.values():
+                    repr_attr_names.update(representation_attr['names'])
 
-        if attr in repr_attr_names:
-            raise AttributeError(
-                'Cannot set any frame attribute {0}'.format(attr))
-        else:
-            super().__setattr__(attr, value)
+                if attr in repr_attr_names:
+                    raise AttributeError(
+                        'Cannot set any frame attribute {0}'.format(attr))
+
+        super().__setattr__(attr, value)
 
     def separation(self, other):
         """
