@@ -323,6 +323,36 @@ def test_representation_info():
     assert allclose(i2.howfar, 1000*u.pc)
     assert i2.howfar.unit == u.kpc
 
+    # Test that the differential kwargs get overridden
+    class NewICRS3(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalCosLatDifferential: [
+                RepresentationMapping('d_lon_coslat', 'pm_ang1', u.hourangle/u.century),
+                RepresentationMapping('d_lat', 'pm_ang2'),
+                RepresentationMapping('d_distance', 'vlos', u.kpc/u.Myr)]
+        }
+
+    i3 = NewICRS3(lon=10*u.degree, lat=-12*u.deg, distance=1000*u.pc,
+                  pm_ang1=1*u.mas/u.yr, pm_ang2=2*u.mas/u.yr,
+                  vlos=100*u.km/u.s)
+    assert allclose(i3.pm_ang1, 1*u.mas/u.yr)
+    assert i3.pm_ang1.unit == u.hourangle/u.century
+    assert allclose(i3.pm_ang2, 2*u.mas/u.yr)
+    assert allclose(i3.vlos, 100*u.km/u.s)
+    assert i3.vlos.unit == u.kpc/u.Myr
+
+    # Test that setting RadialDifferential alone works
+    class NewICRS4(ICRS):
+        frame_specific_representation_info = {
+            r.RadialDifferential: [
+                RepresentationMapping('d_distance', 'vlos', u.kpc/u.Myr)]
+        }
+
+    i4 = NewICRS4(lon=10*u.degree, lat=-12*u.deg, distance=1000*u.pc,
+                  vlos=100*u.km/u.s)
+    assert allclose(i4.vlos, 100*u.km/u.s)
+    assert i4.vlos.unit == u.kpc/u.Myr
+
 
 def test_realizing():
     from ..builtin_frames import ICRS, FK5
