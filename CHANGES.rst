@@ -176,6 +176,8 @@ astropy.units
   attempting to convert a ``Quantity`` to a ``bool`` will raise ``ValueError``.
   [#6580, #6590]
 
+- Support was added for a number of ``scipy.special`` functions. [#6852]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

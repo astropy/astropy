@@ -1,5 +1,12 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 # The idea for this module (but no code) was borrowed from the
 # quantities (http://pythonhosted.org/quantities/) package.
+"""Helper functions for Quantity.
+
+In particular, this implements the logic that determines scaling and result
+units for a given ufunc, given input units.
+"""
 
 from fractions import Fraction
 
@@ -32,284 +39,6 @@ def get_converter(from_unit, to_unit):
         return lambda val: scale * val
 
 
-UFUNC_HELPERS = {}
-
-# In this file, we implement the logic that determines for a given ufunc and
-# input how the input should be scaled and what unit the output will have.
-
-# list of ufuncs:
-# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
-
-UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
-                          np.bitwise_xor, np.invert, np.left_shift,
-                          np.right_shift, np.logical_and, np.logical_or,
-                          np.logical_xor, np.logical_not])
-for name in 'isnat', 'gcd', 'lcm':
-    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
-    ufunc = getattr(np, name, None)
-    if isinstance(ufunc, np.ufunc):
-        UNSUPPORTED_UFUNCS |= {ufunc}
-
-# SINGLE ARGUMENT UFUNCS
-
-# The functions below take a single argument, which is the quantity upon which
-# the ufunc is being used. The output of the function should be two values: the
-# scale by which the input needs to be multiplied before being passed to the
-# ufunc, and the unit the output will be in.
-
-# ufuncs that return a boolean and do not care about the unit
-helper_onearg_test = lambda f, unit: ([None], None)
-
-UFUNC_HELPERS[np.isfinite] = helper_onearg_test
-UFUNC_HELPERS[np.isinf] = helper_onearg_test
-UFUNC_HELPERS[np.isnan] = helper_onearg_test
-UFUNC_HELPERS[np.sign] = helper_onearg_test
-UFUNC_HELPERS[np.signbit] = helper_onearg_test
-
-# ufuncs that return a value with the same unit as the input
-
-helper_invariant = lambda f, unit: ([None], _d(unit))
-
-UFUNC_HELPERS[np.absolute] = helper_invariant
-UFUNC_HELPERS[np.fabs] = helper_invariant
-UFUNC_HELPERS[np.conj] = helper_invariant
-UFUNC_HELPERS[np.conjugate] = helper_invariant
-UFUNC_HELPERS[np.negative] = helper_invariant
-UFUNC_HELPERS[np.spacing] = helper_invariant
-UFUNC_HELPERS[np.rint] = helper_invariant
-UFUNC_HELPERS[np.floor] = helper_invariant
-UFUNC_HELPERS[np.ceil] = helper_invariant
-UFUNC_HELPERS[np.trunc] = helper_invariant
-# positive only was added in numpy 1.13
-if isinstance(getattr(np, 'positive', None), np.ufunc):
-    UFUNC_HELPERS[np.positive] = helper_invariant
-
-# ufuncs handled as special cases
-
-UFUNC_HELPERS[np.sqrt] = lambda f, unit: (
-    [None], unit ** 0.5 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.square] = lambda f, unit: (
-    [None], unit ** 2 if unit is not None else dimensionless_unscaled)
-UFUNC_HELPERS[np.reciprocal] = lambda f, unit: (
-    [None], unit ** -1 if unit is not None else dimensionless_unscaled)
-
-UFUNC_HELPERS[np.cbrt] = lambda f, unit: (
-    [None], (unit ** Fraction(1, 3) if unit is not None
-             else dimensionless_unscaled))
-UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
-                                           ([None], dimensionless_unscaled))
-
-# ufuncs that require dimensionless input and and give dimensionless output
-
-
-def helper_dimensionless_to_dimensionless(f, unit):
-    if unit is None:
-        return [None], dimensionless_unscaled
-
-    try:
-        return ([get_converter(unit, dimensionless_unscaled)],
-                dimensionless_unscaled)
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.exp] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.expm1] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.exp2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log10] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
-
-
-def helper_modf(f, unit):
-    if unit is None:
-        return [None], (dimensionless_unscaled, dimensionless_unscaled)
-
-    try:
-        return ([get_converter(unit, dimensionless_unscaled)],
-                (dimensionless_unscaled, dimensionless_unscaled))
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.modf] = helper_modf
-
-
-# ufuncs that require dimensionless input and give output in radians
-def helper_dimensionless_to_radian(f, unit):
-    from .si import radian
-    if unit is None:
-        return [None], radian
-
-    try:
-        return [get_converter(unit, dimensionless_unscaled)], radian
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.arccos] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsin] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctan] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arccosh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arcsinh] = helper_dimensionless_to_radian
-UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
-
-
-# ufuncs that require input in degrees and give output in radians
-def helper_degree_to_radian(f, unit):
-    from .si import degree, radian
-    try:
-        return [get_converter(unit, degree)], radian
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.radians] = helper_degree_to_radian
-UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
-
-
-# ufuncs that require input in radians and give output in degrees
-def helper_radian_to_degree(f, unit):
-    from .si import degree, radian
-    try:
-        return [get_converter(unit, radian)], degree
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
-UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
-
-
-# ufuncs that require input in radians and give dimensionless output
-def helper_radian_to_dimensionless(f, unit):
-    from .si import radian
-    try:
-        return [get_converter(unit, radian)], dimensionless_unscaled
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
-
-
-UFUNC_HELPERS[np.cos] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sin] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tan] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.cosh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.sinh] = helper_radian_to_dimensionless
-UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
-
-
-# ufuncs that require dimensionless_unscaled input and return non-quantities
-def helper_frexp(f, unit):
-    if not unit.is_unity():
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "unscaled dimensionless quantities"
-                            .format(f.__name__))
-    return [None], (None, None)
-
-
-UFUNC_HELPERS[np.frexp] = helper_frexp
-
-
-# TWO ARGUMENT UFUNCS
-def helper_multiplication(f, unit1, unit2):
-    return [None, None], _d(unit1) * _d(unit2)
-
-
-UFUNC_HELPERS[np.multiply] = helper_multiplication
-
-
-def helper_division(f, unit1, unit2):
-    return [None, None], _d(unit1) / _d(unit2)
-
-
-UFUNC_HELPERS[np.divide] = helper_division
-UFUNC_HELPERS[np.true_divide] = helper_division
-
-
-def helper_power(f, unit1, unit2):
-    # TODO: find a better way to do this, currently need to signal that one
-    # still needs to raise power of unit1 in main code
-    if unit2 is None:
-        return [None, None], False
-
-    try:
-        return [None, get_converter(unit2, dimensionless_unscaled)], False
-    except UnitsError:
-        raise UnitTypeError("Can only raise something to a "
-                            "dimensionless quantity")
-
-
-UFUNC_HELPERS[np.power] = helper_power
-# float_power was added in numpy 1.12
-if isinstance(getattr(np, 'float_power', None), np.ufunc):
-    UFUNC_HELPERS[np.float_power] = helper_power
-
-
-def helper_ldexp(f, unit1, unit2):
-    if unit2 is not None:
-        raise TypeError("Cannot use ldexp with a quantity "
-                        "as second argument.")
-    else:
-        return [None, None], _d(unit1)
-
-
-UFUNC_HELPERS[np.ldexp] = helper_ldexp
-
-
-def helper_copysign(f, unit1, unit2):
-    # if first arg is not a quantity, just return plain array
-    if unit1 is None:
-        return [None, None], None
-    else:
-        return [None, None], unit1
-
-
-UFUNC_HELPERS[np.copysign] = helper_copysign
-
-# heaviside only was added in numpy 1.13
-if isinstance(getattr(np, 'heaviside', None), np.ufunc):
-    def helper_heaviside(f, unit1, unit2):
-        try:
-            converter2 = (get_converter(unit2, dimensionless_unscaled)
-                          if unit2 is not None else None)
-        except UnitsError:
-            raise UnitTypeError("Can only apply 'heaviside' function with a "
-                                "dimensionless second argument.")
-        return ([None, converter2], dimensionless_unscaled)
-
-    UFUNC_HELPERS[np.heaviside] = helper_heaviside
-
-
-def helper_two_arg_dimensionless(f, unit1, unit2):
-    try:
-        converter1 = (get_converter(unit1, dimensionless_unscaled)
-                      if unit1 is not None else None)
-        converter2 = (get_converter(unit2, dimensionless_unscaled)
-                      if unit2 is not None else None)
-    except UnitsError:
-        raise UnitTypeError("Can only apply '{0}' function to "
-                            "dimensionless quantities"
-                            .format(f.__name__))
-    return ([converter1, converter2], dimensionless_unscaled)
-
-
-UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
-UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
-
-
 def get_converters_and_unit(f, unit1, unit2):
     converters = [None, None]
     # By default, we try adjusting unit2 to unit1, so that the result will
@@ -340,7 +69,6 @@ def get_converters_and_unit(f, unit1, unit2):
             return converters, unit2
         else:
             return converters, dimensionless_unscaled
-
     else:
         try:
             converters[changeable] = get_converter(unit2, unit1)
@@ -351,65 +79,6 @@ def get_converters_and_unit(f, unit1, unit2):
                 .format(f.__name__))
 
         return converters, unit1
-
-
-# This used to be a separate function that just called get_converters_and_unit.
-# Using it directly saves a few us; keeping the clearer name.
-helper_twoarg_invariant = get_converters_and_unit
-
-
-UFUNC_HELPERS[np.add] = helper_twoarg_invariant
-UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
-UFUNC_HELPERS[np.hypot] = helper_twoarg_invariant
-UFUNC_HELPERS[np.maximum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.minimum] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmin] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmax] = helper_twoarg_invariant
-UFUNC_HELPERS[np.nextafter] = helper_twoarg_invariant
-UFUNC_HELPERS[np.remainder] = helper_twoarg_invariant
-UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
-UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
-
-
-def helper_twoarg_comparison(f, unit1, unit2):
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, None
-
-
-UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
-UFUNC_HELPERS[np.greater_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less] = helper_twoarg_comparison
-UFUNC_HELPERS[np.less_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.not_equal] = helper_twoarg_comparison
-UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
-
-
-def helper_twoarg_invtrig(f, unit1, unit2):
-    from .si import radian
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, radian
-
-
-UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
-# another private function in numpy; use getattr in case it disappears
-if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
-    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
-
-
-def helper_twoarg_floor_divide(f, unit1, unit2):
-    converters, _ = get_converters_and_unit(f, unit1, unit2)
-    return converters, dimensionless_unscaled
-
-
-UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
-
-# divmod only was added in numpy 1.13
-if isinstance(getattr(np, 'divmod', None), np.ufunc):
-    def helper_divmod(f, unit1, unit2):
-        converters, result_unit = get_converters_and_unit(f, unit1, unit2)
-        return converters, (dimensionless_unscaled, result_unit)
-
-    UFUNC_HELPERS[np.divmod] = helper_divmod
 
 
 def can_have_arbitrary_unit(value):
@@ -427,6 +96,393 @@ def can_have_arbitrary_unit(value):
     `True` if each member is either zero or not finite, `False` otherwise
     """
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+
+
+# SINGLE ARGUMENT UFUNC HELPERS
+#
+# The functions below take a single argument, which is the quantity upon which
+# the ufunc is being used. The output of the helper function should be two
+# values: a list with a single converter to be used to scale the input before
+# it is being passed to the ufunc (or None if no conversion is needed), and
+# the unit the output will be in.
+
+def helper_onearg_test(f, unit):
+    return ([None], None)
+
+
+def helper_invariant(f, unit):
+    return ([None], _d(unit))
+
+
+def helper_sqrt(f, unit):
+    return ([None], unit ** Fraction(1, 2) if unit is not None
+            else dimensionless_unscaled)
+
+
+def helper_square(f, unit):
+    return ([None], unit ** 2 if unit is not None else dimensionless_unscaled)
+
+
+def helper_reciprocal(f, unit):
+    return ([None], unit ** -1 if unit is not None else dimensionless_unscaled)
+
+
+def helper_cbrt(f, unit):
+    return ([None], (unit ** Fraction(1, 3) if unit is not None
+                     else dimensionless_unscaled))
+
+
+def helper_modf(f, unit):
+    if unit is None:
+        return [None], (dimensionless_unscaled, dimensionless_unscaled)
+
+    try:
+        return ([get_converter(unit, dimensionless_unscaled)],
+                (dimensionless_unscaled, dimensionless_unscaled))
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+
+def helper__ones_like(f, unit):
+    return [None], dimensionless_unscaled
+
+
+def helper_dimensionless_to_dimensionless(f, unit):
+    if unit is None:
+        return [None], dimensionless_unscaled
+
+    try:
+        return ([get_converter(unit, dimensionless_unscaled)],
+                dimensionless_unscaled)
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+
+def helper_dimensionless_to_radian(f, unit):
+    from .si import radian
+    if unit is None:
+        return [None], radian
+
+    try:
+        return [get_converter(unit, dimensionless_unscaled)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+
+
+def helper_degree_to_radian(f, unit):
+    from .si import degree, radian
+    try:
+        return [get_converter(unit, degree)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_radian_to_degree(f, unit):
+    from .si import degree, radian
+    try:
+        return [get_converter(unit, radian)], degree
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_radian_to_dimensionless(f, unit):
+    from .si import radian
+    try:
+        return [get_converter(unit, radian)], dimensionless_unscaled
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_frexp(f, unit):
+    if not unit.is_unity():
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "unscaled dimensionless quantities"
+                            .format(f.__name__))
+    return [None], (None, None)
+
+# TWO ARGUMENT UFUNC HELPERS
+#
+# The functions below take a two arguments. The output of the helper function
+# should be two values: a tuple of two converters to be used to scale the
+# inputs before being passed to the ufunc (None if no conversion is needed),
+# and the unit the output will be in.
+
+def helper_multiplication(f, unit1, unit2):
+    return [None, None], _d(unit1) * _d(unit2)
+
+
+def helper_division(f, unit1, unit2):
+    return [None, None], _d(unit1) / _d(unit2)
+
+
+def helper_power(f, unit1, unit2):
+    # TODO: find a better way to do this, currently need to signal that one
+    # still needs to raise power of unit1 in main code
+    if unit2 is None:
+        return [None, None], False
+
+    try:
+        return [None, get_converter(unit2, dimensionless_unscaled)], False
+    except UnitsError:
+        raise UnitTypeError("Can only raise something to a "
+                            "dimensionless quantity")
+
+
+def helper_ldexp(f, unit1, unit2):
+    if unit2 is not None:
+        raise TypeError("Cannot use ldexp with a quantity "
+                        "as second argument.")
+    else:
+        return [None, None], _d(unit1)
+
+
+def helper_copysign(f, unit1, unit2):
+    # if first arg is not a quantity, just return plain array
+    if unit1 is None:
+        return [None, None], None
+    else:
+        return [None, None], unit1
+
+
+def helper_heaviside(f, unit1, unit2):
+    try:
+        converter2 = (get_converter(unit2, dimensionless_unscaled)
+                      if unit2 is not None else None)
+    except UnitsError:
+        raise UnitTypeError("Can only apply 'heaviside' function with a "
+                            "dimensionless second argument.")
+    return ([None, converter2], dimensionless_unscaled)
+
+
+def helper_two_arg_dimensionless(f, unit1, unit2):
+    try:
+        converter1 = (get_converter(unit1, dimensionless_unscaled)
+                      if unit1 is not None else None)
+        converter2 = (get_converter(unit2, dimensionless_unscaled)
+                      if unit2 is not None else None)
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "dimensionless quantities"
+                            .format(f.__name__))
+    return ([converter1, converter2], dimensionless_unscaled)
+
+
+# This used to be a separate function that just called get_converters_and_unit.
+# Using it directly saves a few us; keeping the clearer name.
+helper_twoarg_invariant = get_converters_and_unit
+
+
+def helper_twoarg_comparison(f, unit1, unit2):
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, None
+
+
+def helper_twoarg_invtrig(f, unit1, unit2):
+    from .si import radian
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, radian
+
+
+def helper_twoarg_floor_divide(f, unit1, unit2):
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, dimensionless_unscaled
+
+
+def helper_divmod(f, unit1, unit2):
+    converters, result_unit = get_converters_and_unit(f, unit1, unit2)
+    return converters, (dimensionless_unscaled, result_unit)
+
+
+def helper_degree_to_dimensionless(f, unit):
+    from .si import degree
+    try:
+        return [get_converter(unit, degree)], dimensionless_unscaled
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
+    from .si import degree, arcmin, arcsec, radian
+    try:
+        return [get_converter(unit1, degree),
+                get_converter(unit2, arcmin),
+                get_converter(unit3, arcsec)], radian
+    except UnitsError:
+        raise UnitTypeError("Can only apply '{0}' function to "
+                            "quantities with angle units"
+                            .format(f.__name__))
+
+
+# list of ufuncs:
+# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+UFUNC_HELPERS = {}
+
+UNSUPPORTED_UFUNCS = {
+    np.bitwise_and, np.bitwise_or, np.bitwise_xor, np.invert, np.left_shift,
+    np.right_shift, np.logical_and, np.logical_or, np.logical_xor,
+    np.logical_not}
+for name in 'isnat', 'gcd', 'lcm':
+    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
+    ufunc = getattr(np, name, None)
+    if isinstance(ufunc, np.ufunc):
+        UNSUPPORTED_UFUNCS |= {ufunc}
+
+# SINGLE ARGUMENT UFUNCS
+
+# ufuncs that return a boolean and do not care about the unit
+onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
+for ufunc in onearg_test_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_onearg_test
+
+# ufuncs that return a value with the same unit as the input
+invariant_ufuncs = (np.absolute, np.fabs, np.conj, np.conjugate, np.negative,
+                    np.spacing, np.rint, np.floor, np.ceil, np.trunc)
+for ufunc in invariant_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_invariant
+# positive was added in numpy 1.13
+if isinstance(getattr(np, 'positive', None), np.ufunc):
+    UFUNC_HELPERS[np.positive] = helper_invariant
+
+# ufuncs that require dimensionless input and and give dimensionless output
+dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
+                                         np.log10, np.log2, np.log1p)
+for ufunc in dimensionless_to_dimensionless_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+
+# ufuncs that require dimensionless input and give output in radians
+dimensionless_to_radian_ufuncs = (np.arccos, np.arcsin, np.arctan, np.arccosh,
+                                  np.arcsinh, np.arctanh)
+for ufunc in dimensionless_to_radian_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_radian
+
+# ufuncs that require input in degrees and give output in radians
+degree_to_radian_ufuncs = (np.radians, np.deg2rad)
+for ufunc in degree_to_radian_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_degree_to_radian
+
+# ufuncs that require input in radians and give output in degrees
+radian_to_degree_ufuncs = (np.degrees, np.rad2deg)
+for ufunc in radian_to_degree_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_radian_to_degree
+
+# ufuncs that require input in radians and give dimensionless output
+radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh,
+                                  np.tanh)
+for ufunc in radian_to_dimensionless_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
+
+# ufuncs handled as special cases
+UFUNC_HELPERS[np.sqrt] = helper_sqrt
+UFUNC_HELPERS[np.square] = helper_square
+UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
+UFUNC_HELPERS[np.cbrt] = helper_cbrt
+UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
+UFUNC_HELPERS[np.modf] = helper_modf
+UFUNC_HELPERS[np.frexp] = helper_frexp
+
+
+# TWO ARGUMENT UFUNCS
+
+# two argument ufuncs that require dimensionless input and and give
+# dimensionless output
+two_arg_dimensionless_ufuncs = (np.logaddexp, np.logaddexp2)
+for ufunc in two_arg_dimensionless_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
+
+# two argument ufuncs that return a value with the same unit as the input
+twoarg_invariant_ufuncs = (np.add, np.subtract, np.hypot, np.maximum,
+                           np.minimum, np.fmin, np.fmax, np.nextafter,
+                           np.remainder, np.mod, np.fmod)
+for ufunc in twoarg_invariant_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_invariant
+
+# two argument ufuncs that need compatible inputs and return a boolean
+twoarg_comparison_ufuncs = (np.greater, np.greater_equal, np.less,
+                            np.less_equal, np.not_equal, np.equal)
+for ufunc in twoarg_comparison_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_comparison
+
+# two argument ufuncs that do inverse trigonometry
+twoarg_invtrig_ufuncs = (np.arctan2,)
+# another private function in numpy; use getattr in case it disappears
+if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
+    twoarg_invtrig_ufuncs += (np.core.umath._arg,)
+for ufunc in twoarg_invtrig_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
+
+# ufuncs handled as special cases
+UFUNC_HELPERS[np.multiply] = helper_multiplication
+UFUNC_HELPERS[np.divide] = helper_division
+UFUNC_HELPERS[np.true_divide] = helper_division
+UFUNC_HELPERS[np.power] = helper_power
+UFUNC_HELPERS[np.ldexp] = helper_ldexp
+UFUNC_HELPERS[np.copysign] = helper_copysign
+UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
+# heaviside only was added in numpy 1.13
+if isinstance(getattr(np, 'heaviside', None), np.ufunc):
+    UFUNC_HELPERS[np.heaviside] = helper_heaviside
+# float_power was added in numpy 1.12
+if isinstance(getattr(np, 'float_power', None), np.ufunc):
+    UFUNC_HELPERS[np.float_power] = helper_power
+# divmod only was added in numpy 1.13
+if isinstance(getattr(np, 'divmod', None), np.ufunc):
+    UFUNC_HELPERS[np.divmod] = helper_divmod
+
+
+# UFUNCS FROM SCIPY.SPECIAL
+# available ufuncs in this module are at
+# https://docs.scipy.org/doc/scipy/reference/special.html
+
+try:
+    import scipy.special as sps
+except ImportError:
+    pass
+else:
+    # ufuncs that require dimensionless input and give dimensionless output
+    dimensionless_to_dimensionless_sps_ufuncs = (
+        sps.erf, sps.gamma, sps.loggamma, sps.gammasgn,
+        sps.psi, sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz,
+        sps.dawsn, sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2,
+        sps.exp10, sps.j0, sps.j1, sps.y0, sps.y1, sps.i0, sps.i0e, sps.i1,
+        sps.i1e, sps.k0, sps.k0e, sps.k1, sps.k1e, sps.itj0y0,
+        sps.it2j0y0, sps.iti0k0, sps.it2i0k0)
+    for ufunc in dimensionless_to_dimensionless_sps_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+
+    # ufuncs that require input in degrees and give dimensionless output
+    degree_to_dimensionless_sps_ufuncs = (
+        sps.cosdg, sps.sindg, sps.tandg, sps.cotdg)
+    for ufunc in degree_to_dimensionless_sps_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
+
+    # ufuncs that require 2 dimensionless inputs and give dimensionless output.
+    # note: sps.jv and sps.jn are aliases in some scipy versions, which will
+    # cause the same key to be written twice, but since both are handled by the
+    # same helper there is no harm done.
+    two_arg_dimensionless_sps_ufuncs = (
+        sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve, sps.kn, sps.kv,
+        sps.kve, sps.iv, sps.ive, sps.hankel1, sps.hankel1e, sps.hankel2,
+        sps.hankel2e)
+    for ufunc in two_arg_dimensionless_sps_ufuncs:
+        UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
+
+    # ufuncs handled as special cases
+    UFUNC_HELPERS[sps.cbrt] = helper_cbrt
+    UFUNC_HELPERS[sps.radian] = helper_degree_minute_second_to_radian
 
 
 def converters_and_unit(function, method, *args):
@@ -639,7 +695,7 @@ def check_output(output, unit, inputs, function=None):
         # if the output is used to store results of a function.
         output = output.view(np.ndarray)
     else:
-        # output is not a Quantity, so cannot attain a unit.
+        # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
             raise UnitTypeError("Cannot store quantity with dimension "
                                 "{0}in a non-Quantity instance."
