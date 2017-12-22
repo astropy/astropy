@@ -198,8 +198,8 @@ class SkyCoord(ShapedLikeNDArray):
             Cartesian coordinates values for the Galactic frame.
         radial_velocity : `~astropy.units.Quantity`, optional
             The component of the velocity along the line-of-sight (i.e., the
-            radial direction). Should have velocity units.
-        pm_dec, pm_ra_cosdec : `~astropy.units.Quantity`, optional
+            radial direction), in velocity units.
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
             Proper motion components, in angle per time units.
     """
 
@@ -1648,13 +1648,13 @@ def _get_frame(args, kwargs):
                                  "new frame='{1}'.  Instead transform the coordinate."
                                  .format(coord_frame_cls.__name__, frame_cls.__name__))
 
-    frameclskwargs = {}
+    frame_cls_kwargs = {}
     if 'representation' in kwargs:
-        frameclskwargs['representation'] = _get_repr_cls(kwargs['representation'])
+        frame_cls_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
     if 'differential_cls' in kwargs:
-        frameclskwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
+        frame_cls_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
 
-    return frame_cls(**frameclskwargs)
+    return frame_cls(**frame_cls_kwargs)
 
 
 def _get_representation_component_units(args, kwargs):
