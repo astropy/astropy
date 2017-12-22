@@ -209,7 +209,24 @@ def write_table_hdf5(table, output, path=None, compression=False,
         replaced; the file/group will not be overwritten.
     """
     from ...table import meta
+    from astropy.table import Table
+    temp = Table.copy(table)
+    """
+    Table with native py3 strings can't be stored in a hdf5 format so temp stores a copy of
+    table but with columns of the Table converted to byte unicode.The copy of Table that temp
+    has can be stored in hdf5 format.
+    """
 
+    if isinstance(output, str):
+        if (output.endswith(('.hdf5', '.h5'))):
+            for column in temp.colnames:
+                if hasattr((temp.columns[column]), 'dtype'):
+                    if str(temp.columns[column].dtype.kind) == 'U':
+                        temp.replace_column(column, np.core.defchararray.encode(temp.columns[column], "utf-8"))
+    """
+     temp.replace_column(column, np.core.defchararray.encode(temp.columns[column]),replaces the column
+     written in natine py3 format to bytes unicode.
+    """
     try:
         import h5py
     except ImportError:
@@ -255,7 +272,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
         # Recursively call the write function
         try:
-            return write_table_hdf5(table, f, path=path,
+            return write_table_hdf5(temp, f, path=path,
                                     compression=compression, append=append,
                                     overwrite=overwrite,
                                     serialize_meta=serialize_meta,
