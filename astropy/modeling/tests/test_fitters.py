@@ -289,6 +289,46 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
                         atol=1e-14)
 
+    def test_linear_fit_model_set_masked_values(self):
+        """
+        Tests model set fitting with masked value(s) (#4824, #6819).
+        """
+        # NB. For single models, there is an equivalent doctest.
+
+        init_model = models.Polynomial1D(degree=1, n_models=2)
+        x = np.arange(10)
+        y = np.ma.masked_array([2*x+1, x-2], mask=np.zeros_like([x, x]))
+
+        y[0, 7] = 100.  # throw off fit coefficients if unmasked
+        y.mask[0, 7] = True
+        y[1, 1:3] = -100.
+        y.mask[1, 1:3] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+
+        assert_allclose(fitted_model.c0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1, [2., 1.], atol=1e-14)
+
+    def test_linear_fit_2d_model_set_masked_values(self):
+        """
+        Tests 2D model set fitting with masked value(s) (#4824, #6819).
+        """
+        init_model = models.Polynomial2D(1, n_models=2)
+        x, y = np.mgrid[0:5, 0:5]
+        z = np.ma.masked_array([2*x+3*y+1, x-0.5*y-2],
+                               mask=np.zeros_like([x, x]))
+
+        z[0, 3, 1] = -1000.  # throw off fit coefficients if unmasked
+        z.mask[0, 3, 1] = True
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, z)
+
+        assert_allclose(fitted_model.c0_0, [1., -2.], atol=1e-14)
+        assert_allclose(fitted_model.c1_0, [2., 1.], atol=1e-14)
+        assert_allclose(fitted_model.c0_1, [3., -0.5], atol=1e-14)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters:

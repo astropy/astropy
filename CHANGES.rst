@@ -104,7 +104,7 @@ astropy.modeling
 - A ``deepcopy()`` method was added to models. [#6515]
 
 - Added units support to ``AffineTransformation``. [#6853]
-- Added ``is_separable`` function to modeling totest the
+
 - Added ``is_separable`` function to modeling to test the
   separability of a model. [#6746]
 
@@ -501,6 +501,9 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Support masked array values in ``LinearLSQFitter`` (instead of silently
+  ignorning the mask). [#6927]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
