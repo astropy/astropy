@@ -28,9 +28,6 @@ astropy.coordinates
   properties that provide shorthands to the full-space Cartesian velocity as
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
-- Coordinate frame classes now can't be added to the frame transform graph if
-  they have frame attribute names that conflict with any component names.
-  [#6871]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -238,6 +235,11 @@ astropy.coordinates
 - Deprecated ``recommended_units`` for representations. These were used to
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
+
+- Coordinate frame classes now can't be added to the frame transform graph if
+  they have frame attribute names that conflict with any component names. This
+  is so ``SkyCoord`` can uniquely identify and distinguish frame attributes from
+  frame components. [#6871]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
