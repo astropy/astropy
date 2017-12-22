@@ -31,7 +31,7 @@ Testing Dependencies
 ********************
 
 As of Astropy 3.0, the dependencies used by the Astropy test runner are
-provided by a separate package called ``pytest-astropy``. This package provides
+provided by a separate package called `pytest-astropy`_. This package provides
 the ``pytest`` dependency itself, in addition to several ``pytest`` plugins
 that are used by Astropy, and will also be of general use to other packages.
 
@@ -48,6 +48,7 @@ package using pip::
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
 
+.. _pytest-astropy: https://github.com/astropy/pytest-astropy
 
 .. _running-tests:
 
@@ -1003,8 +1004,11 @@ You can then run the tests with::
 Pytest Plugins
 **************
 
-The following ``pytest`` plugins are used by Astropy. They are included in the
-``pytest-astropy`` package, which is now required for testing Astropy.
+The following ``pytest`` plugins are maintained and used by Astropy. They are
+included in the ``pytest-astropy`` package, which is now required for testing
+Astropy. More information on all of the  plugins provided by the
+``pytest-astropy`` package (including dependencies not maintained by Astropy)
+can be found `here <https://github.com/astropy/pytest-astropy>`_.
 
 .. _remotedata-plugin:
 
