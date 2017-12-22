@@ -175,11 +175,16 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
                 'Could not find all expected BaseCoordinateFrame class '
                 'attributes.  Are you mis-using FrameMeta?')
 
-        # Unless overridden, velocity name defaults are:
-        #   * pm_{lon}_cos{lat} for SphericalCosLatDifferential
-        #   * radial_velocity for any d_distance, including RadialDifferential
-        #   * v_{x,y,z} for d_{x,y,z} for CartesianDifferential
-        # where {lon} and {lat} are the names of the angular components
+        # Unless overridden via `frame_specific_representation_info`, velocity
+        # name defaults are (see also docstring for BaseCoordinateFrame):
+        #   * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for
+        #     `SphericalCosLatDifferential` proper motion components
+        #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
+        #     motion components
+        #   * ``radial_velocity`` for any `d_distance` component
+        #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
+        # where `{lon}` and `{lat}` are the frame names of the angular
+        # components.
         if repr_info is None:
             repr_info = {}
 
@@ -316,6 +321,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         `~astropy.coordinates.RepresentationMapping` objects that tell what
         names and default units should be used on this frame for the components
         of that representation.
+
+    Unless overridden via `frame_specific_representation_info`, velocity name
+    defaults are:
+
+      * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for `SphericalCosLatDifferential`
+        proper motion components
+      * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper motion
+        components
+      * ``radial_velocity`` for any `d_distance` component
+      * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
+
+    where `{lon}` and `{lat}` are the frame names of the angular components.
 
     Parameters
     ----------
