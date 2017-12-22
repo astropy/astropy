@@ -854,13 +854,13 @@ def test__str__():
     # scalar angle
     scangle = Angle('10.2345d') 
     strscangle = scangle.__str__()
-
+    assert strscangle == '10d14m04.2s'
+    
     # non-scalar array angles
     arrangle = Angle(['10.2345d', '-20d'])
     strarrangle = arrangle.__str__()
 
     assert strarrangle == '[10d14m04.2s -20d00m00s]'
-    assert strscangle in strarrangle
 
     # summarizing for large arrays, ... should appear
     bigarrangle = Angle(np.ones(10000), u.deg)
