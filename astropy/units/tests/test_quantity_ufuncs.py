@@ -12,7 +12,19 @@ from ... import units as u
 from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
 
+try:
+    import scipy.special as sps  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
+
 testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
+testexc = namedtuple('testexc', ['f', 'q_in', 'exc', 'msg'])
+testwarn = namedtuple('testwarn', ['f', 'q_in', 'wfilter'])
+
+
 @pytest.mark.skip
 def test_testcase(tc):
         results = tc.f(*tc.q_in)
@@ -23,7 +35,7 @@ def test_testcase(tc):
             assert result.unit == expected.unit
             assert_allclose(result.value, expected.value, atol=1.E-15)
 
-testexc = namedtuple('testexc', ['f', 'q_in', 'exc', 'msg'])
+
 @pytest.mark.skip
 def test_testexc(te):
     with pytest.raises(te.exc) as exc:
@@ -31,13 +43,13 @@ def test_testexc(te):
     if te.msg is not None:
         assert te.msg in exc.value.args[0]
 
-testwarn = namedtuple('testwarn', ['f', 'q_in', 'wfilter'])
+
 @pytest.mark.skip
 def test_testwarn(tw):
     with warnings.catch_warnings():
         warnings.filterwarnings(tw.wfilter)
         tw.f(*tw.q_in)
-    
+
 
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
@@ -48,20 +60,18 @@ class TestUfuncCoverage:
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
         all_extern_ufuncs |= all_np_ufuncs
-
-        try:
-            import scipy.special as sps
-        except ImportError:
-            pass
-        else:
-            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values() 
-                                  if type(ufunc) == np.ufunc])
-            all_extern_ufuncs |= all_sps_ufuncs
-
         from .. import quantity_helper as qh
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
+
+        # Ignore possible non-numpy ufuncs; for scipy in particular, we have
+        # support for some, but for others it still has to be decided whether
+        # we can support them or not.
+        if HAS_SCIPY:
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
+                                  if type(ufunc) == np.ufunc])
+            all_q_ufuncs -= all_sps_ufuncs
 
         assert all_extern_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_extern_ufuncs == set([])
@@ -73,14 +83,14 @@ class TestQuantityTrigonometricFuncs:
     """
     @pytest.mark.parametrize('tc', (
         testcase(
-            f=np.sin, 
-            q_in=(30. * u.degree, ), 
+            f=np.sin,
+            q_in=(30. * u.degree, ),
             q_out=(0.5*u.dimensionless_unscaled, )
         ),
         testcase(
-            f=np.sin, 
+            f=np.sin,
             q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
-            q_out=(np.array([0., 1. / np.sqrt(2.), 1.]) * u.dimensionless_unscaled, )
+            q_out=(np.array([0., 1. / np.sqrt(2.), 1.]) * u.one, )
         ),
         testcase(
             f=np.arcsin,
@@ -100,7 +110,7 @@ class TestQuantityTrigonometricFuncs:
         testcase(
             f=np.cos,
             q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
-            q_out=(np.array([1., 1. / np.sqrt(2.), 0.]) * u.dimensionless_unscaled, )
+            q_out=(np.array([1., 1. / np.sqrt(2.), 0.]) * u.one, )
         ),
         testcase(
             f=np.arccos,
@@ -135,11 +145,12 @@ class TestQuantityTrigonometricFuncs:
         testcase(
             f=np.arctan2,
             q_in=(np.array([10., 30., 70., 80.]) * u.m, 2.0 * u.km),
-            q_out=(np.arctan2(np.array([10., 30., 70., 80.]), 2000.) * u.radian, )
+            q_out=(np.arctan2(np.array([10., 30., 70., 80.]),
+                              2000.) * u.radian, )
         ),
         testcase(
             f=np.arctan2,
-            q_in=((np.array([10., 80.]) * u.m / (2.0 * u.km)).to(u.dimensionless_unscaled), 1.),
+            q_in=((np.array([10., 80.]) * u.m / (2.0 * u.km)).to(u.one), 1.),
             q_out=(np.arctan2(np.array([10., 80.]) / 2000., 1.) * u.radian, )
         ),
         testcase(
@@ -185,7 +196,7 @@ class TestQuantityTrigonometricFuncs:
     ))
     def test_testcases(self, tc):
         return test_testcase(tc)
-    
+
     @pytest.mark.parametrize('te', (
         testexc(
             f=np.deg2rad,
@@ -259,10 +270,10 @@ class TestQuantityTrigonometricFuncs:
             exc=u.UnitsError,
             msg="dimensionless quantities when other arg"
         )
-    ))      
+    ))
     def test_testexcs(self, te):
         return test_testexc(te)
-        
+
     @pytest.mark.parametrize('tw', (
         testwarn(
             f=np.arcsin,
@@ -446,9 +457,13 @@ class TestQuantityMathFuncs:
         assert np.copysign(3 * u.m, -1. * u.s) == -3. * u.m
 
     def test_copysign_array(self):
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) == -np.array([1., 2., 3.]) * u.s)
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) == -np.array([1., 2., 3.]) * u.s)
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2., 2., -4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) ==
+                      -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) ==
+                      -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s,
+                                  np.array([-2., 2., -4.]) * u.m) ==
+                      np.array([-1., 2., -3.]) * u.s)
 
         q = np.copysign(np.array([1., 2., 3.]), -3 * u.m)
         assert np.all(q == np.array([-1., -2., -3.]))
@@ -1037,96 +1052,88 @@ class TestUfuncOuter:
         assert type(s13_greater_outer) is np.ndarray
         assert np.all(s13_greater_outer == check13_greater_outer)
 
-try:
-    import scipy.special as sps
-except ImportError:
-    pass
-else:
-    class TestScipySpecialUfuncs:
 
-        erf_like_ufuncs = (sps.erf, sps.gamma,
-                           sps.loggamma, sps.gammasgn,
-                           sps.psi, sps.rgamma,
-                           sps.erfc, sps.erfcx,
-                           sps.erfi, sps.wofz,
-                           sps.dawsn, sps.entr,
-                           sps.exprel, sps.expm1,
-                           sps.log1p, sps.exp2,
-                           sps.exp10
-                       )
+@pytest.mark.skipif('not HAS_SCIPY')
+class TestScipySpecialUfuncs:
 
-        @pytest.mark.parametrize('function', erf_like_ufuncs)
-        def test_erf_scalar(self, function):
-            TestQuantityMathFuncs.test_exp_scalar(None, function)
+    erf_like_ufuncs = (
+            sps.erf, sps.gamma, sps.loggamma, sps.gammasgn, sps.psi,
+            sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz, sps.dawsn,
+            sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10)
 
-        @pytest.mark.parametrize('function', erf_like_ufuncs)
-        def test_erf_array(self, function):
-            TestQuantityMathFuncs.test_exp_array(None, function)
+    @pytest.mark.parametrize('function', erf_like_ufuncs)
+    def test_erf_scalar(self, function):
+        TestQuantityMathFuncs.test_exp_scalar(None, function)
 
-        @pytest.mark.parametrize('function', erf_like_ufuncs)
-        def test_erf_invalid_units(self, function):
-            TestQuantityMathFuncs.test_exp_invalid_units(None, function)
+    @pytest.mark.parametrize('function', erf_like_ufuncs)
+    def test_erf_array(self, function):
+        TestQuantityMathFuncs.test_exp_array(None, function)
 
-        @pytest.mark.parametrize('function', (sps.cbrt, ))
-        def test_cbrt_scalar(self, function):
-            TestQuantityMathFuncs.test_cbrt_scalar(None, function)
+    @pytest.mark.parametrize('function', erf_like_ufuncs)
+    def test_erf_invalid_units(self, function):
+        TestQuantityMathFuncs.test_exp_invalid_units(None, function)
 
-        @pytest.mark.parametrize('function', (sps.cbrt, ))
-        def test_cbrt_array(self, function):
-            TestQuantityMathFuncs.test_cbrt_array(None, function)
+    @pytest.mark.parametrize('function', (sps.cbrt, ))
+    def test_cbrt_scalar(self, function):
+        TestQuantityMathFuncs.test_cbrt_scalar(None, function)
 
-        def test_radian(self):
-            q1 = sps.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
-            assert_allclose(q1.value, np.pi)
-            assert q1.unit == u.radian
+    @pytest.mark.parametrize('function', (sps.cbrt, ))
+    def test_cbrt_array(self, function):
+        TestQuantityMathFuncs.test_cbrt_array(None, function)
 
-            q2 = sps.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
-            assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
-            assert q2.unit == u.radian
+    def test_radian(self):
+        q1 = sps.radian(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
+        assert_allclose(q1.value, np.pi)
+        assert q1.unit == u.radian
 
-            q3 = sps.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
-            assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
+        q2 = sps.radian(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
+        assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
+        assert q2.unit == u.radian
 
-            # the following doesn't make much sense in terms of the name of the
-            # routine, but we check it gives the correct result.
-            q4 = sps.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
-            assert_allclose(q4.value, 3.)
-            assert q4.unit == u.radian
+        q3 = sps.radian(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
+        assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
 
-            with pytest.raises(TypeError):
-                sps.radian(3. * u.m, 2. * u.s, 1. * u.kg)
-                
-        jv_like_ufuncs = (sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve,
-                          sps.kn, sps.kv, sps.kve, sps.iv, sps.ive,
-                          sps.hankel1, sps.hankel1e, sps.hankel2, sps.hankel2e)
-        @pytest.mark.parametrize('function', jv_like_ufuncs)
-        def test_jv_scalar(self, function):
-            q = function(2. * u.m / (2. * u.m), 3. * u.m / (6. * u.m))
-            assert q.unit == u.dimensionless_unscaled
-            assert q.value == function(1.0, 0.5)
+        # the following doesn't make much sense in terms of the name of the
+        # routine, but we check it gives the correct result.
+        q4 = sps.radian(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
+        assert_allclose(q4.value, 3.)
+        assert q4.unit == u.radian
 
-        @pytest.mark.parametrize('function', jv_like_ufuncs)        
-        def test_jv_array(self, function):
-            q = function(np.ones(3) * u.m / (1. * u.m),
-                         np.array([2., 3., 6.]) * u.m / (6. * u.m))
-            assert q.unit == u.dimensionless_unscaled
-            assert np.all(q.value == function(
-                np.ones(3),
-                np.array([1. / 3., 1. / 2., 1.]))
-            )
-            # should also work on quantities that can be made dimensionless
-            q2 = function(np.ones(3) * u.m / (1. * u.m), 
-                          np.array([2., 3., 6.]) * u.m / (6. * u.cm))
-            assert q2.unit == u.dimensionless_unscaled
-            assert_allclose(q2.value,
-                            function(np.ones(3),
-                                     np.array([100. / 3., 100. / 2., 100.])))
+        with pytest.raises(TypeError):
+            sps.radian(3. * u.m, 2. * u.s, 1. * u.kg)
 
-        @pytest.mark.parametrize('function', jv_like_ufuncs)
-        def test_jv_invalid_units(self, function):
-            # Can't use jv() with non-dimensionless quantities
-            with pytest.raises(TypeError) as exc:
-                function(1. * u.kg, 3. * u.m / u.s)
-            assert exc.value.args[0] == ("Can only apply '{0}' function to "
-                                         "dimensionless quantities"
-                                         .format(function.__name__))
+    jv_like_ufuncs = (sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve,
+                      sps.kn, sps.kv, sps.kve, sps.iv, sps.ive,
+                      sps.hankel1, sps.hankel1e, sps.hankel2, sps.hankel2e)
+
+    @pytest.mark.parametrize('function', jv_like_ufuncs)
+    def test_jv_scalar(self, function):
+        q = function(2. * u.m / (2. * u.m), 3. * u.m / (6. * u.m))
+        assert q.unit == u.dimensionless_unscaled
+        assert q.value == function(1.0, 0.5)
+
+    @pytest.mark.parametrize('function', jv_like_ufuncs)
+    def test_jv_array(self, function):
+        q = function(np.ones(3) * u.m / (1. * u.m),
+                     np.array([2., 3., 6.]) * u.m / (6. * u.m))
+        assert q.unit == u.dimensionless_unscaled
+        assert np.all(q.value == function(
+            np.ones(3),
+            np.array([1. / 3., 1. / 2., 1.]))
+        )
+        # should also work on quantities that can be made dimensionless
+        q2 = function(np.ones(3) * u.m / (1. * u.m),
+                      np.array([2., 3., 6.]) * u.m / (6. * u.cm))
+        assert q2.unit == u.dimensionless_unscaled
+        assert_allclose(q2.value,
+                        function(np.ones(3),
+                                 np.array([100. / 3., 100. / 2., 100.])))
+
+    @pytest.mark.parametrize('function', jv_like_ufuncs)
+    def test_jv_invalid_units(self, function):
+        # Can't use jv() with non-dimensionless quantities
+        with pytest.raises(TypeError) as exc:
+            function(1. * u.kg, 3. * u.m / u.s)
+        assert exc.value.args[0] == ("Can only apply '{0}' function to "
+                                     "dimensionless quantities"
+                                     .format(function.__name__))
