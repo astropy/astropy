@@ -45,84 +45,9 @@ package using pip::
 
     > pip install pytest-astropy
 
-The following ``pytest`` plugins are included in the ``pytest-astropy``
-package:
+A detailed description of the plugins can be found in the :ref:`pytest-plugins`
+section.
 
-pytest-remotedata
-=================
-
-The `pytest-remotedata`_ plugin allows developers to control whether to run
-tests that access data from the internet. The plugin provides two decorators
-that can be used to mark individual test functions or entire test classes:
-
-* ``@pytest.mark.remote_data`` for tests that require data from the internet
-* ``@pytest.mark.internet_off`` for tests that should run only when there is no
-  internet access. This is useful for testing local data caches or fallbacks
-  for when no network access is available.
-
-The plugin also adds the ``--remote-data`` option to the ``pytest`` command
-(which is also made available through the Astropy test runner).
-
-If the ``--remote-data`` option is not provided when running the test suite, or
-if ``--remote-data=none`` is provided, all tests that are marked with
-``remote_data`` will be skipped. All tests that are marked with
-``internet_off`` will be executed. Any test that attempts to access the
-internet but is not marked with ``remote_data`` will result in a failure.
-
-Providing either the ``--remote-data`` option, or ``--remote-data=any``, will
-cause all tests marked with ``remote_data`` to be executed. Any tests that are
-marked with ``internet_off`` will be skipped.
-
-Running the tests with ``--remote-data=astropy`` will cause only tests that
-receive remote data from Astropy data sources to be run. Tests with any other
-data sources will be skipped. This is indicated in the test code by marking
-test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
-marked with ``internet_off`` will also be skipped in this case.
-
-Also see :ref:`data-files`.
-
-.. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
-
-pytest-doctestplus
-==================
-
-The `pytest-doctestplus`_ plugin provides advanced doctest features, including:
-
-* handling doctests that use remote data in conjunction with the
-  ``pytest-remotedata`` plugin above (see :ref:`data-files`)
-* approximate floating point comparison for doctests that produce floating
-  point results (see :ref:`handling-float-output`)
-* skipping particular classes, methods, and functions when running doctests
-  (see :ref:`skipping-doctests`)
-* optional inclusion of ``*.rst`` files for doctests
-
-This plugin provides two command line options: ``--doctest-plus`` for enabling
-the advanced features mentioned above, and ``--doctest-rst`` for including
-``*.rst`` files in doctest collection.
-
-The Astropy test runner enables both of these options by default. When running
-the test suite directly from ``pytest`` (instead of through the Astropy test
-runner), it is necessary to explicitly provide these options when they are
-needed.
-
-.. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
-
-pytest-openfiles
-================
-
-The `pytest-openfiles`_ plugin allows for the detection of open I/O resources
-at the end of unit tests. This plugin adds the ``--open-files`` option to the
-``pytest`` command (which is also exposed through the Astropy test runner).
-
-When running tests with ``--open-files``, if a file is opened during the course
-of a unit test but that file  not closed before the test finishes, the test
-will fail. This is particularly useful for testing code that manipulates file
-handles or other I/O resources. It allows developers to ensure that this kind
-of code properly cleans up I/O resources when they are no longer needed.
-
-Also see :ref:`open-files`.
-
-.. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
 
 .. _running-tests:
 
@@ -275,6 +200,9 @@ To use it from Python, do::
     >>> import astropy
     >>> astropy.test(open_files=True)
 
+For more information on the ``pytest-openfiles`` plugin see
+:ref:`openfiles-plugin`
+
 Test coverage reports
 ---------------------
 
@@ -423,6 +351,9 @@ It is possible to mark tests using
 that the only required data is from the http://data.astropy.org server. To
 enable just these tests, you can run the
 tests with ``python setup.py test --remote-data=astropy``.
+
+For more information on the ``pytest-remotedata`` plugin, see
+:ref:`remotedata-plugin`.
 
 Examples
 --------
@@ -832,6 +763,9 @@ write them, see the full :mod:`doctest` documentation.
    the astropy source code, it can only be tested by running ``python
    setup.py test``, not by ``import astropy; astropy.test()``.
 
+For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
+:ref:`doctestplus-plugin`.
+
 .. _skipping-doctests:
 
 Skipping doctests
@@ -1063,3 +997,93 @@ are in your local git repository::
 You can then run the tests with::
 
     root@5e2b89d7b07c:/astropy_src# python setup.py test
+
+.. _pytest-plugins:
+
+Pytest Plugins
+**************
+
+The following ``pytest`` plugins are used by Astropy. They are included in the
+``pytest-astropy`` package, which is now required for testing Astropy.
+
+.. _remotedata-plugin:
+
+pytest-remotedata
+=================
+
+The `pytest-remotedata`_ plugin allows developers to control whether to run
+tests that access data from the internet. The plugin provides two decorators
+that can be used to mark individual test functions or entire test classes:
+
+* ``@pytest.mark.remote_data`` for tests that require data from the internet
+* ``@pytest.mark.internet_off`` for tests that should run only when there is no
+  internet access. This is useful for testing local data caches or fallbacks
+  for when no network access is available.
+
+The plugin also adds the ``--remote-data`` option to the ``pytest`` command
+(which is also made available through the Astropy test runner).
+
+If the ``--remote-data`` option is not provided when running the test suite, or
+if ``--remote-data=none`` is provided, all tests that are marked with
+``remote_data`` will be skipped. All tests that are marked with
+``internet_off`` will be executed. Any test that attempts to access the
+internet but is not marked with ``remote_data`` will result in a failure.
+
+Providing either the ``--remote-data`` option, or ``--remote-data=any``, will
+cause all tests marked with ``remote_data`` to be executed. Any tests that are
+marked with ``internet_off`` will be skipped.
+
+Running the tests with ``--remote-data=astropy`` will cause only tests that
+receive remote data from Astropy data sources to be run. Tests with any other
+data sources will be skipped. This is indicated in the test code by marking
+test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
+marked with ``internet_off`` will also be skipped in this case.
+
+Also see :ref:`data-files`.
+
+.. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
+
+.. _doctestplus-plugin:
+
+pytest-doctestplus
+==================
+
+The `pytest-doctestplus`_ plugin provides advanced doctest features, including:
+
+* handling doctests that use remote data in conjunction with the
+  ``pytest-remotedata`` plugin above (see :ref:`data-files`)
+* approximate floating point comparison for doctests that produce floating
+  point results (see :ref:`handling-float-output`)
+* skipping particular classes, methods, and functions when running doctests
+  (see :ref:`skipping-doctests`)
+* optional inclusion of ``*.rst`` files for doctests
+
+This plugin provides two command line options: ``--doctest-plus`` for enabling
+the advanced features mentioned above, and ``--doctest-rst`` for including
+``*.rst`` files in doctest collection.
+
+The Astropy test runner enables both of these options by default. When running
+the test suite directly from ``pytest`` (instead of through the Astropy test
+runner), it is necessary to explicitly provide these options when they are
+needed.
+
+.. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
+
+.. _openfiles-plugin:
+
+pytest-openfiles
+================
+
+The `pytest-openfiles`_ plugin allows for the detection of open I/O resources
+at the end of unit tests. This plugin adds the ``--open-files`` option to the
+``pytest`` command (which is also exposed through the Astropy test runner).
+
+When running tests with ``--open-files``, if a file is opened during the course
+of a unit test but that file  not closed before the test finishes, the test
+will fail. This is particularly useful for testing code that manipulates file
+handles or other I/O resources. It allows developers to ensure that this kind
+of code properly cleans up I/O resources when they are no longer needed.
+
+Also see :ref:`open-files`.
+
+.. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
