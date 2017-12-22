@@ -165,7 +165,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
             if (not found_repr_info and
                     '_frame_specific_representation_info' in m):
                 # create a copy of the dict so we don't mess with the contents
-                repr_info = dict(m['_frame_specific_representation_info'])
+                repr_info = m['_frame_specific_representation_info'].copy()
                 found_repr_info = True
 
             if found_default_repr and found_default_diff and found_repr_info:
