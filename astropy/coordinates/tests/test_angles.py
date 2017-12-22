@@ -846,6 +846,25 @@ def test_wrap_at_without_new():
     l = np.concatenate([l1, l2])
     assert l._wrap_angle is not None
 
+def test__str__():
+    """
+    Check the __str__ method used in printing the Angle 
+    """
+
+    # scalar angle
+    scangle = Angle('10.2345d') 
+    strscangle = scangle.__str__()
+
+    # non-scalar array angles
+    arrangle = Angle(['10.2345d', '-20d'])
+    strarrangle = arrangle.__str__()
+
+    assert strarrangle == '[10d14m04.2s -20d00m00s]'
+    assert strscangle in strarrangle
+
+    # summarizing for large arrays, ... should appear
+    bigarrangle = Angle(np.ones(10000), u.deg)
+    assert '...' in bigarrangle.__str__()
 
 def test_repr_latex():
     """
