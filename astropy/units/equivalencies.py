@@ -497,7 +497,7 @@ def brightness_temperature(disp, beam_area=None):
     Any generic surface brightness:
 
         >>> surf_brightness = 1e6*u.MJy/u.sr
-        >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz))
+        >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
     """
     if disp.unit.is_equivalent(si.sr):
