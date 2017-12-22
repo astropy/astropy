@@ -1,5 +1,12 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 # The idea for this module (but no code) was borrowed from the
 # quantities (http://pythonhosted.org/quantities/) package.
+"""Helper functions for Quantity.
+
+In particular, this implements the logic that determines scaling and result
+units for a given ufunc, given input units.
+"""
 
 from fractions import Fraction
 
@@ -30,6 +37,7 @@ def get_converter(from_unit, to_unit):
         return None
     else:
         return lambda val: scale * val
+
 
 def get_converters_and_unit(f, unit1, unit2):
     converters = [None, None]
@@ -72,6 +80,7 @@ def get_converters_and_unit(f, unit1, unit2):
 
         return converters, unit1
 
+
 def can_have_arbitrary_unit(value):
     """Test whether the items in value can have arbitrary units
 
@@ -88,25 +97,40 @@ def can_have_arbitrary_unit(value):
     """
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
+
+# SINGLE ARGUMENT UFUNC HELPERS
+#
+# The functions below take a single argument, which is the quantity upon which
+# the ufunc is being used. The output of the helper function should be two
+# values: a list with a single converter to be used to scale the input before
+# it is being passed to the ufunc (or None if no conversion is needed), and
+# the unit the output will be in.
+
 def helper_onearg_test(f, unit):
     return ([None], None)
 
+
 def helper_invariant(f, unit):
     return ([None], _d(unit))
+
 
 def helper_sqrt(f, unit):
     return ([None], unit ** Fraction(1, 2) if unit is not None
             else dimensionless_unscaled)
 
+
 def helper_square(f, unit):
     return ([None], unit ** 2 if unit is not None else dimensionless_unscaled)
+
 
 def helper_reciprocal(f, unit):
     return ([None], unit ** -1 if unit is not None else dimensionless_unscaled)
 
+
 def helper_cbrt(f, unit):
     return ([None], (unit ** Fraction(1, 3) if unit is not None
                      else dimensionless_unscaled))
+
 
 def helper_modf(f, unit):
     if unit is None:
@@ -120,8 +144,10 @@ def helper_modf(f, unit):
                             "dimensionless quantities"
                             .format(f.__name__))
 
+
 def helper__ones_like(f, unit):
     return [None], dimensionless_unscaled
+
 
 def helper_dimensionless_to_dimensionless(f, unit):
     if unit is None:
@@ -135,6 +161,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
                             "dimensionless quantities"
                             .format(f.__name__))
 
+
 def helper_dimensionless_to_radian(f, unit):
     from .si import radian
     if unit is None:
@@ -147,6 +174,7 @@ def helper_dimensionless_to_radian(f, unit):
                             "dimensionless quantities"
                             .format(f.__name__))
 
+
 def helper_degree_to_radian(f, unit):
     from .si import degree, radian
     try:
@@ -155,6 +183,7 @@ def helper_degree_to_radian(f, unit):
         raise UnitTypeError("Can only apply '{0}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
+
 
 def helper_radian_to_degree(f, unit):
     from .si import degree, radian
@@ -165,6 +194,7 @@ def helper_radian_to_degree(f, unit):
                             "quantities with angle units"
                             .format(f.__name__))
 
+
 def helper_radian_to_dimensionless(f, unit):
     from .si import radian
     try:
@@ -174,6 +204,7 @@ def helper_radian_to_dimensionless(f, unit):
                             "quantities with angle units"
                             .format(f.__name__))
 
+
 def helper_frexp(f, unit):
     if not unit.is_unity():
         raise UnitTypeError("Can only apply '{0}' function to "
@@ -181,11 +212,20 @@ def helper_frexp(f, unit):
                             .format(f.__name__))
     return [None], (None, None)
 
+# TWO ARGUMENT UFUNC HELPERS
+#
+# The functions below take a two arguments. The output of the helper function
+# should be two values: a tuple of two converters to be used to scale the
+# inputs before being passed to the ufunc (None if no conversion is needed),
+# and the unit the output will be in.
+
 def helper_multiplication(f, unit1, unit2):
     return [None, None], _d(unit1) * _d(unit2)
 
+
 def helper_division(f, unit1, unit2):
     return [None, None], _d(unit1) / _d(unit2)
+
 
 def helper_power(f, unit1, unit2):
     # TODO: find a better way to do this, currently need to signal that one
@@ -199,6 +239,7 @@ def helper_power(f, unit1, unit2):
         raise UnitTypeError("Can only raise something to a "
                             "dimensionless quantity")
 
+
 def helper_ldexp(f, unit1, unit2):
     if unit2 is not None:
         raise TypeError("Cannot use ldexp with a quantity "
@@ -206,12 +247,14 @@ def helper_ldexp(f, unit1, unit2):
     else:
         return [None, None], _d(unit1)
 
+
 def helper_copysign(f, unit1, unit2):
     # if first arg is not a quantity, just return plain array
     if unit1 is None:
         return [None, None], None
     else:
         return [None, None], unit1
+
 
 def helper_heaviside(f, unit1, unit2):
     try:
@@ -221,6 +264,7 @@ def helper_heaviside(f, unit1, unit2):
         raise UnitTypeError("Can only apply 'heaviside' function with a "
                             "dimensionless second argument.")
     return ([None, converter2], dimensionless_unscaled)
+
 
 def helper_two_arg_dimensionless(f, unit1, unit2):
     try:
@@ -235,27 +279,31 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
     return ([converter1, converter2], dimensionless_unscaled)
 
 
-
 # This used to be a separate function that just called get_converters_and_unit.
 # Using it directly saves a few us; keeping the clearer name.
 helper_twoarg_invariant = get_converters_and_unit
 
+
 def helper_twoarg_comparison(f, unit1, unit2):
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, None
+
 
 def helper_twoarg_invtrig(f, unit1, unit2):
     from .si import radian
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, radian
 
+
 def helper_twoarg_floor_divide(f, unit1, unit2):
     converters, _ = get_converters_and_unit(f, unit1, unit2)
     return converters, dimensionless_unscaled
 
+
 def helper_divmod(f, unit1, unit2):
     converters, result_unit = get_converters_and_unit(f, unit1, unit2)
     return converters, (dimensionless_unscaled, result_unit)
+
 
 def helper_degree_to_dimensionless(f, unit):
     from .si import degree
@@ -265,6 +313,7 @@ def helper_degree_to_dimensionless(f, unit):
         raise UnitTypeError("Can only apply '{0}' function to "
                             "quantities with angle units"
                             .format(f.__name__))
+
 
 def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
     from .si import degree, arcmin, arcsec, radian
@@ -277,31 +326,22 @@ def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
                             "quantities with angle units"
                             .format(f.__name__))
 
-UFUNC_HELPERS = {}
-
-# In this file, we implement the logic that determines for a given ufunc and
-# input how the input should be scaled and what unit the output will have.
 
 # list of ufuncs:
 # http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+UFUNC_HELPERS = {}
 
-UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
-                          np.bitwise_xor, np.invert, np.left_shift,
-                          np.right_shift, np.logical_and, np.logical_or,
-                          np.logical_xor, np.logical_not])
+UNSUPPORTED_UFUNCS = {
+    np.bitwise_and, np.bitwise_or, np.bitwise_xor, np.invert, np.left_shift,
+    np.right_shift, np.logical_and, np.logical_or, np.logical_xor,
+    np.logical_not}
 for name in 'isnat', 'gcd', 'lcm':
     # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
     ufunc = getattr(np, name, None)
     if isinstance(ufunc, np.ufunc):
         UNSUPPORTED_UFUNCS |= {ufunc}
 
-
 # SINGLE ARGUMENT UFUNCS
-
-# The functions below take a single argument, which is the quantity upon which
-# the ufunc is being used. The output of the helper function should be two
-# values: the scale by which the input needs to be multiplied before being
-# passed to the ufunc, and the unit the output will be in.
 
 # ufuncs that return a boolean and do not care about the unit
 onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
@@ -316,7 +356,6 @@ for ufunc in invariant_ufuncs:
 # positive was added in numpy 1.13
 if isinstance(getattr(np, 'positive', None), np.ufunc):
     UFUNC_HELPERS[np.positive] = helper_invariant
-
 
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (np.exp, np.expm1, np.exp2, np.log,
@@ -358,11 +397,6 @@ UFUNC_HELPERS[np.frexp] = helper_frexp
 
 # TWO ARGUMENT UFUNCS
 
-# The functions below take a two arguments. The output of the helper function
-# should be two values: a list of scalings by which the inputs need to be
-# multiplied before being passed to the ufunc, and the unit the output will be
-# in.
-
 # two argument ufuncs that require dimensionless input and and give
 # dimensionless output
 two_arg_dimensionless_ufuncs = (np.logaddexp, np.logaddexp2)
@@ -383,12 +417,12 @@ for ufunc in twoarg_comparison_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_twoarg_comparison
 
 # two argument ufuncs that do inverse trigonometry
-twoarg_invtrig_ufuncs = (np.arctan2, )
-for ufunc in twoarg_invtrig_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
+twoarg_invtrig_ufuncs = (np.arctan2,)
 # another private function in numpy; use getattr in case it disappears
 if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
-    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
+    twoarg_invtrig_ufuncs += (np.core.umath._arg,)
+for ufunc in twoarg_invtrig_ufuncs:
+    UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
 
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
@@ -418,206 +452,31 @@ try:
 except ImportError:
     pass
 else:
-    #list of all the scipy functions, remove these as support is added
-    UNSUPPORTED_UFUNCS |= {sps.eval_hermitenorm,
-                           sps.eval_sh_jacobi,
-                           sps.pdtr,
-                           sps.ncfdtridfn,
-                           sps.nbdtrc,
-                           sps.bdtrin,
-                           sps.eval_sh_legendre,
-                           sps.pdtrc,
-                           sps.ncfdtrinc,
-                           sps.nbdtri,
-                           sps.bei,
-                           sps.pdtri,
-                           sps.bdtr,
-                           sps.nctdtr,
-                           sps.nbdtrik,
-                           sps.it2struve0,
-                           sps.pdtrik,
-                           sps.bdtrc,
-                           sps.btdtrib,
-                           sps.nctdtridf,
-                           sps.nbdtrin,
-                           sps.itairy,
-                           sps.poch,
-                           sps.zetac,
-                           sps.nctdtrinc,
-                           sps.ncfdtr,
-                           sps.pro_ang1,
-                           sps.pro_ang1_cv,
-                           sps.nctdtrit,
-                           sps.gammainc,
-                           sps.pro_cv,
-                           sps.ndtr,
-                           sps.itmodstruve0,
-                           sps.exp1,
-                           sps.chndtr,
-                           sps.gammaincc,
-                           sps.pro_rad1,
-                           sps.ndtri,
-                           sps.itstruve0,
-                           sps.chndtridf,
-                           sps.gammainccinv,
-                           sps.pro_rad1_cv,
-                           sps.nrdtrimn,
-                           sps.gammaincinv,
-                           sps.pro_rad2,
-                           sps.nrdtrisd,
-                           sps.expi,
-                           sps.gammaln,
-                           sps.pro_rad2_cv,
-                           sps.obl_ang1,
-                           sps.pseudo_huber,
-                           sps.expit,
-                           sps.obl_ang1_cv,
-                           sps.gdtr,
-                           sps.eval_jacobi,
-                           sps.obl_cv,
-                           sps.expn,
-                           sps.eval_chebyt,
-                           sps.gdtrc,
-                           sps.rel_entr,
-                           sps.eval_laguerre,
-                           sps.obl_rad1,
-                           sps.eval_chebyu,
-                           sps.gdtria,
-                           sps.binom,
-                           sps.obl_rad1_cv,
-                           sps.fdtr,
-                           sps.gdtrib,
-                           sps.chdtr,
-                           sps.round,
-                           sps.boxcox,
-                           sps.eval_gegenbauer,
-                           sps.obl_rad2,
-                           sps.fdtrc,
-                           sps.gdtrix,
-                           sps.ellipe,
-                           sps.chdtrc,
-                           sps.shichi,
-                           sps.eval_genlaguerre,
-                           sps.ellipj,
-                           sps.fdtri,
-                           sps.obl_rad2_cv,
-                           sps.ellipeinc,
-                           sps.sici,
-                           sps.ellipkinc,
-                           sps.fdtridfd,
-                           sps.pbdv,
-                           sps.kei,
-                           sps.fresnel,
-                           sps.airye,
-                           sps.boxcox1p,
-                           sps.smirnov,
-                           sps.keip,
-                           sps.btdtr,
-                           sps.btdtri,
-                           sps.beip,
-                           sps.smirnovi,
-                           sps.eval_legendre,
-                           sps.kelvin,
-                           sps.logit,
-                           sps.huber,
-                           sps.pbwa,
-                           sps.btdtria,
-                           sps.ber,
-                           sps.spence,
-                           sps.eval_sh_chebyt,
-                           sps.ker,
-                           sps.lpmv,
-                           sps.hyp0f1,
-                           sps.bdtri,
-                           sps.chdtri,
-                           sps.sph_harm,
-                           sps.kerp,
-                           sps.mathieu_a,
-                           sps.hyp1f1,
-                           sps.bdtrik,
-                           sps.berp,
-                           sps.chdtriv,
-                           sps.stdtr,
-                           sps.kl_div,
-                           sps.mathieu_b,
-                           sps.hyp1f2,
-                           sps.besselpoly,
-                           sps.stdtridf,
-                           sps.mathieu_cem,
-                           sps.hyp2f0,
-                           sps.stdtrit,
-                           sps.ellipkm1,
-                           sps.kolmogi,
-                           sps.hyp2f1,
-                           sps.mathieu_modcem1,
-                           sps.beta,
-                           sps.struve,
-                           sps.kolmogorov,
-                           sps.hyp3f0,
-                           sps.eval_chebyc,
-                           sps.betainc,
-                           sps.mathieu_modcem2,
-                           sps.mathieu_modsem1,
-                           sps.hyperu,
-                           sps.eval_chebys,
-                           sps.tklmbda,
-                           sps.betaincinv,
-                           sps.mathieu_modsem2,
-                           sps.betaln,
-                           sps.mathieu_sem,
-                           sps.cosm1,
-                           sps.wrightomega,
-                           sps.log_ndtr,
-                           sps.modfresnelm,
-                           sps.xlog1py,
-                           sps.chndtrinc,
-                           sps.modfresnelp,
-                           sps.xlogy,
-                           sps.chndtrix,
-                           sps.ncfdtri,
-                           sps.modstruve,
-                           sps.inv_boxcox,
-                           sps.pbvv,
-                           sps.eval_hermite,
-                           sps.eval_sh_chebyu,
-                           sps.agm,
-                           sps.ncfdtridfd,
-                           sps.nbdtr,
-                           sps.inv_boxcox1p,
-                           sps.airy
-                       }
-
     # ufuncs that require dimensionless input and give dimensionless output
-    dimensionless_to_dimensionless_sps_ufuncs = (sps.erf, sps.gamma,
-                                                 sps.loggamma, sps.gammasgn,
-                                                 sps.psi, sps.rgamma, sps.erfc,
-                                                 sps.erfcx, sps.erfi, sps.wofz,
-                                                 sps.dawsn, sps.entr,
-                                                 sps.exprel, sps.expm1,
-                                                 sps.log1p, sps.exp2, sps.exp10,
-                                                 sps.j0, sps.j1, sps.y0, sps.y1,
-                                                 sps.i0, sps.i0e, sps.i1,
-                                                 sps.i1e, sps.k0, sps.k0e,
-                                                 sps.k1, sps.k1e, sps.itj0y0,
-                                                 sps.it2j0y0, sps.iti0k0,
-                                                 sps.it2i0k0)
+    dimensionless_to_dimensionless_sps_ufuncs = (
+        sps.erf, sps.gamma, sps.loggamma, sps.gammasgn,
+        sps.psi, sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz,
+        sps.dawsn, sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2,
+        sps.exp10, sps.j0, sps.j1, sps.y0, sps.y1, sps.i0, sps.i0e, sps.i1,
+        sps.i1e, sps.k0, sps.k0e, sps.k1, sps.k1e, sps.itj0y0,
+        sps.it2j0y0, sps.iti0k0, sps.it2i0k0)
     for ufunc in dimensionless_to_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
     # ufuncs that require input in degrees and give dimensionless output
-    degree_to_dimensionless_sps_ufuncs = (sps.cosdg, sps.sindg, sps.tandg,
-                                          sps.cotdg)
+    degree_to_dimensionless_sps_ufuncs = (
+        sps.cosdg, sps.sindg, sps.tandg, sps.cotdg)
     for ufunc in degree_to_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_degree_to_dimensionless
 
-    # ufuncs that require two dimensionless inputs and give dimensionless output
+    # ufuncs that require 2 dimensionless inputs and give dimensionless output.
     # note: sps.jv and sps.jn are aliases in some scipy versions, which will
     # cause the same key to be written twice, but since both are handled by the
     # same helper there is no harm done.
-    two_arg_dimensionless_sps_ufuncs = (sps.jv, sps.jn, sps.jve, sps.yn, sps.yv,
-                                        sps.yve, sps.kn, sps.kv, sps.kve,
-                                        sps.iv, sps.ive, sps.hankel1, 
-                                        sps.hankel1e, sps.hankel2, sps.hankel2e)
+    two_arg_dimensionless_sps_ufuncs = (
+        sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve, sps.kn, sps.kv,
+        sps.kve, sps.iv, sps.ive, sps.hankel1, sps.hankel1e, sps.hankel2,
+        sps.hankel2e)
     for ufunc in two_arg_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
 
