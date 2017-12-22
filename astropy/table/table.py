@@ -2541,6 +2541,16 @@ class Table:
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
         """
+        #Columns written in native py3 format are first converted to bytes so as to be written in hdf5 format.
+        if isinstance(args[0],str):
+            if(args[0].endswith(('.hdf5', '.h5'))):
+                for column in self.colnames:
+                    if str(self.columns[column].dtype)[1]=='U':
+                        self.replace_column(column, np.core.defchararray.encode(self.columns[column]))
+        """
+         self.replace_column(column, np.core.defchararray.encode(self.columns[column]),replaces the column
+         written in natine py3 format to bytes.
+        """
         io_registry.write(self, *args, **kwargs)
 
     def copy(self, copy_data=True):
