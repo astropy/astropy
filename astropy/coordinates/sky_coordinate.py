@@ -188,10 +188,15 @@ class SkyCoord(ShapedLikeNDArray):
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
             frame's ``representation_component_names``, including `ICRS`,
             `FK5`, `FK4`, and `FK4NoETerms`.
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
+            Proper motion components, in angle per time units.
         l, b : valid `~astropy.coordinates.Angle` initializer, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
+        pm_l_cosb, pm_b : `~astropy.units.Quantity`, optional
+            Proper motion components in the `Galactic` frame, in angle per time
+            units.
         x, y, z : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values
         u, v, w : float or `~astropy.units.Quantity`, optional
@@ -199,8 +204,6 @@ class SkyCoord(ShapedLikeNDArray):
         radial_velocity : `~astropy.units.Quantity`, optional
             The component of the velocity along the line-of-sight (i.e., the
             radial direction), in velocity units.
-        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
-            Proper motion components, in angle per time units.
     """
 
     # Declare that SkyCoord can be used as a Table column by defining the
