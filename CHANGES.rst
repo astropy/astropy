@@ -539,6 +539,13 @@ astropy.wcs
 ^^^^^^^^^^^
 
 
+Other Changes and Additions
+---------------------------
+
+- Substantial performance improvement (potentially >1000x for some cases) when
+  converting non-scalar ``coordinates.Angle`` objects to strings. [#7004]
+
+
 2.0.3 (2017-12-13)
 ==================
 
