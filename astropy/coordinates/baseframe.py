@@ -1242,16 +1242,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self.__getattribute__(attr)  # Raise AttributeError.
 
     def __setattr__(self, attr, value):
-        repr_attr_names = set()
-        if hasattr(self, 'representation_info'):
-            for representation_attr in self.representation_info.values():
-                repr_attr_names.update(representation_attr['names'])
+        # Don't slow down access of private attributes!
+        if not attr.startswith('_'):
+            if hasattr(self, 'representation_info'):
+                repr_attr_names = set()
+                for representation_attr in self.representation_info.values():
+                    repr_attr_names.update(representation_attr['names'])
 
-        if attr in repr_attr_names:
-            raise AttributeError(
-                'Cannot set any frame attribute {0}'.format(attr))
-        else:
-            super().__setattr__(attr, value)
+                if attr in repr_attr_names:
+                    raise AttributeError(
+                        'Cannot set any frame attribute {0}'.format(attr))
+
+        super().__setattr__(attr, value)
 
     def separation(self, other):
         """
