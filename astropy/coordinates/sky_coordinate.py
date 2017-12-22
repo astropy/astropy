@@ -199,7 +199,7 @@ class SkyCoord(ShapedLikeNDArray):
         radial_velocity : `~astropy.units.Quantity`, optional
             The component of the velocity along the line-of-sight (i.e., the
             radial direction). Should have velocity units.
-       pm_dec, pm_ra_cosdec : `~astropy.units.Quantity`, optional
+        pm_dec, pm_ra_cosdec : `~astropy.units.Quantity`, optional
             Proper motion components, in angle per time units.
     """
 
