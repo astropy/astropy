@@ -16,7 +16,7 @@ from ....time import Time
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
 try:
-    iers.IERS_A.open()  # check if IERS_A is available
+    iers.IERS_A.open('finals2000A.all')  # check if IERS_A is available
 except OSError:
     HAS_IERS_A = False
 else:
@@ -157,6 +157,9 @@ class TestIERS_AExcerpt():
 class TestIERS_A():
 
     def test_simple(self):
+        """Test that open() by default reads a 'finals2000A.all' file."""
+        # Ensure we remove any cached table (gh-5131).
+        iers.IERS_A.close()
         iers_tab = iers.IERS_A.open()
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
