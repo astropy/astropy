@@ -203,6 +203,15 @@ astropy.utils
   ``astropy.utils.compat.numpy`` module have been deprecated. Use the
   NumPy functions directly. [#6691]
 
+- The ``astropy.utils.console.ProgressBar.map`` class method now returns
+  results in sequential order. Previously, if you set ``multiprocess=True``,
+  then the results could arrive in any arbitrary order, which could be a nasty
+  shock. Although the function will still be evaluated on the items in
+  arbitrary order, the return values will arrive in the same order in which the
+  input items were provided. The method is now a thin wrapper around
+  ``astropy.utils.console.ProgressBar.map_unordered``, which preserves the old
+  behavior. [#6439]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
