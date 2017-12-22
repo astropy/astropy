@@ -10,6 +10,9 @@ astropy.config
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
+- New context manager ``set_enabled_constants`` to temporarily use an older
+  version. [#7008]
+
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
@@ -228,6 +231,10 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Deprecated ``recommended_units`` for representations. These were used to
+  ensure that any angle was presented in degrees in sky coordinates and
+  frames. This is more logically done in the frame itself. [#6858]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
