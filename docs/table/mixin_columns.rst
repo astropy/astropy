@@ -239,7 +239,7 @@ that contain mixin columns:
 **ASCII table writing**
 
 Tables with mixin columns can be written out to file using the `astropy.io.ascii` module,
-but the fast C-based writers are not available.  Instead the legacy pure-Python
+but the fast C-based writers are not available.  Instead the pure-Python
 writers will be used.  For writing tables with mixin columns it is recommended
 to use the ``'ecsv'`` ASCII format.  This will fully serialize the table data and
 metadata, allowing full "round-trip" of the table when it is read back.  See
@@ -248,8 +248,8 @@ metadata, allowing full "round-trip" of the table when it is read back.  See
 **Binary table writing**
 
 Starting with astropy 3.0, tables with mixin columns can be written in binary
-format to file using the both FITS and HDF5 formats.  These can be read back to
-recover exactly the original table including mixin columns and metadata. See
+format to file using both FITS and HDF5 formats.  These can be read back to
+recover exactly the original Table including mixin columns and metadata. See
 :ref:`table_io` for details.
 
 .. _mixin_protocol:
