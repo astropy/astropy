@@ -44,8 +44,11 @@ UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
                           np.bitwise_xor, np.invert, np.left_shift,
                           np.right_shift, np.logical_and, np.logical_or,
                           np.logical_xor, np.logical_not])
-if isinstance(getattr(np, 'isnat', None), np.ufunc):
-    UNSUPPORTED_UFUNCS |= {np.isnat}
+for name in 'isnat', 'gcd', 'lcm':
+    # isnat was introduced in numpy 1.14, gcd+lcm in 1.15
+    ufunc = getattr(np, name, None)
+    if isinstance(ufunc, np.ufunc):
+        UNSUPPORTED_UFUNCS |= {ufunc}
 
 # SINGLE ARGUMENT UFUNCS
 
