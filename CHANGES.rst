@@ -201,6 +201,9 @@ astropy.utils
   ``astropy.utils.compat.numpy`` module have been deprecated. Use the
   NumPy functions directly. [#6691]
 
+- Adding decorators ``prepend_docstring`` and ``append_docstring`` to
+  manipulate docstrings. [#6788]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

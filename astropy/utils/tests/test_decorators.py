@@ -3,12 +3,14 @@
 import functools
 import inspect
 import pickle
+import textwrap
 
 import pytest
 
 from ..decorators import (deprecated_attribute, deprecated, wraps,
                           sharedmethod, classproperty,
-                          format_doc, deprecated_renamed_argument)
+                          format_doc, deprecated_renamed_argument,
+                          prepend_docstring, append_docstring)
 from ..exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from ...tests.helper import catch_warnings
 
@@ -722,3 +724,143 @@ def test_format_doc_onClass():
         pass
 
     assert inspect.getdoc(TestClass) == 'what we do is strange.'
+
+
+def dummyfunc1():
+    """
+    Returns
+    -------
+    Nothing!
+
+    Examples
+    --------
+    Nada
+    """
+    pass
+
+
+def dummyfunc2():
+    """
+    Returns
+    -------
+    Nothing!
+    """
+    pass
+
+
+def dummyfunc3():
+    """
+    This is a dummy functions description.
+
+    Parameters
+    ----------
+    input : list
+
+    Returns
+    -------
+    Nothing!
+
+    Examples
+    --------
+    Insightful example.
+    """
+    pass
+
+
+docstr1 = """
+    Blah Blah Blah
+
+    Parameters
+    ----------
+    dummy : dummy parameter
+
+    Returns
+    -------
+    nothing
+
+    Examples
+    --------
+    no_examples_at_all
+"""
+
+docstr1_out1 = """
+    Blah Blah Blah
+
+    Parameters
+    ----------
+    dummy : dummy parameter
+
+    Returns
+    -------
+    Nothing!
+
+    Examples
+    --------
+    Nada
+"""
+
+docstr1_out2 = """
+    Blah Blah Blah
+
+    Parameters
+    ----------
+    dummy : dummy parameter
+
+    Returns
+    -------
+    Nothing!
+"""
+
+docstr2 = """
+    Other Parameters
+    ----------------
+    param1 : dummy
+
+    param2 : dummy
+
+    Returns
+    -------
+    all_the_things
+
+    Notes
+    -----
+    These applies to multiple functions
+"""
+
+docstr2_out = """
+    This is a dummy functions description.
+
+    Parameters
+    ----------
+    input : list
+
+    Returns
+    -------
+    Nothing!
+
+    Examples
+    --------
+    Insightful example.
+
+    Other Parameters
+    ----------------
+    param1 : dummy
+
+    param2 : dummy
+
+    Notes
+    -----
+    These applies to multiple functions
+"""
+
+
+@pytest.mark.parametrize("func, out", [(dummyfunc1, docstr1_out1),
+                                       (dummyfunc2, docstr1_out2)])
+def test_prepend_docstring(func, out, doc=docstr1):
+    fn = prepend_docstring(doc, sections=['Returns', 'Examples'])(func)
+    assert fn.__doc__ == textwrap.dedent(out)
+
+
+def test_append_docstring(func=dummyfunc3, out=docstr2_out, doc=docstr2):
+    fn = append_docstring(doc, sections=['Returns'])(func)
+    assert fn.__doc__ == textwrap.dedent(out)
