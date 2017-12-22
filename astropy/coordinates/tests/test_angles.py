@@ -848,14 +848,14 @@ def test_wrap_at_without_new():
 
 def test__str__():
     """
-    Check the __str__ method used in printing the Angle 
+    Check the __str__ method used in printing the Angle
     """
 
     # scalar angle
-    scangle = Angle('10.2345d') 
+    scangle = Angle('10.2345d')
     strscangle = scangle.__str__()
     assert strscangle == '10d14m04.2s'
-    
+
     # non-scalar array angles
     arrangle = Angle(['10.2345d', '-20d'])
     strarrangle = arrangle.__str__()
