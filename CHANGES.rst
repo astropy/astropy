@@ -257,6 +257,7 @@ astropy.coordinates
 - Deprecated ``recommended_units`` for representations. These were used to
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
+
 - The frame classes now accept a representation class or differential class, or
   string names for either, through the keyword arguments ``representation_type``
   and ``differential_type`` instead of ``representation`` and
