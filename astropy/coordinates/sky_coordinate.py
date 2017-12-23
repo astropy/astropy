@@ -500,17 +500,30 @@ class SkyCoord(ShapedLikeNDArray):
 
     def apply_space_motion(self, new_obstime=None, dt=None):
         """
-        Update the position of the source represented by this coordinate object
-        to a new specified time using the velocity and assuming linear motion.
+        Compute the position of the source represented by this coordinate object
+        to a new time using the velocities stored in this object and assuming
+        linear space motion (including relativistic corrections). This is
+        sometimes referred to as an "epoch transformation."
 
-        This is sometimes referred to as an "epoch transformation."
+        The initial time before the evolution is taken from the ``obstime``
+        attribute of this coordinate.  Note that this method currently does not
+        support evolving coordinates where the *frame* has an ``obstime`` frame
+        attribute, so the ``obstime`` is only used for storing the before and
+        after times, not actually as an attribute of the frame.
 
         Parameters
         ----------
         new_obstime : `~astropy.time.Time`, optional
             The time at which to evolve the position to.
         dt : `~astropy.units.Quantity`, `~astropy.time.TimeDelta`, optional
-            An amount of time to evolve the position of the source.
+            An amount of time to evolve the position of the source. Cannot be
+            given at the same time as ``new_obstime``.
+
+        Returns
+        -------
+        new_coord : `SkyCoord`
+            A new coordinate object with the evolved location of this coordinate
+            at the new time.
         """
 
         if (new_obstime is None and dt is None or

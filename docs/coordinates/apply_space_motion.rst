@@ -38,3 +38,6 @@ Or, we can specify the new time to evaluate the position at::
 If the |SkyCoord| object has no specified radial velocity (RV), the RV is
 assumed to be 0. The new position of the source is determined assuming the
 source moves in a straight line with constant velocity in an inertial frame.
+There are no plans to support more complex evolution (e.g. non-inertial
+frames or more complex evolution), as that is out of scope for the Astropy core
+(although it may well be in-scope for a variety of affiliated packages).
