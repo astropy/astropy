@@ -97,7 +97,7 @@ These same attributes can be used to access the data in the frames, as
     >>> coo.ra.to(u.hourangle)  # doctest: +FLOAT_CMP
     <Longitude 0.07333333 hourangle>
 
-You can use the ``representation`` attribute in conjunction
+You can use the ``representation_type`` attribute in conjunction
 with the ``representation_component_names`` attribute to figure out what
 keywords are accepted by a particular class object.  The former will be the
 representation class the system is expressed in (e.g.,
@@ -118,13 +118,26 @@ One can get the data in a different representation if needed::
     <CartesianRepresentation (x, y, z) [dimensionless]
          (0.99923861, 0.01744177, 0.0348995)>
 
+.. note::
+
+    In previous versions of Astropy, both the frame attribute and the argument
+    to frame classes that are now named ``representation_type`` used to be
+    simply ``representation``. The name of this attribute/argument is confusing
+    as it points to the representation *class*, not the object containing the
+    underlying frame data (this is accessed via the frame attribute ``.data``).
+    To clarify, we have renamed ``representation`` to ``representation_type``.
+    In this version 3.0, we have only changed the references to this attribute
+    in the documentation. In the next major version, we will issue a deprecation
+    warning. In two major versions, we will remove the ``.representation``
+    attribute and ``representation=`` argument.
+
 The representation of the coordinate object can also be changed directly, as
 shown below.  This actually does *nothing* to the object internal data which
 stores the coordinate values, but it changes the external view of that data in
 two ways: (1) the object prints itself in accord with the new representation,
 and (2) the available attributes change to match those of the new
 representation (e.g. from ``ra, dec, distance`` to ``x, y, z``).  Setting the
-``representation`` thus changes a *property* of the object (how it appears)
+``representation_type`` thus changes a *property* of the object (how it appears)
 without changing the intrinsic object itself which represents a point in 3d
 space.::
 
