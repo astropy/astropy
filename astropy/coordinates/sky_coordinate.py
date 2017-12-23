@@ -552,7 +552,7 @@ class SkyCoord(ShapedLikeNDArray):
                              'apply_space_motion() must receive a time '
                              'difference, `dt`, and not a new obstime.')
 
-        # note that t1 and t2 are those used in the starpm call, which *only*
+        # Compute t1 and t2, the times used in the starpm call, which *only*
         # uses them to compute a delta-time
         t1 = self.obstime
         if dt is None:
@@ -572,28 +572,30 @@ class SkyCoord(ShapedLikeNDArray):
             else:
                 t2 = t1 + dt
                 new_obstime = t2
+        # starpm wants tdb time
+        t1 = t1.tdb
+        t2 = t2.tdb
 
-        icrs = self.icrs
-        icrs.set_representation_cls(s=SphericalDifferential)
+        # proper motion in RA should not include the cos(dec) term, see the
+        # erfa function eraStarpv, comment (4).  So we convert to the regular
+        # spherical differentials.
+        icrsrep = self.icrs.represent_as(SphericalRepresentation, SphericalDifferential)
+        icrsvel = icrsrep.differentials['s']
 
         try:
-            plx = icrs.distance.to_value(u.arcsecond, u.parallax())
+            plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
         except u.UnitConversionError: # No distance: set to 0 by starpm convention
             plx = 0.
 
         try:
-            rv = icrs.radial_velocity.to_value(u.km/u.s)
+            rv = icrsvel.d_distance.to_value(u.km/u.s)
         except u.UnitConversionError: # No RV
             rv = 0.
 
-        # proper motion in RA should not include the cos(dec) term, see the
-        # erfa function eraStarpv, comment (4).
-        starpm = erfa.starpm(icrs.ra.radian, icrs.dec.radian,
-                             icrs.pm_ra.to_value(u.radian/u.yr),
-                             icrs.pm_dec.to_value(u.radian/u.yr),
-                             plx, rv,
-                             2400000.5, t1.tdb.mjd,
-                             2400000.5, t2.tdb.mjd)
+        starpm = erfa.starpm(icrsrep.lon.radian, icrsrep.lat.radian,
+                             icrsvel.d_lon.to_value(u.radian/u.yr),
+                             icrsvel.d_lat.to_value(u.radian/u.yr),
+                             plx, rv, t1.jd1, t1.jd2, t2.jd1, t2.jd2)
 
         icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
                      dec=u.Quantity(starpm[1], u.radian, copy=False),
