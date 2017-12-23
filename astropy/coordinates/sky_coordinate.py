@@ -509,12 +509,14 @@ class SkyCoord(ShapedLikeNDArray):
         attribute of this coordinate.  Note that this method currently does not
         support evolving coordinates where the *frame* has an ``obstime`` frame
         attribute, so the ``obstime`` is only used for storing the before and
-        after times, not actually as an attribute of the frame.
+        after times, not actually as an attribute of the frame. Alternatively,
+        if ``dt`` is given, an ``obstime`` need not be provided at all.
 
         Parameters
         ----------
         new_obstime : `~astropy.time.Time`, optional
-            The time at which to evolve the position to.
+            The time at which to evolve the position to. Requires that the
+            ``obstime`` attribute be present on this frame.
         dt : `~astropy.units.Quantity`, `~astropy.time.TimeDelta`, optional
             An amount of time to evolve the position of the source. Cannot be
             given at the same time as ``new_obstime``.
@@ -523,7 +525,8 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         new_coord : `SkyCoord`
             A new coordinate object with the evolved location of this coordinate
-            at the new time.
+            at the new time.  ``obstime`` will be set on this object to the new
+            time only if ``self`` also has ``obstime``.
         """
 
         if (new_obstime is None and dt is None or
