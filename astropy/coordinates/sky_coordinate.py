@@ -552,15 +552,26 @@ class SkyCoord(ShapedLikeNDArray):
                              'apply_space_motion() must receive a time '
                              'difference, `dt`, and not a new obstime.')
 
+        # note that t1 and t2 are those used in the starpm call, which *only*
+        # uses them to compute a delta-time
         t1 = self.obstime
-        if t1 is None:
-            # MAGIC NUMBER: if the current SkyCoord object has no obstime,
-            # assume J2000 to do the dt offset.
-            t1 = Time('J2000')
-
         if dt is None:
-            dt = new_obstime - self.obstime
-        t2 = t1 + dt
+            # self.obstime is not None and new_obstime is not None b/c of above
+            # checks
+            t2 = new_obstime
+        else:
+            # new_obstime is definitely None b/c of the above checks
+            if t1 is None:
+                # MAGIC NUMBER: if the current SkyCoord object has no obstime,
+                # assume J2000 to do the dt offset. This is not actually used
+                # for anything except a delta-t in starpm, so it's OK that it's
+                # not necessarily the "real" obstime
+                t1 = Time('J2000')
+                new_obstime = None  # we don't actually know the inital obstime
+                t2 = t1 + dt
+            else:
+                t2 = t1 + dt
+                new_obstime = t2
 
         icrs = self.icrs
         icrs.set_representation_cls(s=SphericalDifferential)
@@ -594,9 +605,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Update the obstime of the returned SkyCoord, and need to carry along
         # the frame attributes
-        # TODO: HACK for now is passing in .data because the SkyCoord init dies
-        # if a frame with a SphericalDifferential is passed in.
-        return self.__class__(icrs2.transform_to(self.frame).data,
+        return self.__class__(icrs2.transform_to(self.frame),
                               obstime=new_obstime, frame=self.frame)
 
     def __getattr__(self, attr):
