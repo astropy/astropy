@@ -1395,11 +1395,10 @@ def test_apply_space_motion():
                  distance=10.*u.pc,
                  pm_ra_cosdec=0.1*u.deg/u.yr,
                  pm_dec=0*u.mas/u.yr,
-                 radial_velocity=0*u.km/u.s,
-                 pressure=101*u.kPa)
+                 radial_velocity=0*u.km/u.s)
 
     # Cases that should work (just testing input for now):
-    c1 = SkyCoord(frame, obstime=t1)
+    c1 = SkyCoord(frame, obstime=t1, pressure=101*u.kPa)
     applied1 = c1.apply_space_motion(new_obstime=t2)
     applied2 = c1.apply_space_motion(dt=12*u.year)
 
