@@ -6,6 +6,7 @@ import collections
 
 import numpy as np
 
+from .. import _erfa as erfa
 from ..utils.compat.misc import override__dir__
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
@@ -14,13 +15,14 @@ from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.data_info import MixinInfo
 from ..utils import ShapedLikeNDArray
+from ..time import Time
 
 from .distances import Distance
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+                             UnitSphericalRepresentation, SphericalDifferential)
 
 __all__ = ['SkyCoord', 'SkyCoordInfo']
 
@@ -495,6 +497,123 @@ class SkyCoord(ShapedLikeNDArray):
                      set(frame_kwargs.keys())):
             frame_kwargs.pop(attr)
         return self.__class__(new_coord, **frame_kwargs)
+
+    def apply_space_motion(self, new_obstime=None, dt=None):
+        """
+        Compute the position of the source represented by this coordinate object
+        to a new time using the velocities stored in this object and assuming
+        linear space motion (including relativistic corrections). This is
+        sometimes referred to as an "epoch transformation."
+
+        The initial time before the evolution is taken from the ``obstime``
+        attribute of this coordinate.  Note that this method currently does not
+        support evolving coordinates where the *frame* has an ``obstime`` frame
+        attribute, so the ``obstime`` is only used for storing the before and
+        after times, not actually as an attribute of the frame. Alternatively,
+        if ``dt`` is given, an ``obstime`` need not be provided at all.
+
+        Parameters
+        ----------
+        new_obstime : `~astropy.time.Time`, optional
+            The time at which to evolve the position to. Requires that the
+            ``obstime`` attribute be present on this frame.
+        dt : `~astropy.units.Quantity`, `~astropy.time.TimeDelta`, optional
+            An amount of time to evolve the position of the source. Cannot be
+            given at the same time as ``new_obstime``.
+
+        Returns
+        -------
+        new_coord : `SkyCoord`
+            A new coordinate object with the evolved location of this coordinate
+            at the new time.  ``obstime`` will be set on this object to the new
+            time only if ``self`` also has ``obstime``.
+        """
+
+        if (new_obstime is None and dt is None or
+                new_obstime is not None and dt is not None):
+            raise ValueError("You must specify one of `new_obstime` or `dt`, "
+                             "but not both.")
+
+        # Validate that we have velocity info
+        if 's' not in self.frame.data.differentials:
+            raise ValueError('SkyCoord requires velocity data to evolve the '
+                             'position.')
+
+        if 'obstime' in self.frame.frame_attributes:
+            raise NotImplementedError("Updating the coordinates in a frame "
+                                      "with explicit time dependence is "
+                                      "currently not supported. If you would "
+                                      "like this functionality, please open an "
+                                      "issue on github:\n"
+                                      "https://github.com/astropy/astropy")
+
+        if new_obstime is not None and self.obstime is None:
+            # If no obstime is already on this object, raise an error if a new
+            # obstime is passed: we need to know the time / epoch at which the
+            # the position / velocity were measured initially
+            raise ValueError('This object has no associated `obstime`. '
+                             'apply_space_motion() must receive a time '
+                             'difference, `dt`, and not a new obstime.')
+
+        # Compute t1 and t2, the times used in the starpm call, which *only*
+        # uses them to compute a delta-time
+        t1 = self.obstime
+        if dt is None:
+            # self.obstime is not None and new_obstime is not None b/c of above
+            # checks
+            t2 = new_obstime
+        else:
+            # new_obstime is definitely None b/c of the above checks
+            if t1 is None:
+                # MAGIC NUMBER: if the current SkyCoord object has no obstime,
+                # assume J2000 to do the dt offset. This is not actually used
+                # for anything except a delta-t in starpm, so it's OK that it's
+                # not necessarily the "real" obstime
+                t1 = Time('J2000')
+                new_obstime = None  # we don't actually know the inital obstime
+                t2 = t1 + dt
+            else:
+                t2 = t1 + dt
+                new_obstime = t2
+        # starpm wants tdb time
+        t1 = t1.tdb
+        t2 = t2.tdb
+
+        # proper motion in RA should not include the cos(dec) term, see the
+        # erfa function eraStarpv, comment (4).  So we convert to the regular
+        # spherical differentials.
+        icrsrep = self.icrs.represent_as(SphericalRepresentation, SphericalDifferential)
+        icrsvel = icrsrep.differentials['s']
+
+        try:
+            plx = icrsrep.distance.to_value(u.arcsecond, u.parallax())
+        except u.UnitConversionError: # No distance: set to 0 by starpm convention
+            plx = 0.
+
+        try:
+            rv = icrsvel.d_distance.to_value(u.km/u.s)
+        except u.UnitConversionError: # No RV
+            rv = 0.
+
+        starpm = erfa.starpm(icrsrep.lon.radian, icrsrep.lat.radian,
+                             icrsvel.d_lon.to_value(u.radian/u.yr),
+                             icrsvel.d_lat.to_value(u.radian/u.yr),
+                             plx, rv, t1.jd1, t1.jd2, t2.jd1, t2.jd2)
+
+        icrs2 = ICRS(ra=u.Quantity(starpm[0], u.radian, copy=False),
+                     dec=u.Quantity(starpm[1], u.radian, copy=False),
+                     pm_ra=u.Quantity(starpm[2], u.radian/u.yr, copy=False),
+                     pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
+                     distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
+                     radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
+                     differential_cls=SphericalDifferential)
+
+        # Update the obstime of the returned SkyCoord, and need to carry along
+        # the frame attributes
+        frattrs = {attrnm: getattr(self, attrnm)
+                   for attrnm in self._extra_frameattr_names}
+        frattrs['obstime'] = new_obstime
+        return self.__class__(icrs2, **frattrs).transform_to(self.frame)
 
     def __getattr__(self, attr):
         """

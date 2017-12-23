@@ -369,6 +369,7 @@ listed below.
    representations
    frames
    velocities
+   apply_space_motion
    galactocentric
    remote_methods
    definitions

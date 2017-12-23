@@ -389,8 +389,8 @@ new |SkyCoord| object in the requested frame::
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
 
-Digger deeper
--------------
+Digging deeper
+--------------
 *[Casual users can skip this section]*
 
 After transforming to Galactic the longitude and latitude values are now
@@ -942,6 +942,8 @@ the available docstrings below:
 - `~astropy.coordinates.SkyCoord.position_angle`,
 - `~astropy.coordinates.SkyCoord.separation`,
 - `~astropy.coordinates.SkyCoord.separation_3d`
+- `~astropy.coordinates.SkyCoord.apply_space_motion`
 
 Addition information and examples can be found in the section on
-:ref:`astropy-coordinates-separations-matching`.
+:ref:`astropy-coordinates-separations-matching` and
+:ref:`astropy-coordinates-apply-space-motion`.
