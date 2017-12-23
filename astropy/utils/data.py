@@ -36,19 +36,17 @@ __all__ = [
     'check_free_space_in_dir', 'download_file',
     'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
 
+_dataurls_to_alias = {}
+
 
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.utils.data`.
     """
 
-    # NOTE: Make sure all the dataurl values have trailing "/".
     dataurl = _config.ConfigItem(
         'http://data.astropy.org/',
         'Primary URL for astropy remote data site.')
-    dataurl_alias = _config.ConfigItem(
-        'https://astropy.stsci.edu/data/',
-        'dataurl actually redirects to here.')
     dataurl_mirror = _config.ConfigItem(
         'http://www.astropy.org/astropy-data/',
         'Mirror URL for astropy remote data site.')
@@ -999,6 +997,12 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     url_key = remote_url
 
+    # Check if URL is Astropy data server, which has alias, and cache it.
+    if (url_key.startswith(conf.dataurl) and
+            conf.dataurl not in _dataurls_to_alias):
+        with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
+            _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
+
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
@@ -1007,7 +1011,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                     return url2hash[url_key]
                 # If there is a cached copy from mirror, use it.
                 else:
-                    for cur_url in (conf.dataurl, conf.dataurl_alias):
+                    for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
                         if url_key.startswith(cur_url):
                             url_mirror = url_key.replace(cur_url,
                                                          conf.dataurl_mirror)

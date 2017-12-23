@@ -62,6 +62,7 @@ def test_download_parallel():
         del url2hash[main_url]
     # NOTE: Cannot disable internet in a remote_data test, so comparing hash
     #       should be good enough?
+    # This test also tests for "assert TESTURL in get_cached_urls()".
     c_urls = get_cached_urls()
     assert ((download_file(main_url, cache=True) ==
              download_file(mirror_url, cache=True)) and
