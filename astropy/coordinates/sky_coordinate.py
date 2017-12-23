@@ -249,6 +249,9 @@ class SkyCoord(ShapedLikeNDArray):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
+        # Capture initial representation for use in _set_index0_template
+        self._index0_representation = self.representation
+
     @property
     def frame(self):
         return self._sky_coord_frame
@@ -257,13 +260,69 @@ class SkyCoord(ShapedLikeNDArray):
     def representation(self):
         return self.frame.representation
 
-    @representation.setter
-    def representation(self, value):
-        self.frame.representation = value
-
     @property
     def shape(self):
         return self.frame.shape
+
+    def _set_index0_template(self):
+        """Cache a template instance self[0]"""
+        # Set up the iterator with an index, a template scalar instance
+        # of this SkyCoord object, representation data component names
+        # (the private versions), and representation component values.
+        original_representation = self.representation
+        try:
+            if self.representation is not self._index0_representation:
+                self.representation = self._index0_representation
+
+            self._index0_template = super().__getitem__(0)
+            self._index0_comps = {'_' + name: getattr(self.data, name).value
+                                  for name in self.data.components}
+        finally:
+            if self.representation is not original_representation:
+                self.representation = original_representation
+
+    def __getitem__(self, item):
+        # Allow for special case of a single integer index, for ~20x speedup
+        # from super() __getitem__ (which creates a new object from scratch).
+        if isinstance(item, (int, np.integer)):
+            if not hasattr(self, '_index0_template'):
+                self._set_index0_template()
+
+            # Make a deep copy of the index-0 template, then set the
+            # scalar representation component values to the corresponding
+            # indexed values from the self components.
+            out = copy.deepcopy(self._index0_template)
+            out_frame_data = out._sky_coord_frame._data
+            for comp_name, self_comp in self._index0_comps.items():
+                # Get the output scalar component
+                comp = getattr(out_frame_data, comp_name)
+                # Adapted from Quantity.__setitem__ to do a direct in-place set of
+                # the quantity value.
+                comp.view(np.ndarray).__setitem__((), self_comp[item])
+
+            # Set frame attributes and extra frame attributes, respectively.
+            frame = self._sky_coord_frame
+            for attr in frame.frame_attributes:
+                value = getattr(frame, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = value[item]
+                setattr(out._sky_coord_frame, '_' + attr, value)
+
+            for attr in self._extra_frameattr_names:
+                value = getattr(self, attr)
+                if getattr(value, 'size', 1) > 1:
+                    value = value[item]
+                setattr(out, '_' + attr, value)
+
+            if self.representation is not self._index0_representation:
+                out.representation = self.representation
+
+            # Unlike _apply(), this version does NOT copy `info` attribute.
+
+        else:
+            out = super().__getitem__(item)
+
+        return out
 
     def _apply(self, method, *args, **kwargs):
         """Create a new instance, applying a method to the underlying data.
@@ -535,6 +594,8 @@ class SkyCoord(ShapedLikeNDArray):
                 raise AttributeError("'{0}' is immutable".format(attr))
 
             if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
+                if attr == 'representationa' and 'index0_template' not in self.cache:
+                    self._cache_index0_template()
                 setattr(self._sky_coord_frame, attr, val)
                 return
 
