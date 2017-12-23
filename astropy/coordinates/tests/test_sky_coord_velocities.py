@@ -45,7 +45,7 @@ def test_creation_attrs():
 
     sc2 = SkyCoord(1*u.deg, 2*u.deg,
                    pm_ra=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr,
-                   differential_cls=SphericalDifferential)
+                   differential_type=SphericalDifferential)
     assert_quantity_allclose(sc2.ra, 1*u.deg)
     assert_quantity_allclose(sc2.dec, 2*u.deg)
     assert_quantity_allclose(sc2.pm_ra, .2*u.arcsec/u.kyr)
@@ -74,13 +74,13 @@ def test_creation_copy_basic():
 def test_creation_copy_rediff():
     sc = SkyCoord(1*u.deg, 2*u.deg,
                   pm_ra=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr,
-                  differential_cls=SphericalDifferential)
+                  differential_type=SphericalDifferential)
 
     sc_cpy = SkyCoord(sc)
     for attrnm in ['ra', 'dec', 'pm_ra', 'pm_dec']:
         assert_quantity_allclose(getattr(sc, attrnm), getattr(sc_cpy, attrnm))
 
-    sc_newdiff = SkyCoord(sc, differential_cls=SphericalCosLatDifferential)
+    sc_newdiff = SkyCoord(sc, differential_type=SphericalCosLatDifferential)
     reprepr = sc.represent_as(SphericalRepresentation, SphericalCosLatDifferential)
     assert_quantity_allclose(sc_newdiff.pm_ra_cosdec,
                              reprepr.differentials['s'].d_lon_coslat)
