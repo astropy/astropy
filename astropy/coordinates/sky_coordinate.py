@@ -610,8 +610,10 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Update the obstime of the returned SkyCoord, and need to carry along
         # the frame attributes
-        return self.__class__(icrs2.transform_to(self.frame),
-                              obstime=new_obstime, frame=self.frame)
+        frattrs = {attrnm: getattr(self, attrnm)
+                   for attrnm in self._extra_frameattr_names}
+        frattrs['obstime'] = new_obstime
+        return self.__class__(icrs2, **frattrs).transform_to(self.frame)
 
     def __getattr__(self, attr):
         """

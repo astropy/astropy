@@ -1395,7 +1395,8 @@ def test_apply_space_motion():
                  distance=10.*u.pc,
                  pm_ra_cosdec=0.1*u.deg/u.yr,
                  pm_dec=0*u.mas/u.yr,
-                 radial_velocity=0*u.km/u.s)
+                 radial_velocity=0*u.km/u.s,
+                 pressure=101*u.kPa)
 
     # Cases that should work (just testing input for now):
     c1 = SkyCoord(frame, obstime=t1)
@@ -1408,6 +1409,9 @@ def test_apply_space_motion():
     assert_allclose(applied1.pm_ra, applied2.pm_ra)
     assert_allclose(applied1.dec, applied2.dec)
     assert_allclose(applied1.distance, applied2.distance)
+
+    # ensure any frame attributes that were there before get passed through
+    assert applied1.pressure == c1.pressure
 
     # there were 2 leap seconds between 2000 and 2010, so the difference in
     # the two forms of time evolution should be ~2 sec
