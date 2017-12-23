@@ -24,16 +24,22 @@ and the desired time::
 
     >>> c.apply_space_motion(dt=10. * u.year) # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b, distance) in (deg, deg, pc)
-        ( 10.00013356,  44.999675,  99.99999994)>
+        ( 10.00013356,  44.999675,  99.99999994)
+     (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 33.99980714, -117.00005604,  0.00034117)>
     >>> c.apply_space_motion(dt=-10. * u.year) # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b, distance) in (deg, deg, pc)
-        ( 9.99986643,  45.000325,  100.00000006)>
+        ( 9.99986643,  45.000325,  100.00000006)
+     (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 34.00019286, -116.99994395, -0.00034117)>
 
 Or, we can specify the new time to evaluate the position at::
 
     >>> c.apply_space_motion(new_obstime=Time('2017-12-18 01:12:07.3')) # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b, distance) in (deg, deg, pc)
-        ( 10.00038732,  44.99905754,  99.99999985)>
+        ( 10.00038732,  44.99905754,  99.99999985)
+     (pm_l_cosb, pm_b, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 33.99944073, -117.00016248,  0.00098937)>
 
 If the |SkyCoord| object has no specified radial velocity (RV), the RV is
 assumed to be 0. The new position of the source is determined assuming the
