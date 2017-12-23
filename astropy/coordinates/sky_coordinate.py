@@ -19,7 +19,9 @@ from ..time import Time
 
 from .distances import Distance
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
+from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                        GenericFrame, _get_repr_cls, _get_diff_cls,
+                        _normalize_representation_type)
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation, SphericalDifferential)
@@ -63,11 +65,12 @@ class SkyCoordInfo(MixinInfo):
             return None
 
         sc = self._parent
-        if (issubclass(sc.representation, SphericalRepresentation) and
+        if (issubclass(sc.representation_type, SphericalRepresentation) and
                 isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
         else:
-            repr_data = sc.represent_as(sc.representation, in_frame_units=True)
+            repr_data = sc.represent_as(sc.representation_type,
+                                        in_frame_units=True)
         return repr_data
 
     def _represent_as_dict(self):
@@ -83,7 +86,7 @@ class SkyCoordInfo(MixinInfo):
 
         out = super()._represent_as_dict()
 
-        out['representation'] = obj.representation.get_name()
+        out['representation_type'] = obj.representation_type.get_name()
         out['frame'] = obj.frame.name
         # Note that obj.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored.  The individual attributes have
@@ -110,8 +113,8 @@ class SkyCoord(ShapedLikeNDArray):
 
     It is also possible to input coordinate values in other representations
     such as cartesian or cylindrical.  In this case one includes the keyword
-    argument ``representation='cartesian'`` (for example) along with data in
-    ``x``, ``y``, and ``z``.
+    argument ``representation_type='cartesian'`` (for example) along with data
+    in ``x``, ``y``, and ``z``.
 
     Examples
     --------
@@ -144,7 +147,8 @@ class SkyCoord(ShapedLikeNDArray):
       >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
       >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
 
-      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
+      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic',
+      ...              representation_type='cartesian')
 
       >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
 
@@ -175,7 +179,7 @@ class SkyCoord(ShapedLikeNDArray):
         Time of observation
     equinox : valid `~astropy.time.Time` initializer, optional
         Coordinate frame equinox
-    representation : str or Representation class
+    representation_type : str or Representation class
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
         which must correspond to the given representation.
@@ -234,12 +238,19 @@ class SkyCoord(ShapedLikeNDArray):
                 setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
+
         component_names = frame.representation_component_names
         component_names.update(frame.get_representation_component_names('s'))
-        if 'representation' in kwargs:
-            coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
-        if 'differential_cls' in kwargs:
-            coord_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
+
+        # TODO: deprecate representation, remove this in future
+        _normalize_representation_type(kwargs)
+        if 'representation_type' in kwargs:
+            coord_kwargs['representation_type'] = _get_repr_cls(
+                kwargs['representation_type'])
+
+        if 'differential_type' in kwargs:
+            coord_kwargs['differential_type'] = _get_diff_cls(kwargs['differential_type'])
+
         for attr, value in kwargs.items():
             if value is not None and (attr in component_names
                                       or attr in frame_attr_names):
@@ -255,6 +266,15 @@ class SkyCoord(ShapedLikeNDArray):
     def frame(self):
         return self._sky_coord_frame
 
+    @property
+    def representation_type(self):
+        return self.frame.representation_type
+
+    @representation_type.setter
+    def representation_type(self, value):
+        self.frame.representation_type = value
+
+    # TODO: deprecate these in future
     @property
     def representation(self):
         return self.frame.representation
@@ -338,13 +358,19 @@ class SkyCoord(ShapedLikeNDArray):
         # by keyword args or else get a None default.  Pop them off of kwargs
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
+
         # TODO: possibly remove the below.  The representation/differential
         # information should *already* be stored in the frame object, as it is
         # extracted in _get_frame.  So it may be redundent to include it below.
-        if 'representation' in kwargs:
-            valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
-        if 'differential_cls' in kwargs:
-            valid_kwargs['differential_cls'] = _get_diff_cls(kwargs.pop('differential_cls'))
+        # TODO: deprecate representation, remove this in future
+        _normalize_representation_type(kwargs)
+        if 'representation_type' in kwargs:
+            valid_kwargs['representation_type'] = _get_repr_cls(
+                kwargs.pop('representation_type'))
+
+        if 'differential_type' in kwargs:
+            valid_kwargs['differential_type'] = _get_diff_cls(
+                kwargs.pop('differential_type'))
 
         for attr in frame_transform_graph.frame_attributes:
             if attr in kwargs:
@@ -606,7 +632,7 @@ class SkyCoord(ShapedLikeNDArray):
                      pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
                      distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
                      radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
-                     differential_cls=SphericalDifferential)
+                     differential_type=SphericalDifferential)
 
         # Update the obstime of the returned SkyCoord, and need to carry along
         # the frame attributes
@@ -1760,7 +1786,7 @@ def _get_frame(args, kwargs):
             coord_frame_obj = arg.frame
         if coord_frame_obj is not None:
             coord_frame_cls = coord_frame_obj.__class__
-            kwargs.setdefault('differential_cls',
+            kwargs.setdefault('differential_type',
                               coord_frame_obj.get_representation_cls('s'))
 
         if coord_frame_cls is not None:
@@ -1772,10 +1798,17 @@ def _get_frame(args, kwargs):
                                  .format(coord_frame_cls.__name__, frame_cls.__name__))
 
     frame_cls_kwargs = {}
-    if 'representation' in kwargs:
-        frame_cls_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
-    if 'differential_cls' in kwargs:
-        frame_cls_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
+
+    # TODO: deprecate representation, remove this in future
+    _normalize_representation_type(kwargs)
+
+    if 'representation_type' in kwargs:
+        frame_cls_kwargs['representation_type'] = _get_repr_cls(
+            kwargs['representation_type'])
+
+    if 'differential_type' in kwargs:
+        frame_cls_kwargs['differential_type'] = _get_diff_cls(
+            kwargs['differential_type'])
 
     return frame_cls(**frame_cls_kwargs)
 
@@ -1845,7 +1878,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         if not coords.has_data:
             raise ValueError('Cannot initialize from a frame without coordinate data')
 
-        data = coords.data.represent_as(frame.representation)
+        data = coords.data.represent_as(frame.representation_type)
 
         values = []  # List of values corresponding to representation attrs
         repr_attr_name_to_drop = []
@@ -1890,7 +1923,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     elif isinstance(coords, BaseRepresentation):
         if coords.differentials and 's' in coords.differentials:
             diffs = frame.get_representation_cls('s')
-            data = coords.represent_as(frame.representation, diffs)
+            data = coords.represent_as(frame.representation_type, diffs)
             values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
             for frname, reprname in frame.get_representation_component_names('s').items():
                 values.append(getattr(data.differentials['s'], reprname))
@@ -1984,7 +2017,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             if n_coords > n_attr_names:
                 raise ValueError('Input coordinates have {0} values but '
                                  'representation {1} only accepts {2}'
-                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
+                                 .format(n_coords,
+                                         frame.representation_type.get_name(),
+                                         n_attr_names))
 
             # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
             # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
@@ -2025,7 +2060,7 @@ def _get_representation_attrs(frame, units, kwargs):
     frame initializer later on.
     """
     frame_attr_names = frame.representation_component_names.keys()
-    repr_attr_classes = frame.representation.attr_classes.values()
+    repr_attr_classes = frame.representation_type.attr_classes.values()
 
     valid_kwargs = {}
     for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):

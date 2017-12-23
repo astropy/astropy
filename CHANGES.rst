@@ -40,6 +40,11 @@ astropy.coordinates
 - ``SkyCoord`` objects now support updating the position of a source given its
   space motion and a new time or time difference. [#6872]
 
+- The frame classes now accept a representation class or differential class, or
+  string names for either, through the keyword arguments ``representation_type``
+  and ``differential_type`` instead of ``representation`` and
+  ``differential_cls``. [#6873]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -257,6 +262,11 @@ astropy.coordinates
 - Deprecated ``recommended_units`` for representations. These were used to
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
+
+- As noted above, the frame class attributes ``representation`` and 
+  ``differential_cls`` are being replaced by ``representation_type`` and 
+  ``differential_type``. In the next version, using ``representation`` will raise
+  a deprecation warning. [#6873]
 
 - Coordinate frame classes now can't be added to the frame transform graph if
   they have frame attribute names that conflict with any component names. This

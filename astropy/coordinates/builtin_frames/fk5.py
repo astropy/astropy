@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ..baseframe import frame_transform_graph
+from ...utils.decorators import format_doc
+from ..baseframe import frame_transform_graph, base_doc
 from ..attributes import TimeAttribute
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .baseradec import _base_radec_docstring, BaseRADecFrame
+from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_J2000
 
+__all__ = ['FK5']
 
+
+doc_footer = """
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The equinox of this frame.
+"""
+
+@format_doc(base_doc, components=doc_components, footer=doc_footer)
 class FK5(BaseRADecFrame):
     """
     A coordinate or frame in the FK5 system.
@@ -18,13 +29,6 @@ class FK5(BaseRADecFrame):
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The equinox of this frame.
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
@@ -49,8 +53,6 @@ class FK5(BaseRADecFrame):
         """
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
-
-FK5.__doc__ = FK5.__doc__.format(params=_base_radec_docstring)
 
 # This is the "self-transform".  Defined at module level because the decorator
 #  needs a reference to the FK5 class

@@ -6,12 +6,13 @@ import warnings
 import numpy as np
 
 from ... import units as u
+from ...utils.decorators import format_doc
 from ...utils.exceptions import AstropyDeprecationWarning
 from ..angles import Angle
 from ..matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from .. import representation as r
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                         RepresentationMapping)
+                         RepresentationMapping, base_doc)
 from ..attributes import (Attribute, CoordinateAttribute,
                           QuantityAttribute,
                           DifferentialAttribute)
@@ -20,61 +21,16 @@ from ..errors import ConvertError
 
 from .icrs import ICRS
 
+__all__ = ['Galactocentric']
+
+
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
 _ROLL0 = Angle(58.5986320306*u.degree)
 
-
-class Galactocentric(BaseCoordinateFrame):
-    r"""
-    A coordinate or frame in the Galactocentric system. This frame
-    requires specifying the Sun-Galactic center distance, and optionally
-    the height of the Sun above the Galactic midplane.
-
-    The position of the Sun is assumed to be on the x axis of the final,
-    right-handed system. That is, the x axis points from the position of
-    the Sun projected to the Galactic midplane to the Galactic center --
-    roughly towards :math:`(l,b) = (0^\circ,0^\circ)`. For the default
-    transformation (:math:`{\rm roll}=0^\circ`), the y axis points roughly
-    towards Galactic longitude :math:`l=90^\circ`, and the z axis points
-    roughly towards the North Galactic Pole (:math:`b=90^\circ`).
-
-    The default position of the Galactic Center in ICRS coordinates is
-    taken from Reid et al. 2004,
-    http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
-
-    .. math::
-
-        {\rm RA} = 17:45:37.224~{\rm hr}\\
-        {\rm Dec} = -28:56:10.23~{\rm deg}
-
-    The default distance to the Galactic Center is 8.3 kpc, e.g.,
-    Gillessen et al. (2009),
-    https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G/abstract
-
-    The default height of the Sun above the Galactic midplane is taken to
-    be 27 pc, as measured by Chen et al. (2001),
-    https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
-
-    The default solar motion relative to the Galactic center is taken from a
-    combination of Schönrich et al. (2010) [for the peculiar velocity] and
-    Bovy (2015) [for the circular velocity at the solar radius],
-    https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S/abstract
-    https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B/abstract
-
-    For a more detailed look at the math behind this transformation, see
-    the document :ref:`coordinates-galactocentric`.
-
-    The frame attributes are listed under **Other Parameters**.
-
-    Parameters
-    ----------
-    representation : `~astropy.coordinates.representation.BaseRepresentation` or None
-        A representation object or None to have no data (or use the other
-        keywords)
-
+doc_components = """
     x : `~astropy.units.Quantity`, optional
         Cartesian, Galactocentric :math:`x` position component.
     y : `~astropy.units.Quantity`, optional
@@ -88,19 +44,9 @@ class Galactocentric(BaseCoordinateFrame):
         Cartesian, Galactocentric :math:`v_y` velocity component.
     v_z : `~astropy.units.Quantity`, optional
         Cartesian, Galactocentric :math:`v_z` velocity component.
+"""
 
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_cls : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_cls=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
-
+doc_footer = """
     Other parameters
     ----------------
     galcen_coord : `ICRS`, optional, must be keyword
@@ -166,7 +112,50 @@ class Galactocentric(BaseCoordinateFrame):
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
             [(  86.2585249 ,  28.85773187,  2.75625475e-05),
              ( 289.77285255,  50.06290457,  8.59216010e+01)]>
+"""
 
+@format_doc(base_doc, components=doc_components, footer=doc_footer)
+class Galactocentric(BaseCoordinateFrame):
+    r"""
+    A coordinate or frame in the Galactocentric system. This frame
+    requires specifying the Sun-Galactic center distance, and optionally
+    the height of the Sun above the Galactic midplane.
+
+    The position of the Sun is assumed to be on the x axis of the final,
+    right-handed system. That is, the x axis points from the position of
+    the Sun projected to the Galactic midplane to the Galactic center --
+    roughly towards :math:`(l,b) = (0^\circ,0^\circ)`. For the default
+    transformation (:math:`{\rm roll}=0^\circ`), the y axis points roughly
+    towards Galactic longitude :math:`l=90^\circ`, and the z axis points
+    roughly towards the North Galactic Pole (:math:`b=90^\circ`).
+
+    The default position of the Galactic Center in ICRS coordinates is
+    taken from Reid et al. 2004,
+    http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
+
+    .. math::
+
+        {\rm RA} = 17:45:37.224~{\rm hr}\\
+        {\rm Dec} = -28:56:10.23~{\rm deg}
+
+    The default distance to the Galactic Center is 8.3 kpc, e.g.,
+    Gillessen et al. (2009),
+    https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G/abstract
+
+    The default height of the Sun above the Galactic midplane is taken to
+    be 27 pc, as measured by Chen et al. (2001),
+    https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C/abstract
+
+    The default solar motion relative to the Galactic center is taken from a
+    combination of Schönrich et al. (2010) [for the peculiar velocity] and
+    Bovy (2015) [for the circular velocity at the solar radius],
+    https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S/abstract
+    https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B/abstract
+
+    For a more detailed look at the math behind this transformation, see
+    the document :ref:`coordinates-galactocentric`.
+
+    The frame attributes are listed under **Other Parameters**.
     """
 
     default_representation = r.CartesianRepresentation

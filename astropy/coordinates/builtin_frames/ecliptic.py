@@ -2,25 +2,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from ... import units as u
+from ...utils.decorators import format_doc
 from .. import representation as r
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 from ..attributes import TimeAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
 __all__ = ['GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic', 'BaseEclipticFrame']
 
-_base_ecliptic_docstring = """.. warning::
-        In the current version of astropy, the ecliptic frames do not yet have
-        stringent accuracy tests.  We recommend you test to "known-good" cases
-        to ensure this frames are what you are looking for. (and then ideally
-        you would contribute these tests to Astropy!)
 
-    Parameters
-    ----------
-    representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
-
+doc_components_ecl = """
     lon : `Angle`, optional, must be keyword
         The ecliptic longitude for this object (``lat`` must also be given and
         ``representation`` must be None).
@@ -40,37 +32,38 @@ _base_ecliptic_docstring = """.. warning::
     distance : `~astropy.units.Quantity`, optional, must be keyword
         The distance for this object from the {0}.
         (``representation`` must be None).
-
-    copy : bool, optional
-        If `True` (default), make copies of the input coordinate arrays.
-        Can only be passed in as a keyword argument.
-
-    differential_cls : `BaseDifferential`, dict, optional
-        A differential class or dictionary of differential classes (currently
-        only a velocity differential with key 's' is supported). This sets
-        the expected input differential class, thereby changing the expected
-        keyword arguments of the data passed in. For example, passing
-        ``differential_cls=CartesianDifferential`` will make the classes
-        expect velocity data with the argument names ``v_x, v_y, v_z``.
 """
 
-
+@format_doc(base_doc,
+            components=doc_components_ecl.format('specified location'),
+            footer="")
 class BaseEclipticFrame(BaseCoordinateFrame):
     """
     A base class for frames that have names and conventions like that of
     ecliptic frames.
 
-    {params}
+    .. warning::
+            In the current version of astropy, the ecliptic frames do not yet have
+            stringent accuracy tests.  We recommend you test to "known-good" cases
+            to ensure this frames are what you are looking for. (and then ideally
+            you would contribute these tests to Astropy!)
     """
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
 
-BaseEclipticFrame.__doc__ = BaseEclipticFrame.__doc__.format(
-    params=_base_ecliptic_docstring)
+doc_footer_geo = """
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth (necessary for transformation to
+        non-geocentric systems).
+"""
 
-
+@format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
+            footer=doc_footer_geo)
 class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
     Geocentric ecliptic coordinates.  These origin of the coordinates are the
@@ -83,24 +76,20 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     to/from e.g. ICRS.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The date to assume for this frame.  Determines the location of the
-        x-axis and the location of the Earth (necessary for transformation to
-        non-geocentric systems).
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
-GeocentricTrueEcliptic.__doc__ = GeocentricTrueEcliptic.__doc__.format(
-    params=_base_ecliptic_docstring.format("geocenter"))
-
-
+doc_footer_bary = """
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth and Sun.
+"""
+@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
+            footer=doc_footer_bary)
 class BarycentricTrueEcliptic(BaseEclipticFrame):
     """
     Barycentric ecliptic coordinates.  These origin of the coordinates are the
@@ -110,23 +99,20 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
     ecliptic for that date.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The date to assume for this frame.  Determines the location of the
-        x-axis and the location of the Earth and Sun.
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
-BarycentricTrueEcliptic.__doc__ = BarycentricTrueEcliptic.__doc__.format(
-    params=_base_ecliptic_docstring.format("sun's center"))
-
-
+doc_footer_helio = """
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The date to assume for this frame.  Determines the location of the
+        x-axis and the location of the Earth and Sun.
+"""
+@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
+            footer=doc_footer_helio)
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
     Heliocentric ecliptic coordinates.  These origin of the coordinates are the
@@ -139,16 +125,8 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
     {params}
 
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The date to assume for this frame.  Determines the location of the
-        x-axis and the location of the Earth and Sun.
+
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-
-
-HeliocentricTrueEcliptic.__doc__ = HeliocentricTrueEcliptic.__doc__.format(
-    params=_base_ecliptic_docstring.format("sun's center"))
