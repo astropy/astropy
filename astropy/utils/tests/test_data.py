@@ -25,7 +25,6 @@ TESTURL = 'http://www.astropy.org'
 
 # General file object function
 
-
 try:
     import bz2  # noqa
 except ImportError:
@@ -61,13 +60,28 @@ def test_download_nocache():
 
 @remote_data('astropy')
 def test_download_parallel():
-    from ..data import download_files_in_parallel
+    import shelve
+    from ..data import (download_file, download_files_in_parallel,
+                        _get_download_cache_locs, get_cached_urls)
 
-    fnout = download_files_in_parallel(
-        ['http://data.astropy.org',
-         'https://astropy.stsci.edu/data/intersphinx/README'],
-        cache=True)  # cache=True is needed for Windows (see issue #6662)
+    main_url = 'http://data.astropy.org/intersphinx/README'
+    mirror_url = 'http://www.astropy.org/astropy-data/intersphinx/README'
+    fnout = download_files_in_parallel([
+        'http://data.astropy.org', main_url, mirror_url])
     assert all([os.path.isfile(f) for f in fnout]), fnout
+
+    # Now test that download_file looks in mirror's cache before download.
+    # https://github.com/astropy/astropy/issues/6982
+    dldir, urlmapfn = _get_download_cache_locs()
+    with shelve.open(urlmapfn) as url2hash:
+        del url2hash[main_url]
+    # NOTE: Cannot disable internet in a remote_data test, so comparing hash
+    #       should be good enough?
+    # This test also tests for "assert TESTURL in get_cached_urls()".
+    c_urls = get_cached_urls()
+    assert ((download_file(main_url, cache=True) ==
+             download_file(mirror_url, cache=True)) and
+            (mirror_url in c_urls) and (main_url not in c_urls))
 
 
 @remote_data('astropy')
@@ -482,11 +496,3 @@ def test_path_objects_get_readable_fileobj():
     with get_readable_fileobj(fpath) as f:
         assert f.read().rstrip() == ('This file is used in the test_local_data_* '
                                      'testing functions\nCONTENT')
-
-
-@remote_data('astropy')
-def test_get_cached_urls():
-    from ..data import download_file, get_cached_urls
-    download_file(TESTURL, cache=True, show_progress=False)
-
-    assert TESTURL in get_cached_urls()
