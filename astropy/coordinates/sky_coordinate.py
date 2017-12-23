@@ -1747,7 +1747,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             del frame_attr_names[nameidx]
             del repr_attr_classes[nameidx]
 
-        if coords.data.differentials:
+        if coords.data.differentials and 's' in coords.data.differentials:
             orig_vel = coords.data.differentials['s']
             vel = coords.data.represent_as(frame.representation, frame.get_representation_cls('s')).differentials['s']
             for frname, reprname in frame.get_representation_component_names('s').items():
@@ -1768,7 +1768,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
-        if coords.differentials:
+        if coords.differentials and 's' in coords.differentials:
             diffs = frame.get_representation_cls('s')
             data = coords.represent_as(frame.representation, diffs)
             values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
