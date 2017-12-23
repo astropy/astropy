@@ -3,7 +3,6 @@ from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import re
 import sys
-import os
 from collections import OrderedDict, Mapping
 import warnings
 from copy import deepcopy
