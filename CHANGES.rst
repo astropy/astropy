@@ -32,6 +32,11 @@ astropy.coordinates
 - SkyCoord objects now support storing and tranforming differentials - i.e.,
   both radial velocities and proper motions. [#6944]
 
+- All frame classes now automatically get sensible representation mappings for
+  velocity components. For example, ``d_x``, ``d_y``, ``d_z`` are all
+  automatically mapped to frame component namse ``v_x``, ``v_y``, ``v_z``.
+  [#6856]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
