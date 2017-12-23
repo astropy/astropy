@@ -632,7 +632,7 @@ class SkyCoord(ShapedLikeNDArray):
                      pm_dec=u.Quantity(starpm[3], u.radian/u.yr, copy=False),
                      distance=Distance(parallax=starpm[4] * u.arcsec, copy=False),
                      radial_velocity=u.Quantity(starpm[5], u.km/u.s, copy=False),
-                     differential_cls=SphericalDifferential)
+                     differential_type=SphericalDifferential)
 
         # Update the obstime of the returned SkyCoord, and need to carry along
         # the frame attributes
@@ -1786,7 +1786,7 @@ def _get_frame(args, kwargs):
             coord_frame_obj = arg.frame
         if coord_frame_obj is not None:
             coord_frame_cls = coord_frame_obj.__class__
-            kwargs.setdefault('differential_cls',
+            kwargs.setdefault('differential_type',
                               coord_frame_obj.get_representation_cls('s'))
 
         if coord_frame_cls is not None:
