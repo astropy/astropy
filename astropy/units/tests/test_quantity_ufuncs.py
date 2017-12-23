@@ -6,208 +6,284 @@ import warnings
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
+from collections import namedtuple
 
 from ... import units as u
 from ...tests.helper import raises
 from ...utils.compat import NUMPY_LT_1_13
+
+try:
+    import scipy  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
+
+testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
+testexc = namedtuple('testexc', ['f', 'q_in', 'exc', 'msg'])
+testwarn = namedtuple('testwarn', ['f', 'q_in', 'wfilter'])
+
+
+@pytest.mark.skip
+def test_testcase(tc):
+        results = tc.f(*tc.q_in)
+        # careful of the following line, would break on a function returning
+        # a single tuple (as opposed to tuple of return values)
+        results = (results, ) if type(results) != tuple else results
+        for result, expected in zip(results, tc.q_out):
+            assert result.unit == expected.unit
+            assert_allclose(result.value, expected.value, atol=1.E-15)
+
+
+@pytest.mark.skip
+def test_testexc(te):
+    with pytest.raises(te.exc) as exc:
+        te.f(*te.q_in)
+    if te.msg is not None:
+        assert te.msg in exc.value.args[0]
+
+
+@pytest.mark.skip
+def test_testwarn(tw):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(tw.wfilter)
+        tw.f(*tw.q_in)
 
 
 class TestUfuncCoverage:
     """Test that we cover all ufunc's"""
 
     def test_coverage(self):
+
+        all_extern_ufuncs = set([])
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
-
+        all_extern_ufuncs |= all_np_ufuncs
         from .. import quantity_helper as qh
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
 
-        assert all_np_ufuncs - all_q_ufuncs == set([])
-        assert all_q_ufuncs - all_np_ufuncs == set([])
+        # Ignore possible non-numpy ufuncs; for scipy in particular, we have
+        # support for some, but for others it still has to be decided whether
+        # we can support them or not.
+        if HAS_SCIPY:
+            import scipy.special as sps
+            all_sps_ufuncs = set([ufunc for ufunc in sps.__dict__.values()
+                                  if type(ufunc) == np.ufunc])
+            all_q_ufuncs -= all_sps_ufuncs
+
+        assert all_extern_ufuncs - all_q_ufuncs == set([])
+        assert all_q_ufuncs - all_extern_ufuncs == set([])
 
 
 class TestQuantityTrigonometricFuncs:
     """
     Test trigonometric functions
     """
+    @pytest.mark.parametrize('tc', (
+        testcase(
+            f=np.sin,
+            q_in=(30. * u.degree, ),
+            q_out=(0.5*u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.sin,
+            q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+            q_out=(np.array([0., 1. / np.sqrt(2.), 1.]) * u.one, )
+        ),
+        testcase(
+            f=np.arcsin,
+            q_in=(np.sin(30. * u.degree), ),
+            q_out=(np.radians(30.) * u.radian, )
+        ),
+        testcase(
+            f=np.arcsin,
+            q_in=(np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian), ),
+            q_out=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, )
+        ),
+        testcase(
+            f=np.cos,
+            q_in=(np.pi / 3. * u.radian, ),
+            q_out=(0.5 * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.cos,
+            q_in=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+            q_out=(np.array([1., 1. / np.sqrt(2.), 0.]) * u.one, )
+        ),
+        testcase(
+            f=np.arccos,
+            q_in=(np.cos(np.pi / 3. * u.radian), ),
+            q_out=(np.pi / 3. * u.radian, )
+        ),
+        testcase(
+            f=np.arccos,
+            q_in=(np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian), ),
+            q_out=(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian, ),
+        ),
+        testcase(
+            f=np.tan,
+            q_in=(np.pi / 3. * u.radian, ),
+            q_out=(np.sqrt(3.) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.tan,
+            q_in=(np.array([0., 45., 135., 180.]) * u.degree, ),
+            q_out=(np.array([0., 1., -1., 0.]) * u.dimensionless_unscaled, )
+        ),
+        testcase(
+            f=np.arctan,
+            q_in=(np.tan(np.pi / 3. * u.radian), ),
+            q_out=(np.pi / 3. * u.radian, )
+        ),
+        testcase(
+            f=np.arctan,
+            q_in=(np.tan(np.array([10., 30., 70., 80.]) * u.degree), ),
+            q_out=(np.radians(np.array([10., 30., 70., 80.]) * u.degree), )
+        ),
+        testcase(
+            f=np.arctan2,
+            q_in=(np.array([10., 30., 70., 80.]) * u.m, 2.0 * u.km),
+            q_out=(np.arctan2(np.array([10., 30., 70., 80.]),
+                              2000.) * u.radian, )
+        ),
+        testcase(
+            f=np.arctan2,
+            q_in=((np.array([10., 80.]) * u.m / (2.0 * u.km)).to(u.one), 1.),
+            q_out=(np.arctan2(np.array([10., 80.]) / 2000., 1.) * u.radian, )
+        ),
+        testcase(
+            f=np.deg2rad,
+            q_in=(180. * u.degree, ),
+            q_out=(np.pi * u.radian, )
+        ),
+        testcase(
+            f=np.radians,
+            q_in=(180. * u.degree, ),
+            q_out=(np.pi * u.radian, )
+        ),
+        testcase(
+            f=np.deg2rad,
+            q_in=(3. * u.radian, ),
+            q_out=(3. * u.radian, )
+        ),
+        testcase(
+            f=np.radians,
+            q_in=(3. * u.radian, ),
+            q_out=(3. * u.radian, )
+        ),
+        testcase(
+            f=np.rad2deg,
+            q_in=(60. * u.degree, ),
+            q_out=(60. * u.degree, )
+        ),
+        testcase(
+            f=np.degrees,
+            q_in=(60. * u.degree, ),
+            q_out=(60. * u.degree, )
+        ),
+        testcase(
+            f=np.rad2deg,
+            q_in=(np.pi * u.radian, ),
+            q_out=(180. * u.degree, )
+        ),
+        testcase(
+            f=np.degrees,
+            q_in=(np.pi * u.radian, ),
+            q_out=(180. * u.degree, )
+        )
+    ))
+    def test_testcases(self, tc):
+        return test_testcase(tc)
 
-    def test_sin_scalar(self):
-        q = np.sin(30. * u.degree)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, 0.5)
+    @pytest.mark.parametrize('te', (
+        testexc(
+            f=np.deg2rad,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.radians,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.rad2deg,
+            q_in=(3. * u.m),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.degrees,
+            q_in=(3. * u.m),
+            exc=TypeError,
+            msg=None
+        ),
+        testexc(
+            f=np.sin,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg="Can only apply 'sin' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arcsin,
+            q_in=(3. * u.m, ),
+            exc=TypeError,
+            msg="Can only apply 'arcsin' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.cos,
+            q_in=(3. * u.s, ),
+            exc=TypeError,
+            msg="Can only apply 'cos' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arccos,
+            q_in=(3. * u.s, ),
+            exc=TypeError,
+            msg="Can only apply 'arccos' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.tan,
+            q_in=(np.array([1, 2, 3]) * u.N, ),
+            exc=TypeError,
+            msg="Can only apply 'tan' function to quantities with angle units"
+        ),
+        testexc(
+            f=np.arctan,
+            q_in=(np.array([1, 2, 3]) * u.N, ),
+            exc=TypeError,
+            msg="Can only apply 'arctan' function to dimensionless quantities"
+        ),
+        testexc(
+            f=np.arctan2,
+            q_in=(np.array([1, 2, 3]) * u.N, 1. * u.s),
+            exc=u.UnitsError,
+            msg="compatible dimensions"
+        ),
+        testexc(
+            f=np.arctan2,
+            q_in=(np.array([1, 2, 3]) * u.N, 1.),
+            exc=u.UnitsError,
+            msg="dimensionless quantities when other arg"
+        )
+    ))
+    def test_testexcs(self, te):
+        return test_testexc(te)
 
-    def test_sin_array(self):
-        q = np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([0., 1. / np.sqrt(2.), 1.]), atol=1.e-15)
-
-    def test_arcsin_scalar(self):
-        q1 = 30. * u.degree
-        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_arcsin_array(self):
-        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_sin_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.sin(3. * u.m)
-        assert exc.value.args[0] == ("Can only apply 'sin' function "
-                                     "to quantities with angle units")
-
-    def test_arcsin_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arcsin(3. * u.m)
-        assert exc.value.args[0] == ("Can only apply 'arcsin' function to "
-                                     "dimensionless quantities")
-
-    def test_arcsin_no_warning_on_unscaled_quantity(self):
-        a = 15 * u.kpc
-        b = 27 * u.pc
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
-            np.arcsin(b/a)
-
-    def test_cos_scalar(self):
-        q = np.cos(np.pi / 3. * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, 0.5)
-
-    def test_cos_array(self):
-        q = np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([1., 1. / np.sqrt(2.), 0.]), atol=1.e-15)
-
-    def test_arccos_scalar(self):
-        q1 = np.pi / 3. * u.radian
-        q2 = np.arccos(np.cos(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_arccos_array(self):
-        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        q2 = np.arccos(np.cos(q1)).to(q1.unit)
-        assert_allclose(q1.value, q2.value)
-
-    def test_cos_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.cos(3. * u.s)
-        assert exc.value.args[0] == ("Can only apply 'cos' function "
-                                     "to quantities with angle units")
-
-    def test_arccos_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arccos(3. * u.s)
-        assert exc.value.args[0] == ("Can only apply 'arccos' function to "
-                                     "dimensionless quantities")
-
-    def test_tan_scalar(self):
-        q = np.tan(np.pi / 3. * u.radian)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value, np.sqrt(3.))
-
-    def test_tan_array(self):
-        q = np.tan(np.array([0., 45., 135., 180.]) * u.degree)
-        assert q.unit == u.dimensionless_unscaled
-        assert_allclose(q.value,
-                        np.array([0., 1., -1., 0.]), atol=1.e-15)
-
-    def test_arctan_scalar(self):
-        q = np.pi / 3. * u.radian
-        assert np.arctan(np.tan(q))
-
-    def test_arctan_array(self):
-        q = np.array([10., 30., 70., 80.]) * u.degree
-        assert_allclose(np.arctan(np.tan(q)).to_value(q.unit), q.value)
-
-    def test_tan_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.tan(np.array([1, 2, 3]) * u.N)
-        assert exc.value.args[0] == ("Can only apply 'tan' function "
-                                     "to quantities with angle units")
-
-    def test_arctan_invalid_units(self):
-        with pytest.raises(TypeError) as exc:
-            np.arctan(np.array([1, 2, 3]) * u.N)
-        assert exc.value.args[0] == ("Can only apply 'arctan' function to "
-                                     "dimensionless quantities")
-
-    def test_arctan2_valid(self):
-        q1 = np.array([10., 30., 70., 80.]) * u.m
-        q2 = 2.0 * u.km
-        assert np.arctan2(q1, q2).unit == u.radian
-        assert_allclose(np.arctan2(q1, q2).value,
-                        np.arctan2(q1.value, q2.to_value(q1.unit)))
-        q3 = q1 / q2
-        q4 = 1.
-        at2 = np.arctan2(q3, q4)
-        assert_allclose(at2.value, np.arctan2(q3.to_value(1), q4))
-
-    def test_arctan2_invalid(self):
-        with pytest.raises(u.UnitsError) as exc:
-            np.arctan2(np.array([1, 2, 3]) * u.N, 1. * u.s)
-        assert "compatible dimensions" in exc.value.args[0]
-        with pytest.raises(u.UnitsError) as exc:
-            np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
-        assert "dimensionless quantities when other arg" in exc.value.args[0]
-
-    def test_radians(self):
-
-        q1 = np.deg2rad(180. * u.degree)
-        assert_allclose(q1.value, np.pi)
-        assert q1.unit == u.radian
-
-        q2 = np.radians(180. * u.degree)
-        assert_allclose(q2.value, np.pi)
-        assert q2.unit == u.radian
-
-        # the following doesn't make much sense in terms of the name of the
-        # routine, but we check it gives the correct result.
-        q3 = np.deg2rad(3. * u.radian)
-        assert_allclose(q3.value, 3.)
-        assert q3.unit == u.radian
-
-        q4 = np.radians(3. * u.radian)
-        assert_allclose(q4.value, 3.)
-        assert q4.unit == u.radian
-
-        with pytest.raises(TypeError):
-            np.deg2rad(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.radians(3. * u.m)
-
-    def test_degrees(self):
-
-        # the following doesn't make much sense in terms of the name of the
-        # routine, but we check it gives the correct result.
-        q1 = np.rad2deg(60. * u.degree)
-        assert_allclose(q1.value, 60.)
-        assert q1.unit == u.degree
-
-        q2 = np.degrees(60. * u.degree)
-        assert_allclose(q2.value, 60.)
-        assert q2.unit == u.degree
-
-        q3 = np.rad2deg(np.pi * u.radian)
-        assert_allclose(q3.value, 180.)
-        assert q3.unit == u.degree
-
-        q4 = np.degrees(np.pi * u.radian)
-        assert_allclose(q4.value, 180.)
-        assert q4.unit == u.degree
-
-        with pytest.raises(TypeError):
-            np.rad2deg(3. * u.m)
-
-        with pytest.raises(TypeError):
-            np.degrees(3. * u.m)
+    @pytest.mark.parametrize('tw', (
+        testwarn(
+            f=np.arcsin,
+            q_in=(27. * u.pc / (15 * u.kpc), ),
+            wfilter='error'
+        ),
+    ))
+    def test_testwarns(self, tw):
+        return test_testwarn(tw)
 
 
 class TestQuantityMathFuncs:
@@ -306,15 +382,17 @@ class TestQuantityMathFuncs:
                                    halfway * u.dimensionless_unscaled) ==
                       [0, 0.25, 0.75, +1.] * u.dimensionless_unscaled)
 
-    def test_cbrt_scalar(self):
-        assert np.cbrt(8. * u.m**3) == 2. * u.m
+    @pytest.mark.parametrize('function', (np.cbrt, ))
+    def test_cbrt_scalar(self, function):
+        assert function(8. * u.m**3) == 2. * u.m
 
-    def test_cbrt_array(self):
+    @pytest.mark.parametrize('function', (np.cbrt, ))
+    def test_cbrt_array(self, function):
         # Calculate cbrt on both sides since on Windows the cube root of 64
         # does not exactly equal 4.  See 4388.
         values = np.array([1., 8., 64.])
-        assert np.all(np.cbrt(values * u.m**3) ==
-                      np.cbrt(values) * u.m)
+        assert np.all(function(values * u.m**3) ==
+                      function(values) * u.m)
 
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
@@ -380,9 +458,13 @@ class TestQuantityMathFuncs:
         assert np.copysign(3 * u.m, -1. * u.s) == -3. * u.m
 
     def test_copysign_array(self):
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) == -np.array([1., 2., 3.]) * u.s)
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) == -np.array([1., 2., 3.]) * u.s)
-        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2., 2., -4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) ==
+                      -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) ==
+                      -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s,
+                                  np.array([-2., 2., -4.]) * u.m) ==
+                      np.array([-1., 2., -3.]) * u.s)
 
         q = np.copysign(np.array([1., 2., 3.]), -3 * u.m)
         assert np.all(q == np.array([-1., -2., -3.]))
@@ -970,3 +1052,93 @@ class TestUfuncOuter:
         check13_greater_outer = np.greater.outer(check1, check3)
         assert type(s13_greater_outer) is np.ndarray
         assert np.all(s13_greater_outer == check13_greater_outer)
+
+
+if HAS_SCIPY:
+    from scipy import special as sps
+
+    class TestScipySpecialUfuncs:
+
+        erf_like_ufuncs = (
+            sps.erf, sps.gamma, sps.loggamma, sps.gammasgn, sps.psi,
+            sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz, sps.dawsn,
+            sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10)
+
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_scalar(self, function):
+            TestQuantityMathFuncs.test_exp_scalar(None, function)
+
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_array(self, function):
+            TestQuantityMathFuncs.test_exp_array(None, function)
+
+        @pytest.mark.parametrize('function', erf_like_ufuncs)
+        def test_erf_invalid_units(self, function):
+            TestQuantityMathFuncs.test_exp_invalid_units(None, function)
+
+        @pytest.mark.parametrize('function', (sps.cbrt, ))
+        def test_cbrt_scalar(self, function):
+            TestQuantityMathFuncs.test_cbrt_scalar(None, function)
+
+        @pytest.mark.parametrize('function', (sps.cbrt, ))
+        def test_cbrt_array(self, function):
+            TestQuantityMathFuncs.test_cbrt_array(None, function)
+
+        @pytest.mark.parametrize('function', (sps.radian, ))
+        def test_radian(self, function):
+            q1 = function(180. * u.degree, 0. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q1.value, np.pi)
+            assert q1.unit == u.radian
+
+            q2 = function(0. * u.degree, 30. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q2.value, (30. * u.arcmin).to(u.radian).value)
+            assert q2.unit == u.radian
+
+            q3 = function(0. * u.degree, 0. * u.arcmin, 30. * u.arcsec)
+            assert_allclose(q3.value, (30. * u.arcsec).to(u.radian).value)
+
+            # the following doesn't make much sense in terms of the name of the
+            # routine, but we check it gives the correct result.
+            q4 = function(3. * u.radian, 0. * u.arcmin, 0. * u.arcsec)
+            assert_allclose(q4.value, 3.)
+            assert q4.unit == u.radian
+
+            with pytest.raises(TypeError):
+                function(3. * u.m, 2. * u.s, 1. * u.kg)
+
+        jv_like_ufuncs = (
+            sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve, sps.kn, sps.kv,
+            sps.kve, sps.iv, sps.ive, sps.hankel1, sps.hankel1e, sps.hankel2,
+            sps.hankel2e)
+
+        @pytest.mark.parametrize('function', jv_like_ufuncs)
+        def test_jv_scalar(self, function):
+            q = function(2. * u.m / (2. * u.m), 3. * u.m / (6. * u.m))
+            assert q.unit == u.dimensionless_unscaled
+            assert q.value == function(1.0, 0.5)
+
+        @pytest.mark.parametrize('function', jv_like_ufuncs)
+        def test_jv_array(self, function):
+            q = function(np.ones(3) * u.m / (1. * u.m),
+                         np.array([2., 3., 6.]) * u.m / (6. * u.m))
+            assert q.unit == u.dimensionless_unscaled
+            assert np.all(q.value == function(
+                np.ones(3),
+                np.array([1. / 3., 1. / 2., 1.]))
+            )
+            # should also work on quantities that can be made dimensionless
+            q2 = function(np.ones(3) * u.m / (1. * u.m),
+                          np.array([2., 3., 6.]) * u.m / (6. * u.cm))
+            assert q2.unit == u.dimensionless_unscaled
+            assert_allclose(q2.value,
+                            function(np.ones(3),
+                                     np.array([100. / 3., 100. / 2., 100.])))
+
+        @pytest.mark.parametrize('function', jv_like_ufuncs)
+        def test_jv_invalid_units(self, function):
+            # Can't use jv() with non-dimensionless quantities
+            with pytest.raises(TypeError) as exc:
+                function(1. * u.kg, 3. * u.m / u.s)
+            assert exc.value.args[0] == ("Can only apply '{0}' function to "
+                                         "dimensionless quantities"
+                                         .format(function.__name__))

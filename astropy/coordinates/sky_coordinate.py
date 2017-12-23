@@ -17,7 +17,7 @@ from ..utils import ShapedLikeNDArray
 
 from .distances import Distance
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls, _get_diff_cls
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
@@ -146,6 +146,13 @@ class SkyCoord(ShapedLikeNDArray):
 
       >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
 
+    Velocity components (proper motions or radial velocities) can also be
+    provided in a similar manner::
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, radial_velocity=10*u.km/u.s)
+
+      >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr, pm_dec=1*u.mas/u.yr)
+
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
     to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, and `Galactic`.
@@ -181,14 +188,22 @@ class SkyCoord(ShapedLikeNDArray):
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
             frame's ``representation_component_names``, including `ICRS`,
             `FK5`, `FK4`, and `FK4NoETerms`.
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
+            Proper motion components, in angle per time units.
         l, b : valid `~astropy.coordinates.Angle` initializer, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
+        pm_l_cosb, pm_b : `~astropy.units.Quantity`, optional
+            Proper motion components in the `Galactic` frame, in angle per time
+            units.
         x, y, z : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values
         u, v, w : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
+        radial_velocity : `~astropy.units.Quantity`, optional
+            The component of the velocity along the line-of-sight (i.e., the
+            radial direction), in velocity units.
     """
 
     # Declare that SkyCoord can be used as a Table column by defining the
@@ -217,11 +232,15 @@ class SkyCoord(ShapedLikeNDArray):
                 setattr(self, attr, kwargs[attr])
 
         coord_kwargs = {}
+        component_names = frame.representation_component_names
+        component_names.update(frame.get_representation_component_names('s'))
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
+        if 'differential_cls' in kwargs:
+            coord_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame.representation_component_names
-                                      or attr in frame.get_frame_attr_names()):
+            if value is not None and (attr in component_names
+                                      or attr in frame_attr_names):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
@@ -280,33 +299,29 @@ class SkyCoord(ShapedLikeNDArray):
                 else:
                     return getattr(value, method)(*args, **kwargs)
 
-        self_frame = self._sky_coord_frame
-        try:
-            # First turn `self` into a mockup of the thing we want - we can copy
-            # this to get all the right attributes
-            self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
-            out = SkyCoord(self, representation=self.representation, copy=False)
-            for attr in self._extra_frameattr_names:
-                value = getattr(self, attr)
-                if getattr(value, 'size', 1) > 1:
-                    value = apply_method(value)
-                elif method == 'copy' or method == 'flatten':
-                    # flatten should copy also for a single element array, but
-                    # we cannot use it directly for array scalars, since it
-                    # always returns a one-dimensional array. So, just copy.
-                    value = copy.copy(value)
-                setattr(out, '_' + attr, value)
+        # create a new but empty instance, and copy over stuff
+        new = super().__new__(self.__class__)
+        new._sky_coord_frame = self._sky_coord_frame._apply(method,
+                                                            *args, **kwargs)
+        new._extra_frameattr_names = self._extra_frameattr_names.copy()
+        for attr in self._extra_frameattr_names:
+            value = getattr(self, attr)
+            if getattr(value, 'size', 1) > 1:
+                value = apply_method(value)
+            elif method == 'copy' or method == 'flatten':
+                # flatten should copy also for a single element array, but
+                # we cannot use it directly for array scalars, since it
+                # always returns a one-dimensional array. So, just copy.
+                value = copy.copy(value)
+            setattr(new, '_' + attr, value)
 
-            # Copy other 'info' attr only if it has actually been defined.
-            # See PR #3898 for further explanation and justification, along
-            # with Quantity.__array_finalize__
-            if 'info' in self.__dict__:
-                out.info = self.info
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            new.info = self.info
 
-            return out
-        finally:
-            # now put back the right frame in self
-            self._sky_coord_frame = self_frame
+        return new
 
     def _parse_inputs(self, args, kwargs):
         """
@@ -321,15 +336,20 @@ class SkyCoord(ShapedLikeNDArray):
         # by keyword args or else get a None default.  Pop them off of kwargs
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
+        # TODO: possibly remove the below.  The representation/differential
+        # information should *already* be stored in the frame object, as it is
+        # extracted in _get_frame.  So it may be redundent to include it below.
         if 'representation' in kwargs:
             valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
+        if 'differential_cls' in kwargs:
+            valid_kwargs['differential_cls'] = _get_diff_cls(kwargs.pop('differential_cls'))
 
         for attr in frame_transform_graph.frame_attributes:
             if attr in kwargs:
                 valid_kwargs[attr] = kwargs.pop(attr)
 
         # Get units
-        units = _get_units(args, kwargs)
+        units = _get_representation_component_units(args, kwargs)
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
         # and migrate to valid_kwargs.
@@ -337,22 +357,14 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Error if anything is still left in kwargs
         if kwargs:
-
-            # TODO: remove this when velocities are supported in SkyCoord
-            vel_url = 'http://docs.astropy.org/en/stable/coordinates/velocities.html'
-            for k in kwargs:
-                if k.startswith('pm_') or k == 'radial_velocity':
-                    raise ValueError('Velocity data is currently only supported'
-                                     ' in the coordinate frame objects, not in '
-                                     'SkyCoord. See the velocities '
-                                     'documentation page for more information: '
-                                     '{0}'.format(vel_url))
-
             raise ValueError('Unrecognized keyword argument(s) {0}'
                              .format(', '.join("'{0}'".format(key) for key in kwargs)))
 
-        # Finally deal with the unnamed args.  This figures out what the arg[0] is
-        # and returns a dict with appropriate key/values for initializing frame class.
+        # Finally deal with the unnamed args.  This figures out what the arg[0]
+        # is and returns a dict with appropriate key/values for initializing
+        # frame class. Note that differentials are *never* valid args, only
+        # kwargs.  So they are not accounted for here (unless they're in a frame
+        # or SkyCoord object)
         if args:
             if len(args) == 1:
                 # One arg which must be a coordinate.  In this case
@@ -1192,7 +1204,17 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .funcs import get_constellation
 
-        return get_constellation(self, short_name, constellation_list)
+        # because of issue #7028, the conversion to a PrecessedGeocentric
+        # system fails in some cases.  Work around is to  drop the velocities.
+        # they are not needed here since only position infromation is used
+        extra_frameattrs = {nm: getattr(self, nm)
+                            for nm in self._extra_frameattr_names}
+        novel = SkyCoord(self.realize_frame(self.data.without_differentials()),
+                         **extra_frameattrs)
+        return get_constellation(novel, short_name, constellation_list)
+
+        # the simpler version below can be used when gh-issue #7028 is resolved
+        #return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
@@ -1612,11 +1634,15 @@ def _get_frame(args, kwargs):
              len(args) == 1 and len(arg) > 0):
             arg = arg[0]
 
-        coord_frame_cls = None
+        coord_frame_obj = coord_frame_cls = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_cls = arg.__class__
+            coord_frame_obj = arg
         elif isinstance(arg, SkyCoord):
-            coord_frame_cls = arg.frame.__class__
+            coord_frame_obj = arg.frame
+        if coord_frame_obj is not None:
+            coord_frame_cls = coord_frame_obj.__class__
+            kwargs.setdefault('differential_cls',
+                              coord_frame_obj.get_representation_cls('s'))
 
         if coord_frame_cls is not None:
             if not frame_specified_explicitly:
@@ -1626,18 +1652,19 @@ def _get_frame(args, kwargs):
                                  "new frame='{1}'.  Instead transform the coordinate."
                                  .format(coord_frame_cls.__name__, frame_cls.__name__))
 
+    frame_cls_kwargs = {}
     if 'representation' in kwargs:
-        frame = frame_cls(representation=_get_repr_cls(kwargs['representation']))
-    else:
-        frame = frame_cls()
+        frame_cls_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
+    if 'differential_cls' in kwargs:
+        frame_cls_kwargs['differential_cls'] = _get_diff_cls(kwargs['differential_cls'])
 
-    return frame
+    return frame_cls(**frame_cls_kwargs)
 
 
-def _get_units(args, kwargs):
+def _get_representation_component_units(args, kwargs):
     """
-    Get the longitude unit and latitude unit from kwargs.  Possible enhancement
-    is to allow input from args as well.
+    Get the unit from kwargs for the *representation* components (not the
+    differentials).
     """
     if 'unit' not in kwargs:
         units = [None, None, None]
@@ -1682,9 +1709,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
 
-    frame_attr_names = frame.representation_component_names.keys()
-    repr_attr_names = frame.representation_component_names.values()
-    repr_attr_classes = frame.representation.attr_classes.values()
+    frame_attr_names = list(frame.representation_component_names.keys())
+    repr_attr_names = list(frame.representation_component_names.values())
+    repr_attr_classes = list(frame.representation.attr_classes.values())
     n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
@@ -1702,14 +1729,37 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         data = coords.data.represent_as(frame.representation)
 
         values = []  # List of values corresponding to representation attrs
+        repr_attr_name_to_drop = []
         for repr_attr_name in repr_attr_names:
             # If coords did not have an explicit distance then don't include in initializers.
             if (isinstance(coords.data, UnitSphericalRepresentation) and
                     repr_attr_name == 'distance'):
+                repr_attr_name_to_drop.append(repr_attr_name)
                 continue
 
             # Get the value from `data` in the eventual representation
             values.append(getattr(data, repr_attr_name))
+
+        # drop the ones that were skipped because they were distances
+        for nametodrop in repr_attr_name_to_drop:
+            nameidx = repr_attr_names.index(nametodrop)
+            del repr_attr_names[nameidx]
+            del units[nameidx]
+            del frame_attr_names[nameidx]
+            del repr_attr_classes[nameidx]
+
+        if coords.data.differentials and 's' in coords.data.differentials:
+            orig_vel = coords.data.differentials['s']
+            vel = coords.data.represent_as(frame.representation, frame.get_representation_cls('s')).differentials['s']
+            for frname, reprname in frame.get_representation_component_names('s').items():
+                if (reprname == 'd_distance' and not hasattr(orig_vel, reprname) and
+                    'unit' in orig_vel.get_name()):
+                    continue
+                values.append(getattr(vel, reprname))
+                units.append(None)
+                frame_attr_names.append(frname)
+                repr_attr_names.append(reprname)
+                repr_attr_classes.append(vel.attr_classes[reprname])
 
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
@@ -1719,8 +1769,20 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
-        data = coords.represent_as(frame.representation)
-        values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+        if coords.differentials and 's' in coords.differentials:
+            diffs = frame.get_representation_cls('s')
+            data = coords.represent_as(frame.representation, diffs)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+            for frname, reprname in frame.get_representation_component_names('s').items():
+                values.append(getattr(data.differentials['s'], reprname))
+                units.append(None)
+                frame_attr_names.append(frname)
+                repr_attr_names.append(reprname)
+                repr_attr_classes.append(data.differentials['s'].attr_classes[reprname])
+
+        else:
+            data = coords.represent_as(frame.representation)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
 
     elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
           and coords.ndim == 2 and coords.shape[1] <= 3):
@@ -1839,6 +1901,9 @@ def _get_representation_attrs(frame, units, kwargs):
     for the underlying data values in the representation, e.g. "ra" for "lon"
     for many equatorial spherical representations, or "w" for "x" in the
     cartesian representation of Galactic.
+
+    This also gets any *differential* kwargs, because they go into the same
+    frame initializer later on.
     """
     frame_attr_names = frame.representation_component_names.keys()
     repr_attr_classes = frame.representation.attr_classes.values()
@@ -1848,6 +1913,17 @@ def _get_representation_attrs(frame, units, kwargs):
         value = kwargs.pop(frame_attr_name, None)
         if value is not None:
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+
+    # also check the differentials.  They aren't included in the units keyword,
+    # so we only look for the names.
+
+    # TODO: change _representation['s'] to `differential_type` when that exists
+    differential_type = frame._representation['s'].attr_classes
+    for frame_name, repr_name in frame.get_representation_component_names('s').items():
+        diff_attr_class = differential_type[repr_name]
+        value = kwargs.pop(frame_name, None)
+        if value is not None:
+            valid_kwargs[frame_name] = diff_attr_class(value)
 
     return valid_kwargs
 

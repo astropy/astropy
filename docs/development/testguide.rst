@@ -949,7 +949,7 @@ details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 
 The 32-bit tests on CircleCI use a pre-defined Docker image defined `here
-<https://github.com/astropy/astropy-docker/>`_ which includes a 32-bit
+<https://github.com/astropy/astropy-docker/>`__ which includes a 32-bit
 Python environment. If you want to run tests for packages in the same way,
 you can use the same set-up on CircleCI as the core package, but just be
 sure to install Astropy first using::
@@ -1008,7 +1008,7 @@ The following ``pytest`` plugins are maintained and used by Astropy. They are
 included in the ``pytest-astropy`` package, which is now required for testing
 Astropy. More information on all of the  plugins provided by the
 ``pytest-astropy`` package (including dependencies not maintained by Astropy)
-can be found `here <https://github.com/astropy/pytest-astropy>`_.
+can be found `here <https://github.com/astropy/pytest-astropy>`__.
 
 .. _remotedata-plugin:
 
