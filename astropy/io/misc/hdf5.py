@@ -265,6 +265,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
+    from ...table import meta
     try:
         import h5py
     except ImportError:
@@ -303,7 +304,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
         # Recursively call the write function
         try:
-            return write_table_hdf5(temp, f, path=path,
+            return write_table_hdf5(check_column_encoding(table), f, path=path,
                                     compression=compression, append=append,
                                     overwrite=overwrite,
                                     serialize_meta=serialize_meta,
