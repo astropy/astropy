@@ -255,19 +255,10 @@ def test_converting_units():
     # but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         frame_specific_representation_info = {
-            'spherical': {'names': ('ra', 'dec', 'distance'),
-                          'units': (None, None, None)},
-            'unitspherical': {'names': ('ra', 'dec'),
-                              'units': (None, None)}
-        }
-
-        frame_specific_representation_info = {
             'spherical': [RepresentationMapping('lon', 'ra', u.hourangle),
                           RepresentationMapping('lat', 'dec', None),
                           RepresentationMapping('distance', 'distance')]  # should fall back to default of None unit
         }
-        frame_specific_representation_info['unitspherical'] = \
-            frame_specific_representation_info['spherical']
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
@@ -281,6 +272,74 @@ def test_converting_units():
     assert i2.dec.unit != fi.dec.unit
     assert i2.ra.unit != fi.ra.unit
     assert fi.ra.unit == u.hourangle
+
+
+def test_representation_info():
+    from ..baseframe import RepresentationMapping
+    from ..builtin_frames import ICRS
+
+    class NewICRS1(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalRepresentation: [
+                RepresentationMapping('lon', 'rara', u.hourangle),
+                RepresentationMapping('lat', 'decdec', u.degree),
+                RepresentationMapping('distance', 'distance', u.kpc)]
+        }
+
+    i1 = NewICRS1(rara=10*u.degree, decdec=-12*u.deg, distance=1000*u.pc,
+                  pm_rara_cosdecdec=100*u.mas/u.yr,
+                  pm_decdec=17*u.mas/u.yr,
+                  radial_velocity=10*u.km/u.s)
+    assert allclose(i1.rara, 10*u.deg)
+    assert i1.rara.unit == u.hourangle
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.distance, 1000*u.pc)
+    assert i1.distance.unit == u.kpc
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # this should auto-set the names of UnitSpherical:
+    i1.set_representation_cls(r.UnitSphericalRepresentation,
+                              s=r.UnitSphericalCosLatDifferential)
+    assert allclose(i1.rara, 10*u.deg)
+    assert allclose(i1.decdec, -12*u.deg)
+    assert allclose(i1.pm_rara_cosdecdec, 100*u.mas/u.yr)
+    assert allclose(i1.pm_decdec, 17*u.mas/u.yr)
+
+    # For backwards compatibility, we also support the string name in the
+    # representation info dictionary:
+    class NewICRS2(ICRS):
+        frame_specific_representation_info = {
+            'spherical': [
+                RepresentationMapping('lon', 'ang1', u.hourangle),
+                RepresentationMapping('lat', 'ang2', u.degree),
+                RepresentationMapping('distance', 'howfar', u.kpc)]
+        }
+
+    i2 = NewICRS2(ang1=10*u.degree, ang2=-12*u.deg, howfar=1000*u.pc)
+    assert allclose(i2.ang1, 10*u.deg)
+    assert i2.ang1.unit == u.hourangle
+    assert allclose(i2.ang2, -12*u.deg)
+    assert allclose(i2.howfar, 1000*u.pc)
+    assert i2.howfar.unit == u.kpc
+
+    # Test that the differential kwargs get overridden
+    class NewICRS3(ICRS):
+        frame_specific_representation_info = {
+            r.SphericalCosLatDifferential: [
+                RepresentationMapping('d_lon_coslat', 'pm_ang1', u.hourangle/u.year),
+                RepresentationMapping('d_lat', 'pm_ang2'),
+                RepresentationMapping('d_distance', 'vlos', u.kpc/u.Myr)]
+        }
+
+    i3 = NewICRS3(lon=10*u.degree, lat=-12*u.deg, distance=1000*u.pc,
+                  pm_ang1=1*u.mas/u.yr, pm_ang2=2*u.mas/u.yr,
+                  vlos=100*u.km/u.s)
+    assert allclose(i3.pm_ang1, 1*u.mas/u.yr)
+    assert i3.pm_ang1.unit == u.hourangle/u.year
+    assert allclose(i3.pm_ang2, 2*u.mas/u.yr)
+    assert allclose(i3.vlos, 100*u.km/u.s)
+    assert i3.vlos.unit == u.kpc/u.Myr
 
 
 def test_realizing():
