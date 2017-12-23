@@ -2542,11 +2542,6 @@ class Table:
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
         """
-        if((ext=='.h5'or ext=='.hdf5')and kwargs['overwrite']):
-            for col in self.colnames:
-                self.replace_column(col, np.core.defchararray.encode((self.columns[col])))
-        io_registry.write(self, *args, **kwargs)
-
     def copy(self, copy_data=True):
         '''
         Return a copy of the table.
