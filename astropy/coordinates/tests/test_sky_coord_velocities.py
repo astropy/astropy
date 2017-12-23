@@ -153,6 +153,11 @@ def test_accessors(sc, scmany):
     sph = sc.spherical
     gal = sc.galactic
 
+    if (sc.data.get_name().startswith('unit') and not
+        sc.data.differentials['s'].get_name().startswith('unit')):
+        pytest.xfail('.velocity fails if there is an RV but not distance')
+    sc.velocity
+
     assert isinstance(sph, SphericalRepresentation)
     assert gal.data.differentials is not None
 
