@@ -1208,12 +1208,17 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .funcs import get_constellation
 
-        # drop the velocities - not needed for a pure-position application
+        # because of issue #7028, the conversion to a PrecessedGeocentric
+        # system fails in some cases.  Work around is to  drop the velocities.
+        # they are not needed here since only position infromation is used
         extra_frameattrs = {nm: getattr(self, nm)
                             for nm in self._extra_frameattr_names}
         novel = SkyCoord(self.realize_frame(self.data.without_differentials()),
                          **extra_frameattrs)
         return get_constellation(novel, short_name, constellation_list)
+
+        # the simpler version below can be used when gh-issue #7028 is resolved
+        #return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
