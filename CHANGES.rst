@@ -29,6 +29,14 @@ astropy.coordinates
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
 
+- SkyCoord objects now support storing and tranforming differentials - i.e.,
+  both radial velocities and proper motions. [#6944]
+
+- All frame classes now automatically get sensible representation mappings for
+  velocity components. For example, ``d_x``, ``d_y``, ``d_z`` are all
+  automatically mapped to frame component namse ``v_x``, ``v_y``, ``v_z``.
+  [#6856]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -176,6 +184,8 @@ astropy.units
   attempting to convert a ``Quantity`` to a ``bool`` will raise ``ValueError``.
   [#6580, #6590]
 
+- Support was added for a number of ``scipy.special`` functions. [#6852]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -200,6 +210,15 @@ astropy.utils
 - The functions ``matmul``, ``broadcast_arrays``, ``broadcast_to`` of the
   ``astropy.utils.compat.numpy`` module have been deprecated. Use the
   NumPy functions directly. [#6691]
+
+- The ``astropy.utils.console.ProgressBar.map`` class method now returns
+  results in sequential order. Previously, if you set ``multiprocess=True``,
+  then the results could arrive in any arbitrary order, which could be a nasty
+  shock. Although the function will still be evaluated on the items in
+  arbitrary order, the return values will arrive in the same order in which the
+  input items were provided. The method is now a thin wrapper around
+  ``astropy.utils.console.ProgressBar.map_unordered``, which preserves the old
+  behavior. [#6439]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -240,6 +259,11 @@ astropy.coordinates
   they have frame attribute names that conflict with any component names. This
   is so ``SkyCoord`` can uniquely identify and distinguish frame attributes from
   frame components. [#6871]
+
+- Slicing and reshaping of ``SkyCoord`` and coordinate frames no longer passes
+  the new object through ``__init__``, but directly sets atttributes on a new
+  instance. This speeds up those methods by an order of magnitude, but means
+  that any customization done in ``__init__`` is by-passed. [#6941]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -352,7 +376,11 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Coordinate frame classes now raise a warning when they are added to the frame
+- Frame objects now use the default differential even if the representation is
+  explicitly provided as long as the representation provided is the same type as
+  the default representation. [#6944]
+
+- Coordinate frame classes now raise an error when they are added to the frame
   transform graph if they have frame attribute names that conflict with any
   component names. [#6871]
 
@@ -537,6 +565,9 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
+- ``download_file`` function will check for cache downloaded from mirror URL
+  first before attempting actual download if primary URL is unavailable. [#6987]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^

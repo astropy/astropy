@@ -4,8 +4,6 @@
 caching data files.
 """
 
-
-
 import atexit
 import contextlib
 import fnmatch
@@ -37,6 +35,8 @@ __all__ = [
     'CacheMissingWarning', 'get_free_space_in_dir',
     'check_free_space_in_dir', 'download_file',
     'download_files_in_parallel', 'is_url_in_cache', 'get_cached_urls']
+
+_dataurls_to_alias = {}
 
 
 class Conf(_config.ConfigNamespace):
@@ -997,12 +997,26 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     url_key = remote_url
 
+    # Check if URL is Astropy data server, which has alias, and cache it.
+    if (url_key.startswith(conf.dataurl) and
+            conf.dataurl not in _dataurls_to_alias):
+        with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
+            _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
+
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
             with shelve.open(urlmapfn) as url2hash:
                 if url_key in url2hash:
                     return url2hash[url_key]
+                # If there is a cached copy from mirror, use it.
+                else:
+                    for cur_url in _dataurls_to_alias.get(conf.dataurl, []):
+                        if url_key.startswith(cur_url):
+                            url_mirror = url_key.replace(cur_url,
+                                                         conf.dataurl_mirror)
+                            if url_mirror in url2hash:
+                                return url2hash[url_mirror]
 
         with urllib.request.urlopen(remote_url, timeout=timeout) as remote:
             # keep a hash to rename the local file to the hashed name

@@ -79,24 +79,8 @@ class Galactic(BaseCoordinateFrame):
             RepresentationMapping('d_x', 'U', u.km/u.s),
             RepresentationMapping('d_y', 'V', u.km/u.s),
             RepresentationMapping('d_z', 'W', u.km/u.s)
-        ],
-        r.SphericalCosLatDifferential: [
-            RepresentationMapping('d_lon_coslat', 'pm_l_cosb', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
-        ],
-        r.SphericalDifferential: [
-            RepresentationMapping('d_lon', 'pm_l', u.mas/u.yr),
-            RepresentationMapping('d_lat', 'pm_b', u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity', u.km/u.s),
         ]
     }
-    frame_specific_representation_info[r.UnitSphericalRepresentation] = \
-        frame_specific_representation_info[r.SphericalRepresentation]
-    frame_specific_representation_info[r.UnitSphericalCosLatDifferential] = \
-        frame_specific_representation_info[r.SphericalCosLatDifferential]
-    frame_specific_representation_info[r.UnitSphericalDifferential] = \
-        frame_specific_representation_info[r.SphericalDifferential]
 
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
