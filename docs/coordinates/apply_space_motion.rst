@@ -7,8 +7,9 @@ Accounting for space motion
 
 The |SkyCoord| object supports updating the position of a source given its space
 motion and a time or time difference to evaluate the new position at. This is
-done using the :meth:`~astropy.coordinates.apply_space_motion` method. As an
-example, first we'll create a |SkyCoord| object with a specified ``obstime``::
+done using the :meth:`~astropy.coordinates.SkyCoord.apply_space_motion` method.
+As an example, first we'll create a |SkyCoord| object with a specified
+``obstime``::
 
     >>> import astropy.units as u
     >>> from astropy.time import Time
