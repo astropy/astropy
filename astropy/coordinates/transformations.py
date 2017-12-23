@@ -38,6 +38,41 @@ __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'FunctionTransformWithFiniteDifference', 'CompositeTransform']
 
 
+def frame_attrs_from_set(frame_set):
+    """
+    A `dict` of all the attributes of all frame classes in this
+    `TransformGraph`.
+
+    Broken out of the class so this can be called on a temporary frame set to
+    validate new additions to the transform graph before actually adding them.
+    """
+    result = {}
+
+    for frame_cls in frame_set:
+        result.update(frame_cls.frame_attributes)
+
+    return result
+
+
+def frame_comps_from_set(frame_set):
+    """
+    A `set` of all component names every defined within any frame class in
+    this `TransformGraph`.
+
+    Broken out of the class so this can be called on a temporary frame set to
+    validate new additions to the transform graph before actually adding them.
+    """
+    result = set()
+
+    for frame_cls in frame_set:
+        rep_info = frame_cls._frame_specific_representation_info
+        for mappings in rep_info.values():
+            for rep_map in mappings:
+                result.update([rep_map.framename])
+
+    return result
+
+
 class TransformGraph:
     """
     A graph representing the paths between coordinate frames.
@@ -64,26 +99,35 @@ class TransformGraph:
         A `set` of all the frame classes present in this `TransformGraph`.
         """
         if self._cached_frame_set is None:
-            self._cached_frame_set = frm_set = set()
+            self._cached_frame_set = set()
             for a in self._graph:
-                frm_set.add(a)
+                self._cached_frame_set.add(a)
                 for b in self._graph[a]:
-                    frm_set.add(b)
+                    self._cached_frame_set.add(b)
 
         return self._cached_frame_set.copy()
 
     @property
     def frame_attributes(self):
         """
-        A `dict` of all the attributes of all frame classes in this `TransformGraph`.
+        A `dict` of all the attributes of all frame classes in this
+        `TransformGraph`.
         """
         if self._cached_frame_attributes is None:
-            result = {}
-            for frame_cls in self.frame_set:
-                result.update(frame_cls.frame_attributes)
-            self._cached_frame_attributes = result
+            self._cached_frame_attributes = frame_attrs_from_set(self.frame_set)
 
         return self._cached_frame_attributes
+
+    @property
+    def frame_component_names(self):
+        """
+        A `set` of all component names every defined within any frame class in
+        this `TransformGraph`.
+        """
+        if self._cached_component_names is None:
+            self._cached_component_names = frame_comps_from_set(self.frame_set)
+
+        return self._cached_component_names
 
     def invalidate_cache(self):
         """
@@ -95,6 +139,7 @@ class TransformGraph:
         self._cached_names_dct = None
         self._cached_frame_set = None
         self._cached_frame_attributes = None
+        self._cached_component_names = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -126,6 +171,32 @@ class TransformGraph:
             raise TypeError('tosys must be a class')
         if not callable(transform):
             raise TypeError('transform must be callable')
+
+        frame_set = self.frame_set.copy()
+        frame_set.add(fromsys)
+        frame_set.add(tosys)
+
+        # Now we check to see if any attributes on the proposed frames override
+        # *any* component names, which we can't allow for some of the logic in
+        # the SkyCoord initializer to work
+        attrs = set(frame_attrs_from_set(frame_set).keys())
+        comps = frame_comps_from_set(frame_set)
+
+        invalid_attrs = attrs.intersection(comps)
+        if invalid_attrs:
+            invalid_frames = set()
+            for attr in invalid_attrs:
+                if attr in fromsys.frame_attributes:
+                    invalid_frames.update([fromsys])
+
+                if attr in tosys.frame_attributes:
+                    invalid_frames.update([tosys])
+
+            raise ValueError("Frame(s) {0} contain invalid attribute names: {1}"
+                             "\nFrame attributes can not conflict with *any* of"
+                             " the frame data component names (see"
+                             " `frame_transform_graph.frame_component_names`)."
+                             .format(list(invalid_frames), invalid_attrs))
 
         self._graph[fromsys][tosys] = transform
         self.invalidate_cache()
