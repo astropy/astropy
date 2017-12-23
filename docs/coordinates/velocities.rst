@@ -5,19 +5,52 @@
 Working with velocities in Astropy coordinates
 **********************************************
 
-.. warning::
-    Velocities support, new in Astropy v2.0, is an experimental feature and is
-    subject to change based on user feedback.  While we do not expect major API
-    changes, the possibility exists based on the precedent of earlier changes
-    in the ``coordinates`` subpackage based on user feedback from previous
-    versions of Astropy.
+Using velocities with ``SkyCoord``
+==================================
+
+The easiest way of getting a coordinate object with velocities is to use the
+|skycoord| interface.  For example, a |skycoord| to represent a star with a
+measured radial velocity but unknown proper motion and distance could be
+created as::
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> import astropy.units as u
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
+    >>> sc  # doctest: +SKIP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        ( 1.,  2.)
+     (radial_velocity) in km / s
+        ( 20.,)>
+    >>> sc.radial_velocity  # doctest: +FLOAT_CMP
+    <Quantity 20.0 km / s>
+
+.. the SKIP above in the ``sc`` line is because numpy has a subtly different output in versions < 12 - the trailing comma is missing.  If a NPY_LT_1_12 comes in to being this can switch to that.  But don't forget to *also* change this in the coordinates/index.rst file
+
+|skycoord| objects created in this manner follow all the same transformation
+rules, and will correctly update their velocities when transformed to other
+frames.  For example, to determine proper motions in Galactic coordinates for
+a star with proper motions measured in ICRS::
+
+    >>> sc = SkyCoord(1*u.deg, 2*u.deg, pm_ra_cosdec=.2*u.mas/u.yr, pm_dec=.1*u.mas/u.yr)
+    >>> sc.galactic  # doctest: +FLOAT_CMP
+    <SkyCoord (Galactic): (l, b) in deg
+      ( 99.63785528, -58.70969293)
+    (pm_l_cosb, pm_b) in mas / yr
+      ( 0.22240398,  0.02316181)>
+
+For more details on valid operations and limitations of velocity support in
+`astropy.coordinates` (particularly the :ref:`current accuracy limitations
+<astropy-coordinate-finite-difference-velocities>` ), see the more detailed
+discussions below of velocity support in the lower-level frame objects.  All
+these same rules apply for |skycoord| objects, as they are built directly on top
+of the frame classes' velocity functionality detailed here.
 
 .. _astropy-coordinate-custom-frame-with-velocities:
 
 Creating frame objects with velocity data
 =========================================
 
-The coordinate frame classes now support storing and transforming velocity data
+The coordinate frame classes support storing and transforming velocity data
 (along side the positional coordinate data). Similar to the positional data ---
 that use the ``Representation`` classes to abstract away the particular
 representation and allow re-representing from, e.g., Cartesian to Spherical
@@ -36,7 +69,6 @@ term. For example, the proper motion components for the ``ICRS`` frame are
 (``pm_ra_cosdec``, ``pm_dec``)::
 
     >>> from astropy.coordinates import ICRS
-    >>> import astropy.units as u
     >>> ICRS(ra=8.67*u.degree, dec=53.09*u.degree,
     ...      pm_ra_cosdec=4.8*u.mas/u.yr, pm_dec=-15.16*u.mas/u.yr)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
@@ -198,6 +230,8 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
         (-24.51315607, -2.67935501, 27.07339176)>
 
+.. _astropy-coordinate-finite-difference-velocities:
+
 Finite Difference Transformations
 ---------------------------------
 
@@ -299,15 +333,6 @@ a particular direction changes dramatically over the course of one year).
 
 Future versions of Astropy will improve on this algorithm to make the results
 more numerically stable and practical for use in these (not unusual) use cases.
-
-
-``SkyCoord`` support for Velocities
-===================================
-
-|skycoord| currently does *not* support velocities as of Astropy v2.0.  This is
-an intentional choice, allowing the "power-user" community to provide feedback
-on the API and functionality in the frame-level classes before it is adopted in
-|skycoord| (currently planned for the next Astropy version, v3.0).
 
 .. _astropy-coordinates-rv-corrs:
 

@@ -61,6 +61,24 @@ def _get_repr_cls(value):
     return value
 
 
+def _get_diff_cls(value):
+    """
+    Return a valid differential class from ``value`` or raise exception.
+
+    As originally created, this is only used in the SkyCoord initializer, so if
+    that is refactored, this function my no longer be necessary.
+    """
+
+    if value in r.DIFFERENTIAL_CLASSES:
+        value = r.DIFFERENTIAL_CLASSES[value]
+    elif (not isinstance(value, type) or
+          not issubclass(value, r.BaseDifferential)):
+        raise ValueError(
+            'Differential is {0!r} but must be a BaseDifferential class '
+            'or one of the string aliases {1}'.format(
+                value, list(r.DIFFERENTIAL_CLASSES)))
+    return value
+
 def _get_repr_classes(base, **differentials):
     """Get valid representation and differential classes.
 
@@ -284,7 +302,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 differential_cls = {'s': differential_cls}
 
             elif differential_cls is None:
-                differential_cls = {'s': 'base'} # see set_representation_cls()
+                if representation == self.default_representation:
+                    differential_cls = {'s': self.default_differential}
+                else:
+                    differential_cls = {'s': 'base'}  # see set_representation_cls()
 
             self.set_representation_cls(representation, **differential_cls)
 
