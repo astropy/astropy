@@ -1382,3 +1382,55 @@ def test_extra_attributes():
     # Finally, check that we can delete such attributes.
     del sc3.obstime
     assert sc3.obstime is None
+
+
+def test_apply_space_motion():
+    # use this 12 year period because it's a multiple of 4 to avoid the quirks
+    # of leap years while having 2 leap seconds in it
+    t1 = Time('2000-01-01T00:00')
+    t2 = Time('2012-01-01T00:00')
+
+    # Check a very simple case first:
+    frame = ICRS(ra=10.*u.deg, dec=0*u.deg,
+                 distance=10.*u.pc,
+                 pm_ra_cosdec=0.1*u.deg/u.yr,
+                 pm_dec=0*u.mas/u.yr,
+                 radial_velocity=0*u.km/u.s)
+
+    # Cases that should work (just testing input for now):
+    c1 = SkyCoord(frame, obstime=t1, pressure=101*u.kPa)
+    applied1 = c1.apply_space_motion(new_obstime=t2)
+    applied2 = c1.apply_space_motion(dt=12*u.year)
+
+    assert isinstance(applied1.frame, c1.frame.__class__)
+    assert isinstance(applied2.frame, c1.frame.__class__)
+    assert_allclose(applied1.ra, applied2.ra)
+    assert_allclose(applied1.pm_ra, applied2.pm_ra)
+    assert_allclose(applied1.dec, applied2.dec)
+    assert_allclose(applied1.distance, applied2.distance)
+
+    # ensure any frame attributes that were there before get passed through
+    assert applied1.pressure == c1.pressure
+
+    # there were 2 leap seconds between 2000 and 2010, so the difference in
+    # the two forms of time evolution should be ~2 sec
+    adt = np.abs(applied2.obstime - applied1.obstime)
+    assert 1.9*u.second < adt.to(u.second) < 2.1*u.second
+
+    c2 = SkyCoord(frame)
+    applied3 = c2.apply_space_motion(dt=6*u.year)
+    assert isinstance(applied3.frame, c1.frame.__class__)
+    assert applied3.obstime is None
+
+    # this should *not* be .6 deg due to space-motion on a sphere, but it
+    # should be fairly close
+    assert 0.5*u.deg < applied3.ra-c1.ra < .7*u.deg
+
+    # the two cases should only match somewhat due to it being space motion, but
+    # they should be at least this close
+    assert quantity_allclose(applied1.ra-c1.ra, (applied3.ra-c1.ra)*2, atol=1e-3*u.deg)
+    # but *not* this close
+    assert not quantity_allclose(applied1.ra-c1.ra, (applied3.ra-c1.ra)*2, atol=1e-4*u.deg)
+
+    with pytest.raises(ValueError):
+        c2.apply_space_motion(new_obstime=t2)

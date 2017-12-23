@@ -29,13 +29,16 @@ astropy.coordinates
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
 
-- SkyCoord objects now support storing and tranforming differentials - i.e.,
+- ``SkyCoord`` objects now support storing and tranforming differentials - i.e.,
   both radial velocities and proper motions. [#6944]
 
 - All frame classes now automatically get sensible representation mappings for
   velocity components. For example, ``d_x``, ``d_y``, ``d_z`` are all
   automatically mapped to frame component namse ``v_x``, ``v_y``, ``v_z``.
   [#6856]
+
+- ``SkyCoord`` objects now support updating the position of a source given its
+  space motion and a new time or time difference. [#6872]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
