@@ -2542,6 +2542,8 @@ class Table:
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
         """
+        io_registry.write(self, *args, **kwargs)
+        
     def copy(self, copy_data=True):
         '''
         Return a copy of the table.
