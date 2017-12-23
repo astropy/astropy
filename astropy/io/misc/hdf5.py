@@ -213,6 +213,26 @@ def _encode_mixins(tbl):
 
     return encode_tbl
 
+def check_column_encoding(table):
+    """
+    Table with native py3 strings can't be stored in a hdf5 format so if
+    table has py3 strings then a copy of table is made and stored in temp.
+    the copy stored in temp has columns in bytes unicode.
+    """
+    from astropy.table import Table
+    check=False
+    temp=Table()
+    for column in table.colnames:
+        if hasattr((table.columns[column]), 'dtype'):
+            if str(table.columns[column].dtype.kind) == 'U':
+                check=True
+    if check:
+        temp=table.copy(copy_data=False)
+        for column in temp.colnames:
+            temp.replace_column(column, np.char.encode(temp.columns[column], "utf-8"))
+        return temp
+    else:
+        return table
 
 def write_table_hdf5(table, output, path=None, compression=False,
                      append=False, overwrite=False, serialize_meta=False,
@@ -246,7 +266,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
         replaced; the file/group will not be overwritten.
     """
     from ...table import meta
-
     try:
         import h5py
     except ImportError:
@@ -285,7 +304,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
         # Recursively call the write function
         try:
-            return write_table_hdf5(table, f, path=path,
+            return write_table_hdf5(check_column_encoding(table), f, path=path,
                                     compression=compression, append=append,
                                     overwrite=overwrite,
                                     serialize_meta=serialize_meta,
