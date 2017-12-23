@@ -280,33 +280,29 @@ class SkyCoord(ShapedLikeNDArray):
                 else:
                     return getattr(value, method)(*args, **kwargs)
 
-        self_frame = self._sky_coord_frame
-        try:
-            # First turn `self` into a mockup of the thing we want - we can copy
-            # this to get all the right attributes
-            self._sky_coord_frame = self_frame._apply(method, *args, **kwargs)
-            out = SkyCoord(self, representation=self.representation, copy=False)
-            for attr in self._extra_frameattr_names:
-                value = getattr(self, attr)
-                if getattr(value, 'size', 1) > 1:
-                    value = apply_method(value)
-                elif method == 'copy' or method == 'flatten':
-                    # flatten should copy also for a single element array, but
-                    # we cannot use it directly for array scalars, since it
-                    # always returns a one-dimensional array. So, just copy.
-                    value = copy.copy(value)
-                setattr(out, '_' + attr, value)
+        # create a new but empty instance, and copy over stuff
+        new = super().__new__(self.__class__)
+        new._sky_coord_frame = self._sky_coord_frame._apply(method,
+                                                            *args, **kwargs)
+        new._extra_frameattr_names = self._extra_frameattr_names.copy()
+        for attr in self._extra_frameattr_names:
+            value = getattr(self, attr)
+            if getattr(value, 'size', 1) > 1:
+                value = apply_method(value)
+            elif method == 'copy' or method == 'flatten':
+                # flatten should copy also for a single element array, but
+                # we cannot use it directly for array scalars, since it
+                # always returns a one-dimensional array. So, just copy.
+                value = copy.copy(value)
+            setattr(new, '_' + attr, value)
 
-            # Copy other 'info' attr only if it has actually been defined.
-            # See PR #3898 for further explanation and justification, along
-            # with Quantity.__array_finalize__
-            if 'info' in self.__dict__:
-                out.info = self.info
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            new.info = self.info
 
-            return out
-        finally:
-            # now put back the right frame in self
-            self._sky_coord_frame = self_frame
+        return new
 
     def _parse_inputs(self, args, kwargs):
         """

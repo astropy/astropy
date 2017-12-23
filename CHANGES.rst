@@ -247,6 +247,11 @@ astropy.coordinates
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
 
+- Slicing and reshaping of ``SkyCoord`` and coordinate frames no longer passes
+  the new object through ``__init__``, but directly sets atttributes on a new
+  instance. This speeds up those methods by an order of magnitude, but means
+  that any customization done in ``__init__`` is by-passed. [#6941]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
