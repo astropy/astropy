@@ -47,7 +47,20 @@ all_kwargs = [
          pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr),
     dict(ra=37.4*u.deg, dec=-55.8*u.deg, distance=150*u.pc,
          pm_ra_cosdec=-21.2*u.mas/u.yr, pm_dec=17.1*u.mas/u.yr,
-         radial_velocity=105.7*u.km/u.s)
+         radial_velocity=105.7*u.km/u.s),
+    # Now test other representation/differential types:
+    dict(x=100.*u.pc, y=200*u.pc, z=300*u.pc,
+         representation_type='cartesian'),
+    dict(x=100.*u.pc, y=200*u.pc, z=300*u.pc,
+         representation_type=r.CartesianRepresentation),
+    dict(x=100.*u.pc, y=200*u.pc, z=300*u.pc,
+         v_x=100.*u.km/u.s, v_y=200*u.km/u.s, v_z=300*u.km/u.s,
+         representation_type=r.CartesianRepresentation,
+         differential_type=r.CartesianDifferential),
+    dict(x=100.*u.pc, y=200*u.pc, z=300*u.pc,
+         v_x=100.*u.km/u.s, v_y=200*u.km/u.s, v_z=300*u.km/u.s,
+         representation_type=r.CartesianRepresentation,
+         differential_type='cartesian'),
 ]
 
 @pytest.mark.parametrize('kwargs', all_kwargs)
@@ -60,6 +73,8 @@ def test_all_arg_options(kwargs):
     repr_gal = repr(gal)
 
     for k in kwargs:
+        if k == 'differential_type':
+            continue
         getattr(icrs, k)
 
     if 'pm_ra_cosdec' in kwargs: # should have both
@@ -168,7 +183,7 @@ def test_frame_affinetransform(kwargs, expect_success):
         with pytest.raises(ConvertError):
             icrs.transform_to(Galactocentric)
 
-def test_differential_cls_arg():
+def test_differential_type_arg():
     """
     Test passing in an explicit differential class to the initializer or
     changing the differential class via set_representation_cls
@@ -177,12 +192,12 @@ def test_differential_cls_arg():
 
     icrs = ICRS(ra=1*u.deg, dec=60*u.deg,
                 pm_ra=10*u.mas/u.yr, pm_dec=-11*u.mas/u.yr,
-                differential_cls=r.UnitSphericalDifferential)
+                differential_type=r.UnitSphericalDifferential)
     assert icrs.pm_ra == 10*u.mas/u.yr
 
     icrs = ICRS(ra=1*u.deg, dec=60*u.deg,
                 pm_ra=10*u.mas/u.yr, pm_dec=-11*u.mas/u.yr,
-                differential_cls={'s': r.UnitSphericalDifferential})
+                differential_type={'s': r.UnitSphericalDifferential})
     assert icrs.pm_ra == 10*u.mas/u.yr
 
     icrs = ICRS(ra=1*u.deg, dec=60*u.deg,
@@ -194,13 +209,13 @@ def test_differential_cls_arg():
     with pytest.raises(TypeError):
         ICRS(ra=1*u.deg, dec=60*u.deg,
              v_x=1*u.km/u.s, v_y=-2*u.km/u.s, v_z=-2*u.km/u.s,
-             differential_cls=r.CartesianDifferential)
+             differential_type=r.CartesianDifferential)
 
     # specify both
     icrs = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
                 v_x=1*u.km/u.s, v_y=2*u.km/u.s, v_z=3*u.km/u.s,
                 representation=r.CartesianRepresentation,
-                differential_cls=r.CartesianDifferential)
+                differential_type=r.CartesianDifferential)
     assert icrs.x == 1*u.pc
     assert icrs.y == 2*u.pc
     assert icrs.z == 3*u.pc
@@ -263,6 +278,6 @@ def test_shorthand_attributes():
 
     icrs4 = ICRS(x=30*u.pc, y=20*u.pc, z=11*u.pc,
                  v_x=10*u.km/u.s, v_y=10*u.km/u.s, v_z=10*u.km/u.s,
-                 representation=r.CartesianRepresentation,
-                 differential_cls=r.CartesianDifferential)
+                 representation_type=r.CartesianRepresentation,
+                 differential_type=r.CartesianDifferential)
     icrs4.radial_velocity

@@ -168,14 +168,14 @@ representation such as cartesian or cylindrical.  This can be done by setting
 the ``representation`` for either |skycoord| objects or low-level frame
 coordinate objects::
 
-    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation_type='cartesian')
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (x, y, z) in kpc
         (1., 2., 3.)>
     >>> c.x, c.y, c.z  # doctest: +FLOAT_CMP
     (<Quantity 1. kpc>, <Quantity 2. kpc>, <Quantity 3. kpc>)
 
-    >>> c.representation = 'cylindrical'
+    >>> c.representation_type = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
         (2.23606798, 63.43494882, 3.)>

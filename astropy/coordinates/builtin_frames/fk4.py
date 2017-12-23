@@ -4,7 +4,8 @@
 import numpy as np
 
 from ... import units as u
-from ..baseframe import frame_transform_graph
+from ...utils.decorators import format_doc
+from ..baseframe import frame_transform_graph, base_doc
 from ..attributes import TimeAttribute
 from ..transformations import (FunctionTransformWithFiniteDifference,
                                FunctionTransform, DynamicMatrixTransform)
@@ -13,9 +14,21 @@ from ..representation import (CartesianRepresentation,
 from .. import earth_orientation as earth
 
 from .utils import EQUINOX_B1950
-from .baseradec import _base_radec_docstring, BaseRADecFrame
+from .baseradec import doc_components, BaseRADecFrame
+
+__all__ = ['FK4', 'FK4NoETerms']
 
 
+doc_footer_fk4 = """
+    Other parameters
+    ----------------
+    equinox : `~astropy.time.Time`
+        The equinox of this frame.
+    obstime : `~astropy.time.Time`
+        The time this frame was observed.  If ``None``, will be the same as
+        ``equinox``.
+"""
+@format_doc(base_doc, components=doc_components, footer=doc_footer_fk4)
 class FK4(BaseRADecFrame):
     """
     A coordinate or frame in the FK4 system.
@@ -24,23 +37,11 @@ class FK4(BaseRADecFrame):
     this frame is the Solar System Barycenter, *not* the Earth geocenter.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The equinox of this frame.
-    obstime : `~astropy.time.Time`
-        The time this frame was observed.  If ``None``, will be the same as
-        ``equinox``.
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950)
     obstime = TimeAttribute(default=None, secondary_attribute='equinox')
 
-
-FK4.__doc__ = FK4.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 
@@ -54,22 +55,13 @@ def fk4_to_fk4(fk4coord1, fk4frame2):
     return fnoe_w_eqx2.transform_to(fk4frame2)
 
 
+@format_doc(base_doc, components=doc_components, footer=doc_footer_fk4)
 class FK4NoETerms(BaseRADecFrame):
     """
     A coordinate or frame in the FK4 system, but with the E-terms of aberration
     removed.
 
     The frame attributes are listed under **Other Parameters**.
-
-    {params}
-
-    Other parameters
-    ----------------
-    equinox : `~astropy.time.Time`
-        The equinox of this frame.
-    obstime : `~astropy.time.Time`
-        The time this frame was observed.  If ``None``, will be the same as
-        ``equinox``.
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950)
@@ -95,8 +87,6 @@ class FK4NoETerms(BaseRADecFrame):
         """
         return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
-
-FK4NoETerms.__doc__ = FK4NoETerms.__doc__.format(params=_base_radec_docstring)
 
 # the "self" transform
 
