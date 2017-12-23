@@ -213,6 +213,26 @@ def _encode_mixins(tbl):
 
     return encode_tbl
 
+def check_column_encoding(table):
+    """
+    Table with native py3 strings can't be stored in a hdf5 format so if
+    table has py3 strings then a copy of table is made and stored in temp.
+    the copy stored in temp has columns in bytes unicode.
+    """
+    from astropy.table import Table
+    check=False
+    temp=Table()
+    for column in table.colnames:
+        if hasattr((table.columns[column]), 'dtype'):
+            if str(table.columns[column].dtype.kind) == 'U':
+                check=True
+    if check:
+        temp=table.copy(copy_data=False)
+        for column in temp.colnames:
+            temp.replace_column(column, np.char.encode(temp.columns[column], "utf-8"))
+        return temp
+    else:
+        return table
 
 def write_table_hdf5(table, output, path=None, compression=False,
                      append=False, overwrite=False, serialize_meta=False,
@@ -244,25 +264,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
         Whether to overwrite any existing file without warning.
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
-    """
-    from ...table import meta
-    from astropy.table import Table
-    temp = Table.copy(table)
-    """
-    Table with native py3 strings can't be stored in a hdf5 format so temp stores a copy of
-    table but with columns of the Table converted to byte unicode.The copy of Table that temp
-    has can be stored in hdf5 format.
-    """
-
-    if isinstance(output, str):
-        if (output.endswith(('.hdf5', '.h5'))):
-            for column in temp.colnames:
-                if hasattr((temp.columns[column]), 'dtype'):
-                    if str(temp.columns[column].dtype.kind) == 'U':
-                        temp.replace_column(column, np.core.defchararray.encode(temp.columns[column], "utf-8"))
-    """
-     temp.replace_column(column, np.core.defchararray.encode(temp.columns[column]),replaces the column
-     written in natine py3 format to bytes unicode.
     """
     try:
         import h5py
