@@ -133,19 +133,19 @@ def sc(request):
     return SkyCoord(*args, **kwargs)
 
 @pytest.fixture(scope="module")
-def sc2():
-    return SkyCoord(1*u.deg, 2*u.deg,
-                pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
-
-@pytest.fixture(scope="module")
 def scmany():
     return SkyCoord(ICRS(ra=[1]*100*u.deg, dec=[2]*100*u.deg,
                      pm_ra_cosdec=np.random.randn(100)*u.mas/u.yr,
                      pm_dec=np.random.randn(100)*u.mas/u.yr,))
 
+@pytest.fixture(scope="module")
+def sc_for_sep():
+    return SkyCoord(1*u.deg, 2*u.deg,
+                    pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
 
-def test_separation(sc, sc2):
-    sc.separation(sc2)
+
+def test_separation(sc, sc_for_sep):
+    sc.separation(sc_for_sep)
 
 
 def test_accessors(sc, scmany):
@@ -155,6 +155,7 @@ def test_accessors(sc, scmany):
 
     if (sc.data.get_name().startswith('unit') and not
         sc.data.differentials['s'].get_name().startswith('unit')):
+        # this xfail can be eliminated when issue #7028 is resolved
         pytest.xfail('.velocity fails if there is an RV but not distance')
     sc.velocity
 
@@ -187,8 +188,8 @@ def test_matching(sc, scmany):
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)
 
 
-def test_position_angle(sc, sc2):
-    sc.position_angle(sc2)
+def test_position_angle(sc, sc_for_sep):
+    sc.position_angle(sc_for_sep)
 
 
 def test_constellations(sc):
