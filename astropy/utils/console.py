@@ -423,13 +423,13 @@ def human_help(quantity,detail=False):
             value=quantity.to(unit)
             if value.value>=1 and value.value<1000:
                 units.append(value)
-    if detail==False :
-        for options in units:
-            for nos in range(-5,6):
-                if (1000**nos)==(options.value/quantity.value):
-                    return options
-    else:
-        return units
+        if detail==False :
+            for options in units:
+                for nos in range(-5,6):
+                    if (1000**nos)==(options.value/quantity.value):
+                        return options
+        else:
+            return units
 
 def human_time(seconds):
     """
