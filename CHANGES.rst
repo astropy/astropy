@@ -501,7 +501,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-- Propagate weights to undelying fitter in ``FittingWithOutlierRemoval`` [#7020]
+- Propagate weights to underlying fitter in ``FittingWithOutlierRemoval`` [#7020]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
