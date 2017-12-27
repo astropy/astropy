@@ -70,7 +70,7 @@ class _TableLikeHDU(_ValidHDU):
 
     @classmethod
     def from_columns(cls, columns, header=None, nrows=0, fill=False,
-                     character_as_bytes=False, **kwargs):
+                     character_as_bytes=False,nocopy=False, **kwargs):
         """
         Given either a `ColDefs` object, a sequence of `Column` objects,
         or another table HDU or table data (a `FITS_rec` or multi-field
