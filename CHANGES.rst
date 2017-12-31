@@ -772,7 +772,7 @@ astropy.modeling
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
-- Documenation for using weights in fitting. [#????]
+- Documenation for using weights in fitting. [#7039]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
