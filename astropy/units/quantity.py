@@ -724,6 +724,52 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     to_value : Get the numerical value in a given unit.
     """)
 
+    def to_string(self,unit='human'):
+        """
+        Return value in a human readable unit.
+
+        Parameters
+        ----------
+        unit:string
+            the choice of user to get value in string or
+            to get value with appropriate SI prefix.
+        """
+        if not self.isscalar:
+            raise Exception("given quantity is not scalar")
+        from astropy import units as u
+        from astropy.units import get_current_unit_registry
+        from astropy.utils import console
+        from math import isclose
+        ureg = get_current_unit_registry()
+        units = []
+        if self.unit.is_equivalent(u.s) and self > 1 * u.s:
+            if unit=='prefix':
+                if self >=1*u.min and self < 1*u.hr:
+                    return self.to(u.min)
+                elif self >= 1*u.hr and self < 1*u.day:
+                    return quantity.to(u.hr)
+                elif self >= 1*u.day and self < 1*u.year:
+                    return quantity.to(u.day)
+                elif self >= 1*u.year:
+                    return self.to(u.yr)
+                else:
+                    return (self.si)
+            elif unit=='human':
+                return console.human_time(self.si.value)
+        else:
+            unit_list = ureg.get_units_with_physical_type(self.unit)
+            for check_unit in unit_list:
+                value = self.to(check_unit)
+                if value.value >= 1 and value.value < 1000:
+                    units.append(value)
+            for options in units:
+                for nos in range(-5,6):
+                    if isclose((options.value / self.value), 1000 ** nos, abs_tol=1e-8):
+                        if unit=='prefix':
+                            return options
+                        elif unit=='human':
+                            return str(round(options.value,2))+str(options.unit)
+
     @property
     def unit(self):
         """
