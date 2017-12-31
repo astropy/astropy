@@ -723,7 +723,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     --------
     to_value : Get the numerical value in a given unit.
     """)
-    
     def to_string(quantity,unit='human'):
         """
         Return value in a human readable unit
@@ -772,7 +771,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                             return options
                         elif unit=='human':
                             return str(round(options.value,2))+str(options.unit)
-
     @property
     def unit(self):
         """
