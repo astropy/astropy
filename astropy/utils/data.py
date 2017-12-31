@@ -1055,7 +1055,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     # Check if URL is Astropy data server, which has alias, and cache it.
     if (url_key.startswith(conf.dataurl) and
             conf.dataurl not in _dataurls_to_alias):
-        with urllib.request.urlopen(conf.dataurl, timeout=timeout) as remote:
+        with contextlib.closing(urllib.request.urlopen(
+                conf.dataurl, timeout=timeout)) as remote:
             _dataurls_to_alias[conf.dataurl] = [conf.dataurl, remote.geturl()]
 
     try:

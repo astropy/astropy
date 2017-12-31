@@ -60,9 +60,9 @@ def test_download_nocache():
 
 @remote_data('astropy')
 def test_download_parallel():
-    import shelve
     from ..data import (download_file, download_files_in_parallel,
-                        _get_download_cache_locs, get_cached_urls)
+                        _get_download_cache_locs, get_cached_urls,
+                        _open_shelve)
 
     main_url = 'http://data.astropy.org/intersphinx/README'
     mirror_url = 'http://www.astropy.org/astropy-data/intersphinx/README'
@@ -73,7 +73,7 @@ def test_download_parallel():
     # Now test that download_file looks in mirror's cache before download.
     # https://github.com/astropy/astropy/issues/6982
     dldir, urlmapfn = _get_download_cache_locs()
-    with shelve.open(urlmapfn) as url2hash:
+    with _open_shelve(urlmapfn, True) as url2hash:
         del url2hash[main_url]
     # NOTE: Cannot disable internet in a remote_data test, so comparing hash
     #       should be good enough?
