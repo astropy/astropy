@@ -877,6 +877,14 @@ astropy.modeling
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
+- Set the minimum value for the ``bolometric_flux`` parameter of the
+  ``BlackBody1D`` model to zero. [#7045]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
