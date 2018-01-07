@@ -1,4 +1,5 @@
 Copyright 2014 jQuery Foundation and other contributors
+
 http://jquery.com/
 
 Permission is hereby granted, free of charge, to any person obtaining

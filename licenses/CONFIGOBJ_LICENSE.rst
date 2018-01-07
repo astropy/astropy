@@ -1,5 +1,7 @@
 Copyright (c) 2003-2010, Michael Foord
+
 All rights reserved.
+
 E-mail : fuzzyman AT voidspace DOT org DOT uk
 
 Redistribution and use in source and binary forms, with or without
