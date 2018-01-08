@@ -1,20 +1,14 @@
-3.0 (unreleased)
-=================
+3.0rc1 (2018-01-07)
+===================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
 - New context manager ``set_enabled_constants`` to temporarily use an older
   version. [#7008]
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -44,15 +38,6 @@ astropy.coordinates
   string names for either, through the keyword arguments ``representation_type``
   and ``differential_type`` instead of ``representation`` and
   ``differential_cls``. [#6873]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.misc
 ~~~~~~~~~~~~~~~
@@ -106,12 +91,6 @@ astropy.io.misc
   columns" such as ``SkyCoord`` or ``EarthLocation`` with no loss of
   information. [#7007]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -126,12 +105,6 @@ astropy.modeling
 
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -181,9 +154,6 @@ astropy.tests
 - The tests_require setting in setup.py now works properly when running
   'python setup.py test'. [#6892]
 
-astropy.time
-^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -228,9 +198,6 @@ astropy.utils
   ``astropy.utils.console.ProgressBar.map_unordered``, which preserves the old
   behavior. [#6439]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -242,12 +209,6 @@ astropy.wcs
 
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -263,8 +224,8 @@ astropy.coordinates
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
 
-- As noted above, the frame class attributes ``representation`` and 
-  ``differential_cls`` are being replaced by ``representation_type`` and 
+- As noted above, the frame class attributes ``representation`` and
+  ``differential_cls`` are being replaced by ``representation_type`` and
   ``differential_type``. In the next version, using ``representation`` will raise
   a deprecation warning. [#6873]
 
@@ -277,12 +238,6 @@ astropy.coordinates
   the new object through ``__init__``, but directly sets atttributes on a new
   instance. This speeds up those methods by an order of magnitude, but means
   that any customization done in ``__init__`` is by-passed. [#6941]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -309,9 +264,6 @@ astropy.io.misc
 - Deprecated the ``usecPickle`` kwarg of ``fnunpickle`` and ``fnpickle`` as
   it was needed only for Python2 usage. [#6655]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
   - Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
@@ -324,15 +276,6 @@ astropy.modeling
   Use ``Const1D - Gaussian1D`` instead. [#6542]
 
 - Removed the registry from modeling. [#6706]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -350,15 +293,6 @@ astropy.table
   unicode arrays (dtype ``U``). The ``Column`` class then ensures the
   bytes are automatically converted to string as needed. [#6821]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -371,20 +305,8 @@ astropy.visualization
 - The Astropy matplotlib plot style has been deprecated. It will continue to
   work in future but is no longer documented. [#6991]
 
-astropy.wcs
-^^^^^^^^^^^
-
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -397,12 +319,6 @@ astropy.coordinates
   transform graph if they have frame attribute names that conflict with any
   component names. [#6871]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -412,7 +328,6 @@ astropy.io.ascii
 - Strip leading/trailing white-space from latex lines to avoid issues when
   matching ``\begin{tabular}`` statements.  This is done by introducing a new
   ``LatexInputter`` class to override the ``BaseInputter``. [#6311]
-
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -426,33 +341,6 @@ astropy.io.fits
 
 - Fixed potential problems with the compression module [#6732]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -460,9 +348,6 @@ astropy.time
   will now automatically attempt to decode as ASCII. This ensures ``Column``
   instances with ASCII strings stored with dtype ``S`` can be used.
   [#6823, #6903]
-
-astropy.units
-^^^^^^^^^^^^^
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -480,11 +365,6 @@ astropy.utils
 - Make ``HomogeneousList`` work with iterators and generators when creating the
   instance, extending it, or using when setting a slice. [#6773]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
