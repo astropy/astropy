@@ -1140,10 +1140,9 @@ class UnitBase(metaclass=InheritDocstrings):
             composite units.
 
         include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
             Default is `True` if a sequence is passed in to ``units``,
             `False` otherwise.
-            When `True`, include prefixed units in the result.
-            Default is `False`.
 
         Returns
         -------
