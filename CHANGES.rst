@@ -130,6 +130,10 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
+  ``units``, the default for ``include_prefix_units`` is set to
+  `True`, so that no units get ignored. [#6957]
+
 astropy.utils
 ^^^^^^^^^^^^^
 

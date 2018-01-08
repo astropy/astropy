@@ -1115,7 +1115,7 @@ class UnitBase(metaclass=InheritDocstrings):
         return [self]
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
-                include_prefix_units=False):
+                include_prefix_units=None):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -1141,7 +1141,8 @@ class UnitBase(metaclass=InheritDocstrings):
 
         include_prefix_units : bool, optional
             When `True`, include prefixed units in the result.
-            Default is `False`.
+            Default is `True` if a sequence is passed in to ``units``,
+            `False` otherwise.
 
         Returns
         -------
@@ -1151,6 +1152,11 @@ class UnitBase(metaclass=InheritDocstrings):
             automatically determine which of the candidates are
             better.
         """
+        # if units parameter is specified and is a sequence (list|tuple),
+        # include_prefix_units is turned on by default.  Ex: units=[u.kpc]
+        if include_prefix_units is None:
+            include_prefix_units = isinstance(units, (list, tuple))
+
         # Pre-normalize the equivalencies list
         equivalencies = self._normalize_equivalencies(equivalencies)
 

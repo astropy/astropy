@@ -399,6 +399,25 @@ def test_compose_issue_579():
     assert result[0]._powers == [4, 1, -2]
 
 
+def test_compose_prefix_unit():
+    x =  u.m.compose(units=(u.m,))
+    assert x[0].bases[0] is u.m
+    assert x[0].scale == 1.0
+    x = u.m.compose(units=[u.km], include_prefix_units=True)
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+    x = u.m.compose(units=[u.km])
+    assert x[0].bases[0] is u.km
+    assert x[0].scale == 0.001
+
+    x = (u.km/u.s).compose(units=(u.pc, u.Myr))
+    assert x[0].bases == [u.pc, u.Myr]
+    assert_allclose(x[0].scale, 1.0227121650537077)
+
+    with raises(u.UnitsError):
+        (u.km/u.s).compose(units=(u.pc, u.Myr), include_prefix_units=False)
+
+
 def test_self_compose():
     unit = u.kg * u.s
 
