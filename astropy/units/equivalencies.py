@@ -17,10 +17,10 @@ from .core import UnitsError, Unit
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'beam_angular_area',
-           'dimensionless_angles', 'logarithmic', 'temperature',
-           'temperature_energy', 'molar_mass_amu', 'pixel_scale',
-           'plate_scale']
+           'brightness_temperature', 'thermodynamic_temperature',
+           'beam_angular_area', 'dimensionless_angles', 'logarithmic',
+           'temperature', 'temperature_energy', 'molar_mass_amu',
+           'pixel_scale', 'plate_scale']
 
 
 def dimensionless_angles():
@@ -557,6 +557,59 @@ def beam_angular_area(beam_area):
             (astrophys.beam**-1, Unit(beam_area)**-1),
             (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),
            ]
+
+def thermodynamic_temperature(disp, T_cmb=2.7255*si.K):
+    r"""Defines the conversion between Jy/beam and "thermodynamic temperature",
+    :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
+    commonly used in cosmology.  See, e.g., "Planck 2013 results. IX. HFI spectral response"
+    (Planck Collaboration 2013) eqn 8 (available on `arXiv <https://arxiv.org/abs/1303.5070>`__).
+
+    :math:`T_{CMB} \equiv B_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
+
+    with :math:`f(\nu) = \frac{ x^2 e^x}{(e^x - 1 )^2}` where :math:`x = h \nu / k T`
+
+    Parameters
+    ----------
+    disp : `~astropy.units.Quantity` with spectral units
+        The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
+        frequency or wavelength)
+    T_cmb :  `~astropy.units.Quantity` with temperature units (default to 2.7255 K)
+        The CMB temperature at z=0
+
+    Notes
+    -----
+    For broad band receivers, this conversion do not hold
+    as it highly depends on the frequency
+
+
+    Examples
+    --------
+    Planck HFI 143 GHz::
+
+        >>> import numpy as np
+        >>> from astropy import units as u
+        >>> freq = 143*u.GHz
+        >>> equiv = u.thermodynamic_temperature(freq)
+        >>> u.K.to(u.MJy/u.sr, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        379.93172115555564
+
+    """
+    nu = disp.to(si.GHz, spectral())
+
+    def f(nu, T_cmb=T_cmb):
+        x = _si.h * nu / _si.k_B / T_cmb
+        return x**2 * np.exp(x) / (np.exp(x) - 1)**2
+
+    def convert_Jy_to_K(x_jybm):
+        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
+        return (x_jybm / factor)
+
+    def convert_K_to_Jy(x_K):
+        factor = (astrophys.Jy / (f(nu) * 2 * _si.k_B * nu**2 / _si.c**2)).to_value(si.K)
+        return (x_K / factor)
+
+    return [(astrophys.Jy/si.sr, si.K, convert_Jy_to_K, convert_K_to_Jy)]
+
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
