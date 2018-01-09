@@ -945,6 +945,9 @@ astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Explicilty default to origin='lower' in WCSAxes. [#7331]
+- Lists of units are converted in the Matplotlib unit converter. This means
+  more plotting functions now work with units (e.g. errorbar).
+  [#7037]
 
 - Fixed a bug that caused the position of the tick values in decimal mode
   to be incorrectly determined. [#7332]
