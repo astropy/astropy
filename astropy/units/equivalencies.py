@@ -548,17 +548,8 @@ def beam_angular_area(beam_area):
     It also allows for inverse-beam and inverse-steradian equivalency,
     since those are more commonly used (e.g., Jy/sr <-> Jy/beam).
     """
-    beam_area_sr = beam_area.to(si.sr).value
-
-    def beam_to_sr(x):
-        return x * beam_area_sr
-
-    def sr_to_beam(x):
-        return x / beam_area_sr
-
-    return [(astrophys.beam, si.sr, beam_to_sr, sr_to_beam),
-            (astrophys.beam**-1, si.sr**-1, sr_to_beam, beam_to_sr),
-           ]
+    return [(astrophys.beam, Unit(beam_area)),
+            (astrophys.beam**-1, Unit(beam_area**-1))]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
