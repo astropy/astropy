@@ -545,8 +545,13 @@ def beam_angular_area(beam_area):
     """
     Convert between the ``beam`` unit, which is commonly used to express the area
     of a radio telescope resolution element, and an area on the sky.
-    It also allows for inverse-beam and inverse-steradian equivalency,
-    since those are more commonly used (e.g., Jy/sr <-> Jy/beam).
+    This equivalency also supports direct conversion between ``Jy/beam`` and
+    ``Jy/steradian`` units, since that is a common operation.
+
+    Parameters
+    ----------
+    beam_area : angular area equivalent
+        The area of the beam in angular area units (e.g., steradians)
     """
     return [(astrophys.beam, Unit(beam_area)),
             (astrophys.beam**-1, Unit(beam_area)**-1),
