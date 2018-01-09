@@ -447,7 +447,7 @@ def mass_energy():
     ]
 
 
-def brightness_temperature(disp, beam_area=None):
+def brightness_temperature(frequency, beam_area=None):
     r"""
     Defines the conversion between Jy/sr and "brightness temperature",
     :math:`T_B`, in Kelvins.  The brightness temperature is a unit very
@@ -464,9 +464,13 @@ def brightness_temperature(disp, beam_area=None):
 
     Parameters
     ----------
-    disp : `~astropy.units.Quantity` with spectral units
-        The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
-        frequency or wavelength)
+    frequency : `~astropy.units.Quantity` with spectral units The observed
+        `spectral` equivalent `~astropy.units.Unit` (e.g., frequency or
+        wavelength).  The variable is named 'frequency' because it is more
+        commonly used in radio astronomy.
+        BACKWARD COMPATIBILITY NOTE: previous versions of the brightness
+        temperature equivalency used the keyword `disp`, which is no longer
+        supported.
     beam_area : angular area equivalent
         Beam area in angular units, i.e. steradian equivalent
 
@@ -500,7 +504,7 @@ def brightness_temperature(disp, beam_area=None):
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
     """
-    if disp.unit.is_equivalent(si.sr):
+    if frequency.unit.is_equivalent(si.sr):
         if not beam_area.unit.is_equivalent(si.Hz):
             raise ValueError("The inputs to `brightness_temperature` are "
                              "frequency and angular area.")
@@ -508,9 +512,9 @@ def brightness_temperature(disp, beam_area=None):
                       "Frequency is now the first input, and angular area "
                       "is the second, optional input.",
                       DeprecationWarning)
-        disp, beam_area = beam_area, disp
+        frequency, beam_area = beam_area, frequency
 
-    nu = disp.to(si.GHz, spectral())
+    nu = frequency.to(si.GHz, spectral())
 
     if beam_area is not None:
         beam = beam_area.to_value(si.sr)
