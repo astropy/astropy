@@ -543,7 +543,7 @@ def brightness_temperature(frequency, beam_area=None):
 
 def beam_angular_area(beam_area):
     """
-    Convert between the `beam` unit, which is commonly used to express the area
+    Convert between the ``beam`` unit, which is commonly used to express the area
     of a radio telescope resolution element, and an area on the sky.
     It also allows for inverse-beam and inverse-steradian equivalency,
     since those are more commonly used (e.g., Jy/sr <-> Jy/beam).
