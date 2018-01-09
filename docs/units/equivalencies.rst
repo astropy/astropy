@@ -233,7 +233,7 @@ example converts the FWHM to sigma::
     >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
     <Quantity 19.553932298231704 K>
 
-You can also convert between Jy/beam and K by specifying the beam area::
+You can also convert between ``Jy/beam`` and ``K`` by specifying the beam area::
 
     >>> import numpy as np
     >>> beam_fwhm = 50*u.arcsec
@@ -262,8 +262,8 @@ assumed per beam unit, this approach is deprecated.::
 Beam Equivalency
 ----------------
 
-Radio data, especially from interferometers, is often produced in units of Jy/beam.
-Converting this number to a beam-independent value, e.g., Jy/sr, can be done
+Radio data, especially from interferometers, is often produced in units of ``Jy/beam``.
+Converting this number to a beam-independent value, e.g., ``Jy/sr``, can be done
 with the `~astropy.units.equivalencies.beam_angular_area` equivalency::
 
     >>> import numpy as np
