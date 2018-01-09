@@ -38,6 +38,24 @@ def test_units():
 
 
 @pytest.mark.skipif('not HAS_PLT')
+def test_units_errbarr():
+    plt.figure()
+
+    with quantity_support():
+        x = [1, 2, 3] * u.s
+        y = [1, 2, 3] * u.m
+        yerr = [3, 2, 1] * u.cm
+
+        fig, ax = plt.subplots()
+        ax.errorbar(x, y, yerr=yerr)
+
+        assert ax.xaxis.get_units() == u.s
+        assert ax.yaxis.get_units() == u.m
+
+    plt.clf()
+
+
+@pytest.mark.skipif('not HAS_PLT')
 def test_incompatible_units():
     plt.figure()
 
