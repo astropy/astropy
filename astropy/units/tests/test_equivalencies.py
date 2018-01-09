@@ -564,6 +564,18 @@ def test_beam():
     nbeams = new_beam.to(u.beam, u.equivalencies.beam_angular_area(omega_B))
     np.testing.assert_almost_equal(nbeams.value, 5)
 
+    # test inverse beam equivalency
+    # (this is just a sanity check that the equivalency is defined;
+    # it's not for testing numerical consistency)
+    new_inverse_beam = (5/u.beam).to(1/u.sr, u.equivalencies.beam_angular_area(omega_B))
+
+    # test practical case
+    # (this is by far the most important one)
+    flux_density = (5*u.Jy/u.beam).to(u.MJy/u.sr, u.equivalencies.beam_angular_area(omega_B))
+
+    np.testing.assert_almost_equal(flux_density.value, 13.5425483146382)
+
+
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
         phase = u.Quantity(1., u.cycle)
