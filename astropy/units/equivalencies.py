@@ -465,12 +465,12 @@ def brightness_temperature(frequency, beam_area=None):
 
     Parameters
     ----------
-    frequency : `~astropy.units.Quantity` with spectral units The observed
-        `spectral` equivalent `~astropy.units.Unit` (e.g., frequency or
-        wavelength).  The variable is named 'frequency' because it is more
-        commonly used in radio astronomy.
+    frequency : `~astropy.units.Quantity` with spectral units
+        The observed ``spectral`` equivalent `~astropy.units.Unit` (e.g.,
+        frequency or wavelength).  The variable is named 'frequency' because it
+        is more commonly used in radio astronomy.
         BACKWARD COMPATIBILITY NOTE: previous versions of the brightness
-        temperature equivalency used the keyword `disp`, which is no longer
+        temperature equivalency used the keyword ``disp``, which is no longer
         supported.
     beam_area : angular area equivalent
         Beam area in angular units, i.e. steradian equivalent
