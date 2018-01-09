@@ -549,7 +549,9 @@ def beam_angular_area(beam_area):
     since those are more commonly used (e.g., Jy/sr <-> Jy/beam).
     """
     return [(astrophys.beam, Unit(beam_area)),
-            (astrophys.beam**-1, Unit(beam_area**-1))]
+            (astrophys.beam**-1, Unit(beam_area)**-1),
+            (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),
+           ]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
