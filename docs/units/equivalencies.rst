@@ -245,7 +245,8 @@ with the `~astropy.units.equivalencies.beam_angular_area` equivalency::
     >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
-    >>> (1*u.Jy/u.beam).to(u.Jy/u.sr, equivalencies=u.beam_angular_area(omega_B))
+    >>> (1*u.Jy/u.beam).to(u.MJy/u.sr, equivalencies=u.beam_angular_area(omega_B))  # doctest: +FLOAT_CMP
+    <Quantity 15.019166691021288 MJy / sr>
 
 
 Note that the `radio_beam <https://github.com/radio-astro-tools/radio-beam>`_ package
