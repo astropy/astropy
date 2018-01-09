@@ -17,9 +17,10 @@ from .core import UnitsError, Unit
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale']
+           'brightness_temperature', 'beam_angular_area',
+           'dimensionless_angles', 'logarithmic', 'temperature',
+           'temperature_energy', 'molar_mass_amu', 'pixel_scale',
+           'plate_scale']
 
 
 def dimensionless_angles():
@@ -544,8 +545,20 @@ def beam_angular_area(beam_area):
     """
     Convert between the `beam` unit, which is commonly used to express the area
     of a radio telescope resolution element, and an area on the sky.
+    It also allows for inverse-beam and inverse-steradian equivalency,
+    since those are more commonly used (e.g., Jy/sr <-> Jy/beam).
     """
-    return [(astrophys.beam, Unit(beam_area))]
+    beam_area_sr = beam_area.to(si.sr).value
+
+    def beam_to_sr(x):
+        return x * beam_area_sr
+
+    def sr_to_beam(x):
+        return x / beam_area_sr
+
+    return [(astrophys.beam, si.sr, beam_to_sr, sr_to_beam),
+            (astrophys.beam**-1, si.sr**-1, sr_to_beam, beam_to_sr),
+           ]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
