@@ -480,9 +480,11 @@ def test_grouping():
     Test grouping with mixin columns.  Raises not yet implemented error.
     """
     t = QTable(MIXIN_COLS)
-    t['index'] = ['a', 'b', 'b', 'c']
-    with pytest.raises(NotImplementedError):
-        t.group_by('index')
+    t['index'] = ['a', 'b', 'c', 'b']
+    grped = t.group_by('index')
+    assert np.all(grped['index'] == ['a', 'b', 'b', 'c'])
+    assert np.all(grped['quantity'] == [0, 1, 3, 2]*u.m)
+    assert np.all(grped['skycoord'] == [0, 1, 3, 2]*u.deg)
 
 
 def test_conversion_qtable_table():
