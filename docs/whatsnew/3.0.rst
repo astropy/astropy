@@ -15,7 +15,17 @@ Python 3.
 
 In particular, this release includes:
 
+* :ref:`whatsnew=3.0-velocities-skycoord-gaia`
+* :ref:`whatsnew=3.0-constants-contextmanager`
+* :ref:`whatsnew=3.0-showtable`
+* :ref:`whatsnew=3.0-hdf5-mixins`
+* :ref:`whatsnew=3.0-fits-time-support`
+* :ref:`whatsnew=3.0-fits-performance`
+* :ref:`whatsnew=3.0-kuiper-functions`
+* :ref:`whatsnew=3.0-pytest-plugins`
 * :ref:`whatsnew-3.0-python3`
+
+
 
 In addition to these major changes, Astropy 3.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -24,6 +34,54 @@ smaller improvements and bug fixes, which are described in the
 * xxx issues have been closed since v2.0
 * xxx pull requests have been merged since v2.0
 * xxx distinct people have contributed code
+
+.. _whatsnew-3.0-velocities-skycoord-gaia:
+
+Full support for velocities in ``astropy.coordinates``
+======================================================
+
+
+.. _whatsnew-3.0-constants-contextmanager:
+
+context managers for versioned ``astropy.constants``
+====================================================
+
+
+.. _whatsnew-3.0-showtable:
+
+``showtable`` command line script
+=================================
+
+
+.. _whatsnew-3.0-hdf5-mixins:
+
+HDF5 Table writer supports mix-ins
+==================================
+
+
+.. _whatsnew-3.0-fits-time-support:
+
+Support for FITS time standard
+==============================
+
+
+.. _whatsnew-3.0-fits-performance:
+
+FITS table performance enhancements
+===================================
+
+
+.. _whatsnew-3.0-kuiper-functions:
+
+Kuiper fucntions added to ``astropy.stats``
+===========================================
+
+
+.. _whatsnew-3.0-pytest-plugins:
+
+Astropy pytest plugins moved to external packages
+=================================================
+
 
 .. _whatsnew-3.0-python3:
 
