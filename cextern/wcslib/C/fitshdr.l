@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.l,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: fitshdr.l,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -42,6 +42,7 @@
 %option noyywrap
 %option outfile="fitshdr.c"
 %option prefix="fitshdr"
+%option reentrant
 
 /* Keywords. */
 KEYCHR	[-_A-Z0-9]
@@ -82,9 +83,39 @@ UNITSTR \[[-+*/^(). 0-9a-zA-Z]+\]
 #include "fitshdr.h"
 #include "wcsutil.h"
 
-#define YY_DECL int fitshdr(const char header[], int nkeyrec, int nkeyids, \
-                            struct fitskeyid keyids[], int *nreject, \
-                            struct fitskey **keys)
+static int fitshdr_scanner(const char header[], int nkeyrec, int nkeyids, \
+                           struct fitskeyid keyids[], int *nreject, \
+                           struct fitskey **keys, yyscan_t yyscanner);
+
+/*--------------------------------------------------------------------------*/
+
+int fitshdr(
+  const char header[],
+  int nkeyrec,
+  int nkeyids,
+  struct fitskeyid keyids[],
+  int *nreject,
+  struct fitskey **keys)
+
+{
+  int status;
+  yyscan_t yyscanner;
+  int yylex_init(yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  yylex_init(&yyscanner);
+  status = fitshdr_scanner(header, nkeyrec, nkeyids, keyids, nreject,
+                           keys, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define YY_DECL int fitshdr_scanner(const char header[], int nkeyrec, \
+  int nkeyids, struct fitskeyid keyids[], int *nreject, \
+  struct fitskey **keys, yyscan_t yyscanner)
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
@@ -123,7 +154,6 @@ const char *fitshdr_errmsg[] = {
 	struct fitskey *kptr;
 	struct fitskeyid *iptr;
 	void nullfill(char cptr[], int len);
-	int  yylex_destroy(void);
 	
 	fitshdr_hdr = header;
 	fitshdr_nkeyrec = nkeyrec;
@@ -538,7 +568,6 @@ const char *fitshdr_errmsg[] = {
 
 <<EOF>>	{
 	  /* End-of-input. */
-	  yylex_destroy();
 	  return 0;
 	}
 

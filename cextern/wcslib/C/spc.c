@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: spc.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>

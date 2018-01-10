@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: dis.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -149,11 +149,23 @@ int dpfill(
 int disini(int alloc, int naxis, struct disprm *dis)
 
 {
-  static const char *function = "disini";
+  return disinit(alloc, naxis, dis, -1);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
+
+{
+  static const char *function = "disinit";
 
   struct wcserr **err;
 
+  /* Check inputs. */
   if (dis == 0x0) return DISERR_NULL_POINTER;
+
+  if (ndpmax < 0) ndpmax = disndp(-1);
+
 
   /* Initialize error message handling. */
   err = &(dis->err);
@@ -197,13 +209,13 @@ int disini(int alloc, int naxis, struct disprm *dis)
   /* Allocate memory for arrays if required. */
   if (alloc ||
       dis->dtype  == 0x0 ||
-      (NDPMAX && dis->dp == 0x0) ||
+      (ndpmax && dis->dp == 0x0) ||
       dis->maxdis == 0x0) {
 
     /* Was sufficient allocated previously? */
     if (dis->m_flag == DISSET &&
        (dis->m_naxis < naxis  ||
-        dis->ndpmax  < NDPMAX)) {
+        dis->ndpmax  < ndpmax)) {
       /* No, free it. */
       disfree(dis);
     }
@@ -231,8 +243,8 @@ int disini(int alloc, int naxis, struct disprm *dis)
         dis->dp = dis->m_dp;
 
       } else {
-        if (NDPMAX) {
-          if ((dis->dp = calloc(NDPMAX, sizeof(struct dpkey))) == 0x0) {
+        if (ndpmax) {
+          if ((dis->dp = calloc(ndpmax, sizeof(struct dpkey))) == 0x0) {
             disfree(dis);
             return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
           }
@@ -240,7 +252,7 @@ int disini(int alloc, int naxis, struct disprm *dis)
           dis->dp = 0x0;
         }
 
-        dis->ndpmax  = NDPMAX;
+        dis->ndpmax  = ndpmax;
 
         dis->m_flag  = DISSET;
         dis->m_naxis = naxis;
@@ -273,7 +285,7 @@ int disini(int alloc, int naxis, struct disprm *dis)
 
   memset(dis->dtype,  0, naxis*sizeof(char [72]));
   dis->ndp = 0;
-  memset(dis->dp,     0, NDPMAX*sizeof(struct dpkey));
+  memset(dis->dp,     0, ndpmax*sizeof(struct dpkey));
   memset(dis->maxdis, 0, naxis*sizeof(double));
   dis->totdis = 0.0;
 
@@ -301,14 +313,9 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
       "naxis must be positive (got %d)", naxis);
   }
 
-  ndp = NDPMAX;
-  NDPMAX = dissrc->ndpmax;
-
-  if ((status = disini(alloc, naxis, disdst))) {
+  if ((status = disinit(alloc, naxis, disdst, dissrc->ndpmax))) {
     return status;
   }
-
-  NDPMAX = ndp;
 
   memcpy(disdst->dtype, dissrc->dtype, naxis*sizeof(char [72]));
 
@@ -331,7 +338,7 @@ int disfree(struct disprm *dis)
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
   if (dis->flag != -1) {
-    /* Optionally allocated by disini() for given parameters. */
+    /* Optionally allocated by disinit() for given parameters. */
     if (dis->m_flag == DISSET) {
       if (dis->dtype  == dis->m_dtype)  dis->dtype  = 0x0;
       if (dis->dp     == dis->m_dp)     dis->dp     = 0x0;
