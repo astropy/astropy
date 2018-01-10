@@ -941,7 +941,6 @@ class TestUfuncReduceReduceatAccumulate:
         with pytest.raises(ValueError):
             np.sin.reduceat(s, i)
 
-    @pytest.mark.xfail("NUMPY_LT_1_13")
     def test_two_argument_ufunc_reduce_accumulate(self):
         s = np.arange(10.) * u.m
         i = np.array([0, 5, 1, 6])
@@ -1012,7 +1011,6 @@ class TestUfuncOuter:
         with pytest.raises(ValueError):
             np.sin.outer(s)
 
-    @pytest.mark.xfail("NUMPY_LT_1_13")
     def test_two_argument_ufunc_outer(self):
         s1 = np.arange(10.) * u.m
         s2 = np.arange(2.) * u.s
