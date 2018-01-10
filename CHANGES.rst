@@ -69,7 +69,7 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
-- wcslib was updated to v 5.18 [#7066]
+- ``wcslib`` was updated to v 5.18. [#7066]
 
 API Changes
 -----------
