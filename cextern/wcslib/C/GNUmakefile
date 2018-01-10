@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.17 and its test suite.
+# GNU makefile for building WCSLIB 5.18 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+# $Id: GNUmakefile,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -124,13 +124,13 @@ endif
 $(WCSLIB)(%.o) : %.c
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFLAGS) -c $<
-	   $(AR) r $(WCSLIB) $%
+	   $(AR) r$(ARFLAGS) $(WCSLIB) $%
 	-@ $(RM) $%
 
 $(PICLIB)(%.o) : %.c
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFLAGS) $(SHRFLAGS) -c $<
-	   $(AR) r $(PICLIB) $%
+	   $(AR) r$(ARFLAGS) $(PICLIB) $%
 	-@ $(RM) $%
 
 %.i : %.c
@@ -149,6 +149,8 @@ $(PICLIB)(%.o) : %.c
 	   sort -u
 
 # Use 'make FLAVOUR=Linux run_%' to have VALGRIND defined (from flavours).
+# Use 'make FLAVOUR=Linux check < /dev/null |& tee check_valgrind.log' to run
+# valgrind on the lot.
 run_% : %
 	-@ echo ''
 	-@ $(TIMER)

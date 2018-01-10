@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: dis.h,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.17 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.18 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -275,8 +275,9 @@
 * are maintained by these routines, somewhat like a C++ class but with no
 * encapsulation.
 *
-* disndp(), dpfill(), disini(), discpy(), and disfree() are provided to manage
-* the disprm struct, and another, disprt(), prints its contents.
+* disndp(), dpfill(), disini(), disinit(), discpy(), and disfree() are
+* provided to manage the disprm struct, and another, disprt(), prints its
+* contents.
 *
 * disperr() prints the error message(s) (if any) stored in a disprm struct.
 *
@@ -300,14 +301,16 @@
 *
 * disndp() - Memory allocation for DPja and DQia
 * ----------------------------------------------
-* disndp() changes the value of NDPMAX (default 256).  This global variable
-* controls the number of dpkey structs, for holding DPja or DQia keyvalues,
-* that disini() should allocate space for.
+* disndp() sets or gets the value of NDPMAX (default 256).  This global
+* variable controls the maximum number of dpkey structs, for holding DPja or
+* DQia keyvalues, that disini() should allocate space for.  It is also used by
+* disinit() as the default value of ndpmax.
 *
 * PLEASE NOTE: This function is not thread-safe.
 *
 * Given:
-*   n         int       Value of NDPMAX; ignored if < 0.
+*   n         int       Value of NDPMAX; ignored if < 0.  Use a value less
+*                       than zero to get the current value.
 *
 * Function return value:
 *             int       Current value of NDPMAX.
@@ -369,15 +372,21 @@
 *
 * disini() - Default constructor for the disprm struct
 * ----------------------------------------------------
-* disini() allocates memory for arrays in a disprm struct and sets all members
-* of the struct to default values.  Memory is allocated for up to NDPMAX DPja
-* or DQia keywords per WCS representation.  This may be changed via disndp()
-* before disini() is called.
+* disini() is a thin wrapper on disinit().  It invokes it with ndpmax set
+* to -1 which causes it to use the value of the global variable NDPMAX.  It
+* is thereby potentially thread-unsafe if NDPMAX is altered dynamically via
+* disndp().  Use disinit() for a thread-safe alternative in this case.
 *
-* PLEASE NOTE: every disprm struct must be initialized by disini(), possibly
+*
+* disinit() - Default constructor for the disprm struct
+* ----------------------------------------------------
+* disinit() allocates memory for arrays in a disprm struct and sets all
+* members of the struct to default values.
+*
+* PLEASE NOTE: every disprm struct must be initialized by disinit(), possibly
 * repeatedly.  On the first invokation, and only the first invokation,
 * disprm::flag must be set to -1 to initialize memory management, regardless
-* of whether disini() will actually be used to allocate memory.
+* of whether disinit() will actually be used to allocate memory.
 *
 * Given:
 *   alloc     int       If true, allocate memory unconditionally for arrays in
@@ -400,6 +409,13 @@
 *                       (memory leaks may result if it had already been
 *                       initialized).
 *
+* Given:
+*   ndpmax    int       The number of DPja or DQia keywords to allocate space
+*                       for.  If set to -1, the value of the global variable
+*                       NDPMAX will be used.  This is potentially
+*                       thread-unsafe if disndp() is being used dynamically to
+*                       alter its value.
+*
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
@@ -412,8 +428,8 @@
 *
 * discpy() - Copy routine for the disprm struct
 * ---------------------------------------------
-* discpy() does a deep copy of one disprm struct to another, using disini() to
-* allocate memory unconditionally for its arrays if required.  Only the
+* discpy() does a deep copy of one disprm struct to another, using disinit()
+* to allocate memory unconditionally for its arrays if required.  Only the
 * "information to be provided" part of the struct is copied; a call to
 * disset() is required to initialize the remainder.
 *
@@ -445,12 +461,12 @@
 *
 * disfree() - Destructor for the disprm struct
 * --------------------------------------------
-* disfree() frees memory allocated for the disprm arrays by disini().
-* disini() keeps a record of the memory it allocates and disfree() will only
+* disfree() frees memory allocated for the disprm arrays by disinit().
+* disinit() keeps a record of the memory it allocates and disfree() will only
 * attempt to free this.
 *
 * PLEASE NOTE: disfree() must not be invoked on a disprm struct that was not
-* initialized by disini().
+* initialized by disinit().
 *
 * Given:
 *   dis       struct disprm*
@@ -719,7 +735,7 @@
 * distortion functions.  It consists of certain members that must be set by
 * the user ("given") and others that are set by the WCSLIB routines
 * ("returned").  While the addresses of the arrays themselves may be set by
-* disini() if it (optionally) allocates memory, their contents must be set by
+* disinit() if it (optionally) allocates memory, their contents must be set by
 * the user.
 *
 *   int flag
@@ -735,7 +751,7 @@
 *     returned members of the disprm struct.  disset() will reset flag to
 *     indicate that this has been done.
 *
-*     PLEASE NOTE: flag must be set to -1 when disini() is called for the
+*     PLEASE NOTE: flag must be set to -1 when disinit() is called for the
 *     first time for a particular disprm struct in order to initialize memory
 *     management.  It must ONLY be used on the first initialization otherwise
 *     memory leaks may result.
@@ -743,7 +759,7 @@
 *   int naxis
 *     (Given or returned) Number of pixel and world coordinate elements.
 *
-*     If disini() is used to initialize the disprm struct (as would normally
+*     If disinit() is used to initialize the disprm struct (as would normally
 *     be the case) then it will set naxis from the value passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
@@ -757,7 +773,7 @@
 *   int ndpmax
 *     (Given) The length of the disprm::dp[] array.
 *
-*     ndpmax will be set by disini() if it allocates memory for disprm::dp[],
+*     ndpmax will be set by disinit() if it allocates memory for disprm::dp[],
 *     otherwise it must be set by the user.  See also disndp().
 *
 *   struct dpkey dp
@@ -1006,6 +1022,8 @@ int dpfill(struct dpkey *dp, const char *keyword, const char *field, int j,
            int type, int i, double f);
 
 int disini(int alloc, int naxis, struct disprm *dis);
+
+int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax);
 
 int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst);
 

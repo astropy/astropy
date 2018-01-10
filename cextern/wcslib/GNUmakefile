@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.17
+# GNU makefile for building WCSLIB 5.18
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,7 +32,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.17 2017/09/18 08:44:25 mcalabre Exp $
+# $Id: GNUmakefile,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include makedefs
@@ -147,6 +147,7 @@ config.status : configure
 	-@ echo "  CPPFLAGS = $${CPPFLAGS-(undefined)}"
 	-@ echo "  F77      = $${F77-(undefined)}"
 	-@ echo "  FFLAGS   = $${FFLAGS-(undefined)}"
+	-@ echo "  ARFLAGS  = $${ARFLAGS-(undefined)}"
 	-@ echo "  LDFLAGS  = $${LDFLAGS-(undefined)}"
 	-@ echo ''
 	   ./configure --no-create

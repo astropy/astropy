@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,11 +22,11 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: wcsulex.l,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
-* recursive, multi-buffered lexical scanner that parses FITS units
+* recursive, multi-buffered lexical scanner and parser for FITS units
 * specifications.
 *
 * It requires Flex v2.5.4 or later.
@@ -42,6 +42,7 @@
 %option noyywrap
 %option outfile="wcsulex.c"
 %option prefix="wcsulex"
+%option reentrant
 
 /* Exponents. */
 INTEGER	  [+-]?[1-9][0-9]*
@@ -96,8 +97,37 @@ ADD_UNIT  {ADD_ALL}|{ADD_SUP}|{ADD_SUB}|{ADD_NONE}
 #include "wcsunits.h"
 #include "wcsutil.h"
 
-#define YY_DECL int wcsulexe(const char unitstr[], int *func, double *scale, \
-                             double units[WCSUNITS_NTYPE], struct wcserr **err)
+static int wcsulex_scanner(const char unitstr[], int *func, double *scale,
+                           double units[WCSUNITS_NTYPE], struct wcserr **err,
+                           yyscan_t yyscanner);
+
+/*--------------------------------------------------------------------------*/
+
+int wcsulexe(
+  const char unitstr[],
+  int *func,
+  double *scale,
+  double units[WCSUNITS_NTYPE],
+  struct wcserr **err)
+
+{
+  int status;
+  yyscan_t yyscanner;
+  int yylex_init(yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  yylex_init(&yyscanner);
+  status = wcsulex_scanner(unitstr, func, scale, units, err, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define YY_DECL int wcsulex_scanner(const char unitstr[], int *func, \
+ double *scale, double units[WCSUNITS_NTYPE], struct wcserr **err, \
+ yyscan_t yyscanner)
 
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcsulex_abort_jmp_env;
@@ -118,7 +148,6 @@ jmp_buf wcsulex_abort_jmp_env;
 	YY_BUFFER_STATE buf;
 	void add(double *factor, double types[], double *expon, double *scale,
 	    double units[]);
-	int yylex_destroy(void);
 	
 	if (err) *err = 0x0;
 	
@@ -133,10 +162,10 @@ jmp_buf wcsulex_abort_jmp_env;
 	
 	/* Avert a flex-induced memory leak. */
 	if (YY_CURRENT_BUFFER && YY_CURRENT_BUFFER->yy_input_file == stdin) {
-	  yy_delete_buffer(YY_CURRENT_BUFFER);
+	  yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
 	}
 	
-	yy_scan_string(unitstr);
+	yy_scan_string(unitstr, yyscanner);
 	
 	/* Return here via longjmp() invoked by yy_fatal_error(). */
 	if (setjmp(wcsulex_abort_jmp_env)) {
@@ -271,7 +300,7 @@ sqrt" "*"(" {
 	
 	    buf = YY_CURRENT_BUFFER;
 	    status = wcsulexe(yytext+1, &func_r, &factor_r, types, err);
-	    yy_switch_to_buffer(buf);
+	    yy_switch_to_buffer(buf, yyscanner);
 	
 	    if (func_r) {
 	      status = wcserr_set(WCSERR_SET(UNITSERR_FUNCTION_CONTEXT),
@@ -940,8 +969,6 @@ sqrt" "*"(" {
 	  if (YY_START == EXPON) {
 	    add(&factor, types, &expon, scale, units);
 	  }
-	
-	  yylex_destroy();
 	
 	  if (bracket) {
 	    status = wcserr_set(WCSERR_SET(UNITSERR_UNBAL_BRACKET),
