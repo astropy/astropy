@@ -15,14 +15,14 @@ Python 3.
 
 In particular, this release includes:
 
-* :ref:`whatsnew=3.0-velocities-skycoord-gaia`
-* :ref:`whatsnew=3.0-constants-contextmanager`
-* :ref:`whatsnew=3.0-showtable`
-* :ref:`whatsnew=3.0-hdf5-mixins`
-* :ref:`whatsnew=3.0-fits-time-support`
-* :ref:`whatsnew=3.0-fits-performance`
-* :ref:`whatsnew=3.0-kuiper-functions`
-* :ref:`whatsnew=3.0-pytest-plugins`
+* :ref:`whatsnew-3.0-velocities-skycoord-gaia`
+* :ref:`whatsnew-3.0-constants-contextmanager`
+* :ref:`whatsnew-3.0-showtable`
+* :ref:`whatsnew-3.0-hdf5-mixins`
+* :ref:`whatsnew-3.0-fits-time-support`
+* :ref:`whatsnew-3.0-fits-performance`
+* :ref:`whatsnew-3.0-kuiper-functions`
+* :ref:`whatsnew-3.0-pytest-plugins`
 * :ref:`whatsnew-3.0-python3`
 
 
