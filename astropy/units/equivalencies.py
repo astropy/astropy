@@ -561,12 +561,12 @@ def beam_angular_area(beam_area):
 def thermodynamic_temperature(disp, T_cmb=None):
     r"""Defines the conversion between Jy/beam and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
-    commonly used in cosmology.  See, e.g., "Planck 2013 results. IX. HFI spectral response"
-    (Planck Collaboration 2013) eqn 8 (available on `arXiv <https://arxiv.org/abs/1303.5070>`__).
+    commonly used in cosmology. See eqn 8 in [1]
 
-    :math:`T_{CMB} \equiv B_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
+    :math:`K_{CMB} \equiv I_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
 
-    with :math:`f(\nu) = \frac{ x^2 e^x}{(e^x - 1 )^2}` where :math:`x = h \nu / k T`
+    with :math:`f(\nu) = \frac{ x^2 e^x}{(e^x - 1 )^2}`
+    where :math:`x = h \nu / k T`
 
     Parameters
     ----------
@@ -581,6 +581,10 @@ def thermodynamic_temperature(disp, T_cmb=None):
     For broad band receivers, this conversion do not hold
     as it highly depends on the frequency
 
+    References
+    ----------
+    .. [1] Planck 2013 results. IX. HFI spectral response
+       https://arxiv.org/abs/1303.5070
 
     Examples
     --------
