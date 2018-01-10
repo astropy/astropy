@@ -610,11 +610,11 @@ def thermodynamic_temperature(disp, T_cmb=None):
 
     def convert_Jy_to_K(x_jybm):
         factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
-        return (x_jybm / factor)
+        return x_jybm / factor
 
     def convert_K_to_Jy(x_K):
         factor = (astrophys.Jy / (f(nu) * 2 * _si.k_B * nu**2 / _si.c**2)).to_value(si.K)
-        return (x_K / factor)
+        return x_K / factor
 
     return [(astrophys.Jy/si.sr, si.K, convert_Jy_to_K, convert_K_to_Jy)]
 
