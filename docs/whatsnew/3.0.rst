@@ -24,6 +24,7 @@ In particular, this release includes:
 * :ref:`whatsnew-3.0-kuiper-functions`
 * :ref:`whatsnew-3.0-pytest-plugins`
 * :ref:`whatsnew-3.0-python3`
+* :ref:`whatsnew-3.0-skycoord`
 
 
 
@@ -89,6 +90,55 @@ Supporting only Python 3
 ========================
 
 This version removed all Python 2.x compatibility code.
+
+
+.. _whatsnew-3.0-skycoord:
+
+Support for velocities in ``SkyCoord``
+======================================
+
+The :class:`~astropy.coordinates.SkyCoord` object now suppports representing and
+transforming velocity components along with positional coordinates. For example,
+to transform equatorial (ICRS) proper motions to the Galactic coordinate
+system::
+
+    >>> import astropy.units as u
+    >>> import astropy.coordinates as coord
+    >>> c = coord.SkyCoord(ra=86.7 * u.deg, dec=53.09 * u.deg,
+    ...                    pm_ra_cosdec=112*u.mas/u.yr,
+    ...                    pm_dec=35*u.mas/u.yr)
+    >>> c.galactic # doctest: +FLOAT_CMP
+    <SkyCoord (Galactic): (l, b) in deg
+        ( 159.1426742,  12.46482854)
+     (pm_l_cosb, pm_b) in mas / yr
+        ( 23.48718747,  114.96674312)>
+
+:class:`~astropy.coordinates.SkyCoord` now also has a method for computing the
+position of a source at a new epoch, given position and some velocity data at a
+specified epoch. For example, the reference epoch for the Tycho-Gaia Astrometric
+Solution (TGAS) is J2015.0, but we might want to compute the position of a
+source at a prior epoch to cross-match to an old catalog, or compute the
+position at a future epoch to observe the source. We can do this with
+:meth:`~astropy.coordinates.SkyCoord.apply_space_motion`::
+
+    >>> from astropy.time import Time
+    >>> c = coord.SkyCoord(ra=86.7 * u.deg, dec=53.09 * u.deg,
+    ...                    distance=100*u.pc,
+    ...                    pm_ra_cosdec=112*u.mas/u.yr,
+    ...                    pm_dec=35*u.mas/u.yr,
+    ...                    obstime=Time('J2015.0'))
+    >>> c.apply_space_motion(Time('J2000')) # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+        ( 86.69922295,  53.08985416,  100.00000008)
+     (pm_ra, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 186.49140891,  35.00121452, -0.00047467)>
+    >>> c.apply_space_motion(Time(58228.62, format='mjd')) # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+        ( 86.70017096,  53.09003208,  99.99999998)
+     (pm_ra, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+        ( 186.49295097,  34.99973279,  0.00010443)>
+
+See :ref:`astropy-coordinates-apply-space-motion` for more information.
 
 
 Full change log
