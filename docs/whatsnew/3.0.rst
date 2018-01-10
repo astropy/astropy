@@ -43,7 +43,7 @@ Full support for velocities in ``astropy.coordinates``
 
 .. _whatsnew-3.0-constants-contextmanager:
 
-context managers for versioned ``astropy.constants``
+Context managers for versioned ``astropy.constants``
 ====================================================
 
 
@@ -55,8 +55,8 @@ context managers for versioned ``astropy.constants``
 
 .. _whatsnew-3.0-hdf5-mixins:
 
-HDF5 Table writer supports mix-ins
-==================================
+HDF5 Table writer supports mix-in columns (e.g. time, coordinates, etc.)
+========================================================================
 
 
 .. _whatsnew-3.0-fits-time-support:
@@ -73,7 +73,7 @@ FITS table performance enhancements
 
 .. _whatsnew-3.0-kuiper-functions:
 
-Kuiper fucntions added to ``astropy.stats``
+Kuiper functions added to ``astropy.stats``
 ===========================================
 
 
