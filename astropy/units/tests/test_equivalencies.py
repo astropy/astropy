@@ -585,6 +585,17 @@ def test_thermodynamic_temperature():
             u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu)))
 
 
+def test_thermodynamic_temperature_w_tcmb():
+    nu = 143 * u.GHz
+    tb = 0.0026320518775281975 * u.K
+    np.testing.assert_almost_equal(
+        tb.value, (1 * u.MJy/u.sr).to_value(
+            u.K, equivalencies=u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)))
+    np.testing.assert_almost_equal(
+        1.0, tb.to_value(
+            u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)))
+
+
 def test_equivalency_context():
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
         phase = u.Quantity(1., u.cycle)
