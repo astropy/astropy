@@ -558,7 +558,7 @@ def beam_angular_area(beam_area):
             (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),
            ]
 
-def thermodynamic_temperature(disp, T_cmb=None):
+def thermodynamic_temperature(frequency, T_cmb=None):
     r"""Defines the conversion between Jy/beam and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
     commonly used in cosmology. See eqn 8 in [1]
@@ -570,7 +570,7 @@ def thermodynamic_temperature(disp, T_cmb=None):
 
     Parameters
     ----------
-    disp : `~astropy.units.Quantity` with spectral units
+    frequency : `~astropy.units.Quantity` with spectral units
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength)
     T_cmb :  `~astropy.units.Quantity` with temperature units (default Planck15 value)
@@ -598,7 +598,7 @@ def thermodynamic_temperature(disp, T_cmb=None):
         379.93172115555564
 
     """
-    nu = disp.to(si.GHz, spectral())
+    nu = frequency.to(si.GHz, spectral())
 
     if T_cmb is None:
         from ..cosmology import Planck15
