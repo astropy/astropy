@@ -349,3 +349,45 @@ Tabular2D.__doc__ = """
         The data on a regular grid in 2 dimensions.
 
 """ + _tab_docs
+
+
+class LookupTable(Model):
+    """
+    This model indexes the lookup table with the rounded value.
+
+    The primary difference between this model and ``Tabular`` models is that it
+    supports non-numeric values in the lookup table.
+
+    .. note::
+        Any units on the input value are ignored.
+
+    Parameters
+    ----------
+    lookup_table : `~astropy.units.Quantity` or `numpy.ndarray`
+    """
+
+    linear = False
+    fittable = False
+    standard_broadcasting = False
+
+    inputs = ('x',)
+    outputs = ('y',)
+
+    @property
+    def return_units(self):
+        if not isinstance(self.lookup_table, u.Quantity):
+            return None
+        else:
+            return {'y': self.lookup_table.unit}
+
+    def __init__(self, lookup_table):
+        super().__init__()
+
+        if not isinstance(lookup_table, u.Quantity):
+            lookup_table = np.asarray(lookup_table)
+
+        self.lookup_table = lookup_table
+
+    def evaluate(self, point):
+        ind = int(np.asarray(np.round(point)))
+        return self.lookup_table[ind]
