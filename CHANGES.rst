@@ -460,6 +460,7 @@ Other Changes and Additions
 
 - The documentation build now uses the Sphinx configuration from sphinx-astropy
   rather than from astropy-helpers. [#7139]
+- Versions of Numpy <1.13 are no longer supported. [#7058]
 
 - Versions of Numpy <1.13 are no longer supported. [#7058]
 
