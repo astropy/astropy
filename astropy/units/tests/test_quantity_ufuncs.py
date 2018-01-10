@@ -9,8 +9,9 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ... import units as u
+from .. import quantity_helper as qh
+
 from ...tests.helper import raises
-from ...utils.compat import NUMPY_LT_1_13
 
 try:
     import scipy  # pylint: disable=W0611
@@ -61,17 +62,14 @@ class TestUfuncCoverage:
                         reason='scipy.special coverage is incomplete')
     def test_coverage(self):
 
-        all_extern_ufuncs = set([])
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
-                             if type(ufunc) == np.ufunc])
-        all_extern_ufuncs |= all_np_ufuncs
-        from .. import quantity_helper as qh
+                             if isinstance(ufunc, np.ufunc)])
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
 
-        assert all_extern_ufuncs - all_q_ufuncs == set([])
-        assert all_q_ufuncs - all_extern_ufuncs == set([])
+        assert all_np_ufuncs - all_q_ufuncs == set()
+        assert all_q_ufuncs - all_np_ufuncs == set()
 
 
 class TestQuantityTrigonometricFuncs:
@@ -334,12 +332,11 @@ class TestQuantityMathFuncs:
         with pytest.raises(TypeError):
             dividend % u.km
 
-        if hasattr(np, 'divmod'):  # not NUMPY_LT_1_13
-            quotient4, remainder4 = np.divmod(dividend, divisor)
-            assert np.all(quotient4 == quotient)
-            assert np.all(remainder4 == remainder)
-            with pytest.raises(TypeError):
-                np.divmod(dividend, u.km)
+        quotient4, remainder4 = np.divmod(dividend, divisor)
+        assert np.all(quotient4 == quotient)
+        assert np.all(remainder4 == remainder)
+        with pytest.raises(TypeError):
+            np.divmod(dividend, u.km)
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
@@ -736,14 +733,10 @@ class TestInplaceUfuncs:
         # in np<1.13, without __array_ufunc__, one cannot replace input with
         # first output when scaling
         v4 = v_copy.copy()
-        if NUMPY_LT_1_13:
-            with pytest.raises(TypeError):
-                np.modf(v4, v4, tmp)
-        else:
-            check4 = v4
-            np.modf(v4, v4, tmp)
-            assert check4 is v4
-            assert check4.unit == u.dimensionless_unscaled
+        check4 = v4
+        np.modf(v4, v4, tmp)
+        assert check4 is v4
+        assert check4.unit == u.dimensionless_unscaled
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_1(self, value):
@@ -789,7 +782,6 @@ class TestInplaceUfuncs:
         assert_allclose(s.value, np.arctan2(1., 2.))
         assert s.unit is u.radian
 
-    @pytest.mark.skipif(NUMPY_LT_1_13, reason="numpy >=1.13 required.")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_two_output_ufunc_inplace(self, value):
         v = value * u.m
@@ -844,7 +836,6 @@ class TestInplaceUfuncs:
             a4 += u.Quantity(10, u.mm, dtype=np.int64)
 
 
-@pytest.mark.xfail("NUMPY_LT_1_13")
 class TestUfuncAt:
     """Test that 'at' method for ufuncs (calculates in-place at given indices)
 

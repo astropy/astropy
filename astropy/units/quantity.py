@@ -20,7 +20,7 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from ..utils.compat import NUMPY_LT_1_13, NUMPY_LT_1_14
+from ..utils.compat import NUMPY_LT_1_14
 from ..utils.compat.misc import override__dir__
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.misc import isiterable, InheritDocstrings
@@ -1103,15 +1103,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         """ Division between `Quantity` objects. """
         return self.__rtruediv__(other)
 
-    if not hasattr(np, 'divmod'):  # NUMPY_LT_1_13
-        # In numpy 1.13, divmod goes via a ufunc and thus works without change.
-        def __divmod__(self, other):
-            other_value = self._to_own_unit(other)
-            result_tuple = divmod(self.value, other_value)
-
-            return (self._new_view(result_tuple[0], dimensionless_unscaled),
-                    self._new_view(result_tuple[1]))
-
     def __pow__(self, other):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.
@@ -1131,21 +1122,13 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         result_array = np.matmul(getattr(other, 'value', other), self.value)
         return self._new_view(result_array, result_unit)
 
-    if NUMPY_LT_1_13:
-        # Pre-numpy 1.13, there was no np.positive ufunc and the copy done
-        # by ndarray did not properly work for scalar quantities.
-        def __pos__(self):
-            """Plus the quantity."""
-            return self.copy()
-
-    else:
-        # In numpy 1.13, a np.positive ufunc exists, but ndarray.__pos__
-        # does not yet go through it, so we still need to define it, to allow
-        # subclasses to override it inside __array_ufunc__.
-        # Presumably, this can eventually be removed.
-        def __pos__(self):
-            """Plus the quantity."""
-            return np.positive(self)
+    # In numpy 1.13, 1.14, a np.positive ufunc exists, but ndarray.__pos__
+    # does not go through it, so we define it, to allow subclasses to override
+    # it inside __array_ufunc__. This can be removed if a solution to
+    # https://github.com/numpy/numpy/issues/9081 is merged.
+    def __pos__(self):
+        """Plus the quantity."""
+        return np.positive(self)
 
     # other overrides of special functions
     def __hash__(self):

@@ -14,7 +14,6 @@ from numpy.testing import assert_equal
 
 from ....io import fits
 from ....utils.exceptions import AstropyPendingDeprecationWarning
-from ....utils.compat import NUMPY_LT_1_12
 from ....tests.helper import raises, catch_warnings, ignore_warnings
 from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
@@ -197,8 +196,8 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[0].name == 'XPRIMARY2'
 
-    @pytest.mark.xfail(platform.system() == 'Windows' and not NUMPY_LT_1_12,
-                              reason='https://github.com/astropy/astropy/issues/5797')
+    @pytest.mark.xfail(platform.system() == 'Windows',
+                       reason='https://github.com/astropy/astropy/issues/5797')
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
