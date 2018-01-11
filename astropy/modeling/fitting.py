@@ -328,7 +328,9 @@ class LinearLSQFitter(object):
         z : array (optional)
             input coordinates
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         rcond :  float, optional
             Cut-off ratio for small singular values of ``a``.
             Singular values are set to zero if they are smaller than ``rcond``
@@ -661,7 +663,9 @@ class LevMarLSQFitter(object):
         z : array (optional)
            input coordinates
         weights : array (optional)
-           weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         maxiter : int
             maximum number of iterations
         acc : float
@@ -801,7 +805,9 @@ class SLSQPLSQFitter(Fitter):
         z : array (optional)
             input coordinates
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
 
@@ -871,7 +877,9 @@ class SimplexLSQFitter(Fitter):
         z : array (optional)
             input coordinates
         weights : array (optional)
-            weights
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
 
