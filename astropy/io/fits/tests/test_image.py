@@ -1199,7 +1199,6 @@ class TestCompressedImage(FitsTestCase):
         assert np.isclose(np.min(im1 - im3), -50, atol=1e-1)
         assert np.isclose(np.max(im1 - im3), 50, atol=1e-1)
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompression_1_invalid_data(self):
         """
         Tests compression with the HCOMPRESS_1 algorithm with data that is
@@ -1211,7 +1210,6 @@ class TestCompressedImage(FitsTestCase):
                       compression_type='HCOMPRESS_1', quantize_level=16,
                       tile_size=[2, 10, 10])
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompress_image_stack(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/171
