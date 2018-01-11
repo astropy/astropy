@@ -1379,6 +1379,9 @@ class Table:
         else:
             raise IndexError('illegal key or index value')
 
+    def _ipython_key_completions_(self):
+        return self.colnames
+
     def field(self, item):
         """Return column[item] for recarray compatibility."""
         return self.columns[item]
