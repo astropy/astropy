@@ -22,8 +22,8 @@ In particular, this release includes:
 * :ref:`whatsnew-3.0-fits-time-support`
 * :ref:`whatsnew-3.0-fits-performance`
 * :ref:`whatsnew-3.0-kuiper-functions`
-* :ref:`whatsnew-3.0-pytest-plugins`
 * :ref:`whatsnew-3.0-python3`
+* :ref:`whatsnew-3.0-pytest-plugins`
 
 
 
@@ -77,12 +77,6 @@ Kuiper functions added to ``astropy.stats``
 ===========================================
 
 
-.. _whatsnew-3.0-pytest-plugins:
-
-Astropy pytest plugins moved to external packages
-=================================================
-
-
 .. _whatsnew-3.0-python3:
 
 Supporting only Python 3
@@ -101,7 +95,9 @@ API, please see the :ref:`changelog`.
 Renamed/removed functionality
 =============================
 
-pytest plugins
+.. _whatsnew-3.0-pytest-plugins:
+
+pytest plugins moved to external packages
 **************
 
 The following ``pytest`` plugins were previously provided as part of the
