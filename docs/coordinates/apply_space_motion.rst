@@ -153,7 +153,7 @@ Now that we have the coordinates of the TGAS source at the 2MASS epoch, we can
 do the cross-match (see also :ref:`astropy-coordinates-separations-matching`)::
 
     >>> idx, sep, _ = c_2mass_epoch.match_to_catalog_sky(catalog_2mass)
-    >>> sep[0] # doctest: +FLOAT_CMP
+    >>> sep[0].to_string() # doctest: +FLOAT_CMP
     '0d00m00.2818s'
     >>> idx
     array(5)
