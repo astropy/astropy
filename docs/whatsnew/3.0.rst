@@ -98,7 +98,7 @@ Renamed/removed functionality
 .. _whatsnew-3.0-pytest-plugins:
 
 pytest plugins moved to external packages
-**************
+*****************************************
 
 The following ``pytest`` plugins were previously provided as part of the
 Astropy core package but have now been moved to separate packages:
