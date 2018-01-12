@@ -1,0 +1,22 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coords/representation/baserepresentation-1.0.0"
+tag: "tag:astropy.org:astropy/coords/representation/baserepresentation-1.0.0"
+
+title: |
+  Representation of things
+
+description:
+  Representation of things
+
+type: object
+properties:
+  type:
+    type: string
+
+  components:
+    type: object
+
+required: [type, components]
+...
