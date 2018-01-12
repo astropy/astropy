@@ -1157,8 +1157,8 @@ class TestCompressedImage(FitsTestCase):
         primary_hdu = fits.PrimaryHDU()
         ofd = fits.HDUList(primary_hdu)
         chdu = fits.CompImageHDU(data, name='SCI',
-                                 compressionType=compression_type,
-                                 quantizeLevel=quantize_level)
+                                 compression_type=compression_type,
+                                 quantize_level=quantize_level)
         ofd.append(chdu)
         ofd.writeto(self.temp('test_new.fits'), overwrite=True)
         ofd.close()
@@ -1199,7 +1199,6 @@ class TestCompressedImage(FitsTestCase):
         assert np.isclose(np.min(im1 - im3), -50, atol=1e-1)
         assert np.isclose(np.max(im1 - im3), 50, atol=1e-1)
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompression_1_invalid_data(self):
         """
         Tests compression with the HCOMPRESS_1 algorithm with data that is
@@ -1208,10 +1207,9 @@ class TestCompressedImage(FitsTestCase):
 
         pytest.raises(ValueError, fits.CompImageHDU,
                       np.zeros((2, 10, 10), dtype=np.float32), name='SCI',
-                      compressionType='HCOMPRESS_1', quantizeLevel=16,
-                      tileSize=[2, 10, 10])
+                      compression_type='HCOMPRESS_1', quantize_level=16,
+                      tile_size=[2, 10, 10])
 
-    @ignore_warnings(AstropyPendingDeprecationWarning)
     def test_comp_image_hcompress_image_stack(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/171
@@ -1223,8 +1221,8 @@ class TestCompressedImage(FitsTestCase):
 
         cube = np.arange(300, dtype=np.float32).reshape(3, 10, 10)
         hdu = fits.CompImageHDU(data=cube, name='SCI',
-                                compressionType='HCOMPRESS_1',
-                                quantizeLevel=16, tileSize=[5, 5, 1])
+                                compression_type='HCOMPRESS_1',
+                                quantize_level=16, tile_size=[5, 5, 1])
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits')) as hdul:
@@ -1450,7 +1448,7 @@ class TestCompressedImage(FitsTestCase):
 
         noise = np.random.normal(size=(1000, 1000))
 
-        chdu1 = fits.CompImageHDU(data=noise, compressionType='GZIP_1')
+        chdu1 = fits.CompImageHDU(data=noise, compression_type='GZIP_1')
         # First make a test image with lossy compression and make sure it
         # wasn't compressed perfectly.  This shouldn't happen ever, but just to
         # make sure the test non-trivial.
@@ -1461,8 +1459,8 @@ class TestCompressedImage(FitsTestCase):
 
         del h
 
-        chdu2 = fits.CompImageHDU(data=noise, compressionType='GZIP_1',
-                                  quantizeLevel=0.0)  # No quantization
+        chdu2 = fits.CompImageHDU(data=noise, compression_type='GZIP_1',
+                                  quantize_level=0.0)  # No quantization
         with ignore_warnings():
             chdu2.writeto(self.temp('test.fits'), overwrite=True)
 
@@ -1479,8 +1477,8 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[:data2.shape[0], :data2.shape[1]] = data2
-        chdu = fits.CompImageHDU(data1, compressionType='RICE_1',
-                                 tileSize=(6, 7))
+        chdu = fits.CompImageHDU(data1, compression_type='RICE_1',
+                                 tile_size=(6, 7))
         chdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits'),
