@@ -282,18 +282,20 @@ def test_models_bounding_box(model):
 
     m = model['class'](**model['parameters'])
 
-    if model['bounding_box']:
-        # A bounding box may have inhomogeneous units so we need to check the
-        # values one by one.
-        for i in range(len(model['bounding_box'])):
-            bbox = m.bounding_box
-            assert_quantity_allclose(bbox[i], model['bounding_box'][i])
-    else:
+    # In the following we need to explicitly test that the value is False
+    # since Quantities no longer evaluate as as True
+    if model['bounding_box'] is False:
         # Check that NotImplementedError is raised, so that if bounding_box is
         # implemented we remember to set bounding_box=True in the list of models
         # above
         with pytest.raises(NotImplementedError):
             m.bounding_box
+    else:
+        # A bounding box may have inhomogeneous units so we need to check the
+        # values one by one.
+        for i in range(len(model['bounding_box'])):
+            bbox = m.bounding_box
+            assert_quantity_allclose(bbox[i], model['bounding_box'][i])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
