@@ -1,57 +1,53 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
-from astropy.units import Quantity
-from astropy.coordinates import ICRS, Longitude, Latitude, Angle
+from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.tests.helper import assert_quantity_allclose
 
 from ...types import AstropyType
-from ..unit.quantity import QuantityType
 
 
-__all__ = ['ICRSCoordType']
+__all__ = ['CoordType']
 
 
-class ICRSCoordType(AstropyType):
-    name = "coordinates/frames/icrs"
-    types = ['astropy.coordinates.ICRS']
+class CoordType(AstropyType):
+    name = "coords/coord"
+    types = ['astropy.coordinates.BaseCoordinateFrame']
     requires = ['astropy']
     version = "1.0.0"
 
     @classmethod
     def from_tree(cls, node, ctx):
-        angle = Angle(QuantityType.from_tree(node['ra']['wrap_angle'], ctx))
-        wrap_angle = Angle(angle)
-        ra = Longitude(
-            node['ra']['value'],
-            unit=node['ra']['unit'],
-            wrap_angle=wrap_angle)
-        dec = Latitude(node['dec']['value'], unit=node['dec']['unit'])
+        frame = frame_transform_graph.lookup_name(node['frame'])
+        data = node.get('data', None)
+        if data:
+            return frame(node['data'], **node['frame_attributes'])
 
-        return ICRS(ra=ra, dec=dec)
+        return frame(**node['frame_attributes'])
 
     @classmethod
     def to_tree(cls, frame, ctx):
-        node = {}
+        if type(frame) not in frame_transform_graph.frame_set:
+            raise ValueError("Can only save frames that are registered with the "
+                             "transformation graph.")
 
-        wrap_angle = Quantity(frame.ra.wrap_angle)
-        node['ra'] = {
-            'value': frame.ra.value,
-            'unit': frame.ra.unit.to_string(),
-            'wrap_angle': custom_tree_to_tagged_tree(wrap_angle, ctx)
-        }
-        node['dec'] = {
-            'value': frame.dec.value,
-            'unit': frame.dec.unit.to_string()
-        }
+        node = {}
+        node['frame'] = frame.name
+        if frame.has_data:
+            node['data'] = custom_tree_to_tagged_tree(frame.data, ctx)
+        frame_attributes = {}
+        for attr in frame.frame_attributes.keys():
+            value = getattr(frame, attr, None)
+            if value:
+                frame_attributes[attr] = value
+        node['frame_attributes'] = custom_tree_to_tagged_tree(frame_attributes, ctx)
 
         return node
 
     @classmethod
     def assert_equal(cls, old, new):
-        assert isinstance(old, ICRS)
-        assert isinstance(new, ICRS)
-        assert_quantity_allclose(new.ra, old.ra)
-        assert_quantity_allclose(new.dec, old.dec)
+        assert isinstance(new, type(old))
+        if new.has_data:
+            assert_quantity_allclose(new.data.lon, old.data.lon)
+            assert_quantity_allclose(new.data.lat, old.data.lat)

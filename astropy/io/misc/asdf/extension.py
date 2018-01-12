@@ -13,6 +13,7 @@ from asdf.util import filepath_to_url
 # the case that asdf is not installed.
 from .tags.coords.coords import *
 from .tags.coords.angle import *
+from .tags.coords.representation import *
 from .tags.fits.fits import *
 from .tags.table.table import *
 from .tags.time.time import *
