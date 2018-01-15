@@ -1261,7 +1261,7 @@ class FITS_rec(np.recarray):
 
         # Replace exponent separator in floating point numbers
         if 'D' in format:
-            output_field.replace(encode_ascii('E'), encode_ascii('D'))
+            output_field[:] = output_field.replace(b'E', b'D')
 
 
 def _get_recarray_field(array, key):
