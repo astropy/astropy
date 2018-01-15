@@ -152,10 +152,10 @@ assuming straight-line motion::
 Now that we have the coordinates of the TGAS source at the 2MASS epoch, we can
 do the cross-match (see also :ref:`astropy-coordinates-separations-matching`)::
 
-    >>> idx, sep, _ = c_2mass_epoch.match_to_catalog_sky(catalog_2mass)
-    >>> sep[0].to_string() # doctest: +FLOAT_CMP
+    >>> idx, sep, _ = c_2mass_epoch.match_to_catalog_sky(catalog_2mass) # doctest: +SKIP
+    >>> sep[0].to_string() # doctest: +FLOAT_CMP +SKIP
     '0d00m00.2818s'
-    >>> idx
+    >>> idx # doctest: +SKIP
     array(5)
 
 The closest source it found is just 0.2818 arcseconds away and corresponds to
@@ -163,7 +163,7 @@ row index 5 in the 2MASS catalog. We can then, e.g., compute *Gaia*-2MASS
 colors::
 
     >>> G = result_tgas['phot_g_mean_mag']
-    >>> J = result_2mass['Jmag'][idx]
-    >>> K = result_2mass['Kmag'][idx]
-    >>> G - J, G - K
+    >>> J = result_2mass['Jmag'][idx] # doctest: +SKIP
+    >>> K = result_2mass['Kmag'][idx] # doctest: +SKIP
+    >>> G - J, G - K # doctest: +SKIP
     (1.0151743233481962, 1.3731746233481958)
