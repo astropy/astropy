@@ -299,3 +299,20 @@ def test_skyoffset_velocity():
 
     assert_allclose(c_skyoffset.pm_lon_coslat, c.pm_ra_cosdec)
     assert_allclose(c_skyoffset.pm_lat, c.pm_dec)
+
+
+@pytest.mark.parametrize("rotation, expectedpmlonlat", [
+    (0*u.deg, [1, 2]*u.mas/u.yr),
+    (45*u.deg, [-2**-0.5, 3*2**-0.5]*u.mas/u.yr),
+    (90*u.deg, [-2, 1]*u.mas/u.yr),
+    (180*u.deg, [-1, -2]*u.mas/u.yr),
+    (-90*u.deg, [2, -1]*u.mas/u.yr)
+    ])
+def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
+    sc = SkyCoord(ra=170.9*u.deg, dec=-78.4*u.deg,
+                  pm_ra_cosdec=1*u.mas/u.yr,
+                  pm_dec=2*u.mas/u.yr)
+
+    c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))
+    assert_allclose(c_skyoffset0.pm_lon_coslat, expectedpmlonlat[0])
+    assert_allclose(c_skyoffset0.pm_lat, expectedpmlonlat[1])
