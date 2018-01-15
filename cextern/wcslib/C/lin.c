@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: lin.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdio.h>
@@ -65,7 +65,15 @@ const int lin_diserr[] = {
 int linini(int alloc, int naxis, struct linprm *lin)
 
 {
-  static const char *function = "linini";
+  return lininit(alloc, naxis, lin, -1);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
+
+{
+  static const char *function = "lininit";
 
   int i, j;
   double *pc;
@@ -170,11 +178,11 @@ int linini(int alloc, int naxis, struct linprm *lin)
 
   /* Reinitialize disprm structs if we are managing them. */
   if (lin->m_dispre) {
-    disini(1, naxis, lin->dispre);
+    disinit(1, naxis, lin->dispre, ndpmax);
   }
 
   if (lin->m_disseq) {
-    disini(1, naxis, lin->disseq);
+    disinit(1, naxis, lin->disseq, ndpmax);
   }
 
 
@@ -230,7 +238,15 @@ int linini(int alloc, int naxis, struct linprm *lin)
 int lindis(int sequence, struct linprm *lin, struct disprm *dis)
 
 {
-  static const char *function = "lindis";
+  return lindist(sequence, lin, dis, -1);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int lindist(int sequence, struct linprm *lin, struct disprm *dis, int ndpmax)
+
+{
+  static const char *function = "lindist";
 
   int status;
   struct wcserr **err;
@@ -239,14 +255,20 @@ int lindis(int sequence, struct linprm *lin, struct disprm *dis)
   err = &(lin->err);
 
   if (sequence == 1) {
-    if (lin->m_dispre) free(lin->m_dispre);
+    if (lin->m_dispre) {
+      disfree(lin->m_dispre);
+      free(lin->m_dispre);
+    }
 
     lin->dispre   = dis;
     lin->m_flag   = LINSET;
     lin->m_dispre = dis;
 
   } else if (sequence == 2) {
-    if (lin->m_disseq) free(lin->m_disseq);
+    if (lin->m_disseq) {
+      disfree(lin->m_disseq);
+      free(lin->m_disseq);
+    }
 
     lin->disseq   = dis;
     lin->m_flag   = LINSET;
@@ -258,7 +280,7 @@ int lindis(int sequence, struct linprm *lin, struct disprm *dis)
   }
 
   if (dis) {
-    if ((status = disini(1, lin->naxis, dis))) {
+    if ((status = disinit(1, lin->naxis, dis, ndpmax))) {
       return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
     }
   }
@@ -288,7 +310,7 @@ int lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst)
       "naxis must be positive (got %d)", naxis);
   }
 
-  if ((status = linini(alloc, naxis, lindst))) {
+  if ((status = lininit(alloc, naxis, lindst, 0))) {
     return status;
   }
 
@@ -343,11 +365,20 @@ int lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst)
   }
 
 cleanup:
-  if (status && (lindst->m_dispre || lindst->m_disseq)) {
-    if (lindst->dispre) free(lindst->dispre);
-    if (lindst->disseq) free(lindst->disseq);
-    lindst->dispre = 0x0;
-    lindst->disseq = 0x0;
+  if (status) {
+    if (lindst->m_dispre) {
+      disfree(lindst->m_dispre);
+      free(lindst->m_dispre);
+      lindst->m_dispre = 0x0;
+      lindst->dispre = 0x0;
+    }
+
+    if (lindst->m_disseq) {
+      disfree(lindst->m_disseq);
+      free(lindst->m_disseq);
+      lindst->m_disseq = 0x0;
+      lindst->disseq = 0x0;
+    }
   }
 
   return status;
@@ -361,7 +392,7 @@ int linfree(struct linprm *lin)
   if (lin == 0x0) return LINERR_NULL_POINTER;
 
   if (lin->flag != -1) {
-    /* Optionally allocated by linini() for given parameters. */
+    /* Optionally allocated by lininit() for given parameters. */
     if (lin->m_flag == LINSET) {
       if (lin->crpix  == lin->m_crpix)  lin->crpix  = 0x0;
       if (lin->pc     == lin->m_pc)     lin->pc     = 0x0;
@@ -990,8 +1021,8 @@ int linwarp(
   /* Make a reference copy of lin without distortions. */
   affine.flag = -1;
   if ((status = (lincpy(1, lin, &affine) ||
-                 lindis(1, &affine, 0x0) ||
-                 lindis(2, &affine, 0x0) ||
+                 lindist(1, &affine, 0x0, 0) ||
+                 lindist(2, &affine, 0x0, 0) ||
                  linset(&affine)))) {
     return wcserr_set(LIN_ERRMSG(status));
   }
@@ -1131,6 +1162,7 @@ int linwarp(
 
 
 cleanup:
+  linfree(&affine);
   free(pix0);
 
   return status;

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: wcsutrn.l,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -41,6 +41,7 @@
 %option noyywrap
 %option outfile="wcsutrn.c"
 %option prefix="wcsutrn"
+%option reentrant
 
 /* Exclusive start states. */
 %x NEXT FLUSH
@@ -58,7 +59,33 @@
 #include "wcserr.h"
 #include "wcsunits.h"
 
-#define YY_DECL int wcsutrne(int ctrl, char unitstr[], struct wcserr **err)
+static int wcsutrne_scanner(int ctrl, char unitstr[], struct wcserr **err,
+                            yyscan_t yyscanner);
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutrne(
+  int ctrl,
+  char unitstr[],
+  struct wcserr **err)
+
+{
+  int status;
+  yyscan_t yyscanner;
+  int yylex_init(yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  yylex_init(&yyscanner);
+  status = wcsutrne_scanner(ctrl, unitstr, err, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define YY_DECL int wcsutrne_scanner(int ctrl, char unitstr[], \
+ struct wcserr **err, yyscan_t yyscanner)
 
 /* Used in preempting the call to exit() by yy_fatal_error(). */
 jmp_buf wcsutrn_abort_jmp_env;
@@ -73,15 +100,14 @@ jmp_buf wcsutrn_abort_jmp_env;
 	int bracket = 0;
 	int unsafe  = 0;
 	int status  = -1;
-	int yylex_destroy(void);
 	
 	if (err) *err = 0x0;
 	
 	*orig = '\0';
 	*subs = '\0';
 	
-	yy_delete_buffer(YY_CURRENT_BUFFER);
-	yy_scan_string(unitstr);
+	yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
+	yy_scan_string(unitstr, yyscanner);
 	*unitstr = '\0';
 	
 	/* Return here via longjmp() invoked by yy_fatal_error(). */
@@ -326,7 +352,6 @@ years?|YR|YEARS? {
 	    if (strcmp(orig, subs)) status = 0;
 	  }
 	
-	  yylex_destroy();
 	  if (unsafe) {
 	    return wcserr_set(WCSERR_SET(UNITSERR_UNSAFE_TRANS),
 	      "Unsafe unit translation in '%s'", unitstr);

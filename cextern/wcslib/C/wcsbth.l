@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: wcsbth.l,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -74,6 +74,7 @@
 %option noyywrap
 %option outfile="wcsbth.c"
 %option prefix="wcsbth"
+%option reentrant
 
 /* Indices for parameterized keywords. */
 Z1	[0-9]
@@ -140,9 +141,42 @@ INLINE " "*(\/.*)?
 			/* axis number) or pixel list, e.g. LONPna  */
 			/* or OBSGXn.                               */
 
-#define YY_DECL int wcsbth(char *header, int nkeyrec, int relax, int ctrl, \
-                           int keysel, int *colsel, int *nreject, int *nwcs, \
-			   struct wcsprm **wcs)
+static int wcsbth_scanner(char *header, int nkeyrec, int relax, int ctrl,
+                          int keysel, int *colsel, int *nreject, int *nwcs,
+                          struct wcsprm **wcs, yyscan_t yyscanner);
+
+/*--------------------------------------------------------------------------*/
+
+int wcsbth(
+  char *header,
+  int nkeyrec,
+  int relax,
+  int ctrl,
+  int keysel,
+  int *colsel,
+  int *nreject,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  int status;
+  yyscan_t yyscanner;
+  int yylex_init(yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  yylex_init(&yyscanner);
+  status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
+                          nreject, nwcs, wcs, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define YY_DECL int wcsbth_scanner(char *header, int nkeyrec, int relax, \
+ int ctrl, int keysel, int *colsel, int *nreject, int *nwcs, \
+ struct wcsprm **wcs, yyscan_t yyscanner)
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
@@ -216,7 +250,6 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	struct wcsbth_alts alts;
 	struct wcsprm *wcsp, wcstem;
 	int (*special)(double *, double);
-	int yylex_destroy(void);
 	
 	/* The data structures produced. */
 	*nwcs = 0;
@@ -2116,7 +2149,6 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	    if (k && (exclude[n] != exclude[k])) {
 	      /* For keywords such as TCn_ka, both columns must be excluded.
 	         User error, so return immediately. */
-	      yylex_destroy();
 	      return 3;
 	
 	    } else {
@@ -2421,7 +2453,6 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	  if (ipass == 1) {
 	    if ((status = wcsbth_init1(&alts, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
-	      yylex_destroy();
 	      return status;
 	    }
 	
@@ -2458,10 +2489,9 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	    ptype  = ' ';
 	    special = 0x0;
 	
-	    yyrestart(yyin);
+	    yyrestart(yyin, yyscanner);
 	
 	  } else {
-	    yylex_destroy();
 	
 	    if (ctrl < 0) {
 	      *hptr = '\0';
@@ -2736,10 +2766,6 @@ int wcsbth_init1(
       return 2;
     }
 
-    /* Record the current values of NPVMAX and NPSMAX. */
-    npvmax = wcsnpv(-1);
-    npsmax = wcsnps(-1);
-
     /* Initialize each wcsprm struct. */
     wcsp = *wcs;
     *nwcs = 0;
@@ -2749,9 +2775,10 @@ int wcsbth_init1(
           /* Image-header representations that are not for inheritance
              (icol == 0) or binary table image array representations. */
           wcsp->flag = -1;
-          wcsnpv(alts->npv[icol][ialt]);
-          wcsnps(alts->nps[icol][ialt]);
-          if ((status = wcsini(1, (int)(alts->arridx[icol][ialt]), wcsp))) {
+          npvmax = alts->npv[icol][ialt];
+          npsmax = alts->nps[icol][ialt];
+          if ((status = wcsinit(1, (int)(alts->arridx[icol][ialt]), wcsp,
+                                npvmax, npsmax, -1))) {
             wcsvfree(nwcs, wcs);
             break;
           }
@@ -2781,9 +2808,10 @@ int wcsbth_init1(
       if (alts->pixidx[ialt]) {
         /* Pixel lists representations. */
         wcsp->flag = -1;
-        wcsnpv(alts->pixnpv[ialt]);
-        wcsnps(alts->pixnps[ialt]);
-        if ((status = wcsini(1, (int)(alts->pixidx[ialt]), wcsp))) {
+        npvmax = alts->pixnpv[ialt];
+        npsmax = alts->pixnps[ialt];
+        if ((status = wcsinit(1, (int)(alts->pixidx[ialt]), wcsp, npvmax,
+                              npsmax, -1))) {
           wcsvfree(nwcs, wcs);
           break;
         }
@@ -2811,10 +2839,6 @@ int wcsbth_init1(
         alts->pixidx[ialt] = -1;
       }
     }
-
-    /* Restore the original values of NPVMAX and NPSMAX. */
-    wcsnpv(npvmax);
-    wcsnps(npsmax);
   }
 
   return status;

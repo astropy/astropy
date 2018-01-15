@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: wcs.c,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -137,13 +137,32 @@ int wcsnps(int npsmax) { if (npsmax >= 0) NPSMAX = npsmax; return NPSMAX; }
 int wcsini(int alloc, int naxis, struct wcsprm *wcs)
 
 {
-  static const char *function = "wcsini";
+  return wcsinit(alloc, naxis, wcs, -1, -1, -1);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsinit(
+  int alloc,
+  int naxis,
+  struct wcsprm *wcs,
+  int npvmax,
+  int npsmax,
+  int ndpmax)
+
+{
+  static const char *function = "wcsinit";
 
   int i, j, k, status;
   double *cd;
   struct wcserr **err;
 
+  /* Check inputs. */
   if (wcs == 0x0) return WCSERR_NULL_POINTER;
+
+  if (npvmax < 0) npvmax = wcsnpv(-1);
+  if (npsmax < 0) npsmax = wcsnps(-1);
+
 
   /* Initialize error message handling. */
   err = &(wcs->err);
@@ -202,8 +221,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
      wcs->crval == 0x0 ||
      wcs->cunit == 0x0 ||
      wcs->ctype == 0x0 ||
-     (NPVMAX && wcs->pv == 0x0) ||
-     (NPSMAX && wcs->ps == 0x0) ||
+     (npvmax && wcs->pv == 0x0) ||
+     (npsmax && wcs->ps == 0x0) ||
      wcs->cd    == 0x0 ||
      wcs->crota == 0x0 ||
      wcs->colax == 0x0 ||
@@ -214,8 +233,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
     /* Was sufficient allocated previously? */
     if (wcs->m_flag == WCSSET &&
        (wcs->m_naxis < naxis  ||
-        wcs->npvmax  < NPVMAX ||
-        wcs->npsmax  < NPSMAX)) {
+        wcs->npvmax  < npvmax ||
+        wcs->npsmax  < npsmax)) {
       /* No, free it. */
       wcsfree(wcs);
     }
@@ -327,8 +346,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
         wcs->pv = wcs->m_pv;
 
       } else {
-        if (NPVMAX) {
-          if ((wcs->pv = calloc(NPVMAX, sizeof(struct pvcard))) == 0x0) {
+        if (npvmax) {
+          if ((wcs->pv = calloc(npvmax, sizeof(struct pvcard))) == 0x0) {
             wcsfree(wcs);
             return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
           }
@@ -336,7 +355,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
           wcs->pv = 0x0;
         }
 
-        wcs->npvmax  = NPVMAX;
+        wcs->npvmax  = npvmax;
 
         wcs->m_flag  = WCSSET;
         wcs->m_naxis = naxis;
@@ -350,8 +369,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
         wcs->ps = wcs->m_ps;
 
       } else {
-        if (NPSMAX) {
-          if ((wcs->ps = calloc(NPSMAX, sizeof(struct pscard))) == 0x0) {
+        if (npsmax) {
+          if ((wcs->ps = calloc(npsmax, sizeof(struct pscard))) == 0x0) {
             wcsfree(wcs);
             return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
           }
@@ -359,7 +378,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
           wcs->ps = 0x0;
         }
 
-        wcs->npsmax  = NPSMAX;
+        wcs->npsmax  = npsmax;
 
         wcs->m_flag  = WCSSET;
         wcs->m_naxis = naxis;
@@ -479,7 +498,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
   wcs->lin.crpix  = wcs->crpix;
   wcs->lin.pc     = wcs->pc;
   wcs->lin.cdelt  = wcs->cdelt;
-  if ((status = linini(0, naxis, &(wcs->lin)))) {
+  if ((status = lininit(0, naxis, &(wcs->lin), ndpmax))) {
     return wcserr_set(WCS_ERRMSG(wcs_linerr[status]));
   }
 
@@ -758,7 +777,8 @@ int wcssub(
   }
 
   if ((*nsub = msub) == 0) {
-    status = wcsini(alloc, 0, wcsdst);
+    /* Zero out this struct. */
+    status = wcsinit(alloc, 0, wcsdst, 0, 0, 0);
     goto cleanup;
   }
 
@@ -873,8 +893,6 @@ int wcssub(
       npvmax++;
     }
   }
-  npv = wcsnpv(-1);
-  wcsnpv(npvmax);
 
   /* Number of PSi_ma records in the subimage. */
   npsmax = 0;
@@ -884,15 +902,9 @@ int wcssub(
       npsmax++;
     }
   }
-  nps = wcsnps(-1);
-  wcsnps(npsmax);
-
-  /* Number of distortion parameters, if any. */
-  ndp = disndp(-1);
-  disndp(ndpmax);
 
   /* Initialize the destination. */
-  status = wcsini(alloc, *nsub, wcsdst);
+  status = wcsinit(alloc, *nsub, wcsdst, npvmax, npsmax, ndpmax);
 
   for (m = 0; m < 2; m++) {
     if (m == 0) {
@@ -910,14 +922,9 @@ int wcssub(
 
       /* Also inits disdst. */
       disdst->flag = -1;
-      lindis(m+1, &(wcsdst->lin), disdst);
+      lindist(m+1, &(wcsdst->lin), disdst, ndpmax);
     }
   }
-
-  /* Reset NPVMAX, NPSMAX, and NDPMAX. */
-  wcsnpv(npv);
-  wcsnps(nps);
-  disndp(ndp);
 
   if (status) {
     goto cleanup;
@@ -1017,7 +1024,7 @@ int wcssub(
         *dstp = *(srcp+k);
       } else if (i == j && wcssrc->altlin & 2) {
         /* A new axis is being created where CDi_ja was present in the input
-           header, so override the default value of 0 set by wcsini(). */
+           header, so override the default value of 0 set by wcsinit(). */
         *dstp = 1.0;
       }
     }
@@ -1383,7 +1390,7 @@ int wcsfree(struct wcsprm *wcs)
     wcs->lin.flag = -1;
 
   } else {
-    /* Optionally allocated by wcsini() for given parameters. */
+    /* Optionally allocated by wcsinit() for given parameters. */
     if (wcs->m_flag == WCSSET) {
       if (wcs->crpix == wcs->m_crpix) wcs->crpix = 0x0;
       if (wcs->pc    == wcs->m_pc)    wcs->pc    = 0x0;
@@ -1948,22 +1955,19 @@ int wcsset(struct wcsprm *wcs)
         return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
       }
 
-      ndpmax = disndp(-1);
-      disndp(6+wcs->npv);
+      ndpmax = 6 + wcs->npv;
 
       /* Attach it to linprm.  Also inits it. */
       dis->flag = -1;
       if (strncmp(wcsprj->code, "TPU", 3) == 0) {
         /* Prior distortion. */
-        lindis(1, wcslin, dis);
+        lindist(1, wcslin, dis, ndpmax);
         strcpy(dpq, "DP");
       } else {
         /* Sequent distortion. */
-        lindis(2, wcslin, dis);
+        lindist(2, wcslin, dis, ndpmax);
         strcpy(dpq, "DQ");
       }
-
-      disndp(ndpmax);
 
       /* Yes, the distortion type is "TPV" even for TPU. */
       strcpy(dis->dtype[wcs->lng], "TPV");

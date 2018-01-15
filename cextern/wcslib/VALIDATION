@@ -1,5 +1,15 @@
 Platforms on which the installation procedures and test suite were exercised.
 
+WCSLIB version 5.18 (2018/01/10)
+--------------------------------
+
+* Dell Latitude XPS 15 9560 (Intel Core i7-7700HQ, 4 cores, 8 CPUs, x86_64)
+  KDE Neon User Edition 5.11 (over Kubuntu 16.04, (xenial))
+  uname -r (kernel version): 4.10.0-40-generic
+  gcc --version: gcc (Ubuntu 5.4.0-6ubuntu1~16.04.5) 5.4.0 20160609
+  gfortran --version: GNU Fortran (Ubuntu 5.4.0-6ubuntu1~16.04.5) 5.4.0 20160609
+
+
 WCSLIB version 5.17 (2017/09/18)
 --------------------------------
 
@@ -527,4 +537,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 5.17 2017/09/18 08:44:25 mcalabre Exp $
+$Id: VALIDATION,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
