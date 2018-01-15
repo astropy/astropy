@@ -15,7 +15,8 @@ Python 3.
 
 In particular, this release includes:
 
-* :ref:`whatsnew-3.0-velocities-skycoord-gaia`
+* :ref:`whatsnew-3.0-velocities-skycoord-vel`
+* :ref:`whatsnew-3.0-velocities-skycoord-space-motion`
 * :ref:`whatsnew-3.0-constants-contextmanager`
 * :ref:`whatsnew-3.0-showtable`
 * :ref:`whatsnew-3.0-hdf5-mixins`
@@ -35,7 +36,7 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v2.0
 * xxx distinct people have contributed code
 
-.. _whatsnew-3.0-velocities-skycoord-gaia:
+.. _whatsnew-3.0-velocities-skycoord-vel:
 
 Full support for velocities in ``astropy.coordinates``
 ======================================================
@@ -55,6 +56,12 @@ system::
         ( 159.1426742,  12.46482854)
      (pm_l_cosb, pm_b) in mas / yr
         ( 23.48718747,  114.96674312)>
+
+
+.. _whatsnew-3.0-velocities-skycoord-space-motion:
+
+Support for position updates based on source motion for ``SkyCoord`` objects
+============================================================================
 
 :class:`~astropy.coordinates.SkyCoord` now also has a method for computing the
 position of a source at a new epoch, given position and some velocity data at a
