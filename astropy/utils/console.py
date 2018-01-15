@@ -386,51 +386,6 @@ def strip_ansi_codes(s):
     """
     return re.sub('\033\\[([0-9]+)(;[0-9]+)*m', '', s)
 
-def human_help(quantity,detail=False):
-    """
-    Return value in a human readable unit
-
-    Parameters
-    ----------
-    quantity:
-        Value to be converted to human readable unit.
-
-    detail:bool
-        choice of user to get list of all human readable units
-        or to get only the most appropriate unit.
-    """
-    from astropy import units as u
-    from astropy.units import get_current_unit_registry
-    ureg = get_current_unit_registry()
-    units = []
-    if quantity.si.unit==u.s and quantity.si.value>1 :
-        if detail==False :
-            if quantity.si.value>=60 and quantity.si.value<60*60 :
-                return quantity.to(u.min)
-            if quantity.si.value >= 60*60 and quantity.si.value<60*60*24 :
-                return quantity.to(u.hr)
-            if quantity.si.value >= 60*60*24 and quantity.si.value<60*60*24*365 :
-                return quantity.to(u.day)
-            if quantity.si.value >= 60*60*24*365 :
-                return quantity.to(u.yr)
-            else:
-                return quantity.si
-        else:
-            return human_time(quantity.si.value)
-    else:
-        unit_list=ureg.get_units_with_physical_type(quantity.unit)
-        for unit in unit_list:
-            value=quantity.to(unit)
-            if value.value>=1 and value.value<1000:
-                units.append(value)
-        if detail==False :
-            for options in units:
-                for nos in range(-5,6):
-                    if (1000**nos)==(options.value/quantity.value):
-                        return options
-        else:
-            return units
-
 def human_time(seconds):
     """
     Returns a human-friendly time string that is always exactly 6
