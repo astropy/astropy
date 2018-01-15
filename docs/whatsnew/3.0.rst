@@ -81,7 +81,8 @@ position at a future epoch to observe the source. We can do this with
      (pm_ra, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
         ( 186.49295097,  34.99973279,  0.00010443)>
 
-See :ref:`astropy-coordinates-apply-space-motion` for more information.
+For a more in-depth example and more explanation of this feature, see
+:ref:`astropy-coordinates-apply-space-motion`.
 
 
 .. _whatsnew-3.0-constants-contextmanager:
