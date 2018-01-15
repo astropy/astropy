@@ -406,6 +406,7 @@ Using `astropy.convolution`
    using.rst
    kernels.rst
    non_normalized_kernels.rst
+   performance.rst
 
 Reference/API
 =============

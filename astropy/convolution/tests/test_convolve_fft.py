@@ -428,9 +428,8 @@ class TestConvolve2D:
             answer_key += '_withzeros'
 
         a = answer_dict[answer_key]
-        # for reasons unknown, the Windows FFT returns an answer for the [0, 0]
-        # component that is EXACTLY 10*np.spacing
-        assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
+        # NULP is dependent on fft size
+        assert_array_almost_equal_nulp(z, a, 20)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_3x3_withnan(self, boundary, nan_treatment,
@@ -537,9 +536,8 @@ class TestConvolve2D:
             answer_key += '_interpnan'
 
         a = answer_dict[answer_key]
-        # for reasons unknown, the Windows FFT returns an answer for the [0, 0]
-        # component that is EXACTLY 10*np.spacing
-        assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
+        # NULP is dependent on fft size
+        assert_array_almost_equal_nulp(z, a, 20)
 
     def test_big_fail(self):
         """ Test that convolve_fft raises an exception if a too-large array is passed in """

@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 from functools import partial
+from scipy.fftpack import next_fast_len
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
@@ -15,6 +16,8 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
+
+from astropy import log
 
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -360,9 +363,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
 
-            * 'fill': set values outside the array boundary to fill_value
+            * ``'fill'``: set values outside the array boundary to fill_value
               (default)
-            * 'wrap': periodic boundary
+            * ``'wrap'``: periodic boundary
+            * `None`: Use other parameters (psf_pad, fft_pad) to set the edge
+              behavior
 
         The `None` and 'extend' parameters are not supported for FFT-based
         convolution
@@ -592,7 +597,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         # create a boundary region at least as large as the kernel
         if psf_pad is False:
             warnings.warn("psf_pad was set to {0}, which overrides the "
-                          "boundary='fill' setting.".format(psf_pad),
+                          "boundary='fill' setting.  This may produce "
+                          "surprising results.".format(psf_pad),
                           AstropyUserWarning)
         else:
             psf_pad = True
@@ -611,25 +617,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    # find ideal size (power of 2) for fft.
-    # Can add shapes because they are tuples
-    if fft_pad:  # default=True
-        if psf_pad:  # default=False
-            # add the dimensions and then take the max (bigger)
-            fsize = 2 ** np.ceil(np.log2(
-                np.max(np.array(arrayshape) + np.array(kernshape))))
-        else:
-            # add the shape lists (max of a list of length 4) (smaller)
-            # also makes the shapes square
-            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
-    else:
-        if psf_pad:
-            # just add the biggest dimensions
-            newshape = np.array(arrayshape) + np.array(kernshape)
-        else:
-            newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in zip(arrayshape, kernshape)])
+    # find ideal size (power of 2, 3, and/or 5) for fft.
+    shapestack = np.vstack([arrayshape, kernshape])
+    newshape = determine_shape(shapestack, fft_pad=fft_pad, psf_pad=psf_pad)
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
@@ -813,3 +803,25 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         raise ValueError('Mode {} is not supported.'.format(mode))
 
     return _CompoundModelMeta._from_operator(mode, model, kernel)
+
+def determine_shape(shapestack, psf_pad=True, fft_pad=True):
+
+    # Can add shapes because they are tuples
+    if fft_pad:  # default=True
+        if psf_pad:  # default=False
+            # add the dimensions and then take the max (bigger)
+            biggestdim = np.sum(shapestack, axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
+        else:
+            # concatenate the shape lists (max of a list of length 4) (smaller)
+            biggestdim = np.max(shapestack, axis=0)
+            newshape = [next_fast_len(x) for x in biggestdim]
+    else:
+        if psf_pad:
+            # just add the biggest dimensions
+            newshape = np.sum(shapestack, axis=0)
+        else:
+            # bigger of the two in each dimension
+            newshape = np.max(shapestack, axis=0)
+
+    return newshape

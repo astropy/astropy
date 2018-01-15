@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import time
+
 import numpy as np
+from astropy import units as u
 
 from ..modeling.core import FittableModel, custom_model
 
@@ -296,3 +299,248 @@ def discretize_integrate_2D(model, x_range, y_range):
             values[j, i] = dblquad(lambda y, x: model(x, y), x[i], x[i + 1],
                                    lambda x: y[j], lambda x: y[j + 1])[0]
     return values
+
+def profile_memory_usage_convolve_fft(sizes=[10,50,100,128,200,256,300,512],
+                                      kernelsizefractions=[1./8., 1./4., 1./2., 1],
+                                      dtype='float64',
+                                      complex_dtype='complex',
+                                     ):
+    """
+    Utility to profile the memory usage of convolve_fft.  Will loop over a
+    range of parameters and image sizes and keep track of how much memory is
+    used and how long the convolutions take.
+
+    Requires memory_profiler and timeit
+
+    Parameters
+    ----------
+    sizes : list
+        List of symmetric 2D image sizes.  i.e., a size of 256 implies a
+        256x256 image.
+    kernelsizefractions : list
+        List of floats.  Each image will be convolved with a kernel of size
+        ``(size * kernelsizefraction)``.  These should be <1 in general.
+    dtype : str
+        The dtype of the arrays to be convolved.  The default is 'float64',
+        as with numpy, but changing this will change the initial amount of
+        memory located.  Using a smaller ``dtype`` (e.g., ``float32`) may
+        result in a *larger* memory use within convolve_fft, unless
+        ``complex_dtype`` is also set to be lower.
+    complex_dtype : str
+        The dtype to use during the convolution.  Options range from
+        ``complex32`` to ``complex256``.
+    """
+    from memory_profiler import memory_usage
+    import timeit
+
+    # this can't be imported at module level because... I don't know why.
+    from .convolve import convolve_fft, convolve
+
+    results = []
+
+    for size in sizes:
+        kernelsizes = [int(np.ceil(size * ksv)) for ksv in kernelsizefractions]
+        for kernelsize,kernelsizefraction in zip(kernelsizes,kernelsizefractions):
+            for psf_pad in (True,False):
+                for fft_pad in (True,False):
+                    for convolver in ('convolve', 'convolve_fft'):
+                        
+                        if kernelsize % 2 == 0:
+                            # required for direct convolution
+                            kernelsize = kernelsize - 1
+                            if kernelsize == 0:
+                                kernelsize = 1
+
+                        x=np.ones([size,size], dtype=dtype)
+                        y=np.ones([kernelsize,kernelsize], dtype=dtype)
+
+                        # time the memory profiling test to determine how many
+                        # times to repeat the timing profiling later
+                        t0 = time.time()
+                        # this checks the memory usage many times over the course of the function call
+                        try:
+                            if convolver == 'convolve_fft':
+                                memuse = memory_usage((convolve_fft, (x,y,),
+                                                       dict(psf_pad=psf_pad,
+                                                            fft_pad=fft_pad,
+                                                            complex_dtype=complex_dtype,
+                                                            boundary=None)),
+                                                      interval=0.01)
+                            else:
+                                memuse = memory_usage((convolve, (x,y,),
+                                                       dict(boundary=None)),
+                                                      interval=0.01)
+                        except ValueError:
+                            # don't crash if the files get to be too large
+                            continue
+                        peak_memuse = (max(memuse)-min(memuse))*u.MB
+
+                        if time.time() - t0 < 1:
+                            # for tests that go fast, repeat them a few times for robustness' sake
+                            number = 10
+                        else:
+                            # for tests that go slow, do them once - we're accurate enough already
+                            number = 1
+
+                        timersetup = ('from astropy.convolution import {convolver}; import numpy as np;'
+                                      'x=np.ones([{size},{size}], dtype="{dtype}");'
+                                      'y=np.ones([{kernelsize},{kernelsize}], dtype="{dtype}");')
+                        if convolver == 'convolve_fft':
+                            timercall = ('convolve_fft(x,y,psf_pad={psf_pad},fft_pad={fft_pad},'
+                                         ' complex_dtype="{complex_dtype}", boundary=None)')
+                        elif convolver == 'convolve':
+                            timercall = ('convolve(x,y, boundary=None)')
+
+                        timeuse = timeit.repeat(timercall.format(psf_pad=psf_pad,
+                                                                 fft_pad=fft_pad,
+                                                                 convolver=convolver,
+                                                                 complex_dtype=complex_dtype),
+                                                setup=(timersetup.format(size=size,
+                                                                         convolver=convolver,
+                                                                         kernelsize=kernelsize,
+                                                                         dtype=dtype)),
+                                                repeat=3, number=number)
+
+                        these_results = {'peak_memuse':peak_memuse,
+                                         'psf_pad': psf_pad,
+                                         'fft_pad': fft_pad,
+                                         'size': size,
+                                         'kernelsize': kernelsize,
+                                         'size_mb': (x.nbytes*u.byte).to(u.MB),
+                                         'kernelsize_mb': (y.nbytes*u.byte).to(u.MB),
+                                         'meantime': np.mean(timeuse)*u.s,
+                                         'kernelsizefraction': kernelsizefraction,
+                                         'convolver': convolver,
+                                         }
+
+
+                        print("convolver={convolver:12} psf_pad={psf_pad:2}, fft_pad={fft_pad:2}, size={size:5d}  kernelsize={kernelsize:5d}"
+                              " Mem usage max={peak_memuse:8.1f}.  Array, kernel size are {size_mb:5.1f} and {kernelsize_mb:5.1f}."
+                              " Time use was {meantime:6.3f}"
+                              .format(**these_results))
+
+                        results.append(these_results)
+
+    return results
+
+def plot_convolve_fft_profiling_results(results):
+    """
+    Create a plot of the results from profile_memory_usage_convolve_fft
+    """
+    import pylab as pl
+
+    # fig = pl.figure(1, figsize=(14,8))
+    # fig.clf()
+    # ax1 = fig.add_subplot(2,1,1)
+    # ax2 = fig.add_subplot(2,1,2)
+
+    kernelsizefractions = list(set([x['kernelsizefraction'] for x in results]))
+
+    phasefig = pl.figure(5)
+    phasefig.clf()
+    phaseax = phasefig.gca()
+
+
+    labeltemplate1 = "psf={psf:1} fft={fft:1} KSV={ksv:0.3f} {convolver}"
+    labeltemplate = "KSV={ksv:0.3f} {convolver}"
+    # kept for possible future reuse, but this is still too crowded
+    styles = {(True,False): '--',
+              (True,True): '-',
+              (False,True): ":",
+              (False,False): "-."}
+    figure = {(True,False): pl.figure(1, figsize=(12,8)),
+              (True,True): pl.figure(2, figsize=(12,8)),
+              (False,True): pl.figure(3, figsize=(12,8)),
+              (False,False): pl.figure(4, figsize=(12,8)),
+             }
+    axes = {}
+    for ind,fig in figure.items():
+        fig.clf()
+        fig.suptitle("psf_pad={0} fft_pad={1}".format(str(ind[0]), str(ind[1])))
+        ax1 = fig.add_subplot(2,1,1)
+        ax2 = fig.add_subplot(2,1,2)
+        axes[ind] = (ax1,ax2)
+
+    for convolver, linestyle in [('convolve','--'), ('convolve_fft','-')]:
+        for kernelsizefraction in kernelsizefractions:
+            for psf_pad in (True,False):
+                for fft_pad in (True,False):
+
+                    sizes = np.array([x['size']
+                                      for x in results
+                                      if (x['psf_pad'] == psf_pad and
+                                          x['fft_pad'] == fft_pad and
+                                          x['convolver'] == convolver and
+                                          x['kernelsizefraction'] == kernelsizefraction)])
+                    times = np.array([x['meantime'].value
+                                      for x in results
+                                      if (x['psf_pad'] == psf_pad and
+                                          x['fft_pad'] == fft_pad and
+                                          x['convolver'] == convolver and
+                                          x['kernelsizefraction'] == kernelsizefraction)])
+                    memus = np.array([x['peak_memuse'].value
+                                      for x in results
+                                      if (x['psf_pad'] == psf_pad and
+                                          x['fft_pad'] == fft_pad and
+                                          x['convolver'] == convolver and
+                                          x['kernelsizefraction'] == kernelsizefraction)])
+                    if len(sizes) == 0:
+                        continue
+
+                    ax1,ax2 = axes[(psf_pad, fft_pad)]
+                    ax1.plot(sizes, times, label=labeltemplate.format(psf=str(psf_pad)[0],
+                                                                      fft=str(fft_pad)[0],
+                                                                      convolver=convolver,
+                                                                      ksv=kernelsizefraction),
+                             #linestyle=styles[(psf_pad,fft_pad)],
+                             linestyle=linestyle,
+                             linewidth=2.0,
+                             alpha=0.5,
+                            )
+                    ax2.plot(sizes, memus, label=labeltemplate.format(psf=str(psf_pad)[0],
+                                                                      fft=str(fft_pad)[0],
+                                                                      convolver=convolver,
+                                                                      ksv=kernelsizefraction),
+                             #linestyle=styles[(psf_pad,fft_pad)],
+                             linestyle=linestyle,
+                             linewidth=2.0,
+                             alpha=0.5,
+                            )
+
+                    phaseax.plot(memus, times, 'o',
+                                 label=labeltemplate1.format(psf=str(psf_pad)[0],
+                                                             fft=str(fft_pad)[0],
+                                                             convolver=convolver,
+                                                             ksv=kernelsizefraction),
+                                 markeredgecolor='none', alpha=0.5)
+
+
+    for ind,fig in figure.items():
+        ax1,ax2 = axes[ind]
+        ax1.set_ylabel("Execution time (s)")
+        ax2.set_ylabel("Peak memory use (MB)")
+        ax2.set_xlabel("1D size of image")
+
+        for ax in (ax1,ax2):
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+            xmax = np.max([L.get_data()[0].max() for L in ax.get_lines()])
+            ax.set_xlim(1e-4, xmax)
+            ymax = np.max([L.get_data()[1].max() for L in ax.get_lines()])
+            ax.set_ylim(1e-4, ymax*1.1)
+
+        ax1.set_yscale('log')
+
+        ax1.legend(loc='center left', bbox_to_anchor=(1.05, 0.50))
+        #ax2.legend(loc='best', bbox_to_anchor)
+
+    box = phaseax.get_position()
+    xmax = np.max([L.get_data()[0].max() for L in phaseax.get_lines()])
+    phaseax.set_xlim(1e-4, xmax)
+    ymax = np.max([L.get_data()[1].max() for L in phaseax.get_lines()])
+    phaseax.set_ylim(1e-4, ymax*1.1)
+    phaseax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+
+    phaseax.set_ylabel("Execution time (s)")
+    phaseax.set_xlabel("Peak memory use (MB)")
+    phaseax.legend(loc='center left', bbox_to_anchor=(1.05, 0.50))
