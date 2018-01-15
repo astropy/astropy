@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 5.17 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2017, Mark Calabretta
+  WCSLIB 5.18 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2018, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 5.17 2017/09/18 08:44:23 mcalabre Exp $
+  $Id: lin.h,v 5.18 2018/01/10 08:32:14 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.17 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.18 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -43,8 +43,9 @@
 * set by the user, and others that are maintained by these routines, somewhat
 * like a C++ class but with no encapsulation.
 *
-* Four routines, linini(), lindis(), lincpy(), and linfree() are provided to
-* manage the linprm struct, and another, linprt(), prints its contents.
+* Six routines, linini(), lininit(), lindis(), lindist() lincpy(), and
+* linfree() are provided to manage the linprm struct, and another, linprt(),
+* prints its contents.
 *
 * linperr() prints the error message(s) (if any) stored in a linprm struct,
 * and the disprm structs that it may contain.
@@ -65,13 +66,21 @@
 *
 * linini() - Default constructor for the linprm struct
 * ----------------------------------------------------
-* linini() allocates memory for arrays in a linprm struct and sets all members
-* of the struct to default values.
+* linini() is a thin wrapper on lininit().  It invokes it with ndpmax set
+* to -1 which causes it to use the value of the global variable NDPMAX.  It
+* is thereby potentially thread-unsafe if NDPMAX is altered dynamically via
+* disndp().  Use lininit() for a thread-safe alternative in this case.
 *
-* PLEASE NOTE: every linprm struct must be initialized by linini(), possibly
+*
+* lininit() - Default constructor for the linprm struct
+* -----------------------------------------------------
+* lininit() allocates memory for arrays in a linprm struct and sets all
+* members of the struct to default values.
+*
+* PLEASE NOTE: every linprm struct must be initialized by lininit(), possibly
 * repeatedly.  On the first invokation, and only the first invokation,
 * linprm::flag must be set to -1 to initialize memory management, regardless
-* of whether linini() will actually be used to allocate memory.
+* of whether lininit() will actually be used to allocate memory.
 *
 * Given:
 *   alloc     int       If true, allocate memory unconditionally for arrays in
@@ -94,6 +103,13 @@
 *                       (memory leaks may result if it had already been
 *                       initialized).
 *
+* Given:
+*   ndpmax    int       The number of DPja or DQia keywords to allocate space
+*                       for.  If set to -1, the value of the global variable
+*                       NDPMAX will be used.  This is potentially
+*                       thread-unsafe if disndp() is being used dynamically to
+*                       alter its value.
+*
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
@@ -106,17 +122,26 @@
 *
 * lindis() - Assign a distortion to a linprm struct
 * -------------------------------------------------
-* lindis() may be used to assign the address of a disprm struct to
+* lindis() is a thin wrapper on lindist().   It invokes it with ndpmax set
+* to -1 which causes the value of the global variable NDPMAX to be used (by
+* disinit()).  It is thereby potentially thread-unsafe if NDPMAX is altered
+* dynamically via disndp().  Use lindist() for a thread-safe alternative in
+* this case.
+*
+*
+* lindist() - Assign a distortion to a linprm struct
+* --------------------------------------------------
+* lindist() may be used to assign the address of a disprm struct to
 * linprm::dispre or linprm::disseq.  The linprm struct must already have been
-* initialized by linini().
+* initialized by lininit().
 *
 * The disprm struct must have been allocated from the heap (e.g. using
-* malloc(), calloc(), etc.).  lindis() will immediately initialize it via a
+* malloc(), calloc(), etc.).  lindist() will immediately initialize it via a
 * call to disini() using the value of linprm::naxis.  Subsequently, it will be
-* reinitialized by calls to linini(), and freed by linfree(), neither of which
-* would happen if the disprm struct was assigned directly.
+* reinitialized by calls to lininit(), and freed by linfree(), neither of
+* which would happen if the disprm struct was assigned directly.
 *
-* If the disprm struct had previously been assigned via lindis(), it will be
+* If the disprm struct had previously been assigned via lindist(), it will be
 * freed before reassignment.  It is also permissable for a null disprm pointer
 * to be assigned to disable the distortion correction.
 *
@@ -134,6 +159,13 @@
 *   dis       struct disprm*
 *                       Distortion function parameters.
 *
+* Given:
+*   ndpmax    int       The number of DPja or DQia keywords to allocate space
+*                       for.  If set to -1, the value of the global variable
+*                       NDPMAX will be used.  This is potentially
+*                       thread-unsafe if disndp() is being used dynamically to
+*                       alter its value.
+*
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
@@ -143,8 +175,8 @@
 *
 * lincpy() - Copy routine for the linprm struct
 * ---------------------------------------------
-* lincpy() does a deep copy of one linprm struct to another, using linini() to
-* allocate memory for its arrays if required.  Only the "information to be
+* lincpy() does a deep copy of one linprm struct to another, using lininit()
+* to allocate memory for its arrays if required.  Only the "information to be
 * provided" part of the struct is copied; a call to linset() is required to
 * initialize the remainder.
 *
@@ -176,12 +208,12 @@
 *
 * linfree() - Destructor for the linprm struct
 * --------------------------------------------
-* linfree() frees memory allocated for the linprm arrays by linini() and/or
-* linset().  linini() keeps a record of the memory it allocates and linfree()
+* linfree() frees memory allocated for the linprm arrays by lininit() and/or
+* linset().  lininit() keeps a record of the memory it allocates and linfree()
 * will only attempt to free this.
 *
 * PLEASE NOTE: linfree() must not be invoked on a linprm struct that was not
-* initialized by linini().
+* initialized by lininit().
 *
 * Given:
 *   lin       struct linprm*
@@ -426,7 +458,7 @@
 *     returned members of the linprm struct.  linset() will reset flag to
 *     indicate that this has been done.
 *
-*     PLEASE NOTE: flag should be set to -1 when linini() is called for the
+*     PLEASE NOTE: flag should be set to -1 when lininit() is called for the
 *     first time for a particular linprm struct in order to initialize memory
 *     management.  It must ONLY be used on the first initialization otherwise
 *     memory leaks may result.
@@ -434,7 +466,7 @@
 *   int naxis
 *     (Given or returned) Number of pixel and world coordinate elements.
 *
-*     If linini() is used to initialize the linprm struct (as would normally
+*     If lininit() is used to initialize the linprm struct (as would normally
 *     be the case) then it will set naxis from the value passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
@@ -480,7 +512,7 @@
 *     (Given) Pointer to a disprm struct holding parameters for prior
 *     distortion functions, or a null (0x0) pointer if there are none.
 *
-*     Function lindis() may be used to assign a disprm pointer to a linprm
+*     Function lindist() may be used to assign a disprm pointer to a linprm
 *     struct, allowing it to take control of any memory allocated for it, as
 *     in the following example:
 *
@@ -490,7 +522,7 @@
 =
 =         dispre = malloc(sizeof(struct disprm));
 =         dispre->flag = -1;
-=         lindis(1, lin, dispre);
+=         lindist(1, lin, dispre, ndpmax);
 =           :
 =          (Set up dispre.)
 =           :
@@ -499,7 +531,7 @@
 =       }
 *
 *     Here, after the distortion function parameters etc. are copied into
-*     dispre, dispre is assigned using lindis() which takes control of the
+*     dispre, dispre is assigned using lindist() which takes control of the
 *     allocated memory.  It will be free'd later when linfree() is invoked on
 *     the linprm struct.
 *
@@ -510,7 +542,7 @@
 =         struct disprm dispre;
 =
 =         dispre.flag = -1;
-=         lindis(1, lin, &dispre);   // WRONG.
+=         lindist(1, lin, &dispre, ndpmax);   // WRONG.
 =           :
 =
 =         return;
@@ -638,7 +670,11 @@ struct linprm {
 
 int linini(int alloc, int naxis, struct linprm *lin);
 
+int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax);
+
 int lindis(int sequence, struct linprm *lin, struct disprm *dis);
+
+int lindist(int sequence, struct linprm *lin, struct disprm *dis, int ndpmax);
 
 int lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst);
 
