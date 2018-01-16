@@ -16,6 +16,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Additional information about a site loaded from the Astropy sites registry is
+  now available in ``EarthLocation.info.meta``. [#7083]
+  
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -486,8 +489,8 @@ astropy.coordinates
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
 
-- As noted above, the frame class attributes ``representation`` and 
-  ``differential_cls`` are being replaced by ``representation_type`` and 
+- As noted above, the frame class attributes ``representation`` and
+  ``differential_cls`` are being replaced by ``representation_type`` and
   ``differential_type``. In the next version, using ``representation`` will raise
   a deprecation warning. [#6873]
 
