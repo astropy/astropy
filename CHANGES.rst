@@ -486,8 +486,8 @@ astropy.coordinates
   ensure that any angle was presented in degrees in sky coordinates and
   frames. This is more logically done in the frame itself. [#6858]
 
-- As noted above, the frame class attributes ``representation`` and 
-  ``differential_cls`` are being replaced by ``representation_type`` and 
+- As noted above, the frame class attributes ``representation`` and
+  ``differential_cls`` are being replaced by ``representation_type`` and
   ``differential_type``. In the next version, using ``representation`` will raise
   a deprecation warning. [#6873]
 
@@ -749,6 +749,10 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
+  means that future revisions to the file with unicode observatory names can
+  be done without breaking the site registry parser.  [#7082]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
