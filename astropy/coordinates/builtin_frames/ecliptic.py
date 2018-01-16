@@ -29,10 +29,10 @@ doc_components_ecl = """
     pm_lat : `Angle`, optional, must be keyword
         The proper motion in the ecliptic latitude for this object
         (``pm_lon_coslat`` must also be given).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
-        The distance for this object from the {0}.
-        (``representation`` must be None).
+    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+        The radial velocity of this object.
 """
+
 
 @format_doc(base_doc,
             components=doc_components_ecl.format('specified location'),
