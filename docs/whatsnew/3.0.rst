@@ -25,8 +25,6 @@ In particular, this release includes:
 * :ref:`whatsnew-3.0-python3`
 * :ref:`whatsnew-3.0-pytest-plugins`
 
-
-
 In addition to these major changes, Astropy 3.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
@@ -46,6 +44,23 @@ Full support for velocities in ``astropy.coordinates``
 Context managers for versioned ``astropy.constants``
 ====================================================
 
+The context manager :func:`~astropy.constants.set_enabled_constants` is now
+available for temporarily switching to an older version of constants::
+
+    >>> from astropy import constants as const
+    >>> with const.set_enabled_constants('astropyconst13'):
+    ...     print(const.h)
+      Name   = Planck constant
+      Value  = 6.62606957e-34
+      Uncertainty  = 2.9e-41
+      Unit  = J s
+      Reference = CODATA 2010
+    >>> print(const.h)
+      Name   = Planck constant
+      Value  = 6.62607004e-34
+      Uncertainty  = 8.1e-42
+      Unit  = J s
+      Reference = CODATA 2014
 
 .. _whatsnew-3.0-showtable:
 
