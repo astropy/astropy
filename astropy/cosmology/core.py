@@ -1798,6 +1798,13 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             """Calculate comoving distance using incomplete elliptic integration
             """
+            if isiterable(z1):
+                z1 = np.asarray(z1)
+                z2 = np.asarray(z2)
+                if z1.shape != z2.shape:
+                    msg = "In _comoving_distance_z1z2: z1 and z2 have different lengths"
+                    raise ValueError(msg)
+
             s = ((1-self._Om0)/self._Om0) ** (1/3)
             prefactor = self._hubble_distance / sqrt(s*self._Om0)
             return prefactor * (T_legendre(s/(1+z1)) - T_legendre(s/(1+z2)))
