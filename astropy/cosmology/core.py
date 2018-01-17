@@ -1752,6 +1752,61 @@ class FlatLambdaCDM(LambdaCDM):
                                            self._nmasslessnu,
                                            self._nu_y_list)
 
+    def _comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
+        the comoving distance can be directly calculated as an elliptic integral.
+        We thus override the FLRW._comoving_distance_z1z2 here to provide a wrapper to catch this case.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+
+        def T_legendre(x):
+            """ Compute T(x) using Legendre elliptical integrals of the first kind.
+
+            T(x) = 3^{-\\frac{1}{4}}
+                   F\\left(arccos\\left(\\frac{1+(1-\\sqrt{3}x}{1+(1+\\sqrt{3})x}\\right),
+                          \\cos\\frac{\\pi}{12}\\right)
+            where
+            F(phi, m) = int_0^phi {1/sqrt(1 - m \\sin^2{t})} dt
+            """
+
+            from scipy.special import ellipkinc
+            F = ellipkinc
+            # math.sqrt is several times faster than np.sqrt for scalars
+            phi = np.arccos((1 + (1-sqrt(3))*x) /
+                            (1 + (1+sqrt(3))*x))
+            k = np.cos(np.pi/12)
+            m = k*k  # np.cos(np.pi/12)**2 == 1/2 + math.sqrt(3)/4
+            # ellipkinc expects m=k*k as its second argument.
+            return 3**(-1./4) * F(phi, m)
+
+        if self._Tcmb0.value == 0:
+            """Calculate comoving distance using incomplete elliptic integration
+            """
+            s = ((1-self._Om0)/self._Om0) ** (1/3)
+            prefactor = self._hubble_distance / sqrt(s*self._Om0)
+            return prefactor * (T_legendre(s/(1+z1)) - T_legendre(s/(1+z2)))
+
+        from scipy.integrate import quad
+        f = lambda z1, z2: quad(self._inv_efunc_scalar, z1, z2,
+                             args=self._inv_efunc_scalar_args)[0]
+        return self._hubble_distance * vectorize_if_needed(f, z1, z2)
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
