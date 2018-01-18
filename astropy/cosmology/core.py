@@ -1763,6 +1763,12 @@ class FlatLambdaCDM(LambdaCDM):
 
         For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
         the comoving distance can be directly calculated as an elliptic integral.
+        See
+            Feige, 1992, Astron. Nachr., 313, 139.
+            Eisenstein, 1997, arXiv:9709054v2
+            Mészáros & Řípai 2013, A&A, 556, A13.
+        and a useful summary in
+            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
 
         Parameters
         ----------
