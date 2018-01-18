@@ -47,7 +47,7 @@ def test_inverse_transforms(tmpdir):
     def check(ff):
         assert ff.tree['rotation'].inverse.angle == 45
 
-    helpers.assert_roundtrip_tree(tree, tmpdir, check)
+    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.parametrize(('model'), test_models)
@@ -61,7 +61,7 @@ def test_name(tmpdir):
         assert ff.tree['rot'].name == 'foo'
 
     tree = {'rot': astmodels.Rotation2D(23, name='foo')}
-    helpers.assert_roundtrip_tree(tree, tmpdir, check)
+    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
 def test_zenithal_with_arguments(tmpdir):
@@ -83,7 +83,7 @@ def test_naming_of_compound_model(tmpdir):
     tree = {
         'model': model
     }
-    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=asdf_check)
 
 
 def test_generic_projections(tmpdir):
