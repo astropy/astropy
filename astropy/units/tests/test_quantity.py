@@ -1443,3 +1443,10 @@ def test_unit_class_override():
     assert type(q1) is u.Quantity
     q2 = u.Quantity(1., my_unit, subok=True)
     assert type(q2) is MyQuantity
+
+def test_human_readable_unit():
+    assert u.utils.human_readable(10000*u.s,unit='prefix').value==((10000*u.s).to(u.hr)).value
+    assert u.utils.human_readable(10000*u.s,unit='None')==str(10000*u.s)
+    assert u.utils.human_readable(10000*u.s,unit='human')==" 2h46m"
+    assert u.utils.human_readable(1234567*u.m,unit='prefix').value==((1234567*u.m).to(u.Mm)).value
+    assert u.utils.human_readable(1234567*u.m,unit='human')== "1.235 Mm"
