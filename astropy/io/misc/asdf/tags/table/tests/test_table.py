@@ -20,10 +20,10 @@ def test_table(tmpdir):
     t.columns['a'].meta = {'foo': 'bar'}
     t.columns['c'].description = 'Some description of some sort'
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(ff.blocks) == 3
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
 def test_array_columns(tmpdir):
@@ -37,10 +37,10 @@ def test_array_columns(tmpdir):
     t = table.Table(a, copy=False)
     assert t.columns['a'].shape == (3, 2, 2)
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
 def test_structured_array_columns(tmpdir):
@@ -54,10 +54,10 @@ def test_structured_array_columns(tmpdir):
 
     t = table.Table(a, copy=False)
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
 def test_table_row_order(tmpdir):
@@ -74,10 +74,10 @@ def test_table_row_order(tmpdir):
     t.columns['a'].meta = {'foo': 'bar'}
     t.columns['c'].description = 'Some description of some sort'
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
 
 
 def test_table_inline(tmpdir):
@@ -91,10 +91,10 @@ def test_table_inline(tmpdir):
     t.columns['a'].meta = {'foo': 'bar'}
     t.columns['c'].description = 'Some description of some sort'
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(list(ff.blocks.internal_blocks)) == 0
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check,
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
                                   write_options={'auto_inline': 64})
 
 
@@ -131,7 +131,7 @@ def test_masked_table(tmpdir):
     t.columns['a'].mask = [True, False, True]
     t.columns['c'].description = 'Some description of some sort'
 
-    def asdf_check(ff):
+    def check(ff):
         assert len(ff.blocks) == 4
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check)
+    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
