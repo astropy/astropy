@@ -1,8 +1,8 @@
 %YAML 1.1
 ---
 $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
-id: "http://astropy.org/schemas/astropy/coords/representation/baserepresentation-1.0.0"
-tag: "tag:astropy.org:astropy/coords/representation/baserepresentation-1.0.0"
+id: "http://astropy.org/schemas/astropy/coordinates/representation-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/representation-1.0.0"
 
 title: |
   Representation of things
