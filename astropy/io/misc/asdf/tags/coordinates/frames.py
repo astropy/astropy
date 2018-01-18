@@ -12,8 +12,10 @@ __all__ = ['CoordType']
 
 
 class CoordType(AstropyType):
-    name = "coords/coord"
-    types = ['astropy.coordinates.BaseCoordinateFrame']
+    name = "coordinates/frame"
+    types = ['astropy.coordinates.BaseCoordinateFrame',
+             # Add ICRS explicity to attempt to overwrite the old tag in asdf core.
+             'astropy.coordinates.ICRS']
     requires = ['astropy']
     version = "1.0.0"
 

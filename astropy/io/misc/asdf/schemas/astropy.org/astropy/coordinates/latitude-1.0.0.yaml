@@ -1,15 +1,14 @@
 %YAML 1.1
 ---
 $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
-id: "http://astropy.org/schemas/astropy/coords/angle-1.0.0"
-tag: "tag:astropy.org:astropy/coords/angle-1.0.0"
+id: "http://astropy.org/schemas/astropy/coordinates/latitude-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/latitude-1.0.0"
 
 title: |
-  Represents an Angle.
+  Represents latitude-like angles.
 
 description:
-  This object represents a subtype of Quantity which has units equivalent to
-  radians or degrees.
+  Represents latitude-like angle(s) which must be in the range -90 to +90 deg.
 
 type: object
 properties:

@@ -68,4 +68,3 @@ def test_sunpy_hgs(tmpdir):
     tree = {'coord': hpc}
 
     assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
-

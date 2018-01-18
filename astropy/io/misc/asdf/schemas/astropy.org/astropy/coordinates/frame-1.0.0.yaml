@@ -1,8 +1,8 @@
 %YAML 1.1
 ---
 $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
-id: "http://astropy.org/schemas/astropy/coords/coord-1.0.0"
-tag: "tag:astropy.org:astropy/coords/coord-1.0.0"
+id: "http://astropy.org/schemas/astropy/coordinates/frame-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frame-1.0.0"
 
 title: |
   Represents an ICRS coordinate object from astropy
@@ -18,8 +18,7 @@ properties:
     type: string
   data:
     anyOf:
-      - $ref: "./representation/spherical-1.0.0"
-      - $ref: "./representation/unitspherical-1.0.0"
+      - $ref: "./representation-1.0.0"
   frame_attributes:
     description: |
       Attributes on the coordinate frame.

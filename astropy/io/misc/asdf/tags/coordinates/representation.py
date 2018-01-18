@@ -1,6 +1,7 @@
 from importlib import import_module
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
+from astropy.tests.helper import assert_quantity_allclose
 from ...types import AstropyType
 
 
@@ -9,7 +10,7 @@ REPRESENTATION_MODULE_WHITELIST = ['astropy.coordinates.representation',
 
 
 class RepresentationType(AstropyType):
-    name = "coords/representation/baserepresentation"
+    name = "coordinates/representation"
     types = ['astropy.coordinates.representation.BaseRepresentationOrDifferential']
     requires = ['astropy']
     version = "1.0.0"
@@ -50,3 +51,7 @@ class RepresentationType(AstropyType):
     def assert_equal(cls, old, new):
         assert isinstance(new, type(old))
         assert new.components == old.components
+        for comp in new.components:
+            nc = getattr(new, comp)
+            oc = getattr(old, comp)
+            assert_quantity_allclose(nc, oc)
