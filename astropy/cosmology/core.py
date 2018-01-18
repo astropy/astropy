@@ -1761,6 +1761,8 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+            self.age = self._analytic_age
+            self.lookback_time = self._analytic_lookback_time
             # Call out Om0=1 (Einstein-de Sitter) and Om0=0 (de Sitter) cases.
             # The dS case is required because the hypergeometric case
             #    for Omega_M=0 would lead to an infinity in its argument.
@@ -1894,6 +1896,62 @@ class FlatLambdaCDM(LambdaCDM):
         """
         from scipy.special import hyp2f1
         return 2 * np.sqrt(x) * hyp2f1(1./6, 1./2, 7./6, -x**3)
+
+    def _analytic_age(self, z):
+        """ Age of the universe in Gyr at redshift ``z``.
+
+        For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
+        the age can be directly calculated as an elliptic integral.
+        See, e.g.,
+            Thomas and Kantowski, arXiv:0003463
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          The age of the universe in Gyr at each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to an age.
+        """
+        if isiterable(z):
+            z = np.asarray(z)
+
+        prefactor = (2/3) * self._hubble_time / sqrt(1-self._Om0)
+        return prefactor * np.arcsinh(np.sqrt((1/self._Om0 - 1) / (1+z)**3))
+
+    def _analytic_lookback_time(self, z):
+        """ Lookback time in Gyr to redshift ``z``.
+
+        The lookback time is the difference between the age of the
+        Universe now and the age at redshift ``z``.
+
+        For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
+        the age can be directly calculated as an elliptic integral.
+        The lookback time is here calculated based on the age(0) - age(z)
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          Lookback time in Gyr to each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to a lookback time.
+        """
+        # Writing out the equation again isn't clearly faster
+        # than two calls to age so we stick with the calls to minimize code.
+        return self._analytic_age(0) - self._analytic_age(z)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
