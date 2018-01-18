@@ -97,7 +97,7 @@ matrix:
         # time.
         # Run this test using native pytest
         - os: linux
-          env: PYTHON_VERSION=3.5
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy'
                TEST_CMD='pytest --open-files --doctest-rst'
@@ -131,18 +131,13 @@ matrix:
                PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
+               MATPLOTLIB_VERSION=2.0
                EVENT_TYPE='push pull_request cron'
                CONDA_VERSION=4.3.21
 
         # Try pre-release version of Numpy without optional dependencies
         - os: linux
           env: NUMPY_VERSION=prerelease
-               EVENT_TYPE='push pull_request cron'
-
-        # Try older numpy versions
-        - os: linux
-          env: NUMPY_VERSION=1.12
                EVENT_TYPE='push pull_request cron'
 
         # Do a PEP8/pyflakes test with flake8
