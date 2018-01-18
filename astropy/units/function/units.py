@@ -18,7 +18,7 @@ _ns = globals()
 # These calls are what core.def_unit would do, but we need to use the callable
 # unit versions.  The actual function unit classes get added in logarithmic.
 
-dex = IrreducibleFunctionUnit(['dex'], namespace=_ns,
+dex = IrreducibleFunctionUnit(['dex', 'bel', 'Bell'], namespace=_ns,
                               doc="Dex: Base 10 logarithmic unit")
 
 dB = RegularFunctionUnit(['dB', 'decibel'], 0.1 * dex, namespace=_ns,
