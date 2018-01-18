@@ -162,6 +162,10 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+are now 20x faster by using the incomplete elliptic integral solution
+for this special case.
+
 astropy.extern
 ^^^^^^^^^^^^^^
 
