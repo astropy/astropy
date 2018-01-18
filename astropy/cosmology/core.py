@@ -28,7 +28,7 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
            "default_cosmology"] + parameters.available
 
-__doctest_requires__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy.integrate', 'scipy.special']}
 
 # Notes about speeding up integrals:
 # ---------------------------------
