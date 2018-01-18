@@ -386,6 +386,7 @@ def strip_ansi_codes(s):
     """
     return re.sub('\033\\[([0-9]+)(;[0-9]+)*m', '', s)
 
+
 def human_time(seconds):
     """
     Returns a human-friendly time string that is always exactly 6
