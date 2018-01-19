@@ -1761,13 +1761,9 @@ class FlatLambdaCDM(LambdaCDM):
         objects remains constant with time for objects in the Hubble
         flow.
 
-        For Omega_radiation = 0 (T_CMB = 0; massless neutrinos)
-        the comoving distance can be directly calculated as an elliptic integral.
-        See
-            Feige, 1992, Astron. Nachr., 313, 139.
-            Eisenstein, 1997, arXiv:9709054v2
-            Mészáros & Řípai 2013, A&A, 556, A13.
-        and a useful summary in
+        For Omega_radiation = 0 the comoving distance can be directly calculated
+        as an elliptic integral.
+        Equation here taken from
             Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
 
         Parameters
@@ -1784,7 +1780,7 @@ class FlatLambdaCDM(LambdaCDM):
             z1 = np.asarray(z1)
             z2 = np.asarray(z2)
             if z1.shape != z2.shape:
-                msg = "In _comoving_distance_z1z2: z1 and z2 have different lengths"
+                msg = "z1 and z2 have different shapes"
                 raise ValueError(msg)
 
         s = ((1-self._Om0)/self._Om0) ** (1/3)
@@ -1792,7 +1788,7 @@ class FlatLambdaCDM(LambdaCDM):
         return prefactor * (self._T_legendre(s/(1+z1)) - self._T_legendre(s/(1+z2)))
 
     def _T_legendre(self, x):
-        """ Compute T(x) using Legendre elliptical integrals of the first kind.
+        """ Compute T_legendre(x) using Legendre elliptical integrals of the first kind.
 
         T(x) = 3^{-\\frac{1}{4}}
                F\\left(arccos\\left(\\frac{1+(1-\\sqrt{3}x}{1+(1+\\sqrt{3})x}\\right),
