@@ -1741,7 +1741,15 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
-            self._comoving_distance_z1z2 = self._elliptic_comoving_distance_z1z2
+            if self._Om0 == 1:
+                self._comoving_distance_z1z2 = \
+                    self._EdS_comoving_distance_z1z2
+            elif self._Om0 == 0:
+                self._comoving_distance_z1z2 = \
+                    self._dS_comoving_distance_z1z2
+            else:
+                self._comoving_distance_z1z2 = \
+                    self._elliptic_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
@@ -1752,6 +1760,65 @@ class FlatLambdaCDM(LambdaCDM):
                                            self._Ogamma0, self._neff_per_nu,
                                            self._nmasslessnu,
                                            self._nu_y_list)
+
+    def _dS_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at redshifts
+        z1 and z2 in a flat, Omega_Lambda=1 cosmology (de Sitter).
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        The de Sitter case has an analytic solution.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        return self._hubble_distance * (z2 - z1)
+
+    def _EdS_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at redshifts
+        z1 and z2 in a flat, Omega_M=1 cosmology (Einstein - de Sitter).
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        For OM=1, Omega_rad=0 the comoving distance has an analytic solution.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        prefactor = 2 * self._hubble_distance
+        return prefactor * ((1+z1)**(-1./2) - (1+z2)**(-1./2))
 
     def _elliptic_comoving_distance_z1z2(self, z1, z2):
         """ Comoving line-of-sight distance in Mpc between objects at
