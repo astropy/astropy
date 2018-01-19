@@ -99,21 +99,6 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git tag -s v<version> -m "Tagging v<version>"
 
-#. Edit the ``VERSION`` in ``setup.py`` to be the next version number, but with
-   a ``.dev`` suffix at the end (E.g., ``1.2.3.dev``).  Then add and commit::
-
-      <use your favorite editor on setup.py>
-      $ git add setup.py
-      $ git commit -m "Back to development: v<next_version>.dev"
-
-#. Also update the ``CHANGES.rst`` file with a new section for the next version.
-   You will likely want to use the ``add_to_changelog.py`` script in the
-   `astropy-tools repository`_ for this.  Then add and commit::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
-
 #. Now go back and check out the tag of the released version with
    ``git checkout v<version>``.  For example::
 
@@ -177,7 +162,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    * build and upload the Astropy wheels;
    * make and upload the Astropy source release.
-   
+
 
 #. For the wheel build / upload, follow the `wheel builder README`_
    instructions again.  Edit the ``.travis.yml`` and ``appveyor.yml`` files
@@ -202,7 +187,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ python setup.py build sdist
       $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
       $ twine upload dist/astropy-<version>*
-      
+
 #. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
    and ensure that only the most recent releases in each actively maintained
    release line are *not* marked hidden.  For example, if v1.2.2 was
@@ -211,6 +196,23 @@ packages that use the full bugfix/maintenance branch approach.)
 
    Do not enabled "Auto-hide old releases" as that may hide bugfix releases
    from older release lines that we may still want to make available.
+
+#. Go back to release branch (e.g., ``1.2.x``) and edit the ``VERSION`` in
+   ``setup.py`` to be the next version number, but with
+   a ``.dev`` suffix at the end (e.g., ``1.2.3.dev``).  Then add and commit::
+
+      $ git checkout v1.2.x
+      <use your favorite editor on setup.py>
+      $ git add setup.py
+      $ git commit -m "Back to development: v<next_version>.dev"
+
+#. Also update the ``CHANGES.rst`` file with a new section for the next version.
+   You will likely want to use the ``add_to_changelog.py`` script in the
+   `astropy-tools repository`_ for this.  Then add and commit::
+
+      <use your favorite editor on CHANGES.rst>
+      $ git add CHANGES.rst
+      $ git commit -m "Add v<next_version> to the changelog"
 
 #. Push up these changes and the tag to the `astropy core repository`_::
 
