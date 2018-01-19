@@ -1783,9 +1783,10 @@ class FlatLambdaCDM(LambdaCDM):
                 msg = "z1 and z2 have different shapes"
                 raise ValueError(msg)
 
-        s = ((1-self._Om0)/self._Om0) ** (1/3)
-        prefactor = self._hubble_distance / sqrt(s*self._Om0)
-        return prefactor * (self._T_legendre(s/(1+z1)) - self._T_legendre(s/(1+z2)))
+        s = ((1 - self._Om0) / self._Om0) ** (1./3)
+        prefactor = self._hubble_distance / sqrt(s * self._Om0)
+        return prefactor * (self._T_legendre(s / (1 + z1)) -
+                            self._T_legendre(s / (1 + z2)))
 
     def _T_legendre(self, x):
         """ Compute T_legendre(x) using Legendre elliptical integrals of the first kind.
@@ -1798,14 +1799,11 @@ class FlatLambdaCDM(LambdaCDM):
         """
 
         from scipy.special import ellipkinc
-        F = ellipkinc
         # math.sqrt is several times faster than np.sqrt for scalars
-        phi = np.arccos((1 + (1-sqrt(3))*x) /
-                        (1 + (1+sqrt(3))*x))
-        k = np.cos(np.pi/12)
-        m = k*k  # np.cos(np.pi/12)**2 == 1/2 + math.sqrt(3)/4
-        # ellipkinc expects m=k*k as its second argument.
-        return 3**(-1./4) * F(phi, m)
+        phi = np.arccos((1 + (1 - sqrt(3)) * x) /
+                        (1 + (1 + sqrt(3)) * x))
+        m = 0.9330127018922193  # cos(pi/12)**2 == 1/2 + sqrt(3)/4
+        return 3**(-1./4) * ellipkinc(phi, m)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
