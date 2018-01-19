@@ -1741,6 +1741,9 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+            # Call out Om0=1 (Einstein-de Sitter) and Om0=0 (de Sitter)
+            # special cases. These are a bit faster, but also necessary because
+            # the elliptic integral formulation is not valid for these cases.
             if self._Om0 == 1:
                 self._comoving_distance_z1z2 = \
                     self._EdS_comoving_distance_z1z2
