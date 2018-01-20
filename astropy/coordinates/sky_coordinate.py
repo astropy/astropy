@@ -2071,13 +2071,13 @@ def _get_representation_attrs(frame, units, kwargs):
     # also check the differentials.  They aren't included in the units keyword,
     # so we only look for the names.
 
-    # TODO: change _representation['s'] to `differential_type` when that exists
-    differential_type = frame._representation['s'].attr_classes
-    for frame_name, repr_name in frame.get_representation_component_names('s').items():
-        diff_attr_class = differential_type[repr_name]
-        value = kwargs.pop(frame_name, None)
-        if value is not None:
-            valid_kwargs[frame_name] = diff_attr_class(value)
+    differential_type = frame.get_representation_cls('s')
+    if differential_type is not None:
+        for frame_name, repr_name in frame.get_representation_component_names('s').items():
+            diff_attr_class = differential_type.attr_classes[repr_name]
+            value = kwargs.pop(frame_name, None)
+            if value is not None:
+                valid_kwargs[frame_name] = diff_attr_class(value)
 
     return valid_kwargs
 
