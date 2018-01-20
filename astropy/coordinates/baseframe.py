@@ -697,6 +697,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         inferred), use the ``set_represenation_cls`` method.
         """)
 
+    @property
+    def differential_type(self):
+        """
+        The differential used for this frame's data.
+
+        This will be a subclass from `~astropy.coordinates.BaseRepresentation`.
+        For simultaneous setting of representation and differentials, see the
+        ``set_represenation_cls`` method.
+        """
+        return self.get_representation_cls('s')
+    @differential_type.setter
+    def differential_type(self, value):
+        self.set_representation_cls(s=value)
+
+
     # TODO: deprecate these?
     @property
     def representation(self):
