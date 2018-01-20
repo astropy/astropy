@@ -1786,8 +1786,12 @@ def _get_frame(args, kwargs):
             coord_frame_obj = arg.frame
         if coord_frame_obj is not None:
             coord_frame_cls = coord_frame_obj.__class__
-            kwargs.setdefault('differential_type',
-                              coord_frame_obj.get_representation_cls('s'))
+            frame_diff = coord_frame_obj.get_representation_cls('s')
+            if frame_diff is not None:
+                # we do this check because otherwise if there's no default
+                # differential (i.e. it is None), the code below chokes. but
+                # None still gets through if the user *requests* it
+                kwargs.setdefault('differential_type', frame_diff)
 
         if coord_frame_cls is not None:
             if not frame_specified_explicitly:
