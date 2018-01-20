@@ -202,7 +202,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if repr_info is None:
             repr_info = {}
 
-        for cls_or_name in repr_info.keys():
+        for cls_or_name in tuple(repr_info.keys()):
             if isinstance(cls_or_name, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
