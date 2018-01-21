@@ -987,3 +987,27 @@ def test_representation_arg_backwards_compatibility():
         ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
              representation='cartesian',
              representation_type='cartesian')
+
+
+def test_missing_component_error_names():
+    """
+    This test checks that the component names are frame component names, not
+    representation or differential names, when referenced in an exception raised
+    when not passing in enough data. For example:
+
+    ICRS(ra=10*u.deg)
+
+    should state:
+
+    TypeError: __init__() missing 1 required positional argument: 'dec'
+    """
+    from ..builtin_frames import ICRS
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150 * u.deg)
+    assert "missing 1 required positional argument: 'dec'" in str(e)
+
+    with pytest.raises(TypeError) as e:
+        ICRS(ra=150*u.deg, dec=-11*u.deg,
+             pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
+    assert "pm_ra_cosdec" in str(e)
