@@ -1150,6 +1150,24 @@ def test_comoving_transverse_distance_z1z2():
     assert allclose(tcos._comoving_distance_z1z2(z1, z2),
                     tcos._comoving_transverse_distance_z1z2(z1, z2))
 
+    # Test Flat Universe with Omega_M > 1.  Rarely used, but perfectly valid.
+    tcos = core.FlatLambdaCDM(100, 1.5, Tcmb0=0.0)
+    results = (2202.72682564,
+               1559.51679971,
+               -643.21002593,
+               1408.36365679,
+                 85.09286258) * u.Mpc
+
+    assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
+                    results)
+
+    # In a flat universe comoving distance and comoving transverse
+    # distance are identical
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+
+    assert allclose(tcos._comoving_distance_z1z2(z1, z2),
+                    tcos._comoving_transverse_distance_z1z2(z1, z2))
     # Test non-flat cases to avoid simply testing
     # comoving_distance_z1z2. Test array, array case.
     tcos = core.LambdaCDM(100, 0.3, 0.5, Tcmb0=0.0)
