@@ -1747,14 +1747,12 @@ class FlatLambdaCDM(LambdaCDM):
             if self._Om0 == 0:
                 self._comoving_distance_z1z2 = \
                     self._dS_comoving_distance_z1z2
-            elif (0 < self.Om0) and (self._Om0 < 1):
-                self._comoving_distance_z1z2 = \
-                    self._elliptic_comoving_distance_z1z2
             elif self._Om0 == 1:
                 self._comoving_distance_z1z2 = \
                     self._EdS_comoving_distance_z1z2
             else:
-                pass
+                self._comoving_distance_z1z2 = \
+                    self._hypergeometric_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
