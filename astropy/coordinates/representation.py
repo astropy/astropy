@@ -1125,7 +1125,14 @@ class CartesianRepresentation(BaseRepresentation):
         else:
             # Matrix multiply all pmat items and coordinates, broadcasting the
             # remaining dimensions.
-            newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
+            if np.__version__ == '1.14.0':
+                # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
+                # this einsum call to break with the default of optimize=True
+                # see https://github.com/astropy/astropy/issues/7051
+                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value,
+                                   optimize=False)
+            else:
+                newxyz = np.einsum('...ij,j...->i...', matrix, oldxyz.value)
 
         newxyz = u.Quantity(newxyz, oldxyz.unit, copy=False)
         # Handle differentials attached to this representation
