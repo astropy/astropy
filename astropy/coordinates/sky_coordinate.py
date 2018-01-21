@@ -379,14 +379,35 @@ class SkyCoord(ShapedLikeNDArray):
         # Get units
         units = _get_representation_component_units(args, kwargs)
 
-        # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
-        # and migrate to valid_kwargs.
+        # Grab any frame-specific attr names like `ra` or `l` or `distance` from
+        # kwargs and migrate to valid_kwargs.
         valid_kwargs.update(_get_representation_attrs(frame, units, kwargs))
 
         # Error if anything is still left in kwargs
         if kwargs:
-            raise ValueError('Unrecognized keyword argument(s) {0}'
-                             .format(', '.join("'{0}'".format(key) for key in kwargs)))
+            # The next few lines add a more user-friendly error message to a
+            # common and confusing situation when the user specifies, e.g.,
+            # `pm_ra` when they really should be passing `pm_ra_cosdec`. The
+            # extra error should only turn on when the positional representation
+            # is spherical, and when the component 'pm_<lon>' is passed.
+            pm_message = ''
+            if frame.representation_type == SphericalRepresentation:
+                frame_names = list(frame.get_representation_component_names().keys())
+                lon_name = frame_names[0]
+                lat_name = frame_names[1]
+
+                if 'pm_{0}'.format(lon_name) in list(kwargs.keys()):
+                    pm_message = ('\n\n By default, most frame classes expect '
+                                  'the longitudinal proper motion to include '
+                                  'the cos(latitude) term, named '
+                                  '`pm_{0}_cos{1}`. Did you mean to pass in '
+                                  'this component?'
+                                  .format(lon_name, lat_name))
+
+            raise ValueError('Unrecognized keyword argument(s) {0}{1}'
+                             .format(', '.join("'{0}'".format(key)
+                                               for key in kwargs),
+                                     pm_message))
 
         # Finally deal with the unnamed args.  This figures out what the arg[0]
         # is and returns a dict with appropriate key/values for initializing
