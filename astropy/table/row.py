@@ -38,10 +38,20 @@ class Row:
                              .format(index, len(table)))
 
     def __getitem__(self, item):
-        return self._table.columns[item][self._index]
+        if self._table._is_list_or_tuple_of_str(item):
+            cols = [self._table[name] for name in item]
+            out = self._table.__class__(cols, copy=False)[self._index]
+
+        else:
+            out = self._table.columns[item][self._index]
+
+        return out
 
     def __setitem__(self, item, val):
-        self._table.columns[item][self._index] = val
+        if self._table._is_list_or_tuple_of_str(item):
+            self._table._set_row(self._index, colnames=item, vals=val)
+        else:
+            self._table.columns[item][self._index] = val
 
     def _ipython_key_completions_(self):
         return self.colnames

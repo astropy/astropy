@@ -111,7 +111,7 @@ class TestSetTableColumn(SetupData):
         t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
             t[1] = (20, 21, 22)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             t[1] = 0
 
     def test_set_row_fail_2(self, table_types):
