@@ -202,6 +202,12 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if repr_info is None:
             repr_info = {}
 
+        # the tuple() call below is necessary because if it is not there, 
+        # the iteration proceeds in a difficult-to-predict manner in the
+        # case that one of the class objects hash is such that it gets
+        # revisited by the iteration.  The tuple() call prevents this by
+        # making the items iterated over fixed regardless of how the dict
+        # changes
         for cls_or_name in tuple(repr_info.keys()):
             if isinstance(cls_or_name, str):
                 # TODO: this provides a layer of backwards compatibility in
