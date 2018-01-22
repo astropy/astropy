@@ -113,10 +113,10 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
 
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth (necessary for transformation to
-        non-geocentric systems).
+        non-geocentric systems). Defaults to the 'J2000' equinox.
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
@@ -140,9 +140,10 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
 
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
+        Defaults to the 'J2000' equinox.
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
@@ -166,9 +167,10 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
+        Defaults to the 'J2000' equinox.
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
