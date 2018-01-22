@@ -56,11 +56,12 @@ class BaseEclipticFrame(BaseCoordinateFrame):
 doc_footer_geo = """
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth (necessary for transformation to
-        non-geocentric systems).
+        non-geocentric systems). Defaults to the 'J2000' equinox.
 """
+
 
 @format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
             footer=doc_footer_geo)
@@ -84,10 +85,13 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
 doc_footer_bary = """
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
+        Defaults to the 'J2000' equinox.
 """
+
+
 @format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
             footer=doc_footer_bary)
 class BarycentricTrueEcliptic(BaseEclipticFrame):
@@ -107,10 +111,13 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
 doc_footer_helio = """
     Other parameters
     ----------------
-    equinox : `~astropy.time.Time`
+    equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
         x-axis and the location of the Earth and Sun.
+        Defaults to the 'J2000' equinox.
 """
+
+
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
             footer=doc_footer_helio)
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
