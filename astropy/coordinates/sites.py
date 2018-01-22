@@ -126,10 +126,12 @@ def get_downloaded_sites(jsonurl=None):
     Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
 
+    # we explicitly set the encoding because the default is to leave it set by
+    # the users' locale, which may fail if it's not matched to the sites.json
     if jsonurl is None:
-        content = get_pkg_data_contents('coordinates/sites.json')
+        content = get_pkg_data_contents('coordinates/sites.json', encoding='UTF-8')
     else:
-        content = get_file_contents(jsonurl)
+        content = get_file_contents(jsonurl, encoding='UTF-8')
 
     jsondb = json.loads(content)
     return SiteRegistry.from_json(jsondb)
