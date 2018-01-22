@@ -1786,8 +1786,12 @@ def _get_frame(args, kwargs):
             coord_frame_obj = arg.frame
         if coord_frame_obj is not None:
             coord_frame_cls = coord_frame_obj.__class__
-            kwargs.setdefault('differential_type',
-                              coord_frame_obj.get_representation_cls('s'))
+            frame_diff = coord_frame_obj.get_representation_cls('s')
+            if frame_diff is not None:
+                # we do this check because otherwise if there's no default
+                # differential (i.e. it is None), the code below chokes. but
+                # None still gets through if the user *requests* it
+                kwargs.setdefault('differential_type', frame_diff)
 
         if coord_frame_cls is not None:
             if not frame_specified_explicitly:
@@ -2071,13 +2075,13 @@ def _get_representation_attrs(frame, units, kwargs):
     # also check the differentials.  They aren't included in the units keyword,
     # so we only look for the names.
 
-    # TODO: change _representation['s'] to `differential_type` when that exists
-    differential_type = frame._representation['s'].attr_classes
-    for frame_name, repr_name in frame.get_representation_component_names('s').items():
-        diff_attr_class = differential_type[repr_name]
-        value = kwargs.pop(frame_name, None)
-        if value is not None:
-            valid_kwargs[frame_name] = diff_attr_class(value)
+    differential_type = frame.differential_type
+    if differential_type is not None:
+        for frame_name, repr_name in frame.get_representation_component_names('s').items():
+            diff_attr_class = differential_type.attr_classes[repr_name]
+            value = kwargs.pop(frame_name, None)
+            if value is not None:
+                valid_kwargs[frame_name] = diff_attr_class(value)
 
     return valid_kwargs
 
