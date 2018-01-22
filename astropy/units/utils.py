@@ -275,7 +275,7 @@ def human_readable(quantity,unit='None'):
         unit:string
             none, human or prefix .
             none returns the string of a unit.
-            prefix return unit in human readable form.
+            prefix returns unit in human readable form.
             human returns string of unit in human readable form.
 
         """
