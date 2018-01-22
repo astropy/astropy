@@ -482,8 +482,22 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                         and 'distance' not in repr_kwargs):
                     representation_cls = representation_cls._unit_representation
 
-                representation_data = representation_cls(copy=copy,
-                                                         **repr_kwargs)
+                try:
+                    representation_data = representation_cls(copy=copy,
+                                                             **repr_kwargs)
+                except TypeError as e:
+                    # this except clause is here to make the names of the
+                    # attributes more human-readable.  Without this the names
+                    # come from the representation instead of the frame's
+                    # attribute names.
+                    msg = str(e)
+                    names = self.get_representation_component_names()
+                    for frame_name, repr_name in names.items():
+                        msg = msg.replace(repr_name, frame_name)
+                    msg = msg.replace('__init__()',
+                                      '{0}()'.format(self.__class__.__name__))
+                    e.args = (msg,)
+                    raise
 
             # Now we handle the Differential data:
             # Get any differential data passed in to the frame initializer
@@ -506,7 +520,22 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 elif len(diff_kwargs) == 1 and 'd_distance' in diff_kwargs:
                     differential_cls = r.RadialDifferential
 
-                differential_data = differential_cls(copy=copy, **diff_kwargs)
+                try:
+                    differential_data = differential_cls(copy=copy,
+                                                         **diff_kwargs)
+                except TypeError as e:
+                    # this except clause is here to make the names of the
+                    # attributes more human-readable.  Without this the names
+                    # come from the representation instead of the frame's
+                    # attribute names.
+                    msg = str(e)
+                    names = self.get_representation_component_names('s')
+                    for frame_name, repr_name in names.items():
+                        msg = msg.replace(repr_name, frame_name)
+                    msg = msg.replace('__init__()',
+                                      '{0}()'.format(self.__class__.__name__))
+                    e.args = (msg,)
+                    raise
 
         if len(args) > 0:
             raise TypeError(
