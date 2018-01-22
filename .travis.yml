@@ -121,7 +121,7 @@ matrix:
                PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy pytest-mpl bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
-               MATPLOTLIB_VERSION=2.0
+               MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
                EVENT_TYPE='push pull_request cron'
                CONDA_VERSION=4.3.21
 
