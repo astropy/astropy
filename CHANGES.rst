@@ -659,6 +659,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
+  means that future revisions to the file with unicode observatory names can
+  be done without breaking the site registry parser.  [#7082]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
