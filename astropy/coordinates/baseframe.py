@@ -202,7 +202,13 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if repr_info is None:
             repr_info = {}
 
-        for cls_or_name in repr_info.keys():
+        # the tuple() call below is necessary because if it is not there, 
+        # the iteration proceeds in a difficult-to-predict manner in the
+        # case that one of the class objects hash is such that it gets
+        # revisited by the iteration.  The tuple() call prevents this by
+        # making the items iterated over fixed regardless of how the dict
+        # changes
+        for cls_or_name in tuple(repr_info.keys()):
             if isinstance(cls_or_name, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
@@ -696,6 +702,21 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         wish to set an explicit differential class (rather than have it be
         inferred), use the ``set_represenation_cls`` method.
         """)
+
+    @property
+    def differential_type(self):
+        """
+        The differential used for this frame's data.
+
+        This will be a subclass from `~astropy.coordinates.BaseDifferential`.
+        For simultaneous setting of representation and differentials, see the
+        ``set_represenation_cls`` method.
+        """
+        return self.get_representation_cls('s')
+      
+    @differential_type.setter
+    def differential_type(self, value):
+        self.set_representation_cls(s=value)
 
     # TODO: deprecate these?
     @property

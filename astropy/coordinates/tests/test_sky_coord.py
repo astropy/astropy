@@ -20,7 +20,7 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
                             UnitSphericalRepresentation, AltAz,
                             BaseCoordinateFrame, Attribute,
-                            frame_transform_graph)
+                            frame_transform_graph, RepresentationMapping)
 from ...coordinates import Latitude, EarthLocation
 from ...time import Time
 from ...utils import minversion, isiterable
@@ -1434,3 +1434,21 @@ def test_apply_space_motion():
 
     with pytest.raises(ValueError):
         c2.apply_space_motion(new_obstime=t2)
+
+
+def test_custom_frame_skycoord():
+    # also regression check for the case from #7069
+
+    class BlahBleeBlopFrame(BaseCoordinateFrame):
+        default_representation = SphericalRepresentation
+        # without a differential, SkyCoord creation fails
+        # default_differential = SphericalDifferential
+
+        _frame_specific_representation_info = {
+            'spherical': [
+                RepresentationMapping('lon', 'lon', 'recommended'),
+                RepresentationMapping('lat', 'lat', 'recommended'),
+                RepresentationMapping('distance', 'radius', 'recommended')
+            ]
+        }
+    SkyCoord(lat=1*u.deg, lon=2*u.deg, frame=BlahBleeBlopFrame)
