@@ -724,20 +724,6 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
     to_value : Get the numerical value in a given unit.
     """)
 
-    def to_string(self):
-        """
-        Return value in a human readable string format.
-        """
-        if not self.isscalar:
-            raise Exception("given quantity is not scalar")
-        from astropy import units as u
-        from astropy.utils import console
-        if self.unit.is_equivalent(u.s):
-                return console.human_time(self.si.value)
-        else:
-            quantity=u.utils.human_readable(self,unit='prefix')
-            return str(round(quantity.value,3))+" "+str(quantity.unit)
-
     @property
     def unit(self):
         """
