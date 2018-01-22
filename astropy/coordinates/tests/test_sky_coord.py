@@ -1452,3 +1452,28 @@ def test_custom_frame_skycoord():
             ]
         }
     SkyCoord(lat=1*u.deg, lon=2*u.deg, frame=BlahBleeBlopFrame)
+
+
+def test_user_friendly_pm_error():
+    """
+    This checks that a more user-friendly error message is raised for the user
+    if they pass, e.g., pm_ra instead of pm_ra_cosdec
+    """
+
+    with pytest.raises(ValueError) as e:
+        SkyCoord(ra=150*u.deg, dec=-11*u.deg,
+                 pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
+    assert 'pm_ra_cosdec' in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        SkyCoord(l=150*u.deg, b=-11*u.deg,
+                 pm_l=100*u.mas/u.yr, pm_b=10*u.mas/u.yr,
+                 frame='galactic')
+    assert 'pm_l_cosb' in str(e.value)
+
+    # The special error should not turn on here:
+    with pytest.raises(ValueError) as e:
+        SkyCoord(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+                 pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr,
+                 representation_type='cartesian')
+    assert 'pm_ra_cosdec' not in str(e.value)

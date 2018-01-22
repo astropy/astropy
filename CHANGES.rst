@@ -264,6 +264,19 @@ astropy.coordinates
   and ``differential_type`` instead of ``representation`` and
   ``differential_cls``. [#6873]
 
+- The frame classes (and ``SkyCoord``) now give more useful error messages when
+  incorrect attribute names are given.  Instead of using the representation
+  attribute names, they use the frame attribute names. [#7106]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
 astropy.io.misc
 ~~~~~~~~~~~~~~~
 
