@@ -6,11 +6,25 @@ The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
 more of the process, if not all.
 
+There are several different procedures below, depending on the situation:
+
+* :ref:`release-procedure`
+    - :ref:`release-procedure-beta-rc`
+* :ref:`release-procedure-new-major`
+* :ref:`release-procedure-bug-fix`
+    - :ref:`release-procedure-bug-fix-backport`
+    - :ref:`release-procedure-bug-fix-direct`
+    - :ref:`release-procedure-bug-fix-release`
+* :ref:`helpers-release-info`
+
+For a signed release, see :ref:`key-signing-info` for relevant setup
+instructions.
+
 
 .. _release-procedure:
 
-Release Procedure
-=================
+Standard Release Procedure
+==========================
 
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
@@ -50,7 +64,6 @@ packages that use the full bugfix/maintenance branch approach.)
    significant changes in the helpers.  See :ref:`helpers-release-info` for more
    on this.
 
-
 #. Make sure that the continuous integration services (e.g., Travis) are passing
    for the `astropy core repository`_ branch you're going to release.  You may
    also want to locally run the tests (with remote data on to ensure all the
@@ -82,9 +95,6 @@ packages that use the full bugfix/maintenance branch approach.)
       <use your favorite editor on CHANGES.rst>
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
-
-
-
 
 #. Edit the ``setup.py`` file by removing the ``".dev"`` at the end of the
    ``VERSION`` string, then add and commit that change as the final step prior
@@ -281,6 +291,8 @@ packages that use the full bugfix/maintenance branch approach.)
    available.
 
 
+.. _release-procedure-beta-rc:
+
 Modifications for a beta/release candidate release
 --------------------------------------------------
 
@@ -302,6 +314,8 @@ Modifications for a beta/release candidate release
      confuse some version number parsing tools.
    * Do not do step #26 or later, as those are tasks for an actual release.
 
+
+.. _release-procedure-new-major:
 
 Performing a Feature Freeze/Branching new Major Versions
 ========================================================
@@ -374,6 +388,9 @@ The procedure for this is straightforward:
 
 #. Repeat the above steps for the astropy-helpers, using the same version series.
 
+
+.. _release-procedure-bug-fix:
+
 Maintaining Bug Fix Releases
 ============================
 
@@ -414,6 +431,9 @@ milestone.  Any issues that implement new features would go into the v0.3.0
 milestone--this is any work that goes in the master branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
+
+
+.. _release-procedure-bug-fix-backport:
 
 Backporting fixes from master
 -----------------------------
@@ -473,6 +493,9 @@ fixes will have an issues associated with it in the issue tracker, so make sure
 to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
 
+
+.. _release-procedure-bug-fix-direct:
+
 Making fixes directly to the bug fix branch
 -------------------------------------------
 
@@ -492,6 +515,9 @@ there are two choices:
    drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
+
+
+.. _release-procedure-bug-fix-release:
 
 Preparing the bug fix branch for release
 ----------------------------------------
