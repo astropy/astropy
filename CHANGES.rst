@@ -485,6 +485,9 @@ astropy.coordinates
   means that future revisions to the file with unicode observatory names can
   be done without breaking the site registry parser.  [#7082]
 
+- Working around a bug in Numpy 1.14.0 that broke some coordinate
+  transformations. [#7105]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
