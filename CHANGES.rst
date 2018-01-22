@@ -223,6 +223,25 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Deprecated ``recommended_units`` for representations. These were used to
+  ensure that any angle was presented in degrees in sky coordinates and
+  frames. This is more logically done in the frame itself. [#6858]
+
+- As noted above, the frame class attributes ``representation`` and
+  ``differential_cls`` are being replaced by ``representation_type`` and
+  ``differential_type``. In the next version, using ``representation`` will raise
+  a deprecation warning. [#6873]
+
+- Coordinate frame classes now can't be added to the frame transform graph if
+  they have frame attribute names that conflict with any component names. This
+  is so ``SkyCoord`` can uniquely identify and distinguish frame attributes from
+  frame components. [#6871]
+
+- Slicing and reshaping of ``SkyCoord`` and coordinate frames no longer passes
+  the new object through ``__init__``, but directly sets atttributes on a new
+  instance. This speeds up those methods by an order of magnitude, but means
+  that any customization done in ``__init__`` is by-passed. [#6941]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -461,6 +480,10 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
+  means that future revisions to the file with unicode observatory names can
+  be done without breaking the site registry parser.  [#7082]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
