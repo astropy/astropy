@@ -266,46 +266,50 @@ def quantity_asanyarray(a, dtype=None):
 
 def human_readable(quantity,unit='None'):
         """
-        Return value in a human readable unit
+        Returns value in a human readable unit
 
         Parameters
         ----------
         quantity:unit
-            the unit to be converted.
+            the unit to be converted in human readable form.
         unit:string
-            the choice of user to get value in string or
-            to get value with appropriate SI prefix.
+            none, human or prefix .
+            none returns the string of a unit.
+            prefix return unit in human readable form.
+            human returns string of unit in human readable form.
+
         """
         if not quantity.isscalar:
             raise Exception("given quantity is not scalar")
-        if unit=='None':
+        if unit == 'none':
             return str(quantity)
         from astropy import units as u
         from astropy.units import get_current_unit_registry
         from math import isclose
+        from astropy.utils import console
         ureg = get_current_unit_registry()
         if quantity.unit.is_equivalent(u.s) and quantity > 1 * u.s:
-            if unit=='prefix':
-                if quantity >=1*u.min and quantity < 1*u.hr:
+            if unit == 'prefix':
+                if 1*u.min <= quantity < 1*u.hr:
                     return quantity.to(u.min)
-                elif quantity >= 1*u.hr and quantity < 1*u.day:
+                elif 1*u.hr <= quantity < 1*u.day:
                     return quantity.to(u.hr)
-                elif quantity >= 1*u.day and quantity < 1*u.year:
+                elif 1*u.day <= quantity < 1*u.year:
                     return quantity.to(u.day)
                 elif quantity >= 1*u.year:
                     return quantity.to(u.yr)
                 else:
-                    return (quantity.si)
-            elif unit=='human':
-                return quantity.to_string()
+                    return quantity.si
+            elif unit == 'human':
+                return console.human_time(quantity.si.value)
         else:
             unit_list = ureg.get_units_with_physical_type(quantity.unit)
             for check_unit in unit_list:
                 value = quantity.to(check_unit)
-                if value.value >= 1 and value.value < 1000:
-                    for nos in range(-5,6):
+                if 1 <= value.value < 1000:
+                    for nos in range(-5, 6):
                         if isclose((value.value / quantity.value), 1000 ** nos, abs_tol=1e-8):
-                            if unit=='prefix':
+                            if unit == 'prefix':
                                 return value
-                            elif unit=='human':
-                                return value.to_string()
+                            elif unit == 'human':
+                                return str(round(value.value, 3))+" "+str(value.unit)
