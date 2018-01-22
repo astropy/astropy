@@ -19,9 +19,14 @@ that section, and options therein, determine the next step taken:  If it
 contains an option called ``auto_use`` with a value of ``True``, it will
 automatically call the main function of this module called
 `use_astropy_helpers` (see that function's docstring for full details).
-Otherwise no further action is taken (however,
-``ah_bootstrap.use_astropy_helpers`` may be called manually from within the
-setup.py script).
+Otherwise no further action is taken and by default the system-installed version
+of astropy-helpers will be used (however, ``ah_bootstrap.use_astropy_helpers``
+may be called manually from within the setup.py script).
+
+This behavior can also be controlled using the ``--auto-use`` and
+``--no-auto-use`` command-line flags. For clarity, an alias for
+``--no-auto-use`` is ``--use-system-astropy-helpers``, and we recommend using
+the latter if needed.
 
 Additional options in the ``[ah_boostrap]`` section of setup.cfg have the same
 names as the arguments to `use_astropy_helpers`, and can be used to configure
@@ -146,6 +151,11 @@ from distutils.debug import DEBUG
 # TODO: Maybe enable checking for a specific version of astropy_helpers?
 DIST_NAME = 'astropy-helpers'
 PACKAGE_NAME = 'astropy_helpers'
+
+if PY3:
+    UPPER_VERSION_EXCLUSIVE = None
+else:
+    UPPER_VERSION_EXCLUSIVE = '3'
 
 # Defaults for other options
 DOWNLOAD_IF_NEEDED = True
@@ -286,6 +296,18 @@ class _Bootstrapper(object):
         if '--offline' in argv:
             config['offline'] = True
             argv.remove('--offline')
+
+        if '--auto-use' in argv:
+            config['auto_use'] = True
+            argv.remove('--auto-use')
+
+        if '--no-auto-use' in argv:
+            config['auto_use'] = False
+            argv.remove('--no-auto-use')
+
+        if '--use-system-astropy-helpers' in argv:
+            config['auto_use'] = False
+            argv.remove('--use-system-astropy-helpers')
 
         return config
 
@@ -501,7 +523,10 @@ class _Bootstrapper(object):
         if version:
             req = '{0}=={1}'.format(DIST_NAME, version)
         else:
-            req = DIST_NAME
+            if UPPER_VERSION_EXCLUSIVE is None:
+                req = DIST_NAME
+            else:
+                req = '{0}<{1}'.format(DIST_NAME, UPPER_VERSION_EXCLUSIVE)
 
         attrs = {'setup_requires': [req]}
 
