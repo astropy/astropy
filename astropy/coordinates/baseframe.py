@@ -202,7 +202,7 @@ class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
         if repr_info is None:
             repr_info = {}
 
-        # the tuple() call below is necessary because if it is not there, 
+        # the tuple() call below is necessary because if it is not there,
         # the iteration proceeds in a difficult-to-predict manner in the
         # case that one of the class objects hash is such that it gets
         # revisited by the iteration.  The tuple() call prevents this by
@@ -486,6 +486,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     representation_data = representation_cls(copy=copy,
                                                              **repr_kwargs)
                 except TypeError as e:
+                    # this except clause is here to make the names of the
+                    # attributes more human-readable.  Without this the names
+                    # come from the representation instead of the frame's
+                    # attribute names.
                     msg = str(e)
                     names = self.get_representation_component_names()
                     for frame_name, repr_name in names.items():
@@ -520,6 +524,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     differential_data = differential_cls(copy=copy,
                                                          **diff_kwargs)
                 except TypeError as e:
+                    # this except clause is here to make the names of the
+                    # attributes more human-readable.  Without this the names
+                    # come from the representation instead of the frame's
+                    # attribute names.
                     msg = str(e)
                     names = self.get_representation_component_names('s')
                     for frame_name, repr_name in names.items():
@@ -734,7 +742,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         ``set_represenation_cls`` method.
         """
         return self.get_representation_cls('s')
-      
+
     @differential_type.setter
     def differential_type(self, value):
         self.set_representation_cls(s=value)
