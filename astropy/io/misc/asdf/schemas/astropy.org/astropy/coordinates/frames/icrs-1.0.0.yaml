@@ -1,8 +1,8 @@
 %YAML 1.1
 ---
 $schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
-id: "http://astropy.org/schemas/astropy/coords/icrs_coord-1.0.0"
-tag: "tag:astropy.org:astropy/coords/icrs_coord-1.0.0"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/icrs-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/frames/icrs-1.0.0"
 
 title: |
   Represents an ICRS coordinate object from astropy
