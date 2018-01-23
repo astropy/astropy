@@ -439,6 +439,7 @@ class TestBasic(BaseImageTests):
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect='auto')
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
+        ax.coords[1].set_axislabel_visibility_rule('always')
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
