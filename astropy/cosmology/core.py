@@ -1092,7 +1092,27 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         --------
         z_at_value : Find the redshift corresponding to an age.
         """
+        return self._integral_age(z)
 
+    def _integral_age(self, z):
+        """ Age of the universe in Gyr at redshift ``z``.
+
+        Calculated using explicit integration.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          The age of the universe in Gyr at each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to an age.
+        """
         from scipy.integrate import quad
         f = lambda red: quad(self._lookback_time_integrand_scalar,
                              red, np.inf)[0]
