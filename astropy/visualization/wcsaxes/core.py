@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from functools import partial
+from collections import defaultdict
 
 import numpy as np
 
@@ -328,7 +330,10 @@ class WCSAxes(Axes):
         # each coordinate axis. For now, just assume it covers the whole sky.
 
         self._bboxes = []
-        self._ticklabels_bbox = []
+        # This generates a structure like [coords][axis] = [...]
+        ticklabels_bbox = defaultdict(partial(defaultdict, list))
+        ticks_locs = defaultdict(partial(defaultdict, list))
+
         visible_ticks = []
 
         for coords in self._all_coords:
@@ -341,14 +346,16 @@ class WCSAxes(Axes):
 
             for coord in coords:
                 coord._draw_ticks(renderer, bboxes=self._bboxes,
-                                  ticklabels_bbox=self._ticklabels_bbox)
+                                  ticklabels_bbox=ticklabels_bbox[coord],
+                                  ticks_locs=ticks_locs[coord])
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
 
             for coord in coords:
                 coord._draw_axislabels(renderer, bboxes=self._bboxes,
-                                       ticklabels_bbox=self._ticklabels_bbox,
+                                       ticklabels_bbox=ticklabels_bbox,
+                                       ticks_locs=ticks_locs[coord],
                                        visible_ticks=visible_ticks)
 
         self.coords.frame.draw(renderer)
