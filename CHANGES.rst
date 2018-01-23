@@ -469,8 +469,8 @@ astropy.visualization
   operator for both classes. [#6531]
 - Added automatic hiding of axes labels when no tick labels are drawn on that
   axis. This parameter can be configured with
-  ``WCSAxes.coords[].set_visibility_rule`` so that labels are auto hidden when no
-  ticks are drawn or always shown. [#6774]
+  ``WCSAxes.coords[*].set_axislabel_visibility_rule`` so that labels are automatically
+  hidden when no ticks are drawn or always shown. [#6774]
 
 astropy.wcs
 ^^^^^^^^^^^
