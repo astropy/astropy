@@ -5,6 +5,7 @@
 
 
 # THIRD-PARTY
+import warnings
 import pytest
 import numpy as np
 from numpy.testing.utils import assert_allclose
@@ -520,10 +521,59 @@ def test_brightness_temperature():
     tb = 7.052590289134352 * u.K
     np.testing.assert_almost_equal(
         tb.value, (1 * u.Jy).to_value(
-            u.K, equivalencies=u.brightness_temperature(omega_B, nu)))
+            u.K, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
     np.testing.assert_almost_equal(
         1.0, tb.to_value(
-            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)))
+            u.Jy, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)))
+
+def test_swapped_args_brightness_temperature():
+    """
+    #5173 changes the order of arguments but accepts the old (deprecated) args
+    """
+    omega_B = np.pi * (50 * u.arcsec) ** 2
+    nu = u.GHz * 5
+    tb = 7.052590289134352 * u.K
+    # https://docs.pytest.org/en/latest/warnings.html#ensuring-function-triggers
+    with warnings.catch_warnings():
+        warnings.simplefilter('always')
+        with pytest.warns(DeprecationWarning) as warning_list:
+            result = (1*u.Jy).to(u.K,
+                                 equivalencies=u.brightness_temperature(omega_B,
+                                                                        nu))
+            roundtrip = result.to(u.Jy,
+                                  equivalencies=u.brightness_temperature(omega_B,
+                                                                         nu))
+    assert len(warning_list) == 2
+    np.testing.assert_almost_equal(tb.value, result.value)
+    np.testing.assert_almost_equal(roundtrip.value, 1)
+
+def test_surfacebrightness():
+    sb = 50*u.MJy/u.sr
+    k = sb.to(u.K, u.brightness_temperature(50*u.GHz))
+    np.testing.assert_almost_equal(k.value, 0.650965, 5)
+    assert k.unit.is_equivalent(u.K)
+
+def test_beam():
+    # pick a beam area: 2 pi r^2 = area of a Gaussina with sigma=50 arcsec
+    omega_B = 2 * np.pi * (50 * u.arcsec) ** 2
+    new_beam = (5*u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
+    assert new_beam.unit.is_equivalent(u.sr)
+
+    # make sure that it's still consistent with 5 beams
+    nbeams = new_beam.to(u.beam, u.equivalencies.beam_angular_area(omega_B))
+    np.testing.assert_almost_equal(nbeams.value, 5)
+
+    # test inverse beam equivalency
+    # (this is just a sanity check that the equivalency is defined;
+    # it's not for testing numerical consistency)
+    new_inverse_beam = (5/u.beam).to(1/u.sr, u.equivalencies.beam_angular_area(omega_B))
+
+    # test practical case
+    # (this is by far the most important one)
+    flux_density = (5*u.Jy/u.beam).to(u.MJy/u.sr, u.equivalencies.beam_angular_area(omega_B))
+
+    np.testing.assert_almost_equal(flux_density.value, 13.5425483146382)
 
 
 def test_equivalency_context():
