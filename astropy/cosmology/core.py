@@ -1153,6 +1153,26 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
+        return self._integral_comoving_distance_z1z2(z1, z2)
+
+    def _integral_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
 
         from scipy.integrate import quad
         f = lambda z1, z2: quad(self._inv_efunc_scalar, z1, z2,
