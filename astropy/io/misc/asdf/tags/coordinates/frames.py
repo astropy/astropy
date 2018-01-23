@@ -15,7 +15,7 @@ __all__ = ['ICRSCoordType']
 
 
 class ICRSCoordType(AstropyType):
-    name = "coordinates/icrs_coord"
+    name = "coordinates/frames/icrs"
     types = ['astropy.coordinates.ICRS']
     requires = ['astropy']
     version = "1.0.0"
