@@ -207,4 +207,4 @@ class TickLabels(Text):
                 if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
                     super().draw(renderer)
                     bboxes.append(bb)
-                    ticklabels_bbox.append(bb)
+                    ticklabels_bbox[axis].append(bb)

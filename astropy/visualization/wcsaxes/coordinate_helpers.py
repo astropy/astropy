@@ -417,6 +417,26 @@ class CoordinateHelper:
         """
         self.axislabels.set_visible_axes(position)
 
+    def set_axislabel_visibility_rule(self, rule):
+        """
+        Set the rule used to determine when the axis label is drawn.
+
+        Parameters
+        ----------
+        rule : str
+            If the rule is 'always' axis labels will always be drawn on the
+            axis. If the rule is 'ticks' the label will only be drawn if ticks
+            were drawn on that axis. If the rule is 'labels' the axis label
+            will only be drawn if tick labels were drawn on that axis.
+        """
+        self.axislabels.set_visibility_rule(rule)
+
+    def get_axislabel_visibility_rule(self, rule):
+        """
+        Get the rule used to determine when the axis label is drawn.
+        """
+        return self.axislabels.get_visibility_rule()
+
     @property
     def locator(self):
         return self._formatter_locator.locator
@@ -454,22 +474,24 @@ class CoordinateHelper:
 
         renderer.close_group('grid lines')
 
-    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
+    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox, ticks_locs):
 
         renderer.open_group('ticks')
 
-        self.ticks.draw(renderer)
+        self.ticks.draw(renderer, ticks_locs)
         self.ticklabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox=ticklabels_bbox)
 
         renderer.close_group('ticks')
 
-    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
+    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
 
         renderer.open_group('axis labels')
 
         self.axislabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox_list=ticklabels_bbox,
+                             ticklabels_bbox=ticklabels_bbox,
+                             coord_ticklabels_bbox=ticklabels_bbox[self],
+                             ticks_locs=ticks_locs,
                              visible_ticks=visible_ticks)
 
         renderer.close_group('axis labels')
