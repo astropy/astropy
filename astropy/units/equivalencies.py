@@ -3,6 +3,7 @@
 
 # THIRD-PARTY
 import numpy as np
+import warnings
 
 # LOCAL
 from ..constants import si as _si
@@ -11,14 +12,15 @@ from . import cgs
 from . import astrophys
 from .function import units as function_units
 from . import dimensionless_unscaled
-from .core import UnitsError
+from .core import UnitsError, Unit
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale']
+           'brightness_temperature', 'beam_angular_area',
+           'dimensionless_angles', 'logarithmic', 'temperature',
+           'temperature_energy', 'molar_mass_amu', 'pixel_scale',
+           'plate_scale']
 
 
 def dimensionless_angles():
@@ -446,9 +448,9 @@ def mass_energy():
     ]
 
 
-def brightness_temperature(beam_area, disp):
+def brightness_temperature(frequency, beam_area=None):
     r"""
-    Defines the conversion between Jy/beam and "brightness temperature",
+    Defines the conversion between Jy/sr and "brightness temperature",
     :math:`T_B`, in Kelvins.  The brightness temperature is a unit very
     commonly used in radio astronomy.  See, e.g., "Tools of Radio Astronomy"
     (Wilson 2009) eqn 8.16 and eqn 8.19 (these pages are available on `google
@@ -457,16 +459,21 @@ def brightness_temperature(beam_area, disp):
 
     :math:`T_B \equiv S_\nu / \left(2 k \nu^2 / c^2 \right)`
 
-    However, the beam area is essential for this computation: the brightness
-    temperature is inversely proportional to the beam area
+    If the input is in Jy/beam or Jy (assuming it came from a single beam), the
+    beam area is essential for this computation: the brightness temperature is
+    inversely proportional to the beam area.
 
     Parameters
     ----------
-    beam_area : Beam Area equivalent
+    frequency : `~astropy.units.Quantity` with spectral units
+        The observed ``spectral`` equivalent `~astropy.units.Unit` (e.g.,
+        frequency or wavelength).  The variable is named 'frequency' because it
+        is more commonly used in radio astronomy.
+        BACKWARD COMPATIBILITY NOTE: previous versions of the brightness
+        temperature equivalency used the keyword ``disp``, which is no longer
+        supported.
+    beam_area : angular area equivalent
         Beam area in angular units, i.e. steradian equivalent
-    disp : `~astropy.units.Quantity` with spectral units
-        The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
-        frequency or wavelength)
 
     Examples
     --------
@@ -477,11 +484,9 @@ def brightness_temperature(beam_area, disp):
         >>> beam_sigma = 50*u.arcsec
         >>> beam_area = 2*np.pi*(beam_sigma)**2
         >>> freq = 5*u.GHz
-        >>> equiv = u.brightness_temperature(beam_area, freq)
-        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        3.526294429423223
-        >>> (1*u.Jy).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        <Quantity 3.526294429423223 K>
+        >>> equiv = u.brightness_temperature(freq)
+        >>> (1*u.Jy/beam_area).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 3.526295144567176 K>
 
     VLA synthetic beam::
 
@@ -490,23 +495,68 @@ def brightness_temperature(beam_area, disp):
         >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
         >>> beam_area = 2.*np.pi*(bmaj*bmin*fwhm_to_sigma**2)
         >>> freq = 5*u.GHz
-        >>> equiv = u.brightness_temperature(beam_area, freq)
-        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        217.2658703625732
+        >>> equiv = u.brightness_temperature(freq)
+        >>> (u.Jy/beam_area).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 217.2658703625732 K>
+
+    Any generic surface brightness:
+
+        >>> surf_brightness = 1e6*u.MJy/u.sr
+        >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
+        <Quantity 130.1931904778803 K>
     """
-    beam = beam_area.to_value(si.sr)
-    nu = disp.to(si.GHz, spectral())
+    if frequency.unit.is_equivalent(si.sr):
+        if not beam_area.unit.is_equivalent(si.Hz):
+            raise ValueError("The inputs to `brightness_temperature` are "
+                             "frequency and angular area.")
+        warnings.warn("The inputs to `brightness_temperature` have changed. "
+                      "Frequency is now the first input, and angular area "
+                      "is the second, optional input.",
+                      DeprecationWarning)
+        frequency, beam_area = beam_area, frequency
 
-    def convert_Jy_to_K(x_jybm):
-        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
-        return (x_jybm / beam / factor)
+    nu = frequency.to(si.GHz, spectral())
 
-    def convert_K_to_Jy(x_K):
-        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to_value(si.K)
-        return (x_K * beam / factor)
+    if beam_area is not None:
+        beam = beam_area.to_value(si.sr)
+        def convert_Jy_to_K(x_jybm):
+            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+            return (x_jybm / beam / factor)
 
-    return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
+        def convert_K_to_Jy(x_K):
+            factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+            return (x_K * beam / factor)
 
+        return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
+                (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy)
+               ]
+    else:
+        def convert_JySr_to_K(x_jysr):
+            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+            return (x_jysr / factor)
+
+        def convert_K_to_JySr(x_K):
+            factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+            return (x_K / factor) # multiplied by 1x for 1 steradian
+
+        return [(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)]
+
+def beam_angular_area(beam_area):
+    """
+    Convert between the ``beam`` unit, which is commonly used to express the area
+    of a radio telescope resolution element, and an area on the sky.
+    This equivalency also supports direct conversion between ``Jy/beam`` and
+    ``Jy/steradian`` units, since that is a common operation.
+
+    Parameters
+    ----------
+    beam_area : angular area equivalent
+        The area of the beam in angular area units (e.g., steradians)
+    """
+    return [(astrophys.beam, Unit(beam_area)),
+            (astrophys.beam**-1, Unit(beam_area)**-1),
+            (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),
+           ]
 
 def temperature():
     """Convert between Kelvin, Celsius, and Fahrenheit here because
