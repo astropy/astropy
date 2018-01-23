@@ -11,6 +11,14 @@ description:
   This object represents a subtype of Quantity which has units equivalent to
   radians or degrees.
 
+examples:
+  -
+    - An Angle object in Degrees
+    - |
+        !<tag:astropy.org:astropy/coordinates/angle-1.0.0>
+          unit: !unit/unit-1.0.0 deg
+          value: 10.0
+
 type: object
 properties:
   value:

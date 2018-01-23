@@ -6,9 +6,8 @@ import pytest
 asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
 
-import astropy.units as u
 from astropy import units
-from astropy.coordinates import ICRS, HCRS, Longitude, Latitude, Angle
+from astropy.coordinates import ICRS, FK5, Longitude, Latitude, Angle
 
 from ....extension import AstropyExtension
 
@@ -17,7 +16,7 @@ def test_hcrs_basic(tmpdir):
     ra = Longitude(25, unit=units.deg)
     dec = Latitude(45, unit=units.deg)
 
-    tree = {'coord': HCRS(ra=ra, dec=dec)}
+    tree = {'coord': ICRS(ra=ra, dec=dec)}
 
     assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
 
@@ -38,7 +37,7 @@ def test_icrs_nodata(tmpdir):
     assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
 
 
-def test_hcrs_compound(tmpdir):
+def test_icrs_compound(tmpdir):
 
     icrs = ICRS(ra=[0, 1, 2]*units.deg, dec=[3, 4, 5]*units.deg)
 
@@ -47,24 +46,8 @@ def test_hcrs_compound(tmpdir):
     assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
 
 
-def test_sunpy(tmpdir):
+def test_fk5_time(tmpdir):
 
-    scoord = pytest.importorskip('sunpy.coordinates')
-
-    hpc = scoord.Helioprojective(100*units.arcsec, 100*units.arcsec,
-                                 obstime="2011-01-01")
-
-    tree = {'coord': hpc}
-
-    assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
-
-
-def test_sunpy_hgs(tmpdir):
-
-    scoord = pytest.importorskip('sunpy.coordinates')
-
-    hpc = scoord.HeliographicStonyhurst(1*u.deg, 0*u.deg, 0.98*u.AU)
-
-    tree = {'coord': hpc}
+    tree = {'coord': FK5(equinox="2011-01-01T00:00:00")}
 
     assert_roundtrip_tree(tree, tmpdir, extensions=AstropyExtension())
