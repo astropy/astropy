@@ -1843,41 +1843,6 @@ class FlatLambdaCDM(LambdaCDM):
         prefactor = 2 * self._hubble_distance
         return prefactor * ((1+z1)**(-1./2) - (1+z2)**(-1./2))
 
-    def _elliptic_comoving_distance_z1z2(self, z1, z2):
-        """ Comoving line-of-sight distance in Mpc between objects at
-        redshifts z1 and z2.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        For Omega_radiation = 0 the comoving distance can be directly calculated
-        as an elliptic integral.
-        Equation here taken from
-            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
-
-        Parameters
-        ----------
-        z1, z2 : array-like, shape (N,)
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : `~astropy.units.Quantity`
-          Comoving distance in Mpc between each input redshift.
-        """
-        if isiterable(z1):
-            z1 = np.asarray(z1)
-            z2 = np.asarray(z2)
-            if z1.shape != z2.shape:
-                msg = "z1 and z2 have different shapes"
-                raise ValueError(msg)
-
-        s = ((1 - self._Om0) / self._Om0) ** (1./3)
-        prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
-        return prefactor * (self._T_legendre(s / (1 + z1)) -
-                            self._T_legendre(s / (1 + z2)))
-
     def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
         """ Comoving line-of-sight distance in Mpc between objects at
         redshifts z1 and z2.
@@ -1913,23 +1878,6 @@ class FlatLambdaCDM(LambdaCDM):
         prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
         return prefactor * (self._T_hypergeometric(s / (1 + z1)) -
                             self._T_hypergeometric(s / (1 + z2)))
-
-    def _T_legendre(self, x):
-        """ Compute T_legendre(x) using Legendre elliptical integrals of the first kind.
-
-        T(x) = 3^{-\\frac{1}{4}}
-               F\\left(arccos\\left(\\frac{1+(1-\\sqrt{3}x}{1+(1+\\sqrt{3})x}\\right),
-                      \\cos\\frac{\\pi}{12}\\right)
-        where
-        F(phi, m) = int_0^phi {1/sqrt(1 - m \\sin^2{t})} dt
-        """
-
-        from scipy.special import ellipkinc
-        # math.sqrt is several times faster than np.sqrt for scalars
-        phi = np.arccos((1 + (1 - sqrt(3)) * x) /
-                        (1 + (1 + sqrt(3)) * x))
-        m = 0.9330127018922193  # cos(pi/12)**2 == 1/2 + sqrt(3)/4
-        return 3**(-1./4) * ellipkinc(phi, m)
 
     def _T_hypergeometric(self, x):
         """ Compute T_hypergeometric(x) using Gauss Hypergeometric function 2F1
