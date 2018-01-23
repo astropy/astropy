@@ -3,10 +3,17 @@
 
 import numpy as np
 
-from matplotlib import units
-from matplotlib import ticker
-
 from .. import units as u
+
+try:
+    from matplotlib.units import (ConversionInterface, AxisInfo,
+                                  registry as units_registry)
+except ImportError:  # no matplotlib
+    class ConversionInterface(object):
+        def __init__(self, *args, **kwargs):
+            raise ImportError('matplotlib is required in order to use this '
+                              'class.')
+
 
 __doctest_skip__ = ['quantity_support']
 
@@ -27,32 +34,34 @@ def rad_fn(x, pos=None):
         return '{0}π/2'.format(n)
 
 
-class MplQuantityConverter(units.ConversionInterface):
+class MplQuantityConverter(ConversionInterface):
     """`ConversionInterface` with support for Astropy units
     """
     def __init__(self, format='latex_inline'):
-        if u.Quantity not in units.registry:
-            units.registry[u.Quantity] = self
+        if u.Quantity not in units_registry:
+            units_registry[u.Quantity] = self
             self._remove = True
         else:
             self._remove = False
         self.format = format
 
     def axisinfo(self, unit, axis):
+        from matplotlib import ticker
+
         if unit == u.radian:
-            return units.AxisInfo(
+            return AxisInfo(
                 majloc=ticker.MultipleLocator(base=np.pi/2),
                 majfmt=ticker.FuncFormatter(rad_fn),
                 label=unit.to_string(),
             )
         elif unit == u.degree:
-            return units.AxisInfo(
+            return AxisInfo(
                 majloc=ticker.AutoLocator(),
                 majfmt=ticker.FormatStrFormatter('%i°'),
                 label=unit.to_string(),
             )
         elif unit is not None:
-            return units.AxisInfo(label=unit.to_string(self.format))
+            return AxisInfo(label=unit.to_string(self.format))
         return None
 
     @staticmethod
@@ -73,7 +82,7 @@ class MplQuantityConverter(units.ConversionInterface):
 
     def __exit__(self, type, value, tb):
         if self._remove:
-            del units.registry[u.Quantity]
+            del units_registry[u.Quantity]
 
 
 def quantity_support(format='latex_inline'):
