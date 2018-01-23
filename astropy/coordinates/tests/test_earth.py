@@ -343,20 +343,20 @@ def test_gravitational_redshift():
 
     # check mass adjustments
     # if Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
-    masses = [constants.G*constants.M_sun,
-              0*constants.G*u.kg,
-              0*constants.G*u.kg,
-              constants.G*constants.M_earth]
+    masses = {'sun': constants.G*constants.M_sun,
+              'jupiter': 0*constants.G*u.kg,
+              'moon': 0*constants.G*u.kg,
+              'earth': constants.G*constants.M_earth}
     d_moonjup = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
     assert d_moonjup < 1*u.mm/u.s
     assert d_moonjup > .1*u.mm/u.s
 
     # if the earth is also ignored, effect should be off by ~ 20 cm/s
-    masses[3] *= 0
+    masses['earth'] *= 0
     d_moonjupearth = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
     assert d_moonjupearth < 1*u.m/u.s
     assert d_moonjupearth > 10*u.cm/u.s
 
     # if all masses are ignored, should be 0
-    masses[0] *= 0
+    masses['sun'] *= 0
     assert someloc.gravitational_redshift(sometime, masses=masses) == 0
