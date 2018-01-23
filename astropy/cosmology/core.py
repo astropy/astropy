@@ -1707,6 +1707,43 @@ class LambdaCDM(FLRW):
         else:
             return np.ones(np.asanyarray(z).shape)
 
+    def _elliptic_comoving_distance_z1z2(self, z):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        For Omega_radiation = 0 the comoving distance can be directly calculated
+        as a hypergeometric function.
+        Equation here taken from
+            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+
+        Parameters
+        ----------
+        z1, z2 : array-like
+          Input redshifts.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        prefactor = self._hubble_distance / np.sqrt(self._Ok0)
+        g = 1
+        delta_phi_z = 1
+        k = 1
+        return prefactor * np.sinh(-g * F(delta_phi_z, k))
+
+        
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
