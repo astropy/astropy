@@ -1761,9 +1761,10 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
-            # Call out Om0=1 (Einstein-de Sitter) and Om0=0 (de Sitter)
-            # special cases. These are a bit faster, but also necessary because
-            # the elliptic integral formulation is not valid for these cases.
+            # Call out Om0=1 (Einstein-de Sitter) and Om0=0 (de Sitter) cases.
+            # The dS case is required because the hypergeometric case
+            #    for Omega_M=0 would lead to an infinity in its argument.
+            # The EdS case is three times faster than the hypergeometric.
             if self._Om0 == 0:
                 self._comoving_distance_z1z2 = \
                     self._dS_comoving_distance_z1z2
