@@ -651,10 +651,11 @@ class EarthLocation(u.Quantity):
         return obsgeopos, obsgeovel
 
     _GM_moon = consts.G * 7.34767309e22*u.kg
-    def gravitational_redshift(self, obstime,
-                               bodies=('sun', 'jupiter', 'moon', 'earth'),
-                               masses=(consts.GM_sun, consts.GM_jup,
-                                       _GM_moon, consts.GM_earth)):
+    def gravitational_redshift(self, obstime, bodies=('sun', 'jupiter', 'moon'),
+                               masses={'sun': consts.GM_sun,
+                                       'jupiter': consts.GM_jup,
+                                       'moon': _GM_moon,
+                                       'earth': consts.GM_earth}):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -666,13 +667,18 @@ class EarthLocation(u.Quantity):
             The ``obstime`` to calculate the redshift at.
 
         bodies : list
-            The bodies to include in the redshift calculation.  List elements
-            should be any body name `get_body_barycentric` accepts.  Defaults to
-            Jupiter, the Sun, the Moon, and Earth Itself.
+            The bodies (other than the Earth) to include in the redshift
+            calculation.  List elements should be any body name
+            `get_body_barycentric` accepts.  Defaults to Jupiter, the Sun, and
+            the Moon.  Earth is always included (because the class represents
+            an *Earth* location).
 
-        masses : list of Quantity
+        masses : dict of str to Quantity
             The gravitational parameters (G * mass) to assume for the bodies
-            requested in ``bodies``. Length must match ``bodies``.
+            requested in ``bodies``. There most be a key for each element in
+            ``bodies``, *as well as* an entry for ``'earth'``.  If masses are
+            given (instead of gravitational parameters), they will be multiplied
+            by G.
 
         Returns
         --------
@@ -682,8 +688,14 @@ class EarthLocation(u.Quantity):
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
 
-        if len(masses) != len(bodies):
-            raise ValueError("masses and bodies must be same length")
+        bodies = list(bodies) + ['earth']
+        GMs = dict(masses)
+
+        for body in bodies:
+            if body not in GMs:
+                raise ValueError("body {} does not have a mass!".format(body))
+            if GMs[body].unit.is_equivalent(u.kg):
+                GMs[body] = consts.G * GMs[body]
 
         positions = [get_body_barycentric(name, obstime) for name in bodies]
         # Calculate distances to objects other than earth.
@@ -691,8 +703,8 @@ class EarthLocation(u.Quantity):
         # Append distance from Earth's center for Earth's contribution.
         distances.append(CartesianRepresentation(self.geocentric).norm())
         # Get redshifts due to all objects.
-        redshifts = [-GM / consts.c / distance for (GM, distance) in
-                     zip(masses, distances)]
+        redshifts = [-GMs[body] / consts.c / distance for (body, distance) in
+                     zip(bodies, distances)]
         return sum(redshifts)
 
     @property
