@@ -330,10 +330,10 @@ soon-to-be-released version can focus on bug fixes and documentation updates.
 
 The procedure for this is straightforward:
 
-#. Make sure you're on master, and updated to the latest version from github::
+#. Update your local master branch to use to the latest version from github::
 
       $ git fetch upstream
-      $ git checkout upstream/master
+      $ git checkout -B master upstream/master
 
 #. Create a new branch from master at the point you want the feature freeze to
    occur::
@@ -377,7 +377,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream HEAD:master
+      $ git push upstream master:master
 
    .. note::
 
