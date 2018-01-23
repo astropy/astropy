@@ -256,6 +256,10 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Fix a unicode decode error when reading a table with non-ASCII characters.
+  The fast C reader cannot handle unicode so the code now uses the pure-Python
+  reader in this case. [#7103]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
