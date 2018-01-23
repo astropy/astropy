@@ -694,8 +694,13 @@ class EarthLocation(u.Quantity):
         for body in bodies:
             if body not in GMs:
                 raise ValueError("body {} does not have a mass!".format(body))
-            if GMs[body].unit.is_equivalent(u.kg):
+            if GMs[body].unit.is_equivalent(consts.GM_earth):
+                pass  # all good
+            elif GMs[body].unit.is_equivalent(u.kg):
                 GMs[body] = consts.G * GMs[body]
+            else:
+                raise u.UnitsError('"masses" argument values must be masses or '
+                                   'gravitational parameters')
 
         positions = [get_body_barycentric(name, obstime) for name in bodies]
         # Calculate distances to objects other than earth.
