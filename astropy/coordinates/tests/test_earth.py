@@ -360,3 +360,10 @@ def test_gravitational_redshift():
     # if all masses are ignored, should be 0
     masses['sun'] *= 0
     assert someloc.gravitational_redshift(sometime, masses=masses) == 0
+
+    with pytest.raises(u.UnitsError):
+        masses = {'sun': constants.G*constants.M_sun,
+                  'jupiter': constants.G*constants.M_jup,
+                  'moon': 1*u.km,  # wrong units!
+                  'earth': constants.G*constants.M_earth}
+        someloc.gravitational_redshift(sometime, masses=masses)
