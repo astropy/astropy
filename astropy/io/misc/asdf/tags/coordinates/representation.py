@@ -1,19 +1,18 @@
-from importlib import import_module
 from asdf.yamlutil import custom_tree_to_tagged_tree
 
+import astropy.coordinates.representation
+from astropy.coordinates.representation import BaseRepresentationOrDifferential
 from astropy.tests.helper import assert_quantity_allclose
+
 from ...types import AstropyType
-
-
-REPRESENTATION_MODULE_WHITELIST = ['astropy.coordinates.representation',
-                                   'sunpy.coordinates.representation']
 
 
 class RepresentationType(AstropyType):
     name = "coordinates/representation"
-    types = ['astropy.coordinates.representation.BaseRepresentationOrDifferential']
-    requires = ['astropy']
+    types = [BaseRepresentationOrDifferential]
     version = "1.0.0"
+
+    _representation_module = astropy.coordinates.representation
 
     @classmethod
     def to_tree(cls, representation, ctx):
@@ -21,30 +20,20 @@ class RepresentationType(AstropyType):
         components = {}
         for c in comps:
             value = getattr(representation, '_' + c, None)
-            if value:
+            if value is not None:
                 components[c] = value
 
         t = type(representation)
-        if t.__module__ not in REPRESENTATION_MODULE_WHITELIST:
-            raise ValueError("Can only save representations on the white list.")
-
-        name = t.__module__ + '.' + t.__name__
 
         node = {}
-        node['type'] = name
+        node['type'] = t.__name__
         node['components'] = custom_tree_to_tagged_tree(components, ctx)
 
         return node
 
     @classmethod
     def from_tree(cls, node, ctx):
-        *module_name, class_name = node['type'].split('.')
-        module_name = '.'.join(module_name)
-        if module_name not in REPRESENTATION_MODULE_WHITELIST:
-            raise ValueError("Can only load representations from modules that "
-                             "have been white listed.")
-        mod = import_module(module_name)
-        rep_type = getattr(mod, class_name)
+        rep_type = getattr(cls._representation_module, node['type'])
         return rep_type(**node['components'])
 
     @classmethod

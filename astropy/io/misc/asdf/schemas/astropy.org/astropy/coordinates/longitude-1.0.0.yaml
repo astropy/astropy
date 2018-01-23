@@ -10,6 +10,17 @@ title: |
 description:
     Longitude-like angle(s) which are wrapped within a contiguous 360 degree range.
 
+examples:
+  -
+    - A Longitude object in Degrees
+    - |
+        !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+          unit: !unit/unit-1.0.0 deg
+          value: 10.0
+          wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0>
+            unit: !unit/unit-1.0.0 deg
+            value: 180.0
+
 type: object
 properties:
   value:

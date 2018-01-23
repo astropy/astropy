@@ -1,50 +1,38 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
-from collections import OrderedDict
 import pytest
 
+from numpy.random import random, randint
 
 import astropy.units as u
 
-from astropy.coordinates import Longitude, Latitude
+from astropy.coordinates import Angle
 import astropy.coordinates.representation as r
 
 asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 
-class UnitSphericalWrap180Representationasdf(r.UnitSphericalRepresentation):
-    attr_classes = OrderedDict([('lon', Longitude), ('lat', Latitude)])
+@pytest.fixture(params=filter(lambda x: "Base" not in x, r.__all__))
+def representation(request):
+    rep = getattr(r, request.param)
+
+    angle_unit = u.deg
+    other_unit = u.km
+
+    kwargs = {}
+    arr_len = randint(1, 100)
+    for aname, atype in rep.attr_classes.items():
+        if issubclass(atype, Angle):
+            value = ([random()] * arr_len) * angle_unit
+        else:
+            value = ([random()] * arr_len) * other_unit
+
+        kwargs[aname] = value
+
+    return rep(**kwargs)
 
 
-def test_unitspherical(tmpdir):
-    tree = {'representation': r.UnitSphericalRepresentation(10*u.deg, 10*u.deg)}
-    assert_roundtrip_tree(tree, tmpdir)
-
-
-def test_spherical(tmpdir):
-    tree = {'representation': r.SphericalRepresentation(10*u.deg, 10*u.deg, 2.2*u.AU)}
-    assert_roundtrip_tree(tree, tmpdir)
-
-
-def test_unitspherical180(tmpdir):
-    x = UnitSphericalWrap180Representationasdf(-10*u.deg, 10*u.deg)
-    tree = {'representation': x}
-    with pytest.raises(ValueError):
-        assert_roundtrip_tree(tree, tmpdir)
-
-
-def test_cart_differential(tmpdir):
-    d = r.CartesianDifferential([11.1, 12.24, 7.25]*u.km/u.s)
-
-    tree = {'representation': d}
-    assert_roundtrip_tree(tree, tmpdir)
-
-
-def test_sunpy180(tmpdir):
-    scoord = pytest.importorskip('sunpy.coordinates')
-
-    x = scoord.representation.SphericalWrap180Representation(-10*u.deg, 10*u.deg, 0.98*u.AU)
-    tree = {'representation': x}
+def test_representations(tmpdir, representation):
+    tree = {'representation': representation}
     assert_roundtrip_tree(tree, tmpdir)

@@ -12,7 +12,7 @@ __all__ = ['AngleType', 'LatitudeType', 'LongitudeType']
 
 class AngleType(QuantityType):
     name = "coordinates/angle"
-    types = ['astropy.coordinates.angles.Angle']
+    types = [Angle]
     requires = ['astropy']
     version = "1.0.0"
     organization = 'astropy.org'
@@ -25,7 +25,7 @@ class AngleType(QuantityType):
 
 class LatitudeType(AngleType):
     name = "coordinates/latitude"
-    types = ['astropy.coordinates.angles.Latitude']
+    types = [Latitude]
 
     @classmethod
     def from_tree(cls, node, ctx):
@@ -34,7 +34,7 @@ class LatitudeType(AngleType):
 
 class LongitudeType(AngleType):
     name = "coordinates/longitude"
-    types = ['astropy.coordinates.angles.Longitude']
+    types = [Longitude]
 
     @classmethod
     def from_tree(cls, node, ctx):

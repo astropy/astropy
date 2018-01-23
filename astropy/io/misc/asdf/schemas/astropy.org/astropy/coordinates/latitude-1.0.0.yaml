@@ -10,6 +10,14 @@ title: |
 description:
   Represents latitude-like angle(s) which must be in the range -90 to +90 deg.
 
+examples:
+  -
+    - A Latitude object in Degrees
+    - |
+        !<tag:astropy.org:astropy/coordinates/latitude-1.0.0>
+          unit: !unit/unit-1.0.0 deg
+          value: 10.0
+
 type: object
 properties:
   value:
