@@ -2510,6 +2510,61 @@ class TestTableFunctions(FitsTestCase):
                         'deprecated in version 2.0 and will be removed in a '
                         'future version. Use argument "overwrite" instead.')
 
+    def test_pseudo_unsigned_ints(self):
+        """
+        Tests updating a table column containing pseudo-unsigned ints.
+        """
+
+        data = np.array([1, 2, 3], dtype=np.uint32)
+        col = fits.Column(name='A', format='1J', bzero=2**31, array=data)
+        thdu = fits.BinTableHDU.from_columns([col])
+        thdu.writeto(self.temp('test.fits'))
+
+        # Test that the file wrote out correctly
+        with fits.open(self.temp('test.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == data)
+
+            # Test updating the unsigned int data
+            hdu.data['A'][0] = 99
+            hdu.writeto(self.temp('test2.fits'))
+
+        with fits.open(self.temp('test2.fits'), uint=True) as hdul:
+            hdu = hdul[1]
+            assert 'TZERO1' in hdu.header
+            assert hdu.header['TZERO1'] == 2**31
+            assert hdu.data['A'].dtype == np.dtype('uint32')
+            assert np.all(hdu.data['A'] == [99, 2, 3])
+
+    def test_column_with_scaling(self):
+        """Check that a scaled column if correctly saved once it is modified.
+        Regression test for https://github.com/astropy/astropy/issues/6887
+        """
+        c1 = fits.Column(name='c1', array=np.array([1], dtype='>i2'),
+                         format='1I', bscale=1, bzero=32768)
+        S = fits.HDUList([fits.PrimaryHDU(),
+                          fits.BinTableHDU.from_columns([c1])])
+
+        # Change value in memory
+        S[1].data['c1'][0] = 2
+        S.writeto(self.temp("a.fits"))
+        assert S[1].data['c1'] == 2
+
+        # Read and change value in memory
+        X = fits.open(self.temp("a.fits"))
+        X[1].data['c1'][0] = 10
+        assert X[1].data['c1'][0] == 10
+
+        # Write back to file
+        X.writeto(self.temp("b.fits"))
+
+        # Now check the file
+        with fits.open(self.temp("b.fits")) as hdul:
+            assert hdul[1].data['c1'][0] == 10
+
 
 @contextlib.contextmanager
 def _refcounting(type_):

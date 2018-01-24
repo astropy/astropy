@@ -288,45 +288,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 if isinstance(data, self._data_type):
                     self.data = data
                 else:
-                    # Just doing a view on the input data screws up unsigned
-                    # columns, so treat those more carefully.
-                    # TODO: I need to read this code a little more closely
-                    # again, but I think it can be simplified quite a bit with
-                    # the use of some appropriate utility functions
-                    update_coldefs = {}
-                    if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
-                        self._uint = True
-                        bzeros = {2: np.uint16(2**15), 4: np.uint32(2**31),
-                                  8: np.uint64(2**63)}
-
-                        new_dtype = [
-                            (k, data.dtype[k].kind.replace('u', 'i') +
-                            str(data.dtype[k].itemsize))
-                            for k in data.dtype.names]
-
-                        new_data = np.zeros(data.shape, dtype=new_dtype)
-
-                        for k in data.dtype.fields:
-                            dtype = data.dtype[k]
-                            if dtype.kind == 'u':
-                                new_data[k] = data[k] - bzeros[dtype.itemsize]
-                                update_coldefs[k] = bzeros[dtype.itemsize]
-                            else:
-                                new_data[k] = data[k]
-                        self.data = new_data.view(self._data_type)
-                        # Uck...
-                        self.data._uint = True
-                    else:
-                        self.data = data.view(self._data_type)
-                    for k in update_coldefs:
-                        indx = _get_index(self.data.names, k)
-                        self.data._coldefs[indx].bzero = update_coldefs[k]
-                        # This is so bad that we have to update this in
-                        # duplicate...
-                        self.data._coldefs.bzeros[indx] = update_coldefs[k]
-                        # More uck...
-                        self.data._coldefs[indx]._physical_values = False
-                        self.data._coldefs[indx]._pseudo_unsigned_ints = True
+                    self.data = self._data_type.from_columns(data)
 
                 # TODO: Too much of the code in this class uses header keywords
                 # in making calculations related to the data size.  This is
