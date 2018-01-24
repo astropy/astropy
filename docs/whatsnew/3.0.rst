@@ -150,6 +150,13 @@ Support for FITS time standard
 FITS table performance enhancements
 ===================================
 
+The performance for reading and writing FITS tables has been significantly
+improved, in particular for cases where the tables contain one or more string
+columns and when done through the ``astropy.table.Table`` interface.  The
+``Table.read`` now supports a ``memmap=`` keyword argument to control whether
+or not to use memory mapping when reading the table, and ``fits.open`` supports
+a new keyword argument ``character_as_bytes`` to return character columns as
+Numpy byte arrays (Numpy type 'S'), which uses less memory.
 
 .. _whatsnew-3.0-kuiper-functions:
 
