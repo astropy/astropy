@@ -268,6 +268,12 @@ astropy.coordinates
   incorrect attribute names are given.  Instead of using the representation
   attribute names, they use the frame attribute names. [#7106]
 
+- ``EarthLocation`` now has a method to compute the  gravitational redshift due
+  due to solar system bodies.  [#6861, #6935]
+
+- ``EarthLocation`` now has a ``get_gcrs`` convenience method to get the
+  location in GCRS coordinates.  [#6861, #6935]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
