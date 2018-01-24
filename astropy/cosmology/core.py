@@ -2,7 +2,7 @@
 
 
 import sys
-from math import sqrt, pi, exp, log, floor
+from math import acos, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 
@@ -1645,6 +1645,9 @@ class LambdaCDM(FLRW):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
+            if self._Ok0 != 0:
+                self._comoving_distance_z1z2 = \
+                    self._elliptic_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -1707,7 +1710,7 @@ class LambdaCDM(FLRW):
         else:
             return np.ones(np.asanyarray(z).shape)
 
-    def _elliptic_comoving_distance_z1z2(self, z):
+    def _elliptic_comoving_distance_z1z2(self, z1, z2):
         """ Comoving line-of-sight distance in Mpc between objects at
         redshifts z1 and z2.
 
@@ -1715,10 +1718,12 @@ class LambdaCDM(FLRW):
         objects remains constant with time for objects in the Hubble
         flow.
 
-        For Omega_radiation = 0 the comoving distance can be directly calculated
+        For Omega_rad = 0 the comoving distance can be directly calculated
         as a hypergeometric function.
         Equation here taken from
             Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+
+        Not valid or appropriate for flat cosmologies (Ok0=0).
 
         Parameters
         ----------
@@ -1730,6 +1735,7 @@ class LambdaCDM(FLRW):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
+        from scipy.special import ellipkinc
         if isiterable(z1):
             z1 = np.asarray(z1)
             z2 = np.asarray(z2)
@@ -1738,12 +1744,43 @@ class LambdaCDM(FLRW):
                 raise ValueError(msg)
 
         prefactor = self._hubble_distance / np.sqrt(self._Ok0)
-        g = 1
-        delta_phi_z = 1
-        k = 1
-        return prefactor * np.sinh(-g * F(delta_phi_z, k))
+        b = -(27./2) * self._Om0**2 * self._Ode0 / self._Ok0**3
+        kappa = b / abs(b)
+        if (b < 0) or (2 < b):
+            def phi_z(Om0, Ol0, Ok0, kappa, y1, A, z):
+                return np.arccos(((1+z)*Om0/abs(Ok0) + kappa*y1 - A) /
+                                 ((1+z)*Om0/abs(Ok0) + kappa*y1 + A))
 
-        
+            v_k = pow(kappa * (b-1) + sqrt(b*(b-2)), 1./3)
+            y1 = (-1 + kappa*(v_k + 1/v_k))/3
+            A = sqrt(y1*(3*y1+2))
+            g = 1/sqrt(A)
+            k2 = (2*A+kappa*(1+3*y1))/(4*A)
+
+            phi_z1 = phi_z(self._Om0, self._Ode0, self._Ok0, kappa, y1, A, z1)
+            phi_z2 = phi_z(self._Om0, self._Ode0, self._Ok0, kappa, y1, A, z2)
+        # Get lower-right 0<b<2 solution in Om, Ol plane.
+        # Fot the upper-left 0<b<2 solution the Big Bang didn't happen.
+        elif (0 < b) and (b < 2) and self._Om0 > self.Ol0:
+            def phi_z(Om0, Ol0, Ok0, kappa, y1, A, z):
+                return np.arcsin(np.sqrt((y1 - y2) /
+                                         (1+z) * Om0 / abs(Ok0) + y1))
+
+            yb = cos(acos(1-b)/3)
+            yc = sqrt(3) * sin(acos(1-b)/3)
+            y1 = (1./3) * (-1 + yb + yc)
+            y1 = (1./3) * (-1 - 2 * ya)
+            y3 = (1./3) * (-1 + ya - yc)
+            g = 2/sqrt(y1-y2)
+            k2 = (y1-y3)/(y1-y2)
+            phi_z1 = phi_z(self._Om0, self._Ode0, self._Ok0, y1, y2, z1)
+            phi_z2 = phi_z(self._Om0, self._Ode0, self._Ok0, y1, y2, z2)
+        else:
+            return self._integral_comoving_distance_z1z2(z1, z2)
+
+        return prefactor * \
+            np.sinh(-g * (ellipkinc(phi_z2, k2) - ellipkinc(phi_z1, k2)))
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
