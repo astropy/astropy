@@ -129,9 +129,9 @@ of `Astropy`_ in a directory called ``astropy``; which form you use depends
 on what kind of authentication you set up in the previous step::
 
     # Use this form if you setup SSH keys...
-    $ git clone git@github.com:your-user-name/astropy.git
+    $ git clone --recursive git@github.com:your-user-name/astropy.git
     # ...otherwise use this form:
-    $ git clone https://github.com/your-user-name/astropy.git
+    $ git clone --recursive https://github.com/your-user-name/astropy.git
 
 If there is an error at this stage it is probably an error in setting up
 authentication.
