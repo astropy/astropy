@@ -682,8 +682,6 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -807,6 +805,8 @@ astropy.modeling
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
+
+- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
