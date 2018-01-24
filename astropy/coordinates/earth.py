@@ -685,8 +685,10 @@ class EarthLocation(u.Quantity):
         from .solar_system import get_body_barycentric
 
         bodies = list(bodies)
-        if 'earth' not in bodies:
-            bodies.append('earth')
+        # Ensure earth is included and last in the list.
+        if 'earth' in bodies:
+            bodies.remove('earth')
+        bodies.append('earth')
         _masses = {'sun': consts.GM_sun,
                    'jupiter': consts.GM_jup,
                    'moon': consts.G * 7.34767309e22*u.kg,
