@@ -650,12 +650,9 @@ class EarthLocation(u.Quantity):
         obsgeovel = gcrs_data.differentials['s'].to_cartesian()
         return obsgeopos, obsgeovel
 
-    _GM_moon = consts.G * 7.34767309e22*u.kg
-    def gravitational_redshift(self, obstime, bodies=('sun', 'jupiter', 'moon'),
-                               masses={'sun': consts.GM_sun,
-                                       'jupiter': consts.GM_jup,
-                                       'moon': _GM_moon,
-                                       'earth': consts.GM_earth}):
+    def gravitational_redshift(self, obstime,
+                               bodies=['sun', 'jupiter', 'moon'],
+                               masses={}):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -666,19 +663,18 @@ class EarthLocation(u.Quantity):
         obstime : `~astropy.time.Time`
             The ``obstime`` to calculate the redshift at.
 
-        bodies : list
+        bodies : iterable, optional
             The bodies (other than the Earth) to include in the redshift
             calculation.  List elements should be any body name
             `get_body_barycentric` accepts.  Defaults to Jupiter, the Sun, and
             the Moon.  Earth is always included (because the class represents
             an *Earth* location).
 
-        masses : dict of str to Quantity
-            The gravitational parameters (G * mass) to assume for the bodies
-            requested in ``bodies``. There most be a key for each element in
-            ``bodies``, *as well as* an entry for ``'earth'``.  If masses are
-            given (instead of gravitational parameters), they will be multiplied
-            by G.
+        masses : dict of str to Quantity, optional
+            The mass or gravitational parameters (G * mass) to assume for the
+            bodies requested in ``bodies``. Can be used to override the
+            defaults for the Sun, Jupiter, the Moon, and the Earth, or to
+            pass in masses for other bodies.
 
         Returns
         --------
@@ -688,19 +684,25 @@ class EarthLocation(u.Quantity):
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
 
-        bodies = list(bodies) + ['earth']
-        GMs = dict(masses)
-
+        bodies = list(bodies)
+        if 'earth' not in bodies:
+            bodies.append('earth')
+        _masses = {'sun': consts.GM_sun,
+                   'jupiter': consts.GM_jup,
+                   'moon': consts.G * 7.34767309e22*u.kg,
+                   'earth': consts.GM_earth}
+        _masses.update(masses)
+        GMs = []
+        M_GM_equivalency = (u.kg, u.Unit(consts.G * u.kg))
         for body in bodies:
-            if body not in GMs:
-                raise ValueError("body {} does not have a mass!".format(body))
-            if GMs[body].unit.is_equivalent(consts.GM_earth):
-                pass  # all good
-            elif GMs[body].unit.is_equivalent(u.kg):
-                GMs[body] = consts.G * GMs[body]
-            else:
-                raise u.UnitsError('"masses" argument values must be masses or '
-                                   'gravitational parameters')
+            try:
+                GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
+            except KeyError as exc:
+                raise KeyError('body "{}" does not have a mass!'.format(body))
+            except u.UnitsError as exc:
+                exc.args += ('"masses" argument values must be masses or '
+                             'gravitational parameters',)
+                raise
 
         positions = [get_body_barycentric(name, obstime) for name in bodies]
         # Calculate distances to objects other than earth.
@@ -708,9 +710,11 @@ class EarthLocation(u.Quantity):
         # Append distance from Earth's center for Earth's contribution.
         distances.append(CartesianRepresentation(self.geocentric).norm())
         # Get redshifts due to all objects.
-        redshifts = [-GMs[body] / consts.c / distance for (body, distance) in
-                     zip(bodies, distances)]
-        return sum(redshifts)
+        redshifts = [-GM / consts.c / distance for (GM, distance) in
+                     zip(GMs, distances)]
+        # Reverse order of summing, to go from small to big, and to get
+        # "earth" first, which gives m/s as unit.
+        return sum(redshifts[::-1])
 
     @property
     def x(self):

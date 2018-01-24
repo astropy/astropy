@@ -326,40 +326,41 @@ def test_gravitational_redshift():
     zg0 = someloc.gravitational_redshift(sometime)
 
     # should be of order ~few mm/s change per week
-    d_week = np.abs(someloc.gravitational_redshift(sometime + 7 * u.day) - zg0)
-    assert d_week < 1*u.cm/u.s
-    assert d_week > 1*u.mm/u.s
+    zg_week = someloc.gravitational_redshift(sometime + 7 * u.day)
+    assert 1.*u.mm/u.s < abs(zg_week - zg0) < 1*u.cm/u.s
 
     # ~cm/s over a half-year
-    d_halfyear = np.abs(someloc.gravitational_redshift(sometime + 365/2 * u.day) - zg0)
-    assert d_halfyear < 1*u.m/u.s
-    assert d_halfyear > 1*u.cm/u.s
+    zg_halfyear = someloc.gravitational_redshift(sometime + 0.5 * u.yr)
+    assert 1*u.cm/u.s < abs(zg_halfyear - zg0) < 1*u.dm/u.s
 
-    # but when back to the same time in a year, should be tenths of mm even over decades
-    d_year = np.abs(someloc.gravitational_redshift(sometime - 20 * u.year) - zg0)
-    assert d_year < 1*u.mm/u.s
-    assert d_year > .1*u.mm/u.s
+    # but when back to the same time in a year, should be tenths of mm
+    # even over decades
+    zg_year = someloc.gravitational_redshift(sometime - 20 * u.year)
+    assert .1*u.mm/u.s < abs(zg_year - zg0) < 1*u.mm/u.s
 
-
-    # check mass adjustments
-    # if Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
+    # Check mass adjustments.
+    # If Jupiter and the moon are ignored, effect should be off by ~ .5 mm/s
     masses = {'sun': constants.G*constants.M_sun,
               'jupiter': 0*constants.G*u.kg,
-              'moon': 0*constants.G*u.kg,
-              'earth': constants.G*constants.M_earth}
-    d_moonjup = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
-    assert d_moonjup < 1*u.mm/u.s
-    assert d_moonjup > .1*u.mm/u.s
+              'moon': 0*constants.G*u.kg}
+    zg_moonjup = someloc.gravitational_redshift(sometime, masses=masses)
+    assert .1*u.mm/u.s < abs(zg_moonjup - zg0) < 1*u.mm/u.s
+    # Check that simply not including the bodies gives the same result.
+    assert zg_moonjup == someloc.gravitational_redshift(sometime,
+                                                        bodies=('sun',))
 
-    # if the earth is also ignored, effect should be off by ~ 20 cm/s
-    masses['earth'] *= 0
-    d_moonjupearth = np.abs(someloc.gravitational_redshift(sometime, masses=masses) - zg0)
-    assert d_moonjupearth < 1*u.m/u.s
-    assert d_moonjupearth > 10*u.cm/u.s
+    # If the earth is also ignored, effect should be off by ~ 20 cm/s
+    # This also tests the conversion of kg to gravitational units.
+    masses['earth'] = 0*u.kg
+    zg_moonjupearth = someloc.gravitational_redshift(sometime, masses=masses)
+    assert 1*u.dm/u.s < abs(zg_moonjupearth - zg0) < 1*u.m/u.s
 
-    # if all masses are ignored, should be 0
-    masses['sun'] *= 0
+    # If all masses are zero, redshift should be 0 as well.
+    masses['sun'] = 0*u.kg
     assert someloc.gravitational_redshift(sometime, masses=masses) == 0
+
+    with pytest.raises(KeyError):
+        someloc.gravitational_redshift(sometime, bodies=('saturn',))
 
     with pytest.raises(u.UnitsError):
         masses = {'sun': constants.G*constants.M_sun,
