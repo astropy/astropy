@@ -28,7 +28,7 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
            "default_cosmology"] + parameters.available
 
-__doctest_requires__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy.integrate', 'scipy.special']}
 
 # Notes about speeding up integrals:
 # ---------------------------------
@@ -1153,6 +1153,26 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
+        return self._integral_comoving_distance_z1z2(z1, z2)
+
+    def _integral_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
 
         from scipy.integrate import quad
         f = lambda z1, z2: quad(self._inv_efunc_scalar, z1, z2,
@@ -1741,6 +1761,19 @@ class FlatLambdaCDM(LambdaCDM):
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+            # Call out Om0=1 (Einstein-de Sitter) and Om0=0 (de Sitter) cases.
+            # The dS case is required because the hypergeometric case
+            #    for Omega_M=0 would lead to an infinity in its argument.
+            # The EdS case is three times faster than the hypergeometric.
+            if self._Om0 == 0:
+                self._comoving_distance_z1z2 = \
+                    self._dS_comoving_distance_z1z2
+            elif self._Om0 == 1:
+                self._comoving_distance_z1z2 = \
+                    self._EdS_comoving_distance_z1z2
+            else:
+                self._comoving_distance_z1z2 = \
+                    self._hypergeometric_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
@@ -1751,6 +1784,116 @@ class FlatLambdaCDM(LambdaCDM):
                                            self._Ogamma0, self._neff_per_nu,
                                            self._nmasslessnu,
                                            self._nu_y_list)
+
+    def _dS_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at redshifts
+        z1 and z2 in a flat, Omega_Lambda=1 cosmology (de Sitter).
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        The de Sitter case has an analytic solution.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        return self._hubble_distance * (z2 - z1)
+
+    def _EdS_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at redshifts
+        z1 and z2 in a flat, Omega_M=1 cosmology (Einstein - de Sitter).
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        For OM=1, Omega_rad=0 the comoving distance has an analytic solution.
+
+        Parameters
+        ----------
+        z1, z2 : array-like, shape (N,)
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        prefactor = 2 * self._hubble_distance
+        return prefactor * ((1+z1)**(-1./2) - (1+z2)**(-1./2))
+
+    def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
+        """ Comoving line-of-sight distance in Mpc between objects at
+        redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        For Omega_radiation = 0 the comoving distance can be directly calculated
+        as a hypergeometric function.
+        Equation here taken from
+            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+
+        Parameters
+        ----------
+        z1, z2 : array-like
+          Input redshifts.
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Comoving distance in Mpc between each input redshift.
+        """
+        if isiterable(z1):
+            z1 = np.asarray(z1)
+            z2 = np.asarray(z2)
+            if z1.shape != z2.shape:
+                msg = "z1 and z2 have different shapes"
+                raise ValueError(msg)
+
+        s = ((1 - self._Om0) / self._Om0) ** (1./3)
+        # Use np.sqrt here to handle negative s (Om0>1).
+        prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
+        return prefactor * (self._T_hypergeometric(s / (1 + z1)) -
+                            self._T_hypergeometric(s / (1 + z2)))
+
+    def _T_hypergeometric(self, x):
+        """ Compute T_hypergeometric(x) using Gauss Hypergeometric function 2F1
+
+        T(x) = 2 \\sqrt(x) _{2}F_{1} \\left(\\frac{1}{6}, \\frac{1}{2}; \\frac{7}{6}; -x^3)
+
+        Note:
+        The scipy.special.hyp2f1 code already implements the hypergeometric
+        transformation suggested by
+            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+        for use in actual numerical evaulations.
+
+        """
+        from scipy.special import hyp2f1
+        return 2 * np.sqrt(x) * hyp2f1(1./6, 1./2, 7./6, -x**3)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.

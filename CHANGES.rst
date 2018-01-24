@@ -19,6 +19,10 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+are now 20x faster by using the hypergeometric function solution
+for this special case.  [#7087]
+
 astropy.extern
 ^^^^^^^^^^^^^^
 
