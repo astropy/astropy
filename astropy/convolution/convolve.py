@@ -734,7 +734,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         rifft = (ifftn(fftmult))
 
     if preserve_nan:
-        rifft[nanmaskarray] = np.nan
+        rifft[arrayslices][nanmaskarray] = np.nan
 
     if crop:
         result = rifft[arrayslices].real
