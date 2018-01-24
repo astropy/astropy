@@ -223,7 +223,10 @@ def setup_logging(outfile=None):
 def match_files(paths):
     filelists = []
 
-    for path in paths:
+    # Checks whether the path is a directory, by default False is assumed.
+    is_direc = [False, False]
+
+    for i, path in enumerate(paths):
         if glob.has_magic(path):
             files = [os.path.abspath(f) for f in glob.glob(path)]
             if not files:
@@ -232,7 +235,8 @@ def match_files(paths):
                 sys.exit(2)
             filelists.append(files)
         elif os.path.isdir(path):
-            filelists.append([os.path.abspath(f) for f in os.listdir(path)])
+            filelists.append([os.path.abspath(os.path.join(path, f)) for f in os.listdir(path)])
+            is_direc[i] = True
         elif os.path.isfile(path):
             filelists.append([path])
         else:
@@ -240,6 +244,25 @@ def match_files(paths):
                 '{!r} is not an existing file, directory, or wildcard pattern; '
                 'see `fitsdiff --help` for more usage help.'.format(path))
             sys.exit(2)
+
+    # Determines if a directory is in either of the arguments,
+    # Selects the path of the files having filename that are present in both the directory.
+    for a, b in [(0, 1), (1, 0)]:
+        if is_direc[a] is True and is_direc[b] is False:
+            # Selects the files present in both the paths. If null, logs an error.
+            filelists_temp = [[],[]]
+            head = os.path.abspath(paths[a])
+            for i in filelists[b]:
+                j = os.path.join(head, os.path.basename(i))
+                if j in filelists[a] :
+                    filelists_temp[a].append(j)
+                    filelists_temp[b].append(i)
+            if not filelists_temp[0]:
+                log.error('No files matching in the directory {!r} '
+                          'with the filename in {!r}.'.format(paths[a], paths[b]))
+                sys.exit(2)
+            filelists[a] = filelists_temp[a]
+            filelists[b] = filelists_temp[b]
 
     filelists[0].sort()
     filelists[1].sort()
