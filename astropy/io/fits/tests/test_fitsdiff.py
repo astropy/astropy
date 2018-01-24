@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+import os
 
 from . import FitsTestCase
 from ..hdu import PrimaryHDU
@@ -225,3 +226,41 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         out, err = capsys.readouterr()
         assert out == ""
         assert err == ""
+
+    def test_path(self, capsys):
+        a = np.arange(10000).reshape(100, 100)
+        hdu_a = PrimaryHDU(data=a)
+
+        os.mkdir(self.temp('sub/'))
+        tmp_a = self.data('ascii.fits')
+        tmp_b = self.temp('sub/ascii.fits')
+        tmp_c = self.data('arange.fits')
+        tmp_d = self.temp('sub/')
+        tmp_e = self.data_dir
+        tmp_f = self.data('tb.fits')
+        hdu_a.writeto(tmp_b)
+
+        numdiff1 = fitsdiff.main(["-q", tmp_a, tmp_b])
+        assert numdiff1 == 1
+
+        numdiff2 = fitsdiff.main(["-q", tmp_a, tmp_d])
+        assert numdiff1 == numdiff2
+        numdiff3 = fitsdiff.main(["-q", tmp_d, tmp_a])
+        assert numdiff3 == numdiff2
+
+        with pytest.raises(SystemExit):
+            fitsdiff.main([tmp_c, tmp_d])
+        out, err = capsys.readouterr()
+        assert err == 'ERROR: No files matching in the directory {!r} with the filename in {!r}.\n'.format(tmp_d, tmp_c)
+        with pytest.raises(SystemExit):
+            fitsdiff.main([tmp_d, tmp_c])
+
+        numdiff4 = fitsdiff.main(["-q", tmp_e, tmp_e])
+        assert numdiff4 == 0
+
+        numdiff5 = fitsdiff.main(["-q", tmp_a, tmp_e])
+        numdiff6 = fitsdiff.main(["-q", tmp_c, tmp_e])
+        assert numdiff5 == numdiff6, numdiff5 == 0
+
+        numdiff7 = fitsdiff.main(["-q",tmp_e, tmp_f])
+        assert numdiff7 == 0
