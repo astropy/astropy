@@ -1149,6 +1149,14 @@ def test_distance_in_special_cosmologies():
     assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
     assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
 
+    c_dS = core.LambdaCDM(100, 0, 1, Tcmb0=0)
+    assert allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+
+    c_EdS = core.LambdaCDM(100, 1, 0, Tcmb0=0)
+    assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
+    assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_transverse_distance_z1z2():
     tcos = core.FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
