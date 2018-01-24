@@ -3,6 +3,9 @@
 
 """
 Tests for putting velocity differentials into SkyCoord objects.
+
+Note: the skyoffset velocity tests are in a different file, in
+test_skyoffset_transformations.py
 """
 
 import pytest
@@ -195,11 +198,3 @@ def test_position_angle(sc, sc_for_sep):
 def test_constellations(sc):
     const = sc.get_constellation()
     assert const == 'Pisces'
-
-
-# at the time of this writing, sky offset frames don't support velocities
-# TODO: make them actually work
-@pytest.mark.xfail
-def test_skyoffset_frame(sc):
-
-    sc.skyoffset_frame()
