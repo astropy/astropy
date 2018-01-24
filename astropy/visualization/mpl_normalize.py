@@ -15,11 +15,6 @@ from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
 try:
     import matplotlib  # pylint: disable=W0611
     from matplotlib.colors import Normalize
-
-    # On older versions of matplotlib Normalize is an old-style class
-    if not isinstance(Normalize, type):
-        class Normalize(Normalize, object):
-            pass
 except ImportError:
     class Normalize:
         def __init__(self, *args, **kwargs):
