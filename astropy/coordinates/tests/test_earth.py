@@ -348,6 +348,9 @@ def test_gravitational_redshift():
     # Check that simply not including the bodies gives the same result.
     assert zg_moonjup == someloc.gravitational_redshift(sometime,
                                                         bodies=('sun',))
+    # And that earth can be given, even not as last argument
+    assert zg_moonjup == someloc.gravitational_redshift(
+        sometime, bodies=('earth', 'sun',))
 
     # If the earth is also ignored, effect should be off by ~ 20 cm/s
     # This also tests the conversion of kg to gravitational units.
