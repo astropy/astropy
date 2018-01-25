@@ -24,7 +24,7 @@ are now 20x faster by using the hypergeometric function solution
 for this special case.  [#7087]
 
 Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
-are now 1000x faster by using analytic solutions instead of integrating.
+are now 1000x faster by using analytic solutions instead of integrating. [#7117]
 
 astropy.extern
 ^^^^^^^^^^^^^^
