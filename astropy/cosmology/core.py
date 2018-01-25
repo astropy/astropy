@@ -1750,7 +1750,7 @@ class LambdaCDM(FLRW):
         b = -(27./2) * self._Om0**2 * self._Ode0 / self._Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
-            def phi_z(Om0, Ol0, Ok0, kappa, y1, A, z):
+            def phi_z(Om0, Ok0, kappa, y1, A, z):
                 return np.arccos(((1+z)*Om0/abs(Ok0) + kappa*y1 - A) /
                                  ((1+z)*Om0/abs(Ok0) + kappa*y1 + A))
 
@@ -1760,12 +1760,12 @@ class LambdaCDM(FLRW):
             g = 1/sqrt(A)
             k2 = (2*A+kappa*(1+3*y1))/(4*A)
 
-            phi_z1 = phi_z(self._Om0, self._Ode0, self._Ok0, kappa, y1, A, z1)
-            phi_z2 = phi_z(self._Om0, self._Ode0, self._Ok0, kappa, y1, A, z2)
+            phi_z1 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z1)
+            phi_z2 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z2)
         # Get lower-right 0<b<2 solution in Om, Ol plane.
         # Fot the upper-left 0<b<2 solution the Big Bang didn't happen.
         elif (0 < b) and (b < 2) and self._Om0 > self.Ol0:
-            def phi_z(Om0, Ol0, Ok0, kappa, y1, A, z):
+            def phi_z(Om0, Ok0, kappa, y1, A, z):
                 return np.arcsin(np.sqrt((y1 - y2) /
                                          (1+z) * Om0 / abs(Ok0) + y1))
 
@@ -1776,8 +1776,8 @@ class LambdaCDM(FLRW):
             y3 = (1./3) * (-1 + ya - yc)
             g = 2/sqrt(y1-y2)
             k2 = (y1-y3)/(y1-y2)
-            phi_z1 = phi_z(self._Om0, self._Ode0, self._Ok0, y1, y2, z1)
-            phi_z2 = phi_z(self._Om0, self._Ode0, self._Ok0, y1, y2, z2)
+            phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
+            phi_z2 = phi_z(self._Om0, self._Ok0, y1, y2, z2)
         else:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
