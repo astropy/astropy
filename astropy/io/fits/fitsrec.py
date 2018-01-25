@@ -549,6 +549,9 @@ class FITS_rec(np.recarray):
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
 
+    def _ipython_key_completions_(self):
+        return self.names
+
     def copy(self, order='C'):
         """
         The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
