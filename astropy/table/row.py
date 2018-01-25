@@ -43,6 +43,9 @@ class Row:
     def __setitem__(self, item, val):
         self._table.columns[item][self._index] = val
 
+    def _ipython_key_completions_(self):
+        return self.colnames
+
     def __eq__(self, other):
         if self._table.masked:
             # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:

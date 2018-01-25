@@ -269,6 +269,9 @@ class Header:
         self.extend(other)
         return self
 
+    def _ipython_key_completions_(self):
+        return self.__iter__()
+
     @property
     def cards(self):
         """
