@@ -30,3 +30,6 @@ exclude_lines =
 
    # Ignore branches that don't pertain to this version of Python
    pragma: py{ignore_python_version}
+
+   # Don't complain about IPython completion helper
+   def _ipython_key_completions_
