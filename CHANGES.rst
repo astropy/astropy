@@ -33,6 +33,9 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Enable tab-completion for ``FITS_rec`` column names and ``Header`` keywords
+  with IPython 5 and later. [#7071]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -53,6 +56,8 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Enable tab-completion for column names with IPython 5 and later. [#7071]
 
 astropy.tests
 ^^^^^^^^^^^^^
