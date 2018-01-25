@@ -1746,7 +1746,7 @@ class LambdaCDM(FLRW):
         if self._Om0 == 0 or self._Ode0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        prefactor = self._hubble_distance / np.sqrt(self._Ok0)
+        prefactor = self._hubble_distance / np.lib.scimath.sqrt(self._Ok0)
         b = -(27./2) * self._Om0**2 * self._Ode0 / self._Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
