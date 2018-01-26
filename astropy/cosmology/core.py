@@ -1936,11 +1936,7 @@ class FlatLambdaCDM(LambdaCDM):
         t : `~astropy.units.Quantity`
           The age of the universe in Gyr at each input redshift.
         """
-        if isiterable(z):
-            z = np.asarray(z)
-
-        # Add the Hubble time * z to get the right units in the right shape
-        return np.inf + self._hubble_time * z
+        return self._hubble_time * inf_like(z)
 
     def _EdS_age(self, z):
         """ Age of the universe in Gyr at redshift ``z``.
@@ -3139,6 +3135,22 @@ def vectorize_if_needed(func, *x):
         return np.vectorize(func)(*x)
     else:
         return func(*x)
+
+
+def inf_like(x):
+    """Return the shape of x with value infinity.
+
+    Preserves 'shape' for both array and scalar inputs.
+
+    >>> np.inf * inf_like(0.)
+    inf
+    >>> np.inf * inf_like([0., 1., 2., 3.])
+    array([ inf,  inf,  inf,  inf])
+    """
+    if np.isscalar(x):
+        return np.inf
+    else:
+        return np.full_like(x, np.inf)
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
