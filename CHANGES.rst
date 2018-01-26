@@ -1,235 +1,5 @@
-3.0rc1 (2018-01-07)
+3.0rc2 (2018-01-25)
 ===================
-3.1 (unreleased)
-================
-
-New Features
-------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Enable tab-completion for ``FITS_rec`` column names and ``Header`` keywords
-  with IPython 5 and later. [#7071]
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-- Enable tab-completion for column names with IPython 5 and later. [#7071]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-- ``wcslib`` was updated to v 5.18. [#7066]
-
-API Changes
------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
-  ``units``, the default for ``include_prefix_units`` is set to
-  `True`, so that no units get ignored. [#6957]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-Other Changes and Additions
----------------------------
-
-- Nothing changed yet.
-
-
-
-
-3.0 (unreleased)
-=================
 
 New Features
 ------------
@@ -279,22 +49,6 @@ astropy.coordinates
 - ``EarthLocation`` now has a ``get_gcrs`` convenience method to get the
   location in GCRS coordinates.  [#6861, #6935]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-~~~~~~~~~~~~~~~
-
-- Add implementations of astropy-specific ASDF tag types. [#6790]
-
-- Add ASDF tag and schema for ICRSCoord. [#6904]
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -329,6 +83,9 @@ astropy.io.fits
 - Added support for writing and reading back a table which has "mixin columns"
   such as ``SkyCoord`` or ``EarthLocation`` with no loss of information. [#6912]
 
+- Enable tab-completion for ``FITS_rec`` column names and ``Header`` keywords
+  with IPython 5 and later. [#7071]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -339,6 +96,10 @@ astropy.io.misc
 - Added support in HDF5 for writing and reading back a table which has "mixin
   columns" such as ``SkyCoord`` or ``EarthLocation`` with no loss of
   information. [#7007]
+
+- Add implementations of astropy-specific ASDF tag types. [#6790]
+
+- Add ASDF tag and schema for ICRSCoord. [#6904]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -389,6 +150,8 @@ astropy.table
   location of rows by indexes. [#6831]
 
 - Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
+
+- Enable tab-completion for column names with IPython 5 and later. [#7071]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -471,7 +234,7 @@ astropy.wcs
   coordinate frames to WCS (the opposite of what ``wcs_to_celestial_frame``
   currently does. [#6481]
 
-- ``wcslib`` was updated to v 5.17. [#6989]
+- ``wcslib`` was updated to v 5.18. [#7066]
 
 API Changes
 -----------
@@ -532,8 +295,9 @@ astropy.io.misc
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
-  - Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
-    or conversion to astropy tables is not affected. [#6262]
+
+- Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
+  or conversion to astropy tables is not affected. [#6262]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -608,33 +372,6 @@ astropy.io.fits
 - Fixed potential problems with the compression module [#6732]
 
 - Always use the 'D' format for floating point values in ascii tables. [#6938]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
