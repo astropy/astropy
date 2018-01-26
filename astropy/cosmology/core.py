@@ -2032,10 +2032,6 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           Lookback time in Gyr to each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a lookback time.
         """
         if isiterable(z):
             z = np.asarray(z)
@@ -2061,10 +2057,6 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           Lookback time in Gyr to each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a lookback time.
         """
         return self._analytic_age(0) - self._analytic_age(z)
 
