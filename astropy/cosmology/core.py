@@ -1051,7 +1051,42 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         --------
         z_at_value : Find the redshift corresponding to a lookback time.
         """
+        return self._lookback_time(z)
 
+    def _lookback_time(self, z):
+        """ Lookback time in Gyr to redshift ``z``.
+
+        The lookback time is the difference between the age of the
+        Universe now and the age at redshift ``z``.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          Lookback time in Gyr to each input redshift.
+        """
+        return self._integral_lookback_time(z)
+
+    def _integral_lookback_time(self, z):
+        """ Lookback time in Gyr to redshift ``z``.
+
+        The lookback time is the difference between the age of the
+        Universe now and the age at redshift ``z``.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          Lookback time in Gyr to each input redshift.
+        """
         from scipy.integrate import quad
         f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
         return self._hubble_time * vectorize_if_needed(f, z)
@@ -1091,6 +1126,23 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
+        """
+        return self._age(z)
+
+    def _age(self, z):
+        """ Age of the universe in Gyr at redshift ``z``.
+
+        This internal function exists to be re-defined for optimizations.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        t : `~astropy.units.Quantity`
+          The age of the universe in Gyr at each input redshift.
         """
         return self._integral_age(z)
 
@@ -1788,18 +1840,18 @@ class FlatLambdaCDM(LambdaCDM):
             if self._Om0 == 0:
                 self._comoving_distance_z1z2 = \
                     self._dS_comoving_distance_z1z2
-                self.age = self._dS_age
-                self.lookback_time = self._dS_lookback_time
+                self._age = self._dS_age
+                self._lookback_time = self._dS_lookback_time
             elif self._Om0 == 1:
                 self._comoving_distance_z1z2 = \
                     self._EdS_comoving_distance_z1z2
-                self.age = self._EdS_age
-                self.lookback_time = self._EdS_lookback_time
+                self._age = self._EdS_age
+                self._lookback_time = self._EdS_lookback_time
             else:
                 self._comoving_distance_z1z2 = \
                     self._hypergeometric_comoving_distance_z1z2
-                self.age = self._analytic_age
-                self.lookback_time = self._analytic_lookback_time
+                self._age = self._analytic_age
+                self._lookback_time = self._analytic_lookback_time
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
