@@ -1935,10 +1935,6 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           The age of the universe in Gyr at each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to an age.
         """
         if isiterable(z):
             z = np.asarray(z)
@@ -1963,10 +1959,6 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           The age of the universe in Gyr at each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to an age.
         """
         if isiterable(z):
             z = np.asarray(z)
@@ -1990,18 +1982,16 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           The age of the universe in Gyr at each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to an age.
         """
         if isiterable(z):
             z = np.asarray(z)
 
         # Use np.sqrt, np.arcsinh instead of math.sqrt, math.asinh
         # to handle properly the complex numbers for 1 - Om0 < 0
-        prefactor = (2./3) * self._hubble_time / np.lib.scimath.sqrt(1-self._Om0)
-        arg = np.arcsinh(np.lib.scimath.sqrt((1/self._Om0 - 1 + 0j) / (1+z)**3))
+        prefactor = (2./3) * self._hubble_time / \
+            np.lib.scimath.sqrt(1 - self._Om0)
+        arg = np.arcsinh(np.lib.scimath.sqrt((1 / self._Om0 - 1 + 0j) /
+                                             (1 + z)**3))
         return (prefactor * arg).real
 
     def _EdS_lookback_time(self, z):
@@ -2023,13 +2013,7 @@ class FlatLambdaCDM(LambdaCDM):
         -------
         t : `~astropy.units.Quantity`
           Lookback time in Gyr to each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a lookback time.
         """
-        # Writing out the equation again isn't clearly faster
-        # than two calls to age so we stick with the calls to minimize code.
         return self._EdS_age(0) - self._EdS_age(z)
 
     def _dS_lookback_time(self, z):
@@ -2086,8 +2070,6 @@ class FlatLambdaCDM(LambdaCDM):
         --------
         z_at_value : Find the redshift corresponding to a lookback time.
         """
-        # Writing out the equation again isn't clearly faster
-        # than two calls to age so we stick with the calls to minimize code.
         return self._analytic_age(0) - self._analytic_age(z)
 
     def efunc(self, z):
