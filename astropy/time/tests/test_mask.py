@@ -3,6 +3,7 @@
 import functools
 import numpy as np
 
+from ...utils.compat import NUMPY_LT_1_14
 from ...tests.helper import pytest
 from .. import Time
 
@@ -57,9 +58,17 @@ def test_str():
     t[1] = np.ma.masked
     assert str(t) == "['2000:001:00:00:00.000' --]"
     assert repr(t) == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000' --]>"
-    assert repr(t.iso).splitlines() == ["masked_array(data = ['2000-01-01 00:00:00.000' --],",
-                                        "             mask = [False  True],",
-                                        "       fill_value = N/A)"]
+
+    if NUMPY_LT_1_14:
+        expected = ["masked_array(data = ['2000-01-01 00:00:00.000' --],",
+                    "             mask = [False  True],",
+                    "       fill_value = N/A)"]
+    else:
+        expected = ["masked_array(data=['2000-01-01 00:00:00.000', --],",
+                    '             mask=[False,  True],',
+                    "       fill_value='N/A',",
+                    "            dtype='<U23')"]
+    assert repr(t.iso).splitlines() == expected
 
     # Assign value to unmask
     t[1] = '2000:111'
