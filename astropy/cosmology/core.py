@@ -3186,9 +3186,9 @@ def inf_like(x):
 
     Preserves 'shape' for both array and scalar inputs.
 
-    >>> np.inf * inf_like(0.)
+    >>> inf_like(0.)
     inf
-    >>> np.inf * inf_like([0., 1., 2., 3.])
+    >>> inf_like([0., 1., 2., 3.])
     array([ inf,  inf,  inf,  inf])
     """
     if np.isscalar(x):
