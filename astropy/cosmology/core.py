@@ -1738,7 +1738,9 @@ class LambdaCDM(FLRW):
         from scipy.special import ellipkinc
         if isiterable(z1):
             z1 = np.asarray(z1)
+        if isiterable(z2):
             z2 = np.asarray(z2)
+        if isiterable(z1) and isiterable(z2):
             if z1.shape != z2.shape:
                 msg = "z1 and z2 have different shapes"
                 raise ValueError(msg)
