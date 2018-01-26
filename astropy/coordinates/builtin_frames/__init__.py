@@ -100,12 +100,13 @@ def make_transform_graph_docs(transform_graph):
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
+    .. container:: gvcustom
 
-    .. graphviz::
+        .. graphviz::
 
     """
 
-    docstr = dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')
 
     # colors are in dictionary at the bottom of transformations.py
     from ..transformations import trans_to_color
