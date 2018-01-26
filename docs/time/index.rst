@@ -667,7 +667,7 @@ propagate those values as masked, and access to format attributes such
 as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
 object::
 
-  >>> t.unix
+  >>> t.unix  # doctest: +SKIP
   masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
                mask = [False False  True False],
          fill_value = 1e+20)
@@ -676,7 +676,7 @@ One can view the ``mask``, but note that it is read-only and
 setting the mask is always done by setting the item to `~numpy.ma.masked`.
 
   >>> t.mask
-  array([False, False,  True, False], dtype=bool)
+  array([False, False,  True, False]...)
   >>> t[:2] = np.ma.masked
 
 .. warning:: The internal implementation of missing value support is
