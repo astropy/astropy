@@ -33,7 +33,10 @@ __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeInfo']
 
 
-TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+LOCAL_SCALES = ('local',)
+TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES) for scale in scales)
+TIME_SCALES = TIME_TYPES.keys()
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -55,7 +58,7 @@ BARYCENTRIC_SCALES = ('tcb', 'tdb')
 ROTATIONAL_SCALES = ('ut1',)
 TIME_DELTA_TYPES = dict((scale, scales)
                         for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
-                                       ROTATIONAL_SCALES) for scale in scales)
+                                       ROTATIONAL_SCALES, LOCAL_SCALES) for scale in scales)
 TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
 # For time scale changes, we need L_G and L_B, which are stored in erfam.h as
 #   /* L_G = 1 - d(TT)/d(TCG) */
@@ -272,12 +275,13 @@ class Time(ShapedLikeNDArray):
                 self._time.in_subfmt = in_subfmt
             if out_subfmt is not None:
                 self._time.out_subfmt = out_subfmt
-
+            self.SCALES = TIME_TYPES[self.scale]
             if scale is not None:
                 self._set_scale(scale)
         else:
             self._init_from_vals(val, val2, format, scale, copy,
                                  precision, in_subfmt, out_subfmt)
+            self.SCALES = TIME_TYPES[self.scale]
 
         if self.location is not None and (self.location.size > 1 and
                                           self.location.shape != self.shape):
@@ -1476,14 +1480,21 @@ class Time(ShapedLikeNDArray):
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                out._set_scale(other.scale if other.scale is not None
-                               else 'tai')
+                if other.scale is not None and self.scale not in TIME_TYPES[other.scale]:
+                    raise TypeError("Cannot subtract Time and TimeDelta instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
+                else:
+                    out._set_scale(other.scale if other.scale is not None else 'tai')
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
                     delattr(out, attr)
 
         else:  # T - T
+
+            # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
+            if(self.scale is not None and self.scale not in other.SCALES or
+               other.scale is not None and other.scale not in self.SCALES):
+                raise TypeError("Cannot subtract Time instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
             self_time = (self._time if self.scale in TIME_DELTA_SCALES
                          else self.tai._time)
             # set up TimeDelta, subtraction to be done shortly
@@ -1526,8 +1537,11 @@ class Time(ShapedLikeNDArray):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            out._set_scale(other.scale if other.scale is not None else 'tai')
-
+            if other.scale is not None and self.scale not in TIME_TYPES[other.scale]:
+                raise TypeError("Cannot add Time and TimeDelta instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
+            else:
+                out._set_scale(other.scale if other.scale is not None
+                               else 'tai')
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
             if hasattr(out, attr):
