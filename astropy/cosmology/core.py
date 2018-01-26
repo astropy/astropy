@@ -3182,19 +3182,24 @@ def vectorize_if_needed(func, *x):
 
 
 def inf_like(x):
-    """Return the shape of x with value infinity.
+    """Return the shape of x with value infinity and dtype='float'.
 
     Preserves 'shape' for both array and scalar inputs.
+    But always returns a float array, even if x is of integer type.
 
-    >>> inf_like(0.)
+    >>> inf_like(0.)  # float scalar
     inf
-    >>> inf_like([0., 1., 2., 3.])
-    array([ inf,  inf,  inf,  inf])
+    >>> inf_like(1)  # integer scalar should give float output
+    inf
+    >>> inf_like([0., 1., 2., 3.])  # float list
+    array([inf, inf, inf, inf])
+    >>> inf_like([0, 1, 2, 3])  # integer list should give float output
+    array([inf, inf, inf, inf])
     """
     if np.isscalar(x):
         return np.inf
     else:
-        return np.full_like(x, np.inf)
+        return np.full_like(x, np.inf, dtype='float')
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
