@@ -6,6 +6,20 @@ import numpy as np
 from ...utils.compat import NUMPY_LT_1_14
 from ...tests.helper import pytest
 from .. import Time
+from ...table import Table
+
+try:
+    import h5py  # pylint: disable=W0611
+except ImportError:
+    HAS_H5PY = False
+else:
+    HAS_H5PY = True
+
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
@@ -131,3 +145,57 @@ def test_masked_input():
     assert np.all(t2.value == t_iso)
     assert np.all(t2.mask == v2.mask)
     assert t2.masked is True
+
+
+def test_serialize_fits_masked(tmpdir):
+    tm = Time([1, 2, 3], format='cxcsec')
+    tm[1] = np.ma.masked
+
+    fn = str(tmpdir.join('tempfile.fits'))
+    t = Table([tm])
+    t.write(fn)
+    t2 = Table.read(fn, astropy_native=True)
+
+    # Time FITS handling does not current round-trip format in FITS
+    t2['col0'].format = tm.format
+
+    assert t2['col0'].masked
+    assert np.all(t2['col0'].mask == [False, True, False])
+    assert np.all(t2['col0'].value == t['col0'].value)
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_serialize_hdf5_masked(tmpdir):
+    tm = Time([1, 2, 3], format='cxcsec')
+    tm[1] = np.ma.masked
+
+    fn = str(tmpdir.join('tempfile.hdf5'))
+    t = Table([tm])
+    t.write(fn, path='root', serialize_meta=True)
+    t2 = Table.read(fn)
+
+    assert t2['col0'].masked
+    assert np.all(t2['col0'].mask == [False, True, False])
+    assert np.all(t2['col0'].value == t['col0'].value)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_serialize_ecsv_masked(tmpdir):
+    tm = Time([1, 2, 3], format='cxcsec')
+    tm[1] = np.ma.masked
+
+    # Serializing in the default way for ECSV fails to round-trip
+    # because it writes out a "nan" instead of "".  But for jd1/jd2
+    # this works OK.
+    tm.info.serialize_method['ecsv'] = 'jd1_jd2'
+
+    fn = str(tmpdir.join('tempfile.ecsv'))
+    t = Table([tm])
+    t.write(fn)
+    t2 = Table.read(fn)
+
+    assert t2['col0'].masked
+    assert np.all(t2['col0'].mask == [False, True, False])
+    # Serializing floats to ASCII loses some precision so use allclose
+    # and 1e-7 seconds tolerance.
+    assert np.allclose(t2['col0'].value, t['col0'].value, rtol=0, atol=1e-7)

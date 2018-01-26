@@ -613,7 +613,7 @@ attributes::
   >>> print(t[[2, 0]])
   ['2001:060' '2001:020']
 
-As of astropy version 3.0, one can also set values in-place for an
+As of astropy version 3.1, one can also set values in-place for an
 array-valued |Time| object::
 
   >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
@@ -651,7 +651,7 @@ Missing values
 ^^^^^^^^^^^^^^
 
 The |Time| and |TimeDelta| objects support functionality for marking values as
-missing or invalid (added in astropy 3.0).  This is also known as masking,
+missing or invalid (added in astropy 3.1).  This is also known as masking,
 and is especially useful for :ref:`table_operations` such as joining and
 stacking.  To set one or more items as missing, assign the special value
 `~numpy.ma.masked`, for example::
@@ -794,7 +794,7 @@ the cache.  In order to explicitly clear the internal cache do::
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
   Wall time: 267 ms
 
-Since astropy 3.0 these objects can be changed internally.  In order
+Since astropy 3.1 these objects can be changed internally.  In order
 to ensure consistency between the transformed (and cached) version and
 the original, the transformed object is set to be not writeable.  For
 example::
