@@ -712,6 +712,11 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fix Tables with columns of strings can't be written to Hdf5 file with Python3
+  If the table columns have data in form of string then a new table is made
+  from the original table with columns of strings replaced by columns of bytes.
+  The new table can now be written in Hdf5 file.[#7024]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
