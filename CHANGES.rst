@@ -35,9 +35,6 @@ astropy.io.misc
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Enable tab-completion for ``FITS_rec`` column names and ``Header`` keywords
-  with IPython 5 and later. [#7071]
-
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
@@ -59,8 +56,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Enable tab-completion for column names with IPython 5 and later. [#7071]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -78,7 +73,7 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
-- ``wcslib`` was updated to v 5.18. [#7066]
+
 
 API Changes
 -----------
@@ -368,13 +363,6 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-astropy.io.misc
-~~~~~~~~~~~~~~~
-
-- Add implementations of astropy-specific ASDF tag types. [#6790]
-
-- Add ASDF tag and schema for ICRSCoord. [#6904]
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -409,6 +397,9 @@ astropy.io.fits
 - Added support for writing and reading back a table which has "mixin columns"
   such as ``SkyCoord`` or ``EarthLocation`` with no loss of information. [#6912]
 
+- Enable tab-completion for ``FITS_rec`` column names and ``Header`` keywords
+  with IPython 5 and later. [#7071]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -419,6 +410,10 @@ astropy.io.misc
 - Added support in HDF5 for writing and reading back a table which has "mixin
   columns" such as ``SkyCoord`` or ``EarthLocation`` with no loss of
   information. [#7007]
+
+- Add implementations of astropy-specific ASDF tag types. [#6790]
+
+- Add ASDF tag and schema for ICRSCoord. [#6904]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
@@ -481,6 +476,8 @@ astropy.table
   location of rows by indexes. [#6831]
 
 - Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
+
+- Enable tab-completion for column names with IPython 5 and later. [#7071]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -567,7 +564,7 @@ astropy.wcs
   coordinate frames to WCS (the opposite of what ``wcs_to_celestial_frame``
   currently does. [#6481]
 
-- ``wcslib`` was updated to v 5.17. [#6989]
+- ``wcslib`` was updated to v 5.18. [#7066]
 
 API Changes
 -----------
@@ -643,8 +640,9 @@ astropy.io.registry
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
-  - Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
-    or conversion to astropy tables is not affected. [#6262]
+
+- Add handling of ``tree.Group`` elements to ``tree.Resource``.  Unified I/O
+  or conversion to astropy tables is not affected. [#6262]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
