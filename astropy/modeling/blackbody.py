@@ -113,7 +113,7 @@ FLAM = u.erg / (u.cm**2 * u.s * u.AA)
 # See https://github.com/astropy/astropy/issues/4171
 with warnings.catch_warnings():
     warnings.simplefilter('ignore', RuntimeWarning)
-    _has_buggy_expm1 = np.isnan(np.expm1(1000))
+    _has_buggy_expm1 = np.isnan(np.expm1(1000)) or np.isnan(np.expm1(1e10))
 
 
 class BlackBody1D(Fittable1DModel):
