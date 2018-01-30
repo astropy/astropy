@@ -1,4 +1,5 @@
 import os
+import re
 
 from ..scripts import showtable
 from ...utils.compat import NUMPY_LT_1_14
@@ -40,9 +41,11 @@ def test_stats(capsys):
                     ' name     mean      std    min  max {0}'
                     '------ --------- --------- ---- ----{0}'
                     'target        --        --   --   --{0}'
-                    ' V_mag 12.866668 1.7211105 11.1 15.2{0}')
+                    ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2{0}')
 
-    assert out == expected.format(os.linesep)
+    # Here we use re.match as in some cases one of the values above is
+    # platform-dependent.
+    assert re.match(expected.format(os.linesep), out) is not None
 
 
 def test_fits(capsys):
