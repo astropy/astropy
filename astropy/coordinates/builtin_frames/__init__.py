@@ -59,23 +59,26 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'BaseEclipticFrame', 'BaseRADecFrame']
 
 
-def _make_transform_graph_docs():
+def _make_transform_graph_docs(transform_graph=None):
     """
     Generates a string for use with the coordinate package's docstring
-    to show the available transforms and coordinate systems
+    to show the available transforms and coordinate systems.
     """
+    if transform_graph is None:
+        from ..baseframe import frame_transform_graph
+        transform_graph = frame_transform_graph
+
     import inspect
     from textwrap import dedent
-    from ..baseframe import BaseCoordinateFrame, frame_transform_graph
+    from ..baseframe import BaseCoordinateFrame
 
     isclass = inspect.isclass
-    coosys = [item for item in globals().values()
-              if isclass(item) and issubclass(item, BaseCoordinateFrame)]
+    coosys = [transform_graph.lookup_name(item) for item in transform_graph.get_names()]
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
-    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys,
-                                                  priorities=False)
+    graphstr = transform_graph.to_dot_graph(addnodes=coosys,
+                                            priorities=False)
 
     docstr = """
     The diagram below shows all of the coordinate systems built into the
