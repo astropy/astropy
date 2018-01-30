@@ -144,6 +144,15 @@ HDF5 Table writer supports mix-in columns (e.g. time, coordinates, etc.)
 Support for FITS time standard
 ==============================
 
+The `FITS Time standard paper <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_
+defines the formats and keywords used to represent timing information in FITS files. The
+Astropy FITS package now provides support for reading and writing native
+:class:`~astropy.time.Time` table columns using this format. This is described within the
+:ref:`FITS unified I/O interface <table_io_fits>` and examples of usage can be found in
+the :ref:`fits_astropy_native` section.
+
+Implementation of this feature was made possible through the support of the Google Summer
+of Code 2017 program.
 
 .. _whatsnew-3.0-fits-performance:
 
