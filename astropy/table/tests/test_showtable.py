@@ -31,21 +31,23 @@ def test_stats(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
     out, err = capsys.readouterr()
     if NUMPY_LT_1_14:
-        expected = ('<Table length=3>{0}'
-                    ' name    mean    std   min  max {0}'
-                    '------ ------- ------- ---- ----{0}'
-                    'target      --      --   --   --{0}'
-                    ' V_mag 12.8667 1.72111 11.1 15.2{0}')
+        expected = ['<Table length=3>',
+                    ' name    mean    std   min  max ',
+                    '------ ------- ------- ---- ----',
+                    'target      --      --   --   --',
+                    ' V_mag 12.8667 1.72111 11.1 15.2']
     else:
-        expected = ('<Table length=3>{0}'
-                    ' name     mean      std    min  max {0}'
-                    '------ --------- --------- ---- ----{0}'
-                    'target        --        --   --   --{0}'
-                    ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2{0}')
+        expected = ['<Table length=3>',
+                    ' name     mean      std    min  max ',
+                    '------ --------- --------- ---- ----',
+                    'target        --        --   --   --',
+                    ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2']
 
+    out = out.splitlines()
+    assert out[:4] == expected[:4]
     # Here we use re.match as in some cases one of the values above is
     # platform-dependent.
-    assert re.match(expected.format(os.linesep), out) is not None
+    assert re.match(expected[4], out[4]) is not None
 
 
 def test_fits(capsys):
