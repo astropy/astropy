@@ -14,11 +14,15 @@ from ....wcs import WCS
 from ....io import fits
 from ....coordinates import SkyCoord
 from ....tests.helper import catch_warnings
+from ....tests.image_tests import ignore_matplotlibrc
 
 from ..core import WCSAxes
 from ..utils import get_coord_meta
 
+DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
+
+@ignore_matplotlibrc
 def test_grid_regression():
     # Regression test for a bug that meant that if the rc parameter
     # axes.grid was set to True, WCSAxes would crash upon initalization.
@@ -27,6 +31,7 @@ def test_grid_regression():
     WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
 
 
+@ignore_matplotlibrc
 def test_format_coord_regression(tmpdir):
     # Regression test for a bug that meant that if format_coord was called by
     # Matplotlib before the axes were drawn, an error occurred.
@@ -60,6 +65,7 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
+@ignore_matplotlibrc
 def test_no_numpy_warnings(tmpdir):
 
     # Make sure that no warnings are raised if some pixels are outside WCS
@@ -79,6 +85,7 @@ def test_no_numpy_warnings(tmpdir):
     assert len(ws) == 0
 
 
+@ignore_matplotlibrc
 def test_invalid_frame_overlay():
 
     # Make sure a nice error is returned if a frame doesn't exist
@@ -92,14 +99,15 @@ def test_invalid_frame_overlay():
     assert exc.value.args[0] == 'Unknown frame: banana'
 
 
+@ignore_matplotlibrc
 def test_plot_coord_transform():
 
-    twoMASS_k_header = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), 'data')), '2MASS_k_header')
+    twoMASS_k_header = os.path.join(DATA, '2MASS_k_header')
     twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
-                        projection=WCS(twoMASS_k_header),
-                        aspect='equal')
+                      projection=WCS(twoMASS_k_header),
+                      aspect='equal')
     ax.set_xlim(-0.5, 720.5)
     ax.set_ylim(-0.5, 720.5)
 
@@ -108,6 +116,7 @@ def test_plot_coord_transform():
         ax.plot_coord(c, 'o', transform=ax.get_transform('galactic'))
 
 
+@ignore_matplotlibrc
 def test_set_label_properties():
 
     # Regression test to make sure that arguments passed to
@@ -150,6 +159,7 @@ CRPIX3  =                241.0
 """, sep='\n')
 
 
+@ignore_matplotlibrc
 def test_slicing_warnings(tmpdir):
 
     # Regression test to make sure that no warnings are emitted by the tick
@@ -166,7 +176,7 @@ def test_slicing_warnings(tmpdir):
 
     with warnings.catch_warnings(record=True) as warning_lines:
         warnings.resetwarnings()
-        ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
+        plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
         plt.savefig(tmpdir.join('test.png').strpath)
 
     # For easy debugging if there are indeed warnings
@@ -181,7 +191,7 @@ def test_slicing_warnings(tmpdir):
 
     with warnings.catch_warnings(record=True) as warning_lines:
         warnings.resetwarnings()
-        ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
+        plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
         plt.savefig(tmpdir.join('test.png').strpath)
 
     # For easy debugging if there are indeed warnings

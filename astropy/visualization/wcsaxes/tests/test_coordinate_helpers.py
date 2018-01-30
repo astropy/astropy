@@ -1,8 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import WCSAxes
 import matplotlib.pyplot as plt
 
+from ..core import WCSAxes
+from ....tests.image_tests import ignore_matplotlibrc
 
+
+@ignore_matplotlibrc
 def test_getaxislabel():
 
     fig = plt.figure()
