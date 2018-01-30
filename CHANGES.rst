@@ -152,6 +152,7 @@ astropy.table
 - Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
 
 - Enable tab-completion for column names with IPython 5 and later. [#7071]
+- Allow getting and setting a table Row using multiple column names. [#7107]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -323,6 +324,22 @@ astropy.table
   unicode arrays (dtype ``U``). The ``Column`` class then ensures the
   bytes are automatically converted to string as needed. [#6821]
 
+- When getting a table row using multiple column names, if one of the
+  names is not a valid column name then a ``KeyError`` exception is
+  now raised (previously ``ValueError``).  When setting a table row,
+  if the right hand side is not a sequence with the correct length
+  then a ``ValueError`` is now raised (previously in certain cases
+  a ``TypeError`` was raised). [#7107]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -372,6 +389,39 @@ astropy.io.fits
 - Fixed potential problems with the compression module [#6732]
 
 - Always use the 'D' format for floating point values in ascii tables. [#6938]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix getting a table row when using multiple column names (for example
+  ``t[3]['a', 'b', 'c']``).  Also fix a problem when setting an entire row:
+  if setting one of the right-hand side values failed this could result in
+  a partial update of the referenced parent table before the exception is
+  raised. [#7107]
+
+astropy.tests
+^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
