@@ -6,12 +6,14 @@ from matplotlib.backend_bases import KeyEvent
 from ....wcs import WCS
 from ....coordinates import FK5
 from ....time import Time
+from ....tests.image_tests import ignore_matplotlibrc
 
 from .test_images import BaseImageTests
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):
 
+    @ignore_matplotlibrc
     def test_overlay_coords(self, tmpdir):
         wcs = WCS(self.msx_header)
 
@@ -92,6 +94,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         assert string_world5 == '267.652 -28\xb046\'23" (world, overlay 3)'
 
+    @ignore_matplotlibrc
     def test_cube_coords(self, tmpdir):
         wcs = WCS(self.cube_header)
 

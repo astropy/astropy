@@ -561,6 +561,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed test failures for ``astropy.visualization.wcsaxes`` which were due to
+  local matplotlibrc files being taken into account. [#7132]
+
 astropy.vo
 ^^^^^^^^^^
 
