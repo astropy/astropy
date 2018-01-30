@@ -1,4 +1,5 @@
 import os
+from fnmatch import fnmatch
 
 from ..scripts import showtable
 from ...utils.compat import NUMPY_LT_1_14
@@ -40,9 +41,11 @@ def test_stats(capsys):
                     ' name     mean      std    min  max {0}'
                     '------ --------- --------- ---- ----{0}'
                     'target        --        --   --   --{0}'
-                    ' V_mag 12.866668 1.7211105 11.1 15.2{0}')
+                    ' V_mag 12.86666? 1.7211105 11.1 15.2{0}')
 
-    assert out == expected.format(os.linesep)
+    # Here we use fnmatch to allow the use of wildcards (specifically ?) in the
+    # about output for cases where the values shown are platform-dependent.
+    assert fnmatch(out, expected.format(os.linesep))
 
 
 def test_fits(capsys):
