@@ -1224,12 +1224,7 @@ class Table:
             return self.Row(self, item)
         elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
             return self.Row(self, item.item())
-        elif (isinstance(item, (tuple, list)) and item and
-              all(isinstance(x, str) for x in item)):
-            bad_names = [x for x in item if x not in self.colnames]
-            if bad_names:
-                raise ValueError('Slice name(s) {0} not valid column name(s)'
-                                 .format(', '.join(bad_names)))
+        elif self._is_list_or_tuple_of_str(item):
             out = self.__class__([self[x] for x in item],
                                  meta=deepcopy(self.meta),
                                  copy_indices=self._copy_indices)
@@ -1323,16 +1318,7 @@ class Table:
                 self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
-                # Set the corresponding row assuming value is an iterable.
-                if not hasattr(value, '__len__'):
-                    raise TypeError('Right side value must be iterable')
-
-                if len(value) != n_cols:
-                    raise ValueError('Right side value needs {0} elements (one for each column)'
-                                     .format(n_cols))
-
-                for col, val in zip(self.columns.values(), value):
-                    col[item] = val
+                self._set_row(idx=item, colnames=self.colnames, vals=value)
 
             elif (isinstance(item, slice) or
                   isinstance(item, np.ndarray) or
@@ -1440,6 +1426,12 @@ class Table:
     @property
     def colnames(self):
         return list(self.columns.keys())
+
+    @staticmethod
+    def _is_list_or_tuple_of_str(names):
+        """Check that ``names`` is a tuple or list of strings"""
+        return (isinstance(names, (tuple, list)) and names and
+                all(isinstance(x, str) for x in names))
 
     def keys(self):
         return list(self.columns.keys())
@@ -2164,6 +2156,27 @@ class Table:
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].info.name = new_name
+
+    def _set_row(self, idx, colnames, vals):
+        try:
+            assert len(vals) == len(colnames)
+        except Exception:
+            raise ValueError('right hand side must be a sequence of values with '
+                             'the same length as the number of selected columns')
+
+        # Keep track of original values before setting each column so that
+        # setting row can be transactional.
+        orig_vals = []
+        cols = self.columns
+        try:
+            for name, val in zip(colnames, vals):
+                orig_vals.append(cols[name][idx])
+                cols[name][idx] = val
+        except Exception:
+            # If anything went wrong first revert the row update then raise
+            for name, val in zip(colnames, orig_vals[:-1]):
+                cols[name][idx] = val
+            raise
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
