@@ -135,9 +135,17 @@ To get full documentation on the usage and available options do ``showtable
 
 .. _whatsnew-3.0-hdf5-mixins:
 
-HDF5 Table writer supports mix-in columns (e.g. time, coordinates, etc.)
-========================================================================
+Lossless writing and reading mixin columns to HDF5 and FITS
+===========================================================
 
+It is now possible to write Table :ref:`mixin_columns` such as
+:class:`~astropy.coordinates.SkyCoord`, :class:`~astropy.time.Time`, and
+:class:`~astropy.units.Quantity` (and subclasses like
+:class:`~astropy.coordinates.EarthLocation`) to both HDF5 and FITS with no loss of
+information.  All object attributes and metadata are stored to file and the object is
+exactly regenerated (to the bit level) when reading back into astropy.
+
+For details see the :ref:`fits_astropy_native` section.
 
 .. _whatsnew-3.0-fits-time-support:
 
