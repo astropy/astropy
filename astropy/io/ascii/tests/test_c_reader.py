@@ -994,7 +994,7 @@ def test_data_out_of_range(parallel, reader):
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.e-324)
 
     # test some additional corner cases
-    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.2e-323',
+    fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305', '0.4e-324',
                '2500e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
     t = ascii.read(StringIO(' '.join(fields)), format='no_header', guess=False,
