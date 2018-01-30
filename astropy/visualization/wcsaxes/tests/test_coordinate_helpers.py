@@ -1,13 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..core import WCSAxes
-from .... import units as u
-import matplotlib.pyplot as plt
 
 from unittest.mock import patch
 
 import pytest
+import matplotlib.pyplot as plt
+
+from ..core import WCSAxes
+from .... import units as u
+from ....tests.image_tests import ignore_matplotlibrc
 
 
+@ignore_matplotlibrc
 def test_getaxislabel():
 
     fig = plt.figure()
@@ -40,10 +43,12 @@ def assert_label_draw(ax, x_label, y_label):
     assert pos2.call_count == y_label
 
 
+@ignore_matplotlibrc
 def test_label_visibility_rules_default(ax):
     assert_label_draw(ax, True, True)
 
 
+@ignore_matplotlibrc
 def test_label_visibility_rules_label(ax):
 
     ax.coords[0].set_ticklabel_visible(False)
@@ -52,6 +57,7 @@ def test_label_visibility_rules_label(ax):
     assert_label_draw(ax, False, False)
 
 
+@ignore_matplotlibrc
 def test_label_visibility_rules_ticks(ax):
 
     ax.coords[0].set_axislabel_visibility_rule('ticks')
@@ -63,6 +69,7 @@ def test_label_visibility_rules_ticks(ax):
     assert_label_draw(ax, True, False)
 
 
+@ignore_matplotlibrc
 def test_label_visibility_rules_always(ax):
 
     ax.coords[0].set_axislabel_visibility_rule('always')
