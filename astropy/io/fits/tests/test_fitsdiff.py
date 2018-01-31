@@ -5,7 +5,7 @@ import pytest
 import os
 
 from . import FitsTestCase
-from ..hdu import PrimaryHDU
+from ..hdu import PrimaryHDU, hdulist
 from ..scripts import fitsdiff
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
@@ -229,8 +229,9 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
 
     def test_path(self, capsys):
         a = np.arange(10000).reshape(100, 100)
+        b = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
-
+        hdu_b = PrimaryHDU(data=b)
         os.mkdir(self.temp('sub/'))
         tmp_a = self.data('ascii.fits')
         tmp_b = self.temp('sub/ascii.fits')
@@ -238,10 +239,15 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         tmp_d = self.temp('sub/')
         tmp_e = self.data_dir
         tmp_f = self.data('tb.fits')
-        hdu_a.writeto(tmp_b)
+        tmp_g = self.temp('sub/group.fits')
+        tmp_h = self.data('group.fits')
+        with hdulist.fitsopen(tmp_a) as hdu_a:
+            hdu_a.writeto(tmp_b)
+        with hdulist.fitsopen(tmp_h) as hdu_b:
+            hdu_b.writeto(tmp_g)
 
         numdiff1 = fitsdiff.main(["-q", tmp_a, tmp_b])
-        assert numdiff1 == 1
+        assert numdiff1 == 0
 
         numdiff2 = fitsdiff.main(["-q", tmp_a, tmp_d])
         assert numdiff1 == numdiff2
@@ -264,3 +270,7 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
 
         numdiff7 = fitsdiff.main(["-q",tmp_e, tmp_f])
         assert numdiff7 == 0
+        numdiff8 = fitsdiff.main(["-q", self.data_dir+'/*.fits', self.data_dir])
+        assert numdiff8 == 0
+        numdiff9 = fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d])
+        assert numdiff9 == 0
