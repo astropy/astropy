@@ -1,5 +1,5 @@
-Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
-                               and Clark Cooper
+Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd and Clark Cooper
+			       
 Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006 Expat maintainers.
 
 Permission is hereby granted, free of charge, to any person obtaining
