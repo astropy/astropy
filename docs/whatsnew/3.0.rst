@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-3.0-velocities-skycoord-vel`
 * :ref:`whatsnew-3.0-velocities-skycoord-space-motion`
 * :ref:`whatsnew-3.0-constants-contextmanager`
+* :ref:`whatsnew-3.0-quantities-scipy-ufuncs`
 * :ref:`whatsnew-3.0-showtable`
 * :ref:`whatsnew-3.0-hdf5-mixins`
 * :ref:`whatsnew-3.0-fits-time-support`
@@ -113,6 +114,25 @@ available for temporarily switching to an older version of constants::
       Uncertainty  = 8.1e-42
       Unit  = J s
       Reference = CODATA 2014
+
+.. _whatsnew-3.0-quantities-scipy-ufuncs:
+
+Support for quantities in scipy special functions
+=================================================
+
+``Quantity``'s support for all relevant numpy "universal functions" or ufuncs
+has been extended to many of the ``scipy.special`` functions (with more to be
+added in future releases; PRs welcome!), so that these can now be used with
+any ``Quantity`` that has appropriate units.  For instance, using the error
+function to calculate confidence intervals::
+
+.. doctest-requires:: scipy
+
+    >>> import astropy.units as u
+    >>> import scipy.special as sps
+    >>> sigma = [1., 3.] * u.minute / (60. * u.s)
+    >>> sps.erf(sigma / 2**0.5).to(u.percent)  # doctest: +FLOAT_CMP
+    <Quantity [ 68.26894921, 99.73002039] %>
 
 .. _whatsnew-3.0-showtable:
 
