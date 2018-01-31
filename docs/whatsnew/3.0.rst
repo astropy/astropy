@@ -23,6 +23,7 @@ In particular, this release includes:
 * :ref:`whatsnew-3.0-fits-time-support`
 * :ref:`whatsnew-3.0-fits-performance`
 * :ref:`whatsnew-3.0-lomb-scargle-false-alarm`
+* :ref:`whatsnew-3.0-ascii-chunks`
 * :ref:`whatsnew-3.0-python3`
 * :ref:`whatsnew-3.0-pytest-plugins`
 
@@ -135,15 +136,34 @@ To get full documentation on the usage and available options do ``showtable
 
 .. _whatsnew-3.0-hdf5-mixins:
 
-HDF5 Table writer supports mix-in columns (e.g. time, coordinates, etc.)
-========================================================================
+Lossless writing and reading mixin columns to HDF5 and FITS
+===========================================================
 
+It is now possible to write Table :ref:`mixin_columns` such as
+:class:`~astropy.coordinates.SkyCoord`, :class:`~astropy.time.Time`, and
+:class:`~astropy.units.Quantity` (and subclasses like
+:class:`~astropy.coordinates.EarthLocation`) to both HDF5 and FITS with no loss of
+information.  All object attributes and metadata are stored to file and the object is
+exactly regenerated (to the bit level) when reading back into astropy.
+
+For details see the :ref:`fits_astropy_native` section.
 
 .. _whatsnew-3.0-fits-time-support:
 
 Support for FITS time standard
 ==============================
 
+The `FITS Time standard paper <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_
+defines the formats and keywords used to represent timing information in FITS files. The
+Astropy FITS package now provides support for reading and writing native
+:class:`~astropy.time.Time` table columns using this format. This is described within the
+:ref:`FITS unified I/O interface <table_io_fits>` and examples of usage can be found in
+the :ref:`fits_astropy_native` section.
+
+Implementation of this feature was made possible through the support of the Google Summer
+of Code 2017 program.  To learn more about this project please see the final report, `A
+mixin protocol for seamless interoperability
+<https://aaryapatil.wordpress.com/2017/08/28/a-mixin-protocol-for-seamless-interoperability/>`_.
 
 .. _whatsnew-3.0-fits-performance:
 
@@ -174,6 +194,24 @@ by Baluev (2007)), and a more accurate (but computationally intensive) approach
 based on bootstrap resampling (``method='bootstrap'``). These methods are
 implemented for all of the available periodogram normalizations. Further
 explanation and examples are available in :ref:`stats-lombscargle`.
+
+.. _whatsnew-3.0-ascii-chunks:
+
+Reading large ASCII files in chunks
+===================================
+
+Astropy now supports reading very large ASCII tables in smaller chunks, allowing tables to
+be loaded that approach or exceed the maximum memory available.  There are two possible
+ways to do this:
+
+- Read the table in chunks and aggregate the final table along the way.  This uses only
+  somewhat more memory than the final table requires.  In contrast, the default reading
+  process may temporarily require up to 10 times more memory than the size of the file.
+- Use a Python generator function to return a :class:`~astropy.table.Table` object for
+  each chunk of the input table.  This allows for scanning through arbitrarily large
+  tables since it never returns the final aggregate table.
+
+For details see :ref:`chunk_reading`.
 
 .. _whatsnew-3.0-python3:
 
