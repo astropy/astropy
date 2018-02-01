@@ -254,6 +254,10 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix bug of dropping table column meta (format, description, meta) when writing a table
+  to FITS using Table.write().  Since #6912 this should be written if it would be lost.
+  [#7147]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
