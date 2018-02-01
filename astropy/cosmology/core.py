@@ -1710,18 +1710,17 @@ class LambdaCDM(FLRW):
         else:
             return np.ones(np.asanyarray(z).shape)
 
-    def _elliptic_comoving_distance_z1z2(self, z1, z2):
-        """ Comoving line-of-sight distance in Mpc between objects at
-        redshifts z1 and z2.
+    def _elliptic_comoving_transverse_distance_z1z2(self, z1, z2):
+        """ Comoving transverse distance in Mpc between two redshifts.
 
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
+        This value is the transverse comoving distance at redshift ``z``
+        corresponding to an angular separation of 1 radian. This is
+        the same as the comoving distance if omega_k is zero.
 
         For Omega_rad = 0 the comoving distance can be directly calculated
-        as a hypergeometric function.
+        as an elliptic integral.
         Equation here taken from
-            Baes, Camps, Van De Putte, 2017, MNRAS, 468, 927.
+            Kantowski, Kao, and Thomas, arXiv:0002334
 
         Not valid or appropriate for flat cosmologies (Ok0=0).
 
