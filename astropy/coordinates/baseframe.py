@@ -1285,8 +1285,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             return ''
 
         if self.representation:
-            if (issubclass(self.representation, r.SphericalRepresentation) and
-                    isinstance(self.data, r.UnitSphericalRepresentation)):
+            if (hasattr(self.representation, '_unit_representation') and
+                    isinstance(self.data, self.representation._unit_representation)):
                 rep_cls = self.data.__class__
             else:
                 rep_cls = self.representation
