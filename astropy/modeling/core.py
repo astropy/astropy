@@ -547,7 +547,8 @@ class Model(object):
         of an input array may be taken as this "model set axis".  This accepts
         negative integers as well--for example use ``model_set_axis=-1`` if the
         last (most rapidly changing) axis should be associated with the model
-        sets.
+        sets. Also, ``model_set_axis=False`` can be used to tell that a given
+        input should be used to evaluate all the models in the model set.
 
     fixed : dict, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
