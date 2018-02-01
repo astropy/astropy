@@ -1749,18 +1749,18 @@ class LambdaCDM(FLRW):
         if self._Om0 == 0 or self._Ode0 == 0 or self._Ok0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        b = -(27./2) * self._Om0**2 * self._Ode0 / self._Ok0**3
+        b = -(27. / 2) * self._Om0**2 * self._Ode0 / self._Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
             def phi_z(Om0, Ok0, kappa, y1, A, z):
-                return np.arccos(((1+z)*Om0/abs(Ok0) + kappa*y1 - A) /
-                                 ((1+z)*Om0/abs(Ok0) + kappa*y1 + A))
+                return np.arccos(((1 + z) * Om0 / abs(Ok0) + kappa * y1 - A) /
+                                 ((1 + z) * Om0 / abs(Ok0) + kappa * y1 + A))
 
-            v_k = pow(kappa * (b-1) + sqrt(b*(b-2)), 1./3)
-            y1 = (-1 + kappa*(v_k + 1/v_k))/3
-            A = sqrt(y1*(3*y1+2))
-            g = 1/sqrt(A)
-            k2 = (2*A+kappa*(1+3*y1))/(4*A)
+            v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1. / 3)
+            y1 = (-1 + kappa * (v_k + 1 / v_k)) / 3
+            A = sqrt(y1 * (3 * y1 + 2))
+            g = 1 / sqrt(A)
+            k2 = (2 * A + kappa * (1 + 3 * y1)) / (4 * A)
 
             phi_z1 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z1)
             phi_z2 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z2)
@@ -1769,15 +1769,15 @@ class LambdaCDM(FLRW):
         elif (0 < b) and (b < 2) and self._Om0 > self.Ol0:
             def phi_z(Om0, Ok0, kappa, y1, A, z):
                 return np.arcsin(np.sqrt((y1 - y2) /
-                                         (1+z) * Om0 / abs(Ok0) + y1))
+                                         (1 + z) * Om0 / abs(Ok0) + y1))
 
-            yb = cos(acos(1-b)/3)
-            yc = sqrt(3) * sin(acos(1-b)/3)
-            y1 = (1./3) * (-1 + yb + yc)
-            y2 = (1./3) * (-1 - 2 * yb)
-            y3 = (1./3) * (-1 + yb - yc)
-            g = 2/sqrt(y1-y2)
-            k2 = (y1-y3)/(y1-y2)
+            yb = cos(acos(1 - b) / 3)
+            yc = sqrt(3) * sin(acos(1 - b) / 3)
+            y1 = (1. / 3) * (-1 + yb + yc)
+            y2 = (1. / 3) * (-1 - 2 * yb)
+            y3 = (1. / 3) * (-1 + yb - yc)
+            g = 2 / sqrt(y1 - y2)
+            k2 = (y1 - y3) / (y1 - y2)
             phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
             phi_z2 = phi_z(self._Om0, self._Ok0, y1, y2, z2)
         else:
