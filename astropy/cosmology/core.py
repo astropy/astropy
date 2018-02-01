@@ -2,7 +2,7 @@
 
 
 import sys
-from math import acos, cos, sqrt, pi, exp, log, floor
+from math import acos, sin, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 
@@ -1775,8 +1775,8 @@ class LambdaCDM(FLRW):
             yb = cos(acos(1-b)/3)
             yc = sqrt(3) * sin(acos(1-b)/3)
             y1 = (1./3) * (-1 + yb + yc)
-            y1 = (1./3) * (-1 - 2 * ya)
-            y3 = (1./3) * (-1 + ya - yc)
+            y2 = (1./3) * (-1 - 2 * yb)
+            y3 = (1./3) * (-1 + yb - yc)
             g = 2/sqrt(y1-y2)
             k2 = (y1-y3)/(y1-y2)
             phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
