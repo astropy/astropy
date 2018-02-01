@@ -15,6 +15,7 @@ astropy.convolution
 
 - ``convolve`` now accepts any array-like input, not just ``numpy.ndarray`` or
   lists. [#7303]
+- Thread with OpenMP support [#7293]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -268,6 +269,16 @@ astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
  - ``kernel`` can now be a tuple. [#7561]
+- Add ``n_threads`` parameter to control number of threads used in C computation.
+  An exception is raised for negative values.
+  A warning is issued if ``n_threads`` > total number of CPUs reported by the OS.
+  A warning is raised if ``n_threads`` > 1 and Astropy was NOT built with OpenMP support. [#7293]
+
+- Not technically an API changes, however, the doc string indicated that ``boundary=None``
+  was the default when actually it is ``boundary='fill'``. The doc string has been corrected,
+  however, someone may interpret this as an API change not realising that nothing has actually
+  changed. [#7293]
+
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^

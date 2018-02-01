@@ -29,9 +29,9 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
                 print("%16i:" % (int(2 ** ii - 1)), end=' ')
 
                 if ii <= max_exponents_linear[ndims]:
-                    for ffttype, extra in zip(("", "_fft"),
+                    for convolve_type, extra in zip(("", "_fft"),
                                               ("", "fft_pad=False")):
-                        statement = "convolve{}(array, kernel, boundary='fill', {})".format(ffttype, extra)
+                        statement = "convolve{}(array, kernel, boundary='fill', {})".format(convolve_type, extra)
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print("%17f" % (besttime), end=' ')
                 else:
@@ -52,8 +52,8 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
             print("%16i:" % (int(2 ** ii)), end=' ')
 
             if ii <= max_exponents_linear[ndims]:
-                for ffttype in ("", "_fft"):
-                    statement = "convolve{}(array, kernel, boundary='fill')".format(ffttype)
+                for convolve_type in ("", "_fft"):
+                    statement = "convolve{}(array, kernel, boundary='fill')".format(convolve_type)
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print("%17f" % (besttime), end=' ')
             else:
@@ -66,6 +66,126 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
 
 """
 Unfortunately, these tests are pretty strongly inconclusive
+NOTE: Runtime has units seconds and represents wall clock time.
+
+RESULTS on a late 2013 Mac Pro:
+3.5 GHz 6-Core Intel Xeon E5
+32 GB 1866 MHz DDR3 ECC
+Python 3.5.4 :: Anaconda custom (x86_64)
+clang version 6.0.0 (tags/RELEASE_600/final)
+llvm-opnemp r327556 | grokos | 2018-03-14 15:11:36 -0400 (Wed, 14 Mar 2018)
+
+With OpenMP (hyperthreaded 12procs), convolve() only:
+1-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.002895          0.007321
+               8:          0.002737          0.008204
+              15:          0.002684          0.008028
+              16:          0.002680          0.008682
+              31:          0.002733          0.008684
+              32:          0.002927          0.009021
+              63:          0.002728          0.009127
+              64:          0.003757          0.009604
+             127:          0.002851          0.012659
+             128:          0.002784          0.009814
+             255:          0.002835          0.010550
+             256:          0.002886          0.010719
+             511:          0.003051          0.017137
+             512:          0.003176          0.011805
+            1023:          0.004042          0.019384
+            1024:          0.004074          0.014280
+            2047:          0.007371          0.049246
+            2048:          0.007535          0.019528
+            4095:          0.021903          0.039821
+            4096:          0.022138          0.031596
+            8191:          0.067098          8.335749
+            8192:          0.067217          0.055224
+           16383:          0.256072          0.272165
+           16384:          0.257656          0.063409
+
+2-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.002696          0.014745
+               8:          0.002796          0.014153
+              15:          0.002839          0.014826
+              16:          0.002933          0.017755
+              31:          0.004286          0.045167
+              32:          0.005059          0.024783
+              63:          0.022941          0.063715
+              64:          0.022747          0.056179
+             127:          0.325557          0.925577
+             128:          0.325050          0.123447
+             255:           skipped          0.694621
+             256:           skipped          0.688915
+             511:           skipped          3.734946
+             512:           skipped          3.735681
+
+3-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.003502          0.033121
+               8:          0.003407          0.030351
+              15:          0.026338          0.062235
+              16:          0.026138          0.071622
+              31:          1.239503          1.586930
+              32:          1.237914          0.728493
+              63:           skipped         10.792675
+              64:           skipped         10.772493
+
+With OpenMP but single threaded (n_threads = 1), convolve() only:
+1-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.001754          0.004687
+               8:          0.001727          0.005307
+              15:          0.001706          0.005133
+              16:          0.001671          0.005348
+              31:          0.001744          0.005381
+              32:          0.001674          0.005603
+              63:          0.001725          0.005582
+              64:          0.001709          0.005800
+             127:          0.001801          0.007405
+             128:          0.001813          0.006011
+             255:          0.002262          0.006528
+             256:          0.002214          0.006413
+             511:          0.003866          0.009913
+             512:          0.003712          0.007204
+            1023:          0.009820          0.011511
+            1024:          0.009815          0.008555
+            2047:          0.034707          0.028171
+            2048:          0.034690          0.011243
+            4095:          0.132908          0.024133
+            4096:          0.133138          0.018282
+            8191:          0.527692          8.311933
+            8192:          0.531433          0.031895
+           16383:          2.103046          0.269368
+           16384:          2.115349          0.063068
+
+2-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.001734          0.009458
+               8:          0.001749          0.009504
+              15:          0.002336          0.010310
+              16:          0.002156          0.010867
+              31:          0.009123          0.025427
+              32:          0.009153          0.014798
+              63:          0.126701          0.040610
+              64:          0.126231          0.033055
+             127:          2.126114          0.926549
+             128:          2.129131          0.121623
+             255:           skipped          0.690896
+             256:           skipped          0.689538
+             511:           skipped          3.756475
+             512:           skipped          3.742207
+
+3-dimensional arrays ('n' is the size of the image AND the kernel)
+                n          convolve      convolve_fft
+               7:          0.002822          0.019498
+               8:          0.002784          0.018316
+              15:          0.096008          0.063744
+              16:          0.095308          0.071917
+              31:          7.373533          1.578913
+              32:          7.345962          0.734147
+              63:           skipped         10.811530
+              64:           skipped         10.807303
 
 RESULTS on a 2011 Mac Air:
 1-dimensional arrays ('n' is the size of the image AND the kernel)

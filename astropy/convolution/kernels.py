@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
-from .utils import KernelSizeError
+from .utils import has_even_axis, raise_even_kernel_exception
 from ..modeling import models
 from ..modeling.core import Fittable1DModel, Fittable2DModel
 from ..utils.decorators import deprecated_renamed_argument
@@ -1014,9 +1014,8 @@ class CustomKernel(Kernel):
             raise TypeError("Must be list or array.")
 
         # Check if array is odd in all axes
-        odd = all(axes_size % 2 != 0 for axes_size in self.shape)
-        if not odd:
-            raise KernelSizeError("Kernel size must be odd in all axes.")
+        if has_even_axis(self):
+            raise_even_kernel_exception()
 
         # Check if array is bool
         ones = self._array == 1.
