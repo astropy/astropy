@@ -955,6 +955,9 @@ astropy.coordinates
 - Working around a bug in Numpy 1.14.0 that broke some coordinate
   transformations. [#7105]
 
+- Fixed a bug where negative angles could be rounded wrongly when converting
+  to a string with seconds omitted. [#7148]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
