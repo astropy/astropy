@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  32bit:
     docker:
       - image: quay.io/pypa/manylinux1_i686
     steps:
@@ -12,3 +12,37 @@ jobs:
       - run:
           name: Run tests
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
+  image-tests-mpl15:
+    docker:
+      - image: astrofrog/pytest-mpl-15:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+  image-tests-mpl20:
+    docker:
+      - image: astrofrog/pytest-mpl-20:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy  -a "--mpl"
+  image-tests-mpl21:
+    docker:
+      - image: astrofrog/pytest-mpl-21:1.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: python3 setup.py test -P visualization --remote-data=astropy  -a "--mpl"
+
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - 32bit
+      - image-tests-mpl15
+      - image-tests-mpl20
+      - image-tests-mpl21
