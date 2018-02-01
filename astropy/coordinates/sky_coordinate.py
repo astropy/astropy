@@ -833,6 +833,13 @@ class SkyCoord(ShapedLikeNDArray):
         lonargs.update(kwargs)
         latargs.update(kwargs)
 
+        if style == 'hmsdms' :  # for hmsdms, want to adjust precision of RA to be one more than 
+                                # that or dec, because hours are 15 * cos(dec) bigger than degrees.
+            # default case; precision = 0 for both
+            if not latargs.has_key('precision') : lonargs['precision'] = 1
+            else :
+               lonargs['precision'] = latargs['precision'] + 1
+
         if np.isscalar(sph_coord.lon.value):
             coord_string = (sph_coord.lon.to_string(**lonargs)
                             + " " +
