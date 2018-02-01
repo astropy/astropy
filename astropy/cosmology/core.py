@@ -1710,7 +1710,7 @@ class LambdaCDM(FLRW):
         else:
             return np.ones(np.asanyarray(z).shape)
 
-    def _elliptic_comoving_transverse_distance_z1z2(self, z1, z2):
+    def _elliptic_comoving_distance_z1z2(self, z1, z2):
         """ Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift ``z``
@@ -1749,7 +1749,6 @@ class LambdaCDM(FLRW):
         if self._Om0 == 0 or self._Ode0 == 0 or self._Ok0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        prefactor = self._hubble_distance / np.lib.scimath.sqrt(self._Ok0)
         b = -(27./2) * self._Om0**2 * self._Ode0 / self._Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
@@ -1784,8 +1783,8 @@ class LambdaCDM(FLRW):
         else:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        return prefactor * \
-            np.sinh(-g * (ellipkinc(phi_z2, k2) - ellipkinc(phi_z1, k2)))
+        prefactor = self._hubble_distance / sqrt(abs(self._Ok0))
+        return prefactor * g * (ellipkinc(phi_z1, k2) - ellipkinc(phi_z2, k2))
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
