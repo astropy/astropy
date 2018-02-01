@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=any -a "--mpl"
   image-tests-mpl20:
     docker:
       - image: astrofrog/pytest-mpl-20:1.0
@@ -27,7 +27,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy  -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=any  -a "--mpl"
   image-tests-mpl21:
     docker:
       - image: astrofrog/pytest-mpl-21:1.0
@@ -35,7 +35,7 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=astropy  -a "--mpl"
+          command: python3 setup.py test -P visualization --remote-data=any  -a "--mpl"
 
 
 workflows:
