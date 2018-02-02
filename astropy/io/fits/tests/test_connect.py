@@ -581,3 +581,21 @@ def test_error_for_mixins_but_no_yaml(tmpdir):
     with pytest.raises(TypeError) as err:
         t.write(filename)
     assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err)
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_info_attributes_with_no_mixins(tmpdir):
+    """Even if there are no mixin columns, if there is metadata that would be lost it still
+    gets serialized
+    """
+    filename = str(tmpdir.join('test.fits'))
+    t = Table([[1.0, 2.0]])
+    t['col0'].description = 'hello' * 40
+    t['col0'].format = '%8.4f'
+    t['col0'].meta['a'] = {'b': 'c'}
+    t.write(filename, overwrite=True)
+
+    t2 = Table.read(filename)
+    assert t2['col0'].description == 'hello' * 40
+    assert t2['col0'].format == '%8.4f'
+    assert t2['col0'].meta['a'] == {'b': 'c'}
