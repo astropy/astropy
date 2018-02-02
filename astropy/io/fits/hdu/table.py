@@ -95,7 +95,7 @@ class _TableLikeHDU(_ValidHDU):
             rows.
 
         header : `Header`
-            An optional `Header` object to instantiate the new HDU yet.  Header
+            An optional `Header` object to instantiate the new HDU yet. Header
             keywords specifically related to defining the table structure (such
             as the "TXXXn" keywords like TTYPEn) will be overridden by the
             supplied column definitions, but all other informational and data
@@ -124,8 +124,15 @@ class _TableLikeHDU(_ValidHDU):
         """
 
         coldefs = cls._columns_type(columns)
+
+        # In Astropy 3.0, additional keywords are recognized as having a special
+        # meaning and considered 'Column' attributes. For backward-compatibility,
+        # we need to copy these from the Header to the columns otherwise they
+        # will be dropped and will be missing from both the header and the
+        # resulting columns.
         if header is not None:
-            coldefs._update_attributes_from_header(header)
+            coldefs._compat_update_new_attributes_from_header(header)
+
         data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill,
                                      character_as_bytes=character_as_bytes)
         hdu = cls(data=data, header=header, character_as_bytes=character_as_bytes, **kwargs)

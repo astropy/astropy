@@ -1387,7 +1387,12 @@ class ColDefs(NotifierMixin):
                        dim=dim)
             self.columns.append(c)
 
-    def _update_attributes_from_header(self, hdr):
+    def _compat_update_new_attributes_from_header(self, hdr):
+
+        # FIXME: This is a temporary method in Astropy 3.0 that is used
+        # to copy over only newly recognized column keywords to this ColDefs
+        # object - this preserves backward-compatibility with previous versions.
+
         nfields = len(self)
 
         # Because of the way Column._verify_keywords works in
@@ -1404,12 +1409,15 @@ class ColDefs(NotifierMixin):
 
         col_keywords = self._header_to_col_keywords(hdr, nfields, col_keywords=col_keywords)
 
-        # NOTE: this is where we could restrict ourselves to the new attributes
-        # in 3.0 if we want to fully preserve backward-compatibility
+        _new_attributes = {'coord_type', 'coord_unit', 'coord_ref_point',
+                           'coord_ref_value', 'coord_inc', 'time_ref_pos'}
+
         for idx, keywords in enumerate(col_keywords):
             col = self.columns[idx]
             for key, value in keywords.items():
-                setattr(col, key, value)
+                if key in _new_attributes:
+                    if getattr(col, key) is None:
+                        setattr(col, key, value)
 
     def _header_to_col_keywords(self, hdr, nfields, col_keywords=None):
         # go through header keywords to pick out column definition keywords
