@@ -5,6 +5,7 @@ import pytest
 import os
 
 from . import FitsTestCase
+from ..convenience import writeto
 from ..hdu import PrimaryHDU, hdulist
 from ..scripts import fitsdiff
 from ....tests.helper import catch_warnings
@@ -228,49 +229,37 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         assert err == ""
 
     def test_path(self, capsys):
-        a = np.arange(10000).reshape(100, 100)
-        b = np.arange(100).reshape(10, 10)
-        hdu_a = PrimaryHDU(data=a)
-        hdu_b = PrimaryHDU(data=b)
         os.mkdir(self.temp('sub/'))
-        tmp_a = self.data('ascii.fits')
         tmp_b = self.temp('sub/ascii.fits')
-        tmp_c = self.data('arange.fits')
-        tmp_d = self.temp('sub/')
-        tmp_e = self.data_dir
-        tmp_f = self.data('tb.fits')
+
         tmp_g = self.temp('sub/group.fits')
         tmp_h = self.data('group.fits')
-        with hdulist.fitsopen(tmp_a) as hdu_a:
-            hdu_a.writeto(tmp_b)
         with hdulist.fitsopen(tmp_h) as hdu_b:
             hdu_b.writeto(tmp_g)
 
-        numdiff1 = fitsdiff.main(["-q", tmp_a, tmp_b])
-        assert numdiff1 == 0
+        writeto(tmp_b, np.arange(100).reshape(10, 10))
 
-        numdiff2 = fitsdiff.main(["-q", tmp_a, tmp_d])
-        assert numdiff1 == numdiff2
-        numdiff3 = fitsdiff.main(["-q", tmp_d, tmp_a])
-        assert numdiff3 == numdiff2
+        # one modified file and a directory
+        assert fitsdiff.main(["-q", self.data_dir, tmp_b]) == 1
+        assert fitsdiff.main(["-q", tmp_b, self.data_dir]) == 1
 
-        with pytest.raises(SystemExit):
-            fitsdiff.main([tmp_c, tmp_d])
+        # two directories
+        tmp_d = self.temp('sub/')
+        assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
+        assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
+        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
+
+        # no match
+        tmp_c = self.data('arange.fits')
+        fitsdiff.main([tmp_c, tmp_d])
         out, err = capsys.readouterr()
-        assert err == 'ERROR: No files matching in the directory {!r} with the filename in {!r}.\n'.format(tmp_d, tmp_c)
-        with pytest.raises(SystemExit):
-            fitsdiff.main([tmp_d, tmp_c])
+        assert "'arange.fits' has no match in" in err
 
-        numdiff4 = fitsdiff.main(["-q", tmp_e, tmp_e])
-        assert numdiff4 == 0
+        # globbing
+        assert fitsdiff.main(["-q", self.data_dir+'/*.fits', self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d]) == 0
 
-        numdiff5 = fitsdiff.main(["-q", tmp_a, tmp_e])
-        numdiff6 = fitsdiff.main(["-q", tmp_c, tmp_e])
-        assert numdiff5 == numdiff6, numdiff5 == 0
-
-        numdiff7 = fitsdiff.main(["-q",tmp_e, tmp_f])
-        assert numdiff7 == 0
-        numdiff8 = fitsdiff.main(["-q", self.data_dir+'/*.fits', self.data_dir])
-        assert numdiff8 == 0
-        numdiff9 = fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d])
-        assert numdiff9 == 0
+        # one file and a directory
+        tmp_f = self.data('tb.fits')
+        assert fitsdiff.main(["-q", tmp_f, self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir, tmp_f]) == 0
