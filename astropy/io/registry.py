@@ -570,14 +570,23 @@ def _is_best_match(class1, class2, format_classes):
     of classes.  It is assumed that (class2 in classes) is True.
     class2 is the the best match if:
       - class1 is class2 => class1 was directly registered.
-      - OR class1 is a subclass of class2 and class1 is not in classes.
-        In this case the subclass will use the parent reader/writer.
+      - OR class1 is a subclass of class2 and class1 is not in classes
+        and class2 is the nearest ancestor of class2 that is in classes.
     """
-    # The set with the classes is only created if class1 is not class2 and
-    # class1 is a subclass of class2.
-    return (class1 is class2 or
-            (issubclass(class1, class2) and
-             class1 not in {cls for fmt, cls in format_classes}))
+    if class1 is class2:
+        return True
+
+    classes = {cls for fmt, cls in format_classes}
+
+    if class1 in classes:  # superceded by class1
+        return False
+
+    if issubclass(class1, class2):
+        for parent in class1.__mro__:
+            if parent is class2:  # class2 is closest registered ancestor
+                return True
+            if parent in classes:  # class2 was superceded
+                return False
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
