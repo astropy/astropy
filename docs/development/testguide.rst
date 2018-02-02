@@ -694,7 +694,7 @@ To run the Astropy tests with the image comparison, use::
 
 However, note that the output can be very sensitive to the version of Matplotlib
 as well as all its dependencies (e.g. freetype), so we recommend running the
-image tests inside a `Docker <https://www.docker.com/>`_ container which has a
+image tests inside a `Docker <https://www.docker.com/>`__ container which has a
 frozen set of package versions (Docker containers can be thought of as mini
 virtual machines). We have made a set of Docker container images that can be
 used for this. Once you have installed Docker, to run the Astropy tests with the
@@ -1021,7 +1021,7 @@ Reproducing failing 32-bit builds
 =================================
 
 If you want to run your tests in the same 32-bit Python environment that
-CircleCI uses, start off by installing `Docker <https://www.docker.com>`_ if you
+CircleCI uses, start off by installing `Docker <https://www.docker.com>`__ if you
 don't already have it installed. Docker can be installed on a variety of
 different operating systems.
 
