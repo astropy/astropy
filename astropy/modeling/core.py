@@ -1396,10 +1396,6 @@ class Model(metaclass=_ModelMeta):
             # None means any unit is accepted
             return None
 
-    @input_units.setter
-    def input_units(self, input_units):
-        self._input_units = input_units
-
     @property
     def return_units(self):
         """
