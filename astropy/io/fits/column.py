@@ -1388,50 +1388,6 @@ class ColDefs(NotifierMixin):
                        dim=dim)
             self.columns.append(c)
 
-    def _compat_update_new_attributes_from_header(self, hdr):
-
-        # FIXME: This is a temporary method in Astropy 3.0 that is used
-        # to copy over only newly recognized column keywords to this ColDefs
-        # object - this preserves backward-compatibility with previous versions.
-
-        nfields = len(self)
-
-        # Because of the way Column._verify_keywords works in
-        # _header_to_col_keywords, we need to first build up a list of the
-        # attributes for each column.
-        col_keywords = []
-        for col in self.columns:
-            kw = {}
-            for attr in KEYWORD_ATTRIBUTES:
-                val = getattr(col, attr, None)
-                if val is not None:
-                    kw[attr] = val
-            col_keywords.append(kw)
-
-        col_keywords = self._header_to_col_keywords(hdr, nfields, col_keywords=col_keywords)
-
-        _new_attributes = {'coord_type', 'coord_unit', 'coord_ref_point',
-                           'coord_ref_value', 'coord_inc', 'time_ref_pos'}
-
-        copied_attributes = set()
-
-        for idx, keywords in enumerate(col_keywords):
-            col = self.columns[idx]
-            for key, value in keywords.items():
-                if key in _new_attributes:
-                    if getattr(col, key) is None:
-                        copied_attributes.add(key)
-                        setattr(col, key, value)
-
-        for key in sorted(copied_attributes):
-            fits_key = ATTRIBUTE_TO_KEYWORD[key]
-            warnings.warn("The {0}n keywords are now recognized as Column "
-                          "attributes, and should be set directly on the Column "
-                          "objects in future using the {1} attribute (values "
-                          "in the supplied header "
-                          "will be ignored)".format(fits_key, key),
-                          AstropyDeprecationWarning)
-
     def _header_to_col_keywords(self, hdr, nfields, col_keywords=None):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
