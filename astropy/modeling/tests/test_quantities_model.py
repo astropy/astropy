@@ -23,3 +23,33 @@ def test_gaussian1d_n_models():
     # list of quantity objects.
     # assert_quantity_allclose(g([1.01 * u.m, 5010 * u.AA]),
     #                            [ 0.99501248, 1.990025] * u.J)
+
+
+
+"""
+Test the "rules" of model units.
+"""
+
+
+def test_all_quantity_parameters():
+    pass
+
+
+def test_no_quantity_parameters():
+    pass
+
+
+def test_quantity_call():
+    pass
+
+
+def test_no_quantity_call():
+    pass
+
+
+def test_read_only():
+    """
+    return_units
+    input_units_allow_dimensionless
+    input_units_strict
+    """
