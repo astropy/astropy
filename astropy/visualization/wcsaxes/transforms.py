@@ -250,9 +250,10 @@ class CoordinateTransform(CurvedTransform):
         if self.same_frames:
             return input_coords
 
+        input_coords = input_coords*u.deg
         x_in, y_in = input_coords[:, 0], input_coords[:, 1]
 
-        c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg),
+        c_in = SkyCoord(UnitSphericalRepresentation(x_in, y_in),
                         frame=self.input_system)
 
         # We often need to transform arrays that contain NaN values, and filtering
