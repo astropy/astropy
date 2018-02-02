@@ -124,7 +124,8 @@ class _TableLikeHDU(_ValidHDU):
         """
 
         coldefs = cls._columns_type(columns)
-        coldefs._update_attributes_from_header(header)
+        if header is not None:
+            coldefs._update_attributes_from_header(header)
         data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill,
                                      character_as_bytes=character_as_bytes)
         hdu = cls(data=data, header=header, character_as_bytes=character_as_bytes, **kwargs)
