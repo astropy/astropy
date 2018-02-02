@@ -1389,6 +1389,10 @@ class ColDefs(NotifierMixin):
 
     def _update_attributes_from_header(self, hdr):
         nfields = len(self)
+
+        # Because of the way Column._verify_keywords works in
+        # _header_to_col_keywords, we need to first build up a list of the
+        # attributes for each column.
         col_keywords = []
         for col in self.columns:
             kw = {}
@@ -1397,7 +1401,11 @@ class ColDefs(NotifierMixin):
                 if val is not None:
                     kw[attr] = val
             col_keywords.append(kw)
+
         col_keywords = self._header_to_col_keywords(hdr, nfields, col_keywords=col_keywords)
+
+        # NOTE: this is where we could restrict ourselves to the new attributes
+        # in 3.0 if we want to fully preserve backward-compatibility
         for idx, keywords in enumerate(col_keywords):
             col = self.columns[idx]
             for key, value in keywords.items():
