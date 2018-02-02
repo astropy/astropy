@@ -680,6 +680,9 @@ block::
 Image tests with pytest-mpl
 ===========================
 
+Running image tests
+-------------------
+
 We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl>`_
 plugin to create tests where we can compare the output of plotting commands
 with reference files (this is used for instance in
@@ -688,6 +691,28 @@ with reference files (this is used for instance in
 To run the Astropy tests with the image comparison, use::
 
     python setup.py test -a "--mpl" --remote-data
+
+However, note that the output can be very sensitive to the version of Matplotlib
+as well as all its dependencies (e.g. freetype), so we recommend running the
+image tests inside a docker container which has a frozen set of package versions.
+To run the Astropy tests with the image comparison inside a docker container,
+make sure you are inside the Astropy repository then do::
+
+    docker run -it -v ${PWD}:/astropy_repo astrofrog/pytest-mpl-15:1.0 /bin/bash
+
+You should then see a bash prompt that looks like::
+
+    root@8173d2494b0b:/#
+
+Once this appears, you can then run the tests as above::
+
+    cd astropy_repo
+    python3 setup.py test -a "--mpl" --remote-data
+
+The available containers are ...
+
+Writing image tests
+-------------------
 
 The `README.rst <https://github.com/astrofrog/pytest-mpl/blob/master/README.rst>`__
 for the plugin contains information on writing tests with this plugin. The only
@@ -703,13 +728,28 @@ to the repository size, we instead store them on the http://data.astropy.org
 site. The downside is that it is a little more complicated to create or
 re-generate reference files, but we describe the process here.
 
-Once you have a test for which you want to (re-)generate reference images,
-run the tests with the ``--mpl-generate-path`` argument, e.g::
+Generating reference images
+---------------------------
 
-    python setup.py test -a "--mpl --mpl-generate-path=reference_tmp" --remote-data
+Once you have a test for which you want to (re-)generate reference images,
+start up one of the Docker containers using e.g.::
+
+    docker run -it -v ${PWD}:/astropy_repo astrofrog/pytest-mpl-15:1.0 /bin/bash
+
+then run the tests inside with the ``--mpl-generate-path`` argument, e.g::
+
+    cd astropy_repo
+    python3 setup.py test -a "--mpl --mpl-generate-path=reference_tmp" --remote-data
 
 This will create a ``reference_tmp`` folder and put the generated reference
-images inside it.
+images inside it - the folder will be available in the repository outside of
+the docker container.
+
+Make sure you generate images for the different supported Matplotlib versions
+using the available containers.
+
+Uploading the reference images
+------------------------------
 
 Next, we need to add these images to the http://data.astropy.org server. To do
 this, open a pull request to `this <https://github.com/astropy/astropy-data>`_
