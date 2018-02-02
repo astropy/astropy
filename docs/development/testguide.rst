@@ -684,8 +684,8 @@ Running image tests
 -------------------
 
 We make use of the `pytest-mpl <https://pypi.python.org/pypi/pytest-mpl>`_
-plugin to create tests where we can compare the output of plotting commands
-with reference files (this is used for instance in
+plugin to write tests where we can compare the output of plotting commands
+with reference files on a pixel-by-pixel basis (this is used for instance in
 :ref:`astropy.visualization.wcsaxes <wcsaxes>`).
 
 To run the Astropy tests with the image comparison, use::
@@ -694,22 +694,33 @@ To run the Astropy tests with the image comparison, use::
 
 However, note that the output can be very sensitive to the version of Matplotlib
 as well as all its dependencies (e.g. freetype), so we recommend running the
-image tests inside a docker container which has a frozen set of package versions.
-To run the Astropy tests with the image comparison inside a docker container,
-make sure you are inside the Astropy repository then do::
+image tests inside a `Docker <https://www.docker.com/>`_ container which has a
+frozen set of package versions (Docker containers can be thought of as mini
+virtual machines). We have made a set of Docker container images that can be
+used for this. Once you have installed Docker, to run the Astropy tests with the
+image comparison inside a Docker container, make sure you are inside the Astropy
+repository (or the repository of the package you are testing) then do::
 
-    docker run -it -v ${PWD}:/astropy_repo astrofrog/pytest-mpl-15:1.0 /bin/bash
+    docker run -it -v ${PWD}:/repo astrofrog/image-tests-py35-mpl153:1.0 /bin/bash
 
-You should then see a bash prompt that looks like::
+This will start up a bash prompt in the Docker container, and you should see
+something like::
 
     root@8173d2494b0b:/#
 
-Once this appears, you can then run the tests as above::
+You can now go to the ``/repo`` directory, which is the same folder as
+your local version of the repository you are testing::
 
-    cd astropy_repo
+    cd /repo
+
+You can then run the tests as above::
+
     python3 setup.py test -a "--mpl" --remote-data
 
-The available containers are ...
+Type ``exit`` to exit the container.
+
+You can find the names of the available Docker images on the `Docker Hub
+<https://hub.docker.com/r/astrofrog/>`_.
 
 Writing image tests
 -------------------
@@ -734,16 +745,16 @@ Generating reference images
 Once you have a test for which you want to (re-)generate reference images,
 start up one of the Docker containers using e.g.::
 
-    docker run -it -v ${PWD}:/astropy_repo astrofrog/pytest-mpl-15:1.0 /bin/bash
+  docker run -it -v ${PWD}:/repo astrofrog/image-tests-py35-mpl153:1.0 /bin/bash
 
-then run the tests inside with the ``--mpl-generate-path`` argument, e.g::
+then run the tests inside ``/repo`` with the ``--mpl-generate-path`` argument, e.g::
 
-    cd astropy_repo
+    cd repo
     python3 setup.py test -a "--mpl --mpl-generate-path=reference_tmp" --remote-data
 
 This will create a ``reference_tmp`` folder and put the generated reference
 images inside it - the folder will be available in the repository outside of
-the docker container.
+the Docker container. Type ``exit`` to exit the container.
 
 Make sure you generate images for the different supported Matplotlib versions
 using the available containers.
