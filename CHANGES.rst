@@ -38,6 +38,11 @@ astropy.cosmology
 - Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
   are now 1000x faster by using analytic solutions instead of integrating.
   [#7117]
+Distance calculations with ``LambaCDM`` with no radiation (T_CMB0=0)
+are now 20x faster by using elliptic integrals and hypergeometric functions.
+
+Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
+are now 1000x faster by using analytic solutions instead of integrating. [#7117]
 
 astropy.extern
 ^^^^^^^^^^^^^^
