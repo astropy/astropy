@@ -280,6 +280,29 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         self._uint = uint
         self._character_as_bytes = character_as_bytes
 
+        # TEMP: Special column keywords are normally overwritten by attributes
+        # from Column objects. In Astropy 3.0, several new keywords are now
+        # recognized as being special column keywords, but we don't
+        # automatically clear them yet, as we need to raise a deprecation
+        # warning for at least one major version.
+        if header is not None:
+            future_ignore = set()
+            for keyword in self._header.keys():
+                match = TDEF_RE.match(keyword)
+                try:
+                    base_keyword = match.group('label')
+                except Exception:
+                    continue                # skip if there is no match
+                if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
+                    future_ignore.add(base_keyword)
+            keys = ', '.join(x + 'n' for x in sorted(future_ignore))
+            warnings.warn("The following keywords are now recognized as special "
+                          "column-related attributes and should be set via the "
+                          "Column objects: {0}. In future, these values will be "
+                          "dropped from manually specified headers automatically "
+                          "and replaced with values generated based on the "
+                          "Column objects.".format(keys))
+
         if data is DELAYED:
             # this should never happen
             if header is None:
@@ -623,6 +646,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 continue                # skip if there is no match
 
             if base_keyword in KEYWORD_TO_ATTRIBUTE:
+
+                # TEMP: For Astropy 3.0 we don't clear away the following keywords
+                # as we are first raising a deprecation warning that these will be
+                # dropped automatically if they were specified in the header. We
+                # can remove this once we are happy to break backward-compatibility
+                if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
+                    continue
+
                 num = int(match.group('num')) - 1  # convert to zero-base
                 table_keywords.append((idx, match.group(0), base_keyword,
                                        num))
