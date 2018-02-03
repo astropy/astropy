@@ -332,13 +332,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                             continue                # skip if there is no match
                         if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
                             future_ignore.add(base_keyword)
-                    keys = ', '.join(x + 'n' for x in sorted(future_ignore))
-                    warnings.warn("The following keywords are now recognized as special "
-                                  "column-related attributes and should be set via the "
-                                  "Column objects: {0}. In future, these values will be "
-                                  "dropped from manually specified headers automatically "
-                                  "and replaced with values generated based on the "
-                                  "Column objects.".format(keys), AstropyDeprecationWarning)
+                    if future_ignore:
+                        keys = ', '.join(x + 'n' for x in sorted(future_ignore))
+                        warnings.warn("The following keywords are now recognized as special "
+                                      "column-related attributes and should be set via the "
+                                      "Column objects: {0}. In future, these values will be "
+                                      "dropped from manually specified headers automatically "
+                                      "and replaced with values generated based on the "
+                                      "Column objects.".format(keys), AstropyDeprecationWarning)
 
                 # TODO: Too much of the code in this class uses header keywords
                 # in making calculations related to the data size.  This is
