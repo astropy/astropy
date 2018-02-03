@@ -353,6 +353,34 @@ def test_register_readers_with_same_name_on_different_classes():
     assert isinstance(tbl, Table)
 
 
+def test_inherited_registration():
+    # check that multi-generation inheritance works properly,
+    # meaning that a child inherits from parents before
+    # grandparents, see astropy/astropy#7156
+
+    class Child1(Table):
+        pass
+
+    class Child2(Child1):
+        pass
+
+    def _read():
+        return Table()
+
+    def _read1():
+        return Child1()
+
+    # check that reader gets inherited
+    io_registry.register_reader('test', Table, _read)
+    assert io_registry.get_reader('test', Child2) is _read
+
+    # check that nearest ancestor is identified
+    # (i.e. that the reader for Child2 is the registered method
+    #  for Child1, and not Table)
+    io_registry.register_reader('test', Child1, _read1)
+    assert io_registry.get_reader('test', Child2) is _read1
+
+
 def teardown_function(function):
     _readers.update(_READERS_ORIGINAL)
     _writers.update(_WRITERS_ORIGINAL)
