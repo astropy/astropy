@@ -573,20 +573,14 @@ def _is_best_match(class1, class2, format_classes):
       - OR class1 is a subclass of class2 and class1 is not in classes
         and class2 is the nearest ancestor of class2 that is in classes.
     """
-    if class1 is class2:
-        return True
-
-    classes = {cls for fmt, cls in format_classes}
-
-    if class1 in classes:  # superceded by class1
-        return False
-
     if issubclass(class1, class2):
+        classes = {cls for fmt, cls in format_classes}
         for parent in class1.__mro__:
             if parent is class2:  # class2 is closest registered ancestor
                 return True
             if parent in classes:  # class2 was superceded
                 return False
+    return False
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
