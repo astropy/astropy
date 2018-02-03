@@ -29,7 +29,7 @@ from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....utils import lazyproperty
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from ....utils.decorators import deprecated_renamed_argument
 
 
@@ -280,29 +280,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         self._uint = uint
         self._character_as_bytes = character_as_bytes
 
-        # TEMP: Special column keywords are normally overwritten by attributes
-        # from Column objects. In Astropy 3.0, several new keywords are now
-        # recognized as being special column keywords, but we don't
-        # automatically clear them yet, as we need to raise a deprecation
-        # warning for at least one major version.
-        if header is not None:
-            future_ignore = set()
-            for keyword in self._header.keys():
-                match = TDEF_RE.match(keyword)
-                try:
-                    base_keyword = match.group('label')
-                except Exception:
-                    continue                # skip if there is no match
-                if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
-                    future_ignore.add(base_keyword)
-            keys = ', '.join(x + 'n' for x in sorted(future_ignore))
-            warnings.warn("The following keywords are now recognized as special "
-                          "column-related attributes and should be set via the "
-                          "Column objects: {0}. In future, these values will be "
-                          "dropped from manually specified headers automatically "
-                          "and replaced with values generated based on the "
-                          "Column objects.".format(keys))
-
         if data is DELAYED:
             # this should never happen
             if header is None:
@@ -325,6 +302,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 ('TFIELDS', 0, 'number of table fields')]
 
             if header is not None:
+
                 # Make a "copy" (not just a view) of the input header, since it
                 # may get modified.  the data is still a "view" (for now)
                 hcopy = header.copy(strip=True)
@@ -338,6 +316,29 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     self.data = data
                 else:
                     self.data = self._data_type.from_columns(data)
+
+                # TEMP: Special column keywords are normally overwritten by attributes
+                # from Column objects. In Astropy 3.0, several new keywords are now
+                # recognized as being special column keywords, but we don't
+                # automatically clear them yet, as we need to raise a deprecation
+                # warning for at least one major version.
+                if header is not None:
+                    future_ignore = set()
+                    for keyword in self._header.keys():
+                        match = TDEF_RE.match(keyword)
+                        try:
+                            base_keyword = match.group('label')
+                        except Exception:
+                            continue                # skip if there is no match
+                        if base_keyword in {'TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT', 'TRPOS'}:
+                            future_ignore.add(base_keyword)
+                    keys = ', '.join(x + 'n' for x in sorted(future_ignore))
+                    warnings.warn("The following keywords are now recognized as special "
+                                  "column-related attributes and should be set via the "
+                                  "Column objects: {0}. In future, these values will be "
+                                  "dropped from manually specified headers automatically "
+                                  "and replaced with values generated based on the "
+                                  "Column objects.".format(keys), AstropyDeprecationWarning)
 
                 # TODO: Too much of the code in this class uses header keywords
                 # in making calculations related to the data size.  This is
