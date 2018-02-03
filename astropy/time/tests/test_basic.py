@@ -1213,7 +1213,9 @@ def test_setitem_location():
     # Fails because the right hand side has location=None
     with pytest.raises(ValueError) as err:
         t[0, 0] = Time(-1, format='cxcsec')
-    assert 'cannot set to Time with different location' in str(err)
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=None') in str(err)
 
     # Succeeds because the right hand side correctly sets location
     t[0, 0] = Time(-2, format='cxcsec', location=loc[0])
@@ -1222,13 +1224,17 @@ def test_setitem_location():
     # Fails because the right hand side has different location
     with pytest.raises(ValueError) as err:
         t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
-    assert 'cannot set to Time with different location' in str(err)
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
 
     # Fails because the Time has None location and RHS has defined location
     t = Time([[1, 2], [3, 4]], format='cxcsec')
     with pytest.raises(ValueError) as err:
         t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
-    assert 'cannot set to Time with different location' in str(err)
+    assert ('cannot set to Time with different location: '
+            'expected location=None and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
 
     # Broadcasting works
     t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)

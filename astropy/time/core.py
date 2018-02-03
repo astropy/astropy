@@ -678,7 +678,10 @@ class Time(ShapedLikeNDArray):
             else:
                 match = np.all(self_location == value.location)
             if not match:
-                raise ValueError('cannot set to Time with different location')
+                raise ValueError('cannot set to Time with different location: '
+                                 'expected location={} and '
+                                 'got location={}'
+                                 .format(self_location, value.location))
         else:
             try:
                 value = self.__class__(value, scale=self.scale, location=self_location)

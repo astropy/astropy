@@ -654,13 +654,24 @@ The |Time| and |TimeDelta| objects support functionality for marking values as
 missing or invalid (added in astropy 3.1).  This is also known as masking,
 and is especially useful for :ref:`table_operations` such as joining and
 stacking.  To set one or more items as missing, assign the special value
-`~numpy.ma.masked`, for example::
+`numpy.ma.masked`, for example::
 
   >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
   ...          out_subfmt='date')
   >>> t[2] = np.ma.masked
   >>> print(t)
   ['2001:020' '2001:040' -- '2001:080']
+
+.. note:: The operation of setting an array element to `numpy.ma.masked`
+   (missing) *overwrites* the actual time data and therefore there is no way to
+   recover the original value.  In this sense the `numpy.ma.masked` value
+   behaves just like any other valid |Time| value when setting.  This is
+   similar to how `Pandas missing data
+   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
+   but somewhat different from `NumPy masked arrays
+   <https://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ which
+   maintain a separate mask array and retain the underlying data.  In the
+   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
 
 Once one or more values in the object are masked, any operations will
 propagate those values as masked, and access to format attributes such
