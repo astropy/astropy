@@ -569,9 +569,10 @@ def _is_best_match(class1, class2, format_classes):
     Determine if class2 is the "best" match for class1 in the list
     of classes.  It is assumed that (class2 in classes) is True.
     class2 is the the best match if:
-      - class1 is class2 => class1 was directly registered.
-      - OR class1 is a subclass of class2 and class1 is not in classes
-        and class2 is the nearest ancestor of class2 that is in classes.
+
+    - ``class1`` is a subclass of ``class2`` AND
+    - ``class2`` is the nearest ancestor of ``class1`` that is in classes
+      (which includes the case that ``class1 is class2``)
     """
     if issubclass(class1, class2):
         classes = {cls for fmt, cls in format_classes}
