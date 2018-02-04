@@ -5,10 +5,11 @@ import fnmatch
 import time
 import re
 import datetime
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
+from ..utils.decorators import lazyproperty
 from .. import units as u
 from .. import _erfa as erfa
 from .utils import day_frac, two_sum
@@ -141,11 +142,42 @@ class TimeFormat(metaclass=TimeFormatMeta):
     def scale(self, val):
         self._scale = val
 
+    def mask_if_needed(self, value):
+        if self.masked:
+            value = np.ma.array(value, mask=self.mask, copy=False)
+        return value
+
+    @property
+    def mask(self):
+        if 'mask' not in self.cache:
+            self.cache['mask'] = np.isnan(self.jd2)
+            if self.cache['mask'].shape:
+                self.cache['mask'].flags.writeable = False
+        return self.cache['mask']
+
+    @property
+    def masked(self):
+        if 'masked' not in self.cache:
+            self.cache['masked'] = bool(np.any(self.mask))
+        return self.cache['masked']
+
+    @property
+    def jd2_filled(self):
+        return np.nan_to_num(self.jd2) if self.masked else self.jd2
+
+    @lazyproperty
+    def cache(self):
+        """
+        Return the cache associated with this instance.
+        """
+        return defaultdict(dict)
+
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if not (val1.dtype == np.double and np.all(np.isfinite(val1)) and
-                (val2 is None or
-                 val2.dtype == np.double and np.all(np.isfinite(val2)))):
+        # val1 cannot contain nan, but val2 can contain nan
+        ok1 = val1.dtype == np.double and np.all(np.isfinite(val1))
+        ok2 = val2 is None or (val2.dtype == np.double and not np.any(np.isinf(val2)))
+        if not (ok1 and ok2):
             raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
@@ -211,7 +243,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
         require ``parent`` or have other optional args for ``to_value``
         should compute and return the value directly.
         """
-        return self.value
+        return self.mask_if_needed(self.value)
 
     @property
     def value(self):
@@ -302,7 +334,7 @@ class TimeDecimalYear(TimeFormat):
     def value(self):
         scale = self.scale.upper().encode('ascii')
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0,  # precision=0
-                                                self.jd1, self.jd2)
+                                                self.jd1, self.jd2_filled)
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
@@ -395,7 +427,8 @@ class TimeFromEpoch(TimeFormat):
 
         time_from_epoch = ((jd1 - self.epoch.jd1) +
                            (jd2 - self.epoch.jd2)) / self.unit
-        return time_from_epoch
+
+        return self.mask_if_needed(time_from_epoch)
 
     value = property(to_value)
 
@@ -599,7 +632,7 @@ class TimeDatetime(TimeUnique):
         # since we want to be able to pass in timezone information.
         scale = self.scale.upper().encode('ascii')
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6,  # 6 for microsec
-                                           self.jd1, self.jd2)
+                                           self.jd1, self.jd2_filled)
         ihrs = ihmsfs[..., 0]
         imins = ihmsfs[..., 1]
         isecs = ihmsfs[..., 2]
@@ -618,7 +651,8 @@ class TimeDatetime(TimeUnique):
                                              tzinfo=TimezoneInfo()).astimezone(timezone)
             else:
                 out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
-        return iterator.operands[-1]
+
+        return self.mask_if_needed(iterator.operands[-1])
 
     value = property(to_value)
 
@@ -759,7 +793,7 @@ class TimeString(TimeUnique):
         """
         scale = self.scale.upper().encode('ascii'),
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision,
-                                           self.jd1, self.jd2)
+                                           self.jd1, self.jd2_filled)
 
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]

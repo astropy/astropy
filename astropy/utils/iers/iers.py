@@ -192,6 +192,7 @@ class IERS(QTable):
             jd1, jd2 = jd1.utc.jd1, jd1.utc.jd2
         except Exception:
             pass
+
         mjd = np.floor(jd1 - MJD_ZERO + jd2)
         utc = jd1 - (MJD_ZERO+mjd) + jd2
         return mjd, utc

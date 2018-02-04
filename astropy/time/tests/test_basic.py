@@ -6,10 +6,9 @@ import functools
 import datetime
 from copy import deepcopy
 
-import pytest
 import numpy as np
 
-from ...tests.helper import catch_warnings
+from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
 from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
@@ -1091,7 +1090,7 @@ def test_cache():
     t2 = Time('2010-09-03 00:00:00')
 
     # Time starts out without a cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
@@ -1102,14 +1101,14 @@ def test_cache():
     assert t.cache['scale']['tai'] == t2.tai
 
     # New Time object after scale transform does not have a cache yet
-    assert 'cache' not in t.tt.__dict__
+    assert 'cache' not in t.tt._time.__dict__
 
     # Clear the cache
     del t.cache
-    assert 'cache' not in t.__dict__
+    assert 'cache' not in t._time.__dict__
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
-    assert 'cache' in t.__dict__
+    assert 'cache' in t._time.__dict__
 
 
 def test_epoch_date_jd_is_day_fraction():
@@ -1168,3 +1167,144 @@ def test_bytes_input():
     assert tarray.dtype.kind == 'S'
     t2 = Time(tarray)
     assert t2 == t0
+
+
+def test_writeable_flag():
+    t = Time([1, 2, 3], format='cxcsec')
+    t[1] = 5.0
+    assert allclose_sec(t[1].value, 5.0)
+
+    t.writeable = False
+    with pytest.raises(ValueError) as err:
+        t[1] = 5.0
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        t[:] = 5.0
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+    t.writeable = True
+    t[1] = 10.0
+    assert allclose_sec(t[1].value, 10.0)
+
+    # Scalar is not writeable
+    t = Time('2000:001', scale='utc')
+    with pytest.raises(ValueError) as err:
+        t[()] = '2000:002'
+    assert 'scalar Time object is read-only.' in str(err)
+
+    # Transformed attribute is not writeable
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = t.tt  # t2 is read-only now because t.tt is cached
+    with pytest.raises(ValueError) as err:
+        t2[0] = '2005:001'
+    assert 'Time object is read-only. Make a copy()' in str(err)
+
+
+def test_setitem_location():
+    loc = EarthLocation(x=[1, 2] * u.m, y=[3, 4] * u.m, z=[5, 6] * u.m)
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+
+    # Succeeds because the right hand side makes no implication about
+    # location and just inherits t.location
+    t[0, 0] = 0
+    assert allclose_sec(t.value, [[0, 2], [3, 4]])
+
+    # Fails because the right hand side has location=None
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-1, format='cxcsec')
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=None') in str(err)
+
+    # Succeeds because the right hand side correctly sets location
+    t[0, 0] = Time(-2, format='cxcsec', location=loc[0])
+    assert allclose_sec(t.value, [[-2, 2], [3, 4]])
+
+    # Fails because the right hand side has different location
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert ('cannot set to Time with different location: '
+            'expected location=(1.0, 3.0, 5.0) m and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
+
+    # Fails because the Time has None location and RHS has defined location
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    with pytest.raises(ValueError) as err:
+        t[0, 0] = Time(-2, format='cxcsec', location=loc[1])
+    assert ('cannot set to Time with different location: '
+            'expected location=None and '
+            'got location=(2.0, 4.0, 6.0) m') in str(err)
+
+    # Broadcasting works
+    t = Time([[1, 2], [3, 4]], format='cxcsec', location=loc)
+    t[0, :] = Time([-3, -4], format='cxcsec', location=loc)
+    assert allclose_sec(t.value, [[-3, -4], [3, 4]])
+
+
+def test_setitem_from_python_objects():
+    t = Time([[1, 2], [3, 4]], format='cxcsec')
+    assert t.cache == {}
+    t.iso
+    assert 'iso' in t.cache['format']
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:00:02.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Setting item clears cache
+    t[0, 1] = 100
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [3, 4]])
+    assert np.all(t.iso == [['1998-01-01 00:00:01.000', '1998-01-01 00:01:40.000'],
+                            ['1998-01-01 00:00:03.000', '1998-01-01 00:00:04.000']])
+
+    # Set with a float value
+    t.iso
+    t[1, :] = 200
+    assert t.cache == {}
+    assert allclose_sec(t.value, [[1, 100],
+                                  [200, 200]])
+
+    # Array of strings in yday format
+    t[:, 1] = ['1998:002', '1998:003']
+    assert allclose_sec(t.value, [[1, 86400 * 1],
+                                  [200, 86400 * 2]])
+
+    # Incompatible numeric value
+    t = Time(['2000:001', '2000:002'])
+    t[0] = '2001:001'
+    with pytest.raises(ValueError) as err:
+        t[0] = 100
+    assert 'cannot convert value to a compatible Time object' in str(err)
+
+
+def test_setitem_from_time_objects():
+    """Set from existing Time object.
+    """
+    # Set from time object with different scale
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2 = Time(['2000:010'], scale='tai')
+    t[1] = t2[0]
+    assert t.value[1] == t2.utc.value[0]
+
+    # Time object with different scale and format
+    t = Time(['2000:001', '2000:002'], scale='utc')
+    t2.format = 'jyear'
+    t[1] = t2[0]
+    assert t.yday[1] == t2.utc.yday[0]
+
+
+def test_setitem_bad_item():
+    t = Time([1, 2], format='cxcsec')
+    with pytest.raises(IndexError):
+        t['asdf'] = 3
+
+
+def test_setitem_deltas():
+    """Setting invalidates any transform deltas"""
+    t = Time([1, 2], format='cxcsec')
+    t.delta_tdb_tt = [1, 2]
+    t.delta_ut1_utc = [3, 4]
+    t[1] = 3
+    assert not hasattr(t, '_delta_tdb_tt')
+    assert not hasattr(t, '_delta_ut1_utc')
