@@ -10,7 +10,7 @@ import numpy as np
 
 from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
-from .. import Time, ScaleValueError, TIME_SCALES, TimeString, TimezoneInfo
+from .. import Time, ScaleValueError, STANDARD_TIME_SCALES, TimeString, TimezoneInfo
 from ...coordinates import EarthLocation
 from ... import units as u
 from ... import _erfa as erfa
@@ -316,10 +316,10 @@ class TestBasic():
         except reversibility [#2074]"""
         lat = 19.48125
         lon = -155.933222
-        for scale1 in TIME_SCALES:
+        for scale1 in STANDARD_TIME_SCALES:
             t1 = Time('2006-01-15 21:24:37.5', format='iso', scale=scale1,
                       location=(lon, lat))
-            for scale2 in TIME_SCALES:
+            for scale2 in STANDARD_TIME_SCALES:
                 t2 = getattr(t1, scale2)
                 t21 = getattr(t2, scale1)
                 assert allclose_jd(t21.jd, t1.jd)

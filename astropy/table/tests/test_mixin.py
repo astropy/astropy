@@ -135,7 +135,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     (metadata scale, location).
     """
     t = table_types([[1,2], ['string', 'column']])
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         t['a'+scale] = time.Time([[1,2],[3,4]], format='cxcsec', scale=scale,
                                   location=EarthLocation(-2446354,
                                   4237210, 4077985, unit='m'))
@@ -149,7 +149,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits', astropy_native=True)
 
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
 
@@ -176,7 +176,7 @@ def test_io_time_write_fits(tmpdir, table_types):
         assert (tm[name] == t[name]).all()
 
     # Test for conversion of time data to its value, as defined by its format
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
             t[name].info.serialize_method['fits'] = 'formatted_value'
@@ -184,7 +184,7 @@ def test_io_time_write_fits(tmpdir, table_types):
     t.write(filename, format='fits', overwrite=True)
     tm = table_types.read(filename, format='fits')
 
-    for scale in time.TIME_SCALES:
+    for scale in time.STANDARD_TIME_SCALES:
         for ab in ('a', 'b'):
             name = ab + scale
 

@@ -274,7 +274,7 @@ both" [#]_. See also [#]_ and [#]_.
 ::
 
   >>> Time.SCALES
-  ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+  ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc', 'local')
 
 ====== =================================
 Scale        Description
