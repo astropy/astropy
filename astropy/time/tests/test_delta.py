@@ -7,7 +7,7 @@ import operator
 import pytest
 
 from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
-                TIME_SCALES, TIME_DELTA_SCALES)
+                TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
 from ... import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -268,7 +268,7 @@ class TestTimeDeltaScales():
             TimeDelta([0., 1., 10.], format='sec', scale='utc')
 
     @pytest.mark.parametrize(('scale1', 'scale2'),
-                             list(itertools.product(TIME_SCALES, TIME_SCALES)))
+                             list(itertools.product(STANDARD_TIME_SCALES, STANDARD_TIME_SCALES)))
     def test_scales_for_time_minus_time(self, scale1, scale2):
         """T(X) - T2(Y)  -- does T(X) - T2(Y).X and return dT(X)
         and T(X) +/- dT(Y)  -- does (in essence) (T(X).Y +/- dT(Y)).X
