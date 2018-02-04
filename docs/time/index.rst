@@ -39,6 +39,7 @@ object by supplying one or more input time values as well as the `time format`_ 
 ``"2010-01-01 00:00:00"`` or a list or a `numpy` array of values as shown below.
 In general any output values have the same shape (scalar or array) as the input.
 
+  >>> import numpy as np
   >>> from astropy.time import Time
   >>> times = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
   >>> t = Time(times, format='isot', scale='utc')
@@ -94,6 +95,21 @@ this information is kept is the ``fits`` format::
   >>> print(t2.fits)
   ['1999-01-01T00:01:04.307(TT)' '2010-01-01T00:01:06.184(TT)']
 
+One can set the time values in-place using the usual numpy array setting
+item syntax::
+
+  >>> t2 = t.tt.copy()  # Copy required if transformed Time will be modified
+  >>> t2[1] = '2014-12-25'
+  >>> print(t2)
+  ['1999-01-01T00:01:04.307' '2014-12-25T00:00:00.000']
+
+The |Time| object also has support for missing values, which is particularly
+useful for :ref:`table_operations` such as joining and stacking::
+
+  >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
+  >>> print(t2)
+  [-- '2014-12-25T00:00:00.000']
+
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
@@ -128,12 +144,6 @@ independent of the way the time is represented (the "format") and the time
 There is no distinction made between a "date" and a "time" since both concepts
 (as loosely defined in common usage) are just different representations of a
 moment in time.
-
-Once a |Time| object is created it cannot be altered internally.  In code lingo
-it is "immutable."  In particular the common operation of "converting" to a
-different `time scale`_ is always performed by returning a copy of the original
-|Time| object which has been converted to the new time scale.
-
 
 .. _time-format:
 
@@ -576,13 +586,137 @@ The two should be very close to each other.
 Using Time objects
 -------------------
 
-There are four basic operations available with |Time| objects:
+The operations available with |Time| objects include:
 
+- Get and set time values(s) for an array-valued |Time| object:
+- Set missing (masked) values.
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
 - Calculate the `sidereal time`_ corresponding to the time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
+
+Get and set values
+^^^^^^^^^^^^^^^^^^
+
+For an existing |Time| object which is array-valued, one can use the
+usual numpy array item syntax to get either a single item or a subset
+of items.  The returned value is a |Time| object with all the same
+attributes::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> print(t[1])
+  2001:040
+  >>> print(t[1:])
+  ['2001:040' '2001:060' '2001:080']
+  >>> print(t[[2, 0]])
+  ['2001:060' '2001:020']
+
+As of astropy version 3.1, one can also set values in-place for an
+array-valued |Time| object::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[1] = '2010:001'
+  >>> print(t)
+  ['2001:020' '2010:001' '2001:060' '2001:080']
+  >>> t[[2, 0]] = '1990:123'
+  >>> print(t)
+  ['1990:123' '2010:001' '1990:123' '2001:080']
+
+The new value (on the right hand side) when setting can be one of three
+possibilities:
+
+- Scalar string value or array of string values where each value
+  is in a valid time format that can be automatically parsed and
+  used to create a |Time| object.
+- Value or array of values where each value has the same ``format`` as
+  the |Time| object being set.  For instance, a float or numpy array
+  of floats for an object with ``format='unix'``.
+- |Time| object with identical ``location`` (but ``scale`` and
+  ``format`` need not be the same).  The right side value will be
+  transformed so the time ``scale`` matches.
+
+Whenever any item is set then the internal cache (see `Caching`_) is cleared
+along with the ``delta_tdb_tt`` and/or ``delta_ut1_utc`` transformation
+offsets, if they have been set.
+
+If it is required that the |Time| object be immutable then set the
+``writeable`` attribute to `False`.  In this case attemping to set a value will
+raise a ``ValueError: Time object is read-only``.  See the section on
+`Caching`_ for an example.
+
+Missing values
+^^^^^^^^^^^^^^
+
+The |Time| and |TimeDelta| objects support functionality for marking values as
+missing or invalid (added in astropy 3.1).  This is also known as masking,
+and is especially useful for :ref:`table_operations` such as joining and
+stacking.  To set one or more items as missing, assign the special value
+`numpy.ma.masked`, for example::
+
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
+  >>> t[2] = np.ma.masked
+  >>> print(t)
+  ['2001:020' '2001:040' -- '2001:080']
+
+.. note:: The operation of setting an array element to `numpy.ma.masked`
+   (missing) *overwrites* the actual time data and therefore there is no way to
+   recover the original value.  In this sense the `numpy.ma.masked` value
+   behaves just like any other valid |Time| value when setting.  This is
+   similar to how `Pandas missing data
+   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
+   but somewhat different from `NumPy masked arrays
+   <https://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ which
+   maintain a separate mask array and retain the underlying data.  In the
+   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
+
+Once one or more values in the object are masked, any operations will
+propagate those values as masked, and access to format attributes such
+as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
+object::
+
+  >>> t.unix  # doctest: +SKIP
+  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
+               mask = [False False  True False],
+         fill_value = 1e+20)
+
+One can view the ``mask``, but note that it is read-only and
+setting the mask is always done by setting the item to `~numpy.ma.masked`.
+
+  >>> t.mask
+  array([False, False,  True, False]...)
+  >>> t[:2] = np.ma.masked
+
+.. warning:: The internal implementation of missing value support is
+   provisional and may change in a subsequent release.  This would impact
+   information in the next section.  However, the documented API for using missing
+   values with |Time| and |TimeDelta| objects is stable.
+
+Custom format classes and missing values
+""""""""""""""""""""""""""""""""""""""""
+
+For advanced users who have written a custom time format via a
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
+class *if you wish to support missing values*.  For applications that
+do not take advantage of missing values then no changes are required.
+
+Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
+setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
+(but this is never done directly by the user).  For most array operations and
+numpy functions the ``numpy.nan`` entries are propagated as expected and all is
+well.  However, this is not always the case, and in particular the `ERFA
+<https://github.com/liberfa/erfa>`_ routines do not generally support
+``numpy.nan`` values gracefully.
+
+In cases where ``numpy.nan`` is not acceptable, format class methods should use the
+``jd2_filled`` property instead of ``jd2``.  This replaces ``numpy.nan`` with
+``0.0``.  Since ``jd2`` is always in the range -1 to +1, substituing ``0.0``
+will allow functions to return "reasonable" values which will then be masked in
+any subsequent outputs.  See the ``value`` property of the
+`~astropy.time.TimeDecimalYear` format for any example.
 
 Get representation
 ^^^^^^^^^^^^^^^^^^^
@@ -652,7 +786,7 @@ The computations for transforming to different time scales or formats can be
 time-consuming for large arrays.  In order to avoid repeated computations, each
 |Time| or |TimeDelta| instance caches such transformations internally::
 
-  >>> t = Time(np.arange(1e6), format='unix', scale='utc')  # doctest: +SKIP
+  >>> t = Time(np.arange(1e6), format='unix', scale='utc')
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
@@ -665,14 +799,24 @@ time-consuming for large arrays.  In order to avoid repeated computations, each
 Actions such as changing the output precision or sub-format will clear
 the cache.  In order to explicitly clear the internal cache do::
 
-  >>> del t.cache  # doctest: +SKIP
+  >>> del t.cache
 
   >>> time x = t.tt  # doctest: +SKIP
   CPU times: user 263 ms, sys: 4.02 ms, total: 267 ms
   Wall time: 267 ms
 
-Since these objects are immutable (cannot be changed internally), this should
-not normally be required.
+Since astropy 3.1 these objects can be changed internally.  In order
+to ensure consistency between the transformed (and cached) version and
+the original, the transformed object is set to be not writeable.  For
+example::
+
+  >>> x = t.tt
+  >>> x[1] = '2000:001'
+  Traceback (most recent call last):
+    ...
+  ValueError: Time object is read-only. Make a copy() or set "writeable" attribute to True.
+
+If you require modifying the object then make a copy first, e.g. ``x = t.tt.copy()``.
 
 Transformation offsets
 """"""""""""""""""""""

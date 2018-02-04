@@ -65,6 +65,10 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Allow array-valued ``Time`` object to be modified in place. [#6028]
+
+- Added support for missing values (masking) to the ``Time`` class. [#6028]
+
 astropy.units
 ^^^^^^^^^^^^^
 

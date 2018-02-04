@@ -9,12 +9,23 @@ import numpy as np
 from .. import Time
 
 
+@pytest.fixture(scope="module", params=[True, False])
+def masked(request):
+    # Could not figure out a better way to parametrize the setup method
+    global use_masked_data
+    use_masked_data = request.param
+    yield use_masked_data
+
+
 class TestManipulation():
     """Manipulation of Time objects, ensuring attributes are done correctly."""
 
     def setup(self):
         mjd = np.arange(50000, 50010)
         frac = np.arange(0., 0.999, 0.2)
+        if use_masked_data:
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
         self.t1 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
                        location=('45d', '50d'))
@@ -24,7 +35,7 @@ class TestManipulation():
         self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
                        location=(np.arange(len(frac)), np.arange(len(frac))))
 
-    def test_ravel(self):
+    def test_ravel(self, masked):
         t0_ravel = self.t0.ravel()
         assert t0_ravel.shape == (self.t0.size,)
         assert np.all(t0_ravel.jd1 == self.t0.jd1.ravel())
@@ -43,7 +54,7 @@ class TestManipulation():
         # Broadcasting and ravelling cannot be done without a copy.
         assert not np.may_share_memory(t2_ravel.location, self.t2.location)
 
-    def test_flatten(self):
+    def test_flatten(self, masked):
         t0_flatten = self.t0.flatten()
         assert t0_flatten.shape == (self.t0.size,)
         assert t0_flatten.location is None
@@ -60,7 +71,7 @@ class TestManipulation():
         assert t2_flatten.location.shape == t2_flatten.shape
         assert not np.may_share_memory(t2_flatten.location, self.t2.location)
 
-    def test_transpose(self):
+    def test_transpose(self, masked):
         t0_transpose = self.t0.transpose()
         assert t0_transpose.shape == (5, 10)
         assert np.all(t0_transpose.jd1 == self.t0.jd1.transpose())
@@ -85,7 +96,7 @@ class TestManipulation():
         assert t2_T.location.shape == t2_T.location.shape
         assert np.may_share_memory(t2_T.location, self.t2.location)
 
-    def test_diagonal(self):
+    def test_diagonal(self, masked):
         t0_diagonal = self.t0.diagonal()
         assert t0_diagonal.shape == (5,)
         assert np.all(t0_diagonal.jd1 == self.t0.jd1.diagonal())
@@ -103,7 +114,7 @@ class TestManipulation():
         assert np.may_share_memory(t2_diagonal.jd1, self.t2.jd1)
         assert np.may_share_memory(t2_diagonal.location, self.t2.location)
 
-    def test_swapaxes(self):
+    def test_swapaxes(self, masked):
         t0_swapaxes = self.t0.swapaxes(0, 1)
         assert t0_swapaxes.shape == (5, 10)
         assert np.all(t0_swapaxes.jd1 == self.t0.jd1.swapaxes(0, 1))
@@ -121,7 +132,7 @@ class TestManipulation():
         assert t2_swapaxes.location.shape == t2_swapaxes.shape
         assert np.may_share_memory(t2_swapaxes.location, self.t2.location)
 
-    def test_reshape(self):
+    def test_reshape(self, masked):
         t0_reshape = self.t0.reshape(5, 2, 5)
         assert t0_reshape.shape == (5, 2, 5)
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
@@ -162,10 +173,12 @@ class TestManipulation():
         assert not np.may_share_memory(t2_reshape_t_reshape.location,
                                        t2_reshape_t.location)
 
-    def test_shape_setting(self):
+    def test_shape_setting(self, masked):
         t0_reshape = self.t0.copy()
+        mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
         t0_reshape.shape = (5, 2, 5)
         assert t0_reshape.shape == (5, 2, 5)
+        assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
         assert np.all(t0_reshape.jd2 == self.t0._time.jd2.reshape(5, 2, 5))
         assert t0_reshape.location is None
@@ -204,7 +217,7 @@ class TestManipulation():
         # reset t2 to its original.
         self.setup()
 
-    def test_squeeze(self):
+    def test_squeeze(self, masked):
         t0_squeeze = self.t0.reshape(5, 1, 2, 1, 5).squeeze()
         assert t0_squeeze.shape == (5, 2, 5)
         assert np.all(t0_squeeze.jd1 == self.t0.jd1.reshape(5, 2, 5))
@@ -222,7 +235,7 @@ class TestManipulation():
         assert t2_squeeze.location.shape == t2_squeeze.shape
         assert np.may_share_memory(t2_squeeze.location, self.t2.location)
 
-    def test_add_dimension(self):
+    def test_add_dimension(self, masked):
         t0_adddim = self.t0[:, np.newaxis, :]
         assert t0_adddim.shape == (10, 1, 5)
         assert np.all(t0_adddim.jd1 == self.t0.jd1[:, np.newaxis, :])
@@ -240,7 +253,7 @@ class TestManipulation():
         assert t2_adddim.location.shape == t2_adddim.shape
         assert np.may_share_memory(t2_adddim.location, self.t2.location)
 
-    def test_take(self):
+    def test_take(self, masked):
         t0_take = self.t0.take((5, 2))
         assert t0_take.shape == (2,)
         assert np.all(t0_take.jd1 == self.t0._time.jd1.take((5, 2)))
@@ -258,7 +271,7 @@ class TestManipulation():
         assert np.all(t2_take2.jd1 == self.t2.jd1.take((5, 15)))
         assert t2_take2.location.shape == t2_take2.shape
 
-    def test_broadcast(self):
+    def test_broadcast(self, masked):
         """Test using a callable method."""
         t0_broadcast = self.t0._apply(np.broadcast_to, shape=(3, 10, 5))
         assert t0_broadcast.shape == (3, 10, 5)
@@ -286,15 +299,21 @@ class TestArithmetic():
     def setup(self):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
         frac = np.array([0.1, 0.1+1.e-15, 0.1-1.e-15, 0.9+2.e-16, 0.9])
+        if use_masked_data:
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t0 = Time(mjd, frac, format='mjd', scale='utc')
 
         # Define arrays with same ordinal properties
         frac = np.array([1, 2, 0, 4, 3])
+        if use_masked_data:
+            frac = np.ma.array(frac)
+            frac[1] = np.ma.masked
         self.t1 = Time(mjd + frac, format='mjd', scale='utc')
         self.jd = mjd + frac
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
-    def test_argfuncs(self, kw, func):
+    def test_argfuncs(self, kw, func, masked):
         """
         Test that np.argfunc(jd, **kw) is the same as t0.argfunc(**kw) where
         jd is a similarly shaped array with the same ordinal properties but
@@ -304,13 +323,19 @@ class TestArithmetic():
         t0v = getattr(self.t0, 'arg' + func)(**kw)
         t1v = getattr(self.t1, 'arg' + func)(**kw)
         jdv = getattr(np, 'arg' + func)(self.jd, **kw)
+
+        if self.t0.masked and kw == {'axis': None} and func == 'sort':
+            t0v = np.ma.array(t0v, mask=self.t0.mask.reshape(t0v.shape)[t0v])
+            t1v = np.ma.array(t1v, mask=self.t1.mask.reshape(t1v.shape)[t1v])
+            jdv = np.ma.array(jdv, mask=self.jd.mask.reshape(jdv.shape)[jdv])
+
         assert np.all(t0v == jdv)
         assert np.all(t1v == jdv)
         assert t0v.shape == jdv.shape
         assert t1v.shape == jdv.shape
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
-    def test_funcs(self, kw, func):
+    def test_funcs(self, kw, func, masked):
         """
         Test that np.func(jd, **kw) is the same as t1.func(**kw) where
         jd is a similarly shaped array and the same integral values.
@@ -320,27 +345,42 @@ class TestArithmetic():
         assert np.all(t1v.value == jdv)
         assert t1v.shape == jdv.shape
 
-    def test_argmin(self):
+    def test_argmin(self, masked):
         assert self.t0.argmin() == 2
         assert np.all(self.t0.argmin(axis=0) == 0)
         assert np.all(self.t0.argmin(axis=1) == 0)
         assert np.all(self.t0.argmin(axis=2) == 2)
 
-    def test_argmax(self):
+    def test_argmax(self, masked):
         assert self.t0.argmax() == self.t0.size - 2
-        assert np.all(self.t0.argmax(axis=0) == 1)
-        assert np.all(self.t0.argmax(axis=1) == 4)
+        if masked:
+            # The 0 is where all entries are masked in that axis
+            assert np.all(self.t0.argmax(axis=0) == [1, 0, 1, 1, 1])
+            assert np.all(self.t0.argmax(axis=1) == [4, 0, 4, 4, 4])
+        else:
+            assert np.all(self.t0.argmax(axis=0) == 1)
+            assert np.all(self.t0.argmax(axis=1) == 4)
         assert np.all(self.t0.argmax(axis=2) == 3)
 
-    def test_argsort(self):
-        assert np.all(self.t0.argsort() == np.array([2, 0, 1, 4, 3]))
+    def test_argsort(self, masked):
+        order = [2, 0, 4, 3, 1] if masked else [2, 0, 1, 4, 3]
+        assert np.all(self.t0.argsort() == np.array(order))
         assert np.all(self.t0.argsort(axis=0) == np.arange(2).reshape(2, 1, 1))
         assert np.all(self.t0.argsort(axis=1) == np.arange(5).reshape(5, 1))
-        assert np.all(self.t0.argsort(axis=2) == np.array([2, 0, 1, 4, 3]))
-        assert np.all(self.t0.argsort(axis=None) ==
-                      np.arange(50).reshape(-1, 5)[:, (2, 0, 1, 4, 3)].ravel())
+        assert np.all(self.t0.argsort(axis=2) == np.array(order))
+        ravel = np.arange(50).reshape(-1, 5)[:, order].ravel()
+        if masked:
+            t0v = self.t0.argsort(axis=None)
+            # Manually remove elements in ravel that correspond to masked
+            # entries in self.t0.  This removes the 10 entries that are masked
+            # which show up at the end of the list.
+            mask = self.t0.mask.ravel()[ravel]
+            ravel = ravel[~mask]
+            assert np.all(t0v[:-10] == ravel)
+        else:
+            assert np.all(self.t0.argsort(axis=None) == ravel)
 
-    def test_min(self):
+    def test_min(self, masked):
         assert self.t0.min() == self.t0[0, 0, 2]
         assert np.all(self.t0.min(0) == self.t0[0])
         assert np.all(self.t0.min(1) == self.t0[:, 0])
@@ -352,7 +392,7 @@ class TestArithmetic():
         assert self.t0.min(2).shape == (2, 5)
         assert self.t0.min(2, keepdims=True).shape == (2, 5, 1)
 
-    def test_max(self):
+    def test_max(self, masked):
         assert self.t0.max() == self.t0[-1, -1, -2]
         assert np.all(self.t0.max(0) == self.t0[1])
         assert np.all(self.t0.max(1) == self.t0[:, 4])
@@ -360,22 +400,24 @@ class TestArithmetic():
         assert self.t0.max(0).shape == (5, 5)
         assert self.t0.max(0, keepdims=True).shape == (1, 5, 5)
 
-    def test_ptp(self):
+    def test_ptp(self, masked):
         assert self.t0.ptp() == self.t0.max() - self.t0.min()
         assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
         assert self.t0.ptp(0).shape == (5, 5)
         assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
 
-    def test_sort(self):
-        assert np.all(self.t0.sort() == self.t0[:, :, (2, 0, 1, 4, 3)])
+    def test_sort(self, masked):
+        order = [2, 0, 4, 3, 1] if masked else [2, 0, 1, 4, 3]
+        assert np.all(self.t0.sort() == self.t0[:, :, order])
         assert np.all(self.t0.sort(0) == self.t0)
         assert np.all(self.t0.sort(1) == self.t0)
-        assert np.all(self.t0.sort(2) == self.t0[:, :, (2, 0, 1, 4, 3)])
-        assert np.all(self.t0.sort(None) ==
-                      self.t0[:, :, (2, 0, 1, 4, 3)].ravel())
-        # Bit superfluous, but good to check.
-        assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
-        assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
+        assert np.all(self.t0.sort(2) == self.t0[:, :, order])
+        if not masked:
+            assert np.all(self.t0.sort(None) ==
+                          self.t0[:, :, order].ravel())
+            # Bit superfluous, but good to check.
+            assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
+            assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
 
 
 def test_regression():

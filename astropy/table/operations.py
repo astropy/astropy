@@ -733,17 +733,20 @@ def _join(left, right, keys=None, join_type='inner',
 
         # If the output table is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
-        if masked:
+        if masked and np.any(array_mask):
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
             array_mask.shape = (out[out_name].shape[0],) + (1,) * (len(out[out_name].shape) - 1)
 
+            # Now broadcast to the correct final shape
+            array_mask = np.broadcast_to(array_mask, out[out_name].shape)
+
             if array.masked:
                 array_mask = array_mask | array[name].mask[array_out]
             try:
-                out[out_name].mask[:] = array_mask
-            except ValueError:
+                out[out_name][array_mask] = out[out_name].info.mask_val
+            except Exception:  # Not clear how different classes will fail here
                 raise NotImplementedError(
                     "join requires masking column '{}' but column"
                     " type {} does not support masking"
@@ -850,8 +853,8 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
                 out[out_name][idx0:idx1] = array[name]
             else:
                 try:
-                    out[out_name].mask[idx0:idx1] = True
-                except ValueError:
+                    out[out_name][idx0:idx1] = out[out_name].info.mask_val
+                except Exception:
                     raise NotImplementedError(
                         "vstack requires masking column '{}' but column"
                         " type {} does not support masking"
@@ -947,8 +950,8 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 indices[arr_len:] = 0
                 out[out_name] = array[name][indices]
                 try:
-                    out[out_name].mask[arr_len:] = True
-                except ValueError:
+                    out[out_name][arr_len:] = out[out_name].info.mask_val
+                except Exception:
                     raise NotImplementedError(
                         "hstack requires masking column '{}' but column"
                         " type {} does not support masking"
