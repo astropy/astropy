@@ -22,6 +22,7 @@ from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
 from .verify import VerifyError, VerifyWarning
 
 from ...utils import lazyproperty, isiterable, indent
+from ...utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
 
@@ -1387,13 +1388,13 @@ class ColDefs(NotifierMixin):
                        dim=dim)
             self.columns.append(c)
 
-    def _init_from_table(self, table):
-        hdr = table._header
-        nfields = hdr['TFIELDS']
-
+    def _header_to_col_keywords(self, hdr, nfields, col_keywords=None):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
-        col_keywords = [{} for i in range(nfields)]
+
+        if col_keywords is None:
+            col_keywords = [{} for i in range(nfields)]
+
         for keyword, value in hdr.items():
             key = TDEF_RE.match(keyword)
             try:
@@ -1424,6 +1425,14 @@ class ColDefs(NotifierMixin):
             if 'dim' in valid_kwargs:
                 valid_kwargs['dim'] = kwargs['dim']
             col_keywords[idx] = valid_kwargs
+
+        return col_keywords
+
+    def _init_from_table(self, table):
+        hdr = table._header
+        nfields = hdr['TFIELDS']
+
+        col_keywords = self._header_to_col_keywords(hdr, nfields)
 
         # data reading will be delayed
         for col in range(nfields):
