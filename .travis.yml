@@ -101,9 +101,9 @@ matrix:
         # (with latest numpy). We also test the two latest matplotlib versions
         # for the image tests.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES="`echo $CONDA_ALL_DEPENDENCIES mkl=11.3.3`"
-               PIP_DEPENDENCIES='jplephem mock pytest-mpl'
+               PIP_DEPENDENCIES='jplephem mock'
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.10
                MATPLOTLIB_VERSION=1.5
@@ -116,9 +116,9 @@ matrix:
         # is compatible with pytest-astropy
         # TODO: remove the pinning once the issue is solved upstream.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
+          env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy pytest-mpl bintrees'
+               PIP_DEPENDENCIES='cpp-coveralls objgraph jplephem pytest-astropy bintrees'
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
