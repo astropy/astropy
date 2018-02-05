@@ -696,10 +696,11 @@ However, note that the output can be very sensitive to the version of Matplotlib
 as well as all its dependencies (e.g. freetype), so we recommend running the
 image tests inside a `Docker <https://www.docker.com/>`__ container which has a
 frozen set of package versions (Docker containers can be thought of as mini
-virtual machines). We have made a set of Docker container images that can be
-used for this. Once you have installed Docker, to run the Astropy tests with the
-image comparison inside a Docker container, make sure you are inside the Astropy
-repository (or the repository of the package you are testing) then do::
+virtual machines). We have made a `set of Docker container images
+<https://hub.docker.com/u/astropy/>`__ that can be used for this. Once you have
+installed Docker, to run the Astropy tests with the image comparison inside a
+Docker container, make sure you are inside the Astropy repository (or the
+repository of the package you are testing) then do::
 
     docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl153:1.0 /bin/bash
 
