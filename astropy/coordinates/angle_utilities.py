@@ -524,14 +524,15 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     interface to this functionality.
     """
 
-    # If the coordinates are negative, we need to take the absolute value of
-    # the (arc)minutes and (arc)seconds. We need to use np.abs because abs(-0)
-    # is -0.
-    values = (values[0], np.abs(values[1]), np.abs(values[2]))
+    # Check to see if values[0] is negative, using np.copysign to handle -0
+    sign = np.copysign(1.0, values[0])
+    # If the coordinates are negative, we need to take the absolute values.
+    # We use np.abs because abs(-0) is -0
+    # TODO: Is this true? (MHvK, 2018-02-01: not on my system)
+    values = [np.abs(value) for value in values]
 
     if pad:
-        # Check to see if values[0] is negative, using np.copysign to handle -0
-        if np.copysign(1.0, values[0]) == -1:
+        if sign == -1:
             pad = 3
         else:
             pad = 2
@@ -569,17 +570,16 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     else:
         rounding_thresh = 60.0 - (10.0 ** -precision)
 
-    values = list(values)
     if fields == 3 and values[2] >= rounding_thresh:
         values[2] = 0.0
         values[1] += 1.0
     elif fields < 3 and values[2] >= 30.0:
         values[1] += 1.0
 
-    if fields >= 2 and int(values[1]) >= 60.0:
+    if fields >= 2 and values[1] >= 60.0:
         values[1] = 0.0
         values[0] += 1.0
-    elif fields < 2 and int(values[1]) >= 30.0:
+    elif fields < 2 and values[1] >= 30.0:
         values[0] += 1.0
 
     literal = []
@@ -598,7 +598,8 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
             last_value = '0' + last_value
         literal.append('{last_value}{sep[2]}')
     literal = ''.join(literal)
-    return literal.format(values[0], int(abs(values[1])), abs(values[2]),
+    return literal.format(np.copysign(values[0], sign),
+                          int(values[1]), values[2],
                           sep=sep, pad=pad,
                           last_value=last_value)
 

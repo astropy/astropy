@@ -32,6 +32,11 @@ def test_to_string_precision():
     assert angle2.to_string(precision=1, unit=u.hour) == '-1h14m04.4s'
     assert angle2.to_string(precision=0, unit=u.hour) == '-1h14m04s'
 
+    # Regression test for #7141
+    angle3 = Angle(-0.5, unit=u.degree)
+    assert angle3.to_string(precision=0, fields=3) == '-0d30m00s'
+    assert angle3.to_string(precision=0, fields=2) == '-0d30m'
+    assert angle3.to_string(precision=0, fields=1) == '-1d'
 
 def test_to_string_decimal():
 
