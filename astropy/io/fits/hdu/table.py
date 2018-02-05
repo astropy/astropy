@@ -243,7 +243,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     data : array
         Data to be used.
     header : `Header` instance
-        Header to be used.
+        Header to be used. If the ``data`` is also specified, header keywords
+        specifically related to defining the table structure (such as the
+        "TXXXn" keywords like TTYPEn) will be overridden by the supplied column
+        definitions, but all other informational and data model-specific
+        keywords are kept.
     name : str
         Name to be populated in ``EXTNAME`` keyword.
     uint : bool, optional
