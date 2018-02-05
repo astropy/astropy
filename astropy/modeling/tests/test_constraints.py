@@ -508,9 +508,9 @@ def test_2d_model():
     p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
     z = p2(x, y)
     m = fitter(p2, x, y, z + 2 * n, weights=None)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1e-1)
+    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
     m = fitter(p2, x, y, z + 2 * n, weights=w)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1e-1)
+    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
     # Polynomial2D, col_fit_deriv=False, fixed constraint
     p2.c1_0.fixed = True
     m = fitter(p2, x, y, z + 2 * n, weights=w)
