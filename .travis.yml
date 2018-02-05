@@ -99,7 +99,7 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time. Since we test the latest Numpy as part of the builds with all
         # optional dependencies below, we can focus on older builds here.
-        # Numpy 1.11 is tested below in the image tests, 1.12 in the Initial stage test.
+        # Numpy 1.11 is tested below, 1.12 in the Initial stage test.
         # Run this test using native pytest
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
@@ -111,11 +111,10 @@ matrix:
             - $TEST_CMD
 
         # Now try with all optional dependencies.
-        # We also test the two latest matplotlib versions for the image tests.
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy -a "--mpl"'
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="jplephem pytest-mpl $ASDF_GIT"
+               PIP_DEPENDENCIES="jplephem $ASDF_GIT"
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.11
                MATPLOTLIB_VERSION=1.5
@@ -133,9 +132,9 @@ matrix:
         # packages are installed from pip.
         # TODO: remove the pinning once the issue is solved upstream.
         - os: linux
-          env: SETUP_CMD='test --coverage --remote-data=astropy -a "--mpl"'
+          env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem pytest-mpl bintrees $ASDF_GIT"
+               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees $ASDF_GIT"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
