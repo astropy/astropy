@@ -14,7 +14,7 @@ jobs:
           command: PYTHONHASHSEED=42 /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4
   image-tests-mpl153:
     docker:
-      - image: astrofrog/image-tests-py35-mpl153:1.0
+      - image: astropy/image-tests-py35-mpl153:1.0
     steps:
       - checkout
       - run:
@@ -22,7 +22,7 @@ jobs:
           command: python3 setup.py test -P visualization --remote-data=any -a "--mpl"
   image-tests-mpl202:
     docker:
-      - image: astrofrog/image-tests-py35-mpl202:1.0
+      - image: astropy/image-tests-py35-mpl202:1.0
     steps:
       - checkout
       - run:
@@ -30,7 +30,7 @@ jobs:
           command: python3 setup.py test -P visualization --remote-data=any  -a "--mpl"
   image-tests-mpl212:
     docker:
-      - image: astrofrog/image-tests-py35-mpl212:1.0
+      - image: astropy/image-tests-py35-mpl212:1.0
     steps:
       - checkout
       - run:

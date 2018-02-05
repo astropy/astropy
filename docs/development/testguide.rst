@@ -701,7 +701,7 @@ used for this. Once you have installed Docker, to run the Astropy tests with the
 image comparison inside a Docker container, make sure you are inside the Astropy
 repository (or the repository of the package you are testing) then do::
 
-    docker run -it -v ${PWD}:/repo astrofrog/image-tests-py35-mpl153:1.0 /bin/bash
+    docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl153:1.0 /bin/bash
 
 This will start up a bash prompt in the Docker container, and you should see
 something like::
@@ -720,12 +720,12 @@ You can then run the tests as above::
 Type ``exit`` to exit the container.
 
 You can find the names of the available Docker images on the `Docker Hub
-<https://hub.docker.com/r/astrofrog/>`_.
+<https://hub.docker.com/r/astropy/>`_.
 
 Writing image tests
 -------------------
 
-The `README.rst <https://github.com/astrofrog/pytest-mpl/blob/master/README.rst>`__
+The `README.rst <https://github.com/astropy/pytest-mpl/blob/master/README.rst>`__
 for the plugin contains information on writing tests with this plugin. The only
 key addition compared to those instructions is that you should set
 ``baseline_dir``::
@@ -745,7 +745,7 @@ Generating reference images
 Once you have a test for which you want to (re-)generate reference images,
 start up one of the Docker containers using e.g.::
 
-  docker run -it -v ${PWD}:/repo astrofrog/image-tests-py35-mpl153:1.0 /bin/bash
+  docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl153:1.0 /bin/bash
 
 then run the tests inside ``/repo`` with the ``--mpl-generate-path`` argument, e.g::
 
