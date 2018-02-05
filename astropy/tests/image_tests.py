@@ -7,7 +7,7 @@ MPL_VERSION = matplotlib.__version__
 
 ROOT = "http://{server}/testing/astropy/2018-02-01T23:31:45.013149/{mpl_version}/"
 
-IMAGE_REFERENCE_DIR = ROOT.format(server='astropy.github.io/astropy-data', mpl_version=MPL_VERSION[:3] + '.x')
+IMAGE_REFERENCE_DIR = ROOT.format(server='data.astropy.org', mpl_version=MPL_VERSION[:3] + '.x')
 
 
 def ignore_matplotlibrc(func):
