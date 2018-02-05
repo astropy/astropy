@@ -3142,3 +3142,114 @@ def test_regression_scalar_indexing():
     x1b = x[(1,)]
     # FITS_record does not define __eq__; so test elements.
     assert all(a == b for a, b in zip(x1a, x1b))
+
+
+
+def test_new_column_attributes_preserved(tmpdir):
+
+    # Regression test for https://github.com/astropy/astropy/issues/7145
+    # This makes sure that for now we don't clear away keywords that have
+    # newly been recognized (in Astropy 3.0) as special column attributes but
+    # instead just warn that we might do so in future. The new keywords are:
+    # TCTYP, TCUNI, TCRPX, TCRVL, TCDLT, TRPOS
+
+    col = []
+    col.append(fits.Column(name="TIME", format="1E", unit="s"))
+    col.append(fits.Column(name="RAWX", format="1I", unit="pixel"))
+    col.append(fits.Column(name="RAWY", format="1I"))
+    cd = fits.ColDefs(col)
+
+    hdr = fits.Header()
+
+    # Keywords that will get ignored in favor of these in the data
+    hdr['TUNIT1'] = 'pixel'
+    hdr['TUNIT2'] = 'm'
+    hdr['TUNIT3'] = 'm'
+
+    # Keywords that were added in Astropy 3.0 that should eventually be
+    # ignored and set on the data instead
+    hdr['TCTYP2'] = 'RA---TAN'
+    hdr['TCTYP3'] = 'ANGLE'
+    hdr['TCRVL2'] = -999.0
+    hdr['TCRVL3'] = -999.0
+    hdr['TCRPX2'] = 1.0
+    hdr['TCRPX3'] = 1.0
+    hdr['TALEN2'] = 16384
+    hdr['TALEN3'] = 1024
+    hdr['TCUNI2'] = 'angstrom'
+    hdr['TCUNI3'] = 'deg'
+
+    # Other non-relevant keywords
+    hdr['RA'] = 1.5
+    hdr['DEC'] = 3.0
+
+    with pytest.warns(AstropyDeprecationWarning) as warning_list:
+        hdu = fits.BinTableHDU.from_columns(cd, hdr)
+    assert str(warning_list[0].message).startswith("The following keywords are now recognized as special")
+
+    # First, check that special keywords such as TUNIT are ignored in the header
+    # We may want to change that behavior in future, but this is the way it's
+    # been for a while now.
+
+    assert hdu.columns[0].unit == 's'
+    assert hdu.columns[1].unit == 'pixel'
+    assert hdu.columns[2].unit is None
+
+    assert hdu.header['TUNIT1'] == 's'
+    assert hdu.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu.columns[0].coord_type is None
+    assert hdu.columns[1].coord_type is None
+    assert hdu.columns[2].coord_type is None
+
+    assert 'TCTYP1' not in hdu.header
+    assert hdu.header['TCTYP2'] == 'RA---TAN'
+    assert hdu.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu.header['RA'] == 1.5
+    assert hdu.header['DEC'] == 3.0
+
+    # Now we can write this HDU to a file and re-load. Re-loading *should*
+    # cause the special column attribtues to be picked up (it's just that when a
+    # header is manually specified, these values are ignored)
+
+    filename = tmpdir.join('test.fits').strpath
+
+    hdu.writeto(filename)
+
+    # Make sure we don't emit a warning in this case
+    with pytest.warns(None) as warning_list:
+        hdu2 = fits.open(filename)[1]
+    assert len(warning_list) == 0
+
+    # Check that column attributes are now correctly set
+
+    assert hdu2.columns[0].unit == 's'
+    assert hdu2.columns[1].unit == 'pixel'
+    assert hdu2.columns[2].unit is None
+
+    assert hdu2.header['TUNIT1'] == 's'
+    assert hdu2.header['TUNIT2'] == 'pixel'
+    assert 'TUNIT3' not in hdu2.header  # TUNIT3 was removed
+
+    # Now, check that the new special keywords are actually still there
+    # but weren't used to set the attributes on the data
+
+    assert hdu2.columns[0].coord_type is None
+    assert hdu2.columns[1].coord_type == 'RA---TAN'
+    assert hdu2.columns[2].coord_type == 'ANGLE'
+
+    assert 'TCTYP1' not in hdu2.header
+    assert hdu2.header['TCTYP2'] == 'RA---TAN'
+    assert hdu2.header['TCTYP3'] == 'ANGLE'
+
+    # Make sure that other keywords are still there
+
+    assert hdu2.header['RA'] == 1.5
+    assert hdu2.header['DEC'] == 3.0
