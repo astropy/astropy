@@ -528,6 +528,8 @@ astropy.io.misc
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed bug in identifying inherited registrations from multiple ancestors [#7156]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
