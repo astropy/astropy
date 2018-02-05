@@ -473,8 +473,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     repr_kwargs[nmrep] = kwargs.pop(nmkw)
 
             # special-case the Spherical->UnitSpherical if no `distance`
-            # TODO: possibly generalize this somehow?
+
             if repr_kwargs:
+                # TODO: determine how to get rid of the part before the "try" -
+                # currently removing it has a performance regression for
+                # unitspherical because of the try-related overhead.
+                # Also frames have no way to indicate what the "distance" is
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
 
@@ -490,14 +494,18 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     # attributes more human-readable.  Without this the names
                     # come from the representation instead of the frame's
                     # attribute names.
-                    msg = str(e)
-                    names = self.get_representation_component_names()
-                    for frame_name, repr_name in names.items():
-                        msg = msg.replace(repr_name, frame_name)
-                    msg = msg.replace('__init__()',
-                                      '{0}()'.format(self.__class__.__name__))
-                    e.args = (msg,)
-                    raise
+                    try:
+                        representation_data = representation_cls._unit_representation(copy=copy,
+                                                                 **repr_kwargs)
+                    except Exception as e2:
+                        msg = str(e)
+                        names = self.get_representation_component_names()
+                        for frame_name, repr_name in names.items():
+                            msg = msg.replace(repr_name, frame_name)
+                        msg = msg.replace('__init__()',
+                                          '{0}()'.format(self.__class__.__name__))
+                        e.args = (msg,)
+                        raise e
 
             # Now we handle the Differential data:
             # Get any differential data passed in to the frame initializer
