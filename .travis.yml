@@ -114,7 +114,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="jplephem pytest-mpl $ASDF_GIT"
+               PIP_DEPENDENCIES="jplephem $ASDF_GIT"
                LC_CTYPE=C.ascii LC_ALL=C
                NUMPY_VERSION=1.11
                MATPLOTLIB_VERSION=1.5
@@ -134,7 +134,7 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage --remote-data=astropy'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
-               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem pytest-mpl bintrees $ASDF_GIT"
+               PIP_DEPENDENCIES="cpp-coveralls objgraph jplephem bintrees $ASDF_GIT"
                LC_CTYPE=C.ascii LC_ALL=C
                CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
                MATPLOTLIB_VERSION=2.0 NUMPY_VERSION=1.13
