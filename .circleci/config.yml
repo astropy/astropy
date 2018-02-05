@@ -19,7 +19,10 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=any -a "--mpl"
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=any -a "--mpl"
+            coveralls || true
   image-tests-mpl202:
     docker:
       - image: astropy/image-tests-py35-mpl202:1.0
@@ -27,7 +30,10 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=any  -a "--mpl"
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=any -a "--mpl"
+            coveralls || true
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py35-mpl212:1.0
@@ -35,7 +41,10 @@ jobs:
       - checkout
       - run:
           name: Run tests
-          command: python3 setup.py test -P visualization --remote-data=any  -a "--mpl"
+          command: |
+            pip3 install coveralls
+            python3 setup.py test -P visualization --remote-data=any -a "--mpl"
+            coveralls || true
 
 
 workflows:
