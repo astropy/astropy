@@ -892,6 +892,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fixed the ``fitsdiff`` script for matching fits file with one in a directory path. [#7085]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
