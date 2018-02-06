@@ -480,7 +480,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 # Spherical Representation classes should define a
                 # "_unit_representation" to fall back to if no distance is
                 # provided.
-                if (hasattr(representation_cls, "_unit_representation")
+                if ((isinstance(representation_cls, r.SphericalRepresentation) or
+                     hasattr(representation_cls, "_unit_representation"))
                         and 'distance' not in repr_kwargs):
                     representation_cls = representation_cls._unit_representation
 
