@@ -369,7 +369,7 @@ def read(table, guess=None, **kwargs):
                 _read_trace.append({'kwargs': fast_kwargs,
                                     'Reader': fast_reader_rdr.__class__,
                                     'status': 'Success with fast reader (no guessing)'})
-            except (core.ParameterError, cparser.CParserError) as err:
+            except (core.ParameterError, cparser.CParserError, UnicodeEncodeError) as err:
                 # special testing value to avoid falling back on the slow reader
                 if fast_reader['enable'] == 'force':
                     raise core.InconsistentTableError(
