@@ -1474,9 +1474,9 @@ def test_unitphysics(unitphysics):
     asphys = obj.represent_as(PhysicsSphericalRepresentation)
     assert asphys.phi == obj.phi
     assert asphys.theta == obj.theta
-    assert_quantity_allclose(asphys.r, 1*u.dimensionless_unscaled)
+    assert_allclose_quantity(asphys.r, 1*u.dimensionless_unscaled)
 
     assph = obj.represent_as(SphericalRepresentation)
     assert assph.lon == obj.phi
     assert assph.lat == 80*u.deg
-    assert assph.distance == 1*u.dimensionless_unscaled
+    assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
