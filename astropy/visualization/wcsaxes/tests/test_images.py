@@ -60,6 +60,33 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=1.5)
+    @pytest.mark.parametrize('axisbelow', [True, False, 'line'])
+    def test_axisbelow(self, axisbelow):
+        # Test that tick marks, labels, and gridlines are drawn with the
+        # correct zorder controlled by the axisbelow property.
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect='equal')
+        ax.set_axisbelow(axisbelow)
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
+        ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
+        ax.grid()
+
+        # Add an image (default zorder=0).
+        ax.imshow(np.zeros((64, 64)))
+
+        # Add a patch (default zorder=1).
+        r = Rectangle((30., 50.), 60., 50., facecolor='green', edgecolor='red')
+        ax.add_patch(r)
+
+        # Add a line (default zorder=2).
+        ax.plot([32, 128], [32, 128], linewidth=10)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    filename='contour_overlay.png',
                                    tolerance=0, style={})
     def test_contour_overlay(self):
