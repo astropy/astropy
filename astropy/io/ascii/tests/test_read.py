@@ -1378,3 +1378,12 @@ def test_read_chunks_table_changes():
     # This also confirms that the dtypes are exactly the same, i.e.
     # the string itemsizes are the same.
     assert np.all(t1 == t2)
+
+
+def test_read_non_ascii():
+    """Test that pure-Python reader is used in case the file contains non-ASCII characters
+    in it.
+    """
+    table = Table.read(['col1, col2', '\u2119, \u01b4', '1, 2'], format='csv')
+    assert np.all(table['col1'] == ['\u2119', '1'])
+    assert np.all(table['col2'] == ['\u01b4', '2'])
