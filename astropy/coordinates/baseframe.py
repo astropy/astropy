@@ -473,12 +473,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     repr_kwargs[nmrep] = kwargs.pop(nmkw)
 
             # special-case the Spherical->UnitSpherical if no `distance`
-            # TODO: possibly generalize this somehow?
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
 
-                if (issubclass(representation_cls, r.SphericalRepresentation)
+                # Spherical Representation classes should define a
+                # "_unit_representation" to fall back to if no distance is
+                # provided.
+                if ((isinstance(representation_cls, r.SphericalRepresentation) or
+                     hasattr(representation_cls, "_unit_representation"))
                         and 'distance' not in repr_kwargs):
                     representation_cls = representation_cls._unit_representation
 
@@ -1277,8 +1280,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             return ''
 
         if self.representation:
-            if (issubclass(self.representation, r.SphericalRepresentation) and
-                    isinstance(self.data, r.UnitSphericalRepresentation)):
+            if (hasattr(self.representation, '_unit_representation') and
+                    isinstance(self.data, self.representation._unit_representation)):
                 rep_cls = self.data.__class__
             else:
                 rep_cls = self.representation
