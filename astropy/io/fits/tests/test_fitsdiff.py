@@ -2,9 +2,11 @@
 
 import numpy as np
 import pytest
+import os
 
 from . import FitsTestCase
-from ..hdu import PrimaryHDU
+from ..convenience import writeto
+from ..hdu import PrimaryHDU, hdulist
 from ..scripts import fitsdiff
 from ....tests.helper import catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
@@ -225,3 +227,39 @@ No differences found.\n""".format(version, tmp_a, tmp_b)
         out, err = capsys.readouterr()
         assert out == ""
         assert err == ""
+
+    def test_path(self, capsys):
+        os.mkdir(self.temp('sub/'))
+        tmp_b = self.temp('sub/ascii.fits')
+
+        tmp_g = self.temp('sub/group.fits')
+        tmp_h = self.data('group.fits')
+        with hdulist.fitsopen(tmp_h) as hdu_b:
+            hdu_b.writeto(tmp_g)
+
+        writeto(tmp_b, np.arange(100).reshape(10, 10))
+
+        # one modified file and a directory
+        assert fitsdiff.main(["-q", self.data_dir, tmp_b]) == 1
+        assert fitsdiff.main(["-q", tmp_b, self.data_dir]) == 1
+
+        # two directories
+        tmp_d = self.temp('sub/')
+        assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
+        assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
+        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
+
+        # no match
+        tmp_c = self.data('arange.fits')
+        fitsdiff.main([tmp_c, tmp_d])
+        out, err = capsys.readouterr()
+        assert "'arange.fits' has no match in" in err
+
+        # globbing
+        assert fitsdiff.main(["-q", self.data_dir+'/*.fits', self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir+'/g*.fits', tmp_d]) == 0
+
+        # one file and a directory
+        tmp_f = self.data('tb.fits')
+        assert fitsdiff.main(["-q", tmp_f, self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir, tmp_f]) == 0
