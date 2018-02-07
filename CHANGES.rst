@@ -149,6 +149,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``InheritDocstrings`` now also works on class properties. [#7166]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
