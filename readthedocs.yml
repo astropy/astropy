@@ -1,8 +1,8 @@
-conda:
-  file: .rtd-environment.yml
-
 python:
-  setup_py_install: true
+  version: 3.5
+  pip_install: true
 
-formats:
-  - none
+# Don't build any extra formats
+formats: []
+
+requirements_file: pip-requirements-doc
