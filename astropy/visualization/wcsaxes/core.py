@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
@@ -27,6 +28,24 @@ IDENTITY.wcs.ctype = ["X", "Y"]
 IDENTITY.wcs.crval = [0., 0.]
 IDENTITY.wcs.crpix = [1., 1.]
 IDENTITY.wcs.cdelt = [1., 1.]
+
+
+class _WCSAxesArtist(Artist):
+    """This is a dummy artist to enforce the correct z-order of axis ticks,
+    tick labels, and gridlines.
+
+    FIXME: This is a bit of a hack. ``Axes.draw`` sorts the artists by zorder
+    and then renders them in sequence. For normal Matplotlib axes, the ticks,
+    tick labels, and gridlines are included in this list of artists and hence
+    are automatically drawn in the correct order. However, ``WCSAxes`` disables
+    the native ticks, labels, and gridlines. Instead, ``WCSAxes.draw`` renders
+    ersatz ticks, labels, and gridlines by explicitly calling the functions
+    ``CoordinateHelper._draw_ticks``, ``CoordinateHelper._draw_grid``, etc.
+    This hack would not be necessary if ``WCSAxes`` drew ticks, tick labels,
+    and gridlines in the standary way."""
+
+    def draw(self, renderer, *args, **kwargs):
+        self.axes.draw_wcsaxes(renderer)
 
 
 class WCSAxes(Axes):
@@ -96,6 +115,8 @@ class WCSAxes(Axes):
         self._display_coords_index = 0
         fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
         self.patch = self.coords.frame.patch
+        self._wcsaxesartist = _WCSAxesArtist()
+        self.add_artist(self._wcsaxesartist)
         self._drawn = False
 
     def _display_world_coords(self, x, y):
@@ -309,22 +330,7 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
 
-    def draw(self, renderer, inframe=False):
-
-        # In Axes.draw, the following code can result in the xlim and ylim
-        # values changing, so we need to force call this here to make sure that
-        # the limits are correct before we update the patch.
-        locator = self.get_axes_locator()
-        if locator:
-            pos = locator(self, renderer)
-            self.apply_aspect(pos)
-        else:
-            self.apply_aspect()
-
-        # We need to make sure that that frame path is up to date
-        self.coords.frame._update_patch_path()
-
-        super().draw(renderer, inframe)
+    def draw_wcsaxes(self, renderer):
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
@@ -359,6 +365,31 @@ class WCSAxes(Axes):
                                        visible_ticks=visible_ticks)
 
         self.coords.frame.draw(renderer)
+
+    def draw(self, renderer, inframe=False):
+
+        # In Axes.draw, the following code can result in the xlim and ylim
+        # values changing, so we need to force call this here to make sure that
+        # the limits are correct before we update the patch.
+        locator = self.get_axes_locator()
+        if locator:
+            pos = locator(self, renderer)
+            self.apply_aspect(pos)
+        else:
+            self.apply_aspect()
+
+        if self._axisbelow is True:
+            self._wcsaxesartist.set_zorder(0.5)
+        elif self._axisbelow is False:
+            self._wcsaxesartist.set_zorder(2.5)
+        else:
+            # 'line': above patches, below lines
+            self._wcsaxesartist.set_zorder(1.5)
+
+        # We need to make sure that that frame path is up to date
+        self.coords.frame._update_patch_path()
+
+        super().draw(renderer, inframe=inframe)
 
         self._drawn = True
 

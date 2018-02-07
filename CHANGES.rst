@@ -603,6 +603,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Matplotlib axes have the ``axisbelow`` property to control the z-order of
+  ticks, tick labels, and grid lines. WCSAxes will now respect this property.
+  This is useful for drawing scale bars or inset boxes, which should have a
+  z-order that places them above all ticks and gridlines. [#7098]
+
 astropy.vo
 ^^^^^^^^^^
 
