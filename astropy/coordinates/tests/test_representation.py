@@ -1374,3 +1374,109 @@ def test_recommended_units_deprecation():
             attr_classes = SphericalRepresentation.attr_classes
             recommended_units = {}
     assert 'recommended_units' in str(w[0].message)
+
+
+@pytest.fixture
+def unitphysics():
+    """
+    This fixture is used
+    """
+    had_unit = False
+    if hasattr(PhysicsSphericalRepresentation, '_unit_representation'):
+        orig = PhysicsSphericalRepresentation._unit_representation
+        had_unit = True
+
+
+    class UnitPhysicsSphericalRepresentation(BaseRepresentation):
+        attr_classes = OrderedDict([('phi', Angle),
+                                    ('theta', Angle)])
+
+        def __init__(self, phi, theta, differentials=None, copy=True):
+            super().__init__(phi, theta, copy=copy, differentials=differentials)
+
+            # Wrap/validate phi/theta
+            if copy:
+                self._phi = self._phi.wrap_at(360 * u.deg)
+            else:
+                # necessary because the above version of `wrap_at` has to be a copy
+                self._phi.wrap_at(360 * u.deg, inplace=True)
+
+            if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
+                raise ValueError('Inclination angle(s) must be within '
+                                 '0 deg <= angle <= 180 deg, '
+                                 'got {0}'.format(theta.to(u.degree)))
+
+        @property
+        def phi(self):
+            return self._phi
+
+        @property
+        def theta(self):
+            return self._theta
+
+        def unit_vectors(self):
+            sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
+            sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
+            return OrderedDict(
+                (('phi', CartesianRepresentation(-sinphi, cosphi, 0., copy=False)),
+                 ('theta', CartesianRepresentation(costheta*cosphi,
+                                                   costheta*sinphi,
+                                                   -sintheta, copy=False))))
+
+        def scale_factors(self):
+            sintheta = np.sin(self.theta)
+            l = np.broadcast_to(1.*u.one, self.shape, subok=True)
+            return OrderedDict((('phi', sintheta),
+                                ('theta', l)))
+
+        def to_cartesian(self):
+            x = np.sin(self.theta) * np.cos(self.phi)
+            y = np.sin(self.theta) * np.sin(self.phi)
+            z = np.cos(self.theta)
+
+            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+        @classmethod
+        def from_cartesian(cls, cart):
+            """
+            Converts 3D rectangular cartesian coordinates to spherical polar
+            coordinates.
+            """
+            s = np.hypot(cart.x, cart.y)
+
+            phi = np.arctan2(cart.y, cart.x)
+            theta = np.arctan2(s, cart.z)
+
+            return cls(phi=phi, theta=theta, copy=False)
+
+        def norm(self):
+            return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
+                              copy=False)
+
+    PhysicsSphericalRepresentation._unit_representation = UnitPhysicsSphericalRepresentation
+    yield UnitPhysicsSphericalRepresentation
+
+    if had_unit:
+        PhysicsSphericalRepresentation._unit_representation = orig
+    else:
+        del PhysicsSphericalRepresentation._unit_representation
+
+    # remove from the module-level representations, if present
+    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.get_name(), None)
+
+
+def test_unitphysics(unitphysics):
+    obj = unitphysics(phi=0*u.deg, theta=10*u.deg)
+    objkw = unitphysics(phi=0*u.deg, theta=10*u.deg)
+    assert objkw.phi == obj.phi
+    assert objkw.theta == obj.theta
+
+    asphys = obj.represent_as(PhysicsSphericalRepresentation)
+    assert asphys.phi == obj.phi
+    assert asphys.theta == obj.theta
+    assert_allclose_quantity(asphys.r, 1*u.dimensionless_unscaled)
+
+    assph = obj.represent_as(SphericalRepresentation)
+    assert assph.lon == obj.phi
+    assert assph.lat == 80*u.deg
+    assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
