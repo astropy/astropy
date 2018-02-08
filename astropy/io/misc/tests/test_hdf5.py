@@ -571,23 +571,27 @@ def test_read_h5py_objects(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_write_to_Hdf5(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    t1 = Table()
-    t1['x']=['a', 'b', 'c']
-    t1['y']=[ 1, 2, 3 ]
-    t1['z']=[b'a', b'b', b'c']
-    t1.write(test_file, path='the_table', overwrite=True)
+    t = Table()
+    t['p'] = ['a', 'b', 'c']
+    t['q'] = [ 1, 2, 3 ]
+    t['r'] = [b'a', b'b', b'c']
+    t['s'] = ["\u2119", "\u01b4", "\u2602"]
+    t.write(test_file, path='the_table', overwrite=True)
+    t1 = Table.read(test_file, path='the_table')
     f = h5py.File(test_file)
     t2 = Table.read(f, path='the_table')
-    t = Table.read(test_file, path='the_table')
-    assert np.all(t1['x'] == ['a', 'b', 'c'])
-    assert np.all(t1['y'] == [ 1, 2 , 3 ])
-    assert np.all(t1['z'] == [b'a', b'b', b'c'])
-    assert np.all(t['x'] == ['a', 'b', 'c'])
-    assert np.all(t['y'] == [ 1 ,2 ,3])
-    assert np.all(t['z'] == [b'a', b'b', b'c'])
-    assert np.all(t2['x'] == ['a', 'b', 'c'])
-    assert np.all(t2['y'] == [ 1, 2 , 3 ])
-    assert np.all(t2['z'] == [b'a', b'b', b'c'])
+    assert np.all(t['p'] == ['a', 'b', 'c'])
+    assert np.all(t['q'] == [ 1, 2 , 3 ])
+    assert np.all(t['r'] == [b'a', b'b', b'c'])
+    assert np.all(t['s'] == ["\u2119", "\u01b4", "\u2602"])
+    assert np.all(t1['p'] == ['a', 'b', 'c'])
+    assert np.all(t1['q'] == [ 1, 2, 3])
+    assert np.all(t1['r'] == [b'a', b'b', b'c'])
+    assert np.all(t1['s'] == ["\u2119", "\u01b4", "\u2602"])
+    assert np.all(t2['p'] == ['a', 'b', 'c'])
+    assert np.all(t2['q'] == [ 1, 2, 3 ])
+    assert np.all(t2['r'] == [b'a', b'b', b'c'])
+    assert np.all(t2['s'] == ["\u2119", "\u01b4", "\u2602"])
 
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
