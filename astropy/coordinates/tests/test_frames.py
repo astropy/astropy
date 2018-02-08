@@ -15,6 +15,8 @@ from ...utils.exceptions import AstropyWarning
 from .. import representation as r
 from ..representation import REPRESENTATION_CLASSES
 
+from .test_representation import unitphysics  # this fixture is used below
+
 
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
@@ -1011,3 +1013,16 @@ def test_missing_component_error_names():
         ICRS(ra=150*u.deg, dec=-11*u.deg,
              pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr)
     assert "pm_ra_cosdec" in str(e)
+
+
+def test_non_spherical_representation_unit_creation(unitphysics):
+    from ..builtin_frames import ICRS
+
+    class PhysicsICRS(ICRS):
+        default_representation = r.PhysicsSphericalRepresentation
+
+    pic = PhysicsICRS(phi=1*u.deg, theta=25*u.deg, r=1*u.kpc)
+    assert isinstance(pic.data, r.PhysicsSphericalRepresentation)
+
+    picu = PhysicsICRS(phi=1*u.deg, theta=25*u.deg)
+    assert isinstance(picu.data, unitphysics)
