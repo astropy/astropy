@@ -25,7 +25,8 @@ where (Astropy Collaboration, 2013) is a citation to this paper:
 We encourage you to also include citations to the papers in the main text
 wherever appropriate.
 
-A BibTeX entries for LaTeX users are
+
+Recommended BibTeX entries for the above citations are:
 
 @ARTICLE{2018arXiv180102634T,
    author = {{The Astropy Collaboration} and {Price-Whelan}, A.~M. and {Sip{\H o}cz}, B.~M. and
