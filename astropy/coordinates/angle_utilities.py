@@ -77,7 +77,7 @@ class _AngleParser:
         for unit in simple_units:
             if unit != u.deg and unit != u.hourangle:
                 simple_unit_names.update(unit.names)
-        return list(simple_unit_names)
+        return sorted(simple_unit_names)
 
     @classmethod
     def _make_parser(cls):
