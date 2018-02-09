@@ -342,7 +342,7 @@ class TestFitsTime(FitsTestCase):
 
         assert isinstance(tm['local_time'], Time)
         assert tm['local_time'].format == 'mjd'
-        
+
         assert tm['local_time'].scale == 'local'
         assert (tm['local_time'].value == local_time).all()
 

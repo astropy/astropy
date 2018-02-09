@@ -127,7 +127,7 @@ def test_votable_quantity_write(tmpdir):
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
-def test_io_time_write_fits(tmpdir, table_types):
+def test_io_time_write_fits_standard(tmpdir, table_types):
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
@@ -190,6 +190,69 @@ def test_io_time_write_fits(tmpdir, table_types):
 
             assert not isinstance(tm[name], time.Time)
             assert (tm[name] == t[name].value).all()
+
+
+@pytest.mark.parametrize('table_types', (Table, QTable))
+def test_io_time_write_fits_local(tmpdir, table_types):
+    """
+    Test that table with Time mixin columns can be written by io.fits.
+    Validation of the output is done. Test that io.fits writes a table
+    containing Time mixin columns that can be partially round-tripped
+    (metadata scale, location).
+    """
+    t = table_types([[1,2], ['string', 'column']])
+    scale = 'local'
+    t['a'+scale] = time.Time([[1,2],[3,4]], format='jd', scale=scale,
+                              location=EarthLocation(-2446354,
+                              4237210, 4077985, unit='m'))
+    t['b'+scale] = time.Time(['1999-01-01T00:00:00.123456789',
+                              '2010-01-01T00:00:00'], format='isot', scale=scale)
+    t['c'] = [3., 4.]
+
+    filename = str(tmpdir.join('table-tmp'))
+
+    # Show that FITS format succeeds
+    t.write(filename, format='fits', overwrite=True)
+    tm = table_types.read(filename, format='fits', astropy_native=True)
+
+    for ab in ('a', 'b'):
+        name = ab + scale
+
+        # Assert that the time columns are read as Time
+        assert isinstance(tm[name], time.Time)
+
+        # Assert that the scales round-trip
+        assert tm[name].scale == t[name].scale
+
+        # Assert that the format is jd
+        assert tm[name].format == 'jd'
+
+        # Assert that the location round-trips
+        assert tm[name].location == t[name].location
+
+        # Finally assert that the column data round-trips
+        assert (tm[name] == t[name]).all()
+
+    for name in ('col0', 'col1', 'c'):
+        # Assert that the non-time columns are read as Column
+        assert isinstance(tm[name], Column)
+
+        # Assert that the non-time columns' data round-trips
+        assert (tm[name] == t[name]).all()
+
+    # Test for conversion of time data to its value, as defined by its format
+    for ab in ('a', 'b'):
+        name = ab + scale
+        t[name].info.serialize_method['fits'] = 'formatted_value'
+
+    t.write(filename, format='fits', overwrite=True)
+    tm = table_types.read(filename, format='fits')
+
+    for ab in ('a', 'b'):
+        name = ab + scale
+
+        assert not isinstance(tm[name], time.Time)
+        assert (tm[name] == t[name].value).all()
 
 
 def test_votable_mixin_write_fail(mixin_cols):

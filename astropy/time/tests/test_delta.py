@@ -26,6 +26,7 @@ class TestTimeDelta():
         self.t3 = Time('2010-01-03 01:02:03', scale='utc', precision=9,
                        in_subfmt='date_hms', out_subfmt='date_hm',
                        location=(-75.*u.degree, 30.*u.degree, 500*u.m))
+        self.t4 = Time('2010-01-01', scale='local')
         self.dt = TimeDelta(100.0, format='sec')
         self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
 
@@ -269,14 +270,14 @@ class TestTimeDeltaScales():
 
     @pytest.mark.parametrize(('scale1', 'scale2'),
                              list(itertools.product(STANDARD_TIME_SCALES, STANDARD_TIME_SCALES)))
-    def test_scales_for_time_minus_time(self, scale1, scale2):
+    def test_standard_scales_for_time_minus_time(self, scale1, scale2):
         """T(X) - T2(Y)  -- does T(X) - T2(Y).X and return dT(X)
         and T(X) +/- dT(Y)  -- does (in essence) (T(X).Y +/- dT(Y)).X
 
         I.e., time differences of two times should have the scale of the
         first time.  The one exception is UTC, which returns TAI.
 
-        There are no timescales for which this does not work.
+        There are no standard timescales for which this does not work.
         """
         t1 = self.t[scale1]
         t2 = self.t[scale2]
@@ -296,6 +297,40 @@ class TestTimeDeltaScales():
         assert t2_recover_t1_scale.scale == scale1
         t2_recover = getattr(t2_recover_t1_scale, scale2)
         assert allclose_jd(t2_recover.jd, t2.jd)
+
+    def test_local_scales_for_time_minus_time(self):
+        """T(X) - T2(Y)  -- does T(X) - T2(Y).X and return dT(X)
+        and T(X) +/- dT(Y)  -- does (in essence) (T(X).Y +/- dT(Y)).X
+
+        I.e., time differences of two times should have the scale of the
+        first time.
+
+        There are no local timescales for which this does not work.
+
+        Also tests that subtracting two time scales, one of which is
+        from different local time scale should raise TypeError.
+        """
+        scale1 = 'local'
+        scale2 = 'local'
+        t1 = self.t[scale1]
+        t2 = Time('2010-01-01', scale=scale2)
+        dt = t1 - t2
+        assert dt.scale == scale1
+
+        # now check with delta time; also check reversibility
+        t1_recover_t2_scale = t2 + dt
+        assert t1_recover_t2_scale.scale == scale2
+        t1_recover = getattr(t1_recover_t2_scale, scale1)
+        assert allclose_jd(t1_recover.jd, t1.jd)
+        t2_recover_t1_scale = t1 - dt
+        assert t2_recover_t1_scale.scale == scale1
+        t2_recover = getattr(t2_recover_t1_scale, scale2)
+        assert allclose_jd(t2_recover.jd, t2.jd)
+        for scale3 in STANDARD_TIME_SCALES:
+            t1 = self.t[scale1]
+            t2 = self.t[scale3]
+            with pytest.raises(TypeError):
+                dt = t1 - t2
 
     def test_scales_for_delta_minus_delta(self):
         """dT(X) +/- dT2(Y) -- Add/substract JDs for dT(X) and dT(Y).X
@@ -358,6 +393,12 @@ class TestTimeDeltaScales():
         for scale in 'utc', 'tai', 'tt', 'tcg', 'tcb', 'tdb':
             with pytest.raises(TypeError):
                 dt_ut1 - self.dt[scale]
+
+        # local time scale
+        dt_local = self.dt['local']
+        for scale in 'utc', 'tai', 'tt', 'tcg', 'tcb', 'tdb', 'ut1':
+            with pytest.raises(TypeError):
+                dt_local - self.dt[scale]
 
     @pytest.mark.parametrize(
         ('scale', 'op'), list(itertools.product(TIME_SCALES,
