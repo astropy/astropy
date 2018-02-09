@@ -32,9 +32,9 @@ In addition to these major changes, Astropy 3.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v2.0
-* xxx pull requests have been merged since v2.0
-* xxx distinct people have contributed code
+* 755 issues have been closed since v2.0
+* 398 pull requests have been merged since v2.0
+* 254 distinct people have contributed code
 
 .. _whatsnew-3.0-velocities-skycoord-vel:
 
