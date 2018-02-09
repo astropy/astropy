@@ -11,7 +11,7 @@
 
 # cds_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('SIGN', 'UINT', 'CLOSE_PAREN', 'OPEN_PAREN', 'UFLOAT', 'DIVISION', 'UNIT', 'PRODUCT', 'X'))
+_lextokens    = set(('CLOSE_PAREN', 'DIVISION', 'OPEN_PAREN', 'PRODUCT', 'SIGN', 'UFLOAT', 'UINT', 'UNIT', 'X'))
 _lexreflags   = 32
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

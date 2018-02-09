@@ -11,7 +11,7 @@
 
 # generic_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('OPEN_PAREN', 'FUNCNAME', 'STAR', 'UINT', 'CARET', 'SOLIDUS', 'DOUBLE_STAR', 'SIGN', 'PERIOD', 'UFLOAT', 'UNIT', 'CLOSE_PAREN'))
+_lextokens    = set(('CARET', 'CLOSE_PAREN', 'DOUBLE_STAR', 'FUNCNAME', 'OPEN_PAREN', 'PERIOD', 'SIGN', 'SOLIDUS', 'STAR', 'UFLOAT', 'UINT', 'UNIT'))
 _lexreflags   = 32
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

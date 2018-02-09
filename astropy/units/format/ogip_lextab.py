@@ -11,7 +11,7 @@
 
 # ogip_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = set(('WHITESPACE', 'SIGN', 'UINT', 'CLOSE_PAREN', 'LIT10', 'OPEN_PAREN', 'UFLOAT', 'STAR', 'UNKNOWN', 'DIVISION', 'UNIT', 'STARSTAR'))
+_lextokens    = set(('CLOSE_PAREN', 'DIVISION', 'LIT10', 'OPEN_PAREN', 'SIGN', 'STAR', 'STARSTAR', 'UFLOAT', 'UINT', 'UNIT', 'UNKNOWN', 'WHITESPACE'))
 _lexreflags   = 64
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
