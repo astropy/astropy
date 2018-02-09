@@ -154,9 +154,15 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
+        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                      'generic_lextab.py'))
+
         lexer = lex.lex(optimize=True, lextab='generic_lextab',
                         outputdir=os.path.dirname(__file__),
-                        reflags=re.UNICODE)
+                        reflags=int(re.UNICODE))
+
+        if not lexer_exists:
+            cls._add_tab_header('generic_lextab')
 
         return lexer
 
@@ -416,8 +422,14 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
+        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                       'generic_parsetab.py'))
+
         parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
                            outputdir=os.path.dirname(__file__))
+
+        if not parser_exists:
+            cls._add_tab_header('generic_parsetab')
 
         return parser
 

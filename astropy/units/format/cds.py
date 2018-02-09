@@ -74,6 +74,7 @@ class CDS(Base):
 
     @classmethod
     def _make_lexer(cls):
+
         from ...extern.ply import lex
 
         tokens = cls._tokens
@@ -120,9 +121,15 @@ class CDS(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
+        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                      'cds_lextab.py'))
+
         lexer = lex.lex(optimize=True, lextab='cds_lextab',
                         outputdir=os.path.dirname(__file__),
-                        reflags=re.UNICODE)
+                        reflags=int(re.UNICODE))
+
+        if not lexer_exists:
+            cls._add_tab_header('cds_lextab')
 
         return lexer
 
@@ -253,9 +260,15 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
+        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                       'cds_parsetab.py'))
+
         parser = yacc.yacc(debug=False, tabmodule='cds_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
+
+        if not parser_exists:
+            cls._add_tab_header('cds_parsetab')
 
         return parser
 
