@@ -36,6 +36,19 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v2.0
 * xxx distinct people have contributed code
 
+.. _whatsnew-3.0-python3:
+
+Astropy now only supports Python 3
+==================================
+
+Astropy v3.0 is the first release to support only Python 3.
+
+Python 2.7 users will be able to continue downloading and installing older
+releases of Astropy, and we will continue to release new v2.0.x versions (which
+fix bugs but don't add new features compared to v2.0) until the end of 2019 (see
+`the APE10 document <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_
+for more details).
+
 .. _whatsnew-3.0-velocities-skycoord-vel:
 
 Full support for velocities in ``astropy.coordinates``
@@ -233,19 +246,6 @@ ways to do this:
   tables since it never returns the final aggregate table.
 
 For details see :ref:`chunk_reading`.
-
-.. _whatsnew-3.0-python3:
-
-Astropy now only supports Python 3
-==================================
-
-Astropy v3.0 is the first release to support only Python 3.
-
-Python 2.7 users will be able to continue downloading and installing older
-releases of Astropy, and we will continue to release new v2.0.x versions (which
-fix bugs but don't add new features compared to v2.0) until the end of 2019 (see
-`the APE10 document <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_
-for more details).
 
 Full change log
 ===============
