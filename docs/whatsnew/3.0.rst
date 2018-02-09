@@ -94,8 +94,8 @@ For a more in-depth example and more explanation of this feature, see
 
 .. _whatsnew-3.0-constants-contextmanager:
 
-Context managers for versioned ``astropy.constants``
-====================================================
+Context managers for versioned constants
+========================================
 
 The context manager :func:`~astropy.constants.set_enabled_constants` is now
 available for temporarily switching to an older version of constants::
@@ -120,11 +120,11 @@ available for temporarily switching to an older version of constants::
 Support for quantities in scipy special functions
 =================================================
 
-``Quantity``'s support for all relevant numpy "universal functions" or ufuncs
-has been extended to many of the ``scipy.special`` functions (with more to be
+:class:`~astropy.units.Quantity`'s support for all relevant numpy "universal functions" or ufuncs
+has been extended to many of the `scipy.special` functions (with more to be
 added in future releases; PRs welcome!), so that these can now be used with
-any ``Quantity`` that has appropriate units.  For instance, using the error
-function to calculate confidence intervals::
+any :class:`~astropy.units.Quantity` that has appropriate units.  For instance, using the error
+function to calculate confidence intervals:
 
 .. doctest-requires:: scipy
 
@@ -192,11 +192,12 @@ FITS table performance enhancements
 
 The performance for reading and writing FITS tables has been significantly
 improved, in particular for cases where the tables contain one or more string
-columns and when done through the ``astropy.table.Table`` interface.  The
-``Table.read`` now supports a ``memmap=`` keyword argument to control whether
-or not to use memory mapping when reading the table, and ``fits.open`` supports
-a new keyword argument ``character_as_bytes`` to return character columns as
-Numpy byte arrays (Numpy type 'S'), which uses less memory.
+columns and when done through the :class:`~astropy.table.Table` interface.  The
+:meth:`Table.read() <astropy.table.Table.read>` method now supports a ``memmap=``
+keyword argument to control whether or not to use memory mapping when reading
+the table, and :func:`fits.open() <astropy.io.fits.open>` supports a new keyword
+argument ``character_as_bytes`` to return character columns as Numpy byte arrays
+(Numpy type 'S'), which uses less memory.
 
 .. _whatsnew-3.0-lomb-scargle-false-alarm:
 
@@ -235,11 +236,16 @@ For details see :ref:`chunk_reading`.
 
 .. _whatsnew-3.0-python3:
 
-Supporting only Python 3
-========================
+Python 3-only support
+=====================
 
-This version removed all Python 2.x compatibility code.
+Astropy v3.0 is the first release to support only Python 3.
 
+Python 2.7 users will be able to continue downloading and installing older
+releases of Astropy, and we will continue to release new v2.0.x versions (which
+fix bugs but don't add new features compared to v2.0) until the end of 2019 (see
+`here <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_ for more
+details).
 
 Full change log
 ===============
