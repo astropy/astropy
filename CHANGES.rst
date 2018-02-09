@@ -1,5 +1,319 @@
 3.0rc2 (2018-01-25)
 ===================
+3.1 (unreleased)
+================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+Distance calculations with ``FlatLambaCDM`` with no radiation (T_CMB0=0)
+are now 20x faster by using the hypergeometric function solution
+for this special case.  [#7087]
+
+Age calculations with ``FlatLambdaCDM`` with no radiation (Tcmb0=0)
+are now 1000x faster by using analytic solutions instead of integrating. [#7117]
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+- Allow array-valued ``Time`` object to be modified in place. [#6028]
+
+- Added support for missing values (masking) to the ``Time`` class. [#6028]
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In ``UnitBase.compose()``, if a sequence (list|tuple) is passed in to
+  ``units``, the default for ``include_prefix_units`` is set to
+  `True`, so that no units get ignored. [#6957]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``InheritDocstrings`` now also works on class properties. [#7166]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+Other Changes and Additions
+---------------------------
+
+- Nothing changed yet.
+
+
+
+3.0.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fix a unicode decode error when reading a table with non-ASCII characters.
+  The fast C reader cannot handle unicode so the code now uses the pure-Python
+  reader in this case. [#7103]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+3.0 (unreleased)
+=================
 
 New Features
 ------------
@@ -115,6 +429,15 @@ astropy.modeling
 
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
+
+- Support masked array values in ``LinearLSQFitter`` (instead of silently
+  ignorning the mask). [#6927]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -482,6 +805,8 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.10. [#7174]
 
 2.0.4 (unreleased)
+
+2.0.5 (unreleased)
 ==================
 
 Bug Fixes
@@ -496,21 +821,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed IndexError when ``preserve_nan=True`` in ``convolve_fft``. Added
-  testing with ``preserve_nan=True``. [#7000]
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
-  means that future revisions to the file with unicode observatory names can
-  be done without breaking the site registry parser.  [#7082]
-
-- Working around a bug in Numpy 1.14.0 that broke some coordinate
-  transformations. [#7105]
-
-- Fixed a bug where negative angles could be rounded wrongly when converting
-  to a string with seconds omitted. [#7148]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -524,10 +836,7 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- When datafile is missing, fits.tabledump uses input file name to build
-  output file name. Fixed how it gets input file name from HDUList. [#6976]
-
-- Fix in-place updates to scaled columns. [#6956]
+- Fixed the ``fitsdiff`` script for matching fits file with one in a directory path. [#7085]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -535,18 +844,11 @@ astropy.io.misc
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
-- Fixed bug in identifying inherited registrations from multiple ancestors [#7156]
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-
-- Support masked array values in ``LinearLSQFitter`` (instead of silently
-  ignorning the mask). [#6927]
-
-- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -572,6 +874,67 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Matplotlib axes have the ``axisbelow`` property to control the z-order of
+  ticks, tick labels, and grid lines. WCSAxes will now respect this property.
+  This is useful for drawing scale bars or inset boxes, which should have a
+  z-order that places them above all ticks and gridlines. [#7098]
+
+astropy.vo
+^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+2.0.4 (2018-02-06)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed IndexError when ``preserve_nan=True`` in ``convolve_fft``. Added
+  testing with ``preserve_nan=True``. [#7000]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- The ``sites.json`` file is now parsed explicitly with a UTF-8 encoding. This
+  means that future revisions to the file with unicode observatory names can
+  be done without breaking the site registry parser.  [#7082]
+
+- Working around a bug in Numpy 1.14.0 that broke some coordinate
+  transformations. [#7105]
+
+- Fixed a bug where negative angles could be rounded wrongly when converting
+  to a string with seconds omitted. [#7148]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- When datafile is missing, fits.tabledump uses input file name to build
+  output file name. Fixed how it gets input file name from HDUList. [#6976]
+
+- Fix in-place updates to scaled columns. [#6956]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in identifying inherited registrations from multiple ancestors [#7156]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
+
+astropy.utils
+^^^^^^^^^^^^^
+
 - ``download_file`` function will check for cache downloaded from mirror URL
   first before attempting actual download if primary URL is unavailable. [#6987]
 
@@ -581,15 +944,11 @@ astropy.visualization
 - Fixed test failures for ``astropy.visualization.wcsaxes`` which were due to
   local matplotlibrc files being taken into account. [#7132]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Other Changes and Additions
 ---------------------------
+
+- Fixed broken links in the documentation. [#6745]
 
 - Substantial performance improvement (potentially >1000x for some cases) when
   converting non-scalar ``coordinates.Angle`` objects to strings. [#7004]
@@ -741,8 +1100,6 @@ Other Changes and Additions
 - No longer require LaTeX to build the documentation locally and
   use mathjax instead. [#6701]
 
-- Fixed broken links in the documentation. [#6745]
-
 - Ensured that all tests use the Astropy data mirror if needed. [#6767]
 
 
@@ -793,10 +1150,6 @@ astropy.tests
 
 - Updated top-level config file to properly ignore top-level directories.
   [#6449]
-- Fixed issue with running test suite directly from ``pytest``. [#6437]
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
