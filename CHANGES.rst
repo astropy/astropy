@@ -267,10 +267,6 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Fix bug of dropping table column meta (format, description, meta) when writing a table
-  to FITS using Table.write().  Since #6912 this should be written if it would be lost.
-  [#7147]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -452,6 +448,9 @@ astropy.modeling
 
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
+
+- Support masked array values in ``LinearLSQFitter`` (instead of silently
+  ignorning the mask). [#6927]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -951,17 +950,11 @@ astropy.wcs
 ^^^^^^^^^^^
 
 
-2.0.4 (unreleased)
+2.0.4 (2018-02-06)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -982,15 +975,6 @@ astropy.coordinates
 - Fixed a bug where negative angles could be rounded wrongly when converting
   to a string with seconds omitted. [#7148]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -999,45 +983,15 @@ astropy.io.fits
 
 - Fix in-place updates to scaled columns. [#6956]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
 - Fixed bug in identifying inherited registrations from multiple ancestors [#7156]
 
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Support masked array values in ``LinearLSQFitter`` (instead of silently
-  ignorning the mask). [#6927]
-
 - Fixed a bug in ``LevMarLSQFitter`` when fitting 2D models with constraints. [#6705]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -1051,15 +1005,11 @@ astropy.visualization
 - Fixed test failures for ``astropy.visualization.wcsaxes`` which were due to
   local matplotlibrc files being taken into account. [#7132]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Other Changes and Additions
 ---------------------------
+
+- Fixed broken links in the documentation. [#6745]
 
 - Substantial performance improvement (potentially >1000x for some cases) when
   converting non-scalar ``coordinates.Angle`` objects to strings. [#7004]
@@ -1211,8 +1161,6 @@ Other Changes and Additions
 - No longer require LaTeX to build the documentation locally and
   use mathjax instead. [#6701]
 
-- Fixed broken links in the documentation. [#6745]
-
 - Ensured that all tests use the Astropy data mirror if needed. [#6767]
 
 
@@ -1263,10 +1211,6 @@ astropy.tests
 
 - Updated top-level config file to properly ignore top-level directories.
   [#6449]
-- Fixed issue with running test suite directly from ``pytest``. [#6437]
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
