@@ -436,6 +436,12 @@ astropy.time
   instances with ASCII strings stored with dtype ``S`` can be used.
   [#6823, #6903]
 
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed a bug that caused PLY files to not be generated correctly in Python 3.
+  [#7174]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -473,6 +479,7 @@ Other Changes and Additions
 - The guide to setting up Emacs for code development was simplified, and
   updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
+- The bundled version of PLY was updated to 3.10. [#7174]
 
 2.0.4 (unreleased)
 ==================

@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-_tabversion   = '3.8'
-_lextokens    = set(('UINT', 'PRODUCT', 'OPEN_PAREN', 'UNIT', 'SIGN', 'UFLOAT', 'DIVISION', 'CLOSE_PAREN', 'X'))
+# This file was automatically generated from ply. To re-generate this file,
+# remove it from this folder, then build astropy and run the tests in-place:
+#
+#   python setup.py build_ext --inplace
+#   pytest astropy/units
+#
+# You can then commit the changes to this file.
+
+# cds_lextab.py. This file automatically created by PLY (version 3.10). Don't edit!
+_tabversion   = '3.10'
+_lextokens    = set(('CLOSE_PAREN', 'DIVISION', 'OPEN_PAREN', 'PRODUCT', 'SIGN', 'UFLOAT', 'UINT', 'UNIT', 'X'))
 _lexreflags   = 32
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
