@@ -236,16 +236,16 @@ For details see :ref:`chunk_reading`.
 
 .. _whatsnew-3.0-python3:
 
-Python 3-only support
-=====================
+Astropy now only supports Python 3
+==================================
 
 Astropy v3.0 is the first release to support only Python 3.
 
 Python 2.7 users will be able to continue downloading and installing older
 releases of Astropy, and we will continue to release new v2.0.x versions (which
 fix bugs but don't add new features compared to v2.0) until the end of 2019 (see
-`here <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_ for more
-details).
+`the APE10 document <https://github.com/astropy/astropy-APEs/blob/master/APE10.rst>`_
+for more details).
 
 Full change log
 ===============
