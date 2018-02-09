@@ -1041,7 +1041,7 @@ class Time(ShapedLikeNDArray):
                              tm.in_subfmt, tm.out_subfmt,
                              from_jd=True)
         tm._format = new_format
-
+        tm.SCALES = self.SCALES
         return tm
 
     def __copy__(self):
