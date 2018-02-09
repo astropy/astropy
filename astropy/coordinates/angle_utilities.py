@@ -24,6 +24,11 @@ from ..utils import format_exception
 from .. import units as u
 
 
+TAB_HEADER = """# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+"""
+
 class _AngleParser:
     """
     Parses the various angle formats including:
@@ -123,9 +128,15 @@ class _AngleParser:
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
+        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                      'angle_lextab.py'))
+
         # Build the lexer
         lexer = lex.lex(optimize=True, lextab='angle_lextab',
                         outputdir=os.path.dirname(__file__))
+
+        if not lexer_exists:
+            cls._add_tab_header('angle_lextab')
 
         def p_angle(p):
             '''
@@ -249,11 +260,29 @@ class _AngleParser:
         def p_error(p):
             raise ValueError
 
+        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
+                                       'angle_parsetab.py'))
+
         parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
+        if not parser_exists:
+            cls._add_tab_header('angle_parsetab')
+
         return parser, lexer
+
+    @classmethod
+    def _add_tab_header(cls, name):
+
+        lextab_file = os.path.join(os.path.dirname(__file__), name + '.py')
+
+        with open(lextab_file, 'r') as f:
+            contents = f.read()
+
+        with open(lextab_file, 'w') as f:
+            f.write(TAB_HEADER)
+            f.write(contents)
 
     def parse(self, angle, unit, debug=False):
         try:

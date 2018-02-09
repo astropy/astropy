@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import os
+
 from ...utils.misc import InheritDocstrings
 
 
@@ -16,6 +19,12 @@ class _FormatterMeta(InheritDocstrings):
         mcls.registry[formatter_name] = cls
 
         return cls
+
+
+TAB_HEADER = """# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+"""
 
 
 class Base(metaclass=_FormatterMeta):
@@ -46,3 +55,15 @@ class Base(metaclass=_FormatterMeta):
 
         raise NotImplementedError(
             "Can not output in {0} format".format(cls.__name__))
+
+    @classmethod
+    def _add_tab_header(cls, name):
+
+        lextab_file = os.path.join(os.path.dirname(__file__), name + '.py')
+
+        with open(lextab_file, 'r') as f:
+            contents = f.read()
+
+        with open(lextab_file, 'w') as f:
+            f.write(TAB_HEADER)
+            f.write(contents)
