@@ -267,6 +267,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Make sure that lazily-loaded ``HDUList`` is automatically loaded when calling
+  ``hdulist.pop``. [#7186]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
