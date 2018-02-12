@@ -948,7 +948,7 @@ class BaseAffineTransform(CoordinateTransform):
         # Some initial checking to short-circuit doing any re-representation if
         # we're going to fail anyways:
         if isinstance(data, UnitSphericalRepresentation) and offset is not None:
-            raise TypeError("Position information stored on coordiante frame "
+            raise TypeError("Position information stored on coordinate frame "
                             "is insufficient to do a full-space position "
                             "transformation (representation class: {0})"
                             .format(data.__class__))
