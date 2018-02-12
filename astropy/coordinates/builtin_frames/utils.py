@@ -122,7 +122,13 @@ def norm(p):
     """
     Normalise a p-vector.
     """
-    return p/np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
+    if np.__version__ == '1.14.0':
+        # there is a bug in numpy v1.14.0 (fixed in 1.14.1) that causes
+        # this einsum call to break with the default of optimize=True
+        # see https://github.com/astropy/astropy/issues/7051
+        return p / np.sqrt(np.einsum('...i,...i', p, p, optimize=False))[..., np.newaxis]
+    else:
+        return p / np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
 
 
 def get_cip(jd1, jd2):
