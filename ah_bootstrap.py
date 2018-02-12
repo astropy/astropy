@@ -530,12 +530,25 @@ class _Bootstrapper(object):
 
         attrs = {'setup_requires': [req]}
 
+        # NOTE: we need to parse the config file (e.g. setup.cfg) to make sure
+        # it honours the options set in the [easy_install] section, and we need
+        # to explicitly fetch the requirement eggs as setup_requires does not
+        # get honored in recent versions of setuptools:
+        # https://github.com/pypa/setuptools/issues/1273
+
         try:
-            if DEBUG:
-                _Distribution(attrs=attrs)
-            else:
-                with _silence():
-                    _Distribution(attrs=attrs)
+
+            context = _verbose if DEBUG else _silence
+            with context():
+                dist = _Distribution(attrs=attrs)
+                try:
+                    dist.parse_config_files(ignore_option_errors=True)
+                    dist.fetch_build_eggs(req)
+                except TypeError:
+                    # On older versions of setuptools, ignore_option_errors
+                    # doesn't exist, and the above two lines are not needed
+                    # so we can just continue
+                    pass
 
             # If the setup_requires succeeded it will have added the new dist to
             # the main working_set
@@ -870,6 +883,10 @@ class _DummyFile(object):
     def flush(self):
         pass
 
+
+@contextlib.contextmanager
+def _verbose():
+    yield
 
 @contextlib.contextmanager
 def _silence():
