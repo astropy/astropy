@@ -1,7 +1,18 @@
 version: 2
 
 jobs:
-  32bit:
+  32bit_py2:
+    docker:
+      - image: quay.io/pypa/manylinux1_i686
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: /opt/python/cp27-cp27m/bin/pip install numpy scipy pytest-astropy pytest-xdist Cython jinja2
+      - run:
+          name: Run tests
+          command: PYTHONHASHSEED=42 /opt/python/cp27-cp27m/bin/python setup.py test --parallel=4
+  32bit_py3:
     docker:
       - image: quay.io/pypa/manylinux1_i686
     steps:
@@ -51,7 +62,8 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - 32bit
+      - 32bit_py2
+      - 32bit_py3
       - image-tests-mpl153
       - image-tests-mpl202
       - image-tests-mpl212
