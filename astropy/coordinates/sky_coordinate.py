@@ -1441,7 +1441,7 @@ class SkyCoord(ShapedLikeNDArray):
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
     def radial_velocity_correction(self, kind='barycentric', obstime=None,
-                                   location=None):
+                                   location=None, vmeasured=None):
         """
         Compute the correction required to convert a radial velocity at a given
         time and place on the Earth's Surface to a barycentric or heliocentric
@@ -1460,6 +1460,9 @@ class SkyCoord(ShapedLikeNDArray):
             `None`, the  ``location`` frame attribute on the passed-in
             ``obstime`` will be used, and if that is None, the ``location``
             frame attribute on the `SkyCoord` will be used.
+        vmeasured :  `~astropy.units.Quantity` velocity or None, optional
+            The as-measured velocity to be corrected.  This is necessary for
+            m/s or better precision.
 
         Raises
         ------
@@ -1476,24 +1479,27 @@ class SkyCoord(ShapedLikeNDArray):
             The  correction with a positive sign.  I.e., *add* this
             to an observed radial velocity to get the barycentric (or
             heliocentric) velocity. If m/s precision or better is needed,
-            see the notes below.
+            use the ``vmeasured`` keyword, in which case the returned correction
+            will be :math:`v_b + \frac{v_b v_m}{c}`.
 
         Notes
         -----
+        For a more narrative-oriented description of this method, see the
+        :ref:`astropy-coordinates-rv-corrs` section of the documentation.
+
         The barycentric correction is calculated to higher precision than the
         heliocentric correction and includes additional physics (e.g time dilation).
-        Use barycentric corrections if m/s precision is required.
+        Use barycentric corrections if m/s or better precision is required.
 
-        The algorithm here is sufficient to perform corrections at the mm/s level, but
-        care is needed in application. Strictly speaking, the barycentric correction is
-        multiplicative and should be applied as::
+        In the barycentric mode, the algorithm here is sufficient to perform
+        corrections at the mm/s level, but care is needed in application. While
+        velocity corrections are often treated as purely additive, strictly
+        speaking, the barycentric correction is multiplicative and must be
+        applied using the approach the ``vmeasured`` keyword adopts.
 
-           sc = SkyCoord(1*u.deg, 2*u.deg)
-           vcorr = sc.rv_correction(kind='barycentric', obstime=t, location=loc)
-           rv = rv + vcorr + rv * vcorr / consts.c
-
-        If your target is nearby and/or has finite proper motion you may need to account
-        for terms arising from this. See Wright & Eastmann (2014) for details.
+        If your target is nearby and/or has finite proper motion you may need to
+        account for terms arising from this. See Wright & Eastmann (2014) for
+        details.
 
         The default is for this method to use the builtin ephemeris for
         computing the sun and earth location.  Other ephemerides can be chosen
@@ -1504,6 +1510,7 @@ class SkyCoord(ShapedLikeNDArray):
             sc = SkyCoord(1*u.deg, 2*u.deg)
             with coord.solar_system_ephemeris.set('jpl'):
                 rv += sc.rv_correction(obstime=t, location=loc)
+
 
         """
         # has to be here to prevent circular imports
