@@ -1,5 +1,5 @@
-3.0 (unreleased)
-=================
+3.0 (2018-02-12)
+================
 
 New Features
 ------------
@@ -119,12 +119,6 @@ astropy.modeling
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -161,6 +155,7 @@ astropy.table
 - Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
 
 - Enable tab-completion for column names with IPython 5 and later. [#7071]
+
 - Allow getting and setting a table Row using multiple column names. [#7107]
 
 astropy.tests
@@ -246,6 +241,7 @@ astropy.wcs
 
 - ``wcslib`` was updated to v 5.18. [#7066]
 
+
 API Changes
 -----------
 
@@ -281,9 +277,9 @@ astropy.coordinates
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Allow ECSV files to be auto-identified by ``Table.read`` or ``Table.write`` based
-  on the ``.ecsv`` file name suffix. In this case it is not required to provide the
-  ``format`` keyword. [#6552]
+- Allow ECSV files to be auto-identified by ``Table.read`` or
+  ``Table.write`` based on the ``.ecsv`` file name suffix. In this case it
+  is not required to provide the ``format`` keyword. [#6552]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -340,15 +336,6 @@ astropy.table
   then a ``ValueError`` is now raised (previously in certain cases
   a ``TypeError`` was raised). [#7107]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -360,6 +347,7 @@ astropy.visualization
 
 - The Astropy matplotlib plot style has been deprecated. It will continue to
   work in future but is no longer documented. [#6991]
+
 
 Bug Fixes
 ---------
@@ -399,31 +387,9 @@ astropy.io.fits
 
 - Always use the 'D' format for floating point values in ascii tables. [#6938]
 
-- Fix bug of dropping table column meta (format, description, meta) when writing a table
-  to FITS using Table.write().  Since #6912 this should be written if it would be lost.
-  [#7147]
-
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- Fix bug of dropping table column meta (format, description, meta) when
+  writing a table to FITS using Table.write().  Since #6912 this should be
+  written if it would be lost.  [#7147]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -433,9 +399,6 @@ astropy.table
   if setting one of the right-hand side values failed this could result in
   a partial update of the referenced parent table before the exception is
   raised. [#7107]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -489,90 +452,6 @@ Other Changes and Additions
   updated to recommend ``flycheck`` and ``flake8`` for syntax checks. [#6692]
 
 - The bundled version of PLY was updated to 3.10. [#7174]
-
-2.0.4 (unreleased)
-
-2.0.5 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-- Fixed the ``fitsdiff`` script for matching fits file with one in a directory path. [#7085]
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-- Matplotlib axes have the ``axisbelow`` property to control the z-order of
-  ticks, tick labels, and grid lines. WCSAxes will now respect this property.
-  This is useful for drawing scale bars or inset boxes, which should have a
-  z-order that places them above all ticks and gridlines. [#7098]
-
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 
 2.0.4 (2018-02-06)
