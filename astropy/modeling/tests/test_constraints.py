@@ -482,38 +482,43 @@ def test_gaussian2d_positive_stddev():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_2d_model():
     # 2D model with LevMarLSQFitter
-    gauss2d = models.Gaussian2D(10.2, 4.3, 5,2, 1.2, 1.4)
+    gauss2d = models.Gaussian2D(10.2, 4.3, 5, 2, 1.2, 1.4)
     fitter = fitting.LevMarLSQFitter()
-    X = np.linspace(-1, 7)
-    Y = np.linspace(-1, 7)
+    X = np.linspace(-1, 7, 200)
+    Y = np.linspace(-1, 7, 200)
     x, y = np.meshgrid(X, Y)
     z = gauss2d(x, y)
     w = np.ones(x.size)
     w.shape = x.shape
-    rsn = RandomState(1234567890)
-    n = rsn.randn(x.size)
-    n = np.random.randn(x.size)
-    n.shape = x.shape
-    m = fitter(gauss2d, x, y, z+2*n, weights=w)
-    utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=1e-1)
-    m = fitter(gauss2d, x, y, z+2*n, weights=None)
-    utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=1e-1)
-    # 2D model with LevMarLSQFitter, fixed constraint
-    gauss2d.x_stddev.fixed = True
-    m = fitter(gauss2d, x, y, z+2*n, weights=w)
-    utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=1e-1)
-    m = fitter(gauss2d, x, y, z+2*n, weights=None)
-    utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=1e-1)
-    # Polynomial2D, col_fit_deriv=False
-    p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
-    z = p2(x, y)
-    m = fitter(p2, x, y, z + 2 * n, weights=None)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
-    m = fitter(p2, x, y, z + 2 * n, weights=w)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
-    # Polynomial2D, col_fit_deriv=False, fixed constraint
-    p2.c1_0.fixed = True
-    m = fitter(p2, x, y, z + 2 * n, weights=w)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
-    m = fitter(p2, x, y, z + 2 * n, weights=None)
-    utils.assert_allclose(m.parameters, p2.parameters, rtol=1.5e-1)
+    from ...utils import NumpyRNGContext
+
+    with NumpyRNGContext(1234567890):
+
+        n = np.random.randn(x.size)
+        n.shape = x.shape
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+
+        # 2D model with LevMarLSQFitter, fixed constraint
+        gauss2d.x_stddev.fixed = True
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+        utils.assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+
+        # Polynomial2D, col_fit_deriv=False
+        p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
+        z = p2(x, y)
+        m = fitter(p2, x, y, z + 2 * n, weights=None)
+        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        m = fitter(p2, x, y, z + 2 * n, weights=w)
+        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+
+        # Polynomial2D, col_fit_deriv=False, fixed constraint
+        p2.c1_0.fixed = True
+        m = fitter(p2, x, y, z + 2 * n, weights=w)
+        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+        m = fitter(p2, x, y, z + 2 * n, weights=None)
+        utils.assert_allclose(m.parameters, p2.parameters, rtol=0.05)
