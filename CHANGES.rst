@@ -889,6 +889,8 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Add a workaround for a bug in the einsum function in Numpy 1.14.0. [#7187]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
