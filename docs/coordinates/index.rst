@@ -186,7 +186,7 @@ Distance
 --------
 
 |skycoord| and the individual frame classes also support specifying a distance
-from the frame origin. The origin depends on the particular coordiante frame;
+from the frame origin. The origin depends on the particular coordinate frame;
 this can be, e.g., centered on the earth, centered on the solar system
 barycenter, etc. Two angles and a distance specify a unique point in 3D space,
 which also allows converting the coordinates to a Cartesian representation::
