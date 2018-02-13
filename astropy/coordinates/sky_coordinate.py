@@ -1480,7 +1480,8 @@ class SkyCoord(ShapedLikeNDArray):
             to an observed radial velocity to get the barycentric (or
             heliocentric) velocity. If m/s precision or better is needed,
             use the ``vmeasured`` keyword, in which case the returned correction
-            will be :math:`v_b + \frac{v_b v_m}{c}`.
+            will be :math:`v_b + \frac{v_b v_m}{c}`, the correction that should
+            be added to ``vmeasured`` to get the true velocity.
 
         Notes
         -----
@@ -1585,12 +1586,18 @@ class SkyCoord(ShapedLikeNDArray):
             # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
             # neglecting Shapiro delay and effects of the star's own motion
             zb = gamma_obs * (1 + targcart.dot(beta_obs)) / (1 + gr/speed_of_light) - 1
-            return zb * speed_of_light
+            vcorr = zb * speed_of_light
         else:
             # do a simpler correction ignoring time dilation and gravitational redshift
             # this is adequate since Heliocentric corrections shouldn't be used if
             # cm/s precision is required.
-            return targcart.dot(v_origin_to_earth + gcrs_v)
+            vcorr = targcart.dot(v_origin_to_earth + gcrs_v)
+
+        if vmeasured is not None:
+            mult_term = vcorr * vmeasured / cnst.c
+            vcorr += mult_term
+
+        return vcorr
 
     # Table interactions
     @classmethod
