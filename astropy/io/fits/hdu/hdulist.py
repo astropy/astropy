@@ -238,14 +238,14 @@ class HDUList(list, _Verify):
 
     def __len__(self):
         if not self._in_read_next_hdu:
-            self._read_all_hdus()
+            self.readall()
 
         return super().__len__()
 
     def __repr__(self):
         # In order to correctly repr an HDUList we need to load all the
         # HDUs as well
-        self._read_all_hdus()
+        self.readall()
 
         return super().__repr__()
 
@@ -510,13 +510,9 @@ class HDUList(list, _Verify):
 
         return output
 
-    def _read_all_hdus(self):
-        while self._read_next_hdu():
-            pass
-
     def pop(self, index=-1):
         # Make sure that HDUs are loaded before attempting to pop
-        self._read_all_hdus()
+        self.readall()
         return super(HDUList, self).pop(index)
 
     def insert(self, index, hdu):
@@ -718,10 +714,8 @@ class HDUList(list, _Verify):
         """
         Read data of all HDUs into memory.
         """
-
-        for hdu in self:
-            if hdu.data is not None:
-                continue
+        while self._read_next_hdu():
+            pass
 
     @ignore_sigint
     def flush(self, output_verify='fix', verbose=False):
