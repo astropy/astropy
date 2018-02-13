@@ -1445,15 +1445,23 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
-        # Check that the units are correct, if applicable
+        params_units = [p.unit is not None for p in params]
+        has_param_units = any(params_units)
 
+        if has_param_units and not all(params_units):
+            raise ValueError("If any Parameters have units, then all Parameters should have units.")
+
+        if has_param_units and any((not isinstance(i, Quantity) for i in inputs)):
+            raise ValueError("Can only call a model without Quantities if none of it's parameters are Quantities")
+
+        # Check that the units are correct, if applicable
         if self.input_units is not None:
 
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
             input_units_equivalencies = _combine_equivalency_dict(self.inputs,
-                                                                 equivalencies,
-                                                                 self.input_units_equivalencies)
+                                                                  equivalencies,
+                                                                  self.input_units_equivalencies)
 
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
@@ -3103,8 +3111,18 @@ def render_model(model, arr=None, coords=None):
                 arr = add_array(arr, model(*sub_coords), pos)
             except ValueError:
                 raise ValueError('The `bounding_box` is larger than the input'
-                                ' arr in one or more dimensions. Set '
-                                '`model.bounding_box = None`.')
+                                 ' arr in one or more dimensions. Set '
+                                 '`model.bounding_box = None`.')
+    else:
+
+        if coords is None:
+            im_shape = arr.shape
+            limits = [slice(i) for i in im_shape]
+            coords = np.mgrid[limits]
+
+        arr += model(*coords[::-1])
+
+    return arr
 
     @property
     def input_units_strict(self):
@@ -3124,16 +3142,6 @@ def render_model(model, arr=None, coords=None):
         Only has an effect if input_units is defined.
         """
         return self._input_units_allow_dimensionless
-    else:
-
-        if coords is None:
-            im_shape = arr.shape
-            limits = [slice(i) for i in im_shape]
-            coords = np.mgrid[limits]
-
-        arr += model(*coords[::-1])
-
-    return arr
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):

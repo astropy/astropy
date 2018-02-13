@@ -461,9 +461,9 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -521,9 +521,9 @@ class Scale(Fittable1DModel):
     linear = True
     fittable = True
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
