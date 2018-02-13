@@ -310,23 +310,18 @@ astropy.wcs
 ^^^^^^^^^^^
 
 
-3.0 (unreleased)
-=================
+
+3.0 (2018-02-12)
+================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
 
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
 - New context manager ``set_enabled_constants`` to temporarily use an older
   version. [#7008]
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -366,15 +361,6 @@ astropy.coordinates
 
 - ``EarthLocation`` now has a ``get_gcrs`` convenience method to get the
   location in GCRS coordinates.  [#6861, #6935]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -428,12 +414,6 @@ astropy.io.misc
 
 - Add ASDF tag and schema for ICRSCoord. [#6904]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -451,12 +431,6 @@ astropy.modeling
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -494,6 +468,7 @@ astropy.table
 - Allow updating of table by indices through the property ``astropy.table.Table.loc``. [#6831]
 
 - Enable tab-completion for column names with IPython 5 and later. [#7071]
+
 - Allow getting and setting a table Row using multiple column names. [#7107]
 
 astropy.tests
@@ -508,9 +483,6 @@ astropy.tests
 
 - The tests_require setting in setup.py now works properly when running
   'python setup.py test'. [#6892]
-
-astropy.time
-^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -583,14 +555,9 @@ astropy.wcs
 
 - ``wcslib`` was updated to v 5.18. [#7066]
 
+
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -621,12 +588,6 @@ astropy.coordinates
   instance. This speeds up those methods by an order of magnitude, but means
   that any customization done in ``__init__`` is by-passed. [#6941]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -652,9 +613,6 @@ astropy.io.misc
 - Deprecated the ``usecPickle`` kwarg of ``fnunpickle`` and ``fnpickle`` as
   it was needed only for Python2 usage. [#6655]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
@@ -668,15 +626,6 @@ astropy.modeling
   Use ``Const1D - Gaussian1D`` instead. [#6542]
 
 - Removed the registry from modeling. [#6706]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -701,15 +650,6 @@ astropy.table
   then a ``ValueError`` is now raised (previously in certain cases
   a ``TypeError`` was raised). [#7107]
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -722,20 +662,9 @@ astropy.visualization
 - The Astropy matplotlib plot style has been deprecated. It will continue to
   work in future but is no longer documented. [#6991]
 
-astropy.wcs
-^^^^^^^^^^^
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -748,12 +677,6 @@ astropy.coordinates
   transform graph if they have frame attribute names that conflict with any
   component names. [#6871]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -763,7 +686,6 @@ astropy.io.ascii
 - Strip leading/trailing white-space from latex lines to avoid issues when
   matching ``\begin{tabular}`` statements.  This is done by introducing a new
   ``LatexInputter`` class to override the ``BaseInputter``. [#6311]
-
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -779,27 +701,6 @@ astropy.io.fits
 
 - Always use the 'D' format for floating point values in ascii tables. [#6938]
 
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -808,9 +709,6 @@ astropy.table
   if setting one of the right-hand side values failed this could result in
   a partial update of the referenced parent table before the exception is
   raised. [#7107]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -842,11 +740,6 @@ astropy.utils
 - Make ``HomogeneousList`` work with iterators and generators when creating the
   instance, extending it, or using when setting a slice. [#6773]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
