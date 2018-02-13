@@ -21,3 +21,4 @@ from .histogram import *
 from .info_theory import *
 from .lombscargle import *
 from .spatial import *
+from .transit_periodogram import *
