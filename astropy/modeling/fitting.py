@@ -421,16 +421,23 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             sum_of_implicit_terms = model_copy.sum_of_implicit_terms(x, y)
 
             if len(model_copy) > 1:
+
+                # Just to be explicit (rather than baking in False == 0):
+                model_axis = model_copy.model_set_axis or 0
+
                 if z.ndim > 2:
-                    # Basically this code here is making the assumption that if
-                    # z has 3 dimensions it represents multiple models where
-                    # the value of z is one plane per model.  It's then
-                    # flattening each plane and transposing so that the model
-                    # axis is *last*.
-                    model_axis = model_copy.model_set_axis or 0
-                    rhs = z.reshape((z.shape[model_axis], -1)).T
+                    # For higher-dimensional z, flatten all the axes except the
+                    # dimension along which models are stacked and transpose so
+                    # the model axis is *last* (I think this resolves Erik's
+                    # pending generalization from 80a6f25a):
+                    rhs = np.rollaxis(z, model_axis, z.ndim)
+                    rhs = rhs.reshape(-1, rhs.shape[-1])
                 else:
-                    rhs = z.T
+                    # This "else" seems to handle the corner case where the
+                    # user has already flattened x/y before attempting a 2D fit
+                    # but z has a second axis for the model set. NB. This is
+                    # ~5-10x faster than using rollaxis.
+                    rhs = z.T if model_axis == 0 else z
             else:
                 rhs = z.flatten()
 
