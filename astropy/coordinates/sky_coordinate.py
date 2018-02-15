@@ -1685,9 +1685,16 @@ class SkyCoord(ShapedLikeNDArray):
             Instance of the SkyCoord class.
         """
 
+        from .jparser import jparser
         from .name_resolve import get_icrs_coordinates
 
-        icrs_coord = get_icrs_coordinates(name)
+        # first try extract coordinates from name. do this first since it
+        # may be much faster than sesame query
+        if jparser.match(name):
+            icrs_coord = jparser.to_skycoord(name, frame)
+        else:
+            icrs_coord = get_icrs_coordinates(name)
+
         icrs_sky_coord = cls(icrs_coord)
         if frame in ('icrs', icrs_coord.__class__):
             return icrs_sky_coord
