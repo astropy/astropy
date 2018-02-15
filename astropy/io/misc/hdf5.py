@@ -58,7 +58,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
         return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
 
 
-def read_table_hdf5(input, path=None, **kwargs):
+def read_table_hdf5(input, path=None, character_as_bytes=True):
     """
     Read a Table object from an HDF5 file
 
@@ -75,6 +75,9 @@ def read_table_hdf5(input, path=None, **kwargs):
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
+    character_as_bytes: boolean
+        If `True` then Table columns are left as bytes.
+        If `False` then Table columns are converted to unicode.
     """
 
     try:
@@ -136,7 +139,7 @@ def read_table_hdf5(input, path=None, **kwargs):
         f = h5py.File(input, 'r')
 
         try:
-            return read_table_hdf5(f, path=path, **kwargs)
+            return read_table_hdf5(f, path=path, character_as_bytes=character_as_bytes)
         finally:
             f.close()
 
@@ -178,8 +181,6 @@ def read_table_hdf5(input, path=None, **kwargs):
     else:
         # Read the meta-data from the file
         table.meta.update(input.attrs)
-
-    character_as_bytes = kwargs.get("character_as_bytes", True)
     table = convert_dtype(table, character_as_bytes)
     return table
 
@@ -218,33 +219,40 @@ def _encode_mixins(tbl):
 
 def convert_dtype(table, character_as_bytes, copy=False):
     """
+    Converts bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') and
+    unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
+
     Parameters:
     -----------
     table: `~astropy.table.Table`
-         Data table in which changes are to be made.
+        Data table in which changes are to be made.
     character_as_bytes: boolean
-         True if columns are to be converted to bytestrings from unicode.
-         False if columns are to be converted to unicode from bytestrings.
+        `True` if columns are to be converted to bytestrings from unicode.
+        `False` if columns are to be converted to unicode from bytestrings.
     copy: boolean
-        True if changes are to be made in a new table which is copied from original table.
+        `True` if changes are to be made in a new table which is copied from original table.
+
+    Returns:
+    --------
+    table: `~astropy.table.Table`
+        Data table with desired changes.
     """
     if character_as_bytes:
-        colnames = [name for name in table.colnames if table.columns[name].info.dtype.kind == 'U']
+        colnames = [name for name in table.colnames if table[name].info.dtype.kind == 'U']
         if colnames and copy:
-            temp = table.copy(copy_data=False)
-            table = temp
+            table = table.copy(copy_data=False)
         try:
             table.convert_unicode_to_bytestring()
         except (UnicodeEncodeError, AttributeError):
             for column_name in colnames:
-                table.replace_column(column_name, np.char.encode(table.columns[column_name], "utf-8"))
-    elif character_as_bytes is False:
+                table.replace_column(column_name, np.char.encode(table[column_name], "utf-8"))
+    else:
         try:
             table.convert_bytestring_to_unicode()
         except (UnicodeDecodeError, AttributeError):
-            colnames = [name for name in table.colnames if table.columns[name].info.dtype.kind == 'S']
+            colnames = [name for name in table.colnames if table[name].info.dtype.kind == 'S']
             for column_name in colnames:
-                table.replace_column(column_name, np.char.decode(table.columns[column_name], "utf-8"))
+                table.replace_column(column_name, np.char.decode(table[column_name], "utf-8"))
     return table
 
 
@@ -279,6 +287,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
     """
+
     from ...table import meta
     try:
         import h5py
@@ -315,6 +324,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
+
         # Recursively call the write function
         try:
             return write_table_hdf5(table, f, path=path,
@@ -337,9 +347,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
             del output_group[name]
         else:
             raise OSError("Table {0} already exists".format(path))
-    #Table with native py3 strings can't be written in hdf5 so
-    #to write such a table a copy of table is made containg columns as
-    #bytestrings.Now this copy of the table can be written in hdf5.
+
+    # Table with numpy unicode strings can't be written in hdf5 so
+    # to write such a table a copy of table is made containing columns as
+    # bytestrings.Now this copy of the table can be written in hdf5.
     table = convert_dtype(table, character_as_bytes=True, copy=True)
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
