@@ -235,13 +235,13 @@ def convert_dtype(table, character_as_bytes, copy=False):
             table = temp
         try:
             table.convert_unicode_to_bytestring()
-        except UnicodeEncodeError:
+        except (UnicodeEncodeError, AttributeError):
             for column_name in colnames:
                 table.replace_column(column_name, np.char.encode(table.columns[column_name], "utf-8"))
     elif character_as_bytes is False:
         try:
             table.convert_bytestring_to_unicode()
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, AttributeError):
             colnames = [name for name in table.colnames if table.columns[name].info.dtype.kind == 'S']
             for column_name in colnames:
                 table.replace_column(column_name, np.char.decode(table.columns[column_name], "utf-8"))
@@ -337,10 +337,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
             del output_group[name]
         else:
             raise OSError("Table {0} already exists".format(path))
-    #Table with native py3 strings can't be wriiten in hdf5 so
+    #Table with native py3 strings can't be written in hdf5 so
     #to write such a table a copy of table is made containg columns as
     #bytestrings.Now this copy of the table can be written in hdf5.
-    table = convert_dtype(table,character_as_bytes=True,copy=True)
+    table = convert_dtype(table, character_as_bytes=True, copy=True)
     # Encode any mixin columns as plain columns + appropriate metadata
     table = _encode_mixins(table)
     # Warn if information will be lost when serialize_meta=False.  This is
