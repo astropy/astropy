@@ -96,6 +96,11 @@ astropy.io.misc
 
 - Added support for saving models with units to the asdf format. [#7237]
 
+- Added a new ``character_as_bytes`` keyword to the HDF5 Table reading
+  function to control whether byte string columns in the HDF5 file
+  are left as bytes or converted to unicode.  The default is to read
+  as bytes (``character_as_bytes=True``). [#7024]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -589,6 +594,10 @@ astropy.io.misc
   enabled the data mask will now be written as an additional column and the
   masked columns will round-trip correctly. [#7481]
 
+- Fixed a bug where writing to HDF5 failed for for tables with columns of
+  unicode strings.  Now those columns are first encoded to UTF-8 and
+  written as byte strings. [#7024]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
@@ -711,11 +720,6 @@ astropy.io.fits
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
-
-- Fix Tables with columns of strings can't be written to Hdf5 file with Python3
-  If the table columns have data in form of string then a new table is made
-  from the original table with columns of strings replaced by columns of bytes.
-  The new table can now be written in Hdf5 file.[#7024]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
