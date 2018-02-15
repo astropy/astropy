@@ -8,7 +8,7 @@ name: astropy
 
 dependencies:
   - python>=3
-  - sphinx<1.7
+  - sphinx
   - numpy
   - cython
   - matplotlib
