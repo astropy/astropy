@@ -24,5 +24,5 @@ dependencies:
   - mpmath
   - pytest
   - pip:
-    - sphinx-gallery>=0.1.12
+    - https://github.com/astrofrog/sphinx-gallery/archive/fix-sphinx-17.zip
     - jplephem
