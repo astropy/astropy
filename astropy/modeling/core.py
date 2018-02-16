@@ -655,16 +655,9 @@ class Model(metaclass=_ModelMeta):
     # model hasn't completed initialization yet
     _n_models = 1
 
-    # Enforce strict units on inputs to evaluate. If this is set to True, input
-    # values to evaluate have to be in the exact right units specified by
-    # input_units. In this case, if the input quantities are convertible to
-    # input_units, they are converted.
-    input_units_strict = False
+    _input_units_strict = False
 
-    # Allow dimensionless input (and corresponding output). If this is True,
-    # input values to evaluate will gain the units specified in input_units.
-    # Only has an effect if input_units is defined.
-    input_units_allow_dimensionless = False
+    _input_units_allow_dimensionless = False
 
     # Default equivalencies to apply to input values. If set, this should be a
     # dictionary where each key is a string that corresponds to one of the model
@@ -1361,6 +1354,25 @@ class Model(metaclass=_ModelMeta):
         return out
 
     @property
+    def input_units_strict(self):
+        """
+        Enforce strict units on inputs to evaluate. If this is set to True, input
+        values to evaluate have to be in the exact right units specified by
+        input_units. In this case, if the input quantities are convertible to
+        input_units, they are converted.
+        """
+        return self._input_units_strict
+
+    @property
+    def input_units_allow_dimensionless(self):
+        """
+        If `True` allow input to the model to be dimensionless as well as in
+        the units of ``input_units``. This only has an effect if
+        ``input_units`` is set.
+        """
+        return self._input_units_allow_dimensionless
+
+    @property
     def input_units(self):
         """
         This property is used to indicate what units or sets of units the
@@ -1384,10 +1396,6 @@ class Model(metaclass=_ModelMeta):
             # None means any unit is accepted
             return None
 
-    @input_units.setter
-    def input_units(self, input_units):
-        self._input_units = input_units
-
     @property
     def return_units(self):
         """
@@ -1407,10 +1415,6 @@ class Model(metaclass=_ModelMeta):
         else:
             # None means any unit is accepted
             return None
-
-    @return_units.setter
-    def return_units(self, return_units):
-        self._return_units = return_units
 
     def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
                        **kwargs):
@@ -1441,15 +1445,24 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
-        # Check that the units are correct, if applicable
+        # TODO: This might need putting back
+        # params_units = [isinstance(p, Quantity) for p in params]
+        # has_param_units = any(params_units)
 
+        # if has_param_units and not all(params_units):
+        #     raise ValueError("If any Parameters have units, then all Parameters should have units.")
+
+        # if has_param_units and any((not isinstance(i, Quantity) for i in inputs)):
+        #     raise ValueError("Can only call a model without Quantities if none of it's parameters are Quantities")
+
+        # Check that the units are correct, if applicable
         if self.input_units is not None:
 
             # We combine any instance-level input equivalencies with user
             # specified ones at call-time.
             input_units_equivalencies = _combine_equivalency_dict(self.inputs,
-                                                                 equivalencies,
-                                                                 self.input_units_equivalencies)
+                                                                  equivalencies,
+                                                                  self.input_units_equivalencies)
 
             # We now iterate over the different inputs and make sure that their
             # units are consistent with those specified in input_units.
@@ -3099,8 +3112,8 @@ def render_model(model, arr=None, coords=None):
                 arr = add_array(arr, model(*sub_coords), pos)
             except ValueError:
                 raise ValueError('The `bounding_box` is larger than the input'
-                                ' arr in one or more dimensions. Set '
-                                '`model.bounding_box = None`.')
+                                 ' arr in one or more dimensions. Set '
+                                 '`model.bounding_box = None`.')
     else:
 
         if coords is None:

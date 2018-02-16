@@ -461,10 +461,6 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    input_units_strict = True
-
-    input_units_allow_dimensionless = True
-
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -482,14 +478,7 @@ class Shift(Fittable1DModel):
     @staticmethod
     def evaluate(x, offset):
         """One dimensional Shift model function"""
-        if isinstance(offset, u.Quantity):
-            return_unit = offset.unit
-            offset = offset.value
-        if isinstance(x, u.Quantity):
-            x = x.value
-            return (x + offset) * return_unit
-        else:
-            return x + offset
+        return x + offset
 
     @staticmethod
     def sum_of_implicit_terms(x):
@@ -521,17 +510,6 @@ class Scale(Fittable1DModel):
     linear = True
     fittable = True
 
-    input_units_strict = True
-
-    input_units_allow_dimensionless = True
-
-    @property
-    def input_units(self):
-        if self.factor.unit is None:
-            return None
-        else:
-            return {'x': self.factor.unit}
-
     @property
     def inverse(self):
         """One dimensional inverse Scale model function"""
@@ -542,13 +520,7 @@ class Scale(Fittable1DModel):
     @staticmethod
     def evaluate(x, factor):
         """One dimensional Scale model function"""
-        if isinstance(factor, u.Quantity):
-            return_unit = factor.unit
-            factor = factor.value
-        if isinstance(x, u.Quantity):
-            return (x.value * factor) * return_unit
-        else:
-            return factor * x
+        return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
