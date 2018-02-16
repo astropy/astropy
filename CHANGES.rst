@@ -267,9 +267,6 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
-- Make sure that lazily-loaded ``HDUList`` is automatically loaded when calling
-  ``hdulist.pop``. [#7186]
-
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -800,6 +797,9 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fixed the ``fitsdiff`` script for matching fits file with one in a directory path. [#7085]
+
+- Make sure that lazily-loaded ``HDUList`` is automatically loaded when calling
+  ``hdulist.pop``. [#7186]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
