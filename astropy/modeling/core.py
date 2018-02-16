@@ -1366,9 +1366,9 @@ class Model(metaclass=_ModelMeta):
     @property
     def input_units_allow_dimensionless(self):
         """
-        Allow dimensionless input (and corresponding output). If this is True,
-        input values to evaluate will gain the units specified in input_units.
-        Only has an effect if input_units is defined.
+        If `True` allow input to the model to be dimensionless as well as in
+        the units of ``input_units``. This only has an effect if
+        ``input_units`` is set.
         """
         return self._input_units_allow_dimensionless
 
