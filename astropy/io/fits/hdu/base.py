@@ -1596,7 +1596,8 @@ class NonstandardExtHDU(ExtensionHDU):
                 xtension not in standard_xtensions)
 
     def _summary(self):
-        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header))
+        axes = tuple(self.data.shape)
+        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header), axes)
 
     @lazyproperty
     def data(self):
