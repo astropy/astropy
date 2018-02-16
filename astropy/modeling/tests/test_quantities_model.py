@@ -57,6 +57,7 @@ def test_no_quantity_call():
     g(10)
 
 
+@pytest.mark.skip
 def test_all_quantity_parameters():
     """
     Test that all parameters must be Quantities if any are.
@@ -76,18 +77,27 @@ def test_all_quantity_parameters():
     with pytest.raises(ValueError):
         g(10*u.m)
 
-allmodels = []
-for name in dir(models):
-    model = getattr(models, name)
-    if type(model) is _ModelMeta:
-        try:
-            m = model()
-        except Exception:
-            pass
-        allmodels.append(m)
+
+def test_default_parameters():
+    g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm)
+    assert isinstance(g, Gaussian1D)
+    g(10*u.m)
 
 
-@pytest.mark.parametrize("m", allmodels)
+def _allmodels():
+    allmodels = []
+    for name in dir(models):
+        model = getattr(models, name)
+        if type(model) is _ModelMeta:
+            try:
+                m = model()
+            except Exception:
+                pass
+            allmodels.append(m)
+    return allmodels
+
+
+@pytest.mark.parametrize("m", _allmodels())
 def test_read_only(m):
     """
     input_units

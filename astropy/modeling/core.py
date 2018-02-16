@@ -1445,14 +1445,15 @@ class Model(metaclass=_ModelMeta):
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
-        params_units = [p.unit is not None for p in params]
-        has_param_units = any(params_units)
+        # TODO: This might need putting back
+        # params_units = [isinstance(p, Quantity) for p in params]
+        # has_param_units = any(params_units)
 
-        if has_param_units and not all(params_units):
-            raise ValueError("If any Parameters have units, then all Parameters should have units.")
+        # if has_param_units and not all(params_units):
+        #     raise ValueError("If any Parameters have units, then all Parameters should have units.")
 
-        if has_param_units and any((not isinstance(i, Quantity) for i in inputs)):
-            raise ValueError("Can only call a model without Quantities if none of it's parameters are Quantities")
+        # if has_param_units and any((not isinstance(i, Quantity) for i in inputs)):
+        #     raise ValueError("Can only call a model without Quantities if none of it's parameters are Quantities")
 
         # Check that the units are correct, if applicable
         if self.input_units is not None:
@@ -3123,25 +3124,6 @@ def render_model(model, arr=None, coords=None):
         arr += model(*coords[::-1])
 
     return arr
-
-    @property
-    def input_units_strict(self):
-        """
-        Enforce strict units on inputs to evaluate. If this is set to True, input
-        values to evaluate have to be in the exact right units specified by
-        input_units. In this case, if the input quantities are convertible to
-        input_units, they are converted.
-        """
-        return self._input_units_strict
-
-    @property
-    def input_units_allow_dimensionless(self):
-        """
-        Allow dimensionless input (and corresponding output). If this is True,
-        input values to evaluate will gain the units specified in input_units.
-        Only has an effect if input_units is defined.
-        """
-        return self._input_units_allow_dimensionless
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):
