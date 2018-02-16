@@ -967,3 +967,22 @@ class TestHDUListFunctions(FitsTestCase):
                 fits.open(filename, ignore_missing_end=True)
 
         assert len(ws) == 0
+
+    def test_pop_with_lazy_load(self):
+        filename = self.data('checksum.fits')
+        hdul = fits.open(filename)
+        # Try popping the hdulist before doing anything else. This makes sure
+        # that https://github.com/astropy/astropy/issues/7185 is fixed.
+        hdu = hdul.pop()
+        assert len(hdul) == 1
+
+        # Read the file again and try popping from the beginning
+        hdul2 = fits.open(filename)
+        hdu2 = hdul2.pop(0)
+        assert len(hdul2) == 1
+
+        # Just a sanity check
+        hdul3 = fits.open(filename)
+        assert len(hdul3) == 2
+        assert hdul3[0].header == hdu2.header
+        assert hdul3[1].header == hdu.header
