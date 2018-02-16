@@ -1646,25 +1646,7 @@ class LambdaCDM(FLRW):
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
             if self._Ok0 == 0:
-                # Call out the Om0=0 (de Sitter) and Om0=1 (Einstein-de Sitter)
-                # The dS case is required because the hypergeometric case
-                #    for Omega_M=0 would lead to an infinity in its argument.
-                # The EdS case is three times faster than the hypergeometric.
-                if self._Om0 == 0:
-                    self._comoving_distance_z1z2 = \
-                        self._dS_comoving_distance_z1z2
-                    self._age = self._dS_age
-                    self._lookback_time = self._dS_lookback_time
-                elif self._Om0 == 1:
-                    self._comoving_distance_z1z2 = \
-                        self._EdS_comoving_distance_z1z2
-                    self._age = self._EdS_age
-                    self._lookback_time = self._EdS_lookback_time
-                else:
-                    self._comoving_distance_z1z2 = \
-                        self._hypergeometric_comoving_distance_z1z2
-                    self._age = self._flat_age
-                    self._lookback_time = self._flat_lookback_time
+                self._optimize_flat_norad()
             else:
                 self._comoving_distance_z1z2 = \
                     self._elliptic_comoving_distance_z1z2
@@ -1678,6 +1660,29 @@ class LambdaCDM(FLRW):
                                            self._Ogamma0, self._neff_per_nu,
                                            self._nmasslessnu,
                                            self._nu_y_list)
+
+    def _optimize_flat_norad(self):
+        """Set optimizations for flat LCDM cosmologies with no radiation.
+        """
+        # Call out the Om0=0 (de Sitter) and Om0=1 (Einstein-de Sitter)
+        # The dS case is required because the hypergeometric case
+        #    for Omega_M=0 would lead to an infinity in its argument.
+        # The EdS case is three times faster than the hypergeometric.
+        if self._Om0 == 0:
+            self._comoving_distance_z1z2 = \
+                self._dS_comoving_distance_z1z2
+            self._age = self._dS_age
+            self._lookback_time = self._dS_lookback_time
+        elif self._Om0 == 1:
+            self._comoving_distance_z1z2 = \
+                self._EdS_comoving_distance_z1z2
+            self._age = self._EdS_age
+            self._lookback_time = self._EdS_lookback_time
+        else:
+            self._comoving_distance_z1z2 = \
+                self._hypergeometric_comoving_distance_z1z2
+            self._age = self._flat_age
+            self._lookback_time = self._flat_lookback_time
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
@@ -2184,26 +2189,7 @@ class FlatLambdaCDM(LambdaCDM):
             # Repeat the optimization reassignments here because the init
             # of the LambaCDM above didn't actually create a flat cosmology.
             # That was done through the explicit tweak setting self._Ok0.
-            #
-            # Call out the Om0=0 (de Sitter) and Om0=1 (Einstein-de Sitter)
-            # The dS case is required because the hypergeometric case
-            #    for Omega_M=0 would lead to an infinity in its argument.
-            # The EdS case is three times faster than the hypergeometric.
-            if self._Om0 == 0:
-                self._comoving_distance_z1z2 = \
-                    self._dS_comoving_distance_z1z2
-                self._age = self._dS_age
-                self._lookback_time = self._dS_lookback_time
-            elif self._Om0 == 1:
-                self._comoving_distance_z1z2 = \
-                    self._EdS_comoving_distance_z1z2
-                self._age = self._EdS_age
-                self._lookback_time = self._EdS_lookback_time
-            else:
-                self._comoving_distance_z1z2 = \
-                    self._hypergeometric_comoving_distance_z1z2
-                self._age = self._flat_age
-                self._lookback_time = self._flat_lookback_time
+            self._optimize_flat_norad()
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
