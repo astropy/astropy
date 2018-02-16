@@ -58,6 +58,8 @@ def test_no_quantity_call():
 
 
 def test_default_parameters():
+    # Test that calling with a quantity works when one of the parameters
+    # defaults to dimensionless
     g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm)
     assert isinstance(g, Gaussian1D)
     g(10*u.m)
