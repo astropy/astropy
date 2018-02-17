@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 import os
 from copy import copy
 from io import StringIO
@@ -12,6 +10,7 @@ import numpy as np
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
+from ... import units as u
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
@@ -317,13 +316,6 @@ def test_read_valid_return():
     assert isinstance(t, TestData)
 
 
-def test_read_invalid_return():
-    io_registry.register_reader('test', TestData, lambda: 'spam')
-    with pytest.raises(TypeError) as exc:
-        TestData.read(format='test')
-    assert str(exc.value) == "reader should return a TestData instance"
-
-
 def test_non_existing_unknown_ext():
     """Raise the correct error when attempting to read a non-existing
     file with an unknown extension."""
@@ -410,3 +402,23 @@ class TestSubclass:
         mt = MyTable([[1], [2]], names=['a', 'b'])
         mt.write(buffer, format='ascii')
         assert buffer.getvalue() == os.linesep.join(['a b', '1 2', ''])
+
+    def test_read_table_subclass_with_columns_attributes(self, tmpdir):
+        """Regression test for https://github.com/astropy/astropy/issues/7181
+        """
+
+        class MTable(Table):
+            pass
+
+        mt = MTable([[1, 2.5]], names=['a'])
+        mt['a'].unit = u.m
+        mt['a'].format = '.4f'
+        mt['a'].description = 'hello'
+
+        testfile = str(tmpdir.join('junk.fits'))
+        mt.write(testfile, overwrite=True)
+
+        t = MTable.read(testfile)
+        assert np.all(mt == t)
+        assert mt.colnames == t.colnames
+        assert type(t) is MTable
