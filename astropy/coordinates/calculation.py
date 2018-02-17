@@ -5,8 +5,8 @@
 # Standard library
 import re
 import textwrap
+import warnings
 from datetime import datetime
-from xml.dom.minidom import parse
 from urllib.request import urlopen
 
 # Third-party
@@ -60,20 +60,34 @@ _VALID_SIGNS = ["capricorn", "aquarius", "pisces", "aries", "taurus", "gemini",
 # Astrologers really needs to talk to the IAU...
 _CONST_TO_SIGNS = {'capricornus': 'capricorn', 'scorpius': 'scorpio'}
 
+_ZODIAC = ((1900, "rat"), (1901, "ox"), (1902, "tiger"),
+           (1903, "rabbit"), (1904, "dragon"), (1905, "snake"),
+           (1906, "horse"), (1907, "goat"), (1908, "monkey"),
+           (1909, "rooster"), (1910, "dog"), (1911, "pig"))
 
-def horoscope(birthday, corrected=True):
+
+# https://stackoverflow.com/questions/12791871/chinese-zodiac-python-program
+def _get_zodiac(yr):
+    return _ZODIAC[(yr - _ZODIAC[0][0]) % 12][1]
+
+
+def horoscope(birthday, corrected=True, chinese=False):
     """
     Enter your birthday as an `astropy.time.Time` object and
     receive a mystical horoscope about things to come.
 
     Parameter
     ---------
-    birthday : `astropy.time.Time`
-        Your birthday as a `datetime.datetime` or `astropy.time.Time` object.
+    birthday : `astropy.time.Time` or str
+        Your birthday as a `datetime.datetime` or `astropy.time.Time` object
+        or "YYYY-MM-DD"string.
     corrected : bool
         Whether to account for the precession of the Earth instead of using the
         ancient Greek dates for the signs.  After all, you do want your *real*
         horoscope, not a cheap inaccurate approximation, right?
+
+    chinese : bool
+        Chinese annual zodiac wisdom instead of Western one.
 
     Returns
     -------
@@ -83,6 +97,8 @@ def horoscope(birthday, corrected=True):
     -----
     This function was implemented on April 1.  Take note of that date.
     """
+    today = datetime.now()
+    err_msg = "Invalid response from celestial gods (failed to load horoscope)."
 
     special_words = {
         '([sS]tar[s^ ]*)': 'yellow',
@@ -92,32 +108,61 @@ def horoscope(birthday, corrected=True):
         '([fF]ate)': 'lightgreen',
     }
 
-    birthday = atime.Time(birthday)
-    today = datetime.now()
-    if corrected:
-        zodiac_sign = get_sun(birthday).get_constellation().lower()
-        zodiac_sign = _CONST_TO_SIGNS.get(zodiac_sign, zodiac_sign)
-        if zodiac_sign not in _VALID_SIGNS:
-            raise HumanError('On your birthday the sun was in {}, which is not '
-                             'a sign of the zodiac.  You must not exist.  Or '
-                             'maybe you can settle for '
-                             'corrected=False.'.format(zodiac_sign.title()))
-    else:
-        zodiac_sign = get_sign(birthday.to_datetime())
-    url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.php?sign={sign}&id=45"
+    if isinstance(birthday, str):
+        birthday = datetime.strptime(birthday, '%Y-%m-%d')
 
-    f = urlopen(url.format(sign=zodiac_sign.capitalize()))
-    try:  # urlopen in py2 is not a decorator
-        doc = parse(f)
-        item = doc.getElementsByTagName('item')[0]
-        desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
-    except Exception:
-        raise CelestialError("Invalid response from celestial gods (failed to load horoscope).")
-    finally:
-        f.close()
+    if chinese:
+        from bs4 import BeautifulSoup
+
+        # TODO: Make this more accurate by using the actual date, not just year
+        # Might need third-party tool like https://pypi.python.org/pypi/lunardate
+        zodiac_sign = _get_zodiac(birthday.year)
+        url = ('https://www.horoscope.com/us/horoscopes/yearly/'
+               '{}-chinese-horoscope-{}.aspx'.format(today.year, zodiac_sign))
+        summ_title_sfx = 'in {}'.format(today.year)
+
+        try:
+            with urlopen(url) as f:
+                try:
+                    doc = BeautifulSoup(f, 'html.parser')
+                    # TODO: Also include Love, Family & Friends, Work, Money, More?
+                    item = doc.find(id='overview')
+                    desc = item.getText()
+                except Exception:
+                    raise CelestialError(err_msg)
+        except Exception:
+            raise CelestialError(err_msg)
+
+    else:
+        from xml.dom.minidom import parse
+
+        birthday = atime.Time(birthday)
+
+        if corrected:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')  # Ignore ErfaWarning
+                zodiac_sign = get_sun(birthday).get_constellation().lower()
+            zodiac_sign = _CONST_TO_SIGNS.get(zodiac_sign, zodiac_sign)
+            if zodiac_sign not in _VALID_SIGNS:
+                raise HumanError('On your birthday the sun was in {}, which is not '
+                                 'a sign of the zodiac.  You must not exist.  Or '
+                                 'maybe you can settle for '
+                                 'corrected=False.'.format(zodiac_sign.title()))
+        else:
+            zodiac_sign = get_sign(birthday.to_datetime())
+        url = "http://www.findyourfate.com/rss/dailyhoroscope-feed.php?sign={sign}&id=45"
+        summ_title_sfx = 'on {}'.format(today.strftime("%Y-%m-%d"))
+
+        with urlopen(url.format(sign=zodiac_sign.capitalize())) as f:
+            try:
+                doc = parse(f)
+                item = doc.getElementsByTagName('item')[0]
+                desc = item.getElementsByTagName('description')[0].childNodes[0].nodeValue
+            except Exception:
+                raise CelestialError(err_msg)
 
     print("*"*79)
-    color_print("Horoscope for {} on {}:".format(zodiac_sign.capitalize(), today.strftime("%Y-%m-%d")),
+    color_print("Horoscope for {} {}:".format(zodiac_sign.capitalize(), summ_title_sfx),
                 'green')
     print("*"*79)
     for block in textwrap.wrap(desc, 79):
