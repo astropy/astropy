@@ -517,18 +517,14 @@ def read(cls, *args, format=None, **kwargs):
         data = reader(*args, **kwargs)
 
         if not isinstance(data, cls):
-            if issubclass(cls, data.__class__):
-                # User has read with a subclass where only the parent class is
-                # registered.  This returns the parent class, so try coercing
-                # to desired subclass.
-                try:
-                    data = cls(data)
-                except Exception:
-                    raise TypeError('could not convert reader output to {0} '
-                                    'class.'.format(cls.__name__))
-            else:
-                raise TypeError("reader should return a {0} instance"
-                                "".format(cls.__name__))
+            # User has read with a subclass where only the parent class is
+            # registered.  This returns the parent class, so try coercing
+            # to desired subclass.
+            try:
+                data = cls(data)
+            except Exception:
+                raise TypeError('could not convert reader output to {0} '
+                                'class.'.format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
