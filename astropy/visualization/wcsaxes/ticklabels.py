@@ -80,7 +80,10 @@ class TickLabels(Text):
                         start = j + 1
                 t1 = self.text[axis][i]
                 if start != 0:
+                    starts_dollar = self.text[axis][i].startswith('$')
                     self.text[axis][i] = self.text[axis][i][start:]
+                    if starts_dollar:
+                        self.text[axis][i] = '$' + self.text[axis][i]
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes

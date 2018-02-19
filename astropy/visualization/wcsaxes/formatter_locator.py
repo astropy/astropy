@@ -105,7 +105,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
     """
 
     def __init__(self, values=None, number=None, spacing=None, format=None,
-                 unit=None, decimal=None):
+                 unit=None, decimal=None, format_unit=None):
 
         if unit is None:
             unit = u.degree
@@ -115,6 +115,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             elif decimal is False:
                 raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
         self._unit = unit
+        self._format_unit = format_unit or unit
         self._decimal = decimal
         self._sep = None
         super().__init__(values=values, number=number, spacing=spacing,
@@ -281,7 +282,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing_deg)
             return values * spacing_deg * u.degree, spacing_deg * u.degree
 
-    def formatter(self, values, spacing):
+    def formatter(self, values, spacing, plain=False):
 
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
@@ -289,7 +290,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if len(values) > 0:
 
             decimal = self._decimal
-            unit = self._unit
+            unit = self._format_unit
 
             if self.format is None:
                 if self._decimal:
@@ -328,24 +329,37 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
             if decimal:
                 sep = None
+                fmt = None
             elif self._sep is not None:
                 sep = self._sep
+                fmt = None
             else:
+                sep = 'fromunit'
                 if unit == u.degree:
                     if rcParams['text.usetex']:
-                        deg = r'$^\circ$'
+                        fmt = 'latex'
                     else:
-                        deg = '\xb0'
-                    sep = (deg, "'", '"')
+                        sep = ('\xb0', "'", '"')
+                        fmt = None
                 else:
-                    sep = ('h', 'm', 's')
+                    if rcParams['text.usetex']:
+                        fmt = 'latex'
+                    else:
+                        sep = (r'$\mathregular{^h}$', r'$\mathregular{^m}$', r'$\mathregular{^s}$')
+                        fmt = None
+
+            if plain:
+                fmt = None
+                sep = 'fromunit'
 
             angles = Angle(values)
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
                                       fields=fields,
-                                      sep=sep).tolist()
+                                      sep=sep,
+                                      format=fmt).tolist()
+
             return string
         else:
             return []
