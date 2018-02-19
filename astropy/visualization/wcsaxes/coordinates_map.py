@@ -93,7 +93,7 @@ class CoordinatesMap:
             # Extract coordinate metadata from WCS object or transform
             if wcs is not None:
                 coord_unit = wcs.wcs.cunit[coord_index]
-                coord_type, display_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
+                coord_type, format_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
                 name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
             else:
                 try:
@@ -111,7 +111,7 @@ class CoordinatesMap:
                                                  coord_type=coord_type,
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
-                                                 display_unit=display_unit,
+                                                 format_unit=format_unit,
                                                  frame=self.frame))
 
             # Set up aliases for coordinates
