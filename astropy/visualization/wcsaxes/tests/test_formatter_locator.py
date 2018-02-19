@@ -7,6 +7,7 @@ from numpy.testing import assert_almost_equal
 from matplotlib import rc_context
 
 from .... import units as u
+from ....units import UnitsError
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
 
@@ -199,6 +200,36 @@ class TestAngleFormatterLocator:
     def test_formatter_no_format(self, spacing, string):
         fl = AngleFormatterLocator()
         assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
+
+    @pytest.mark.parametrize(('unit', 'decimal', 'spacing', 'string'),
+                             [(u.degree, False, 2 * u.degree, '15\xb0'),
+                              (u.degree, False, 2 * u.arcmin, '15\xb024\''),
+                              (u.degree, False, 2 * u.arcsec, '15\xb023\'32"'),
+                              (u.degree, False, 0.1 * u.arcsec, '15\xb023\'32.0"'),
+                              (u.hourangle, False, 15 * u.degree, '1h'),
+                              (u.hourangle, False, 15 * u.arcmin, '1h02m'),
+                              (u.hourangle, False, 15 * u.arcsec, '1h01m34s'),
+                              (u.hourangle, False, 1.5 * u.arcsec, '1h01m34.1s'),
+                              (u.degree, True, 15 * u.degree, '15'),
+                              (u.degree, True, 0.12 * u.degree, '15.39'),
+                              (u.degree, True, 0.0036 * u.arcsec, '15.392231'),
+                              (u.arcmin, True, 15 * u.degree, '924'),
+                              (u.arcmin, True, 0.12 * u.degree, '923.5'),
+                              (u.arcmin, True, 0.1 * u.arcmin, '923.5'),
+                              (u.arcmin, True, 0.0002 * u.arcmin, '923.5339'),
+                              # Make sure that specifying None defaults to
+                              # decimal for non-degree or non-hour angles
+                              (u.arcsec, None, 0.01 * u.arcsec, '55412.03')])
+    def test_formatter_no_format_with_units(self, unit, decimal, spacing, string):
+        # Check the formatter works when specifying the default units and
+        # decimal behavior to use.
+        fl = AngleFormatterLocator(unit=unit, decimal=decimal)
+        assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
+
+    def test_incompatible_unit_decimal(self):
+        with pytest.raises(UnitsError) as exc:
+            AngleFormatterLocator(unit=u.arcmin, decimal=False)
+        assert exc.value.args[0] == 'Units should be degrees or hours when using non-decimal (sexagesimal) mode'
 
 
 class TestScalarFormatterLocator:
