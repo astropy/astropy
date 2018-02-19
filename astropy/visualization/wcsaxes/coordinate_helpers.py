@@ -61,8 +61,9 @@ class CoordinateHelper:
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
 
-    def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None, coord_display_unit=None):
+    def __init__(self, parent_axes=None, parent_map=None, transform=None,
+                 coord_index=None, coord_type='scalar', coord_unit=None,
+                 coord_wrap=None, frame=None, display_unit=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -70,7 +71,7 @@ class CoordinateHelper:
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
-        self.coord_display_unit = coord_display_unit
+        self.display_unit = display_unit
         self.frame = frame
 
         self.set_coord_type(coord_type, coord_wrap)
@@ -188,7 +189,7 @@ class CoordinateHelper:
             else:
                 self._coord_unit_scale = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
-                                                            format_unit=self.coord_display_unit)
+                                                            format_unit=self.display_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
