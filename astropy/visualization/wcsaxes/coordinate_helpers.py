@@ -55,6 +55,8 @@ class CoordinateHelper:
         and do not wrap.
     coord_unit : `~astropy.units.Unit`
         The unit that this coordinate is in given the output of transform.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use to display the coordinates.
     coord_wrap : float
         The angle at which the longitude wraps (defaults to 360)
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
@@ -63,7 +65,7 @@ class CoordinateHelper:
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None,
                  coord_index=None, coord_type='scalar', coord_unit=None,
-                 coord_wrap=None, frame=None, display_unit=None):
+                 coord_wrap=None, frame=None, format_unit=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -71,7 +73,7 @@ class CoordinateHelper:
         self.transform = transform
         self.coord_index = coord_index
         self.coord_unit = coord_unit
-        self.display_unit = display_unit
+        self.format_unit = format_unit
         self.frame = frame
 
         self.set_coord_type(coord_type, coord_wrap)
@@ -162,9 +164,6 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_unit : `~astropy.units.Unit`
-            The default unit to use for formatting if an explicit format is
-            not given.
         coord_wrap : float, optional
             The value to wrap at for angular coordinates
         """
@@ -189,7 +188,7 @@ class CoordinateHelper:
             else:
                 self._coord_unit_scale = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
-                                                            format_unit=self.display_unit)
+                                                            format_unit=self.format_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 

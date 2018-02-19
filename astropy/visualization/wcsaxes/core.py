@@ -134,7 +134,7 @@ class WCSAxes(Axes):
         world = coords._transform.transform(np.array([pixel]))[0]
 
         xw = coords[self._x_index].format_coord(world[self._x_index], plain=True)
-        yw = coords[self._y_index].format_coord(world[self._y_index])
+        yw = coords[self._y_index].format_coord(world[self._y_index], plain=True)
 
         if self._display_coords_index == 0:
             system = "world"
