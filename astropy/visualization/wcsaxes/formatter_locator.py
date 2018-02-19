@@ -16,6 +16,7 @@ import numpy as np
 from matplotlib import rcParams
 
 from ... import units as u
+from ...units import UnitsError
 from ...coordinates import Angle
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
@@ -103,8 +104,18 @@ class AngleFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None):
-        self._unit = u.degree
+    def __init__(self, values=None, number=None, spacing=None, format=None,
+                 unit=None, decimal=None):
+
+        if unit is None:
+            unit = u.degree
+        elif unit not in (u.degree, u.hourangle, u.hour):
+            if decimal is None:
+                decimal = True
+            elif decimal is False:
+                raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+        self._unit = unit
+        self._decimal = decimal
         self._sep = None
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
@@ -276,27 +287,44 @@ class AngleFormatterLocator(BaseFormatterLocator):
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
+
+            decimal = self._decimal
+            unit = self._unit
+
             if self.format is None:
-                spacing = spacing.to_value(u.arcsec)
-                if spacing > 3600:
-                    fields = 1
-                    precision = 0
-                elif spacing > 60:
-                    fields = 2
-                    precision = 0
-                elif spacing > 1:
-                    fields = 3
-                    precision = 0
+                if self._decimal:
+                    # Here we assume the spacing can be arbitrary, so for example
+                    # 1.000223 degrees, in which case we don't want to have a
+                    # format that rounds to degrees. So we find the number of
+                    # decimal places we get from representing the spacing as a
+                    # string in the desired units. The easiest way to find
+                    # the smallest number of decimal places required is to
+                    # format the number as a decimal float and strip any zeros
+                    # from the end. We do this rather than just trusting e.g.
+                    # str() because str(15.) == 15.0. We format using 10 decimal
+                    # places by default before stripping the zeros since this
+                    # corresponds to a resolution of less than a microarcecond,
+                    # which should be sufficient.
+                    spacing = spacing.to_value(unit)
+                    fields = 0
+                    precision = len("{0:.10f}".format(spacing).replace('0', ' ').strip().split('.', 1)[1])
                 else:
-                    fields = 3
-                    precision = -int(np.floor(np.log10(spacing)))
-                decimal = False
-                unit = u.degree
+                    spacing = spacing.to_value(unit / 3600)
+                    if spacing >= 3600:
+                        fields = 1
+                        precision = 0
+                    elif spacing >= 60:
+                        fields = 2
+                        precision = 0
+                    elif spacing >= 1:
+                        fields = 3
+                        precision = 0
+                    else:
+                        fields = 3
+                        precision = -int(np.floor(np.log10(spacing)))
             else:
                 fields = self._fields
                 precision = self._precision
-                decimal = self._decimal
-                unit = self._unit
 
             if decimal:
                 sep = None

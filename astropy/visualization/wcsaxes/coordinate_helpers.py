@@ -69,10 +69,9 @@ class CoordinateHelper:
         self.parent_map = parent_map
         self.transform = transform
         self.coord_index = coord_index
-        self.coord_unit = coord_unit
         self.frame = frame
 
-        self.set_coord_type(coord_type, coord_wrap)
+        self.set_coord_type(coord_type, coord_unit, coord_wrap)
 
         # Initialize ticks
         self.dpi_transform = Affine2D()
@@ -152,7 +151,7 @@ class CoordinateHelper:
         else:
             self.grid_lines_kwargs['visible'] = True
 
-    def set_coord_type(self, coord_type, coord_wrap=None):
+    def set_coord_type(self, coord_type, coord_unit=None, coord_wrap=None):
         """
         Set the coordinate type for the axis.
 
@@ -160,10 +159,14 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
+        coord_unit : `~astropy.units.Unit`
+            The default unit to use for formatting if an explicit format is
+            not given.
         coord_wrap : float, optional
             The value to wrap at for angular coordinates
         """
 
+        self.coord_unit = coord_unit
         self.coord_type = coord_type
 
         if coord_type == 'longitude' and coord_wrap is None:
@@ -183,7 +186,7 @@ class CoordinateHelper:
                 self._coord_unit_scale = None
             else:
                 self._coord_unit_scale = self.coord_unit.to(u.deg)
-            self._formatter_locator = AngleFormatterLocator()
+            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
