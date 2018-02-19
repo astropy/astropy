@@ -62,16 +62,18 @@ class CoordinateHelper:
     """
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None):
+                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None, coord_display_unit=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
         self.parent_map = parent_map
         self.transform = transform
         self.coord_index = coord_index
+        self.coord_unit = coord_unit
+        self.coord_display_unit = coord_display_unit
         self.frame = frame
 
-        self.set_coord_type(coord_type, coord_unit, coord_wrap)
+        self.set_coord_type(coord_type, coord_wrap)
 
         # Initialize ticks
         self.dpi_transform = Affine2D()
@@ -151,7 +153,7 @@ class CoordinateHelper:
         else:
             self.grid_lines_kwargs['visible'] = True
 
-    def set_coord_type(self, coord_type, coord_unit=None, coord_wrap=None):
+    def set_coord_type(self, coord_type, coord_wrap=None):
         """
         Set the coordinate type for the axis.
 
@@ -166,7 +168,6 @@ class CoordinateHelper:
             The value to wrap at for angular coordinates
         """
 
-        self.coord_unit = coord_unit
         self.coord_type = coord_type
 
         if coord_type == 'longitude' and coord_wrap is None:
@@ -186,7 +187,8 @@ class CoordinateHelper:
                 self._coord_unit_scale = None
             else:
                 self._coord_unit_scale = self.coord_unit.to(u.deg)
-            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit)
+            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
+                                                            format_unit=self.coord_display_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -207,7 +209,7 @@ class CoordinateHelper:
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def format_coord(self, value):
+    def format_coord(self, value, plain=False):
         """
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
@@ -229,7 +231,7 @@ class CoordinateHelper:
             value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
-        string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, plain=plain)
 
         return string[0]
 

@@ -155,7 +155,7 @@ class TestAngleFormatterLocator:
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
         assert fl.formatter([15.392231] * u.degree, None)[0] == '15\xb023\'32"'
         with rc_context(rc={'text.usetex': True}):
-            assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\\circ$23'32\""
+            assert fl.formatter([15.392231] * u.degree, None)[0] == "$15^\\circ23{}^\\prime32{}^{\\prime\\prime}$"
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
@@ -224,7 +224,7 @@ class TestAngleFormatterLocator:
         # Check the formatter works when specifying the default units and
         # decimal behavior to use.
         fl = AngleFormatterLocator(unit=unit, decimal=decimal)
-        assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
+        assert fl.formatter([15.392231] * u.degree, spacing, plain=True)[0] == string
 
     def test_incompatible_unit_decimal(self):
         with pytest.raises(UnitsError) as exc:

@@ -92,15 +92,17 @@ class CoordinatesMap:
 
             # Extract coordinate metadata from WCS object or transform
             if wcs is not None:
-                coord_type, coord_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
-                if coord_unit is None:
-                    coord_unit = wcs.wcs.cunit[coord_index]
+                coord_unit = wcs.wcs.cunit[coord_index]
+                coord_type, coord_display_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
+                if coord_display_unit is None:
+                    coord_display_unit = coord_unit
                 name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
             else:
                 try:
                     coord_type = coord_meta['type'][coord_index]
                     coord_wrap = coord_meta['wrap'][coord_index]
                     coord_unit = coord_meta['unit'][coord_index]
+                    coord_display_unit = coord_unit
                     name = coord_meta['name'][coord_index]
                 except IndexError:
                     raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
@@ -112,6 +114,7 @@ class CoordinatesMap:
                                                  coord_type=coord_type,
                                                  coord_wrap=coord_wrap,
                                                  coord_unit=coord_unit,
+                                                 coord_display_unit=coord_display_unit,
                                                  frame=self.frame))
 
             # Set up aliases for coordinates
