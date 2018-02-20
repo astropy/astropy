@@ -122,8 +122,8 @@ class Pix2SkyProjection(Projection):
     inputs = ('x', 'y')
     outputs = ('phi', 'theta')
 
-    input_units_strict = True
-    input_units_allow_dimensionless = True
+    _input_units_strict = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -140,8 +140,8 @@ class Sky2PixProjection(Projection):
     inputs = ('phi', 'theta')
     outputs = ('x', 'y')
 
-    input_units_strict = True
-    input_units_allow_dimensionless = True
+    _input_units_strict = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):

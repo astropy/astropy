@@ -581,6 +581,10 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed the evaluation of compound models with units. This required adding
+  the ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
+  be dictionaries with input names as keys. [#6952]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
