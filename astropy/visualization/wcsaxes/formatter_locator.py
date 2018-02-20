@@ -299,7 +299,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing_deg)
             return values * spacing_deg * u.degree, spacing_deg * u.degree
 
-    def formatter(self, values, spacing, plain=False):
+    def formatter(self, values, spacing, format='auto'):
 
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
@@ -353,17 +353,20 @@ class AngleFormatterLocator(BaseFormatterLocator):
             else:
                 sep = 'fromunit'
                 if unit == u.degree:
-                    if rcParams['text.usetex']:
+                    if format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
                         fmt = 'latex'
                     else:
                         sep = ('\xb0', "'", '"')
                         fmt = None
                 else:
-                    if plain:
+                    if format == 'ascii':
                         fmt = None
-                    elif rcParams['text.usetex']:
+                    elif format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
                         fmt = 'latex'
                     else:
+                        # Here we still use LaTeX but this is for Matplotlib's
+                        # LaTeX engine - we can't use fmt='latex' as this
+                        # doesn't produce LaTeX output that respects the fonts.
                         sep = (r'$\mathregular{^h}$', r'$\mathregular{^m}$', r'$\mathregular{^s}$')
                         fmt = None
 
@@ -488,7 +491,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing)
             return values * spacing * self._unit, spacing * self._unit
 
-    def formatter(self, values, spacing, plain=False):
+    def formatter(self, values, spacing, format='auto'):
 
         if len(values) > 0:
             if self.format is None:

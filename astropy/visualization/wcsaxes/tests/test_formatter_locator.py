@@ -134,7 +134,7 @@ class TestAngleFormatterLocator:
                                                     ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
-        assert fl.formatter([15.392231] * u.degree, None, plain=True)[0] == string
+        assert fl.formatter([15.392231] * u.degree, None, format='ascii')[0] == string
 
     @pytest.mark.parametrize(('separator', 'format', 'string'), [(('deg', "'", '"'), 'dd', '15deg'),
                                                                  (('deg', "'", '"'), 'dd:mm', '15deg24\''),
@@ -224,7 +224,7 @@ class TestAngleFormatterLocator:
         # Check the formatter works when specifying the default units and
         # decimal behavior to use.
         fl = AngleFormatterLocator(unit=u.degree, format_unit=format_unit, decimal=decimal)
-        assert fl.formatter([15.392231] * u.degree, spacing, plain=True)[0] == string
+        assert fl.formatter([15.392231] * u.degree, spacing, format='ascii')[0] == string
 
     def test_incompatible_unit_decimal(self):
         with pytest.raises(UnitsError) as exc:
