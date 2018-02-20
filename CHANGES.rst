@@ -300,6 +300,8 @@ astropy.time
 astropy.units
 ^^^^^^^^^^^^^
 
+- ``quantity_helper`` no longer requires ``scipy>=0.18``. [#7219]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
