@@ -45,7 +45,7 @@ class Jparser(object):
         return ra, dec
 
     def to_skycoord(self, name, frame='icrs'):
-        return SkyCoord(*self.ra_dec(name), frame)
+        return SkyCoord(*self.ra_dec(name), frame=frame)
 
     def shorten(self, name):
         """
