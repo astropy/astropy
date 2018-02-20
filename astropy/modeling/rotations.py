@@ -386,7 +386,7 @@ class Rotation2D(Model):
         orig_shape = x.shape or (1,)
         inarr = np.array([x.flatten(), y.flatten()])
         if isinstance(angle, u.Quantity):
-            angle = angle.value
+            angle = angle.to_value(u.rad)
         result = np.dot(cls._compute_matrix(angle), inarr)
         x, y = result[0], result[1]
         x.shape = y.shape = orig_shape
