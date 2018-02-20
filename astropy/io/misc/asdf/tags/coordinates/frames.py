@@ -37,6 +37,9 @@ def _get_frames():
     for fpath in files:
         path, fname = os.path.split(fpath)
         frame, _ = fname.split('-')
+        # Skip baseframe because we cannot directly save / load it.
+        # Skip icrs because we have an explicit tag for it because there are
+        # two versions.
         if frame not in ['baseframe', 'icrs']:
             names.append(frame)
 

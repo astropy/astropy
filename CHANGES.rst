@@ -35,7 +35,7 @@ astropy.io.ascii
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-Support for saving all representation classes and all frames that have schema has been added to the asdf submodule. [#7079]
+Added support for saving all representation classes and many coordinate frames to the asdf format. [#7079]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
