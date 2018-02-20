@@ -21,10 +21,12 @@ __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
 
 
 class ExpressionTree:
-    __slots__ = ['left', 'right', 'value']
+    __slots__ = ['left', 'right', 'value', 'inputs', 'outputs']
 
-    def __init__(self, value, left=None, right=None):
+    def __init__(self, value, left=None, right=None, inputs=None, outputs=None):
         self.value = value
+        self.inputs = inputs
+        self.outputs = outputs
         self.left = left
 
         # Two subtrees can't be the same *object* or else traverse_postorder
@@ -42,6 +44,81 @@ class ExpressionTree:
     def __setstate__(self, state):
         for slot, value in state.items():
             setattr(self, slot, value)
+
+    @staticmethod
+    def _recursive_lookup(branch, adict, key):
+        if isinstance(branch, ExpressionTree):
+            return adict[key]
+        else:
+            return branch, key
+
+    @property
+    def inputs_map(self):
+        """
+        Map the names of the inputs to this ExpressionTree to the inputs to the leaf models.
+        """
+        inputs_map = {}
+        if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
+            return {inp: (self.value, inp) for inp in self.inputs}
+
+        elif self.value == '|':
+            for inp in self.inputs:
+                m, inp2 = self._recursive_lookup(self.left, self.left.inputs_map, inp)
+                inputs_map[inp] = m, inp2
+
+        elif self.value == '&':
+            for i, inp in enumerate(self.inputs):
+                if i < len(self.left.inputs):  # Get from left
+                    m, inp2 = self._recursive_lookup(self.left,
+                                                     self.left.inputs_map,
+                                                     self.left.inputs[i])
+                    inputs_map[inp] = m, inp2
+                else:  # Get from right
+                    m, inp2 = self._recursive_lookup(self.right,
+                                                     self.right.inputs_map,
+                                                     self.right.inputs[i - len(self.left.inputs)])
+                    inputs_map[inp] = m, inp2
+
+        else:
+            for inp in self.left.inputs:
+                m, inp2 = self._recursive_lookup(self.left, self.left.inputs_map, inp)
+                inputs_map[inp] = m, inp2
+
+        return inputs_map
+
+    @property
+    def outputs_map(self):
+        """
+        Map the names of the outputs to this ExpressionTree to the outputs to the leaf models.
+        """
+        outputs_map = {}
+        if not isinstance(self.value, str):  # If we don't have an operator the mapping is trivial
+            return {out: (self.value, out) for out in self.outputs}
+
+        elif self.value == '|':
+            for out in self.outputs:
+                m, out2 = self._recursive_lookup(self.right, self.right.outputs_map, out)
+                outputs_map[out] = m, out2
+
+        elif self.value == '&':
+            for i, out in enumerate(self.outputs):
+                if i < len(self.left.outputs):  # Get from left
+                    m, out2 = self._recursive_lookup(self.left,
+                                                     self.left.outputs_map,
+                                                     self.left.outputs[i])
+                    outputs_map[out] = m, out2
+                else:  # Get from right
+                    m, out2 = self._recursive_lookup(self.right,
+                                                     self.right.outputs_map,
+                                                     self.right.outputs[i - len(self.left.outputs)])
+                    outputs_map[out] = m, out2
+
+        else:
+            for out in self.left.outputs:
+                m, out2 = self._recursive_lookup(self.left, self.left.outputs_map, out)
+                outputs_map[out] = m, out2
+
+        return outputs_map
 
     @property
     def isleaf(self):
