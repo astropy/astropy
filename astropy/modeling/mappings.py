@@ -56,6 +56,8 @@ class Mapping(FittableModel):
                                  for idx in range(n_inputs))
         self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
+        self.input_units_strict = {key: False for key in self._inputs}
+        self.input_units_allow_dimensionless = {key: False for key in self._inputs}
         super(Mapping, self).__init__(name=name, meta=meta)
 
     @property

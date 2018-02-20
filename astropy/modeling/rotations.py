@@ -98,9 +98,9 @@ class _EulerRotation(object):
             b.shape = shape
         return a, b
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def input_units(self):
@@ -350,9 +350,9 @@ class Rotation2D(Model):
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
-    input_units_strict = True
+    _input_units_strict = True
 
-    input_units_allow_dimensionless = True
+    _input_units_allow_dimensionless = True
 
     @property
     def inverse(self):
