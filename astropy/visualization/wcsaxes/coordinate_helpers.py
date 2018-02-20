@@ -209,10 +209,19 @@ class CoordinateHelper:
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def format_coord(self, value, plain=False):
+    def format_coord(self, value, format='auto'):
         """
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
+
+        Parameters
+        ----------
+        value : float
+            The value to format
+        format : { 'auto' | 'ascii' | 'latex' }, optional
+            The format to use - by default the formatting will be adjusted
+            depending on whether Matplotlib is using LaTeX or MathTex. To
+            get plain ASCII strings, use format='ascii'.
         """
 
         if not hasattr(self, "_fl_spacing"):
@@ -231,7 +240,7 @@ class CoordinateHelper:
             value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
-        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, plain=plain)
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, format=format)
 
         return string[0]
 
