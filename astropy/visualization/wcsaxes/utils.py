@@ -126,7 +126,7 @@ def coord_type_from_ctype(ctype):
     """
     if ctype[:4] in ['RA--']:
         return 'longitude', u.hourangle, None
-    if ctype[1:4] == 'LON':
+    elif ctype[1:4] == 'LON':
         return 'longitude', None, None
     elif ctype[:4] in ['HPLN']:
         return 'longitude', None, 180.

@@ -110,7 +110,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
-        assert string_world == '2563 3h43m01s (world)'
+        assert string_world == '2563 3h26m52.0s (world)'
 
         # Test pixel coordinates
         event1 = KeyEvent('test_pixel_coords', canvas, 'w')

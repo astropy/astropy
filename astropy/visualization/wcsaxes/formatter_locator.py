@@ -91,6 +91,16 @@ class BaseFormatterLocator:
         values = np.delete(values, np.s_[index::frequency])
         return values * minor_spacing * self._unit
 
+    @property
+    def format_unit(self):
+        return self._format_unit
+
+    @format_unit.setter
+    def format_unit(self, unit):
+        if not issubclass(unit.__class__, u.UnitBase):
+            raise TypeError("unit should be an astropy UnitBase subclass")
+        self._format_unit = unit
+
     @staticmethod
     def _locate_values(value_min, value_max, spacing):
         imin = np.ceil(value_min / spacing)
@@ -108,13 +118,18 @@ class AngleFormatterLocator(BaseFormatterLocator):
                  unit=None, decimal=None, format_unit=None):
 
         if unit is None:
-            raise UnitsError("Coordinate units should be given")
+            unit = u.degree
+
+        if format_unit is None:
+            format_unit = unit
 
         if format_unit not in (u.degree, u.hourangle, u.hour):
-            if decimal is not None:
+            if decimal is None:
                 decimal = True
             elif decimal is False:
                 raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+        elif decimal is None:
+            decimal = False
 
         self._unit = unit
         self._format_unit = format_unit or unit
@@ -159,7 +174,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if DMS_RE.match(value) is not None:
             self._decimal = False
-            self._unit = u.degree
+            self._format_unit = u.degree
             if '.' in value:
                 self._precision = len(value) - value.index('.') - 1
                 self._fields = 3
@@ -168,7 +183,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 self._fields = value.count(':') + 1
         elif HMS_RE.match(value) is not None:
             self._decimal = False
-            self._unit = u.hourangle
+            self._format_unit = u.hourangle
             if '.' in value:
                 self._precision = len(value) - value.index('.') - 1
                 self._fields = 3
@@ -177,7 +192,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 self._fields = value.count(':') + 1
         elif DDEC_RE.match(value) is not None:
             self._decimal = True
-            self._unit = u.degree
+            self._format_unit = u.degree
             self._fields = 1
             if '.' in value:
                 self._precision = len(value) - value.index('.') - 1
@@ -185,7 +200,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 self._precision = 0
         elif DMIN_RE.match(value) is not None:
             self._decimal = True
-            self._unit = u.arcmin
+            self._format_unit = u.arcmin
             self._fields = 1
             if '.' in value:
                 self._precision = len(value) - value.index('.') - 1
@@ -193,7 +208,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 self._precision = 0
         elif DSEC_RE.match(value) is not None:
             self._decimal = True
-            self._unit = u.arcsec
+            self._format_unit = u.arcsec
             self._fields = 1
             if '.' in value:
                 self._precision = len(value) - value.index('.') - 1
@@ -220,7 +235,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if self._decimal:
 
-            spacing = self._unit / (10. ** self._precision)
+            spacing = self._format_unit / (10. ** self._precision)
 
         else:
 
@@ -234,7 +249,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 else:
                     spacing = u.arcsec / (10. ** self._precision)
 
-        if self._unit is u.hourangle:
+        if self._format_unit is u.hourangle:
             spacing *= 15
 
         return spacing
@@ -295,7 +310,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             unit = self._format_unit
 
             if self.format is None:
-                if self._decimal:
+                if decimal:
                     # Here we assume the spacing can be arbitrary, so for example
                     # 1.000223 degrees, in which case we don't want to have a
                     # format that rounds to degrees. So we find the number of
@@ -344,15 +359,13 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         sep = ('\xb0', "'", '"')
                         fmt = None
                 else:
-                    if rcParams['text.usetex']:
+                    if plain:
+                        fmt = None
+                    elif rcParams['text.usetex']:
                         fmt = 'latex'
                     else:
                         sep = (r'$\mathregular{^h}$', r'$\mathregular{^m}$', r'$\mathregular{^s}$')
                         fmt = None
-
-            if plain:
-                fmt = None
-                sep = 'fromunit'
 
             angles = Angle(values)
             string = angles.to_string(unit=unit,
@@ -384,16 +397,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             self._format_unit = values.unit
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
-
-    @property
-    def format_unit(self):
-        return self._format_unit
-
-    @format_unit.setter
-    def format_unit(self, unit):
-        if not issubclass(unit.__class__, u.UnitBase):
-            raise TypeError("unit should be an astropy UnitBase subclass")
-        self._format_unit = unit
 
     @property
     def spacing(self):
@@ -443,7 +446,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @property
     def base_spacing(self):
-        return self._unit / (10. ** self._precision)
+        return self._format_unit / (10. ** self._precision)
 
     def locator(self, value_min, value_max):
 
@@ -485,7 +488,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing)
             return values * spacing * self._unit, spacing * self._unit
 
-    def formatter(self, values, spacing):
+    def formatter(self, values, spacing, plain=False):
 
         if len(values) > 0:
             if self.format is None:
