@@ -108,12 +108,14 @@ class AngleFormatterLocator(BaseFormatterLocator):
                  unit=None, decimal=None, format_unit=None):
 
         if unit is None:
-            unit = u.degree
-        elif unit not in (u.degree, u.hourangle, u.hour):
-            if decimal is None:
+            raise UnitsError("Coordinate units should be given")
+
+        if format_unit not in (u.degree, u.hourangle, u.hour):
+            if decimal is not None:
                 decimal = True
             elif decimal is False:
                 raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+
         self._unit = unit
         self._format_unit = format_unit or unit
         self._decimal = decimal
@@ -270,7 +272,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     spacing_deg = self.base_spacing.to_value(u.degree)
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
-                    if self._unit is u.degree:
+                    if self._format_unit is u.degree:
                         from .utils import select_step_degree
                         spacing_deg = select_step_degree(dv).to_value(u.degree)
                     else:
