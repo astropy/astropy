@@ -101,6 +101,7 @@ class CoordinatesMap:
                     coord_wrap = coord_meta['wrap'][coord_index]
                     coord_unit = coord_meta['unit'][coord_index]
                     name = coord_meta['name'][coord_index]
+                    format_unit = None
                 except IndexError:
                     raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
 

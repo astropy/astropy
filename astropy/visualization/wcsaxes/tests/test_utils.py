@@ -61,10 +61,10 @@ def test_select_step_scalar():
 
 
 def test_coord_type_from_ctype():
-    assert coord_type_from_ctype(' LON') == ('longitude', None)
-    assert coord_type_from_ctype(' LAT') == ('latitude', None)
-    assert coord_type_from_ctype('HPLN') == ('longitude', 180.)
-    assert coord_type_from_ctype('HPLT') == ('latitude', None)
-    assert coord_type_from_ctype('RA--') == ('longitude', None)
-    assert coord_type_from_ctype('DEC-') == ('latitude', None)
-    assert coord_type_from_ctype('spam') == ('scalar', None)
+    assert coord_type_from_ctype(' LON') == ('longitude', None, None)
+    assert coord_type_from_ctype(' LAT') == ('latitude', None, None)
+    assert coord_type_from_ctype('HPLN') == ('longitude', None, 180.)
+    assert coord_type_from_ctype('HPLT') == ('latitude', None, None)
+    assert coord_type_from_ctype('RA--') == ('longitude', u.hourangle, None)
+    assert coord_type_from_ctype('DEC-') == ('latitude', None, None)
+    assert coord_type_from_ctype('spam') == ('scalar', None, None)

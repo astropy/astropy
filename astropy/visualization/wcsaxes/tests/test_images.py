@@ -110,7 +110,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(0., 720.)
 
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
 
         return fig
 
@@ -236,7 +236,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
 
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
 
         return fig
 
@@ -255,7 +255,7 @@ class TestBasic(BaseImageTests):
         ax.plot_coord(c, 'o')
 
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
 
         return fig
 
@@ -274,7 +274,7 @@ class TestBasic(BaseImageTests):
         ax.plot_coord(c)
 
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
 
         return fig
 
@@ -395,7 +395,7 @@ class TestBasic(BaseImageTests):
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
     @pytest.mark.remote_data(source='astropy')
@@ -421,7 +421,7 @@ class TestBasic(BaseImageTests):
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
         # For backward-compatibility with previous reference images
-        ax.coords[0].set_major_formatter('dd:mm:ss')
+        ax.coords[0].set_format_unit(u.degree)
         return fig
 
     @pytest.mark.remote_data(source='astropy')

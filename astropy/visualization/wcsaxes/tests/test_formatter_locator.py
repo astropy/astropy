@@ -134,7 +134,7 @@ class TestAngleFormatterLocator:
                                                     ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
-        assert fl.formatter([15.392231] * u.degree, None)[0] == string
+        assert fl.formatter([15.392231] * u.degree, None, plain=True)[0] == string
 
     @pytest.mark.parametrize(('separator', 'format', 'string'), [(('deg', "'", '"'), 'dd', '15deg'),
                                                                  (('deg', "'", '"'), 'dd:mm', '15deg24\''),
@@ -201,7 +201,7 @@ class TestAngleFormatterLocator:
         fl = AngleFormatterLocator()
         assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
 
-    @pytest.mark.parametrize(('unit', 'decimal', 'spacing', 'string'),
+    @pytest.mark.parametrize(('format_unit', 'decimal', 'spacing', 'string'),
                              [(u.degree, False, 2 * u.degree, '15\xb0'),
                               (u.degree, False, 2 * u.arcmin, '15\xb024\''),
                               (u.degree, False, 2 * u.arcsec, '15\xb023\'32"'),
@@ -220,10 +220,10 @@ class TestAngleFormatterLocator:
                               # Make sure that specifying None defaults to
                               # decimal for non-degree or non-hour angles
                               (u.arcsec, None, 0.01 * u.arcsec, '55412.03')])
-    def test_formatter_no_format_with_units(self, unit, decimal, spacing, string):
+    def test_formatter_no_format_with_units(self, format_unit, decimal, spacing, string):
         # Check the formatter works when specifying the default units and
         # decimal behavior to use.
-        fl = AngleFormatterLocator(unit=unit, decimal=decimal)
+        fl = AngleFormatterLocator(unit=u.degree, format_unit=format_unit, decimal=decimal)
         assert fl.formatter([15.392231] * u.degree, spacing, plain=True)[0] == string
 
     def test_incompatible_unit_decimal(self):
