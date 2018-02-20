@@ -765,7 +765,6 @@ Other Changes and Additions
 
 
 2.0.5 (unreleased)
-2.0.4 (unreleased)
 ==================
 
 Bug Fixes
