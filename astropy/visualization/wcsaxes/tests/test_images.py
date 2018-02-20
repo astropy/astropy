@@ -582,3 +582,30 @@ class TestBasic(BaseImageTests):
         fig = plt.figure(figsize=(5, 3))
         ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
         return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_hms_labels(self):
+        # This tests the apparance of the hms superscripts in tick labels
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={'text.usetex': True})
+    def test_latex_labels(self):
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_axes([0.3, 0.2, 0.65, 0.6],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_ylim(-0.5, 0.5)
+        ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        return fig
