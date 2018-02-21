@@ -345,6 +345,8 @@ packages:
 
     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
 
+    - `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ 1.0 or later
+
     - `Graphviz <http://www.graphviz.org>`_
 
     - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
