@@ -212,6 +212,7 @@ def helper_frexp(f, unit):
                             .format(f.__name__))
     return [None], (None, None)
 
+
 # TWO ARGUMENT UFUNC HELPERS
 #
 # The functions below take a two arguments. The output of the helper function
@@ -448,18 +449,28 @@ if isinstance(getattr(np, 'divmod', None), np.ufunc):
 # https://docs.scipy.org/doc/scipy/reference/special.html
 
 try:
+    import scipy
     import scipy.special as sps
 except ImportError:
     pass
 else:
+    from ..utils import minversion
+
     # ufuncs that require dimensionless input and give dimensionless output
-    dimensionless_to_dimensionless_sps_ufuncs = (
-        sps.erf, sps.gamma, sps.loggamma, sps.gammasgn,
+    dimensionless_to_dimensionless_sps_ufuncs = [
+        sps.erf, sps.gamma, sps.gammasgn,
         sps.psi, sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz,
         sps.dawsn, sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2,
         sps.exp10, sps.j0, sps.j1, sps.y0, sps.y1, sps.i0, sps.i0e, sps.i1,
         sps.i1e, sps.k0, sps.k0e, sps.k1, sps.k1e, sps.itj0y0,
-        sps.it2j0y0, sps.iti0k0, sps.it2i0k0)
+        sps.it2j0y0, sps.iti0k0, sps.it2i0k0]
+
+    # TODO: Revert https://github.com/astropy/astropy/pull/7219 when astropy
+    #       requires scipy>=0.18.
+    # See https://github.com/astropy/astropy/issues/7159
+    if minversion(scipy, "0.18"):
+        dimensionless_to_dimensionless_sps_ufuncs.append(sps.loggamma)
+
     for ufunc in dimensionless_to_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
@@ -556,7 +567,7 @@ def converters_and_unit(function, method, *args):
                                      .format(function.__name__))
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
-                # with zero or checked to be finite.  Then, ufunc will fail too.
+                # with zero or checked to be finite. Then, ufunc will fail too.
                 raise TypeError("Unsupported operand type(s) for ufunc {0}: "
                                 "'{1}' and '{2}'"
                                 .format(function.__name__,
