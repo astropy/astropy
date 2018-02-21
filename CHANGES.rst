@@ -248,8 +248,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
-
+- The documentation build now uses the Sphinx configuration from sphinx-astropy
+  rather than from astropy-helpers. [#7139]
 
 3.0.2 (unreleased)
 ==================
