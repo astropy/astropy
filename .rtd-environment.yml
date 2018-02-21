@@ -25,5 +25,5 @@ dependencies:
   - mpmath
   - pytest
   - pip:
-    - sphinx-gallery>=0.1.12
+    - "git+https://github.com/sphinx-gallery/sphinx-gallery.git"
     - jplephem
