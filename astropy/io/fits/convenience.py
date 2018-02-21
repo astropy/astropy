@@ -443,7 +443,7 @@ def table_to_hdu(table, character_as_bytes=False):
         The FITS binary table HDU.
     """
     # Avoid circular imports
-    from .connect import is_column_keyword, REMOVE_KEYWORDS
+    from .connect import is_column_keyword, python_to_tdisp, REMOVE_KEYWORDS
 
     # Header to store Time related metadata
     hdr = None
@@ -452,7 +452,7 @@ def table_to_hdu(table, character_as_bytes=False):
     if table.has_mixin_columns:
         # Import is done here, in order to avoid it at build time as erfa is not
         # yet available then.
-        from ...table.column import BaseColumn, Column
+        from ...table.column import Column, BaseColumn
         from ...time import Time
         from .fitstime import time_to_fits
 
@@ -497,8 +497,18 @@ def table_to_hdu(table, character_as_bytes=False):
     else:
         table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
 
-    # Set units for output HDU
+    # Set units and format display for output HDU
     for col in table_hdu.columns:
+
+        if table[col.name].info.format is not None:
+            # check for boolean types, special format case
+            logical = False if table[col.name].dtype != bool else True
+
+            tdisp_format = python_to_tdisp(table[col.name].info.format,
+                                           logical_dtype=logical)
+            if tdisp_format is not None:
+                col.disp = tdisp_format
+
         unit = table[col.name].unit
         if unit is not None:
             try:
