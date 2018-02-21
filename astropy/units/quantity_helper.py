@@ -13,7 +13,6 @@ from fractions import Fraction
 import numpy as np
 from .core import (UnitsError, UnitConversionError, UnitTypeError,
                    dimensionless_unscaled, get_current_unit_registry)
-from ..utils import minversion
 
 
 def _d(unit):
@@ -455,6 +454,9 @@ try:
 except ImportError:
     pass
 else:
+    from ..utils import minversion
+
+    # ufuncs that require dimensionless input and give dimensionless output
     dimensionless_to_dimensionless_sps_ufuncs = [
         sps.erf, sps.gamma, sps.gammasgn,
         sps.psi, sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz,
@@ -469,7 +471,6 @@ else:
     if minversion(scipy, "0.18"):
         dimensionless_to_dimensionless_sps_ufuncs.append(sps.loggamma)
 
-    # ufuncs that require dimensionless input and give dimensionless output
     for ufunc in dimensionless_to_dimensionless_sps_ufuncs:
         UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
