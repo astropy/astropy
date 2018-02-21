@@ -505,8 +505,16 @@ class Parameter(OrderedDescriptor):
 
             if model_axis < 0:
                 model_axis = len(shape) + model_axis
+                shape = shape[:model_axis] + shape[model_axis + 1:]
+            else:
+                # When a model set is initialized, the dimension of the parameters
+                # is increased by model_set_axis+1. To find the shape of a parameter
+                # within a single model the extra dimensions need to be removed first.
+                # The following dimension shows the number of models.
+                # The rest of the shape tuple represents the shape of the parameter
+                # in a single model.
 
-            shape = shape[:model_axis] + shape[model_axis + 1:]
+                shape = shape[model_axis + 1:]
 
         return shape
 
