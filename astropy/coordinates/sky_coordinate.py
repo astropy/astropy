@@ -1702,6 +1702,9 @@ class SkyCoord(ShapedLikeNDArray):
             from . import jparser
             if jparser.search(name):
                 icrs_coord = jparser.to_skycoord(name, frame)
+            else:
+                # if the parser failed, do sesame query
+                icrs_coord = get_icrs_coordinates(name)
         else:
             icrs_coord = get_icrs_coordinates(name)
 
