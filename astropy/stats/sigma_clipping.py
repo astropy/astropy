@@ -3,6 +3,7 @@
 import numpy as np
 import warnings
 from ..utils.exceptions import AstropyUserWarning
+from ..utils import isiterable
 
 
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
@@ -144,10 +145,19 @@ class SigmaClip:
         min_value = max_value - std * self.sigma_lower
         max_value += std * self.sigma_upper
 
+        # Ensure min/max can be broadcast with the data (if arrays):
         if axis is not None:
-            if axis != 0:
-                min_value = np.expand_dims(min_value, axis=axis)
-                max_value = np.expand_dims(max_value, axis=axis)
+            if not isiterable(axis):
+                axis = (axis,)
+
+            # Convert negative indices & restore reduced axes, with length 1:
+            axis = tuple(_filtered_data.ndim + n if n < 0 else n for n in axis)
+            mshape = tuple(1 if dim in axis else sz
+                           for dim, sz in enumerate(_filtered_data.shape))
+
+            min_value = min_value.reshape(mshape)
+            max_value = max_value.reshape(mshape)
+
         if max_value is np.ma.masked:
             max_value = np.ma.MaskedArray(np.nan, mask=True)
             min_value = np.ma.MaskedArray(np.nan, mask=True)
@@ -165,12 +175,12 @@ class SigmaClip:
         ----------
         data : array-like
             The data to be sigma clipped.
-        axis : int or `None`, optional
-            If not `None`, clip along the given axis.  For this case,
-            ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``,
-            which are expected to return an array with the axis
-            dimension removed (like the numpy functions).  If `None`,
-            clip over all axes.  Defaults to `None`.
+        axis : `None` or int or tuple of int, optional
+            If not `None`, clip along the given axis or axes.  For this case,
+            ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
+            are expected to return an array with the axis dimension(s) removed
+            (like the numpy functions).  If `None`, clip over all axes.
+            Defaults to `None`.
         copy : bool, optional
             If `True`, the ``data`` array will be copied.  If `False`,
             the returned masked array data will contain the same array
@@ -269,10 +279,10 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
             deviation = data - cenfunc(data [,axis=int])
 
         Defaults to the standard deviation (`numpy.std`).
-    axis : int or `None`, optional
-        If not `None`, clip along the given axis.  For this case,
+    axis : `None` or int or tuple of int, optional
+        If not `None`, clip along the given axis or axes.  For this case,
         ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
-        are expected to return an array with the axis dimension removed
+        are expected to return an array with the axis dimension(s) removed
         (like the numpy functions).  If `None`, clip over all axes.
         Defaults to `None`.
     copy : bool, optional
@@ -309,7 +319,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
 
         However, for multidimensional data, this flattens the array,
         which may not be what one wants (especially if filtering was
-        done along an axis).
+        done along a subset of the axes).
 
     See Also
     --------
@@ -425,10 +435,10 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         std_ddof``, where ``N`` represents the number of elements.  The
         default is zero.
 
-    axis : int or `None`, optional
-        If not `None`, clip along the given axis.  For this case,
+    axis : `None` or int or tuple of int, optional
+        If not `None`, clip along the given axis or axes.  For this case,
         ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
-        are expected to return an array with the axis dimension removed
+        are expected to return an array with the axis dimension(s) removed
         (like the numpy functions).  If `None`, clip over all axes.
         Defaults to `None`.
 
