@@ -1663,7 +1663,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, frame='icrs'):
+    def from_name(cls, name, frame='icrs', use_parser=False):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -1678,6 +1678,15 @@ class SkyCoord(ShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
+        use_parser: bool
+            Whether to attempt extracting the coordinates from the name by
+            parsing with a regex. For objects catalog names that have
+            J-coordinates embedded in their names eg:
+            'CRTS SSS100805 J194428-420209', this may be much faster than a
+            sesame query for the same object name. The coordinates extracted
+            in this way may differ from the database coordinates by a few
+            deci-arcseconds, so only use this option if you do not need
+            sub-arcsecond accuracy for coordinates.
 
         Returns
         -------
@@ -1685,13 +1694,14 @@ class SkyCoord(ShapedLikeNDArray):
             Instance of the SkyCoord class.
         """
 
-        from .jparser import jparser
         from .name_resolve import get_icrs_coordinates
 
-        # first try extract coordinates from name. do this first since it
-        # may be much faster than sesame query
-        if jparser.match(name):
-            icrs_coord = jparser.to_skycoord(name, frame)
+        # if requested, first try extract coordinates from name. do this first
+        # since it may be much faster than sesame query
+        if use_parser:
+            from . import jparser
+            if jparser.search(name):
+                icrs_coord = jparser.to_skycoord(name, frame)
         else:
             icrs_coord = get_icrs_coordinates(name)
 
