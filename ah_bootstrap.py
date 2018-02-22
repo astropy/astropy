@@ -142,7 +142,6 @@ import pkg_resources
 
 from setuptools import Distribution
 from setuptools.package_index import PackageIndex
-from setuptools.sandbox import run_setup
 
 from distutils import log
 from distutils.debug import DEBUG
@@ -486,9 +485,10 @@ class _Bootstrapper(object):
             # setup.py exists we can generate it
             setup_py = os.path.join(path, 'setup.py')
             if os.path.isfile(setup_py):
-                with _silence():
-                    run_setup(os.path.join(path, 'setup.py'),
-                              ['egg_info'])
+                # We use subprocess instead of run_setup from setuptools to
+                # avoid segmentation faults - see the following for more details:
+                # https://github.com/cython/cython/issues/2104
+                sp.check_output([sys.executable, 'setup.py', 'egg_info'], cwd=path)
 
                 for dist in pkg_resources.find_distributions(path, True):
                     # There should be only one...
