@@ -40,6 +40,9 @@ Added support for saving all representation classes and many coordinate frames t
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+``HDUList.pop()`` now accepts string and tuple extension name
+ specifications. [#7236]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
