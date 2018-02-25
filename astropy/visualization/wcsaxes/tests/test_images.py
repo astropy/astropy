@@ -109,7 +109,10 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(0., 720.)
         ax.set_ylim(0., 720.)
 
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
@@ -235,7 +238,10 @@ class TestBasic(BaseImageTests):
         ax.coords[0].grid(grid_type='contours', color='blue', linestyle='solid')
         ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
 
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
@@ -254,7 +260,10 @@ class TestBasic(BaseImageTests):
         c = SkyCoord(266 * u.deg, -29 * u.deg)
         ax.plot_coord(c, 'o')
 
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
@@ -273,7 +282,10 @@ class TestBasic(BaseImageTests):
         c = SkyCoord([266, 266.8] * u.deg, [-29, -28.9] * u.deg)
         ax.plot_coord(c)
 
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
@@ -394,7 +406,10 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
         return fig
 
@@ -420,7 +435,10 @@ class TestBasic(BaseImageTests):
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
-        # For backward-compatibility with previous reference images
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
         return fig
 

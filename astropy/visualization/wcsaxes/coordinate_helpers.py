@@ -269,9 +269,7 @@ class CoordinateHelper:
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
         """
-        if not issubclass(unit.__class__, u.UnitBase):
-            raise TypeError("unit should be an astropy UnitBase subclass")
-        self._formatter_locator.format_unit = unit
+        self._formatter_locator.format_unit = u.Unit(unit)
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None, exclude_overlapping=False):
