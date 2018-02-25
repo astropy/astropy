@@ -303,7 +303,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
-
             decimal = self._decimal
             unit = self._format_unit
 
