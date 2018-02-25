@@ -97,9 +97,7 @@ class BaseFormatterLocator:
 
     @format_unit.setter
     def format_unit(self, unit):
-        if not issubclass(unit.__class__, u.UnitBase):
-            raise TypeError("unit should be an astropy UnitBase subclass")
-        self._format_unit = unit
+        self._format_unit = u.Unit(unit)
 
     @staticmethod
     def _locate_values(value_min, value_max, spacing):
