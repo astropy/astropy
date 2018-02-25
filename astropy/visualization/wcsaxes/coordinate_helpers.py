@@ -130,7 +130,7 @@ class CoordinateHelper:
         ----------
         draw_grid : bool
             Whether to show the gridlines
-        grid_type : { 'lines' | 'contours' }
+        grid_type : {'lines', 'contours'}
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
             (``'lines'``) or by determining the world coordinates at many
@@ -218,7 +218,7 @@ class CoordinateHelper:
         ----------
         value : float
             The value to format
-        format : { 'auto' | 'ascii' | 'latex' }, optional
+        format : {'auto', 'ascii', 'latex'}, optional
             The format to use - by default the formatting will be adjusted
             depending on whether Matplotlib is using LaTeX or MathTex. To
             get plain ASCII strings, use format='ascii'.
