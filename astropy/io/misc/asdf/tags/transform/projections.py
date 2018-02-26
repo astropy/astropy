@@ -5,11 +5,19 @@ from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
+import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
 
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
+
+
+def _parameter_to_value(param):
+    if param.unit is not None:
+        return u.Quantity(param)
+    else:
+        return param.value
 
 
 class AffineType(TransformType):
@@ -33,7 +41,8 @@ class AffineType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        node = {'matrix': model.matrix.value, 'translation': model.translation.value}
+        node = {'matrix': _parameter_to_value(model.matrix),
+                'translation': _parameter_to_value(model.translation)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
@@ -55,7 +64,8 @@ class Rotate2DType(TransformType):
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
-        return {'angle': model.angle.value}
+        node = {'angle': _parameter_to_value(model.angle)}
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
@@ -93,36 +103,38 @@ class Rotate3DType(TransformType):
     def to_tree_transform(cls, model, ctx):
         if isinstance(model, modeling.rotations.RotateNative2Celestial):
             try:
-                return {"phi": model.lon.value,
-                        "theta": model.lat.value,
-                        "psi": model.lon_pole.value,
+                node = {"phi": _parameter_to_value(model.lon),
+                        "theta": _parameter_to_value(model.lat),
+                        "psi": _parameter_to_value(model.lon_pole),
                         "direction": "native2celestial"
                         }
             except AttributeError:
-                return {"phi": model.lon,
+                node = {"phi": model.lon,
                         "theta": model.lat,
                         "psi": model.lon_pole,
                         "direction": "native2celestial"
                         }
         elif isinstance(model, modeling.rotations.RotateCelestial2Native):
             try:
-                return {"phi": model.lon.value,
-                        "theta": model.lat.value,
-                        "psi": model.lon_pole.value,
+                node = {"phi": _parameter_to_value(model.lon),
+                        "theta": _parameter_to_value(model.lat),
+                        "psi": _parameter_to_value(model.lon_pole),
                         "direction": "celestial2native"
                         }
             except AttributeError:
-                return {"phi": model.lon,
+                node = {"phi": model.lon,
                         "theta": model.lat,
                         "psi": model.lon_pole,
                         "direction": "celestial2native"
                         }
         else:
-            return {"phi": model.phi.value,
-                    "theta": model.theta.value,
-                    "psi": model.psi.value,
+            node = {"phi": _parameter_to_value(model.phi),
+                    "theta": _parameter_to_value(model.theta),
+                    "psi": _parameter_to_value(model.psi),
                     "direction": model.axes_order
                     }
+
+        return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
     def assert_equal(cls, a, b):
