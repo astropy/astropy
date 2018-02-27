@@ -94,3 +94,18 @@ class TestFITSheader_script(FitsTestCase):
         assert len(out) == 5
         assert out[3].endswith('test1.fits    0.22 49492.65366175')
         assert out[4].endswith('test0.fits    0.23 49491.65366175')
+
+    def test_dotkeyword(self, capsys):
+        fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
+                         self.data('fixed-1890.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 2
+        assert out[1].strip().endswith("HIERARCH ESO DET ID = 'DV13' / Detector system Id")
+
+        fitsheader.main(['-e', '0', '-k', 'ESO.DET.ID',
+                         self.data('fixed-1890.fits')])
+        out, err = capsys.readouterr()
+        out = out.splitlines()
+        assert len(out) == 2
+        assert out[1].strip().endswith("HIERARCH ESO DET ID = 'DV13' / Detector system Id")
