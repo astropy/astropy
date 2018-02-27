@@ -45,6 +45,8 @@ documentation.
 
 import sys
 
+import numpy as np
+
 from ... import fits
 from .... import log
 
@@ -275,6 +277,59 @@ def print_headers_as_table(args):
     resulting_table.write(sys.stdout, format=args.table)
 
 
+def print_headers_as_comparison(args):
+    """Prints FITS header(s) with keywords as columns.
+    
+    This follows the dfits+fitsort format.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Arguments passed from the command-line as defined below.
+    """
+    tables = []
+    # Create a Table object for each file
+    for filename in args.filename:  # Support wildcards
+        try:
+            formatter = TableHeaderFormatter(filename)
+            tbl = formatter.parse(args.extensions,
+                                  args.keywords,
+                                  args.compressed)
+            if tbl:
+                tables.append(tbl)
+        except OSError as e:
+            log.error(str(e))  # file not found or unreadable
+    # Concatenate the tables
+    if len(tables) == 0:
+        return False
+    elif len(tables) == 1:
+        resulting_table = tables[0]
+    else:
+        from .... import table
+        resulting_table = table.vstack(tables)
+    # If we obtained more than one hdu, merge hdu and keywords columns
+    if len(np.unique(resulting_table['hdu']))>1:
+        for tab in tables:
+            new_column = table.Column(['{}:{}'.format(row['hdu'],row['keyword']) for row in tab])
+            tab.add_column(new_column, name='hdu+keyword')
+        keyword_column_name = 'hdu+keyword'
+    else:
+        keyword_column_name = 'keyword'
+    # Check how many hdus we are processing
+    final_tables = []
+    for tab in tables:
+        final_table = [table.Column([tab['filename'][0]], name='filename')]
+        for row in tab:
+            final_table.append(table.Column([row['value']], name=row[keyword_column_name]))
+        final_tables.append(table.Table(final_table))
+    final_table = table.vstack(final_tables)
+    # Sort if requested
+    if args.fitsort is not None:
+        final_table.sort(args.fitsort)
+    # Reorganise to keyword by columns
+    final_table.pprint(max_lines=-1, show_dtype=True)
+
+
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
     import argparse
@@ -301,6 +356,12 @@ def main(args=None):
                              'format; the default format is '
                              '"ascii.fixed_width" (can be "ascii.csv", '
                              '"ascii.html", "ascii.latex", "fits", etc)')
+    parser.add_argument('-f', '--fitsort',
+                        nargs='?', default=False, metavar='SORT_KEYWORD',
+                        help='print the headers as a table with each unique '
+                             'keyword in a given column (fitsort format); '
+                             'if a SORT_KEYWORD is specified, the result will be '
+                             'sorted along that keyword')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -309,16 +370,18 @@ def main(args=None):
                         help='path to one or more files; '
                              'wildcards are supported')
     args = parser.parse_args(args)
-
+    
     # If `--table` was used but no format specified,
     # then use ascii.fixed_width by default
     if args.table is None:
         args.table = 'ascii.fixed_width'
-
+    
     # Now print the desired headers
     try:
         if args.table:
             print_headers_as_table(args)
+        elif args.fitsort is not False:
+            print_headers_as_comparison(args)
         else:
             print_headers_traditional(args)
     except OSError as e:
