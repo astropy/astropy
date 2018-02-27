@@ -58,6 +58,7 @@ documentation.
 """
 
 import sys
+import argparse
 
 import numpy as np
 
@@ -338,15 +339,29 @@ def print_headers_as_comparison(args):
         final_tables.append(table.Table(final_table))
     final_table = table.vstack(final_tables)
     # Sort if requested
-    if args.fitsort is not None:
+    if args.fitsort is not True:  # then it must be a keyword, therefore sort
         final_table.sort(args.fitsort)
     # Reorganise to keyword by columns
     final_table.pprint(max_lines=-1, show_dtype=True)
 
 
+class KeywordAppendAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            keyword = values.replace('.',' ')
+            if namespace.keywords is None:
+                namespace.keywords = []
+            if keyword not in namespace.keywords:
+                namespace.keywords.append(keyword)
+            if option_string in ['-f','--fitsort']:
+                namespace.fitsort = keyword
+        else:
+            if option_string in ['-f','--fitsort']:
+                namespace.fitsort = True
+
+
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description=('Print the header(s) of a FITS file. '
@@ -360,7 +375,7 @@ def main(args=None):
                              'this argument can be repeated '
                              'to select multiple extensions')
     parser.add_argument('-k', '--keyword', metavar='KEYWORD',
-                        action='append', dest='keywords',
+                        action=KeywordAppendAction, dest='keywords',
                         help='specify a keyword; this argument can be '
                              'repeated to select multiple keywords; '
                              'also supports wildcards')
@@ -372,6 +387,7 @@ def main(args=None):
                              '"ascii.html", "ascii.latex", "fits", etc)')
     parser.add_argument('-f', '--fitsort',
                         nargs='?', default=False, metavar='SORT_KEYWORD',
+                        action=KeywordAppendAction,
                         help='print the headers as a table with each unique '
                              'keyword in a given column (fitsort format); '
                              'if a SORT_KEYWORD is specified, the result will be '
