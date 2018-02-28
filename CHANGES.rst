@@ -276,6 +276,8 @@ astropy.io.registry
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Fix lookup fields by ID. [#7208]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
