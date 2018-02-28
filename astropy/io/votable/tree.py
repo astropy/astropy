@@ -2860,14 +2860,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
                 unique_names.append(new_name)
-            array = self.array.copy()
-            array.dtype.names = unique_names
             names = unique_names
         else:
-            array = self.array
             names = [field.ID for field in self.fields]
 
-        table = Table(self.array, meta=meta)
+        table = Table(self.array, names=names, meta=meta)
 
         for name, field in zip(names, self.fields):
             column = table[name]
