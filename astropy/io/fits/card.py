@@ -10,7 +10,7 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
 from ...utils.exceptions import AstropyUserWarning
-
+from ...units.format.fits import Fits
 
 __all__ = ['Card', 'Undefined']
 
@@ -48,6 +48,9 @@ class Card(_Verify):
     # This will match any printable ASCII character excluding '='
     _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$',
                                     re.I)
+
+    # String for a unit keyword
+    _keywd_UNIT_RE = re.compile(r'BUNIT|TUNIT[0-9]{1,4}$')
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
@@ -1122,6 +1125,17 @@ class Card(_Verify):
                              'string: {!r}).'.format(self.keyword, valuecomment),
                     fix_text=fix_text,
                     fix=self._fix_value))
+
+        # verify the unit, if relevant
+        if self._keywd_UNIT_RE.match(keyword):
+            try:
+                Fits.parse(self.value)
+            except ValueError:
+                errs.append(self.run_option(
+                    option,
+                    err_text='Unit {!r} for keyword {!r} does not conform '
+                             'to FITS standard'.format(self.value, keyword),
+                    fixable=False))
 
         # verify the comment (string), it is never fixable
         m = self._value_NFSC_RE.match(valuecomment)
