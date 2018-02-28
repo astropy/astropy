@@ -817,10 +817,10 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         weights = args[1]
         _fitter_to_model_params(model, fps)
         meas = args[-1]
-        if weights is None:
-            return np.ravel(model(*args[2: -1]) - meas)
-        else:
-            return np.ravel(weights * (model(*args[2: -1]) - meas))
+        data = model(*args[2: -1], model_set_axis=False)
+        if weights is not None:
+            data *= weights
+        return np.ravel(data - meas)
 
     @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
@@ -870,9 +870,14 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         from scipy import optimize
 
         model_copy = _validate_model(model, self.supported_constraints)
-        farg = (model_copy, weights, ) + _convert_input(x, y, z)
+        n_models = len(model_copy)
+        model_set_axis = False if n_models > 1 else model_copy.model_set_axis
+        farg = ((model_copy, weights) +
+                _convert_input(x, y, z, n_models=n_models, rollaxis=False,
+                               model_set_axis=model_set_axis))
 
-        if model_copy.fit_deriv is None or estimate_jacobian:
+        if (model_copy.fit_deriv is None or model_set_axis is False
+                or estimate_jacobian):
             dfunc = None
         else:
             dfunc = self._wrap_deriv
@@ -948,7 +953,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return [np.ravel(_) for _ in residues]
         else:
             if z is None:
-                return [np.ravel(_) for _ in np.ravel(weights) * np.array(model.fit_deriv(x, *params))]
+                return [np.ravel(_) for _ in (np.ravel(weights) * np.array(model.fit_deriv(x, *params)))]
             else:
                 if not model.col_fit_deriv:
                     return [np.ravel(_) for _ in (
@@ -1244,7 +1249,7 @@ class JointFitter(metaclass=_FitterMeta):
             model.parameters = np.array(mparams)
 
 
-def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
+def _convert_input(x, y, z=None, n_models=1, model_set_axis=0, rollaxis=True):
     """Convert inputs to float arrays."""
 
     x = np.asanyarray(x, dtype=float)
@@ -1269,7 +1274,8 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # That is, each model should be represented by a column.  TODO:
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...
-            y = np.rollaxis(y, model_set_axis, y.ndim)
+            if rollaxis:
+                y = np.rollaxis(y, model_set_axis, y.ndim)
         else:
             # Shape of z excluding model_set_axis
             z_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1:]
@@ -1409,10 +1415,6 @@ def _validate_model(model, supported_constraints):
         warnings.warn('Model is linear in parameters; '
                       'consider using linear fitting methods.',
                       AstropyUserWarning)
-    elif len(model) != 1:
-        # for now only single data sets ca be fitted
-        raise ValueError("Non-linear fitters can only fit "
-                         "one data set at a time.")
     _validate_constraints(supported_constraints, model)
 
     model_copy = model.copy()

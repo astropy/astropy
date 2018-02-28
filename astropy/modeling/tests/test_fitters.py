@@ -511,6 +511,16 @@ class TestNonLinearFitters:
         assert_allclose(fmod.parameters, beta.A.ravel())
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
+    def test_model_set_LevMar(self):
+        gauss = models.Gaussian1D([100]*3, [4.5, 5, 5.5],
+                                  stddev=[0.5, 1, 2], n_models=3)
+        ydata = np.stack([self.ydata] * 3)
+
+        fitter = LevMarLSQFitter()
+        fitted_model = fitter(gauss, self.xdata, ydata)
+        assert_allclose(fitted_model.parameters, [100]*3 + [5]*3 + [1]*3,
+                        rtol=0.1)
+
 
 @pytest.mark.skipif('not HAS_PKG')
 class TestEntryPoint:
