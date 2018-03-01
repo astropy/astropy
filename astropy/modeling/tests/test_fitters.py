@@ -513,13 +513,17 @@ class TestNonLinearFitters:
 
     def test_minimize(self):
         """
-        Runs MinimizeFitter with most methords.
+        Runs MinimizeFitter with most methods.
         """
+        # get rid of tiny bound so the method which don't support
+        # bounds can be tested
+        self.gauss.bounds['stddev'] = (None, None)
         for meth in ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'L-BFGS-B', 'TNC', 'SLSQP']:
             mm = MinimizeFitter(meth)
             res=mm(self.gauss, self.xdata, self.ydata)
-            assert_allclose(res.parameters, self.initial_values, rtol=1e-3)
-
+            # becuase bound removed stddev could go neg
+            res.parameters[-1] = abs(res.parameters[-1])
+            assert_allclose(res.parameters, self.initial_values, rtol=0.1)
 
 
 

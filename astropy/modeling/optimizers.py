@@ -351,7 +351,7 @@ class Minimize(Optimization):
                 kwargs['constraints'].append({"type":"ineq","fun":ineq })
 
         res = self.opt_method(objfunc, initval, method=self._method, args=fargs, tol=self._acc, **kwargs)
-	self.scipy_opt_result
+        self.scipy_opt_result = res
 
         if res['status'] == 1:
             warnings.warn("The fit may be unsuccessful; "
