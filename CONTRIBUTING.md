@@ -8,6 +8,11 @@ When opening an issue to report a problem, please try and provide a minimal
 code example that reproduces the issue, and also include details of the
 operating system, and the Python, Numpy, and Astropy versions you are using.
 
+Triage Issues [![Open Source Helpers](https://www.codetriage.com/astropy/astropy/badges/users.svg)](https://www.codetriage.com/astropy/astropy)
+-------------
+
+You can triage issues which may include reproducing bug reports or asking for vital information, such as version numbers or reproduction instructions. If you would like to start triaging issues, one easy way to get started is to [subscribe to astropy on CodeTriage](https://www.codetriage.com/astropy/astropy).
+
 Contributing code
 -----------------
 
