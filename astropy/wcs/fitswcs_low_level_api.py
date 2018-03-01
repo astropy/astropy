@@ -46,25 +46,21 @@ class FITSWCSLowLevelWCS(BaseLowLevelWCS):
             if getattr(self._wcs, distortion_attribute):
                 return np.ones((self.n_world, self.n_pixel), dtype=bool)
 
-        # We flip the PC matrix with [::-1] because WCS and numpy index conventions
-        # are reversed.
-        pc = np.array(self._wcs.wcs.get_pc()[::-1, ::-1])
-        axes = self._wcs.get_axis_types()[::-1]
-
-        # There might be smarter ways to do this with matrix arithmetic
-        for world in range(self.n_world):
-            for pix in range(self.n_pixel):
-                matrix = pc != 0
+        # Assuming linear world coordinates along each axis, the correlation
+        # matrix would be given by whether or not the PC matrix is zero
+        matrix = self._wcs.wcs.get_pc() != 0
 
         # We now need to check specifically for celestial coordinates since
-        # these can assume correlations because of spherical distortions.
-        for world1 in range(self.n_world):
-            if axes[world1]['coordinate_type'] == 'celestial':
-                for world2 in range(self.n_world):
-                    if world1 != world2:
-                        if axes[world2]['coordinate_type'] == 'celestial':
-                            matrix[world1] |= matrix[world2]
-                            matrix[world2] |= matrix[world1]
+        # these can assume correlations because of spherical distortions. For
+        # each celestial coordinate we copy over the pixel dependencies from
+        # the other celestial coordinates.
+        celestial = (self._wcs.wcs.axis_types // 1000) % 10 == 2
+        celestial_indices = np.nonzero(celestial)[0]
+        for world1 in celestial_indices:
+            for world2 in celestial_indices:
+                if world1 != world2:
+                    matrix[world1] |= matrix[world2]
+                    matrix[world2] |= matrix[world1]
 
         return matrix
 
