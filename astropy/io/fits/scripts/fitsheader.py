@@ -347,17 +347,11 @@ def print_headers_as_comparison(args):
 
 class KeywordAppendAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if values:
-            keyword = values.replace('.',' ')
-            if namespace.keywords is None:
-                namespace.keywords = []
-            if keyword not in namespace.keywords:
-                namespace.keywords.append(keyword)
-            if option_string in ['-f','--fitsort']:
-                namespace.fitsort = keyword
-        else:
-            if option_string in ['-f','--fitsort']:
-                namespace.fitsort = True
+        keyword = values.replace('.',' ')
+        if namespace.keywords is None:
+            namespace.keywords = []
+        if keyword not in namespace.keywords:
+            namespace.keywords.append(keyword)
 
 
 def main(args=None):
@@ -385,9 +379,7 @@ def main(args=None):
                              'format; the default format is '
                              '"ascii.fixed_width" (can be "ascii.csv", '
                              '"ascii.html", "ascii.latex", "fits", etc)')
-    parser.add_argument('-f', '--fitsort',
-                        nargs='?', default=False, metavar='SORT_KEYWORD',
-                        action=KeywordAppendAction,
+    parser.add_argument('-f', '--fitsort', action='store_true',
                         help='print the headers as a table with each unique '
                              'keyword in a given column (fitsort format); '
                              'if a SORT_KEYWORD is specified, the result will be '
@@ -410,7 +402,7 @@ def main(args=None):
     try:
         if args.table:
             print_headers_as_table(args)
-        elif args.fitsort is not False:
+        elif args.fitsort:
             print_headers_as_comparison(args)
         else:
             print_headers_traditional(args)
