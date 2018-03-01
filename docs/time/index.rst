@@ -179,8 +179,8 @@ yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:0
 ===========  =================================================  ==============================
 
 .. note:: The :class:`~astropy.time.TimeFITS` format allows for most
-   but not all of the the FITS standard [#]_. Not implemented (yet) is
-   support for a ``LOCAL`` timescale. Furthermore, FITS supports some deprecated
+   but not all of the the FITS standard [#]_. It also supports the
+   ``LOCAL`` timescale. Furthermore, FITS supports some deprecated
    names for timescales; these are translated to the formal names upon
    initialization.  Furthermore, any specific realization information,
    such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
@@ -286,12 +286,17 @@ tdb    Barycentric Dynamical Time  (TDB)
 tt     Terrestrial Time            (TT)
 ut1    Universal Time              (UT1)
 utc    Coordinated Universal Time  (UTC)
+local  Local Time Scale            (LOCAL)
 ====== =================================
-
+  
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
+
+.. note:: ``local`` TimeScale is a scale that cannot be converted to/from any
+   other scale and to which only TimeDelta with ``None`` type scale could be
+   added or subtracted.
 
 The system of transformation between supported time scales is shown in the
 figure below.  Further details are provided in the `Convert time scale`_ section.

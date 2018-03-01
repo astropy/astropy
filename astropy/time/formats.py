@@ -424,9 +424,9 @@ class TimeFromEpoch(TimeFormat):
                 tm = getattr(parent, self.epoch_scale)
             except Exception as err:
                 raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
-                                  "to specified scale '{2}', got error:\n{3}"
-                                  .format(self.name, self.epoch_scale,
-                                          self.scale, err))
+                                      "to specified scale '{2}', got error:\n{3}"
+                                      .format(self.name, self.epoch_scale,
+                                              self.scale, err))
 
             jd1, jd2 = tm._time.jd1, tm._time.jd2
         else:

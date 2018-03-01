@@ -7,6 +7,7 @@ import datetime
 from copy import deepcopy
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ...tests.helper import catch_warnings, pytest
 from ...utils import isiterable
@@ -362,15 +363,15 @@ class TestBasic():
         ScalevalueError
         """
         t = Time('2006-01-15 21:24:37.5', scale='local')
-        assert t.jd == 2453751.3921006946
-        assert t.mjd == 53750.892100694444
-        assert t.decimalyear == 2006.0408002758752
+        assert_allclose(t.jd, 2453751.3921006946, atol=0.001/3600./24., rtol=0.)
+        assert_allclose(t.mjd, 53750.892100694444, atol=0.001/3600./24., rtol=0.)
+        assert_allclose(t.decimalyear, 2006.0408002758752, atol=0.001/3600./24./365., rtol=0.)
         assert t.datetime == datetime.datetime(2006, 1, 15, 21, 24, 37, 500000)
         assert t.isot == '2006-01-15T21:24:37.500'
         assert t.yday == '2006:015:21:24:37.500'
         assert t.fits == '2006-01-15T21:24:37.500(LOCAL)'
-        assert t.byear == 2006.04217888831
-        assert t.jyear == 2006.0407723496082
+        assert_allclose(t.byear, 2006.04217888831, atol=0.001/3600./24./365., rtol=0.)
+        assert_allclose(t.jyear, 2006.0407723496082, atol=0.001/3600./24./365., rtol=0.)
         assert t.byear_str == 'B2006.042'
         assert t.jyear_str == 'J2006.041'
 
