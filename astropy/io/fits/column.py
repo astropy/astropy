@@ -112,6 +112,18 @@ TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
                               r'(?:(?P<widthf>[0-9]+)\.'
                               r'(?P<precision>[0-9]+))?)')
 
+# TDISPn for both ASCII and Binary tables
+TDISP_RE_DICT = {'A':re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|'),
+            'IBOZ':re.compile(r'(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)'
+                      r'(?:\.{0,1}(?P<precision>[0-9]+))?))|'),
+            'F':re.compile(r'(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}'
+                      r'(?P<precision>[0-9])+)+)|'),
+            'EGD':re.compile(r'(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\.'
+                      r'(?P<precision>[0-9]+))+)'
+                      r'(?:E{0,1}(?P<exponential>[0-9]+)?)|'),
+            'ENES':re.compile(r'(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}'
+                      r'(?P<precision>[0-9])+)+)')}
+
 TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
 """
 Regular expression for valid table column names.  See FITS Standard v3.0 section
@@ -2402,3 +2414,105 @@ def _convert_ascii_format(format, reverse=False):
             recformat += str(width)
 
         return recformat
+
+
+def _parse_tdisp_format(tdisp):
+    """
+    Parse the ``TDISPn`` keywords for ASCII and binary tables into a
+    ``(format, width, precision, exponential)`` tuple (the TDISP values
+    for ASCII and binary are identical except for 'Lw', which is only present in BINTABLE
+    extensions
+    """
+
+    # Use appropriate regex for format type
+    tdisp = tdisp.strip()
+    if tdisp[0] == 'E':
+        if tdisp[1] in ('N', 'S'):
+            tdisp_re = TDISP_RE_DICT['ENES']
+        else:
+            tdisp_re = TDISP_RE_DICT['EGD']
+    elif tdisp[0] in ('A', 'L'):
+        tdisp_re = TDISP_RE_DICT['A']
+    elif tdisp[0] in ('I', 'B', 'O', 'Z'):
+        tdisp_re = TDISP_RE_DICT['IBOZ']
+    elif tdisp[0] == 'F':
+        tdisp_re = TDISP_RE_DICT['F']
+    elif tdisp[0] in ('G', 'D'):
+        tdisp_re = TDISP_RE_DICT['EGD']
+    else:
+        raise VerifyError('Format {!r} is not recognized.'.format(tdisp))
+
+    match = tdisp_re.match(tdisp.strip())
+    if not match or match.group('formatc') is None:
+        raise VerifyError('Format {!r} is not recognized.'.format(tdisp))
+
+    formatc = match.group('formatc')
+    width = match.group('width')
+    precision = None
+    exponential = None
+
+    # Some formats have
+    if tdisp[0] in ('I', 'B', 'O', 'Z', 'F', 'E', 'G', 'D'):
+        precision = match.group('precision')
+        if precision is None:
+            precision = 1
+    if tdisp[0] in ('E', 'D', 'G') and tdisp[1] not in ('N', 'S'):
+        exponential = match.group('exponential')
+        if exponential is None:
+            exponential = 1
+
+    return formatc, width, precision, exponential
+
+
+def _fortran_to_python_format(format_type, width, precision):
+    """
+    Turn the TDISPn fortran format pieces into a final Python format string.
+    See the format_type definitions below. If codes is changed to take
+    advantage of the exponential specification, will need to add it as another
+    input parameter.
+
+    # mapping from TDISP format to python format (code)
+    # A: Character
+    # L: Logical (Boolean)
+    # I: 16-bit Integer
+    # B: Binary Integer
+    # O: Octal Integer
+    # Z: Hexadecimal Integer
+    # F: Float (64-bit; fixed decimal notation)
+    # EN: Float (engineering fortran format, exponential multiple of thee
+    # ES: Float (scientific, same as EN but non-zero leading digit
+    # E: Float, exponential notation
+    # D: Double-precision Floating Point
+    # G: Double-precision Floating Point
+    """
+
+    if format_type in ('A','L'):
+        return '{{:>{}}}'.format(width)
+    elif format_type == 'I':
+        # Can't predefine zero padding and space padding before hand without
+        # knowing the value being formatted, so grabbing precision and using
+        # that to zero pad, ignoring width
+        return '{{:0{}d}}'.format(precision)
+    elif format_type == 'B':
+        # Same as I format above
+        return '{{:0{}b}}'.format(precision)
+    elif format_type == 'O':
+        # Same as I format above
+        return '{{:0{}o}}'.format(precision)
+    elif format_type == 'Z':
+        # Same as I format above
+        return '{{:0{}x}}'.format(precision)
+    elif format_type == 'F':
+        return '{{:{}.{}f}}'.format(width, precision)
+    elif format_type in ('EN', 'ES'):
+        # Not supported in Python format types, moving to default exponential
+        return '{:e}'
+    elif format_type in ('E', 'D'):
+        # Can't get exponential restriction to work without knowing value
+        # before hand, so just using width and precision
+        return '{{:>{}.{}e}}'.format(width, precision)
+    elif format_type == 'G':
+        # Same as above for E format, can't get explicit exponential to work
+        return '{{:>{}.{}g}}'.format(width, precision)
+    else:
+        raise VerifyError('Format {!r} is not recognized.'.format(format_type))
