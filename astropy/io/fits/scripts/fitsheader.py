@@ -311,6 +311,7 @@ def print_headers_as_comparison(args):
             tbl = formatter.parse(args.extensions,
                                   args.keywords,
                                   args.compressed)
+            tbl = tbl[np.where(tbl['keyword']!='')]  # Remove empty keywords
             if tbl:
                 tables.append(tbl)
         except OSError as e:
