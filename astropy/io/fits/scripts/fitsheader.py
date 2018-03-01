@@ -294,7 +294,7 @@ def print_headers_as_table(args):
 
 def print_headers_as_comparison(args):
     """Prints FITS header(s) with keywords as columns.
-    
+
     This follows the dfits+fitsort format.
 
     Parameters
@@ -400,12 +400,12 @@ def main(args=None):
                         help='path to one or more files; '
                              'wildcards are supported')
     args = parser.parse_args(args)
-    
+
     # If `--table` was used but no format specified,
     # then use ascii.fixed_width by default
     if args.table is None:
         args.table = 'ascii.fixed_width'
-    
+
     # Now print the desired headers
     try:
         if args.table:
