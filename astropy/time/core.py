@@ -1480,20 +1480,25 @@ class Time(ShapedLikeNDArray):
                 if other.scale not in (out.scale, None):
                     other = getattr(other, out.scale)
             else:
-                if other.scale is not None and self.scale not in TIME_TYPES[other.scale]:
-                    raise TypeError("Cannot subtract Time and TimeDelta instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
+                if other.scale is None:
+                    out._set_scale('tai')
                 else:
-                    out._set_scale(other.scale if other.scale is not None else 'tai')
+                    if self.scale not in TIME_TYPES[other.scale]:
+                        raise TypeError("Cannot subtract Time and TimeDelta instances "
+                                        "with scales '{0}' and '{1}'"
+                                        .format(self.scale, other.scale))
+                    out._set_scale(other.scale)
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
                     delattr(out, attr)
 
         else:  # T - T
-
             # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
-            if(other.scale not in self.SCALES):
-                raise TypeError("Cannot subtract Time instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
+            if other.scale not in self.SCALES:
+                raise TypeError("Cannot subtract Time instances "
+                                "with scales '{0}' and '{1}'"
+                                .format(self.scale, other.scale))
             self_time = (self._time if self.scale in TIME_DELTA_SCALES
                          else self.tai._time)
             # set up TimeDelta, subtraction to be done shortly
@@ -1536,11 +1541,14 @@ class Time(ShapedLikeNDArray):
             if other.scale not in (out.scale, None):
                 other = getattr(other, out.scale)
         else:
-            if other.scale is not None and self.scale not in TIME_TYPES[other.scale]:
-                raise TypeError("Cannot add Time and TimeDelta instances with scales '{0}' and '{1}'".format(self.scale, other.scale))
+            if other.scale is None:
+                    out._set_scale('tai')
             else:
-                out._set_scale(other.scale if other.scale is not None
-                               else 'tai')
+                if self.scale not in TIME_TYPES[other.scale]:
+                    raise TypeError("Cannot add Time and TimeDelta instances "
+                                    "with scales '{0}' and '{1}'"
+                                    .format(self.scale, other.scale))
+                out._set_scale(other.scale)
         # remove attributes that are invalidated by changing time
         for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
             if hasattr(out, attr):

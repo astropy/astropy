@@ -305,10 +305,8 @@ class TestTimeDeltaScales():
         I.e., time differences of two times should have the scale of the
         first time.
 
-        There are no local timescales for which this does not work.
-
         Also tests that subtracting two time scales, one of which is
-        from different local time scale should raise TypeError.
+        different from local time scale should raise TypeError.
         """
         scale1 = 'local'
         scale2 = 'local'
@@ -326,11 +324,18 @@ class TestTimeDeltaScales():
         assert t2_recover_t1_scale.scale == scale1
         t2_recover = getattr(t2_recover_t1_scale, scale2)
         assert allclose_jd(t2_recover.jd, t2.jd)
+        dt2 = TimeDelta([10.], format='sec', scale=None)
+        t3 = t2 - dt2
+        assert t3.scale == t2.scale
+        q = 10 * u.s
+        assert (t2 - q).value == (t2 - dt2).value
         for scale3 in STANDARD_TIME_SCALES:
             t1 = self.t[scale1]
             t2 = self.t[scale3]
             with pytest.raises(TypeError):
                 dt = t1 - t2
+            with pytest.raises(TypeError):
+                t3 = t2 - dt
 
     def test_scales_for_delta_minus_delta(self):
         """dT(X) +/- dT2(Y) -- Add/substract JDs for dT(X) and dT(Y).X
