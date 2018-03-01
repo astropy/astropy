@@ -203,9 +203,14 @@ def freedman_bin_width(data, return_bins=False):
 
     v25, v75 = np.percentile(data, [25, 75])
     dx = 2 * (v75 - v25) / (n ** (1 / 3))
+    
+    def mad(array):
+        return np.mean(np.absolute(array-np.mean(array)))    
 
     if return_bins:
         dmin, dmax = data.min(), data.max()
+        if dx < 1e-6:
+            dx=mad(data)
         Nbins = max(1, np.ceil((dmax - dmin) / dx))
         bins = dmin + dx * np.arange(Nbins + 1)
         return dx, bins
