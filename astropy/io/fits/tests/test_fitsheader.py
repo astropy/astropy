@@ -87,13 +87,12 @@ class TestFITSheader_script(FitsTestCase):
         assert out[3].endswith('test0.fits 49491.65366175    0.23')
         assert out[4].endswith('test1.fits 49492.65366175    0.22')
 
-        fitsheader.main(['-e', '0', '-f', 'EXPTIME', '-k', 'EXPSTART', '-k', 'EXPTIME',
-                         self.data('test0.fits'), self.data('test1.fits')])
+        fitsheader.main(['-e', '0', '-f', '-k', 'EXPSTART', '-k', 'EXPTIME',
+                         self.data('test0.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 5
-        assert out[3].endswith('test1.fits    0.22 49492.65366175')
-        assert out[4].endswith('test0.fits    0.23 49491.65366175')
+        assert len(out) == 4
+        assert out[3].endswith('test0.fits 49491.65366175    0.23')
 
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
