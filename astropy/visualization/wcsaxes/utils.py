@@ -129,8 +129,10 @@ def coord_type_from_ctype(ctype):
     elif ctype[1:4] == 'LON':
         return 'longitude', None, None
     elif ctype[:4] in ['HPLN']:
-        return 'longitude', None, 180.
-    elif ctype[:4] in ['DEC-', 'HPLT'] or ctype[1:4] == 'LAT':
+        return 'longitude', u.arcsec, 180.
+    elif ctype[:4] in ['HPLT']:
+        return 'latitude', u.arcsec, None
+    elif ctype[:4] in ['DEC-'] or ctype[1:4] == 'LAT':
         return 'latitude', None, None
     else:
         return 'scalar', None, None

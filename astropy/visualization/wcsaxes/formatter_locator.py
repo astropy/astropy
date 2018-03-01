@@ -125,12 +125,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
             format_unit = unit
 
         if format_unit not in (u.degree, u.hourangle, u.hour):
-            if decimal is None:
-                decimal = True
-            elif decimal is False:
+            if decimal is False:
                 raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
-        elif decimal is None:
-            decimal = False
 
         self._unit = unit
         self._format_unit = format_unit or unit
@@ -138,6 +134,19 @@ class AngleFormatterLocator(BaseFormatterLocator):
         self._sep = None
         super().__init__(values=values, number=number, spacing=spacing,
                          format=format)
+
+    @property
+    def decimal(self):
+        decimal = self._decimal
+        if self.format_unit not in (u.degree, u.hourangle, u.hour):
+            if self._decimal is None:
+                decimal = True
+            elif self._decimal is False:
+                raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+        elif self._decimal is None:
+            decimal = False
+        return decimal
+
 
     @property
     def spacing(self):
@@ -234,7 +243,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
     @property
     def base_spacing(self):
 
-        if self._decimal:
+        if self.decimal:
 
             spacing = self._format_unit / (10. ** self._precision)
 
@@ -310,7 +319,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
-            decimal = self._decimal
+            decimal = self.decimal
             unit = self._format_unit
 
             if self.format is None:
@@ -351,6 +360,14 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if decimal:
                 sep = None
                 fmt = None
+
+                decimal = False
+                sep = 'fromunit'
+                if format == 'latex' or (format == 'auto' and rcParams['text.usetex']):
+                    fmt = 'latex'
+                else:
+                    fmt = 'unicode'
+
             elif self.sep is not None:
                 sep = self.sep
                 fmt = None
