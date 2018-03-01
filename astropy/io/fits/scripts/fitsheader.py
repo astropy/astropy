@@ -302,6 +302,7 @@ def print_headers_as_comparison(args):
     args : argparse.Namespace
         Arguments passed from the command-line as defined below.
     """
+    from .... import table
     tables = []
     # Create a Table object for each file
     for filename in args.filename:  # Support wildcards
@@ -320,7 +321,6 @@ def print_headers_as_comparison(args):
     elif len(tables) == 1:
         resulting_table = tables[0]
     else:
-        from .... import table
         resulting_table = table.vstack(tables)
     # If we obtained more than one hdu, merge hdu and keywords columns
     if len(np.unique(resulting_table['hdu']))>1:
