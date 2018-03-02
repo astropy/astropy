@@ -5,19 +5,12 @@ from numpy.testing import assert_array_equal
 
 from asdf import yamlutil
 
-import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
+from . import _parameter_to_value
 
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType']
-
-
-def _parameter_to_value(param):
-    if param.unit is not None:
-        return u.Quantity(param)
-    else:
-        return param.value
 
 
 class AffineType(TransformType):
