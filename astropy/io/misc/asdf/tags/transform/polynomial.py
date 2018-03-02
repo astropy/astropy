@@ -16,6 +16,7 @@ __all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
 
 class ShiftType(TransformType):
     name = "transform/shift"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Shift']
 
     @classmethod
@@ -47,6 +48,7 @@ class ShiftType(TransformType):
 
 class ScaleType(TransformType):
     name = "transform/scale"
+    version = '1.2.0'
     types = ['astropy.modeling.models.Scale']
 
     @classmethod
