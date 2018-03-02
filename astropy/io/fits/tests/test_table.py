@@ -18,6 +18,7 @@ except ImportError:
 
 from ....io import fits
 from ....tests.helper import catch_warnings, ignore_warnings
+from ....utils.compat import NUMPY_LT_1_14_1
 from ....utils.exceptions import AstropyDeprecationWarning
 
 from ..column import Delayed, NUMPY2FITS
@@ -844,6 +845,8 @@ class TestTableFunctions(FitsTestCase):
             assert header['TNULL2'] == 'b'
             assert header['TNULL3'] == 2.3
 
+    @pytest.mark.xfail(not NUMPY_LT_1_14_1,
+        reason="See https://github.com/astropy/astropy/issues/7214")
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data

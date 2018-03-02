@@ -788,6 +788,8 @@ astropy.coordinates
 
 - Add a workaround for a bug in the einsum function in Numpy 1.14.0. [#7187]
 
+- Fix problems with printing ``Angle`` instances under numpy 1.14.1. [#7234]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
