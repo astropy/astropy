@@ -9,7 +9,7 @@ from asdf import yamlutil
 import astropy.units as u
 from astropy import modeling
 from .basic import TransformType
-
+from . import _parameter_to_value
 
 __all__ = ['ShiftType', 'ScaleType', 'PolynomialType']
 
@@ -31,10 +31,7 @@ class ShiftType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         offset = model.offset
-        if offset.unit is not None:
-            node = {'offset': u.Quantity(offset)}
-        else:
-            node = {'offset': offset.value}
+        node = {'offset': _parameter_to_value(offset)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
@@ -63,10 +60,7 @@ class ScaleType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         factor = model.factor
-        if factor.unit is not None:
-            node = {'factor': u.Quantity(factor)}
-        else:
-            node = {'factor': factor.value}
+        node = {'factor': _parameter_to_value(factor)}
         return yamlutil.custom_tree_to_tagged_tree(node, ctx)
 
     @classmethod
