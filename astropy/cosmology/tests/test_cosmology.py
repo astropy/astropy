@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from .. import core, funcs
-from ...tests.helper import quantity_allclose as allclose
+from ...units import allclose
 from ...utils.compat import NUMPY_LT_1_14
 from ... import units as u
 

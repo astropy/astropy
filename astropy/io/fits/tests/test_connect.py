@@ -18,7 +18,7 @@ from ....units.format.fits import UnitScaleError
 
 from ....coordinates import SkyCoord, Latitude, Longitude, Angle, EarthLocation
 from ....time import Time, TimeDelta
-from ....tests.helper import quantity_allclose
+from ....units import allclose as quantity_allclose
 from ....units.quantity import QuantityInfo
 
 try:

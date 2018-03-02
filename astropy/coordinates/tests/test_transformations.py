@@ -11,8 +11,9 @@ from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (assert_quantity_allclose as assert_allclose,
-                             quantity_allclose, catch_warnings)
+                              catch_warnings)
 from ...time import Time
+from ...units import allclose as quantity_allclose
 
 
 # Coordinates just for these tests.

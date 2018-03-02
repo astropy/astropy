@@ -8,7 +8,7 @@ import numpy as np
 from ... import units as u
 from ..builtin_frames import ICRS, Galactic, Galactocentric
 from .. import builtin_frames as bf
-from ...tests.helper import quantity_allclose
+from ...units import allclose as quantity_allclose
 from ..errors import ConvertError
 from .. import representation as r
 

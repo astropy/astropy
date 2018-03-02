@@ -30,7 +30,7 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
                               check_output)
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
-           "QuantityInfoBase", "QuantityInfo"]
+           "QuantityInfoBase", "QuantityInfo", "allclose"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -841,7 +841,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
         --------
         to_value : get the numerical value in a given unit.
         """
-        # We don't use `to_value` below since we always want to make a copy
+        # We don't use `to_value` below since we always want to make a Copy
         # and don't want to slow down this method (esp. the scalar case).
         unit = Unit(unit)
         return self._new_view(self._to_value(unit, equivalencies), unit)
@@ -1722,3 +1722,50 @@ class SpecificTypeQuantity(Quantity):
                  ", so cannot set it to '{0}'.".format(unit)))
 
         super()._set_unit(unit)
+
+
+def allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
+    """
+    Notes
+    -----
+    Returns True if two arrays are element-wise equal within a tolerance.
+
+    This is a :class:`~astropy.units.Quantity`-aware version of
+    :func:`numpy.allclose`.
+    """
+    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
+                       **kwargs)
+
+
+def _unquantify_allclose_arguments(actual, desired, rtol, atol):
+    from .. import units as u
+
+    actual = u.Quantity(actual, subok=True, copy=False)
+
+    desired = u.Quantity(desired, subok=True, copy=False)
+    try:
+        desired = desired.to(actual.unit)
+    except u.UnitsError:
+        raise u.UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) "
+                           "are not convertible"
+                           .format(desired.unit, actual.unit))
+
+    if atol is None:
+        # by default, we assume an absolute tolerance of 0
+        atol = u.Quantity(0)
+    else:
+        atol = u.Quantity(atol, subok=True, copy=False)
+        try:
+            atol = atol.to(actual.unit)
+        except u.UnitsError:
+            raise u.UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) "
+                               "are not convertible"
+                               .format(atol.unit, actual.unit))
+
+    rtol = u.Quantity(rtol, subok=True, copy=False)
+    try:
+        rtol = rtol.to(u.dimensionless_unscaled)
+    except Exception:
+        raise u.UnitsError("`rtol` should be dimensionless")
+
+    return actual.value, desired.value, rtol.value, atol.value

@@ -1,7 +1,8 @@
 
 import pytest
 
-from ...tests.helper import assert_quantity_allclose, quantity_allclose
+from ...tests.helper import assert_quantity_allclose
+from ...units import allclose as quantity_allclose
 from ... import units as u
 from .. import Longitude, Latitude, EarthLocation
 from ..sites import get_builtin_sites, get_downloaded_sites, SiteRegistry
