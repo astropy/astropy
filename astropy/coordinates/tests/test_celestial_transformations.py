@@ -9,11 +9,10 @@ from ..distances import Distance
 from ..builtin_frames import (ICRS, FK5, FK4, FK4NoETerms, Galactic,
                               Supergalactic, Galactocentric, HCRS, GCRS, LSR)
 from .. import SkyCoord
-from ...tests.helper import (quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
+from ...tests.helper import (assert_quantity_allclose as assert_allclose)
 from .. import EarthLocation, CartesianRepresentation
 from ...time import Time
-
+from ...units import allclose
 
 # used below in the next parametrized test
 m31_sys = [ICRS, FK5, FK4, Galactic]

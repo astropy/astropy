@@ -7,8 +7,7 @@ import pytest
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import (quantity_allclose as allclose,
-                             assert_quantity_allclose as assert_allclose)
+from ...tests.helper import (assert_quantity_allclose as assert_allclose)
 from ...time import Time
 from .. import (EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
                 PrecessedGeocentric, CartesianRepresentation, SkyCoord,
@@ -21,6 +20,7 @@ from ..._erfa import epv00
 from .utils import randomly_sample_sphere
 from ..builtin_frames.utils import get_jd12
 from .. import solar_system_ephemeris
+from ...units import allclose
 
 try:
     import jplephem  # pylint: disable=W0611
