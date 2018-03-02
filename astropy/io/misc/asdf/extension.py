@@ -11,6 +11,8 @@ from asdf.util import filepath_to_url
 # the extension class so that _astropy_asdf_types is populated correctly. We
 # could do this using __init__ files, except it causes pytest import errors in
 # the case that asdf is not installed.
+from .tags.coordinates.angle import *
+from .tags.coordinates.representation import *
 from .tags.coordinates.frames import *
 from .tags.fits.fits import *
 from .tags.table.table import *
