@@ -89,8 +89,9 @@ class HeaderFormatter:
     OSError
         If `filename` does not exist or cannot be read.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, verbose=True):
         self.filename = filename
+        self.verbose = verbose
         self._hdulist = fits.open(filename)
 
     def parse(self, extensions=None, keywords=None, compressed=False):
@@ -191,7 +192,8 @@ class HeaderFormatter:
         except (IndexError, KeyError):
             message = '{0}: Extension {1} not found.'.format(self.filename,
                                                              hdukey)
-            log.warning(message)
+            if self.verbose:
+                log.warning(message)
             raise ExtensionNotFoundException(message)
 
         if not keywords:  # return all cards
@@ -206,11 +208,12 @@ class HeaderFormatter:
                     else:  # Allow for wildcard access
                         cards.extend(crd)
                 except KeyError as e:  # Keyword does not exist
-                    log.warning('{filename} (HDU {hdukey}): '
-                                'Keyword {kw} not found.'.format(
-                                    filename=self.filename,
-                                    hdukey=hdukey,
-                                    kw=kw))
+                    if self.verbose:
+                        log.warning('{filename} (HDU {hdukey}): '
+                                    'Keyword {kw} not found.'.format(
+                                        filename=self.filename,
+                                        hdukey=hdukey,
+                                        kw=kw))
         return cards
 
 
@@ -307,7 +310,7 @@ def print_headers_as_comparison(args):
     # Create a Table object for each file
     for filename in args.filename:  # Support wildcards
         try:
-            formatter = TableHeaderFormatter(filename)
+            formatter = TableHeaderFormatter(filename, verbose=False)
             tbl = formatter.parse(args.extensions,
                                   args.keywords,
                                   args.compressed)
