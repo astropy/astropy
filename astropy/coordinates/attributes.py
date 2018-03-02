@@ -318,6 +318,7 @@ class QuantityAttribute(Attribute):
             converted = oldvalue is not value
             return value, converted
 
+
 class EarthLocationAttribute(Attribute):
     """
     A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
@@ -498,6 +499,7 @@ class FrameAttribute(Attribute):
                       AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
 
+
 class TimeFrameAttribute(TimeAttribute):
 
     def __init__(self, *args, **kwargs):
@@ -505,12 +507,14 @@ class TimeFrameAttribute(TimeAttribute):
                       AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
 
+
 class QuantityFrameAttribute(QuantityAttribute):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("QuantityFrameAttribute has been renamed to "
                       "QuantityAttribute.", AstropyDeprecationWarning)
         super().__init__(*args, **kwargs)
+
 
 class CartesianRepresentationFrameAttribute(CartesianRepresentationAttribute):
 
