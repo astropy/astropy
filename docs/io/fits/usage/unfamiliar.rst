@@ -27,7 +27,12 @@ table, Astropy will automatically detect what kind of table it is.
     >>> filename = fits.util.get_testdata_filepath('ascii.fits')
     >>> hdul = fits.open(filename)
 
-.. doctest-requires:: numpy<=1.14.1
+..
+    This needs to be skipped for numpy-1.14.1. It should be removed when 1.14.2
+    is available. See https://github.com/astropy/astropy/issues/7214.
+
+.. doctest-skip::
+
     >>> hdul[1].data[:1]  # doctest: +FLOAT_CMP
     FITS_rec([(10.123, 37)],
              dtype=(numpy.record, {'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}))
@@ -95,7 +100,12 @@ The other difference is the need to specify the table type when using the
     >>> col3 = fits.Column(name='t1', format='I', array=[91, 92, 93], ascii=True)
     >>> hdu = fits.TableHDU.from_columns([col1, col2, col3])
 
-.. doctest-requires:: numpy<=1.14.1
+..
+    This needs to be skipped for numpy-1.14.1. It should be removed when 1.14.2
+    is available. See https://github.com/astropy/astropy/issues/7214.
+
+.. doctest-skip::
+
     >>> hdu.data
     FITS_rec([('abc', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
              dtype=(numpy.record, [('abc', 'S3'), ('def', 'S15'), ('t1', 'S10')]))
