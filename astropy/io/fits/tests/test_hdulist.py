@@ -990,7 +990,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu4 = hdul[4]
         hdu_popped = hdul.pop(('SCI', 2))
         assert len(hdul) == 6
-        assert hdu_popped == hdu4
+        assert hdu_popped is hdu4
         hdu_popped = hdul.pop('SCI')
         assert len(hdul) == 5
-        assert hdu_popped == hdu1
+        assert hdu_popped is hdu1
