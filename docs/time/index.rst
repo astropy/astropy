@@ -178,12 +178,12 @@ unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ===========  =================================================  ==============================
 
-.. note:: The :class:`~astropy.time.TimeFITS` format allows for most
-   but not all of the the FITS standard [#]_. It also supports the
-   ``LOCAL`` timescale. Furthermore, FITS supports some deprecated
-   names for timescales; these are translated to the formal names upon
-   initialization.  Furthermore, any specific realization information,
-   such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
+.. note:: The :class:`~astropy.time.TimeFITS` format implements most
+   of the FITS standard [#]_, including support for the ``LOCAL`` timescale.
+   Note, though, that FITS supports some deprecated names for timescales;
+   these are translated to the formal names upon initialization.  Furthermore,
+   any specific realization information, such as ``UT(NIST)`` is stored only as
+   long as the time scale is not changed.
 .. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
 
 Changing format
@@ -283,23 +283,25 @@ tai    International Atomic Time   (TAI)
 tcb    Barycentric Coordinate Time (TCB)
 tcg    Geocentric Coordinate Time  (TCG)
 tdb    Barycentric Dynamical Time  (TDB)
-tt     Terrestrial Time            (TT)
+tt     Terrestrial Time             (TT)
 ut1    Universal Time              (UT1)
 utc    Coordinated Universal Time  (UTC)
-local  Local Time Scale            (LOCAL)
+local  Local Time Scale          (LOCAL)
 ====== =================================
-  
+
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
 
-.. note:: ``local`` TimeScale is a scale that cannot be converted to/from any
-   other scale and to which only TimeDelta with ``None`` type scale could be
-   added or subtracted.
+.. note:: The ``local`` time scale is meant for free-running clocks or simulation times,
+  i.e., to represent a time without properly defined scale. This means it cannot be converted
+  to any other time scale, and arithmetic is possible only with |Time| instances with scale
+  ``local`` and with |TimeDelta| instances with scale ``local`` or `None`.
 
-The system of transformation between supported time scales is shown in the
-figure below.  Further details are provided in the `Convert time scale`_ section.
+The system of transformation between supported time scales (i.e., all but ``local``)
+is shown in the figure below.
+Further details are provided in the `Convert time scale`_ section.
 
 .. image:: time_scale_conversion.png
 

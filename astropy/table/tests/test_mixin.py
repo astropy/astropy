@@ -199,6 +199,9 @@ def test_io_time_write_fits_local(tmpdir, table_types):
     Validation of the output is done. Test that io.fits writes a table
     containing Time mixin columns that can be partially round-tripped
     (metadata scale, location).
+    This test is only done for Time mixin columns with local timescale
+    and since it can't be converted to standard timescales, this test
+    is done seperately from the standard one.
     """
     t = table_types([[1,2], ['string', 'column']])
     scale = 'local'
