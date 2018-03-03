@@ -83,25 +83,25 @@ class TestFITSheader_script(FitsTestCase):
                          self.data('test0.fits'), self.data('test1.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 5
-        assert out[3].endswith('test0.fits 49491.65366175    0.23')
-        assert out[4].endswith('test1.fits 49492.65366175    0.22')
+        assert len(out) == 4
+        assert out[2].endswith('test0.fits 49491.65366175    0.23')
+        assert out[3].endswith('test1.fits 49492.65366175    0.22')
 
         fitsheader.main(['-e', '0', '-f', '-k', 'EXPSTART', '-k', 'EXPTIME',
                          self.data('test0.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 4
-        assert out[3].endswith('test0.fits 49491.65366175    0.23')
+        assert len(out) == 3
+        assert out[2].endswith('test0.fits 49491.65366175    0.23')
 
         fitsheader.main(['-f', '-k', 'NAXIS',
                          self.data('tdim.fits'), self.data('test1.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 5
+        assert len(out) == 4
         assert out[0].endswith('0:NAXIS 1:NAXIS 2:NAXIS 3:NAXIS 4:NAXIS')
-        assert out[3].endswith('tdim.fits       0       2      --      --      --')
-        assert out[4].endswith('test1.fits       0       2       2       2       2')
+        assert out[2].endswith('tdim.fits       0       2      --      --      --')
+        assert out[3].endswith('test1.fits       0       2       2       2       2')
 
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
