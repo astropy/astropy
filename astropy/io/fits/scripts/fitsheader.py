@@ -346,7 +346,7 @@ def print_headers_as_comparison(args):
     if args.fitsort is not True:  # then it must be a keyword, therefore sort
         final_table.sort(args.fitsort)
     # Reorganise to keyword by columns
-    final_table.pprint(max_lines=-1, max_width=-1, show_dtype=True)
+    final_table.pprint(max_lines=-1, max_width=-1)
 
 
 class KeywordAppendAction(argparse.Action):
