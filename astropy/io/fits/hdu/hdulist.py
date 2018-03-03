@@ -516,7 +516,7 @@ class HDUList(list, _Verify):
         Parameters
         ----------
         index : int, str, tuple of (string, int), optional
-            An integer value of ``index`` indicates the position from which 
+            An integer value of ``index`` indicates the position from which
             ``pop()`` removes and returns an HDU. A string value or a tuple
             of ``(string, int)`` functions as a key for identifying the
             HDU to be removed and returned. If ``key`` is a tuple, it is
