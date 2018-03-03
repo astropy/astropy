@@ -32,17 +32,17 @@ Example uses of fitsheader:
 
     $ fitsheader --table ascii.csv *.fits > keywords.csv
 
-7. Specify hierarchical keywords with the dotted or spaced notation:
+7. Specify hierarchical keywords with the dotted or spaced notation::
 
     $ fitsheader --keyword ESO.INS.ID filename.fits
     $ fitsheader --keyword "ESO INS ID" filename.fits
 
 8. Compare the headers of different fites files, following ESO's ``fitsort``
-   format:
+   format::
 
     $ fitsheader --fitsort --extension 0 --keyword ESO.INS.ID *.fits
 
-9. Same as above, sorting the output along a specified keyword:
+9. Same as above, sorting the output along a specified keyword::
 
     $ fitsheader -f DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
 
