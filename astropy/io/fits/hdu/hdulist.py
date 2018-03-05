@@ -511,9 +511,36 @@ class HDUList(list, _Verify):
         return output
 
     def pop(self, index=-1):
+        """ Remove an item from the list and return it.
+
+        Parameters
+        ----------
+        index : int, str, tuple of (string, int), optional
+            An integer value of ``index`` indicates the position from which
+            ``pop()`` removes and returns an HDU. A string value or a tuple
+            of ``(string, int)`` functions as a key for identifying the
+            HDU to be removed and returned. If ``key`` is a tuple, it is
+            of the form ``(key, ver)`` where ``ver`` is an ``EXTVER``
+            value that must match the HDU being searched for.
+
+            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
+            the first match is returned.  For a more precise match use the
+            ``(name, ver)`` pair.
+
+            If even the ``(name, ver)`` pair is ambiguous the numeric index
+            must be used to index the duplicate HDU.
+
+        Returns
+        -------
+        hdu : HDU object
+            The HDU object at position indicated by ``index`` or having name
+            and version specified by ``index``.
+        """
+
         # Make sure that HDUs are loaded before attempting to pop
         self.readall()
-        return super(HDUList, self).pop(index)
+        list_index = self.index_of(index)
+        return super(HDUList, self).pop(list_index)
 
     def insert(self, index, hdu):
         """

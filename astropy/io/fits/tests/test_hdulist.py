@@ -982,3 +982,15 @@ class TestHDUListFunctions(FitsTestCase):
         assert len(hdul3) == 2
         assert hdul3[0].header == hdu2.header
         assert hdul3[1].header == hdu.header
+
+    def test_pop_extname(self):
+        hdul = fits.open(self.data('o4sp040b0_raw.fits'))
+        assert len(hdul) == 7
+        hdu1 = hdul[1]
+        hdu4 = hdul[4]
+        hdu_popped = hdul.pop(('SCI', 2))
+        assert len(hdul) == 6
+        assert hdu_popped is hdu4
+        hdu_popped = hdul.pop('SCI')
+        assert len(hdul) == 5
+        assert hdu_popped is hdu1
