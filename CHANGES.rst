@@ -272,6 +272,9 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Make sure that a sufficiently recent version of ASDF is installed when
+  running test suite against ASDF tags and schemas. [#7205]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
