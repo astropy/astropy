@@ -7,7 +7,7 @@ from matplotlib.transforms import Affine2D, IdentityTransform
 
 from astropy.wcs import WCS
 
-from astropy.visualization.wcsaxes.transforms import WCSWorld2PixelTransform
+from astropy.visualization.wcsaxes.wcs import WCSWorld2PixelTransform
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']

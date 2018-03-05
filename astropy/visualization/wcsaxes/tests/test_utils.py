@@ -5,8 +5,7 @@ from numpy.testing import assert_almost_equal
 
 from astropy import units as u
 
-from astropy.visualization.wcsaxes.utils import (select_step_degree, select_step_hour, select_step_scalar,
-                     coord_type_from_ctype)
+from astropy.visualization.wcsaxes.utils import select_step_degree, select_step_hour, select_step_scalar
 from astropy.tests.helper import (assert_quantity_allclose as
                               assert_almost_equal_quantity)
 
@@ -58,13 +57,3 @@ def test_select_step_scalar():
     assert_almost_equal(select_step_scalar(0.00022), 0.0002)
     assert_almost_equal(select_step_scalar(0.000012), 0.00001)
     assert_almost_equal(select_step_scalar(0.000000443), 0.0000005)
-
-
-def test_coord_type_from_ctype():
-    assert coord_type_from_ctype(' LON') == ('longitude', None, None)
-    assert coord_type_from_ctype(' LAT') == ('latitude', None, None)
-    assert coord_type_from_ctype('HPLN') == ('longitude', u.arcsec, 180.)
-    assert coord_type_from_ctype('HPLT') == ('latitude', u.arcsec, None)
-    assert coord_type_from_ctype('RA--') == ('longitude', u.hourangle, None)
-    assert coord_type_from_ctype('DEC-') == ('latitude', None, None)
-    assert coord_type_from_ctype('spam') == ('scalar', None, None)
