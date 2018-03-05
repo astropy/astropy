@@ -9,9 +9,12 @@ from importlib.util import find_spec
 from astropy.tests.plugins.display import PYTEST_HEADER_MODULES
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
-if find_spec('asdf') is not None:
-    pytest_plugins = ['asdf.tests.schema_tester']
 
+if find_spec('asdf') is not None:
+    from asdf import __version__ as asdf_version
+    if asdf_version >= '2.0.0':
+        pytest_plugins = ['asdf.tests.schema_tester']
+        PYTEST_HEADER_MODULES['Asdf'] = 'asdf'
 
 enable_deprecations_as_exceptions(
     include_astropy_deprecations=False,
