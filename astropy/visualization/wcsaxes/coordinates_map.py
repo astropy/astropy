@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 from .coordinate_helpers import CoordinateHelper
-from .transforms import WCSPixel2WorldTransform
-from .utils import coord_type_from_ctype
 from .frame import RectangularFrame
 from .coordinate_range import find_coordinate_range
 
@@ -20,36 +16,19 @@ class CoordinatesMap:
     ----------
     axes : :class:`~astropy.visualization.wcsaxes.WCSAxes`
         The axes the coordinate map belongs to.
-    wcs : :class:`~astropy.wcs.WCS`, optional
-        The WCS for the data. If this is specified, ``transform`` cannot be
-        specified.
     transform : `~matplotlib.transforms.Transform`, optional
-        The transform for the data. If this is specified, ``wcs`` cannot be
-        specified.
+        The transform for the data.
     coord_meta : dict, optional
-        A dictionary providing additional metadata when ``transform`` is
-        specified. This should include the keys ``type``, ``wrap``, and
-        ``unit``. Each of these should be a list with as many items as the
-        dimension of the WCS. The ``type`` entries should be one of
-        ``longitude``, ``latitude``, or ``scalar``, the ``wrap`` entries should
-        give, for the longitude, the angle at which the coordinate wraps (and
-        `None` otherwise), and the ``unit`` should give the unit of the
-        coordinates as :class:`~astropy.units.Unit` instances.  This can
-        optionally also include a ``format_unit`` entry giving the units to use
-        for the tick labels (if not specified, this defaults to ``unit``).
-    slice : tuple, optional
-        For WCS transformations with more than two dimensions, we need to
-        choose which dimensions are being shown in the 2D image. The slice
-        should contain one ``x`` entry, one ``y`` entry, and the rest of the
-        values should be integers indicating the slice through the data. The
-        order of the items in the slice should be the same as the order of the
-        dimensions in the :class:`~astropy.wcs.WCS`, and the opposite of the
-        order of the dimensions in Numpy. For example, ``(50, 'x', 'y')`` means
-        that the first WCS dimension (last Numpy dimension) will be sliced at
-        an index of 50, the second WCS and Numpy dimension will be shown on the
-        x axis, and the final WCS dimension (first Numpy dimension) will be
-        shown on the y-axis (and therefore the data will be plotted using
-        ``data[:, :, 50].transpose()``)
+        A dictionary providing additional metadata. This should include the keys
+        ``type``, ``wrap``, and ``unit``. Each of these should be a list with as
+        many items as the dimension of the coordinate system. The ``type``
+        entries should be one of ``longitude``, ``latitude``, or ``scalar``, the
+        ``wrap`` entries should give, for the longitude, the angle at which the
+        coordinate wraps (and `None` otherwise), and the ``unit`` should give
+        the unit of the coordinates as :class:`~astropy.units.Unit` instances.
+        This can optionally also include a ``format_unit`` entry giving the
+        units to use for the tick labels (if not specified, this defaults to
+        ``unit``).
     frame_class : type, optional
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
@@ -61,28 +40,14 @@ class CoordinatesMap:
         keyword argument.
     """
 
-    def __init__(self, axes, wcs=None, transform=None, coord_meta=None,
-                 slice=None, frame_class=RectangularFrame,
-                 previous_frame_path=None):
+    def __init__(self, axes, transform, coord_meta,
+                 frame_class=RectangularFrame, previous_frame_path=None):
 
         # Keep track of parent axes and WCS
         self._axes = axes
 
-        if wcs is None:
-            if transform is None:
-                raise ValueError("Either `wcs` or `transform` are required")
-            if coord_meta is None:
-                raise ValueError("`coord_meta` is required when "
-                                 "`transform` is passed")
-            self._transform = transform
-            naxis = 2
-        else:
-            if transform is not None:
-                raise ValueError("Cannot specify both `wcs` and `transform`")
-            if coord_meta is not None:
-                raise ValueError("Cannot pass `coord_meta` if passing `wcs`")
-            self._transform = WCSPixel2WorldTransform(wcs, slice=slice)
-            naxis = wcs.wcs.naxis
+        self._transform = transform
+        naxis = coord_meta.get('naxis', 2)
 
         self.frame = frame_class(axes, self._transform, path=previous_frame_path)
 
@@ -93,22 +58,14 @@ class CoordinatesMap:
         for coord_index in range(naxis):
 
             # Extract coordinate metadata from WCS object or transform
-            if wcs is not None:
-                coord_unit = wcs.wcs.cunit[coord_index]
-                coord_type, format_unit, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
-                name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
+            coord_type = coord_meta['type'][coord_index]
+            coord_wrap = coord_meta['wrap'][coord_index]
+            coord_unit = coord_meta['unit'][coord_index]
+            name = coord_meta['name'][coord_index]
+            if 'format_unit' in coord_meta:
+                format_unit = coord_meta['format_unit'][coord_index]
             else:
-                try:
-                    coord_type = coord_meta['type'][coord_index]
-                    coord_wrap = coord_meta['wrap'][coord_index]
-                    coord_unit = coord_meta['unit'][coord_index]
-                    name = coord_meta['name'][coord_index]
-                    if 'format_unit' in coord_meta:
-                        format_unit = coord_meta['format_unit'][coord_index]
-                    else:
-                        format_unit = None
-                except IndexError:
-                    raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
+                format_unit = None
 
             self._coords.append(CoordinateHelper(parent_axes=axes,
                                                  parent_map=self,

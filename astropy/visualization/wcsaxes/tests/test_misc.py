@@ -96,7 +96,7 @@ def test_invalid_frame_overlay():
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     with pytest.raises(ValueError) as exc:
         ax.get_coords_overlay('banana')
-    assert exc.value.args[0] == 'Unknown frame: banana'
+    assert exc.value.args[0] == 'Frame banana not found'
 
     with pytest.raises(ValueError) as exc:
         get_coord_meta('banana')
