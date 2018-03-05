@@ -709,13 +709,6 @@ class Model(metaclass=_ModelMeta):
         """
         return self._input_units_strict
 
-    @input_units_strict.setter
-    def input_units_strict(self, val):
-        if isinstance(val, bool):
-            self._input_units_strict = {key: val for key in self.__class__.inputs}
-        else:
-            self._input_units_strict = val
-
     @property
     def input_units_allow_dimensionless(self):
         """
@@ -726,13 +719,6 @@ class Model(metaclass=_ModelMeta):
         Only has an effect if input_units is defined.
         """
         return self._input_units_allow_dimensionless
-
-    @input_units_allow_dimensionless.setter
-    def input_units_allow_dimensionless(self, val):
-        if isinstance(val, bool):
-            self._input_units_allow_dimensionless = {key: val for key in self.__class__.inputs}
-        else:
-            self._input_units_allow_dimensionless = val
 
     def __repr__(self):
         return self._format_repr()
@@ -1424,10 +1410,6 @@ class Model(metaclass=_ModelMeta):
             # None means any unit is accepted
             return None
 
-    @input_units.setter
-    def input_units(self, input_units):
-        self._input_units = input_units
-
     @property
     def return_units(self):
         """
@@ -1447,10 +1429,6 @@ class Model(metaclass=_ModelMeta):
         else:
             # None means any unit is accepted
             return None
-
-    @return_units.setter
-    def return_units(self, return_units):
-        self._return_units = return_units
 
     def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
                        **kwargs):

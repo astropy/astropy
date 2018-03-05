@@ -461,10 +461,6 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
-    _input_units_strict = True
-
-    _input_units_allow_dimensionless = True
-
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -513,17 +509,6 @@ class Scale(Fittable1DModel):
     factor = Parameter(default=1)
     linear = True
     fittable = True
-
-    _input_units_strict = True
-
-    _input_units_allow_dimensionless = True
-
-    @property
-    def input_units(self):
-        if self.factor.unit is None:
-            return None
-        else:
-            return {'x': self.factor.unit}
 
     @property
     def inverse(self):

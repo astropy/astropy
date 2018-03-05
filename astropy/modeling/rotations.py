@@ -347,10 +347,6 @@ class Rotation2D(Model):
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
-    _input_units_strict = True
-
-    _input_units_allow_dimensionless = True
-
     @property
     def inverse(self):
         """Inverse rotation."""
@@ -374,21 +370,28 @@ class Rotation2D(Model):
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
+        # If one argument has units, enforce they both have units and they are compatible.
+        x_unit = getattr(x, 'unit', None)
+        y_unit = getattr(y, 'unit', None)
+        has_units = x_unit is not None and y_unit is not None
+        if x_unit != y_unit:
+            if has_units and y_unit.is_equivalent(x_unit):
+                y = y.to(x_unit)
+                y_unit = x_unit
+            else:
+                raise u.UnitsError("x and y must have compatible units")
+
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        if isinstance(x, u.Quantity):
-            unit = x.unit
-        else:
-            unit = None
         inarr = np.array([x.flatten(), y.flatten()])
         if isinstance(angle, u.Quantity):
             angle = angle.value
         result = np.dot(cls._compute_matrix(angle), inarr)
         x, y = result[0], result[1]
         x.shape = y.shape = orig_shape
-        if unit is not None:
-            return u.Quantity(x, unit=unit), u.Quantity(y, unit=unit)
+        if has_units:
+            return u.Quantity(x, unit=x_unit), u.Quantity(y, unit=y_unit)
         else:
             return x, y
 
