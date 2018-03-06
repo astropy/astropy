@@ -555,15 +555,19 @@ class FittingWithOutlierRemoval(object):
         """
 
         fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
+        filtered_weights = weights
         if z is None:
             filtered_data = y
             for n in range(self.niter):
                 filtered_data = self.outlier_func(filtered_data - fitted_model(x),
                                                   **self.outlier_kwargs)
                 filtered_data += fitted_model(x)
+                if weights is not None:
+                    filtered_weights = weights[~filtered_data.mask]
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=filtered_weights,
                                **kwargs)
         else:
             filtered_data = z
@@ -571,10 +575,13 @@ class FittingWithOutlierRemoval(object):
                 filtered_data = self.outlier_func(filtered_data - fitted_model(x, y),
                                                   **self.outlier_kwargs)
                 filtered_data += fitted_model(x, y)
+                if weights is not None:
+                    filtered_weights = weights[~filtered_data.mask]
                 fitted_model = self.fitter(fitted_model,
                                x[~filtered_data.mask],
                                y[~filtered_data.mask],
                                filtered_data.data[~filtered_data.mask],
+                               weights=filtered_weights,
                                **kwargs)
         return filtered_data, fitted_model
 

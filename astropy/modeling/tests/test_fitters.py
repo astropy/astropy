@@ -666,6 +666,82 @@ class Test2DFittingWithOutlierRemoval(object):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+class TestWeightedFittingWithOutlierRemoval:
+    """Issue #7020 """
+
+    def setup_class(self):
+        # values of x,y not important as we fit y(x,y) = p0 model here
+        self.y, self.x = np.mgrid[0:20, 0:20]
+        self.z = np.mod(self.x + self.y, 2) * 2 - 1 # -1,1 chessboard
+        self.weights = np.mod(self.x + self.y, 2) * 2 + 1 # 1,3 chessboard
+        self.z[0,0] = 1000.0 # outlier
+        self.z[0,1] = 1000.0 # outlier
+        self.x1d = self.x.flatten()
+        self.z1d = self.z.flatten()
+        self.weights1d = self.weights.flatten()
+
+    def test_1d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d)
+        assert_allclose(fit.parameters[0], self.z1d.mean(), atol=10**(-2))
+
+    def test_1d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x1d, self.z1d)
+        assert(filtered.count() == self.z1d.size - 2)
+        assert(filtered.mask[0] and filtered.mask[1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2)) # with removed outliers mean is 0.0
+
+    def test_1d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial1D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_1d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial1D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+    def test_2d_without_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LinearLSQFitter()
+        fit = fitter(model, self.x, self.y, self.z)
+        assert_allclose(fit.parameters[0], self.z.mean(), atol=10**(-2))
+
+    def test_2d_without_weights_with_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x, self.y, self.z)
+        assert(filtered.count() == self.z.size - 2)
+        assert(filtered.mask[0,0] and filtered.mask[0,1])
+        assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
+
+    def test_2d_with_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LevMarLSQFitter() # LinearLSQFitter doesn't handle weights properly in 2D
+        fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
+    def test_2d_with_weights_with_sigma_clip(self):
+        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        filtered, fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fitters_with_weights():
     """Issue #5737 """
     Xin, Yin = np.mgrid[0:21, 0:21]
