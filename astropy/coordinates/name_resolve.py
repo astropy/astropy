@@ -146,6 +146,8 @@ def get_icrs_coordinates(name):
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
+            e.reason = 'Request took longer than the allowed %.1f seconds' % \
+                       data.conf.remote_timeout
             exceptions.append(e)
             continue
 
