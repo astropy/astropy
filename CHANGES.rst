@@ -37,6 +37,8 @@ astropy.io.misc
 
 Added support for saving all representation classes and many coordinate frames to the asdf format. [#7079]
 
+Added suppoer for saving models with units to the asdf format. [#7237]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
