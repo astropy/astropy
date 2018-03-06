@@ -589,6 +589,7 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+- Propagate weights to underlying fitter in ``FittingWithOutlierRemoval`` [#7249]
 
 - Fixed the evaluation of compound models with units. This required adding
   the ability to have ``input_units_strict`` and ``input_units_allow_dimensionless``
