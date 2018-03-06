@@ -113,16 +113,52 @@ TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
                               r'(?P<precision>[0-9]+))?)')
 
 # TDISPn for both ASCII and Binary tables
-TDISP_RE_DICT = {'A':re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|'),
-            'IBOZ':re.compile(r'(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)'
-                      r'(?:\.{0,1}(?P<precision>[0-9]+))?))|'),
-            'F':re.compile(r'(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}'
-                      r'(?P<precision>[0-9])+)+)|'),
-            'EGD':re.compile(r'(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\.'
-                      r'(?P<precision>[0-9]+))+)'
-                      r'(?:E{0,1}(?P<exponential>[0-9]+)?)|'),
-            'ENES':re.compile(r'(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}'
-                      r'(?P<precision>[0-9])+)+)')}
+TDISP_RE_DICT = {}
+TDISP_RE_DICT['A'] = re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|')
+TDISP_RE_DICT['F'] = re.compile(r'(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}'
+                                r'(?P<precision>[0-9])+)+)|')
+TDISP_RE_DICT['I'] = TDISP_RE_DICT['B'] = \
+    TDISP_RE_DICT['O'] = TDISP_RE_DICT['Z'] =  \
+    re.compile(r'(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)'
+               r'(?:\.{0,1}(?P<precision>[0-9]+))?))|')
+TDISP_RE_DICT['E'] = TDISP_RE_DICT['G'] = \
+    TDISP_RE_DICT['D'] = \
+    re.compile(r'(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\.'
+               r'(?P<precision>[0-9]+))+)'
+               r'(?:E{0,1}(?P<exponential>[0-9]+)?)|')
+TDISP_RE_DICT['EN'] = TDISP_RE_DICT['ES'] = \
+    re.compile(r'(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}'
+               r'(?P<precision>[0-9])+)+)')
+
+# mapping from TDISP format to python format
+# A: Character
+# L: Logical (Boolean)
+# I: 16-bit Integer
+#    Can't predefine zero padding and space padding before hand without
+#    knowing the value being formatted, so grabbing precision and using that
+#    to zero pad, ignoring width. Same with B, O, and Z
+# B: Binary Integer
+# O: Octal Integer
+# Z: Hexadecimal Integer
+# F: Float (64-bit; fixed decimal notation)
+# EN: Float (engineering fortran format, exponential multiple of thee
+#     Not supported in Python format types, moving to default exponential
+# ES: Float (scientific, same as EN but non-zero leading digit
+# E: Float, exponential notation
+#    Can't get exponential restriction to work without knowing value
+#    before hand, so just using width and precision, same with D and G format
+# D: Double-precision Floating Point
+# G: Double-precision Floating Point
+TDISP_FMT_DICT = {'I' : '{{:0{precision}d}}',
+                  'B' : '{{:0{precision}b}}',
+                  'O' : '{{:0{precision}o}}',
+                  'Z' : '{{:0{precision}x}}',
+                  'F' : '{{:{width}.{precision}f}}',
+                  'G' : '{{:>{width}.{precision}g}}'}
+TDISP_FMT_DICT['A'] = TDISP_FMT_DICT['L'] = '{{:>{width}}}'
+TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] = '{:e}'
+TDISP_FMT_DICT['E'] = TDISP_FMT_DICT['D'] = '{{:>{width}.{precision}e}}'
+
 
 TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
 """
@@ -2426,21 +2462,12 @@ def _parse_tdisp_format(tdisp):
 
     # Use appropriate regex for format type
     tdisp = tdisp.strip()
-    if tdisp[0] == 'E':
-        if tdisp[1] in ('N', 'S'):
-            tdisp_re = TDISP_RE_DICT['ENES']
-        else:
-            tdisp_re = TDISP_RE_DICT['EGD']
-    elif tdisp[0] in ('A', 'L'):
-        tdisp_re = TDISP_RE_DICT['A']
-    elif tdisp[0] in ('I', 'B', 'O', 'Z'):
-        tdisp_re = TDISP_RE_DICT['IBOZ']
-    elif tdisp[0] == 'F':
-        tdisp_re = TDISP_RE_DICT['F']
-    elif tdisp[0] in ('G', 'D'):
-        tdisp_re = TDISP_RE_DICT['EGD']
-    else:
+    fmt_key = tdisp[0] if tdisp[0] !='E' or tdisp[1] not in 'NS' else tdisp[:2]
+    try:
+        tdisp_re = TDISP_RE_DICT[fmt_key]
+    except KeyError:
         raise VerifyError('Format {!r} is not recognized.'.format(tdisp))
+
 
     match = tdisp_re.match(tdisp.strip())
     if not match or match.group('formatc') is None:
@@ -2461,58 +2488,28 @@ def _parse_tdisp_format(tdisp):
         if exponential is None:
             exponential = 1
 
+
+    # Once parsed, check format dict to do conversion to a formatting string
+
+
     return formatc, width, precision, exponential
 
 
-def _fortran_to_python_format(format_type, width, precision):
+def _fortran_to_python_format(tdisp):
     """
     Turn the TDISPn fortran format pieces into a final Python format string.
     See the format_type definitions below. If codes is changed to take
     advantage of the exponential specification, will need to add it as another
     input parameter.
 
-    # mapping from TDISP format to python format (code)
-    # A: Character
-    # L: Logical (Boolean)
-    # I: 16-bit Integer
-    # B: Binary Integer
-    # O: Octal Integer
-    # Z: Hexadecimal Integer
-    # F: Float (64-bit; fixed decimal notation)
-    # EN: Float (engineering fortran format, exponential multiple of thee
-    # ES: Float (scientific, same as EN but non-zero leading digit
-    # E: Float, exponential notation
-    # D: Double-precision Floating Point
-    # G: Double-precision Floating Point
     """
+    format_type, width, precision, exponential = _parse_tdisp_format(tdisp)
 
-    if format_type in ('A','L'):
-        return '{{:>{}}}'.format(width)
-    elif format_type == 'I':
-        # Can't predefine zero padding and space padding before hand without
-        # knowing the value being formatted, so grabbing precision and using
-        # that to zero pad, ignoring width
-        return '{{:0{}d}}'.format(precision)
-    elif format_type == 'B':
-        # Same as I format above
-        return '{{:0{}b}}'.format(precision)
-    elif format_type == 'O':
-        # Same as I format above
-        return '{{:0{}o}}'.format(precision)
-    elif format_type == 'Z':
-        # Same as I format above
-        return '{{:0{}x}}'.format(precision)
-    elif format_type == 'F':
-        return '{{:{}.{}f}}'.format(width, precision)
-    elif format_type in ('EN', 'ES'):
-        # Not supported in Python format types, moving to default exponential
-        return '{:e}'
-    elif format_type in ('E', 'D'):
-        # Can't get exponential restriction to work without knowing value
-        # before hand, so just using width and precision
-        return '{{:>{}.{}e}}'.format(width, precision)
-    elif format_type == 'G':
-        # Same as above for E format, can't get explicit exponential to work
-        return '{{:>{}.{}g}}'.format(width, precision)
-    else:
+    try:
+        fmt = TDISP_FMT_DICT[format_type]
+        if format_type not in ['EN', 'ES']:
+            return fmt.format(width=width, precision=precision)
+        else:
+            return fmt
+    except KeyError:
         raise VerifyError('Format {!r} is not recognized.'.format(format_type))
