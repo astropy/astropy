@@ -178,15 +178,11 @@ class TestConvolve1D:
             assert np.isnan(z[1])
 
         z = np.nan_to_num(z)
-
-        # for whatever reason, numpy's fft has very limited precision, and
-        # the comparison fails unless you cast the float64 to a float16
-        if hasattr(np, 'float16'):
-            assert_array_almost_equal_nulp(
-                np.asarray(z, dtype=np.float16),
-                np.array([1., 0., 3.], dtype=np.float16), 10)
-        # ASSERT equality to better than 16 bit but worse than 32 bit precision
-        assert_allclose(z, np.array([1., 0., 3.]), atol=1e-14)
+        # check that the result is correct at the precision expected for
+        # 64 bit numbers (here, we have to take into account that the powers
+        # in the FFTs are near unity, so our tolerance has to reflect how
+        # precisely numbers near unity can be represented).
+        assert_allclose(z, [1., 0., 3.], atol=10*np.finfo(np.float64).eps)
 
     inputs = (np.array([1., np.nan, 3.], dtype='float64'),
               np.array([1., np.inf, 3.], dtype='float64'))
