@@ -8,6 +8,7 @@ asdf = pytest.importorskip('asdf')
 from asdf import util
 from asdf.tests import helpers
 
+import astropy.units as u
 from astropy.modeling import models as astmodels
 
 test_models = [
@@ -16,7 +17,11 @@ test_models = [
     astmodels.Scale(3.4), astmodels.RotateNative2Celestial(5.63, -72.5, 180),
     astmodels.RotateCelestial2Native(5.63, -72.5, 180),
     astmodels.EulerAngleRotation(23, 14, 2.3, axes_order='xzx'),
-    astmodels.Mapping((0, 1), n_inputs=3)
+    astmodels.Mapping((0, 1), n_inputs=3),
+    astmodels.Shift(2.*u.deg),
+    astmodels.Scale(3.4*u.deg),
+    astmodels.RotateNative2Celestial(5.63*u.deg, -72.5*u.deg, 180*u.deg),
+    astmodels.RotateCelestial2Native(5.63*u.deg, -72.5*u.deg, 180*u.deg),
 ]
 
 
