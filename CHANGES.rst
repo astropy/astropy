@@ -86,6 +86,16 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Map ITRS frames to terrestrial WCS coordinates. This will make it possible to
+  use WCSAxes to make figures that combine both celestial and terrestrial
+  features. An example is plotting the coordinates of an astronomical transient
+  over an all- sky satellite image to illustrate the position relative to the
+  Earth at the time of the event. The ITRS frame is identified with WCSs that
+  use the ``TLON-`` and ``TLAT-`` coordinate types. There are several examples
+  of WCSs where this syntax is used to describe terrestrial coordinate systems:
+  Section 7.4.1 of `WCS in FITS "Paper II" <http://adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
+  and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
+  [#6990]
 
 API Changes
 -----------
