@@ -433,12 +433,6 @@ astropy.modeling
 - Added ``Model.separable`` property. It returns a boolean value or
   ``None`` if not set. [#6746]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-- Added ``Model.separable`` property. It returns a boolean value or
-  ``None`` if not set. [#6746]
-
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
   ignorning the mask). [#6927]
 
