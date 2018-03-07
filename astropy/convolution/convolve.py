@@ -703,9 +703,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = wtsm.real[arrayslices]
-        # curiously, at the floating-point limit, can get slightly negative numbers
-        # they break the min_wt=0 "flag" and must therefore be removed
-        bigimwt[bigimwt < 0] = 0
     else:
         bigimwt = 1
 
@@ -727,11 +724,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if interpolate_nan:
         rifft = (ifftn(fftmult)) / bigimwt
         if not np.isscalar(bigimwt):
-            rifft[bigimwt < min_wt] = np.nan
-            if min_wt == 0.0:
-                rifft[bigimwt == 0.0] = 0.0
+            if min_wt > 0.:
+                rifft[bigimwt < min_wt] = np.nan
+            else:
+                # Set anything with no weight to zero (taking into account
+                # slight offsets due to floating-point errors).
+                rifft[bigimwt < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
     else:
-        rifft = (ifftn(fftmult))
+        rifft = ifftn(fftmult)
 
     if preserve_nan:
         rifft[arrayslices][nanmaskarray] = np.nan
