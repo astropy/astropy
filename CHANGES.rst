@@ -291,7 +291,7 @@ astropy.io.misc
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
-- Fix reading files with serialized metadata when using a Table's subclass. [#7213]
+- Fix reading files with serialized metadata when using a Table subclass. [#7213]
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^

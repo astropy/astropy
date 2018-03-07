@@ -422,3 +422,6 @@ class TestSubclass:
         assert np.all(mt == t)
         assert mt.colnames == t.colnames
         assert type(t) is MTable
+        assert t['a'].unit == u.m
+        assert t['a'].format == '.4f'
+        assert t['a'].description == 'hello'
