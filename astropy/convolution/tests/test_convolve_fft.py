@@ -4,11 +4,9 @@ import itertools
 
 import pytest
 import numpy as np
-from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
+from numpy.testing import assert_allclose
 
 from ..convolve import convolve_fft
-from ...tests.helper import catch_warnings
-from ...utils.exceptions import AstropyUserWarning
 
 
 VALID_DTYPES = []
@@ -43,6 +41,19 @@ options_preserve_nan = list(itertools.product(BOUNDARY_OPTIONS,
                                               (True, False),
                                               (True, False)))
 
+
+def assert_floatclose(x, y):
+    """Assert arrays are close to within expected floating point rounding.
+
+    Check that the result is correct at the precision expected for 64 bit
+    numbers, taking account that the tolerance has to reflect that all powers
+    in the FFTs enter our values.
+    """
+    # The number used is set by the fact that the Windows FFT sometimes
+    # returns an answer that is EXACTLY 10*np.spacing.
+    assert_allclose(x, y, atol=10*np.spacing(x.max()), rtol=0.)
+
+
 class TestConvolve1D:
 
     @pytest.mark.parametrize(option_names, options)
@@ -59,7 +70,7 @@ class TestConvolve1D:
                          nan_treatment=nan_treatment,
                          normalize_kernel=normalize_kernel)
 
-        assert_array_almost_equal_nulp(z, x, 10)
+        assert_floatclose(z, x)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_3(self, boundary, nan_treatment, normalize_kernel):
@@ -76,7 +87,7 @@ class TestConvolve1D:
                          nan_treatment=nan_treatment,
                          normalize_kernel=normalize_kernel)
 
-        assert_array_almost_equal_nulp(z, x, 10)
+        assert_floatclose(z, x)
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3(self, boundary, nan_treatment, normalize_kernel):
@@ -115,7 +126,7 @@ class TestConvolve1D:
             if k[0] == 'fill':
                 result_dict[(None, k[1], k[2])] = result_dict[k]
 
-        assert_array_almost_equal_nulp(z, result_dict[answer_key], 10)
+        assert_floatclose(z, result_dict[answer_key])
 
     @pytest.mark.parametrize(option_names, options)
     def test_halfity_3(self, boundary, nan_treatment, normalize_kernel):
@@ -154,7 +165,7 @@ class TestConvolve1D:
             # average = average_zeros; sum = sum_zeros
             answer_key += '_zeros'
 
-        assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
+        assert_floatclose(z, answer_dict[answer_key])
 
     @pytest.mark.parametrize(option_names_preserve_nan, options_preserve_nan)
     def test_unity_3_withnan(self, boundary, nan_treatment, normalize_kernel,
@@ -179,14 +190,7 @@ class TestConvolve1D:
 
         z = np.nan_to_num(z)
 
-        # for whatever reason, numpy's fft has very limited precision, and
-        # the comparison fails unless you cast the float64 to a float16
-        if hasattr(np, 'float16'):
-            assert_array_almost_equal_nulp(
-                np.asarray(z, dtype=np.float16),
-                np.array([1., 0., 3.], dtype=np.float16), 10)
-        # ASSERT equality to better than 16 bit but worse than 32 bit precision
-        assert_allclose(z, np.array([1., 0., 3.]), atol=1e-14)
+        assert_floatclose(z, [1., 0., 3.])
 
     inputs = (np.array([1., np.nan, 3.], dtype='float64'),
               np.array([1., np.inf, 3.], dtype='float64'))
@@ -222,12 +226,7 @@ class TestConvolve1D:
 
         z = np.nan_to_num(z)
 
-        # for whatever reason, numpy's fft has very limited precision, and
-        # the comparison fails unless you cast the float64 to a float16
-        if hasattr(np, 'float16'):
-            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
-                                           np.array([1., 0., 3.], dtype=np.float16), 10)
-        assert_allclose(z, outval, atol=1e-14)
+        assert_floatclose(z, outval)
 
     @pytest.mark.parametrize(option_names_preserve_nan, options_preserve_nan)
     def test_uniform_3_withnan(self, boundary, nan_treatment,
@@ -241,14 +240,6 @@ class TestConvolve1D:
         x = np.array([1., np.nan, 3.], dtype='float64')
 
         y = np.array([1., 1., 1.], dtype='float64')
-
-        # if nan_treatment and not normalize_kernel:
-        #     with pytest.raises(ValueError):
-        #         z = convolve_fft(x, y, boundary=boundary,
-        #                          nan_treatment=nan_treatment,
-        #                          normalize_kernel=normalize_kernel,
-        #                          ignore_edge_zeros=ignore_edge_zeros)
-        #     return
 
         z = convolve_fft(x, y, boundary=boundary,
                          nan_treatment=nan_treatment,
@@ -268,7 +259,6 @@ class TestConvolve1D:
             'average_wrap': np.array([4/3., 4/3., 4/3.], dtype='float64'),
             'average_wrap_interpnan': np.array([2, 2, 2], dtype='float64'),
             'average_nozeros': np.array([1/2., 4/3., 3/2.], dtype='float64'),
-            # 'average_nozeros_interpnan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
             'average_nozeros_interpnan': np.array([1., 2., 3.], dtype='float64'),
             'average_zeros': np.array([1 / 3., 4 / 3., 3 / 3.], dtype='float64'),
             'average_zeros_interpnan': np.array([1 / 2., 4 / 2., 3 / 2.], dtype='float64'),
@@ -294,8 +284,7 @@ class TestConvolve1D:
 
         posns = np.where(np.isfinite(z))
 
-        assert_array_almost_equal_nulp(z[posns],
-                                       answer_dict[answer_key][posns], 10)
+        assert_floatclose(z[posns], answer_dict[answer_key][posns])
 
     def test_nan_fill(self):
 
@@ -304,7 +293,7 @@ class TestConvolve1D:
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
         result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
-        assert_allclose(result, [1, 2, 3], atol=1e-14)
+        assert_floatclose(result, [1, 2, 3])
 
     def test_masked_array(self):
         """
@@ -316,14 +305,14 @@ class TestConvolve1D:
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
         result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
-        assert_allclose(result, [1, 2, 3], atol=1e-14)
+        assert_floatclose(result, [1, 2, 3])
 
         # Test masked kernel
         array = np.array([1., np.nan, 3.], dtype='float64')
         kernel = np.array([1, 1, 1])
         masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
         result = convolve_fft(masked_array, kernel, boundary='fill', fill_value=np.nan)
-        assert_allclose(result, [1, 2, 3], atol=1e-14)
+        assert_floatclose(result, [1, 2, 3])
 
     def test_normalize_function(self):
         """
@@ -332,7 +321,7 @@ class TestConvolve1D:
         array = [1, 2, 3]
         kernel = [3, 3, 3]
         result = convolve_fft(array, kernel, normalize_kernel=np.max)
-        assert_allclose(result, [3, 6, 5], atol=1e-14)
+        assert_floatclose(result, [3, 6, 5])
 
     @pytest.mark.parametrize(option_names, options)
     def test_normalization_is_respected(self, boundary,
@@ -360,10 +349,10 @@ class TestConvolve1D:
                                   normalization_zero_tol=normalization_rtol)
             if normalize_kernel:
                 # Kernel has been normalized to 1.
-                assert_allclose(result, array, atol=1e-14)
+                assert_floatclose(result, array)
             else:
                 # Kernel should not have been normalized...
-                assert_allclose(result, array * kernel, atol=1e-14)
+                assert_floatclose(result, array * kernel)
 
 
 class TestConvolve2D:
@@ -384,7 +373,7 @@ class TestConvolve2D:
                          nan_treatment=nan_treatment,
                          normalize_kernel=normalize_kernel)
 
-        assert_array_almost_equal_nulp(z, x, 10)
+        assert_floatclose(z, x)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_3x3(self, boundary, nan_treatment, normalize_kernel):
@@ -405,7 +394,7 @@ class TestConvolve2D:
                          nan_treatment=nan_treatment,
                          normalize_kernel=normalize_kernel)
 
-        assert_array_almost_equal_nulp(z, x, 10)
+        assert_floatclose(z, x)
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3x3(self, boundary, nan_treatment, normalize_kernel):
@@ -454,9 +443,7 @@ class TestConvolve2D:
             answer_key += '_withzeros'
 
         a = answer_dict[answer_key]
-        # for reasons unknown, the Windows FFT returns an answer for the [0, 0]
-        # component that is EXACTLY 10*np.spacing
-        assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
+        assert_floatclose(z, a)
 
     @pytest.mark.parametrize(option_names_preserve_nan, options_preserve_nan)
     def test_unity_3x3_withnan(self, boundary, nan_treatment,
@@ -482,19 +469,11 @@ class TestConvolve2D:
 
         if preserve_nan:
             assert np.isnan(z[1, 1])
+            z = np.nan_to_num(z)
 
-        x = np.nan_to_num(z)
-        z = np.nan_to_num(z)
+        x = np.nan_to_num(x)
 
-        a = x
-        a[1, 1] = 0
-
-        # for whatever reason, numpy's fft has very limited precision, and
-        # the comparison fails unless you cast the float64 to a float16
-        if hasattr(np, 'float16'):
-            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
-                                           np.asarray(a, dtype=np.float16), 10)
-        assert_allclose(z, a, atol=1e-14)
+        assert_floatclose(z, x)
 
     @pytest.mark.parametrize(option_names_preserve_nan, options_preserve_nan)
     def test_uniform_3x3_withnan(self, boundary, nan_treatment,
@@ -579,8 +558,7 @@ class TestConvolve2D:
 
         # for reasons unknown, the Windows FFT returns an answer for the [0, 0]
         # component that is EXACTLY 10*np.spacing
-        assert np.all(np.abs(z - a)[posns] <=
-                      np.spacing(np.where(z > a, z, a))[posns] * 10)
+        assert_floatclose(z[posns], z[posns])
 
     def test_big_fail(self):
         """ Test that convolve_fft raises an exception if a too-large array is passed in """
@@ -608,12 +586,12 @@ class TestConvolve2D:
                          normalize_kernel=False)
 
         if boundary in (None, 'fill'):
-            assert_allclose(z, np.array([[1., -5., 2.],
-                                         [1., 0., -3.],
-                                         [-2., -1., -1.]], dtype='float'), atol=1e-14)
+            assert_floatclose(z, np.array([[1., -5., 2.],
+                                           [1., 0., -3.],
+                                           [-2., -1., -1.]], dtype='float'))
         elif boundary == 'wrap':
-            assert_allclose(z, np.array([[0., -8., 6.],
-                                         [5., 0., -4.],
-                                         [2., 3., -4.]], dtype='float'), atol=1e-14)
+            assert_floatclose(z, np.array([[0., -8., 6.],
+                                           [5., 0., -4.],
+                                           [2., 3., -4.]], dtype='float'))
         else:
             raise ValueError("Invalid boundary specification")
