@@ -211,7 +211,7 @@ def test_linearlsqfitter():
 
     # Generate data for fitting 2 models and re-stack them along the last axis:
     y = np.array([2*x+1, x+4])
-    y = np.moveaxis(y, 0, -1)
+    y = np.rollaxis(y, 0, -1).T
 
     f = LinearLSQFitter()
     # This seems to fit the model_set correctly:
