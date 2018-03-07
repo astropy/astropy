@@ -16,6 +16,12 @@ _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
 _IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
+try:
+    import yaml  # pylint: disable=W0611
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 
 class TestData:
     read = classmethod(io_registry.read)
@@ -423,5 +429,9 @@ class TestSubclass:
         assert mt.colnames == t.colnames
         assert type(t) is MTable
         assert t['a'].unit == u.m
-        assert t['a'].format == '.4f'
-        assert t['a'].description == 'hello'
+        if HAS_YAML:
+            assert t['a'].format == '.4f'
+            assert t['a'].description == 'hello'
+        else:
+            assert t['a'].format is None
+            assert t['a'].description is None
