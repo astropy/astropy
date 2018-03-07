@@ -258,7 +258,7 @@ class TestEvaluation:
 
         p1 = models.Polynomial1D(4, n_models=2)
         y1 = p1(np.array([self.x1, self.x1]).T, model_set_axis=-1)
-        assert y1.shape == (2, 20)
+        assert y1.shape == (20, 2)
         assert_allclose(y1[0, :], y1[1, :], atol=10 ** (-12))
 
     def test_p2_1set_1pset(self):
@@ -279,21 +279,26 @@ class TestEvaluation:
 
     def test_nset_domain(self):
         """
-        Polynomial evaluation of multiple data sets with different domain
+        Test model set with negative model_set_axis.
+
+        In this case model_set_axis=-1 is identical to model_set_axis=1.
         """
 
         xx = np.array([self.x1, self.x1]).T
         xx[0, 0] = 100
         xx[1, 0] = 100
         xx[2, 0] = 99
-        p1 = models.Polynomial1D(5, n_models=2)
+        p1 = models.Polynomial1D(5, c0=[1, 2], c1=[3, 4], n_models=2)
         yy = p1(xx, model_set_axis=-1)
-        x1 = xx[:, 0]
-        x2 = xx[:, 1]
-        p1 = models.Polynomial1D(5)
-        assert_allclose(p1(x1), yy[0, :], atol=10 ** (-12))
-        p1 = models.Polynomial1D(5)
-        assert_allclose(p1(x2), yy[1, :], atol=10 ** (-12))
+        assert_allclose(xx.shape, yy.shape)
+        yy1 = p1(xx, model_set_axis=1)
+        assert_allclose(yy, yy1)
+        #x1 = xx[:, 0]
+        #x2 = xx[:, 1]
+        #p1 = models.Polynomial1D(5)
+        #assert_allclose(p1(x1), yy[0, :], atol=10 ** (-12))
+        #p1 = models.Polynomial1D(5)
+        #assert_allclose(p1(x2), yy[1, :], atol=10 ** (-12))
 
     def test_evaluate_gauss2d(self):
         cov = np.array([[1., 0.8], [0.8, 3]])

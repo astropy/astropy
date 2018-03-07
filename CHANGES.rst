@@ -49,6 +49,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fix model set evaluation over common input when model_set_axis > 0. [#7222]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
