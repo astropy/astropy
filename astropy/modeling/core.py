@@ -1585,11 +1585,17 @@ class Model(metaclass=_ModelMeta):
 
         return outputs
 
-    def prepare_outputs(self, format_info, *outputs, **kwargs):
+    def prepare_outputs(self, format_info, *outputs, model_set_axis=None, **kwargs):
+        if model_set_axis is None:
+            # By default the model_set_axis for the input is assumed to be the
+            # same as that for the parameters the model was defined with
+            # TODO: Ensure that negative model_set_axis arguments are respected
+            model_set_axis = self.model_set_axis
+
         if len(self) == 1:
             return _prepare_outputs_single_model(self, outputs, format_info)
         else:
-            return _prepare_outputs_model_set(self, outputs, format_info)
+            return _prepare_outputs_model_set(self, outputs, format_info, model_set_axis)
 
     def copy(self):
         """
@@ -3313,7 +3319,6 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
                            _input.shape[model_set_axis + 1:])
         else:
             input_shape = _input.shape
-
         for param in params:
             try:
                 check_broadcast(input_shape, param.shape)
@@ -3364,16 +3369,15 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
     return reshaped, (pivots,)
 
 
-def _prepare_outputs_model_set(model, outputs, format_info):
+def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
     pivots = format_info[0]
 
     outputs = list(outputs)
-
     for idx, output in enumerate(outputs):
         pivot = pivots[idx]
-        if pivot < output.ndim and pivot != model.model_set_axis:
+        if pivot < output.ndim and pivot != model_set_axis:
             outputs[idx] = np.rollaxis(output, pivot,
-                                       model.model_set_axis)
+                                       model_set_axis)
 
     return tuple(outputs)
 
@@ -3396,8 +3400,8 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
         return
 
     all_shapes = []
-
     for idx, _input in enumerate(inputs):
+
         input_shape = np.shape(_input)
         # Ensure that the input's model_set_axis matches the model's
         # n_models
@@ -3409,10 +3413,15 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                     "least {1}-dimensional.".format(
                         model_set_axis, model_set_axis + 1))
             elif input_shape[model_set_axis] != n_models:
+                try:
+                    argname = argnames[idx]
+                except IndexError:
+                    # the case of model.inputs = ()
+                    argname = str(idx)
                 raise ValueError(
                     "Input argument {0!r} does not have the correct "
                     "dimensions in model_set_axis={1} for a model set with "
-                    "n_models={2}.".format(argnames[idx], model_set_axis,
+                    "n_models={2}.".format(argname, model_set_axis,
                                            n_models))
         all_shapes.append(input_shape)
 

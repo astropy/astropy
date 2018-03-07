@@ -534,22 +534,22 @@ class TestParameterInitialization:
     def test_two_model_nonzero_model_set_axis(self):
         # An example where the model set axis is the *last* axis of the
         # parameter arrays
-        coeff = np.array([[[10, 20], [30, 40]], [[50, 60], [70, 80]]])
+        coeff = np.array([[[10, 20, 30], [30, 40, 50]], [[50, 60, 70], [70, 80, 90]]])
         coeff = np.rollaxis(coeff, 0, 3)
-        e = np.array([[1, 2], [3, 4]])
+        e = np.array([[1, 2, 3], [3, 4, 5]])
         e = np.rollaxis(e, 0, 2)
-        t = TParModel(coeff, e, model_set_axis=-1)
+        t = TParModel(coeff, e, n_models=2, model_set_axis=-1)
         assert len(t) == 2
         assert t.model_set_axis == -1
         assert len(t.param_sets) == 2
         assert np.issubdtype(t.param_sets.dtype, np.object_)
-        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60]],
-                                          [[30, 70], [40, 80]]])
-        assert np.all(t.param_sets[1] == [[[1, 3], [2, 4]]])
-        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 40, 80,
-                                       1, 3, 2, 4])
-        assert t.coeff.shape == (2, 2)
-        assert t.e.shape == (2,)
+        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60], [30, 70]],
+                                          [[30, 70], [40, 80], [50, 90]]])
+        assert np.all(t.param_sets[1] == [[[1, 3], [2, 4], [3, 5]]])
+        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 30, 70, 40, 80,
+                                       50, 90, 1, 3, 2, 4, 3, 5])
+        assert t.coeff.shape == (2, 3)
+        assert t.e.shape == (3,)
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
