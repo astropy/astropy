@@ -114,9 +114,10 @@ TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
 
 # TDISPn for both ASCII and Binary tables
 TDISP_RE_DICT = {}
-TDISP_RE_DICT['A'] = re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|')
 TDISP_RE_DICT['F'] = re.compile(r'(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}'
                                 r'(?P<precision>[0-9])+)+)|')
+TDISP_RE_DICT['A'] = TDISP_RE_DICT['L'] = \
+    re.compile(r'(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|')
 TDISP_RE_DICT['I'] = TDISP_RE_DICT['B'] = \
     TDISP_RE_DICT['O'] = TDISP_RE_DICT['Z'] =  \
     re.compile(r'(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)'
@@ -142,11 +143,11 @@ TDISP_RE_DICT['EN'] = TDISP_RE_DICT['ES'] = \
 # Z: Hexadecimal Integer
 # F: Float (64-bit; fixed decimal notation)
 # EN: Float (engineering fortran format, exponential multiple of thee
-#     Not supported in Python format types, moving to default exponential
 # ES: Float (scientific, same as EN but non-zero leading digit
 # E: Float, exponential notation
 #    Can't get exponential restriction to work without knowing value
-#    before hand, so just using width and precision, same with D and G format
+#    before hand, so just using width and precision, same with D, G, EN, and
+#    ES formats
 # D: Double-precision Floating Point
 # G: Double-precision Floating Point
 TDISP_FMT_DICT = {'I' : '{{:0{precision}d}}',
@@ -157,8 +158,8 @@ TDISP_FMT_DICT = {'I' : '{{:0{precision}d}}',
                   'G' : '{{:>{width}.{precision}g}}'}
 TDISP_FMT_DICT['A'] = TDISP_FMT_DICT['L'] = '{{:>{width}}}'
 TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] = '{:e}'
-TDISP_FMT_DICT['E'] = TDISP_FMT_DICT['D'] = '{{:>{width}.{precision}e}}'
-
+TDISP_FMT_DICT['E'] = TDISP_FMT_DICT['D'] =  \
+    TDISP_FMT_DICT['EN'] = TDISP_FMT_DICT['ES'] ='{{:>{width}.{precision}e}}'
 
 TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
 """
@@ -2507,9 +2508,7 @@ def _fortran_to_python_format(tdisp):
 
     try:
         fmt = TDISP_FMT_DICT[format_type]
-        if format_type not in ['EN', 'ES']:
-            return fmt.format(width=width, precision=precision)
-        else:
-            return fmt
+        return fmt.format(width=width, precision=precision)
+
     except KeyError:
         raise VerifyError('Format {!r} is not recognized.'.format(format_type))
