@@ -287,10 +287,15 @@ def test_repr_latex():
 @pytest.mark.remote_data
 def test_of_address():
     # just a location
-    loc = EarthLocation.of_address("New York, NY")
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert np.allclose(loc.height.value, 0.)
+    try:
+        loc = EarthLocation.of_address("New York, NY")
+    except NameResolveError as e:
+        # Google map API limit might surface even here in Travis CI.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert np.allclose(loc.height.value, 0.)
 
     # Put this one here as buffer to get around Google map API limit per sec.
     # no match
@@ -301,7 +306,7 @@ def test_of_address():
     try:
         loc = EarthLocation.of_address("New York, NY", get_height=True)
     except NameResolveError as e:
-        # Buffer above insufficient to get around API limit but
+        # Buffer above sometimes insufficient to get around API limit but
         # we also do not want to drag things out with time.sleep(0.195),
         # where 0.195 was empirically determined on some physical machine.
         pytest.xfail(str(e))
