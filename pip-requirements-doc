@@ -2,6 +2,5 @@
 matplotlib
 scipy
 pillow
-sphinx-gallery
 jplephem
 sphinx-astropy
