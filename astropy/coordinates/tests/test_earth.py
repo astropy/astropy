@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
+import time as _time
 
 import pytest
 import numpy as np
@@ -288,15 +287,16 @@ def test_repr_latex():
 
 @pytest.mark.remote_data
 def test_of_address():
-    # no match
-    with pytest.raises(NameResolveError):
-        EarthLocation.of_address("lkjasdflkja")
-
     # just a location
     loc = EarthLocation.of_address("New York, NY")
     assert quantity_allclose(loc.lat, 40.7128*u.degree)
     assert quantity_allclose(loc.lon, -74.0059*u.degree)
     assert np.allclose(loc.height.value, 0.)
+
+    # Put this one here as buffer to get around Google map API limit per sec.
+    # no match
+    with pytest.raises(NameResolveError):
+        EarthLocation.of_address("lkjasdflkja")
 
     # a location and height
     loc = EarthLocation.of_address("New York, NY", get_height=True)
