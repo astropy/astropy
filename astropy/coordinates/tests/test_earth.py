@@ -4,7 +4,6 @@
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
-import time as _time
 
 import pytest
 import numpy as np
@@ -299,10 +298,17 @@ def test_of_address():
         EarthLocation.of_address("lkjasdflkja")
 
     # a location and height
-    loc = EarthLocation.of_address("New York, NY", get_height=True)
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+    try:
+        loc = EarthLocation.of_address("New York, NY", get_height=True)
+    except NameResolveError as e:
+        # Buffer above insufficient to get around API limit but
+        # we also do not want to drag things out with time.sleep(0.195),
+        # where 0.195 was empirically determined on some physical machine.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
 
 
 def test_geodetic_tuple():
