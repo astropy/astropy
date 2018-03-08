@@ -321,7 +321,6 @@ def test_mad_std():
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
-@pytest.mark.xfail()
 def test_mad_std_scalar_return():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(10, 10))
@@ -337,7 +336,10 @@ def test_mad_std_scalar_return():
         with catch_warnings():
             rslt = funcs.mad_std(data)
             assert np.isscalar(rslt)
-            assert not np.isnan(rslt)
+            try:
+                assert not np.isnan(rslt)
+            except AssertionError:
+                pytest.xfail('See #5232')
 
 
 def test_mad_std_warns():
