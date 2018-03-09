@@ -190,7 +190,7 @@ int     shared_init(int debug_msgs)             /* initialize shared memory stuf
 
    if (SHARED_INVALID == shared_fd)             /* create rw locking file (this file is never deleted) */
      { if (shared_debug) printf(" lockfileinit=");
-       sprintf(buf, "%s.%d.%d", SHARED_FDNAME, shared_kbase, shared_maxseg);
+       snprintf(buf, 1000,"%s.%d.%d", SHARED_FDNAME, shared_kbase, shared_maxseg);
        oldumask = umask(0);
 
        shared_fd = open(buf, O_TRUNC | O_EXCL | O_CREAT | O_RDWR, shared_create_mode);
@@ -746,7 +746,7 @@ int     shared_getaddr(int id, char **address)
    if (NULL == shared_lt) return(SHARED_NOTINIT);       /* not initialized */
  
    strcpy(segname,"h");
-   sprintf(segname+1,"%d", id);
+   snprintf(segname+1,9,"%d", id);
  
    if (smem_open(segname,0,&i)) return(SHARED_BADARG);
  

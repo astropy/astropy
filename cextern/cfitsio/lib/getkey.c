@@ -194,7 +194,7 @@ int ffgnky(fitsfile *fptr,  /* I - FITS file pointer     */
         bytepos < (fptr->Fptr)->headstart[(fptr->Fptr)->curhdu] ) 
     {
         nrec= (int) ((bytepos - (fptr->Fptr)->headstart[(fptr->Fptr)->curhdu]) / 80 + 1);
-        sprintf(message, "Cannot get keyword number %d.  It does not exist.",
+        snprintf(message, FLEN_ERRMSG,"Cannot get keyword number %d.  It does not exist.",
                 nrec);
         ffpmsg(message);
         return(*status = KEY_OUT_BOUNDS);
@@ -1243,7 +1243,7 @@ int ffgkyc( fitsfile *fptr,     /* I - FITS file pointer         */
   will be performed.
 */
 {
-    char valstring[FLEN_VALUE], message[81];
+    char valstring[FLEN_VALUE], message[FLEN_ERRMSG];
     int len;
 
     if (*status > 0)
@@ -1253,7 +1253,7 @@ int ffgkyc( fitsfile *fptr,     /* I - FITS file pointer         */
 
     if (valstring[0] != '(' )   /* test that this is a complex keyword */
     {
-      sprintf(message, "keyword %s does not have a complex value (ffgkyc):",
+      snprintf(message, FLEN_ERRMSG, "keyword %s does not have a complex value (ffgkyc):",
               keyname);
       ffpmsg(message);
       ffpmsg(valstring);
@@ -1283,7 +1283,7 @@ int ffgkym( fitsfile *fptr,     /* I - FITS file pointer         */
   will be performed.
 */
 {
-    char valstring[FLEN_VALUE], message[81];
+    char valstring[FLEN_VALUE], message[FLEN_ERRMSG];
     int len;
 
     if (*status > 0)
@@ -1293,7 +1293,7 @@ int ffgkym( fitsfile *fptr,     /* I - FITS file pointer         */
 
     if (valstring[0] != '(' )   /* test that this is a complex keyword */
     {
-      sprintf(message, "keyword %s does not have a complex value (ffgkym):",
+      snprintf(message, FLEN_ERRMSG, "keyword %s does not have a complex value (ffgkym):",
               keyname);
       ffpmsg(message);
       ffpmsg(valstring);
@@ -1392,7 +1392,7 @@ int ffgkyn( fitsfile *fptr,      /* I - FITS file pointer             */
 
     if (fftrec(keyname, status) > 0)  /* test keyword name; catches no END */
     {
-     sprintf(sbuff,"Name of keyword no. %d contains illegal character(s): %s",
+     snprintf(sbuff, FLEN_CARD, "Name of keyword no. %d contains illegal character(s): %s",
               nkey, keyname);
      ffpmsg(sbuff);
 
@@ -1925,7 +1925,7 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
 */
 {
     long dimsize, totalpix = 1;
-    char *loc, *lastloc, message[81];
+    char *loc, *lastloc, message[FLEN_ERRMSG];
     tcolumn *colptr = 0;
 
     if (*status > 0)
@@ -1956,7 +1956,7 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
     loc = strchr(tdimstr, '(' );  /* find the opening quote */
     if (!loc)
     {
-            sprintf(message, "Illegal dimensions format: %s", tdimstr);
+            snprintf(message, FLEN_ERRMSG, "Illegal dimensions format: %s", tdimstr);
             return(*status = BAD_TDIM);
     }
 
@@ -1983,14 +1983,14 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
     loc = strchr(lastloc, ')' );  /* check for the closing quote */
     if (!loc)
     {
-            sprintf(message, "Illegal dimensions format: %s", tdimstr);
+            snprintf(message, FLEN_ERRMSG, "Illegal dimensions format: %s", tdimstr);
             return(*status = BAD_TDIM);
     }
 
     if (colnum != 0) {
         if ((colptr->tdatatype > 0) && ((long) colptr->trepeat != totalpix))
         {
-          sprintf(message,
+          snprintf(message, FLEN_ERRMSG,
           "column vector length, %ld, does not equal TDIMn array size, %ld",
           (long) colptr->trepeat, totalpix);
           ffpmsg(message);
@@ -2015,7 +2015,7 @@ int ffdtdmll(fitsfile *fptr,  /* I - FITS file pointer                        */
 {
     LONGLONG dimsize;
     LONGLONG totalpix = 1;
-    char *loc, *lastloc, message[81];
+    char *loc, *lastloc, message[FLEN_ERRMSG];
     tcolumn *colptr;
     double doublesize;
 
@@ -2044,7 +2044,7 @@ int ffdtdmll(fitsfile *fptr,  /* I - FITS file pointer                        */
         loc = strchr(tdimstr, '(' );  /* find the opening quote */
         if (!loc)
         {
-            sprintf(message, "Illegal TDIM keyword value: %s", tdimstr);
+            snprintf(message, FLEN_ERRMSG, "Illegal TDIM keyword value: %s", tdimstr);
             return(*status = BAD_TDIM);
         }
 
@@ -2078,13 +2078,13 @@ int ffdtdmll(fitsfile *fptr,  /* I - FITS file pointer                        */
         loc = strchr(lastloc, ')' );  /* check for the closing quote */
         if (!loc)
         {
-            sprintf(message, "Illegal TDIM keyword value: %s", tdimstr);
+            snprintf(message, FLEN_ERRMSG, "Illegal TDIM keyword value: %s", tdimstr);
             return(*status = BAD_TDIM);
         }
 
         if ((colptr->tdatatype > 0) && (colptr->trepeat != totalpix))
         {
-          sprintf(message,
+          snprintf(message, FLEN_ERRMSG,
           "column vector length, %.0f, does not equal TDIMn array size, %.0f",
           (double) (colptr->trepeat), (double) totalpix);
           ffpmsg(message);
@@ -2178,7 +2178,7 @@ int ffghtb(fitsfile *fptr,  /* I - FITS file pointer                        */
     int ii, maxf, nfound, tstatus;
     long fields;
     char name[FLEN_KEYWORD], value[FLEN_VALUE], comm[FLEN_COMMENT];
-    char xtension[FLEN_VALUE], message[81];
+    char xtension[FLEN_VALUE], message[FLEN_ERRMSG];
     LONGLONG llnaxis1, llnaxis2, pcount;
 
     if (*status > 0)
@@ -2201,7 +2201,7 @@ int ffghtb(fitsfile *fptr,  /* I - FITS file pointer                        */
             if ( (value[0] != '\'')   ||  /* first char must be a quote */
                  ( strcmp(xtension, "TABLE") ) )
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "This is not a TABLE extension: %s", value);
                 ffpmsg(message);
                 return(*status = NOT_ATABLE);
@@ -2210,7 +2210,7 @@ int ffghtb(fitsfile *fptr,  /* I - FITS file pointer                        */
 
     else  /* error: 1st keyword of extension != XTENSION */
     {
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
         "First keyword of the extension is not XTENSION: %s", name);
         ffpmsg(message);
         return(*status = NO_XTENSION);
@@ -2227,7 +2227,7 @@ int ffghtb(fitsfile *fptr,  /* I - FITS file pointer                        */
 
     if (pcount != 0)
     {
-       sprintf(message, "PCOUNT = %.0f is illegal in ASCII table; must = 0",
+       snprintf(message, FLEN_ERRMSG, "PCOUNT = %.0f is illegal in ASCII table; must = 0",
                (double) pcount);
        ffpmsg(message);
        return(*status = BAD_PCOUNT);
@@ -2321,7 +2321,7 @@ int ffghtbll(fitsfile *fptr, /* I - FITS file pointer                        */
     int ii, maxf, nfound, tstatus;
     long fields;
     char name[FLEN_KEYWORD], value[FLEN_VALUE], comm[FLEN_COMMENT];
-    char xtension[FLEN_VALUE], message[81];
+    char xtension[FLEN_VALUE], message[FLEN_ERRMSG];
     LONGLONG llnaxis1, llnaxis2, pcount;
 
     if (*status > 0)
@@ -2344,7 +2344,7 @@ int ffghtbll(fitsfile *fptr, /* I - FITS file pointer                        */
             if ( (value[0] != '\'')   ||  /* first char must be a quote */
                  ( strcmp(xtension, "TABLE") ) )
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "This is not a TABLE extension: %s", value);
                 ffpmsg(message);
                 return(*status = NOT_ATABLE);
@@ -2353,7 +2353,7 @@ int ffghtbll(fitsfile *fptr, /* I - FITS file pointer                        */
 
     else  /* error: 1st keyword of extension != XTENSION */
     {
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
         "First keyword of the extension is not XTENSION: %s", name);
         ffpmsg(message);
         return(*status = NO_XTENSION);
@@ -2370,7 +2370,7 @@ int ffghtbll(fitsfile *fptr, /* I - FITS file pointer                        */
 
     if (pcount != 0)
     {
-       sprintf(message, "PCOUNT = %.0f is illegal in ASCII table; must = 0",
+       snprintf(message, FLEN_ERRMSG, "PCOUNT = %.0f is illegal in ASCII table; must = 0",
              (double) pcount);
        ffpmsg(message);
        return(*status = BAD_PCOUNT);
@@ -2463,7 +2463,7 @@ int ffghbn(fitsfile *fptr,  /* I - FITS file pointer                        */
     int ii, maxf, nfound, tstatus;
     long  fields;
     char name[FLEN_KEYWORD], value[FLEN_VALUE], comm[FLEN_COMMENT];
-    char xtension[FLEN_VALUE], message[81];
+    char xtension[FLEN_VALUE], message[FLEN_ERRMSG];
     LONGLONG naxis1ll, naxis2ll, pcountll;
 
     if (*status > 0)
@@ -2489,7 +2489,7 @@ int ffghbn(fitsfile *fptr,  /* I - FITS file pointer                        */
                    strcmp(xtension, "3DTABLE")
                  ) )
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "This is not a BINTABLE extension: %s", value);
                 ffpmsg(message);
                 return(*status = NOT_BTABLE);
@@ -2498,7 +2498,7 @@ int ffghbn(fitsfile *fptr,  /* I - FITS file pointer                        */
 
     else  /* error: 1st keyword of extension != XTENSION */
     {
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
         "First keyword of the extension is not XTENSION: %s", name);
         ffpmsg(message);
         return(*status = NO_XTENSION);
@@ -2586,7 +2586,7 @@ int ffghbnll(fitsfile *fptr,  /* I - FITS file pointer                        */
     int ii, maxf, nfound, tstatus;
     long  fields;
     char name[FLEN_KEYWORD], value[FLEN_VALUE], comm[FLEN_COMMENT];
-    char xtension[FLEN_VALUE], message[81];
+    char xtension[FLEN_VALUE], message[FLEN_ERRMSG];
     LONGLONG naxis1ll, naxis2ll, pcountll;
 
     if (*status > 0)
@@ -2612,7 +2612,7 @@ int ffghbnll(fitsfile *fptr,  /* I - FITS file pointer                        */
                    strcmp(xtension, "3DTABLE")
                  ) )
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "This is not a BINTABLE extension: %s", value);
                 ffpmsg(message);
                 return(*status = NOT_BTABLE);
@@ -2621,7 +2621,7 @@ int ffghbnll(fitsfile *fptr,  /* I - FITS file pointer                        */
 
     else  /* error: 1st keyword of extension != XTENSION */
     {
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
         "First keyword of the extension is not XTENSION: %s", name);
         ffpmsg(message);
         return(*status = NO_XTENSION);
@@ -2749,7 +2749,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
         else
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
                    "First keyword of the file is not SIMPLE: %s", name);
             ffpmsg(message);
             return(*status = NO_SIMPLE);
@@ -2775,7 +2775,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
                     strcmp(xtension, "IUEIMAGE") ) )
             {
                 unknown = 1;  /* unknown type of extension; press on anyway */
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                    "This is not an IMAGE extension: %s", value);
                 ffpmsg(message);
             }
@@ -2783,7 +2783,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
         else  /* error: 1st keyword of extension != XTENSION */
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "First keyword of the extension is not XTENSION: %s", name);
             ffpmsg(message);
             return(*status = NO_XTENSION);
@@ -2841,7 +2841,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
         if (strcmp(name, "BITPIX"))
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "Second keyword of the extension is not BITPIX: %s", name);
             ffpmsg(message);
             return(*status = NO_BITPIX);
@@ -2849,7 +2849,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
         if (ffc2ii(value,  &longbitpix, status) > 0)
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "Value of BITPIX keyword is not an integer: %s", value);
             ffpmsg(message);
             return(*status = BAD_BITPIX);
@@ -2858,7 +2858,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
              longbitpix != LONG_IMG && longbitpix != LONGLONG_IMG &&
              longbitpix != FLOAT_IMG && longbitpix != DOUBLE_IMG)
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
             "Illegal value for BITPIX keyword: %s", value);
             ffpmsg(message);
             return(*status = BAD_BITPIX);
@@ -2875,7 +2875,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
             return(*status = NO_NAXIS);
         else if (*status == NOT_POS_INT || longnaxis > 999)
         {
-            sprintf(message,"NAXIS = %ld is illegal", longnaxis);
+            snprintf(message,FLEN_ERRMSG,"NAXIS = %ld is illegal", longnaxis);
             ffpmsg(message);
             return(*status = BAD_NAXIS);
         }
@@ -2949,7 +2949,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
         if (fftrec(name, status) > 0)  /* test keyword name; catches no END */
         {
-          sprintf(message,
+          snprintf(message, FLEN_ERRMSG,
               "Name of keyword no. %d contains illegal character(s): %s",
               nextkey, name);
           ffpmsg(message);
@@ -2969,7 +2969,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
                 *status = tstatus;
                 *bscale = 1.0;
 
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading BSCALE keyword value as a double: %s", value);
                 ffpmsg(message);
             }
@@ -2986,7 +2986,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
                 *status = tstatus;
                 *bzero = 0.0;
 
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading BZERO keyword value as a double: %s", value);
                 ffpmsg(message);
             }
@@ -3003,7 +3003,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
                 *status = tstatus;
                 *blank = NULL_UNDEFINED;
 
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading BLANK keyword value as an integer: %s", value);
                 ffpmsg(message);
             }
@@ -3016,7 +3016,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
             if (ffc2ii(value, pcount, status) > 0) /* convert to long */
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading PCOUNT keyword value as an integer: %s", value);
                 ffpmsg(message);
             }
@@ -3029,7 +3029,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
 
             if (ffc2ii(value, gcount, status) > 0) /* convert to long */
             {
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading GCOUNT keyword value as an integer: %s", value);
                 ffpmsg(message);
             }
@@ -3046,7 +3046,7 @@ int ffgphd(fitsfile *fptr,  /* I - FITS file pointer                        */
                 *status = tstatus;
                 *extend = 0;
 
-                sprintf(message,
+                snprintf(message, FLEN_ERRMSG,
                 "Error reading EXTEND keyword value as a logical: %s", value);
                 ffpmsg(message);
             }
@@ -3177,16 +3177,16 @@ int ffgtkn(fitsfile *fptr,  /* I - FITS file pointer              */
 
         if (*status > 0)
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               "ffgtkn found unexpected keyword or value for keyword no. %d.",
               numkey);
             ffpmsg(message);
 
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               " Expected positive integer keyword %s, but instead", name);
             ffpmsg(message);
 
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               " found keyword %s with value %s", keyname, valuestring);
             ffpmsg(message);
         }
@@ -3231,16 +3231,16 @@ int ffgtknjj(fitsfile *fptr,  /* I - FITS file pointer              */
 
         if (*status > 0)
         {
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               "ffgtknjj found unexpected keyword or value for keyword no. %d.",
               numkey);
             ffpmsg(message);
 
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               " Expected positive integer keyword %s, but instead", name);
             ffpmsg(message);
 
-            sprintf(message,
+            snprintf(message, FLEN_ERRMSG,
               " found keyword %s with value %s", keyname, valuestring);
             ffpmsg(message);
         }
@@ -3279,16 +3279,16 @@ int fftkyn(fitsfile *fptr,  /* I - FITS file pointer              */
 
     if (*status > 0)
     {
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
           "fftkyn found unexpected keyword or value for keyword no. %d.",
           numkey);
         ffpmsg(message);
 
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
           " Expected keyword %s with value %s, but", name, value);
         ffpmsg(message);
 
-        sprintf(message,
+        snprintf(message, FLEN_ERRMSG,
           " found keyword %s with value %s", keyname, valuestring);
         ffpmsg(message);
     }

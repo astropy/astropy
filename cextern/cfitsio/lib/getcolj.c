@@ -236,7 +236,7 @@ int ffgsvj(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -314,7 +314,7 @@ int ffgsvj(fitsfile *fptr, /* I - FITS file pointer                         */
         }
         else
         {
-          sprintf(msg, "ffgsvj: illegal range specified for axis %ld", ii + 1);
+          snprintf(msg, FLEN_ERRMSG,"ffgsvj: illegal range specified for axis %ld", ii + 1);
           ffpmsg(msg);
           return(*status = BAD_PIX_NUM);
         }
@@ -413,7 +413,7 @@ int ffgsfj(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -482,7 +482,7 @@ int ffgsfj(fitsfile *fptr, /* I - FITS file pointer                         */
     {
       if (trc[ii] < blc[ii])
       {
-        sprintf(msg, "ffgsvj: illegal range specified for axis %ld", ii + 1);
+        snprintf(msg, FLEN_ERRMSG,"ffgsvj: illegal range specified for axis %ld", ii + 1);
         ffpmsg(msg);
         return(*status = BAD_PIX_NUM);
       }
@@ -665,7 +665,7 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
     LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
-    char message[81];
+    char message[FLEN_ERRMSG];
     char snull[20];   /*  the FITS null value if reading from ASCII table  */
 
     double cbuff[DBUFFSIZE / sizeof(double)]; /* align cbuff on word boundary */
@@ -842,7 +842,7 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
                 break;
 
             default:  /*  error trap for invalid column format */
-                sprintf(message, 
+                snprintf(message, FLEN_ERRMSG,
                    "Cannot read numbers from column %d which has format %s",
                     colnum, tform);
                 ffpmsg(message);
@@ -860,11 +860,11 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
         {
 	  dtemp = (double) next;
           if (hdutype > 0)
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from column %d (ffgclj).",
               dtemp+1., dtemp+ntodo, colnum);
           else
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from image (ffgclj).",
               dtemp+1., dtemp+ntodo);
 
@@ -1743,7 +1743,7 @@ int fffstri4(char *input,         /* I - array of values to be converted     */
     int nullen;
     long ii;
     double dvalue;
-    char *cstring, message[81];
+    char *cstring, message[FLEN_ERRMSG];
     char *cptr, *tpos;
     char tempstore, chrzero = '0';
     double val, power;
@@ -1856,9 +1856,9 @@ int fffstri4(char *input,         /* I - array of values to be converted     */
 
         if (*cptr  != 0)  /* should end up at the null terminator */
         {
-          sprintf(message, "Cannot read number from ASCII table");
+          snprintf(message, FLEN_ERRMSG,"Cannot read number from ASCII table");
           ffpmsg(message);
-          sprintf(message, "Column field = %s.", cstring);
+          snprintf(message, FLEN_ERRMSG,"Column field = %s.", cstring);
           ffpmsg(message);
           /* restore the char that was overwritten by the null */
           *tpos = tempstore;
@@ -2122,7 +2122,7 @@ int ffgsvjj(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -2200,7 +2200,7 @@ int ffgsvjj(fitsfile *fptr, /* I - FITS file pointer                         */
         }
         else
         {
-          sprintf(msg, "ffgsvj: illegal range specified for axis %ld", ii + 1);
+          snprintf(msg, FLEN_ERRMSG,"ffgsvj: illegal range specified for axis %ld", ii + 1);
           ffpmsg(msg);
           return(*status = BAD_PIX_NUM);
         }
@@ -2299,7 +2299,7 @@ int ffgsfjj(fitsfile *fptr, /* I - FITS file pointer                         */
 
     if (naxis < 1 || naxis > 9)
     {
-        sprintf(msg, "NAXIS = %d in call to ffgsvj is out of range", naxis);
+        snprintf(msg, FLEN_ERRMSG,"NAXIS = %d in call to ffgsvj is out of range", naxis);
         ffpmsg(msg);
         return(*status = BAD_DIMEN);
     }
@@ -2368,7 +2368,7 @@ int ffgsfjj(fitsfile *fptr, /* I - FITS file pointer                         */
     {
       if (trc[ii] < blc[ii])
       {
-        sprintf(msg, "ffgsvj: illegal range specified for axis %ld", ii + 1);
+        snprintf(msg, FLEN_ERRMSG,"ffgsvj: illegal range specified for axis %ld", ii + 1);
         ffpmsg(msg);
         return(*status = BAD_PIX_NUM);
       }
@@ -2553,7 +2553,7 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
     LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
-    char message[81];
+    char message[FLEN_ERRMSG];
     char snull[20];   /*  the FITS null value if reading from ASCII table  */
 
     double cbuff[DBUFFSIZE / sizeof(double)]; /* align cbuff on word boundary */
@@ -2721,7 +2721,7 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
                 break;
 
             default:  /*  error trap for invalid column format */
-                sprintf(message, 
+                snprintf(message,FLEN_ERRMSG, 
                    "Cannot read numbers from column %d which has format %s",
                     colnum, tform);
                 ffpmsg(message);
@@ -2739,11 +2739,11 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
         {
 	  dtemp = (double) next;
           if (hdutype > 0)
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from column %d (ffgclj).",
               dtemp+1., dtemp+ntodo, colnum);
           else
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
             "Error reading elements %.0f thru %.0f from image (ffgclj).",
               dtemp+1., dtemp+ntodo);
 
@@ -3597,7 +3597,7 @@ int fffstri8(char *input,         /* I - array of values to be converted     */
     int nullen;
     long ii;
     double dvalue;
-    char *cstring, message[81];
+    char *cstring, message[FLEN_ERRMSG];
     char *cptr, *tpos;
     char tempstore, chrzero = '0';
     double val, power;
@@ -3710,9 +3710,9 @@ int fffstri8(char *input,         /* I - array of values to be converted     */
 
         if (*cptr  != 0)  /* should end up at the null terminator */
         {
-          sprintf(message, "Cannot read number from ASCII table");
+          snprintf(message, FLEN_ERRMSG, "Cannot read number from ASCII table");
           ffpmsg(message);
-          sprintf(message, "Column field = %s.", cstring);
+          snprintf(message, FLEN_ERRMSG,"Column field = %s.", cstring);
           ffpmsg(message);
           /* restore the char that was overwritten by the null */
           *tpos = tempstore;
