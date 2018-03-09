@@ -55,6 +55,10 @@
 #include "eval_defs.h"
 #include "region.h"
 
+#if defined(_MSC_VER)
+  #define snprintf _snprintf
+#endif
+
 typedef struct {
      int  datatype;   /* Data type to cast parse results into for user       */
      void *dataPtr;   /* Pointer to array of results, NULL if to use iterCol */

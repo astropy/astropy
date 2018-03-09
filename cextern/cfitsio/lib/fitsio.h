@@ -186,6 +186,9 @@ SERVICES PROVIDED HEREUNDER."
 #endif
 #endif  /* end of ndef LONGLONG_MAX section */
 
+#if defined(_MSC_VER)
+  #define snprintf _snprintf
+#endif
 
 /* ================================================================= */
 
