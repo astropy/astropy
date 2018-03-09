@@ -1744,14 +1744,18 @@ class Model(metaclass=_ModelMeta):
                 # Otherwise disable
                 model_set_axis = False
         else:
-            if not (model_set_axis is False or
-                    (isinstance(model_set_axis, int) and
-                        not isinstance(model_set_axis, bool))):
-                raise ValueError(
-                    "model_set_axis must be either False or an integer "
-                    "specifying the parameter array axis to map to each "
-                    "model in a set of models (got {0!r}).".format(
-                        model_set_axis))
+            if model_set_axis is not False:
+                if n_models is None:
+                    raise ValueError(
+                        "n_models must be passed in order to create a "
+                        "model set (got {0!r}).".format(n_models))
+                if not (isinstance(model_set_axis, int) and
+                        not isinstance(model_set_axis, bool)):
+                    raise ValueError(
+                        "model_set_axis must be either False or an integer "
+                        "specifying the parameter array axis to map to each "
+                        "model in a set of models (got {0!r}).".format(
+                            model_set_axis))
 
         # Process positional arguments by matching them up with the
         # corresponding parameters in self.param_names--if any also appear as
@@ -1802,8 +1806,7 @@ class Model(metaclass=_ModelMeta):
                     '{1!r}'.format(self.__class__.__name__, kwarg))
 
         # Determine the number of model sets: If the model_set_axis is
-        # None then there is just one parameter set; otherwise it is determined
-        # by the size of that axis on the first parameter--if the other
+        # None then there is just one parameter set; if the other
         # parameters don't have the right number of axes or the sizes of their
         # model_set_axis don't match an error is raised
         if model_set_axis is not False and n_models != 1 and params:
@@ -1824,11 +1827,7 @@ class Model(metaclass=_ModelMeta):
 
                 max_ndim = max(max_ndim, param_ndim)
 
-                if n_models is None:
-                    # Use the dimensions of the first parameter to determine
-                    # the number of model sets
-                    n_models = value.shape[model_set_axis]
-                elif value.shape[model_set_axis] != n_models:
+                if value.shape[model_set_axis] != n_models:
                     raise InputParameterError(
                         "Inconsistent dimensions for parameter {0!r} for "
                         "{1} model sets.  The length of axis {2} must be the "
