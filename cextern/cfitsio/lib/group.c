@@ -232,11 +232,11 @@ int ffgtis(fitsfile *fptr,      /* FITS file pointer                         */
 	  if(fits_strcasecmp(ttype[i],"MEMBER_POSITION") == 0 ||
 	     fits_strcasecmp(ttype[i],"MEMBER_VERSION")  == 0)
 	    {
-	      sprintf(keyword,"TFORM%d",i+1);
+	      snprintf(keyword,FLEN_KEYWORD,"TFORM%d",i+1);
 	      *status = fits_read_key_str(fptr,keyword,keyvalue,comment,
 					  status);
 	 
-	      sprintf(keyword,"TNULL%d",i+1);
+	      snprintf(keyword,FLEN_KEYWORD,"TNULL%d",i+1);
 
 	      *status = fits_insert_key_lng(fptr,keyword,0,"Column Null Value",
 					    status);
@@ -505,12 +505,12 @@ int ffgtch(fitsfile *gfptr,     /* FITS pointer to group                     */
 	      *status = fits_get_colnum(gfptr,CASESEN,ttype[i],&colnum,
 					status);
 	      
-	      sprintf(keyword,"TFORM%d",colnum);
+	      snprintf(keyword,FLEN_KEYWORD,"TFORM%d",colnum);
 
 	      *status = fits_read_key_str(gfptr,keyword,keyvalue,comment,
 					  status);
 	 
-	      sprintf(keyword,"TNULL%d",colnum);
+	      snprintf(keyword,FLEN_KEYWORD,"TNULL%d",colnum);
 
 	      *status = fits_insert_key_lng(gfptr,keyword,0,
 					    "Column Null Value",status);
@@ -934,7 +934,7 @@ int ffgtvf(fitsfile *gfptr,       /* FITS file pointer to group             */
       if(*status != 0)
 	{
 	  *firstfailed = i;
-	  sprintf(errstr,"Group table verify failed for member %ld (ffgtvf)",
+	  snprintf(errstr,FLEN_VALUE,"Group table verify failed for member %ld (ffgtvf)",
 		  i);
 	  ffpmsg(errstr);
 	  continue;
@@ -962,7 +962,7 @@ int ffgtvf(fitsfile *gfptr,       /* FITS file pointer to group             */
       if(*status != 0)
 	{
 	  *firstfailed = -1*i;
-	  sprintf(errstr,
+	  snprintf(errstr,FLEN_VALUE,
 		  "Group table verify failed for GRPID index %ld (ffgtvf)",i);
 	  ffpmsg(errstr);
 	  continue;
@@ -1030,7 +1030,7 @@ int ffgtop(fitsfile *mfptr,  /* FITS file pointer to the member HDU          */
       if(grpid > ngroups)
 	{
 	  *status = BAD_GROUP_ID;
-	  sprintf(comment,
+	  snprintf(comment,FLEN_COMMENT,
 		  "GRPID index %d larger total GRPID keywords %ld (ffgtop)",
 		  grpid,ngroups);
 	  ffpmsg(comment);
@@ -1044,7 +1044,7 @@ int ffgtop(fitsfile *mfptr,  /* FITS file pointer to the member HDU          */
 	any gaps
       */
 
-      sprintf(keyword,"GRPID%d",grpid);
+      snprintf(keyword,FLEN_KEYWORD,"GRPID%d",grpid);
 
       *status = fits_read_key_lng(mfptr,keyword,&grpExtver,comment,status);
 
@@ -1079,7 +1079,7 @@ int ffgtop(fitsfile *mfptr,  /* FITS file pointer to the member HDU          */
 	      /* a GRPIDn value of zero (0) is undefined */
 
 	      *status = BAD_GROUP_ID;
-	      sprintf(comment,"Invalid value of %ld for GRPID%d (ffgtop)",
+	      snprintf(comment,FLEN_COMMENT,"Invalid value of %ld for GRPID%d (ffgtop)",
 		      grpExtver,grpid);
 	      ffpmsg(comment);
 	      continue;
@@ -1097,7 +1097,7 @@ int ffgtop(fitsfile *mfptr,  /* FITS file pointer to the member HDU          */
 
 	  /* read the GRPLCn keyword value */
 
-	  sprintf(keyword,"GRPLC%d",grpid);
+	  snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",grpid);
 	  /* SPR 1738 */
 	  *status = fits_read_key_longstr(mfptr,keyword,&tkeyvalue,comment,
 				      status);
@@ -1113,7 +1113,7 @@ int ffgtop(fitsfile *mfptr,  /* FITS file pointer to the member HDU          */
 	    {
 	      *status = BAD_GROUP_ID;
 
-	      sprintf(comment,"Cannot find GRPLC%d keyword (ffgtop)",
+	      snprintf(comment,FLEN_COMMENT,"Cannot find GRPLC%d keyword (ffgtop)",
 		      grpid);
 	      ffpmsg(comment);
 
@@ -1750,7 +1750,7 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 
       for(i = 1, found = 0; i <= ngroups && !found && *status == 0; ++i)
 	{
-	  sprintf(keyword,"GRPID%d",(int)ngroups);
+	  snprintf(keyword,FLEN_KEYWORD,"GRPID%d",(int)ngroups);
 	  *status = fits_read_key_lng(tmpfptr,keyword,&grpid,card,status);
 
 	  if(grpid == groupExtver)
@@ -1760,7 +1760,7 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 
 		  /* have to make sure the GRPLCn keyword matches too */
 
-		  sprintf(keyword,"GRPLC%d",(int)ngroups);
+		  snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",(int)ngroups);
 		  /* SPR 1738 */
 		  *status = fits_read_key_longstr(mfptr,keyword,&tgrplc,card,
 						  status);
@@ -1899,7 +1899,7 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 	{
 	  /* add the GRPIDn keyword only */
 
-	  sprintf(keyword,"GRPID%d",(int)ngroups);
+	  snprintf(keyword,FLEN_KEYWORD,"GRPID%d",(int)ngroups);
 	  fits_insert_key_lng(tmpfptr,keyword,groupExtver,
 			      "EXTVER of Group containing this HDU",status);
 	}
@@ -1907,11 +1907,11 @@ int ffgtam(fitsfile *gfptr,   /* FITS file pointer to grouping table HDU     */
 	{
 	  /* add the GRPIDn and GRPLCn keywords */
 
-	  sprintf(keyword,"GRPID%d",(int)ngroups);
+	  snprintf(keyword,FLEN_KEYWORD,"GRPID%d",(int)ngroups);
 	  fits_insert_key_lng(tmpfptr,keyword,groupExtver,
 			      "EXTVER of Group containing this HDU",status);
 
-	  sprintf(keyword,"GRPLC%d",(int)ngroups);
+	  snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",(int)ngroups);
 	  /* SPR 1738 */
 	  fits_insert_key_longstr(tmpfptr,keyword,groupFileName,
 			      "URL of file containing Group",status);
@@ -2034,7 +2034,7 @@ int ffgmng(fitsfile *mfptr,   /* FITS file pointer to member HDU            */
 
   for(index = 1, offset = 0, i = 1; i <= *ngroups && *status == 0; ++index)
     {	  
-      sprintf(keyword,"GRPID%d",index);
+      snprintf(keyword,FLEN_KEYWORD,"GRPID%d",index);
 
       /* try to read the next GRPIDn keyword in the series */
 
@@ -2063,13 +2063,13 @@ int ffgmng(fitsfile *mfptr,   /* FITS file pointer to member HDU            */
 
 	      /* update the GRPIDn keyword index */
 
-	      sprintf(newKeyword,"GRPID%d",newIndex);
+	      snprintf(newKeyword,FLEN_KEYWORD,"GRPID%d",newIndex);
 	      fits_modify_name(mfptr,keyword,newKeyword,status);
 
 	      /* If present, update the GRPLCn keyword index */
 
-	      sprintf(keyword,"GRPLC%d",index);
-	      sprintf(newKeyword,"GRPLC%d",newIndex);
+	      snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",index);
+	      snprintf(newKeyword,FLEN_KEYWORD,"GRPLC%d",newIndex);
 	      /* SPR 1738 */
 	      *status = fits_read_key_longstr(mfptr,keyword,&tkeyvalue,comment,
 					      status);
@@ -2250,7 +2250,7 @@ int ffgmop(fitsfile *gfptr,  /* FITS file pointer to grouping table          */
 	      if(fits_strcasecmp(uri,"URL") != 0)
 		{
 		  *status = FILE_NOT_OPENED;
-		  sprintf(card,
+		  snprintf(card,FLEN_CARD,
 		  "Cannot open member HDU file with URI type %s (ffgmop)",
 			  uri);
 		  ffpmsg(card);
@@ -3148,7 +3148,7 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 		{	  
 		  /* read the next GRPIDn keyword in the series */
 		  
-		  sprintf(keyword,"GRPID%d",index);
+		  snprintf(keyword,FLEN_KEYWORD,"GRPID%d",index);
 		  
 		  *status = fits_read_key_lng(mfptr,keyword,&grpid,card,
 					      status);
@@ -3177,7 +3177,7 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 			 HDU reside in different FITS files
 		      */
 		      
-		      sprintf(keyword,"GRPLC%d",index);
+		      snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",index);
 		      
 		      /* SPR 1738 */
 		      *status = fits_read_key_longstr(mfptr,keyword,&tgrplc,
@@ -3195,7 +3195,7 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 			     about it, so just continue
 			  */
 			  
-			  sprintf(card,"No GRPLC%d found for GRPID%d",
+			  snprintf(card,FLEN_CARD,"No GRPLC%d found for GRPID%d",
 				  index,index);
 			  ffpmsg(card);
 			  *status = 0;
@@ -3255,10 +3255,10 @@ int ffgmrm(fitsfile *gfptr,  /* FITS file pointer to group table             */
 
 	      if(found != 0)
 		{
-		  sprintf(keyword,"GRPID%d",found);
+		  snprintf(keyword,FLEN_KEYWORD,"GRPID%d",found);
 		  *status = fits_delete_key(mfptr,keyword,status);
 		  
-		  sprintf(keyword,"GRPLC%d",found);
+		  snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",found);
 		  *status = fits_delete_key(mfptr,keyword,status);
 		  
 		  *status = 0;
@@ -3792,7 +3792,7 @@ int ffgmul(fitsfile *mfptr,   /* pointer to the grouping table member HDU    */
 	  if(*status != 0)
 	    {
 	      *status = 0;
-	      sprintf(card,"Cannot open the %dth group table (ffgmul)",
+	      snprintf(card,FLEN_CARD,"Cannot open the %dth group table (ffgmul)",
 		      (int)index);
 	      ffpmsg(card);
 	      continue;
@@ -3806,7 +3806,7 @@ int ffgmul(fitsfile *mfptr,   /* pointer to the grouping table member HDU    */
 
 	  if(iomode != READWRITE)
 	    {
-	      sprintf(card,"The %dth group cannot be modified (ffgtam)",
+	      snprintf(card,FLEN_CARD,"The %dth group cannot be modified (ffgtam)",
 		      (int)index);
 	      ffpmsg(card);
 	      continue;
@@ -3882,10 +3882,10 @@ int ffgmul(fitsfile *mfptr,   /* pointer to the grouping table member HDU    */
 
 	  for(index = 1; index <= ngroups && *status == 0; ++index)
 	    {
-	      sprintf(keyword,"GRPID%d",(int)index);
+	      snprintf(keyword,FLEN_KEYWORD,"GRPID%d",(int)index);
 	      fits_delete_key(mfptr,keyword,status);
 	      
-	      sprintf(keyword,"GRPLC%d",(int)index);
+	      snprintf(keyword,FLEN_KEYWORD,"GRPLC%d",(int)index);
 	      fits_delete_key(mfptr,keyword,status);
 
 	      if(*status == KEY_NO_EXIST) *status = 0;
@@ -4590,7 +4590,7 @@ int ffgtcpr(fitsfile   *infptr,  /* input FITS file pointer                 */
 
       for(i = 1; i <= tfields; ++i)
 	{
-	  sprintf(keyword,"TTYPE%d",i);
+	  snprintf(keyword,FLEN_KEYWORD,"TTYPE%d",i);
 	  *status = fits_read_key_str(infptr,keyword,keyvalue,card,status);
 	  
 	  if(*status == KEY_NO_EXIST)

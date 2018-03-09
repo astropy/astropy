@@ -63,7 +63,7 @@ int ffpcll( fitsfile *fptr,  /* I - FITS file pointer                       */
 
       if (*status > 0)  /* test for error during previous write operation */
       {
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
            "Error writing element %.0f of input array of logicals (ffpcll).",
             (double) (next+1));
         ffpmsg(message);

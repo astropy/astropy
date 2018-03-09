@@ -34,8 +34,8 @@ SERVICES PROVIDED HEREUNDER."
 #ifndef _FITSIO_H
 #define _FITSIO_H
 
-#define CFITSIO_VERSION 3.41
-#define CFITSIO_MINOR 41
+#define CFITSIO_VERSION 3.43
+#define CFITSIO_MINOR 43
 #define CFITSIO_MAJOR 3
 #define CFITSIO_SONAME 5
 
@@ -1989,6 +1989,11 @@ int CFITS_API fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a, 
 
 int CFITS_API fits_compress_table  (fitsfile *infptr, fitsfile *outfptr, int *status);
 int CFITS_API fits_uncompress_table(fitsfile *infptr, fitsfile *outfptr, int *status);
+
+/* curl library wrapper routines (for https access) */
+int CFITS_API fits_init_https();
+int CFITS_API fits_cleanup_https();
+void CFITS_API fits_verbose_https(int flag);
 
 /*  The following exclusion if __CINT__ is defined is needed for ROOT */
 #ifndef __CINT__

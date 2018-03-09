@@ -32,6 +32,10 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Updated the bundled CFITSIO library to 3.430. This is to remedy a critical
+  security vulnerability that was identified by NASA. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7274]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
