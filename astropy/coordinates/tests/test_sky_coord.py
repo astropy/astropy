@@ -27,6 +27,8 @@ from ...utils import minversion, isiterable
 from ...utils.compat import NUMPY_LT_1_14
 from ...utils.exceptions import AstropyDeprecationWarning
 from ...units import allclose as quantity_allclose
+from ...io import fits
+from ...wcs import WCS
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -1422,3 +1424,56 @@ def test_user_friendly_pm_error():
                  pm_ra=100*u.mas/u.yr, pm_dec=10*u.mas/u.yr,
                  representation_type='cartesian')
     assert 'pm_ra_cosdec' not in str(e.value)
+
+
+def test_contained_by():
+    """
+    Test Skycoord.contained(wcs,image)
+    """
+
+    header = """
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =               1045.0 / Pixel coordinate of reference point
+CRPIX2  =               1001.0 / Pixel coordinate of reference point
+PC1_1   =    -0.00556448550786 / Coordinate transformation matrix element
+PC1_2   =   -0.001042120133257 / Coordinate transformation matrix element
+PC2_1   =    0.001181477028705 / Coordinate transformation matrix element
+PC2_2   =   -0.005590809742987 / Coordinate transformation matrix element
+CDELT1  =                  1.0 / [deg] Coordinate increment at reference point
+CDELT2  =                  1.0 / [deg] Coordinate increment at reference point
+CUNIT1  = 'deg'                / Units of coordinate increment and value
+CUNIT2  = 'deg'                / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / TAN (gnomonic) projection + SIP distortions
+CTYPE2  = 'DEC--TAN'           / TAN (gnomonic) projection + SIP distortions
+CRVAL1  =      250.34971683647 / [deg] Coordinate value at reference point
+CRVAL2  =      2.2808772582495 / [deg] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =      2.2808772582495 / [deg] Native latitude of celestial pole
+RADESYS = 'ICRS'               / Equatorial coordinate system
+MJD-OBS =      58612.339199259 / [d] MJD of observation matching DATE-OBS
+DATE-OBS= '2019-05-09T08:08:26.816Z' / ISO-8601 observation date matching MJD-OB
+NAXIS   =                    2 / NAXIS
+NAXIS1  =                 2136 / length of first array dimension
+NAXIS2  =                 2078 / length of second array dimension
+    """
+
+    header = fits.Header.fromstring(header.strip(),'\n')
+    test_wcs = WCS(header)
+
+    coord = SkyCoord(254,2,unit='deg')
+    assert coord.contained_by(test_wcs) == True
+
+    coord = SkyCoord(240,2,unit='deg')
+    assert coord.contained_by(test_wcs) == False
+
+    img = np.zeros((2136,2078))
+    coord = SkyCoord(250,2,unit='deg')
+    assert coord.contained_by(test_wcs, img) == True
+
+    coord = SkyCoord(240,2,unit='deg')
+    assert coord.contained_by(test_wcs, img) == False
+
+    ra = np.array([254.2, 254.1])
+    dec = np.array([2, 12.1])
+    coords = SkyCoord(ra, dec, unit='deg')
+    assert np.all(test_wcs.footprint_contains(coords) == np.array([True, False]))

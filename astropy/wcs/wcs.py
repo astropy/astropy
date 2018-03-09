@@ -57,8 +57,10 @@ except ImportError:
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
+
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin
+
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
@@ -3095,6 +3097,25 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         from ..visualization.wcsaxes import WCSAxes
         return WCSAxes, {'wcs': self}
+
+    def footprint_contains(self, coord, **kwargs):
+        """
+        Determines if a given SkyCoord is contained in the wcs footprint.
+
+        Parameters
+        ----------
+        coord : `~astropy.coordinates.SkyCoord`
+            The coordinate to check if it is within the wcs coordinate.
+        **kwargs :
+           Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`
+
+        Returns
+        -------
+        response : bool
+           True means the WCS footprint contains the coordinate, False means it does not.
+        """
+
+        return coord.contained_by(self, **kwargs)
 
 
 def __WCS_unpickle__(cls, dct, fits_data):
