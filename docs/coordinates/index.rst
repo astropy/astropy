@@ -254,12 +254,14 @@ also (optionally) query Google maps to get the height of the location. As with
 Google maps, this works with fully specified addresses, location names, city
 names, and etc.::
 
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +REMOTE_DATA +FLOAT_CMP
+.. doctest-skip::
+
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')
     <EarthLocation (-26726.98216371, -4997009.8604809, 3950271.16507911) m>
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
-    ...                          get_height=True)  # doctest: +REMOTE_DATA +FLOAT_CMP
+    ...                          get_height=True)
     <EarthLocation (-26727.6272786, -4997130.47437768, 3950367.15622108) m>
-    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> EarthLocation.of_address('Danbury, CT')
     <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
 .. note::
