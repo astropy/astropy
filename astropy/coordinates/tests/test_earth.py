@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-
 """Test initialization of angles not already covered by the API tests"""
 
 import pickle
@@ -288,21 +286,34 @@ def test_repr_latex():
 
 @pytest.mark.remote_data
 def test_of_address():
-    # no match
+    # just a location
+    try:
+        loc = EarthLocation.of_address("New York, NY")
+    except NameResolveError as e:
+        # Google map API limit might surface even here in Travis CI.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert np.allclose(loc.height.value, 0.)
+
+    # Put this one here as buffer to get around Google map API limit per sec.
+    # no match: This always raises NameResolveError
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
-    # just a location
-    loc = EarthLocation.of_address("New York, NY")
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert np.allclose(loc.height.value, 0.)
-
     # a location and height
-    loc = EarthLocation.of_address("New York, NY", get_height=True)
-    assert quantity_allclose(loc.lat, 40.7128*u.degree)
-    assert quantity_allclose(loc.lon, -74.0059*u.degree)
-    assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
+    try:
+        loc = EarthLocation.of_address("New York, NY", get_height=True)
+    except NameResolveError as e:
+        # Buffer above sometimes insufficient to get around API limit but
+        # we also do not want to drag things out with time.sleep(0.195),
+        # where 0.195 was empirically determined on some physical machine.
+        pytest.xfail(str(e))
+    else:
+        assert quantity_allclose(loc.lat, 40.7128*u.degree)
+        assert quantity_allclose(loc.lon, -74.0059*u.degree)
+        assert quantity_allclose(loc.height, 10.438659669*u.meter, atol=1.*u.cm)
 
 
 def test_geodetic_tuple():
