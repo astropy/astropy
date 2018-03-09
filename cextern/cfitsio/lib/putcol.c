@@ -1106,11 +1106,11 @@ int ffiter(int n_cols,
 	    type != TLONGLONG )
         {
 	    if (type < 0) {
-	      sprintf(message,
+	      snprintf(message,FLEN_ERRMSG,
               "Variable length array not allowed for output column number %d (ffiter)",
                     jj + 1);
 	    } else {
-            sprintf(message,
+            snprintf(message,FLEN_ERRMSG,
                    "Illegal datatype for column number %d: %d  (ffiter)",
                     jj + 1, cols[jj].datatype);
 	    }
@@ -1131,7 +1131,7 @@ int ffiter(int n_cols,
         {
             if (jtype != IMAGE_HDU)
             {
-                sprintf(message,
+                snprintf(message,FLEN_ERRMSG,
                 "File %d not positioned to an image extension (ffiter)",
                     jj + 1);
                 return(*status = NOT_IMAGE);
@@ -1148,7 +1148,7 @@ int ffiter(int n_cols,
         {
             if (jtype == IMAGE_HDU)
             {
-                sprintf(message,
+                snprintf(message,FLEN_ERRMSG,
                 "File %d not positioned to a table extension (ffiter)",
                     jj + 1);
                 return(*status = NOT_TABLE);
@@ -1160,7 +1160,7 @@ int ffiter(int n_cols,
                 if (ffgcno(cols[jj].fptr, CASEINSEN, cols[jj].colname,
                            &cols[jj].colnum, status) )
                 {
-                    sprintf(message,
+                    snprintf(message,FLEN_ERRMSG,
                       "Column '%s' not found for column number %d  (ffiter)",
                        cols[jj].colname, jj + 1);
                     ffpmsg(message);
@@ -1172,7 +1172,7 @@ int ffiter(int n_cols,
             if (cols[jj].colnum < 1 || 
                 cols[jj].colnum > ((cols[jj].fptr)->Fptr)->tfield)
             {
-                sprintf(message,
+                snprintf(message,FLEN_ERRMSG,
                   "Column %d has illegal table position number: %d  (ffiter)",
                     jj + 1, cols[jj].colnum);
                 ffpmsg(message);
@@ -1341,7 +1341,7 @@ int ffiter(int n_cols,
 	       negative type code value. */
 
               if (cols[jj].iotype == OutputCol) {
- 	        sprintf(message,
+ 	        snprintf(message,FLEN_ERRMSG,
                 "Variable length array not allowed for output column number %d (ffiter)",
                     jj + 1);
                 ffpmsg(message);
@@ -1709,7 +1709,7 @@ int ffiter(int n_cols,
           break;
 
          default:
-          sprintf(message,
+          snprintf(message,FLEN_ERRMSG,
                   "Column %d datatype currently not supported: %d:  (ffiter)",
                    jj + 1, cols[jj].datatype);
           ffpmsg(message);

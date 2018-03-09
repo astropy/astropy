@@ -1,4 +1,76 @@
                    Log of Changes Made to CFITSIO
+                   
+Version 3.43 - March 2018
+                   
+The NASA security team requires the following warning to all users of 
+CFITSIO:
+
+   =====
+   The CFITSIO open source software project contains vulnerabilities 
+   that could allow a remote, unauthenticated attacker to take control
+   of a server running the CFITSIO software.  These vulnerabilities 
+   affect all servers and products running the CFITSIO software.
+
+   The CFITSIO team has released software updates to address these 
+   vulnerabilities.  There are no workarounds to address these 
+   vulnerabilities.  In all cases, the CFITSIO team is recommending an 
+   immediate update to resolve the issues.
+   =====
+
+  - Fixed security vulnerabilities.   
+ 
+  - Calls to https driver functions in cfileio.c need to be macro-
+     protected by the HAVE_NET_SERVICES variable (as are the http and
+     ftp driver function calls).  Otherwise CMake builds on native
+     Windows will fail since drvrnet.o is left empty.
+                   
+   - Bug fix to ffmvec function.  Should be resetting a local colptr
+     variable after making a call to ffiblk (which can reallocate Ftpr->
+     tableptr).  Originally reported by Willem van Straten.
+     
+   - Ignore any attempted request to not quantize an image before
+     compressing it if the image has integer datatype pixels.
+     
+   - Improved error message construction throughout CFITSIO.
+                   
+Version 3.42 - August 2017 (Stand-alone release)
+                   
+   - added https support to the collection of drivers handled in cfileio.c
+     and drvrnet.c.  This also handles the case where http transfers are 
+     rerouted to https.  Note that this enhancement introduces a dependency
+     on the libcurl development package.  If this package is absent, CFITSIO
+     will still build but will not have https capability.
+                   
+   - made fix to imcomp_init_table function in imcompress.c.  It now writes
+     ZSIMPLE keyword only to a compressed image that will be placed in the
+     primary header.
+     
+   - fix made to fits_get_col_display_width for case of a vector column
+     of strings. 
+
+Version 3.42 - March 2017 (Ftools release only)
+
+   - in ftp_open_network and in ftp_file_exist, added code to repeatedly
+     attempt to make a ftp connection if the ftp server does not respond
+     to the first request. (some ftp servers don't appear to be 100% reliable).
+
+   - in drvrnet.c added many calls to 'fclose' to close unneeded files,
+     to avoid exceeding the maximum allowed number of files that can be 
+     open at once.
+     
+   - made substantial changes to the ftp_checkfile and http_checkfile routines
+     to streamline the process of checking for the existence of a .gz or .Z
+     compressed version of the file before opening the uncompressed file
+     (when using http or ftp to open the file). 
+
+   - modified the code in ftp_open_network to send "\r\n" as end-of-line
+     characters instead of just "\n".  Some ftp servers (in particular,
+     at heasarc.gsfc.nasa.gov) now require both characters, otherwise the
+     network connection simply hangs.
+     
+   - modified the http_open_network routine to handle HTTP 301 or 302 redirects
+     to a FTP url.  This is needed to support the new configuration on
+     the heasarc HTTP server which sometimes redirects http URLS to a ftp URL.
 
 Version 3.41 - November 2016
 

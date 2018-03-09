@@ -189,7 +189,7 @@ int ffgcll( fitsfile *fptr,   /* I - FITS file pointer                       */
       if (*status > 0)  /* test for error during previous read operation */
       {
 	dtemp = (double) next;
-        sprintf(message,
+        snprintf(message,FLEN_ERRMSG,
           "Error reading elements %.0f thruough %.0f of logical array (ffgcl).",
            dtemp+1., dtemp + ntodo);
         ffpmsg(message);
@@ -366,7 +366,7 @@ int ffgcxui(fitsfile *fptr,   /* I - FITS file pointer                       */
     int firstbyte, lastbyte, nbytes, rshift, lshift;
     unsigned short colbyte[5];
     tcolumn *colptr;
-    char message[81];
+    char message[FLEN_ERRMSG];
 
     if (*status > 0 || nrows == 0)
         return(*status);
@@ -374,21 +374,21 @@ int ffgcxui(fitsfile *fptr,   /* I - FITS file pointer                       */
     /*  check input parameters */
     if (firstrow < 1)
     {
-          sprintf(message, "Starting row number is less than 1: %ld (ffgcxui)",
+          snprintf(message,FLEN_ERRMSG, "Starting row number is less than 1: %ld (ffgcxui)",
                 (long) firstrow);
           ffpmsg(message);
           return(*status = BAD_ROW_NUM);
     }
     else if (input_first_bit < 1)
     {
-          sprintf(message, "Starting bit number is less than 1: %ld (ffgcxui)",
+          snprintf(message,FLEN_ERRMSG, "Starting bit number is less than 1: %ld (ffgcxui)",
                 input_first_bit);
           ffpmsg(message);
           return(*status = BAD_ELEM_NUM);
     }
     else if (input_nbits > 16)
     {
-          sprintf(message, "Number of bits to read is > 16: %d (ffgcxui)",
+          snprintf(message, FLEN_ERRMSG,"Number of bits to read is > 16: %d (ffgcxui)",
                 input_nbits);
           ffpmsg(message);
           return(*status = BAD_ELEM_NUM);
@@ -411,10 +411,10 @@ int ffgcxui(fitsfile *fptr,   /* I - FITS file pointer                       */
 
     if (colnum > (fptr->Fptr)->tfield)
     {
-      sprintf(message, "Specified column number is out of range: %d (ffgcxui)",
+      snprintf(message, FLEN_ERRMSG,"Specified column number is out of range: %d (ffgcxui)",
                 colnum);
         ffpmsg(message);
-        sprintf(message, "  There are %d columns in this table.",
+        snprintf(message, FLEN_ERRMSG,"  There are %d columns in this table.",
                 (fptr->Fptr)->tfield );
         ffpmsg(message);
 
@@ -503,7 +503,7 @@ int ffgcxuk(fitsfile *fptr,   /* I - FITS file pointer                       */
     int firstbyte, lastbyte, nbytes, rshift, lshift;
     unsigned int colbyte[5];
     tcolumn *colptr;
-    char message[81];
+    char message[FLEN_ERRMSG];
 
     if (*status > 0 || nrows == 0)
         return(*status);
@@ -511,21 +511,21 @@ int ffgcxuk(fitsfile *fptr,   /* I - FITS file pointer                       */
     /*  check input parameters */
     if (firstrow < 1)
     {
-          sprintf(message, "Starting row number is less than 1: %ld (ffgcxuk)",
+          snprintf(message, FLEN_ERRMSG,"Starting row number is less than 1: %ld (ffgcxuk)",
                 (long) firstrow);
           ffpmsg(message);
           return(*status = BAD_ROW_NUM);
     }
     else if (input_first_bit < 1)
     {
-          sprintf(message, "Starting bit number is less than 1: %ld (ffgcxuk)",
+          snprintf(message, FLEN_ERRMSG,"Starting bit number is less than 1: %ld (ffgcxuk)",
                 input_first_bit);
           ffpmsg(message);
           return(*status = BAD_ELEM_NUM);
     }
     else if (input_nbits > 32)
     {
-          sprintf(message, "Number of bits to read is > 32: %d (ffgcxuk)",
+          snprintf(message, FLEN_ERRMSG,"Number of bits to read is > 32: %d (ffgcxuk)",
                 input_nbits);
           ffpmsg(message);
           return(*status = BAD_ELEM_NUM);
@@ -548,10 +548,10 @@ int ffgcxuk(fitsfile *fptr,   /* I - FITS file pointer                       */
 
     if (colnum > (fptr->Fptr)->tfield)
     {
-      sprintf(message, "Specified column number is out of range: %d (ffgcxuk)",
+      snprintf(message, FLEN_ERRMSG,"Specified column number is out of range: %d (ffgcxuk)",
                 colnum);
         ffpmsg(message);
-        sprintf(message, "  There are %d columns in this table.",
+        snprintf(message, FLEN_ERRMSG,"  There are %d columns in this table.",
                 (fptr->Fptr)->tfield );
         ffpmsg(message);
 
