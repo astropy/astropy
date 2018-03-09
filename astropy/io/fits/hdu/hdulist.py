@@ -675,7 +675,10 @@ class HDUList(list, _Verify):
 
     def index_of(self, key):
         """
-        Get the index of an HDU from the `HDUList`.
+        Get the index of an HDU from the `HDUList` by key.
+
+        .. note:: To find index of an HDU in the `HDUList` by HDU object,
+           use `~list.index`.
 
         Parameters
         ----------
@@ -692,13 +695,21 @@ class HDUList(list, _Verify):
            but it's not impossible) the numeric index must be used to index
            the duplicate HDU.
 
+           An integer ``key`` indicates "extension number" or item's index
+           in the list.
+
         Returns
         -------
         index : int
            The index of the HDU in the `HDUList`.
         """
-
         if _is_int(key):
+            nhdus = len(self)
+            if key >= nhdus or key < -nhdus:
+                raise IndexError(
+                    'Integer extension index {:d} is out of range.'
+                    .format(key)
+                )
             return key
         elif isinstance(key, tuple):
             _key, _ver = key
@@ -708,8 +719,8 @@ class HDUList(list, _Verify):
 
         if not isinstance(_key, str):
             raise KeyError(
-                '{} indices must be integers, extension names as strings, '
-                'or (extname, version) tuples; got {}'
+                '{} keys must be integers, extension names as strings, '
+                'or (extname, version) tuples with string extname; got {}'
                 ''.format(self.__class__.__name__, _key))
 
         _key = (_key.strip()).upper()
@@ -744,17 +755,8 @@ class HDUList(list, _Verify):
         all HDUs.  Therefore using negative indices on HDULists is inherently
         inefficient.
         """
-
         index = self.index_of(key)
-
-        if index >= 0:
-            return index
-
-        if abs(index) > len(self):
-            raise IndexError(
-                'Extension {} is out of bound or not found.'.format(index))
-
-        return len(self) + index
+        return index if index >=0 else len(self) + index
 
     def readall(self):
         """
