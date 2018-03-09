@@ -27,6 +27,10 @@
 #  include <stdlib.h>
 #endif
 
+#if defined(_MSC_VER)
+  #define snprintf _snprintf
+#endif
+
 #ifndef local
 #  define local static
 #endif
