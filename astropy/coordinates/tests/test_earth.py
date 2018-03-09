@@ -298,7 +298,7 @@ def test_of_address():
         assert np.allclose(loc.height.value, 0.)
 
     # Put this one here as buffer to get around Google map API limit per sec.
-    # no match
+    # no match: This always raises NameResolveError
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
