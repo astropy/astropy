@@ -6,7 +6,6 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
-import math
 from collections import namedtuple
 
 import numpy as np
@@ -14,7 +13,7 @@ import numpy as np
 from . import angle_utilities as util
 from .. import units as u
 from ..utils import isiterable
-from ..utils.compat import NUMPY_LT_1_14_1
+from ..utils.compat import NUMPY_LT_1_14_1, NUMPY_LT_1_14_2
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -431,7 +430,7 @@ class Angle(u.SpecificTypeQuantity):
         if self.isscalar:
             return self.to_string(format=format)
 
-        if NUMPY_LT_1_14_1:
+        if NUMPY_LT_1_14_1 or not NUMPY_LT_1_14_2:
             def formatter(x):
                 return x.to_string(format=format)
         else:
