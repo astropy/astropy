@@ -180,7 +180,7 @@ def test_transforms(sc):
 def test_transforms_diff(sc):
     # note that arguably this *should* fail for the no-distance cases: 3D
     # information is necessary to truly solve this, hence the xfail
-    if sc.distance == 1:
+    if not sc.distance.unit.is_equivalent(u.m):
         pytest.xfail('Should fail for no-distance cases')
     else:
         trans = sc.transform_to(PrecessedGeocentric(equinox='B1975'))
