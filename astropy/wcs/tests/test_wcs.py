@@ -18,6 +18,7 @@ from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
+from ...coordinates import SkyCoord
 
 
 class TestMaps:
@@ -1099,7 +1100,6 @@ def test_keyedsip():
     assert w.sip.crpix[0] == 2048
     assert w.sip.crpix[1] == 1026
 
-
 def test_zero_size_input():
     with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
         w = wcs.WCS(f[0].header)
@@ -1130,3 +1130,46 @@ def test_scalar_inputs():
     result = wcsobj.all_pix2world([2], 1)
     assert_array_equal(result, [np.array([2.])])
     assert result[0].shape == (1,)
+
+def test_footprint_contains():
+    """
+    Test WCS.footprint_contains(skycoord)
+    """
+
+    header = """
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =               1045.0 / Pixel coordinate of reference point
+CRPIX2  =               1001.0 / Pixel coordinate of reference point
+PC1_1   =    -0.00556448550786 / Coordinate transformation matrix element
+PC1_2   =   -0.001042120133257 / Coordinate transformation matrix element
+PC2_1   =    0.001181477028705 / Coordinate transformation matrix element
+PC2_2   =   -0.005590809742987 / Coordinate transformation matrix element
+CDELT1  =                  1.0 / [deg] Coordinate increment at reference point
+CDELT2  =                  1.0 / [deg] Coordinate increment at reference point
+CUNIT1  = 'deg'                / Units of coordinate increment and value
+CUNIT2  = 'deg'                / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / TAN (gnomonic) projection + SIP distortions
+CTYPE2  = 'DEC--TAN'           / TAN (gnomonic) projection + SIP distortions
+CRVAL1  =      250.34971683647 / [deg] Coordinate value at reference point
+CRVAL2  =      2.2808772582495 / [deg] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =      2.2808772582495 / [deg] Native latitude of celestial pole
+RADESYS = 'ICRS'               / Equatorial coordinate system
+MJD-OBS =      58612.339199259 / [d] MJD of observation matching DATE-OBS
+DATE-OBS= '2019-05-09T08:08:26.816Z' / ISO-8601 observation date matching MJD-OB
+NAXIS   =                    2 / NAXIS
+NAXIS1  =                 2136 / length of first array dimension
+NAXIS2  =                 2078 / length of second array dimension
+    """
+
+    header = fits.Header.fromstring(header.strip(),'\n')
+    test_wcs = wcs.WCS(header)
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(254,2,unit='deg'))
+    assert hasCoord == True
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(240,2,unit='deg'))
+    assert hasCoord == False
+
+    hasCoord = test_wcs.footprint_contains(SkyCoord(24,2,unit='deg'))
+    assert hasCoord == False

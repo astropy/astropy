@@ -1345,6 +1345,45 @@ class SkyCoord(ShapedLikeNDArray):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
+
+    def contained_by(self, wcs, image=None, **kwargs):
+        """
+        Determines if the SkyCoord is contained in the given wcs footprint.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The coordinate to check if it is within the wcs coordinate.
+        image : array
+            Optional.  The image associated with the wcs object that the cooordinate
+            is being checked against. If not given the naxis keywords will be used
+            to determine if the coordinate falls within the wcs footprint.
+        **kwargs :
+           Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`
+
+        Returns
+        -------
+        response : bool
+           True means the WCS footprint contains the coordinate, False means it does not.
+        """
+
+        if image is not None:
+            ymax,xmax = image.shape
+        else:
+            xmax,ymax = wcs._naxis
+
+        import warnings
+        with warnings.catch_warnings():
+            #  Suppress warnings since they just mean we didn't find the coordinate
+            warnings.simplefilter("ignore")
+            try:
+                x,y = self.to_pixel(wcs, **kwargs)
+            except Exception:
+                return False
+
+        return (x < xmax) & (x > 0) & (y < ymax) & (y > 0)
+
+
     def radial_velocity_correction(self, kind='barycentric', obstime=None,
                                    location=None):
         """
