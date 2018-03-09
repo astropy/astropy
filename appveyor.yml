@@ -23,6 +23,8 @@ environment:
 
 matrix:
     fast_finish: true
+    allow_failures:
+      - PYTHON_VERSION: "2.7"
 
 platform:
     -x64
